@@ -11,29 +11,20 @@ use Greenlight\Attribute\Test;
 final class PassingTest
 {
     #[Before]
-    public function logBefore(): void
+    public function markBefore(): void
     {
-        $this->log('before');
+        echo "marker:before\n";
     }
 
     #[Test]
     public function passes(): void
     {
-        $this->log('test');
+        echo "marker:test\n";
     }
 
     #[After]
-    public function logAfter(): void
+    public function markAfter(): void
     {
-        $this->log('after');
-    }
-
-    private function log(string $entry): void
-    {
-        $file = \getenv('GREENLIGHT_FIXTURE_LOG');
-
-        if (\is_string($file) && $file !== '') {
-            \file_put_contents($file, $entry . "\n", \FILE_APPEND);
-        }
+        echo "marker:after\n";
     }
 }

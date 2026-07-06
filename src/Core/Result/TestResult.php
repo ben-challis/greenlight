@@ -10,8 +10,7 @@ use Greenlight\Core\Wire\WireSerializable;
 
 /**
  * Immutable result of one test. Plugins never mutate a result; they produce a
- * replacement via withOutcome(), which records provenance (RFC-001).
- * Captured output is added additively in Phase 6.
+ * replacement via withOutcome(), which records provenance.
  */
 final readonly class TestResult implements WireSerializable
 {

@@ -16,12 +16,8 @@ final class FailingTest
     }
 
     #[After]
-    public function logAfter(): void
+    public function markAfter(): void
     {
-        $file = \getenv('GREENLIGHT_FIXTURE_LOG');
-
-        if (\is_string($file) && $file !== '') {
-            \file_put_contents($file, "after\n", \FILE_APPEND);
-        }
+        echo "marker:after\n";
     }
 }

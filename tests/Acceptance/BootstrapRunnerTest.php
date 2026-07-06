@@ -5,40 +5,32 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Tests\Support\Check;
 
 /**
  * Runs the bootstrap runner as a subprocess against fixture suites and asserts
- * on observable behaviour only (exit codes, hook log), so a broken runner fails
- * loudly instead of reporting green.
+ * on observable behaviour only (exit code, output), so a broken runner fails
+ * loudly instead of reporting green. Fixtures print "marker:" lines to stdout;
+ * the sequence of those lines is the observable hook order.
  */
 final class BootstrapRunnerTest
 {
     #[Test]
     public function passingSuiteExitsZeroAndRunsHooksInOrder(): void
     {
-        [$exit, $log] = $this->runFixtureSuite('tests/Fixture/BootstrapPassing');
+        [$exit, $markers] = $this->runFixtureSuite('tests/Fixture/BootstrapPassing');
 
-        if ($exit !== 0) {
-            throw new \RuntimeException(\sprintf('Expected exit 0 for the passing suite, got %d.', $exit));
-        }
-
-        if ($log !== "before\ntest\nafter\n") {
-            throw new \RuntimeException(\sprintf('Unexpected hook order log: %s', \var_export($log, true)));
-        }
+        Check::same(0, $exit, 'passing suite exit code');
+        Check::same(['marker:before', 'marker:test', 'marker:after'], $markers, 'hook order');
     }
 
     #[Test]
     public function failingSuiteExitsOneAndStillRunsAfterHooks(): void
     {
-        [$exit, $log] = $this->runFixtureSuite('tests/Fixture/BootstrapFailing');
+        [$exit, $markers] = $this->runFixtureSuite('tests/Fixture/BootstrapFailing');
 
-        if ($exit !== 1) {
-            throw new \RuntimeException(\sprintf('Expected exit 1 for the failing suite, got %d.', $exit));
-        }
-
-        if ($log !== "after\n") {
-            throw new \RuntimeException('The #[After] hook must run even when the test fails.');
-        }
+        Check::same(1, $exit, 'failing suite exit code');
+        Check::same(['marker:after'], $markers, 'the #[After] hook runs even when the test fails');
     }
 
     #[Test]
@@ -46,43 +38,27 @@ final class BootstrapRunnerTest
     {
         [$exit] = $this->runFixtureSuite('tests/Fixture/BootstrapEmpty');
 
-        if ($exit !== 1) {
-            throw new \RuntimeException(\sprintf('A run that finds no tests must fail; got exit %d.', $exit));
-        }
+        Check::same(1, $exit, 'a run that finds no tests must fail');
     }
 
     /**
-     * @return array{int, string}
+     * @return array{int, list<string>}
      */
     private function runFixtureSuite(string $relativeDir): array
     {
         $root = \dirname(__DIR__, 2);
-        $logFile = \tempnam(\sys_get_temp_dir(), 'greenlight-fixture-');
 
-        if ($logFile === false) {
-            throw new \RuntimeException('Could not create a temporary log file.');
-        }
+        $command = \sprintf(
+            '%s %s %s 2>&1',
+            \escapeshellarg(\PHP_BINARY),
+            \escapeshellarg($root . '/tools/bootstrap-runner.php'),
+            \escapeshellarg($root . '/' . $relativeDir),
+        );
 
-        try {
-            $command = \sprintf(
-                'GREENLIGHT_FIXTURE_LOG=%s %s %s %s 2>&1',
-                \escapeshellarg($logFile),
-                \escapeshellarg(\PHP_BINARY),
-                \escapeshellarg($root . '/tools/bootstrap-runner.php'),
-                \escapeshellarg($root . '/' . $relativeDir),
-            );
+        \exec($command, $output, $exit);
 
-            \exec($command, $output, $exit);
+        $markers = \array_values(\array_filter($output, static fn(string $line): bool => \str_starts_with($line, 'marker:')));
 
-            $log = \file_get_contents($logFile);
-
-            if ($log === false) {
-                throw new \RuntimeException('Could not read the fixture log.');
-            }
-
-            return [$exit, $log];
-        } finally {
-            @\unlink($logFile);
-        }
+        return [$exit, $markers];
     }
 }

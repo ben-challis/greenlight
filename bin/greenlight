@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-// CLI entry point stub. Real command dispatch lands in Phase 2 (docs/plan/phase-02-config.md).
+// CLI entry point stub; real command dispatch replaces this.
 
 if (\PHP_VERSION_ID < 80400) {
     \fwrite(\STDERR, \sprintf(
@@ -52,7 +52,7 @@ if ($args === [] || \in_array('--help', $args, true) || \in_array('-h', $args, t
           -h, --help     Show this help
           -V, --version  Show the version
 
-        Commands are not implemented yet; see docs/plan/README.md for the build plan.
+        Commands are not implemented yet.
 
         HELP);
 

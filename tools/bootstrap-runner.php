@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Temporary bootstrap test runner, deleted in Phase 12 (docs/plan/phase-12-self-hosting.md).
+ * Temporary bootstrap test runner, deleted once Greenlight runs its own suite.
  *
  * Deliberately dumb: it discovers *Test.php files under the given directories,
  * maps them to classes by PSR-4 (tests/ => Greenlight\Tests\), instantiates each

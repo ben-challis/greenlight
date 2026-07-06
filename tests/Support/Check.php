@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 /**
- * Minimal assertion helper for the bootstrap era. Replaced by Greenlight\Expect
- * in Phase 4 (docs/plan/phase-04-expect.md); do not grow this beyond what the
- * bootstrap-phase tests need.
+ * Minimal assertion helper for the bootstrap era, replaced by Greenlight\Expect
+ * once that exists. Do not grow this beyond what the bootstrap-phase tests need.
  */
 final class Check
 {
@@ -57,7 +56,7 @@ final class Check
     }
 
     /**
-     * Encodes to JSON and back, simulating the wire (RFC-001).
+     * Encodes to JSON and back, simulating the wire.
      *
      * @param array<string, mixed> $payload
      *
