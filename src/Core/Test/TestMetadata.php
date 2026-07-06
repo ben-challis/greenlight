@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Core\Test;
 
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
@@ -14,9 +15,14 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class TestMetadata implements WireSerializable
 {
     /**
+     * @var list<non-empty-string>
+     */
+    public array $groups;
+
+    /**
      * @param non-empty-string $class
      * @param non-empty-string $method
-     * @param list<non-empty-string> $groups
+     * @param list<string> $groups
      * @param non-empty-string|null $skipReason
      * @param non-empty-string|null $skipUnlessCondition
      * @param positive-int|null $retryTimes
@@ -26,7 +32,7 @@ final readonly class TestMetadata implements WireSerializable
     public function __construct(
         public string $class,
         public string $method,
-        public array $groups = [],
+        array $groups = [],
         public ?string $skipReason = null,
         public ?string $skipUnlessCondition = null,
         public ?int $retryTimes = null,
@@ -34,7 +40,19 @@ final readonly class TestMetadata implements WireSerializable
         public ?float $timeoutSeconds = null,
         public bool $isolated = false,
         public ?string $dataSetProvider = null,
-    ) {}
+    ) {
+        $validated = [];
+
+        foreach ($groups as $group) {
+            if ($group === '') {
+                throw new \InvalidArgumentException('Group names cannot be empty.');
+            }
+
+            $validated[] = $group;
+        }
+
+        $this->groups = $validated;
+    }
 
     #[\Override]
     public function toWire(): array
@@ -56,22 +74,20 @@ final readonly class TestMetadata implements WireSerializable
     #[\Override]
     public static function fromWire(array $payload): static
     {
-        $groups = [];
+        $groups = Wire::listOfStrings($payload, 'groups');
 
-        foreach (Wire::listOfStrings($payload, 'groups') as $group) {
+        foreach ($groups as $group) {
             if ($group === '') {
-                continue;
+                throw InvalidWirePayload::wrongType('groups', 'a list of non-empty strings', $group);
             }
-
-            $groups[] = $group;
         }
 
         $skipReason = Wire::nullableString($payload, 'skipReason');
         $skipUnless = Wire::nullableString($payload, 'skipUnlessCondition');
         $retryOnlyOn = Wire::nullableString($payload, 'retryOnlyOn');
         $dataSetProvider = Wire::nullableString($payload, 'dataSetProvider');
-        $retryTimes = $payload['retryTimes'] ?? null;
-        $timeoutSeconds = $payload['timeoutSeconds'] ?? null;
+        $retryTimes = Wire::nullableInt($payload, 'retryTimes');
+        $timeoutSeconds = Wire::nullableFloat($payload, 'timeoutSeconds');
 
         return new self(
             Wire::nonEmptyString($payload, 'class'),
@@ -79,9 +95,9 @@ final readonly class TestMetadata implements WireSerializable
             $groups,
             $skipReason === '' ? null : $skipReason,
             $skipUnless === '' ? null : $skipUnless,
-            $retryTimes === null ? null : \max(1, Wire::int($payload, 'retryTimes')),
+            $retryTimes === null ? null : \max(1, $retryTimes),
             $retryOnlyOn === '' ? null : $retryOnlyOn,
-            $timeoutSeconds === null ? null : Wire::float($payload, 'timeoutSeconds'),
+            $timeoutSeconds,
             Wire::bool($payload, 'isolated'),
             $dataSetProvider === '' ? null : $dataSetProvider,
         );

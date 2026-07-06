@@ -63,6 +63,42 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      */
+    public static function nullableInt(array $payload, string $key): ?int
+    {
+        $value = self::require($payload, $key);
+
+        if ($value !== null && !\is_int($value)) {
+            throw InvalidWirePayload::wrongType($key, 'an integer or null', $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public static function nullableFloat(array $payload, string $key): ?float
+    {
+        $value = self::require($payload, $key);
+
+        if ($value === null) {
+            return null;
+        }
+
+        if (\is_int($value)) {
+            return (float) $value;
+        }
+
+        if (!\is_float($value)) {
+            throw InvalidWirePayload::wrongType($key, 'a float or null', $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
     public static function int(array $payload, string $key): int
     {
         $value = self::require($payload, $key);

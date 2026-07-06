@@ -40,7 +40,9 @@ Granularity: per-expectation events are rejected as too chatty for the wire. The
 
 ### Wire contract
 
-`WireSerializable` declares `toWire(): array<string, mixed>` and `fromWire(array $payload): static`. Payloads must survive a JSON round trip (floats may come back as ints; readers coerce). Reading is done through the `Greenlight\Core\Wire\Wire` helper, which throws `InvalidWirePayload` naming the offending key. A type-discriminator registry for envelope dispatch is deferred to Phase 5b (RFC-003); class names are sufficient until a cross-process envelope exists.
+`WireSerializable` declares `toWire(): array<string, mixed>` and `fromWire(array $payload): static`. Payloads must survive a JSON round trip (floats may come back as ints; readers coerce). Reading is done through the `Greenlight\Core\Wire\Wire` helper, which throws `InvalidWirePayload` naming the offending key; optional fields use nullable readers so a missing key is a protocol error, distinct from a present null. A type-discriminator registry for envelope dispatch is deferred to Phase 5b (RFC-003); class names are sufficient until a cross-process envelope exists.
+
+Strings originating in user code (exception messages, file paths, rendered values) can contain bytes that are not valid UTF-8, which JSON cannot encode. Such strings are scrubbed at capture via `Greenlight\Core\Wire\Utf8::scrub()` (invalid sequences become U+FFFD); `ThrowableDetail::fromThrowable()` does this today, and Phase 4's renderers must do the same before constructing `FailureDetail`. The RFC-003 codec additionally encodes with `JSON_INVALID_UTF8_SUBSTITUTE` as defence in depth.
 
 ## Consequences
 

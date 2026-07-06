@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Core\Result;
 
+use Greenlight\Core\Wire\Utf8;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
@@ -48,15 +49,15 @@ final readonly class ThrowableDetail implements WireSerializable
             $line = $frame['line'] ?? null;
             $where = \is_string($file) ? $file . ':' . ($line ?? 0) : '[internal]';
 
-            $frames[] = $call . ' at ' . $where;
+            $frames[] = Utf8::scrub($call . ' at ' . $where);
         }
 
-        $file = $throwable->getFile();
+        $file = Utf8::scrub($throwable->getFile());
         $line = $throwable->getLine();
 
         return new self(
             $throwable::class,
-            $throwable->getMessage(),
+            Utf8::scrub($throwable->getMessage()),
             $file !== '' ? $file : '[unknown]',
             \max(1, $line),
             $frames,

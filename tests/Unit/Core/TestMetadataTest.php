@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Tests\Support\Check;
 
 final class TestMetadataTest
@@ -50,5 +51,46 @@ final class TestMetadataTest
         Check::same(null, $restored->retryTimes, 'retry default');
         Check::same(null, $restored->timeoutSeconds, 'timeout default');
         Check::same(false, $restored->isolated, 'isolated default');
+    }
+
+    #[Test]
+    public function rejectsEmptyGroupNamesOnBothSides(): void
+    {
+        Check::throws(
+            static fn(): TestMetadata => new TestMetadata('App\FooTest', 'bar', ['ok', '']),
+            \InvalidArgumentException::class,
+            'constructor with empty group',
+        );
+
+        $payload = new TestMetadata('App\FooTest', 'bar', ['ok'])->toWire();
+        $payload['groups'] = ['ok', ''];
+
+        Check::throws(
+            static fn(): TestMetadata => TestMetadata::fromWire($payload),
+            InvalidWirePayload::class,
+            'wire payload with empty group',
+        );
+    }
+
+    #[Test]
+    public function missingOptionalKeysFailLoudly(): void
+    {
+        $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
+        unset($payload['retryTimes']);
+
+        Check::throws(
+            static fn(): TestMetadata => TestMetadata::fromWire($payload),
+            InvalidWirePayload::class,
+            'payload missing retryTimes',
+        );
+
+        $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
+        unset($payload['timeoutSeconds']);
+
+        Check::throws(
+            static fn(): TestMetadata => TestMetadata::fromWire($payload),
+            InvalidWirePayload::class,
+            'payload missing timeoutSeconds',
+        );
     }
 }
