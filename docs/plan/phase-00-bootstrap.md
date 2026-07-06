@@ -66,7 +66,7 @@ greenlight/
         "php": ">=8.4"
     },
     "require-dev": {
-        "deptrac/deptrac": "^3.0",
+        "deptrac/deptrac": "^4.6",
         "ergebnis/composer-normalize": "^2.47",
         "php-cs-fixer/shim": "^3.75",
         "php-parallel-lint/php-parallel-lint": "^1.4",

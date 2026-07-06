@@ -14,7 +14,7 @@
         "php": ">=8.4"
     },
     "require-dev": {
-        "deptrac/deptrac": "^3.0",
+        "deptrac/deptrac": "^4.0",
         "ergebnis/composer-normalize": "^2.47",
         "php-cs-fixer/shim": "^3.75",
         "php-parallel-lint/php-parallel-lint": "^1.4",
@@ -50,7 +50,7 @@
     "scripts": {
         "code-style:check": "php-cs-fixer fix --dry-run --diff --ansi",
         "code-style:fix": "php-cs-fixer fix --diff --ansi",
-        "deptrac": "deptrac analyse --no-progress",
+        "deptrac": "deptrac analyse --no-progress --report-uncovered --fail-on-uncovered",
         "lint": [
             "parallel-lint src tests tools bin"
         ],
