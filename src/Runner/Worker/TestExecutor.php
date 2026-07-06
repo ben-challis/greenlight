@@ -135,7 +135,15 @@ final readonly class TestExecutor
 
             if ($disposalFailures !== [] && !$cause instanceof \Throwable) {
                 $cause = $disposalFailures[0];
-                $error = ThrowableDetail::fromThrowable($disposalFailures[0]);
+
+                // A disposal that throws expectation failures is a verification
+                // step (auto-verified doubles); it fails the test with diffs
+                // rather than erroring it.
+                if ($cause instanceof ExpectationFailed) {
+                    $failures = $cause->details;
+                } else {
+                    $error = ThrowableDetail::fromThrowable($cause);
+                }
             }
         }
 

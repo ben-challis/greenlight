@@ -188,6 +188,23 @@ final class WorkerTest
     }
 
     #[Test]
+    public function disposalExpectationFailuresFailTheTestWithDiffs(): void
+    {
+        $registry = $this->registry();
+        $registry->register(new ServiceDefinition(
+            \Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe::class,
+            Scope::PerTest,
+            static fn(): \Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe => new \Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe(),
+        ));
+
+        [, $results] = $this->runFixture('VerifyOnDispose', $registry);
+
+        new Expect()->that($results[0]->outcome)->toBe(Outcome::Failed)
+            ->and($results[0]->error)->toBeNull()
+            ->and($results[0]->failures[0]->message)->toContain('2');
+    }
+
+    #[Test]
     public function bailStopsTheRunAfterTheThreshold(): void
     {
         [$summary] = $this->runFixture('Bail', stopAfterFailures: 1);

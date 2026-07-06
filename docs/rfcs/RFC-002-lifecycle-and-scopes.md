@@ -29,7 +29,7 @@ Four scopes, each a `Greenlight\Harness\Scope` enum case: `PerTest`, `PerClass`,
 3. `#[Before]` hooks run in declaration order. A throwing hook skips the test method but not the after-hooks.
 4. The test method runs, with data-set arguments when the plan entry carries a data-set key.
 5. `#[After]` hooks run in reverse declaration order, always, including after failures. A throwing after-hook errors the test unless it already failed.
-6. The per-test scope closes (doubles auto-verification hooks here in Phase 9); every reference to the test instance is dropped.
+6. The per-test scope closes (doubles auto-verification hooks here in Phase 9); every reference to the test instance is dropped. A disposal that throws `ExpectationFailed` is a verification step and fails the test with its failure details; any other disposal throwable errors the test.
 
 The per-class scope opens before a class's first test and closes after its last. A teardown failure at scope close is attributed to the test that triggered the close (the last test executed in that scope), turning a passed outcome into errored with the disposal throwable attached.
 
