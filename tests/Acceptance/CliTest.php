@@ -63,12 +63,26 @@ final class CliTest
     }
 
     #[Test]
-    public function listTestsIsRegisteredButNotImplemented(): void
+    public function listTestsPrintsDiscoveredTestIds(): void
     {
-        [$exit, $output] = $this->runCli(['list-tests']);
+        [$exit, $output] = $this->runCli(['list-tests'], 'tests/Fixture/ListTestsConfig');
 
-        Check::same(1, $exit, 'list-tests exit code');
-        $this->assertContainsLine($output, 'list-tests is not implemented yet.');
+        Check::same(0, $exit, 'list-tests exit code');
+        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
+        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
+    }
+
+    #[Test]
+    public function listTestsHonoursGroupFilters(): void
+    {
+        [$exit, $output] = $this->runCli(['list-tests', '--group=slow'], 'tests/Fixture/ListTestsConfig');
+
+        Check::same(0, $exit, 'filtered list-tests exit code');
+        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
+        Check::true(
+            !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one', $output, true),
+            'ungrouped test to be filtered out',
+        );
     }
 
     #[Test]

@@ -6,16 +6,19 @@ namespace Greenlight\Cli;
 
 use Greenlight\Config\ConfigFileNotFound;
 use Greenlight\Config\ConfigLoader;
+use Greenlight\Config\Configuration;
 use Greenlight\Config\InvalidConfigFile;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Discovery\Filter;
+use Greenlight\Discovery\TestDiscoverer;
 
 /**
  * The greenlight command. Parses arguments, loads greenlight.php, applies
- * command-line overrides, and dispatches to a command. The only command
- * with behaviour today is run, which prints the resolved plan; list-tests
- * is registered but not implemented.
+ * command-line overrides, and dispatches to a command: run prints the
+ * resolved plan, list-tests prints every discovered test id.
  *
- * Exit codes: 0 success, 1 failure (bad config, unimplemented command),
+ * Exit codes: 0 success, 1 failure (bad config, discovery error),
  * 64 usage error.
  *
  * @internal
@@ -36,7 +39,7 @@ final readonly class Application
 
         Commands:
           run          Load the configuration and print the resolved run plan (default)
-          list-tests   List discovered tests (not implemented yet)
+          list-tests   List every discovered test id, one per line
 
         Options:
           --config=<path>    Use this config file instead of ./greenlight.php
@@ -102,9 +105,7 @@ final readonly class Application
         }
 
         if ($command === 'list-tests') {
-            ($this->err)("list-tests is not implemented yet.\n");
-
-            return self::EXIT_FAILURE;
+            return $this->listTestsCommand($arguments, $workingDirectory);
         }
 
         ($this->err)(\sprintf("Unknown command '%s'. Run greenlight --help for the available commands.\n", $command));
@@ -115,38 +116,93 @@ final readonly class Application
     private function runCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         try {
-            $overrides = CliOverrides::fromArguments($arguments);
+            [$resolved, $configFile] = $this->loadConfiguration($arguments, $workingDirectory);
         } catch (CliError $error) {
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_USAGE;
-        }
-
-        $loader = new ConfigLoader();
-
-        try {
-            $configArgument = $arguments->value('config');
-
-            if ($configArgument !== null) {
-                $configFile = $this->absolutePath($configArgument, $workingDirectory);
-                $builder = $loader->loadFile($configFile);
-            } else {
-                $configFile = \rtrim($workingDirectory, '/') . '/' . ConfigLoader::FILE_NAME;
-                $builder = $loader->loadFromDirectory($workingDirectory);
-            }
-
-            $configuration = $builder->build();
         } catch (ConfigFileNotFound|InvalidConfigFile|InvalidConfiguration $error) {
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_FAILURE;
         }
 
-        $resolved = ConfigurationResolver::resolve($configuration, $overrides);
-
         ($this->out)(PlanFormatter::format($resolved, $configFile));
 
         return self::EXIT_OK;
+    }
+
+    private function listTestsCommand(ParsedArguments $arguments, string $workingDirectory): int
+    {
+        try {
+            [$resolved] = $this->loadConfiguration($arguments, $workingDirectory);
+        } catch (CliError $error) {
+            ($this->err)($error->getMessage() . "\n");
+
+            return self::EXIT_USAGE;
+        } catch (ConfigFileNotFound|InvalidConfigFile|InvalidConfiguration $error) {
+            ($this->err)($error->getMessage() . "\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        $directories = [];
+        $paths = $resolved->paths;
+
+        foreach ($resolved->suites as $suite) {
+            $paths = [...$paths, ...$suite->paths];
+        }
+
+        foreach ($paths as $path) {
+            $absolute = $this->absolutePath($path, $workingDirectory);
+
+            if ($absolute !== '' && !\in_array($absolute, $directories, true)) {
+                $directories[] = $absolute;
+            }
+        }
+
+        $filter = new Filter(includeGroups: $resolved->groups);
+
+        try {
+            $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed);
+        } catch (DiscoveryError $error) {
+            ($this->err)($error->getMessage() . "\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        foreach ($plan->entries as $entry) {
+            ($this->out)($entry->id . "\n");
+        }
+
+        ($this->out)(\sprintf("\n%d tests\n", \count($plan)));
+
+        return self::EXIT_OK;
+    }
+
+    /**
+     * @return array{Configuration, string}
+     *
+     * @throws CliError
+     * @throws ConfigFileNotFound
+     * @throws InvalidConfigFile
+     * @throws InvalidConfiguration
+     */
+    private function loadConfiguration(ParsedArguments $arguments, string $workingDirectory): array
+    {
+        $overrides = CliOverrides::fromArguments($arguments);
+        $loader = new ConfigLoader();
+        $configArgument = $arguments->value('config');
+
+        if ($configArgument !== null) {
+            $configFile = $this->absolutePath($configArgument, $workingDirectory);
+            $builder = $loader->loadFile($configFile);
+        } else {
+            $configFile = \rtrim($workingDirectory, '/') . '/' . ConfigLoader::FILE_NAME;
+            $builder = $loader->loadFromDirectory($workingDirectory);
+        }
+
+        return [ConfigurationResolver::resolve($builder->build(), $overrides), $configFile];
     }
 
     private function parser(): ArgumentParser
