@@ -1,0 +1,70 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// CLI entry point stub. Real command dispatch lands in Phase 2 (docs/plan/phase-02-config.md).
+
+if (\PHP_VERSION_ID < 80400) {
+    \fwrite(\STDERR, \sprintf(
+        "Greenlight requires PHP 8.4 or later; running under %s.\n",
+        \PHP_VERSION,
+    ));
+
+    exit(1);
+}
+
+$autoloaders = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloaderFound = false;
+
+foreach ($autoloaders as $autoloader) {
+    if (\is_file($autoloader)) {
+        require $autoloader;
+        $autoloaderFound = true;
+
+        break;
+    }
+}
+
+if (!$autoloaderFound) {
+    \fwrite(\STDERR, "Could not locate the Composer autoloader. Run \"composer install\" first.\n");
+
+    exit(1);
+}
+
+const GREENLIGHT_VERSION = 'dev-main';
+
+/** @var list<string> $args */
+$args = \array_slice($_SERVER['argv'] ?? [], 1);
+
+if ($args === [] || \in_array('--help', $args, true) || \in_array('-h', $args, true)) {
+    \fwrite(\STDOUT, <<<'HELP'
+        Greenlight (pre-alpha)
+
+        Usage:
+          greenlight [options]
+
+        Options:
+          -h, --help     Show this help
+          -V, --version  Show the version
+
+        Commands are not implemented yet; see docs/plan/README.md for the build plan.
+
+        HELP);
+
+    exit(0);
+}
+
+if (\in_array('--version', $args, true) || \in_array('-V', $args, true)) {
+    \fwrite(\STDOUT, 'Greenlight ' . GREENLIGHT_VERSION . "\n");
+
+    exit(0);
+}
+
+\fwrite(\STDERR, \sprintf("Unknown command or option: %s\n", $args[0]));
+
+exit(64);

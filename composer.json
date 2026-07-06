@@ -1,0 +1,71 @@
+{
+    "name": "greenlight/greenlight",
+    "description": "An opinionated testing framework for PHP 8.4+: typed attribute-driven tests, parallel-first execution with flat memory, lifecycle-safe test doubles.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "testing",
+        "test-framework",
+        "parallel",
+        "mocking",
+        "coverage"
+    ],
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "deptrac/deptrac": "^3.0",
+        "ergebnis/composer-normalize": "^2.47",
+        "php-cs-fixer/shim": "^3.75",
+        "php-parallel-lint/php-parallel-lint": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "rector/rector": "^2.0"
+    },
+    "suggest": {
+        "ext-pcntl": "Process control for the parallel runner (POSIX)",
+        "ext-pcov": "Fast line coverage collection",
+        "ext-sockets": "Orchestrator/worker communication"
+    },
+    "autoload": {
+        "psr-4": {
+            "Greenlight\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Greenlight\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/greenlight"
+    ],
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "code-style:check": "php-cs-fixer fix --dry-run --diff --ansi",
+        "code-style:fix": "php-cs-fixer fix --diff --ansi",
+        "deptrac": "deptrac analyse --no-progress",
+        "lint": [
+            "parallel-lint src tests tools bin"
+        ],
+        "phpstan": "phpstan analyse --ansi --no-progress --memory-limit=-1",
+        "rector:check": "rector --dry-run --ansi --no-progress-bar",
+        "rector:fix": "rector --ansi --no-progress-bar",
+        "static-analysis": [
+            "@composer validate --strict",
+            "@composer normalize --dry-run",
+            "@lint",
+            "@code-style:check",
+            "@phpstan",
+            "@rector:check",
+            "@deptrac"
+        ],
+        "tests": "php tools/bootstrap-runner.php tests/Unit tests/Acceptance"
+    }
+}

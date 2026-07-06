@@ -1,0 +1,11 @@
+# Composer (composer.lock is committed)
+/vendor/
+
+# Tooling caches
+.php-cs-fixer.cache
+
+# Greenlight runtime caches (timings, proxies)
+/.greenlight/
+
+# IDE
+.idea/

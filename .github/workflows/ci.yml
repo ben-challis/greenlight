@@ -1,0 +1,56 @@
+name: "CI"
+
+on:
+  pull_request: ~
+  merge_group: ~
+  push:
+    branches:
+      - "main"
+
+concurrency:
+  group: "ci-${{ github.head_ref || github.run_id }}"
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: "ubuntu-latest"
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.4"
+          - "8.5"
+        dependencies:
+          - "lowest"
+          - "highest"
+          - "locked"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "${{ matrix.php-version }}"
+          extensions: "pcov, pcntl, sockets"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Match Composer platform to runtime"
+        if: "matrix.dependencies != 'locked' && matrix.php-version == '8.5'"
+        run: "composer config platform.php 8.5.0"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "${{ matrix.dependencies }}"
+
+      - name: "Static analysis"
+        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
+        run: "composer static-analysis"
+
+      - name: "Tests"
+        run: "composer tests"
+
+# A `memory` job (the 10,000-test flat-memory gate) is added here in Phase 11.
+# See docs/plan/phase-11-memory.md.
