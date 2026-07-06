@@ -15,7 +15,7 @@ The orchestrator and its worker processes need a transport, a framing, a message
 
 ### Transport
 
-The orchestrator listens on a stream socket and hands each worker the address as an argument. On POSIX the socket is `unix://` under `.greenlight/run-<runId>/orchestrator.sock`; where unix sockets are unavailable the fallback is `tcp://127.0.0.1:<ephemeral>`. Workers are spawned with `proc_open` (no `pcntl` requirement), running the hidden internal command `bin/greenlight __worker <address> <workerId>`; that command is undocumented, `@internal`, and carries no compatibility promise.
+The orchestrator listens on a stream socket and hands each worker the address as an argument. On POSIX the socket is `unix://` under a per-run directory in the system temp dir (unix socket paths are limited to roughly a hundred bytes, which project-relative paths exceed); where unix sockets are unavailable the fallback is `tcp://127.0.0.1:<ephemeral>`. Workers are spawned with `proc_open` (no `pcntl` requirement), running the hidden internal command `bin/greenlight __worker <address> <workerId>`; that command is undocumented, `@internal`, and carries no compatibility promise.
 
 Worker stdin is unused. Worker stdout and stderr are piped to the orchestrator and surfaced as diagnostics, never parsed as protocol; test output escaping through them cannot corrupt frames because frames never travel over stdio.
 
