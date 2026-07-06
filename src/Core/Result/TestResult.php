@@ -11,6 +11,8 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Immutable result of one test. Plugins never mutate a result; they produce a
  * replacement via withOutcome(), which records provenance.
+ *
+ * @internal
  */
 final readonly class TestResult implements WireSerializable
 {

@@ -7,6 +7,9 @@ namespace Greenlight\Core\Event;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\Wire;
 
+/**
+ * @internal
+ */
 final readonly class TestStarted implements Event
 {
     public function __construct(

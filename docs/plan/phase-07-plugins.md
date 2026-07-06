@@ -25,7 +25,7 @@ The PRD section 8 API: typed subscriber interfaces, live `TestContext`, capabili
 
 ## Design decisions
 
-- Exactly which Phase 1 types are plugin-visible; everything else stays `@internal`.
+- Exactly which Phase 1 types are plugin-visible; everything else stays `@internal`. Promotion out of `@internal` happens only here (and is finalised in Phase 13); no other phase removes the annotation from anything.
 - Subscriber ordering: priority integer, stable sort, documented.
 - Error policy when a plugin throws: fail the test with plugin attribution, never swallow.
 

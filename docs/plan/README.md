@@ -13,7 +13,7 @@ This is the shared context for anyone (human or agent) executing a phase. Read t
 1. Zero runtime dependencies. `composer.json` `require` contains only `php: >=8.4`. If a phase needs a capability, we own the code.
 2. No PHPUnit anywhere, including tests of the framework itself. The suite runs under `tools/bootstrap-runner.php` until Phase 12 cuts over to `bin/greenlight`.
 3. PHPStan max with no baseline. deptrac violations fail CI with no baseline. Do not add either baseline file.
-4. Everything is `@internal` unless the plugin API RFC (RFC-004) lists it as public.
+4. `@internal` is the default on every class, interface, and enum, to keep the BC promise as small as possible. The only exceptions are the authoring surface users type against: the attributes, `Greenlight\Core\Condition`, the `Expect` facade (entry points and the exception type callers catch), and the `GreenlightConfig` builder surface loaded from `greenlight.php`. Everything else, including the result and event model, stays `@internal` until RFC-004 promotes the plugin-visible subset; that promotion is the deliberate act that creates the BC promise.
 5. Wire-crossing types use explicit `toWire()`/`fromWire()` arrays. PHP `serialize()` is banned.
 6. Prose style for all docs: no em-dashes, no bold-first bullets, plain sentences.
 7. Conventional commits, trunk-based on `main`.

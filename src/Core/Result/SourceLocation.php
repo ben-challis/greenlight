@@ -7,6 +7,9 @@ namespace Greenlight\Core\Result;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
+/**
+ * @internal
+ */
 final readonly class SourceLocation implements WireSerializable, \Stringable
 {
     /**

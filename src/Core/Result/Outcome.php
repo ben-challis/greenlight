@@ -7,6 +7,8 @@ namespace Greenlight\Core\Result;
 /**
  * Terminal outcome of a test. A retried test still ends in exactly one of
  * these; the attempt count lives on TestResult.
+ *
+ * @internal
  */
 enum Outcome: string
 {

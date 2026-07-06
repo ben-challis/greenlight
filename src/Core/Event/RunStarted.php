@@ -6,6 +6,9 @@ namespace Greenlight\Core\Event;
 
 use Greenlight\Core\Wire\Wire;
 
+/**
+ * @internal
+ */
 final readonly class RunStarted implements Event
 {
     /**

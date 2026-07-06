@@ -12,6 +12,8 @@ use Greenlight\Core\Wire\WireSerializable;
  * key when the method is expanded from a #[DataSet] provider. Identical across
  * processes and runs for the same code state; used for distribution, rerun
  * selection, and timing caches.
+ *
+ * @internal
  */
 final readonly class TestId implements WireSerializable, \Stringable
 {

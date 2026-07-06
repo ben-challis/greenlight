@@ -11,6 +11,8 @@ use Greenlight\Core\Wire\WireSerializable;
  * One expectation failure. Expected and actual are pre-rendered strings:
  * rendering happens worker-side, and live values never cross the process
  * boundary.
+ *
+ * @internal
  */
 final readonly class FailureDetail implements WireSerializable
 {

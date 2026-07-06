@@ -11,6 +11,8 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Everything discovery knows about a test method before execution, with
  * class-level attributes already merged in (method-level wins on conflict).
+ *
+ * @internal
  */
 final readonly class TestMetadata implements WireSerializable
 {
