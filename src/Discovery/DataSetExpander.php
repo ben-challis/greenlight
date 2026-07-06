@@ -26,6 +26,22 @@ final class DataSetExpander
      */
     public function keysFor(\ReflectionClass $class, string $testMethod, string $provider, float $budgetSeconds): array
     {
+        return \array_keys($this->expand($class, $testMethod, $provider, $budgetSeconds));
+    }
+
+    /**
+     * Derived key mapped to the yielded data set, in provider order. Both the
+     * planner and the worker resolve data sets through this method, so the
+     * derivation can never drift between plan and execution.
+     *
+     * @param \ReflectionClass<object> $class
+     * @param non-empty-string $testMethod
+     * @param non-empty-string $provider
+     *
+     * @return non-empty-array<string, mixed>
+     */
+    public function expand(\ReflectionClass $class, string $testMethod, string $provider, float $budgetSeconds): array
+    {
         $className = $class->getName();
 
         if (!$class->hasMethod($provider)) {
@@ -50,8 +66,7 @@ final class DataSetExpander
             throw DiscoveryError::providerNotIterable($className, $provider, \get_debug_type($result));
         }
 
-        $keys = [];
-        $seen = [];
+        $dataSets = [];
 
         try {
             foreach ($result as $key => $value) {
@@ -61,12 +76,11 @@ final class DataSetExpander
 
                 $derived = $this->deriveKey($className, $provider, $key);
 
-                if (isset($seen[$derived])) {
+                if (\array_key_exists($derived, $dataSets)) {
                     throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $derived);
                 }
 
-                $seen[$derived] = true;
-                $keys[] = $derived;
+                $dataSets[$derived] = $value;
             }
         } catch (DiscoveryError $e) {
             throw $e;
@@ -78,11 +92,11 @@ final class DataSetExpander
             throw DiscoveryError::providerTooSlow($className, $provider, $budgetSeconds);
         }
 
-        if ($keys === []) {
+        if ($dataSets === []) {
             throw DiscoveryError::providerYieldedNothing($className, $provider);
         }
 
-        return $keys;
+        return $dataSets;
     }
 
     private function deriveKey(string $class, string $provider, mixed $key): string

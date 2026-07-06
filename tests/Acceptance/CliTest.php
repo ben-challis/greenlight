@@ -16,7 +16,7 @@ final class CliTest
     #[Test]
     public function printsTheResolvedPlanForAFixtureConfig(): void
     {
-        [$exit, $output] = $this->runCli(['--config=tests/Fixture/ConfigFiles/Valid/greenlight.php']);
+        [$exit, $output] = $this->runCli(['--dry-run', '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php']);
 
         Check::same(0, $exit, 'exit code');
         $this->assertContainsLine($output, '  test paths: tests/Unit, tests/Acceptance');
@@ -33,6 +33,7 @@ final class CliTest
     public function commandLineFlagsOverrideTheConfigFile(): void
     {
         [$exit, $output] = $this->runCli([
+            '--dry-run',
             '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php',
             '--workers=2',
             '--bail=7',
@@ -60,6 +61,42 @@ final class CliTest
         [$versionExit, $versionOutput] = $this->runCli(['--version']);
         Check::same(0, $versionExit, 'version exit code');
         $this->assertContainsLine($versionOutput, 'Greenlight dev-main');
+    }
+
+    #[Test]
+    public function runExecutesAPassingSuiteAndExitsZero(): void
+    {
+        [$exit, $output] = $this->runCli(['run'], 'tests/Fixture/ListTestsConfig');
+
+        Check::same(0, $exit, 'passing run exit code');
+        Check::true(
+            \str_contains(\implode("\n", $output), '7 tests: 7 passed, 0 failed, 0 errored, 0 skipped'),
+            'summary line to report all seven fixture tests passing',
+        );
+    }
+
+    #[Test]
+    public function runExecutesAFailingSuiteAndExitsOne(): void
+    {
+        [$exit, $output] = $this->runCli(['run'], 'tests/Fixture/RunFailingConfig');
+
+        Check::same(1, $exit, 'failing run exit code');
+        Check::true(
+            \str_contains(\implode("\n", $output), 'intentional boom'),
+            'failure output to contain the exception message',
+        );
+    }
+
+    #[Test]
+    public function runWithNoTestsExitsOne(): void
+    {
+        [$exit, $output] = $this->runCli(['run'], 'tests/Fixture/RunEmptyConfig');
+
+        Check::same(1, $exit, 'empty run exit code');
+        Check::true(
+            \str_contains(\implode("\n", $output), 'No tests found'),
+            'empty run to explain itself',
+        );
     }
 
     #[Test]

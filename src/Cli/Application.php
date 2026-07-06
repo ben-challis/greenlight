@@ -12,6 +12,7 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Runner\InProcessRunner;
 
 /**
  * The greenlight command. Parses arguments, loads greenlight.php, applies
@@ -38,7 +39,7 @@ final readonly class Application
           greenlight [command] [options]
 
         Commands:
-          run          Load the configuration and print the resolved run plan (default)
+          run          Discover and execute tests (default)
           list-tests   List every discovered test id, one per line
 
         Options:
@@ -47,6 +48,7 @@ final readonly class Application
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Only run this group; repeatable
           --seed=<n>         Randomize class order with this seed
+          --dry-run          Print the resolved configuration without executing
           -h, --help         Show this help
           -V, --version      Show the version
 
@@ -127,9 +129,46 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        ($this->out)(PlanFormatter::format($resolved, $configFile));
+        if ($arguments->has('dry-run')) {
+            ($this->out)(PlanFormatter::format($resolved, $configFile));
 
-        return self::EXIT_OK;
+            return self::EXIT_OK;
+        }
+
+        $printer = new DotPrinter($this->out);
+
+        try {
+            $run = new InProcessRunner()->run($resolved, $this->directories($resolved, $workingDirectory), $printer);
+        } catch (DiscoveryError $error) {
+            ($this->err)($error->getMessage() . "\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        $printer->finish();
+
+        if ($run->plannedTests === 0) {
+            ($this->err)("No tests found. A misconfigured run must not pass.\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        $summary = $run->summary;
+        ($this->out)(\sprintf(
+            "\n%d tests: %d passed, %d failed, %d errored, %d skipped (%.3fs)\n",
+            $summary->total(),
+            $summary->passed,
+            $summary->failed,
+            $summary->errored,
+            $summary->skipped,
+            $run->durationSeconds,
+        ));
+
+        if ($run->seed !== null) {
+            ($this->out)(\sprintf("Randomized order with seed %d.\n", $run->seed));
+        }
+
+        return $summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
     }
 
     private function listTestsCommand(ParsedArguments $arguments, string $workingDirectory): int
@@ -146,25 +185,10 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        $directories = [];
-        $paths = $resolved->paths;
-
-        foreach ($resolved->suites as $suite) {
-            $paths = [...$paths, ...$suite->paths];
-        }
-
-        foreach ($paths as $path) {
-            $absolute = $this->absolutePath($path, $workingDirectory);
-
-            if ($absolute !== '' && !\in_array($absolute, $directories, true)) {
-                $directories[] = $absolute;
-            }
-        }
-
         $filter = new Filter(includeGroups: $resolved->groups);
 
         try {
-            $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed);
+            $plan = new TestDiscoverer()->discover($this->directories($resolved, $workingDirectory), $filter, $resolved->randomSeed);
         } catch (DiscoveryError $error) {
             ($this->err)($error->getMessage() . "\n");
 
@@ -205,6 +229,33 @@ final readonly class Application
         return [ConfigurationResolver::resolve($builder->build(), $overrides), $configFile];
     }
 
+    /**
+     * Configured top-level and suite paths, resolved against the working
+     * directory and deduplicated.
+     *
+     * @return list<non-empty-string>
+     */
+    private function directories(Configuration $configuration, string $workingDirectory): array
+    {
+        $paths = $configuration->paths;
+
+        foreach ($configuration->suites as $suite) {
+            $paths = [...$paths, ...$suite->paths];
+        }
+
+        $directories = [];
+
+        foreach ($paths as $path) {
+            $absolute = $this->absolutePath($path, $workingDirectory);
+
+            if ($absolute !== '' && !\in_array($absolute, $directories, true)) {
+                $directories[] = $absolute;
+            }
+        }
+
+        return $directories;
+    }
+
     private function parser(): ArgumentParser
     {
         return new ArgumentParser([
@@ -213,6 +264,7 @@ final readonly class Application
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('seed', OptionValue::Required),
+            new OptionSpec('dry-run'),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),
         ]);
