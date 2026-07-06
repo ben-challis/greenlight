@@ -32,6 +32,10 @@ final class SocketChannel
      */
     public function send(Message $message): void
     {
+        if (!\is_resource($this->stream)) {
+            throw ProtocolError::malformedFrame('the channel is closed');
+        }
+
         $bytes = $this->codec->encode(MessageRegistry::envelope($message));
         $remaining = \strlen($bytes);
 
@@ -101,6 +105,12 @@ final class SocketChannel
             return null;
         }
 
+        if (!\is_resource($this->stream)) {
+            $this->eof = true;
+
+            return null;
+        }
+
         \stream_set_blocking($this->stream, false);
         $bytes = @\fread($this->stream, 65536);
 
@@ -134,6 +144,10 @@ final class SocketChannel
 
     public function close(): void
     {
-        @\fclose($this->stream);
+        $this->eof = true;
+
+        if (\is_resource($this->stream)) {
+            @\fclose($this->stream);
+        }
     }
 }

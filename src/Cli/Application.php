@@ -11,7 +11,10 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
+use Greenlight\Runner\ParallelRunner;
+use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
@@ -78,7 +81,7 @@ final readonly class Application
     /**
      * @param list<string> $argv the arguments after the script name
      */
-    public function run(array $argv, string $workingDirectory): int
+    public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
         // Internal worker entry, spawned by the orchestrator. Bypasses the
         // normal parser; undocumented and carries no compatibility promise.
@@ -115,7 +118,7 @@ final readonly class Application
         $command = $arguments->command ?? 'run';
 
         if ($command === 'run') {
-            return $this->runCommand($arguments, $workingDirectory);
+            return $this->runCommand($arguments, $workingDirectory, $binPath);
         }
 
         if ($command === 'list-tests') {
@@ -127,7 +130,7 @@ final readonly class Application
         return self::EXIT_USAGE;
     }
 
-    private function runCommand(ParsedArguments $arguments, string $workingDirectory): int
+    private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
     {
         try {
             [$resolved, $configFile] = $this->loadConfiguration($arguments, $workingDirectory);
@@ -148,10 +151,17 @@ final readonly class Application
         }
 
         $printer = new DotPrinter($this->out);
+        $workers = $resolved->workers->fixed ?? CpuCores::count();
+        $realBin = $binPath === null ? false : \realpath($binPath);
 
         try {
-            $run = new InProcessRunner()->run($resolved, $this->directories($resolved, $workingDirectory), $printer);
-        } catch (DiscoveryError $error) {
+            if ($workers === 1 || $realBin === false) {
+                $run = new InProcessRunner()->run($resolved, $this->directories($resolved, $workingDirectory), $printer);
+            } else {
+                $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $printer, $workers);
+            }
+        } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_FAILURE;

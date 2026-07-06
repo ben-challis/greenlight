@@ -51,4 +51,4 @@ foreach (\array_slice($_SERVER['argv'] ?? [], 1) as $argument) {
     }
 }
 
-exit(\Greenlight\Cli\Application::forStreams()->run($arguments, $workingDirectory));
+exit(\Greenlight\Cli\Application::forStreams()->run($arguments, $workingDirectory, __FILE__));
