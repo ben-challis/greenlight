@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
@@ -69,6 +70,7 @@ final readonly class InProcessRunner
     {
         return new HarnessRegistry([
             new ServiceDefinition(Expect::class, Scope::PerTest, static fn(): Expect => new Expect()),
+            new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
         ]);
     }
 }

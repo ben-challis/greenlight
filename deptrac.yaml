@@ -61,7 +61,7 @@ deptrac:
     Expect: [Core]
     Capture: [Core]
     Harness: [Core]
-    Doubles: [Core]
+    Doubles: [Core, Expect, Harness]
     Coverage: [Core]
     Plugin: [Core, Harness]
     Reporting: [Core]
