@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
@@ -14,6 +15,7 @@ use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
@@ -217,6 +219,43 @@ final class WorkerTest
     }
 
     #[Test]
+    public function testCountBudgetStopsTheWorkerAndReportsTheRemainder(): void
+    {
+        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $sink = new CollectingEventSink();
+
+        $outcome = new Worker($this->registry())->run(
+            $plan,
+            $sink,
+            budget: new WorkerBudget(maxTests: 1),
+        );
+
+        new Expect()->that($outcome->recycleReason)->toBe(RecycleReason::TestCount)
+            ->and($outcome->summary->total())->toBe(1)
+            ->and(\count($outcome->remaining))->toBe(2)
+            ->and((string) $outcome->remaining[0])->toContain('AaTest::wouldPass');
+    }
+
+    #[Test]
+    public function drainRequestStopsBetweenTests(): void
+    {
+        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $sink = new CollectingEventSink();
+
+        $outcome = new Worker($this->registry())->run(
+            $plan,
+            $sink,
+            drainRequested: static fn(): bool => true,
+        );
+
+        new Expect()->that($outcome->drained)->toBeTrue()
+            ->and($outcome->summary->total())->toBe(1)
+            ->and($outcome->recycleReason)->toBeNull();
+    }
+
+    #[Test]
     public function eventsBracketClassesAndTests(): void
     {
         $sink = new CollectingEventSink();
@@ -243,9 +282,9 @@ final class WorkerTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink ??= new CollectingEventSink();
 
-        $summary = new Worker($registry ?? $this->registry())->run($plan, $sink, $stopAfterFailures);
+        $outcome = new Worker($registry ?? $this->registry())->run($plan, $sink, $stopAfterFailures);
 
-        return [$summary, $sink->results()];
+        return [$outcome->summary, $sink->results()];
     }
 
     private function registry(): HarnessRegistry

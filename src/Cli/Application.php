@@ -12,6 +12,7 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Runner\InProcessRunner;
+use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
  * The greenlight command. Parses arguments, loads greenlight.php, applies
@@ -79,6 +80,18 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory): int
     {
+        // Internal worker entry, spawned by the orchestrator. Bypasses the
+        // normal parser; undocumented and carries no compatibility promise.
+        if (($argv[0] ?? null) === '__worker') {
+            if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
+                ($this->err)("__worker requires <address> <workerId> <token>.\n");
+
+                return self::EXIT_USAGE;
+            }
+
+            return new WorkerProcess()->run($argv[1], $argv[2], $argv[3]);
+        }
+
         try {
             $arguments = $this->parser()->parse($argv);
         } catch (CliError $error) {

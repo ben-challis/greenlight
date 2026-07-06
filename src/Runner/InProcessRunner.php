@@ -11,11 +11,6 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
-use Greenlight\Harness\Scope;
-use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\Worker;
 
@@ -48,7 +43,9 @@ final readonly class InProcessRunner
 
         $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
 
-        $summary = new Worker($this->defaultRegistry())->run($plan, $sink, $configuration->stopAfterFailures);
+        $summary = new Worker(DefaultServices::registry())
+            ->run($plan, $sink, $configuration->stopAfterFailures)
+            ->summary;
 
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
@@ -64,13 +61,5 @@ final readonly class InProcessRunner
         $filter = new Filter(includeGroups: $configuration->groups);
 
         return new TestDiscoverer()->discover($directories, $filter, $seed);
-    }
-
-    private function defaultRegistry(): HarnessRegistry
-    {
-        return new HarnessRegistry([
-            new ServiceDefinition(Expect::class, Scope::PerTest, static fn(): Expect => new Expect()),
-            new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
-        ]);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
+use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -12,7 +13,9 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\PlanEntry;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 
@@ -22,6 +25,10 @@ use Greenlight\Harness\HarnessScopes;
  * teardown failure is attributed to the test that triggered the close: the
  * last test executed in that class.
  *
+ * Stops early when the failure threshold is hit, when the recycling budget
+ * is exhausted (checked after each test), or when a drain is requested
+ * between tests; unexecuted entries are reported back in plan order.
+ *
  * @internal
  */
 final readonly class Worker
@@ -30,15 +37,29 @@ final readonly class Worker
         private HarnessRegistry $registry,
     ) {}
 
-    public function run(ExecutionPlan $plan, EventSink $sink, ?int $stopAfterFailures = null): ResultSummary
-    {
+    /**
+     * @param \Closure(): bool|null $drainRequested polled between tests
+     */
+    public function run(
+        ExecutionPlan $plan,
+        EventSink $sink,
+        ?int $stopAfterFailures = null,
+        ?WorkerBudget $budget = null,
+        ?\Closure $drainRequested = null,
+    ): WorkerRunOutcome {
         $scopes = new HarnessScopes($this->registry);
         $summary = new ResultSummary();
+        $executed = 0;
+        $recycleReason = null;
+        $drained = false;
         $stopped = false;
+        $remaining = [];
 
         foreach ($plan->entriesByClass() as $class => $entries) {
             if ($stopped) {
-                break;
+                $remaining = [...$remaining, ...\array_map(static fn(PlanEntry $entry): TestId => $entry->id, $entries)];
+
+                continue;
             }
 
             $sink->emit(new TestClassStarted($class, \microtime(true)));
@@ -70,13 +91,32 @@ final readonly class Worker
                 }
 
                 $summary = $summary->add($result->outcome);
+                ++$executed;
                 $sink->emit(new TestFinished($result, \microtime(true)));
 
-                if ($stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures) {
+                $stopReached = match (true) {
+                    $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
+                    $budget instanceof WorkerBudget && $budget->exhaustedByCount($executed) => 'count',
+                    $budget instanceof WorkerBudget && $budget->exhaustedByMemory() => 'memory',
+                    $drainRequested instanceof \Closure && $drainRequested() => 'drain',
+                    default => null,
+                };
+
+                if ($stopReached !== null) {
                     $stopped = true;
+                    $recycleReason = match ($stopReached) {
+                        'count' => RecycleReason::TestCount,
+                        'memory' => RecycleReason::Memory,
+                        default => null,
+                    };
+                    $drained = $stopReached === 'drain' || $stopReached === 'bail';
 
                     if ($index !== $lastIndex) {
                         $scopes->closeClass();
+                        $remaining = \array_map(
+                            static fn(PlanEntry $unexecuted): TestId => $unexecuted->id,
+                            \array_slice($entries, $index + 1),
+                        );
                     }
 
                     break;
@@ -88,7 +128,7 @@ final readonly class Worker
 
         $scopes->closeRun();
 
-        return $summary;
+        return new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained);
     }
 
     /**
