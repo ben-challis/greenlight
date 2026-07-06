@@ -16,7 +16,7 @@ Static discovery of test classes and methods into an execution plan, with zero t
 - Classmap-based class enumeration honouring configured paths and suites.
 - Reflection-based attribute scan.
 - Data-set expansion: invoke static providers at plan time in the orchestrator. Providers are the one thing discovery executes; they must be pure, and this is documented and enforced with a time budget per provider.
-- Filter engine (group/class/method/path), used by CLI flags and later by watch mode.
+- Filter engine (group/class/method/path), used by CLI flags and later by watch mode (Phase 12b).
 - Deterministic plan ordering with seeded class shuffle.
 
 ## Deliverables

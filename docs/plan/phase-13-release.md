@@ -9,7 +9,7 @@
 
 ## Goals
 
-v1.0: documentation a newcomer can adopt from, the plugin API's semver promise, release mechanics.
+v1.0: documentation a newcomer can adopt from, the plugin API's semver promise, release mechanics. Watch mode, which the PRD section 15 roadmap lists in the same milestone, is delivered by [phase-12b-watch.md](phase-12b-watch.md) and is not in scope here beyond documenting it.
 
 ## Key tasks
 

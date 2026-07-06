@@ -36,6 +36,7 @@ This is the shared context for anyone (human or agent) executing a phase. Read t
 | 10 Coverage | [phase-10-coverage.md](phase-10-coverage.md) | track G | RFC-003 |
 | 11 Memory gates | [phase-11-memory.md](phase-11-memory.md) | convergence | 5b, 9 |
 | 12 Self-hosting cutover | [phase-12-self-hosting.md](phase-12-self-hosting.md) | integration | 4, 5b, 6, 8 |
+| 12b Watch mode | [phase-12b-watch.md](phase-12b-watch.md) | integration | Phase 12 (Phase 10 additionally for coverage-based affected-test selection) |
 | 13 Docs + GA + v1.0 | [phase-13-release.md](phase-13-release.md) | integration | all |
 
 Execution order:
@@ -55,6 +56,7 @@ Phase 5b (orchestrator + wire, RFC-003)      spine
 Phase 7 (plugin API, RFC-004)                spine
 Phase 11 (memory gates)                      convergence
 Phase 12 (self-hosting cutover)              integration
+Phase 12b (watch mode)                       integration
 Phase 13 (docs + GA + v1.0)                  integration
 ```
 

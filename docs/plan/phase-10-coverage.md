@@ -18,7 +18,7 @@ pcov and Xdebug drivers, per-worker collection with incremental orchestrator mer
 - Merge on the orchestrator as results stream, avoiding an end-of-run spike.
 - The five exporters.
 - The `coverage:diff` command.
-- Opt-in per-test coverage mapping.
+- Opt-in per-test coverage mapping, consumed by watch mode's affected-test selection in Phase 12b.
 
 ## Deliverables
 
