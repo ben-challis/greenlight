@@ -12,6 +12,7 @@ return (new PhpCsFixer\Config())
         '@PER-CS2.0' => true,
         '@PER-CS2.0:risky' => true,
         'declare_strict_types' => true,
+        'fully_qualified_strict_types' => ['import_symbols' => true],
         'global_namespace_import' => ['import_classes' => false, 'import_constants' => false, 'import_functions' => false],
         'no_unused_imports' => true,
         'ordered_imports' => ['imports_order' => ['class', 'function', 'const'], 'sort_algorithm' => 'alpha'],

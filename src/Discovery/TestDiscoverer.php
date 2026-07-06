@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 use Greenlight\Core\Test\TestId;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 
 /**
  * Static test discovery. Scans directories for *Test.php files, resolves
@@ -82,7 +84,7 @@ final readonly class TestDiscoverer
      */
     private function shuffled(array $classes, int $seed): array
     {
-        $randomizer = new \Random\Randomizer(new \Random\Engine\Mt19937($seed));
+        $randomizer = new Randomizer(new Mt19937($seed));
 
         for ($i = \count($classes) - 1; $i > 0; --$i) {
             $j = $randomizer->getInt(0, $i);
