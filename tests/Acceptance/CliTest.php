@@ -141,7 +141,7 @@ final class CliTest
 
         Check::same(64, $exit, 'exit code for an unknown option');
         Check::true(
-            \str_contains(\implode("\n", $output), "Unknown option '--frobnicate'"),
+            \str_contains(\implode("\n", $output), 'Unknown option "--frobnicate"'),
             'the error to name the unknown option',
         );
     }

@@ -61,13 +61,13 @@ final readonly class CliOverrides
             $raw = $arguments->value('seed') ?? '';
 
             if (\preg_match('/^\d+$/', $raw) !== 1) {
-                throw new CliError(\sprintf("--seed must be a non-negative integer, got '%s'.", $raw));
+                throw new CliError(\sprintf('--seed must be a non-negative integer, got "%s".', $raw));
             }
 
             $parsed = (int) $raw;
 
             if ($parsed < 0) {
-                throw new CliError(\sprintf("--seed must be a non-negative integer, got '%s'.", $raw));
+                throw new CliError(\sprintf('--seed must be a non-negative integer, got "%s".', $raw));
             }
 
             $seed = $parsed;
@@ -84,7 +84,7 @@ final readonly class CliOverrides
         $value = \preg_match('/^\d+$/', $raw) === 1 ? (int) $raw : 0;
 
         if ($value < 1) {
-            throw new CliError(\sprintf("%s must be a positive integer, got '%s'.", $flag, $raw));
+            throw new CliError(\sprintf('%s must be a positive integer, got "%s".', $flag, $raw));
         }
 
         return $value;

@@ -99,7 +99,7 @@ final class GreenlightConfig
         }
 
         if (isset($this->suites[$name])) {
-            throw new InvalidConfiguration(\sprintf("Suite '%s' is declared twice.", $name));
+            throw new InvalidConfiguration(\sprintf('Suite "%s" is declared twice.', $name));
         }
 
         $builder = new SuiteBuilder($name);
@@ -184,7 +184,7 @@ final class GreenlightConfig
         }
 
         throw new InvalidConfiguration(\sprintf(
-            "Worker count must be a positive integer or 'auto', got '%s'.",
+            'Worker count must be a positive integer or "auto", got "%s".',
             $count,
         ));
     }

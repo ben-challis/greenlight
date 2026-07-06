@@ -14,6 +14,6 @@ final class CliError extends \RuntimeException
 {
     public static function unknownOption(string $option): self
     {
-        return new self(\sprintf("Unknown option '%s'. Run greenlight --help for the available options.", $option));
+        return new self(\sprintf('Unknown option "%s". Run greenlight --help for the available options.', $option));
     }
 }

@@ -25,7 +25,7 @@ final class MemorySize
 
         if (\preg_match('/^(\d+)\s*([KMGkmg])?[Bb]?$/', $trimmed, $matches) !== 1) {
             throw new InvalidConfiguration(\sprintf(
-                "Invalid memory size '%s'. Use a positive byte count or a K, M, or G suffix, for example '256M'.",
+                'Invalid memory size "%s". Use a positive byte count or a K, M, or G suffix, for example "256M".',
                 $value,
             ));
         }
@@ -34,7 +34,7 @@ final class MemorySize
 
         if ($number < 1) {
             throw new InvalidConfiguration(\sprintf(
-                "Invalid memory size '%s'. The amount must be at least 1.",
+                'Invalid memory size "%s". The amount must be at least 1.',
                 $value,
             ));
         }
@@ -48,7 +48,7 @@ final class MemorySize
 
         if ($number > \intdiv(\PHP_INT_MAX, $multiplier)) {
             throw new InvalidConfiguration(\sprintf(
-                "Invalid memory size '%s'. The value does not fit in an integer byte count.",
+                'Invalid memory size "%s". The value does not fit in an integer byte count.',
                 $value,
             ));
         }

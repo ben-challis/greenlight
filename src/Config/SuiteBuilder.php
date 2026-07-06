@@ -30,7 +30,7 @@ final class SuiteBuilder
     {
         foreach ($paths as $path) {
             if ($path === '') {
-                throw new InvalidConfiguration(\sprintf("Suite '%s' was given an empty path.", $this->name));
+                throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $this->name));
             }
 
             $this->paths[] = $path;
@@ -43,7 +43,7 @@ final class SuiteBuilder
     {
         foreach ($tags as $tag) {
             if ($tag === '') {
-                throw new InvalidConfiguration(\sprintf("Suite '%s' was given an empty tag.", $this->name));
+                throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty tag.', $this->name));
             }
 
             $this->tags[] = $tag;
@@ -59,7 +59,7 @@ final class SuiteBuilder
     {
         if ($this->paths === []) {
             throw new InvalidConfiguration(\sprintf(
-                "Suite '%s' has no paths. Call in() with at least one directory inside its configurator.",
+                'Suite "%s" has no paths. Call in() with at least one directory inside its configurator.',
                 $this->name,
             ));
         }

@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Config\ConfigFileNotFound;
+use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
-use Greenlight\Config\InvalidConfigFile;
 use Greenlight\Tests\Support\Check;
 
 final class ConfigLoaderTest
@@ -32,7 +31,7 @@ final class ConfigLoaderTest
     {
         try {
             new ConfigLoader()->loadFromDirectory(self::fixtureDir('Empty'));
-        } catch (ConfigFileNotFound $error) {
+        } catch (ConfigFileError $error) {
             Check::true(
                 \str_contains($error->getMessage(), 'greenlight.php'),
                 'the error to name the expected file',
@@ -45,7 +44,7 @@ final class ConfigLoaderTest
             return;
         }
 
-        throw new \RuntimeException('Expected ConfigFileNotFound, nothing was thrown.');
+        throw new \RuntimeException('Expected ConfigFileError, nothing was thrown.');
     }
 
     #[Test]
@@ -55,7 +54,7 @@ final class ConfigLoaderTest
             static function (): void {
                 new ConfigLoader()->loadFile(self::fixtureDir('Empty') . '/greenlight.php');
             },
-            ConfigFileNotFound::class,
+            ConfigFileError::class,
             'loading an explicit path that does not exist',
         );
     }
@@ -65,7 +64,7 @@ final class ConfigLoaderTest
     {
         try {
             new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn'));
-        } catch (InvalidConfigFile $error) {
+        } catch (ConfigFileError $error) {
             Check::true(
                 \str_contains($error->getMessage(), 'must return a Greenlight\Config\GreenlightConfig instance'),
                 'the error to state the required return type',
@@ -78,7 +77,7 @@ final class ConfigLoaderTest
             return;
         }
 
-        throw new \RuntimeException('Expected InvalidConfigFile, nothing was thrown.');
+        throw new \RuntimeException('Expected ConfigFileError, nothing was thrown.');
     }
 
     #[Test]
@@ -86,7 +85,7 @@ final class ConfigLoaderTest
     {
         try {
             new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing'));
-        } catch (InvalidConfigFile $error) {
+        } catch (ConfigFileError $error) {
             Check::true(
                 \str_contains($error->getMessage(), 'config exploded'),
                 'the error to carry the original message',
@@ -100,7 +99,7 @@ final class ConfigLoaderTest
             return;
         }
 
-        throw new \RuntimeException('Expected InvalidConfigFile, nothing was thrown.');
+        throw new \RuntimeException('Expected ConfigFileError, nothing was thrown.');
     }
 
     private static function fixtureDir(string $name): string

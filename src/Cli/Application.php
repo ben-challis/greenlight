@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Config\ConfigFileNotFound;
+use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\Configuration;
-use Greenlight\Config\InvalidConfigFile;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
@@ -123,7 +122,7 @@ final readonly class Application
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_USAGE;
-        } catch (ConfigFileNotFound|InvalidConfigFile|InvalidConfiguration $error) {
+        } catch (ConfigFileError|InvalidConfiguration $error) {
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_FAILURE;
@@ -179,7 +178,7 @@ final readonly class Application
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_USAGE;
-        } catch (ConfigFileNotFound|InvalidConfigFile|InvalidConfiguration $error) {
+        } catch (ConfigFileError|InvalidConfiguration $error) {
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_FAILURE;
@@ -208,8 +207,7 @@ final readonly class Application
      * @return array{Configuration, string}
      *
      * @throws CliError
-     * @throws ConfigFileNotFound
-     * @throws InvalidConfigFile
+     * @throws ConfigFileError
      * @throws InvalidConfiguration
      */
     private function loadConfiguration(ParsedArguments $arguments, string $workingDirectory): array

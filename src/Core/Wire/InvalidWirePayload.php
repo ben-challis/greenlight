@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Core\Wire;
 
 /**
+ * Raised when a decoded wire payload is missing a required key or carries the
+ * wrong type for one. Always names the offending key so protocol errors are
+ * diagnosable from the message alone.
+ *
  * @internal
  */
 final class InvalidWirePayload extends \RuntimeException

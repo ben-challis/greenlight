@@ -52,7 +52,7 @@ final class ArgumentParser
                 $body = \substr($argument, 2);
 
                 if ($body === '') {
-                    throw new CliError("Unexpected bare '--'.");
+                    throw new CliError('Unexpected bare "--".');
                 }
 
                 $separator = \strpos($body, '=');
@@ -82,7 +82,7 @@ final class ArgumentParser
             } elseif ($command === null) {
                 $command = $argument;
             } else {
-                throw new CliError(\sprintf("Unexpected argument '%s'.", $argument));
+                throw new CliError(\sprintf('Unexpected argument "%s".', $argument));
             }
         }
 
