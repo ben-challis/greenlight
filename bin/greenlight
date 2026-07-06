@@ -3,8 +3,6 @@
 
 declare(strict_types=1);
 
-// CLI entry point stub; real command dispatch replaces this.
-
 if (\PHP_VERSION_ID < 80400) {
     \fwrite(\STDERR, \sprintf(
         "Greenlight requires PHP 8.4 or later; running under %s.\n",
@@ -36,35 +34,21 @@ if (!$autoloaderFound) {
     exit(1);
 }
 
-const GREENLIGHT_VERSION = 'dev-main';
+$workingDirectory = \getcwd();
 
-/** @var list<string> $args */
-$args = \array_slice($_SERVER['argv'] ?? [], 1);
+if ($workingDirectory === false) {
+    \fwrite(\STDERR, "Could not determine the current working directory.\n");
 
-if ($args === [] || \in_array('--help', $args, true) || \in_array('-h', $args, true)) {
-    \fwrite(\STDOUT, <<<'HELP'
-        Greenlight (pre-alpha)
-
-        Usage:
-          greenlight [options]
-
-        Options:
-          -h, --help     Show this help
-          -V, --version  Show the version
-
-        Commands are not implemented yet.
-
-        HELP);
-
-    exit(0);
+    exit(1);
 }
 
-if (\in_array('--version', $args, true) || \in_array('-V', $args, true)) {
-    \fwrite(\STDOUT, 'Greenlight ' . GREENLIGHT_VERSION . "\n");
+/** @var list<string> $arguments */
+$arguments = [];
 
-    exit(0);
+foreach (\array_slice($_SERVER['argv'] ?? [], 1) as $argument) {
+    if (\is_string($argument)) {
+        $arguments[] = $argument;
+    }
 }
 
-\fwrite(\STDERR, \sprintf("Unknown command or option: %s\n", $args[0]));
-
-exit(64);
+exit(\Greenlight\Cli\Application::forStreams()->run($arguments, $workingDirectory));
