@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\CliError;
 use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ParsedArguments;
+use Greenlight\Config\WorkerCount;
 use Greenlight\Tests\Support\Check;
 
 final class CliOverridesTest
@@ -52,7 +53,7 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['workers' => ['auto']]));
 
-        Check::true($overrides->workers instanceof \Greenlight\Config\WorkerCount && $overrides->workers->isAuto(), 'workers to be the auto marker');
+        Check::true($overrides->workers instanceof WorkerCount && $overrides->workers->isAuto(), 'workers to be the auto marker');
     }
 
     #[Test]

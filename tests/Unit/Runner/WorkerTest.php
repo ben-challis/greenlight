@@ -15,8 +15,11 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
+use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
+use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
+use Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final class WorkerTest
@@ -55,7 +58,7 @@ final class WorkerTest
     #[Test]
     public function retriesUntilPassingAndRecordsAttempts(): void
     {
-        \Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest::$attempts = 0;
+        RetriesTest::$attempts = 0;
         [, $results] = $this->runFixture('Retries');
 
         new Expect()->that($results[0]->outcome)->toBe(Outcome::Passed)
@@ -65,12 +68,12 @@ final class WorkerTest
     #[Test]
     public function retryOnlyOnDoesNotRetryOtherThrowables(): void
     {
-        \Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest::$attempts = 0;
+        RetryFilterTest::$attempts = 0;
         [, $results] = $this->runFixture('RetryFilter');
 
         new Expect()->that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->attempts)->toBe(1)
-            ->and(\Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest::$attempts)->toBe(1);
+            ->and(RetryFilterTest::$attempts)->toBe(1);
     }
 
     #[Test]
@@ -192,9 +195,9 @@ final class WorkerTest
     {
         $registry = $this->registry();
         $registry->register(new ServiceDefinition(
-            \Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe::class,
+            VerifyingProbe::class,
             Scope::PerTest,
-            static fn(): \Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe => new \Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe(),
+            static fn(): VerifyingProbe => new VerifyingProbe(),
         ));
 
         [, $results] = $this->runFixture('VerifyOnDispose', $registry);

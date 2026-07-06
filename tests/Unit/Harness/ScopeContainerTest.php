@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 
@@ -71,14 +72,14 @@ final class ScopeContainerTest
     {
         $container = new ScopeContainer();
         $definition = new ServiceDefinition(
-            \Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe::class,
+            FailingDisposalProbe::class,
             Scope::PerTest,
-            static fn(): \Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe => new \Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe(),
+            static fn(): FailingDisposalProbe => new FailingDisposalProbe(),
         );
 
         $probe = $container->get($definition);
 
-        if (!$probe instanceof \Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe) {
+        if (!$probe instanceof FailingDisposalProbe) {
             throw new \RuntimeException('Container returned the wrong type.');
         }
 

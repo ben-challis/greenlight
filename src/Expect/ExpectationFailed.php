@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Core\Result\SourceLocation;
 
 /**
  * Thrown when one or more expectations fail. Carries the structured
@@ -28,7 +29,7 @@ final class ExpectationFailed extends \Exception
     {
         $message = $detail->message;
 
-        if ($detail->location instanceof \Greenlight\Core\Result\SourceLocation) {
+        if ($detail->location instanceof SourceLocation) {
             $message .= ' (at ' . $detail->location->__toString() . ')';
         }
 

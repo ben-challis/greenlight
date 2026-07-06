@@ -38,7 +38,7 @@ final class HarnessScopes
     {
         $definition = $this->registry->find($type);
 
-        if (!$definition instanceof \Greenlight\Harness\ServiceDefinition) {
+        if (!$definition instanceof ServiceDefinition) {
             throw UnresolvableService::unknownType($type, $consumer);
         }
 

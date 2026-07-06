@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Tests\Fixture\SomewhereElse\MismatchTest;
 use Greenlight\Tests\Support\Check;
 
 final class Psr4ViolationTest
@@ -29,7 +30,7 @@ final class Psr4ViolationTest
 
         Check::true(\str_contains($message, 'not autoloadable'), 'message to state the failure: ' . $message);
         Check::true(
-            \str_contains($message, \Greenlight\Tests\Fixture\SomewhereElse\MismatchTest::class),
+            \str_contains($message, MismatchTest::class),
             'message to name the parsed class: ' . $message,
         );
         Check::true(\str_contains($message, 'MismatchTest.php'), 'message to name the file: ' . $message);

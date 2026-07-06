@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\CoverageBuilder;
+use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteBuilder;
@@ -57,7 +58,7 @@ final class GreenlightConfigTest
         Check::same(1073741824, $configuration->recycleAboveMemoryBytes, 'recycle memory bytes');
         $coverage = $configuration->coverage;
 
-        if (!$coverage instanceof \Greenlight\Config\CoverageConfiguration) {
+        if (!$coverage instanceof CoverageConfiguration) {
             throw new \RuntimeException('Expected coverage to be configured.');
         }
 

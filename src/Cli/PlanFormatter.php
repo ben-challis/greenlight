@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\MemorySize;
 
 /**
@@ -64,7 +65,7 @@ final class PlanFormatter
 
         $lines[] = '  plugins: ' . ($plugins === [] ? '(none)' : \implode(', ', $plugins));
 
-        if (!$configuration->coverage instanceof \Greenlight\Config\CoverageConfiguration) {
+        if (!$configuration->coverage instanceof CoverageConfiguration) {
             $lines[] = '  coverage: (off)';
         } else {
             $exports = [];

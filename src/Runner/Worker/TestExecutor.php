@@ -9,8 +9,10 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Harness\UnresolvableService;
 
 /**
  * Runs one plan entry: skip checks before construction, constructor
@@ -28,7 +30,7 @@ final readonly class TestExecutor
         private ClassContext $context,
     ) {}
 
-    public function execute(\Greenlight\Discovery\PlanEntry $entry): TestResult
+    public function execute(PlanEntry $entry): TestResult
     {
         $metadata = $entry->metadata;
 
@@ -76,7 +78,7 @@ final readonly class TestExecutor
     /**
      * @return array{TestResult, ?\Throwable} the result and the throwable that caused a non-pass, for retry matching
      */
-    private function attempt(\Greenlight\Discovery\PlanEntry $entry, int $attempt): array
+    private function attempt(PlanEntry $entry, int $attempt): array
     {
         $metadata = $entry->metadata;
         $this->scopes->openTest();
@@ -151,7 +153,7 @@ final readonly class TestExecutor
         $memoryDelta = \memory_get_usage(true) - $memoryBefore;
 
         $outcome = match (true) {
-            $error instanceof \Greenlight\Core\Result\ThrowableDetail => Outcome::Errored,
+            $error instanceof ThrowableDetail => Outcome::Errored,
             $failures !== [] => Outcome::Failed,
             default => Outcome::Passed,
         };
@@ -199,7 +201,7 @@ final readonly class TestExecutor
                     continue;
                 }
 
-                throw \Greenlight\Harness\UnresolvableService::unsupportedParameter($parameter->getName(), $class);
+                throw UnresolvableService::unsupportedParameter($parameter->getName(), $class);
             }
 
             /** @var class-string $serviceType */
@@ -236,7 +238,7 @@ final readonly class TestExecutor
         }
     }
 
-    private function skipped(\Greenlight\Discovery\PlanEntry $entry, string $reason): TestResult
+    private function skipped(PlanEntry $entry, string $reason): TestResult
     {
         return new TestResult($entry->id, Outcome::Skipped, 0.0, 0, skipReason: $reason);
     }
