@@ -9,3 +9,6 @@
 
 # IDE
 .idea/
+
+# Deptrac cache
+.deptrac.cache
