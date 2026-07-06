@@ -23,6 +23,9 @@ final readonly class TestDiscoverer
 
     private DataSetExpander $dataSetExpander;
 
+    /**
+     * @throws \InvalidArgumentException
+     */
     public function __construct(
         private float $providerTimeBudgetSeconds = 5.0,
     ) {
@@ -40,6 +43,8 @@ final readonly class TestDiscoverer
      * class, and data sets keep provider order within a method.
      *
      * @param list<non-empty-string> $directories absolute paths to scan
+     *
+     * @throws DiscoveryError
      */
     public function discover(array $directories, ?Filter $filter = null, ?int $seed = null): ExecutionPlan
     {

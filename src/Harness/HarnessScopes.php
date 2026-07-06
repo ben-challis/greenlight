@@ -33,6 +33,8 @@ final class HarnessScopes
     /**
      * @param class-string $type
      * @param non-empty-string $consumer
+     *
+     * @throws UnresolvableService
      */
     public function resolve(string $type, string $consumer): object
     {

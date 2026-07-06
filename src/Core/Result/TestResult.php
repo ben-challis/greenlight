@@ -24,6 +24,8 @@ final readonly class TestResult implements WireSerializable
     /**
      * @param list<FailureDetail> $failures
      * @param list<OutcomeTransformation> $transformations
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         public TestId $id,

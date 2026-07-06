@@ -28,6 +28,8 @@ final class MetadataFactory
      * @param \ReflectionClass<object> $class
      *
      * @return list<TestMetadata> in method declaration order
+     *
+     * @throws DiscoveryError
      */
     public function forClass(\ReflectionClass $class): array
     {

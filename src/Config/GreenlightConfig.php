@@ -63,6 +63,8 @@ final class GreenlightConfig
      * Directories to discover tests in when no suite is selected.
      *
      * @param list<string> $tests
+     *
+     * @throws InvalidConfiguration
      */
     public function paths(array $tests): self
     {
@@ -91,6 +93,8 @@ final class GreenlightConfig
      * return value is ignored, so terse arrow functions work.
      *
      * @param callable(SuiteBuilder): mixed $configurator
+     *
+     * @throws InvalidConfiguration
      */
     public function suite(string $name, callable $configurator): self
     {
@@ -111,6 +115,8 @@ final class GreenlightConfig
 
     /**
      * @param int|'auto' $count
+     *
+     * @throws InvalidConfiguration
      */
     public function workers(
         int|string $count = 'auto',
@@ -189,6 +195,9 @@ final class GreenlightConfig
         ));
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function build(): Configuration
     {
         $suites = [];

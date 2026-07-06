@@ -7,6 +7,7 @@ namespace Greenlight\Runner;
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
+use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
@@ -28,6 +29,8 @@ final readonly class InProcessRunner
 {
     /**
      * @param list<non-empty-string> $directories
+     *
+     * @throws DiscoveryError
      */
     public function run(Configuration $configuration, array $directories, EventSink $sink): RunResult
     {

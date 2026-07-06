@@ -65,6 +65,8 @@ final class Expectation
 
     /**
      * Identity: passes when the subject is the expected value (===).
+     *
+     * @throws ExpectationFailed
      */
     public function toBe(mixed $expected): self
     {
@@ -77,6 +79,8 @@ final class Expectation
 
     /**
      * Deep equality; the exact semantics are documented on this class.
+     *
+     * @throws ExpectationFailed
      */
     public function toEqual(mixed $expected): self
     {
@@ -89,6 +93,8 @@ final class Expectation
 
     /**
      * @param class-string $class
+     *
+     * @throws ExpectationFailed
      */
     public function toBeInstanceOf(string $class): self
     {
@@ -99,16 +105,25 @@ final class Expectation
         );
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toBeTrue(): self
     {
         return $this->verify($this->subject === true, 'to be true', 'true');
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toBeFalse(): self
     {
         return $this->verify($this->subject === false, 'to be false', 'false');
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toBeNull(): self
     {
         return $this->verify($this->subject === null, 'to be null', 'null');
@@ -118,6 +133,8 @@ final class Expectation
      * Substring check for string subjects (the needle must then be a string),
      * membership check by identity (===) for iterable subjects. Traversable
      * subjects are consumed by the check.
+     *
+     * @throws ExpectationFailed
      */
     public function toContain(mixed $needle): self
     {
@@ -163,6 +180,8 @@ final class Expectation
     /**
      * The subject must be countable or traversable. Traversable subjects are
      * consumed by the count.
+     *
+     * @throws ExpectationFailed
      */
     public function toHaveCount(int $count): self
     {
@@ -188,6 +207,8 @@ final class Expectation
     /**
      * The subject must be an array (checked with array_key_exists) or an
      * ArrayAccess implementation (checked with offsetExists).
+     *
+     * @throws ExpectationFailed
      */
     public function toHaveKey(int|string $key): self
     {
@@ -209,6 +230,9 @@ final class Expectation
         );
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toBeGreaterThan(int|float $bound): self
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
@@ -225,6 +249,9 @@ final class Expectation
         );
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toBeLessThan(int|float $bound): self
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
@@ -243,6 +270,8 @@ final class Expectation
 
     /**
      * Passes when abs(subject - of) <= delta.
+     *
+     * @throws ExpectationFailed
      */
     public function toBeWithin(float $delta, float $of): self
     {
@@ -267,8 +296,8 @@ final class Expectation
     }
 
     /**
-     * @throws \InvalidArgumentException when the pattern is not a valid
-     *                                   regular expression
+     * @throws \InvalidArgumentException when the pattern is not a valid regular expression
+     * @throws ExpectationFailed
      */
     public function toMatch(string $pattern): self
     {
@@ -288,6 +317,9 @@ final class Expectation
         );
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toStartWith(string $prefix): self
     {
         if (!\is_string($this->subject)) {
@@ -304,6 +336,9 @@ final class Expectation
         );
     }
 
+    /**
+     * @throws ExpectationFailed
+     */
     public function toEndWith(string $suffix): self
     {
         if (!\is_string($this->subject)) {
@@ -328,8 +363,8 @@ final class Expectation
      *
      * @param class-string<\Throwable> $throwable
      *
-     * @throws \InvalidArgumentException when the matching pattern is not a
-     *                                   valid regular expression
+     * @throws \InvalidArgumentException when the matching pattern is not a valid regular expression
+     * @throws ExpectationFailed
      */
     public function toThrow(string $throwable, ?string $matching = null): self
     {

@@ -18,6 +18,8 @@ final readonly class Retry
 
     /**
      * @param class-string<\Throwable>|null $onlyOn
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         int $times,

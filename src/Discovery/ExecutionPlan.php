@@ -25,6 +25,8 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
 
     /**
      * @param list<PlanEntry> $entries
+     *
+     * @throws \InvalidArgumentException when entries are not grouped by class
      */
     public function __construct(array $entries, public ?int $seed = null)
     {
@@ -104,6 +106,9 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
         ];
     }
 
+    /**
+     * @throws \InvalidArgumentException when entries are not grouped by class
+     */
     #[\Override]
     public static function fromWire(array $payload): static
     {

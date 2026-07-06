@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Worker;
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
 use Greenlight\Discovery\DataSetExpander;
+use Greenlight\Discovery\DiscoveryError;
 
 /**
  * Per-class execution state: the reflection, hook lists, and the class's
@@ -76,6 +77,8 @@ final class ClassContext
      * @param non-empty-string $testMethod
      *
      * @return list<mixed>
+     *
+     * @throws DiscoveryError
      */
     public function argumentsFor(string $provider, string $testMethod, string $key): array
     {

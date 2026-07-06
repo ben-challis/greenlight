@@ -17,6 +17,9 @@ use Greenlight\Core\Wire\WireSerializable;
  */
 final readonly class PlanEntry implements WireSerializable
 {
+    /**
+     * @throws \InvalidArgumentException when the id does not match the metadata
+     */
     public function __construct(
         public TestId $id,
         public TestMetadata $metadata,
@@ -41,6 +44,9 @@ final readonly class PlanEntry implements WireSerializable
         ];
     }
 
+    /**
+     * @throws \InvalidArgumentException when the id does not match the metadata
+     */
     #[\Override]
     public static function fromWire(array $payload): static
     {

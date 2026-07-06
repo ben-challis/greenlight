@@ -27,6 +27,9 @@ final readonly class CliOverrides
         public ?int $seed = null,
     ) {}
 
+    /**
+     * @throws CliError
+     */
     public static function fromArguments(ParsedArguments $arguments): self
     {
         $workers = null;

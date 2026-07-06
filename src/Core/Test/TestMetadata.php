@@ -30,6 +30,8 @@ final readonly class TestMetadata implements WireSerializable
      * @param positive-int|null $retryTimes
      * @param non-empty-string|null $retryOnlyOn
      * @param non-empty-string|null $dataSetProvider
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         public string $class,

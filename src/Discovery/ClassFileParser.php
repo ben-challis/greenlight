@@ -17,6 +17,8 @@ final class ClassFileParser
 
     /**
      * @return list<ClassDeclaration>
+     *
+     * @throws DiscoveryError when the file cannot be read
      */
     public static function declarationsIn(string $file): array
     {

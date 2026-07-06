@@ -26,6 +26,9 @@ final class SuiteBuilder
      */
     public function __construct(private readonly string $name) {}
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function in(string ...$paths): self
     {
         foreach ($paths as $path) {
@@ -39,6 +42,9 @@ final class SuiteBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function tag(string ...$tags): self
     {
         foreach ($tags as $tag) {
@@ -54,6 +60,8 @@ final class SuiteBuilder
 
     /**
      * @internal
+     *
+     * @throws InvalidConfiguration when the suite was given no paths
      */
     public function toConfiguration(): SuiteConfiguration
     {

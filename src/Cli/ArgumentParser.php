@@ -39,6 +39,8 @@ final class ArgumentParser
 
     /**
      * @param list<string> $argv
+     *
+     * @throws CliError
      */
     public function parse(array $argv): ParsedArguments
     {

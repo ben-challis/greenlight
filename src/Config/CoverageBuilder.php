@@ -26,6 +26,9 @@ final class CoverageBuilder
      */
     private array $exports = [];
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function include(string ...$paths): self
     {
         foreach ($paths as $path) {
@@ -39,6 +42,9 @@ final class CoverageBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function driver(string $driver): self
     {
         if ($driver === '') {
@@ -50,6 +56,9 @@ final class CoverageBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function export(string $format, string $target): self
     {
         if ($format === '' || $target === '') {

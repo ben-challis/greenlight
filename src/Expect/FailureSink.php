@@ -14,5 +14,8 @@ use Greenlight\Core\Result\FailureDetail;
  */
 interface FailureSink
 {
+    /**
+     * @throws ExpectationFailed when the sink fails fast
+     */
     public function report(FailureDetail $detail): void;
 }

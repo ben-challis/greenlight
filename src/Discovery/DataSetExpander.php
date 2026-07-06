@@ -23,6 +23,8 @@ final class DataSetExpander
      * @param non-empty-string $provider
      *
      * @return non-empty-list<string> derived keys in provider order
+     *
+     * @throws DiscoveryError
      */
     public function keysFor(\ReflectionClass $class, string $testMethod, string $provider, float $budgetSeconds): array
     {
@@ -39,6 +41,8 @@ final class DataSetExpander
      * @param non-empty-string $provider
      *
      * @return non-empty-array<string, mixed>
+     *
+     * @throws DiscoveryError
      */
     public function expand(\ReflectionClass $class, string $testMethod, string $provider, float $budgetSeconds): array
     {

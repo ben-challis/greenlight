@@ -23,6 +23,9 @@ final readonly class WorkerCount
         return new self(null);
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public static function exactly(int $count): self
     {
         if ($count < 1) {

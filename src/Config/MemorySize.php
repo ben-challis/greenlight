@@ -18,6 +18,8 @@ final class MemorySize
 
     /**
      * @return positive-int
+     *
+     * @throws InvalidConfiguration
      */
     public static function parseToBytes(string $value): int
     {

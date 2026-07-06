@@ -11,6 +11,9 @@ namespace Greenlight\Attribute;
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Timeout
 {
+    /**
+     * @throws \InvalidArgumentException
+     */
     public function __construct(
         public float $seconds,
     ) {
