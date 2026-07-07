@@ -38,6 +38,13 @@ This is the shared context for anyone (human or agent) executing a phase. Read t
 | 12 Self-hosting cutover | [phase-12-self-hosting.md](phase-12-self-hosting.md) | integration | 4, 5b, 6, 8 |
 | 12b Watch mode | [phase-12b-watch.md](phase-12b-watch.md) | integration | Phase 12 (Phase 10 additionally for coverage-based affected-test selection) |
 | 13 Docs + GA + v1.0 | [phase-13-release.md](phase-13-release.md) | integration | all |
+| 14 Selection + feedback | [phase-14-selection-feedback.md](phase-14-selection-feedback.md) | track H | Phase 13 |
+| 15 Data providers | [phase-15-data-providers.md](phase-15-data-providers.md) | track B follow-on | Phase 14 |
+| 16 Profiling | [phase-16-profiling.md](phase-16-profiling.md) | spine | Phase 14 |
+| 17 Scheduling + timing cache | [phase-17-scheduling.md](phase-17-scheduling.md) | spine | Phase 16 |
+| 18 Spawn + protocol cost | [phase-18-spawn-and-protocol-cost.md](phase-18-spawn-and-protocol-cost.md) | track I | Phases 16, 17 |
+| 19 CI gates + sharding | [phase-19-ci-gates.md](phase-19-ci-gates.md) | track J | Phases 14, 17 |
+| 20 Validation + ecosystem | [phase-20-validation-ecosystem.md](phase-20-validation-ecosystem.md) | integration | Phases 17, 18 |
 
 Execution order:
 
@@ -58,7 +65,19 @@ Phase 11 (memory gates)                      convergence
 Phase 12 (self-hosting cutover)              integration
 Phase 12b (watch mode)                       integration
 Phase 13 (docs + GA + v1.0)                  integration
+
+Post-1.0:
+
+Phase 14 (selection + feedback)              track H
+  ├── Phase 15 Data providers                track B follow-on
+  └── Phase 16 Profiling                     spine
+Phase 17 (scheduling + timing cache)         spine
+  ├── Phase 18 Spawn + protocol cost         track I
+  └── Phase 19 CI gates + sharding           track J
+Phase 20 (validation + ecosystem)            integration
 ```
+
+The post-1.0 ordering is deliberate: user-facing selection tools first (Phase 14 also establishes the temp-dir state-file convention later phases reuse), profiling before any performance work so Phases 17 and 18 optimise measured problems, and published benchmarks last so they describe the improved runner.
 
 ## The serial spine
 
