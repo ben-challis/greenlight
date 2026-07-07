@@ -8,8 +8,6 @@ namespace Greenlight\Core\Result;
  * Severity of a recorded PHP diagnostic. Only the non-fatal engine
  * severities are representable; anything PHP treats as fatal is never
  * recorded as a diagnostic and keeps its default handling.
- *
- * @internal
  */
 enum DiagnosticSeverity: string
 {

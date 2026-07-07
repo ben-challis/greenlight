@@ -14,8 +14,6 @@ use Greenlight\Core\Wire\WireSerializable;
  * When output is truncated the head is kept, because the first output a
  * test produces usually names the cause; the tail is commonly repetition.
  * Stdout is scrubbed to valid UTF-8 when it crosses the wire.
- *
- * @internal
  */
 final readonly class CapturedOutput implements WireSerializable
 {

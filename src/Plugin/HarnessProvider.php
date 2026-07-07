@@ -9,8 +9,6 @@ use Greenlight\Harness\ServiceDefinition;
 /**
  * Contributes injectable scoped services to the worker registry, merged after
  * the built-ins. Registering a type twice is a configuration error.
- *
- * Experimental until the plugin API GA review.
  */
 interface HarnessProvider
 {

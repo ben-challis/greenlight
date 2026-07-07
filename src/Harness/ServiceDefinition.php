@@ -7,8 +7,6 @@ namespace Greenlight\Harness;
 /**
  * Registration of one harness service: the exact type tests inject, its
  * scope, and the factory producing it.
- *
- * @internal
  */
 final readonly class ServiceDefinition
 {

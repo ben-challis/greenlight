@@ -7,8 +7,6 @@ namespace Greenlight\Plugin;
 /**
  * Control signal: throw from a test method, a before-hook, or a beforeTest
  * subscriber to report the test as skipped with the given reason.
- *
- * Experimental until the plugin API GA review.
  */
 final class SkipTest extends \Exception
 {

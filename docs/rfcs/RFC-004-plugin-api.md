@@ -2,14 +2,14 @@
 
 | | |
 |---|---|
-| **Status** | accepted, surface experimental until GA |
+| **Status** | accepted, GA (surface promoted out of experimental at the Phase 13 review) |
 | **Phase** | 7 (docs/plan/phase-07-plugins.md); GA review in Phase 13 |
 | **Author** | Ben Challis |
 | **Date** | 2026-07-07 |
 
 ## Context
 
-The extension contract is the product's headline differentiator: plugins receive live runtime context through typed interfaces rather than context-stripped value objects. This RFC defines the capability-scoped plugin types, the context object, ordering, error policy, and how plugins reach worker processes. The whole surface carries an experimental marker until the Phase 13 GA review; between now and then it may change with a changelog entry but not silently.
+The extension contract is the product's headline differentiator: plugins receive live runtime context through typed interfaces rather than context-stripped value objects. This RFC defines the capability-scoped plugin types, the context object, ordering, error policy, and how plugins reach worker processes. The surface passed its GA review: the capability interfaces and the plugin-visible result and event types are public API under semver from here on.
 
 ## Decision
 
@@ -42,7 +42,7 @@ Subscribers run in registration order; a plugin additionally implementing `Prior
 
 ## Consequences
 
-Frozen at GA, experimental until then: the six capability interfaces, `TestContext`'s accessor set, the provenance guard, and the ordering/error rules. The result and event model types these interfaces expose get promoted out of `@internal` at the Phase 13 review as the plugin-visible subset.
+Frozen at GA: the six capability interfaces, `TestContext`'s accessor set, the provenance guard, and the ordering/error rules. The result and event model types these interfaces expose are promoted out of `@internal` as the plugin-visible subset.
 
 ## Alternatives considered
 

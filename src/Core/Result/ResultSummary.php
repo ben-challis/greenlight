@@ -10,8 +10,6 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Bounded aggregate counts for a run. Reporters that need aggregates keep
  * summaries like this one, never per-test collections.
- *
- * @internal
  */
 final readonly class ResultSummary implements WireSerializable
 {

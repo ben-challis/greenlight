@@ -12,8 +12,6 @@ use Greenlight\Core\Test\TestMetadata;
  * decider answering yes triggers a fresh attempt with a fresh instance and
  * scope. Receives metadata and the causing throwable rather than a context:
  * the failed attempt's instance is already gone when this runs.
- *
- * Experimental until the plugin API GA review.
  */
 interface RetryDecider
 {

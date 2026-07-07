@@ -10,8 +10,6 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Provenance record for a plugin changing a test's outcome. Every transformation
  * is attributable in reports.
- *
- * @internal
  */
 final readonly class OutcomeTransformation implements WireSerializable
 {

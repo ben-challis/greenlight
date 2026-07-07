@@ -7,9 +7,6 @@ namespace Greenlight\Core\Event;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Wire\Wire;
 
-/**
- * @internal
- */
 final readonly class RunFinished implements Event
 {
     /**

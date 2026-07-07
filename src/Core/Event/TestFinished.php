@@ -7,9 +7,6 @@ namespace Greenlight\Core\Event;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Wire\Wire;
 
-/**
- * @internal
- */
 final readonly class TestFinished implements Event
 {
     public function __construct(

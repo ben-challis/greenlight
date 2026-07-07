@@ -10,10 +10,7 @@ namespace Greenlight\Expect;
  * A plugin implements this interface to contribute matchers and passes
  * instances to the Expect constructor. Registration is the entire contract
  * today: Expect stores the extensions but nothing dispatches to the returned
- * matchers yet. The shape of this interface may change without notice until
- * the public plugin API is frozen; do not build on it outside of experiments.
- *
- * @internal
+ * matchers yet.
  */
 interface ExpectationExtension
 {

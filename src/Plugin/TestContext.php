@@ -15,8 +15,6 @@ use Greenlight\Harness\UnresolvableService;
  * Observation and service access only; lifecycle control stays with the
  * worker. service() is usable during beforeTest and the test itself; by the
  * time afterTest runs, the per-test scope has closed and service() throws.
- *
- * Experimental until the plugin API GA review.
  */
 final readonly class TestContext
 {

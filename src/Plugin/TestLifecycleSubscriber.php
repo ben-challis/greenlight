@@ -12,8 +12,6 @@ use Greenlight\Core\Result\TestResult;
  * any other throwable errors it with this plugin named. afterTest receives
  * the result and returns it, replaced or untouched; outcome changes are only
  * legal through TestResult::withOutcome() so every change carries provenance.
- *
- * Experimental until the plugin API GA review.
  */
 interface TestLifecycleSubscriber
 {

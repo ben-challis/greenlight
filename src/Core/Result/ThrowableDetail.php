@@ -11,8 +11,6 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Rendered description of an unexpected throwable. Stack frames are bounded
  * so a deep trace cannot bloat the wire.
- *
- * @internal
  */
 final readonly class ThrowableDetail implements WireSerializable
 {
