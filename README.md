@@ -1,6 +1,6 @@
 # Greenlight
 
-**Status: pre-release. Feature-complete for v1.0, self-hosted, not yet published to Packagist.**
+**Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
 
 Greenlight is an opinionated testing framework for PHP 8.4+, built around three ideas: tests are plain typed PHP that your tools already understand, parallel execution is the only code path rather than an add-on, and extensions get real runtime context instead of a sanitised events feed. It has zero runtime dependencies, so it never version-conflicts with the code under test.
 
