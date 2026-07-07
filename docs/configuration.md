@@ -36,7 +36,7 @@ Default: no suites. Declares a named suite. The configurator receives a `SuiteBu
 
 ### workers(int|string $count = 'auto', int $recycleAfterTests = 500, string $recycleAboveMemory = '256M'): self
 
-Default: `'auto'` workers, recycling after 500 tests or above 256M. `$count` is a positive integer or the string `'auto'` (one worker per CPU core). A worker is recycled once it has executed `$recycleAfterTests` tests or its memory use exceeds `$recycleAboveMemory` (a size string such as `'256M'` or `'1G'`).
+Default: `'auto'` workers, recycling after 500 tests or above 256M. `$count` is a positive integer or the string `'auto'` (one worker per CPU core; install the suggested `fidry/cpu-core-counter` for detection that respects cgroup limits in containers). A worker is recycled once it has executed `$recycleAfterTests` tests or its memory use exceeds `$recycleAboveMemory` (a size string such as `'256M'` or `'1G'`).
 
 ### coverage(callable $configurator): self
 
