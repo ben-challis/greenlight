@@ -24,7 +24,9 @@ $workDir = rtrim(sys_get_temp_dir(), '/') . '/greenlight-memgate-' . bin2hex(ran
 $suiteDir = $workDir . '/suite';
 $samplesFile = $workDir . '/samples.json';
 
-mkdir($suiteDir, 0o777, true);
+if (!mkdir($suiteDir, 0o777, true) && !is_dir($suiteDir)) {
+    throw new RuntimeException(sprintf('Directory "%s" was not created', $suiteDir));
+}
 
 $totalTests = CLASS_COUNT * METHODS_PER_CLASS * ROWS_PER_METHOD;
 
@@ -180,7 +182,7 @@ if ($samplesJson === false) {
     exit(1);
 }
 
-$samples = json_decode($samplesJson, true);
+$samples = json_decode($samplesJson, true, 512, JSON_THROW_ON_ERROR);
 $baseline = null;
 $final = null;
 
