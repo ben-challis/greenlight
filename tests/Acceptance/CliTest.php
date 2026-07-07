@@ -73,6 +73,10 @@ final class CliTest
             \str_contains(\implode("\n", $output), '7 tests: 7 passed, 0 failed, 0 errored, 0 skipped'),
             'summary line to report all seven fixture tests passing',
         );
+        Check::true(
+            !\str_contains(\implode("\n", $output), 'alpha:one'),
+            'escaped fixture output to be captured, never printed into the report stream',
+        );
     }
 
     #[Test]

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Capture;
+namespace Greenlight\Core\Result;
 
 /**
  * Severity of a recorded PHP diagnostic. Only the non-fatal engine

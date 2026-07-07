@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Capture;
+namespace Greenlight\Core\Result;
 
 use Greenlight\Core\Wire\Utf8;
 use Greenlight\Core\Wire\Wire;

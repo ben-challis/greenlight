@@ -37,6 +37,7 @@ final readonly class TestResult implements WireSerializable
         public ?ThrowableDetail $error = null,
         public ?string $skipReason = null,
         public array $transformations = [],
+        public ?CapturedOutput $output = null,
     ) {
         if ($durationSeconds < 0.0) {
             throw new \InvalidArgumentException('Duration cannot be negative.');
@@ -64,6 +65,7 @@ final readonly class TestResult implements WireSerializable
             $this->error,
             $this->skipReason,
             [...$this->transformations, new OutcomeTransformation($transformedBy, $this->outcome, $outcome)],
+            $this->output,
         );
     }
 
@@ -83,6 +85,7 @@ final readonly class TestResult implements WireSerializable
                 static fn(OutcomeTransformation $transformation): array => $transformation->toWire(),
                 $this->transformations,
             ),
+            'output' => $this->output?->toWire(),
         ];
     }
 
@@ -90,6 +93,7 @@ final readonly class TestResult implements WireSerializable
     public static function fromWire(array $payload): static
     {
         $error = Wire::nullableMap($payload, 'error');
+        $output = Wire::nullableMap($payload, 'output');
 
         return new self(
             TestId::fromWire(Wire::map($payload, 'id')),
@@ -107,6 +111,7 @@ final readonly class TestResult implements WireSerializable
                 OutcomeTransformation::fromWire(...),
                 Wire::listOfMaps($payload, 'transformations'),
             ),
+            $output === null ? null : CapturedOutput::fromWire($output),
         );
     }
 }

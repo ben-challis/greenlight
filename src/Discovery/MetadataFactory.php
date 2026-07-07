@@ -44,7 +44,9 @@ final class MetadataFactory
         $metadata = [];
 
         foreach ($class->getMethods() as $method) {
-            if ($method->getAttributes(Test::class) === []) {
+            $testAttributes = $method->getAttributes(Test::class);
+
+            if ($testAttributes === []) {
                 continue;
             }
 
@@ -81,6 +83,7 @@ final class MetadataFactory
                 $timeout?->seconds,
                 $classIsolated || $method->getAttributes(Isolated::class) !== [],
                 $dataSet?->provider,
+                $testAttributes[0]->newInstance()->capture,
             );
         }
 

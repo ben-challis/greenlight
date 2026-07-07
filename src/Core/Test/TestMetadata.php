@@ -44,6 +44,7 @@ final readonly class TestMetadata implements WireSerializable
         public ?float $timeoutSeconds = null,
         public bool $isolated = false,
         public ?string $dataSetProvider = null,
+        public bool $capture = true,
     ) {
         $validated = [];
 
@@ -72,6 +73,7 @@ final readonly class TestMetadata implements WireSerializable
             'timeoutSeconds' => $this->timeoutSeconds,
             'isolated' => $this->isolated,
             'dataSetProvider' => $this->dataSetProvider,
+            'capture' => $this->capture,
         ];
     }
 
@@ -104,6 +106,7 @@ final readonly class TestMetadata implements WireSerializable
             $timeoutSeconds,
             Wire::bool($payload, 'isolated'),
             $dataSetProvider === '' ? null : $dataSetProvider,
+            Wire::bool($payload, 'capture'),
         );
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
+use Greenlight\Capture\OutputCapture;
 use Greenlight\Core\Condition;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
@@ -87,9 +88,12 @@ final readonly class TestExecutor
         $failures = [];
         $cause = null;
         $error = null;
+        $captured = null;
+        $capture = $metadata->capture ? new OutputCapture() : null;
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $instance = null;
+        $capture?->start();
 
         try {
             $instance = $this->instantiate($metadata->class);
@@ -133,6 +137,7 @@ final readonly class TestExecutor
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
             $instance = null;
+            $captured = $capture?->stop();
             $disposalFailures = $this->scopes->closeTest();
 
             if ($disposalFailures !== [] && !$cause instanceof \Throwable) {
@@ -178,6 +183,7 @@ final readonly class TestExecutor
                 $attempt,
                 $failures,
                 $error,
+                output: $captured,
             ),
             $cause,
         ];

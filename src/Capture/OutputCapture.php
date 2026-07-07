@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Capture;
 
+use Greenlight\Core\Result\CapturedOutput;
+use Greenlight\Core\Result\Diagnostic;
+use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Wire\Utf8;
 
 /**

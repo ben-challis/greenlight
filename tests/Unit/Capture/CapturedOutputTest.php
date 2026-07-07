@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Capture;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Capture\CapturedOutput;
-use Greenlight\Capture\Diagnostic;
-use Greenlight\Capture\DiagnosticSeverity;
+use Greenlight\Core\Result\CapturedOutput;
+use Greenlight\Core\Result\Diagnostic;
+use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\Check;

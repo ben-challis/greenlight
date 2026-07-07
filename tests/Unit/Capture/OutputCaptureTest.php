@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Capture\CaptureError;
-use Greenlight\Capture\DiagnosticSeverity;
 use Greenlight\Capture\OutputCapture;
+use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Expect\Expect;
 
 final class OutputCaptureTest

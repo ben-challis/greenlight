@@ -83,6 +83,16 @@ final class DotPrinter implements EventSink
             if ($result->attempts > 1) {
                 ($this->out)(\sprintf("  after %d attempts\n", $result->attempts));
             }
+
+            $captured = $result->output;
+
+            if ($captured !== null && $captured->stdout !== '') {
+                ($this->out)("  captured output:\n");
+
+                foreach (\explode("\n", \rtrim($captured->stdout, "\n")) as $line) {
+                    ($this->out)('    ' . $line . "\n");
+                }
+            }
         }
     }
 }

@@ -219,6 +219,26 @@ final class WorkerTest
     }
 
     #[Test]
+    public function outputIsCapturedPerTestAndAttachedToTheResult(): void
+    {
+        [, $results] = $this->runFixture('Captured');
+
+        $byMethod = [];
+
+        foreach ($results as $result) {
+            $byMethod[$result->id->method] = $result;
+        }
+
+        $noisy = $byMethod['echoesAndFails'];
+        $optedOut = $byMethod['optsOutOfCapture'];
+
+        new Expect()->that($noisy->outcome)->toBe(Outcome::Errored)
+            ->and($noisy->output?->stdout)->toContain('noisy diagnostic output')
+            ->and($noisy->output?->diagnostics[0]->message)->toContain('old api')
+            ->and($optedOut->output)->toBeNull();
+    }
+
+    #[Test]
     public function testCountBudgetStopsTheWorkerAndReportsTheRemainder(): void
     {
         $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
