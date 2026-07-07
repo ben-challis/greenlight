@@ -103,7 +103,7 @@ Options:
 - `--bail[=<n>]` stops after `<n>` failures; bare `--bail` means 1.
 - `--group=<name>` only runs tests in this group. Repeatable.
 - `--seed=<n>` randomizes class order with this seed.
-- `--reporter=<name>` selects the output format: `tty`, `plain`, `junit`, `jsonl`, `github`, `teamcity`. Repeatable; multiple reporters write concurrently. Default: `tty` on an interactive terminal, otherwise `plain`.
+- `--reporter=<name>` selects the output format: `tty`, `progress`, `plain`, `junit`, `jsonl`, `github`, `teamcity`. Repeatable; multiple reporters write concurrently. Default: `tty` on an interactive terminal, otherwise `plain`. `progress` shows one live line per in-flight class with a spinner and running count, finalised in place as each class completes; it suits multi-worker runs, where interleaved per-test dots lose their meaning.
 - `--watch` re-runs on file changes. Enter re-runs everything, q quits.
 - `--detect-leaks` verifies every test instance is collected after its test; any leak fails the run.
 - `--dry-run` prints the resolved configuration without executing.

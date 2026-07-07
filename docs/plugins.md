@@ -95,7 +95,7 @@ Extension matchers dispatch through the expectation chain (`$this->expect->that(
 
 ### Reporter (in Greenlight\Reporting)
 
-Implement `onEvent(Event $event): void` plus `finish(): void` to render the event stream into any format. The six built-in reporters are ordinary implementations of the same interface.
+Implement `onEvent(Event $event): void` plus `finish(): void` to render the event stream into any format. The seven built-in reporters are ordinary implementations of the same interface.
 
 ## Ordering and error policy
 

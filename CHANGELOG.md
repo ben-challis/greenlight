@@ -30,8 +30,9 @@ The initial feature set, built and self-hosted in one development cycle:
   scope close rendering like assertion failures.
 - Per-test output capture (stdout plus notices, warnings, and deprecations)
   attached to results instead of polluting the report stream.
-- Six reporters over one event stream: tty, plain, junit, jsonl, github,
-  teamcity.
+- Seven reporters over one event stream: tty, progress (a parallel-aware
+  live display with one line per in-flight class), plain, junit, jsonl,
+  github, teamcity.
 - Coverage via pcov or xdebug with per-worker collection, incremental merge,
   five export formats, and a `coverage:diff` regression gate.
 - A plugin API with live runtime context: test and run lifecycle
