@@ -107,6 +107,8 @@ parameters:
             - greenlight.php
 ```
 
+Static analysis is only half the tooling story: IDE completion comes from indexers, which never run PHPStan plugins. `greenlight ide-helper` covers that side by writing `_greenlight_ide_helper.php`, a never-executed duplicate declaration of the expectation chain whose docblock lists every configured matcher as an `@method` annotation; PhpStorm and Intelephense merge duplicate declarations, so your matchers autocomplete with real signatures. Gitignore the file and regenerate it after changing matchers. Both tools read the same matcher map, so completion and analysis cannot disagree.
+
 Relative paths resolve against the directory PHPStan runs from. Listing several config files unions their matchers; the same matcher name declared with two different signatures fails the analysis run loudly, because one analysis can only hold one signature per name. Plugin constructors run inside the PHPStan process when the map is first needed, exactly as they do inside each worker.
 
 ### Reporter (in Greenlight\Reporting)

@@ -10,32 +10,33 @@ use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Wire\Utf8;
 
 /**
- * Captures stdout and PHP diagnostics for one window between start() and
- * stop(). Stdout is intercepted with a streaming output buffer callback, so
- * echo from user code lands in the capture instead of the real stream.
- * Diagnostics (notices, warnings, deprecations) are recorded by an error
- * handler installed for the window; see start() for the exact contract.
+ * Captures stdout and PHP diagnostics between start() and stop().
  *
- * Nesting contract: start() installs exactly one output buffer level and
- * remembers it. User code may open and close its own buffers freely inside
- * the window; ob_get_clean() and friends behave normally because they
- * operate on the user's own levels. stop() flushes any user buffers left
- * open into the capture (their content is captured, not lost), then removes
- * only the level it installed. If user code closed the capture's own buffer,
- * stop() keeps whatever was streamed through the callback before closure
- * rather than failing, so a stop() in a finally block never masks the
- * original exception.
+ * Stdout is captured through an output buffer callback, so echo, print, and
+ * printf output from user code is stored here instead of being written to the
+ * real stream. PHP diagnostics such as notices, warnings, and deprecations are
+ * recorded by an error handler installed for the capture window. See start()
+ * for the exact behaviour.
  *
- * Boundary: only output that flows through PHP's output buffering (echo,
- * print, printf) is capturable. Writes made directly to a stream resource,
- * such as fwrite to STDERR or STDOUT, bypass output buffering and cannot be
- * intercepted in userland; the process-level stderr pipe is surfaced by the
- * orchestrator instead.
+ * start() adds one output buffer level and remembers it. User code can still
+ * open and close its own buffers inside the capture window; ob_get_clean() and
+ * similar functions keep working on those user-created levels as normal.
  *
- * Truncation keeps the head of the output: the first output usually names
- * the cause, while the tail is typically repetition. A truncation cut can
- * split a multibyte character; the final scrub replaces the dangling bytes
- * with U+FFFD.
+ * stop() flushes any user buffers that are still open into the capture, then
+ * removes only the buffer level installed by start(). If user code has already
+ * closed that buffer, stop() keeps whatever was captured before it was closed
+ * and does not fail. This keeps stop() safe to call from a finally block
+ * without hiding the original exception.
+ *
+ * Only output that goes through PHP output buffering can be captured. Direct
+ * writes to stream resources, such as fwrite(STDERR, ...) or fwrite(STDOUT, ...),
+ * bypass userland output buffering and are handled separately by the
+ * orchestrator.
+ *
+ * When output is truncated, the start of the output is kept because it usually
+ * contains the useful error context; the end is often repeated noise. A cut may
+ * split a multibyte character, in which case the final scrub replaces the
+ * dangling bytes with U+FFFD.
  *
  * @internal
  */

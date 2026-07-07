@@ -29,6 +29,9 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\PhpStan\IdeHelper;
+use Greenlight\PhpStan\MatcherMap;
+use Greenlight\PhpStan\MatcherMapError;
 use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\JsonLinesReporter;
@@ -77,6 +80,8 @@ final readonly class Application
           list-tests     List every discovered test id, one per line
           coverage:diff  Compare two coverage JSON exports (--baseline, --current)
           profile:report Render the run profile from a saved jsonl stream (--input)
+          ide-helper     Write the IDE autocomplete helper for extension matchers
+                         (--output, default _greenlight_ide_helper.php)
 
         Options:
           --config=<path>    Use this config file instead of ./greenlight.php
@@ -177,6 +182,10 @@ final readonly class Application
 
         if ($command === 'profile:report') {
             return $this->profileReportCommand($arguments, $workingDirectory);
+        }
+
+        if ($command === 'ide-helper') {
+            return $this->ideHelperCommand($arguments, $workingDirectory);
         }
 
         ($this->err)(\sprintf("Unknown command '%s'. Run greenlight --help for the available commands.\n", $command));
@@ -569,6 +578,46 @@ final readonly class Application
      * Replays a saved jsonl event stream through the profile aggregator, so
      * a CI run's profile is recoverable from its artifact without a re-run.
      */
+    /**
+     * Writes the duplicate-declaration helper file IDEs index for extension
+     * matcher autocomplete. Loads the same config file the run would, so the
+     * generated signatures match what the PHPStan extension enforces.
+     */
+    private function ideHelperCommand(ParsedArguments $arguments, string $workingDirectory): int
+    {
+        try {
+            $configFile = $arguments->value('config') ?? \rtrim($workingDirectory, '/') . '/' . ConfigLoader::FILE_NAME;
+            $map = MatcherMap::fromConfigFiles([$this->absolutePath($configFile, $workingDirectory)]);
+        } catch (ConfigFileError|InvalidConfiguration|MatcherMapError $error) {
+            ($this->err)($error->getMessage() . "\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        if ($map->names() === []) {
+            ($this->out)("No extension matchers are configured; nothing to generate.\n");
+
+            return self::EXIT_OK;
+        }
+
+        $output = $arguments->value('output') ?? '_greenlight_ide_helper.php';
+        $path = $this->absolutePath($output, $workingDirectory);
+
+        if (@\file_put_contents($path, IdeHelper::render($map)) === false) {
+            ($this->err)(\sprintf("Could not write \"%s\".\n", $path));
+
+            return self::EXIT_FAILURE;
+        }
+
+        ($this->out)(\sprintf(
+            "Wrote %s with %d matchers. Gitignore it and regenerate after changing matchers.\n",
+            $path,
+            \count($map->names()),
+        ));
+
+        return self::EXIT_OK;
+    }
+
     private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         $input = $arguments->value('input');
@@ -766,6 +815,7 @@ final readonly class Application
             new OptionSpec('dry-run'),
             new OptionSpec('profile'),
             new OptionSpec('input', OptionValue::Required),
+            new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),
         ]);

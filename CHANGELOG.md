@@ -38,6 +38,9 @@ The initial feature set, built and self-hosted in one development cycle:
 - A plugin API with live runtime context: test and run lifecycle
   subscribers, retry deciders, harness providers, expectation extensions,
   and reporters, with provenance-guarded outcome transformation.
+- An `ide-helper` command writing the duplicate-declaration file IDEs
+  index so extension matchers autocomplete with real signatures, generated
+  from the same matcher map the PHPStan extension enforces.
 - A PHPStan extension (`extension.neon`) that reads extension matchers from
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.

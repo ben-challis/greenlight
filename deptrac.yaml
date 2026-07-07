@@ -78,7 +78,7 @@ deptrac:
     Plugin: [Core, Harness]
     Reporting: [Core]
     Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting, CpuCoreCounter]
-    Cli: [Core, Config, Coverage, Discovery, Reporting, Runner]
+    Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Config, Expect, PhpStanFramework]
     PhpStanFramework: []
     CpuCoreCounter: []

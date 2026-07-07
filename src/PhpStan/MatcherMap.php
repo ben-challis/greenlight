@@ -83,6 +83,14 @@ final readonly class MatcherMap
     }
 
     /**
+     * @return list<non-empty-string>
+     */
+    public function names(): array
+    {
+        return \array_keys($this->matchers);
+    }
+
+    /**
      * The parameters a caller passes on the expectation chain: the matcher
      * closure's parameters minus the leading subject, which the chain binds.
      *
@@ -114,7 +122,11 @@ final readonly class MatcherMap
         return '(' . \implode(', ', $parts) . ')';
     }
 
-    private static function typeName(?\ReflectionType $type): string
+    /**
+     * Renders a native reflection type the way source code writes it, for
+     * signature comparison and for the generated @method annotations.
+     */
+    public static function typeName(?\ReflectionType $type): string
     {
         if ($type instanceof \ReflectionUnionType) {
             return \implode('|', \array_map(self::typeName(...), $type->getTypes()));
