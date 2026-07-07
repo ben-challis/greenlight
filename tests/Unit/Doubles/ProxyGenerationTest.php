@@ -43,6 +43,28 @@ final class ProxyGenerationTest
     }
 
     #[Test]
+    public function theDefaultCacheLivesInTheSystemTempDirKeyedByWorkingDirectory(): void
+    {
+        $workingDirectory = \getcwd();
+        \assert($workingDirectory !== false);
+
+        $expected = \sprintf(
+            '%s/greenlight-proxies-%s',
+            \rtrim(\sys_get_temp_dir(), '/'),
+            \substr(\sha1($workingDirectory), 0, 12),
+        );
+
+        $doubles = new Doubles();
+        $doubles->spy(Calculator::class);
+
+        $files = \glob($expected . '/*.php');
+
+        new Expect()->that($files === false ? [] : $files)->not()->toHaveCount(0);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
     public function theProxyFileIsWrittenOnceAndReused(): void
     {
         $directory = \sys_get_temp_dir() . '/greenlight-doubles-' . \bin2hex(\random_bytes(6));

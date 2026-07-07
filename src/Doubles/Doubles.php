@@ -55,9 +55,12 @@ final class Doubles implements Disposable
     /**
      * @param non-empty-string|null $proxyDirectory where generated proxy
      *                                              classes are cached;
-     *                                              defaults to
-     *                                              .greenlight/proxies under
-     *                                              the working directory
+     *                                              defaults to a per-project
+     *                                              directory under the system
+     *                                              temp dir, keyed by a hash
+     *                                              of the working directory,
+     *                                              so the project tree stays
+     *                                              untouched
      */
     public function __construct(?string $proxyDirectory = null)
     {
@@ -68,7 +71,11 @@ final class Doubles implements Disposable
                 throw new DoublesError('The working directory could not be resolved; pass a proxy directory explicitly.');
             }
 
-            $proxyDirectory = $workingDirectory . '/.greenlight/proxies';
+            $proxyDirectory = \sprintf(
+                '%s/greenlight-proxies-%s',
+                \rtrim(\sys_get_temp_dir(), '/'),
+                \substr(\sha1($workingDirectory), 0, 12),
+            );
         }
 
         $this->generator = new ProxyGenerator($proxyDirectory);

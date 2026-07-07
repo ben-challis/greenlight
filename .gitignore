@@ -5,7 +5,6 @@
 .php-cs-fixer.cache
 
 # Greenlight runtime caches (timings, proxies)
-/.greenlight/
 
 # IDE
 .idea/

@@ -10,8 +10,8 @@ namespace Greenlight\Doubles;
  * whose parent constructor never runs. Every overridable instance method
  * delegates to the attached CallHandler.
  *
- * Generated code is written under the configured directory (by default
- * .greenlight/proxies/ in the working directory) so it is opcache friendly
+ * Generated code is written under the configured directory (by default a
+ * per-project directory under the system temp dir) so it is opcache friendly
  * and debuggable. The class name embeds a hash of the doubled type's method
  * signatures, so a signature change generates a new class and file while
  * unchanged types reuse the cached one, within a process and across runs.
