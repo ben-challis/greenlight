@@ -6,70 +6,53 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\MockPlan;
+use Greenlight\Doubles\DoublesError;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Fixture\Doubles\Calculator;
-use Greenlight\Tests\Fixture\Doubles\Clock;
 use Greenlight\Tests\Fixture\Doubles\Stubbable;
 
 final class StubTest
 {
     #[Test]
-    public function unconfiguredMethodsReturnDerivedDefaults(): void
+    public function satisfiesTheTypeWithoutRunningAnything(): void
     {
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        new Expect()->that($stub->name())->toBe('')
-            ->and($stub->count())->toBe(0)
-            ->and($stub->ratio())->toBe(0.0)
-            ->and($stub->flag())->toBeFalse()
-            ->and($stub->items())->toBe([])
-            ->and($stub->maybeId())->toBeNull()
-            ->and($stub->clock())->toBeInstanceOf(Clock::class)
-            ->and($stub->itself())->toBe($stub);
-
-        $stub->touch();
+        new Expect()->that($stub)->toBeInstanceOf(Stubbable::class);
 
         $doubles->dispose();
     }
 
     #[Test]
-    public function configuredCallsAnswerFromThePlan(): void
+    public function anyCallIsAnAuthoringError(): void
     {
         $doubles = new Doubles();
-        $stub = $doubles->stub(Stubbable::class, static function (MockPlan $plan): void {
-            $plan->expects('name')->andReturns('configured');
-        });
+        $stub = $doubles->stub(Stubbable::class);
 
-        new Expect()->that($stub->name())->toBe('configured');
+        new Expect()->that(static fn(): string => $stub->name())
+            ->toThrow(DoublesError::class, '/must never be interacted with/');
 
         $doubles->dispose();
     }
 
     #[Test]
-    public function nothingIsEnforcedOnAStub(): void
+    public function evenVoidCallsAreAuthoringErrors(): void
     {
         $doubles = new Doubles();
-        $doubles->stub(Stubbable::class, static function (MockPlan $plan): void {
-            $plan->expects('name')->times(5)->andReturns('never called');
-        });
+        $stub = $doubles->stub(Stubbable::class);
+
+        new Expect()->that(static function () use ($stub): void {
+            $stub->touch();
+        })->toThrow(DoublesError::class, '/must never be interacted with/');
 
         $doubles->dispose();
     }
 
     #[Test]
-    public function configuredAnswersSelectByArguments(): void
+    public function anUntouchedStubVerifiesCleanly(): void
     {
         $doubles = new Doubles();
-        $stub = $doubles->stub(Calculator::class, static function (MockPlan $plan): void {
-            $plan->expects('add')->with(1, 1)->andReturns(2);
-            $plan->expects('add')->with(2, 2)->andReturns(4);
-        });
-
-        new Expect()->that($stub->add(1, 1))->toBe(2)
-            ->and($stub->add(2, 2))->toBe(4)
-            ->and($stub->add(5, 5))->toBe(0);
+        $doubles->stub(Stubbable::class);
 
         $doubles->dispose();
     }

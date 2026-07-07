@@ -26,8 +26,6 @@ final class LeakTest
         $spy = $doubles->spy(CacheAlpha::class);
 
         $mock->add(1, 2);
-        $stub->name();
-        $spy->get('key');
 
         $references = [
             \WeakReference::create($mock),

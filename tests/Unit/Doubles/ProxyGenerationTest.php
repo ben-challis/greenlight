@@ -62,10 +62,12 @@ final class ProxyGenerationTest
     #[Test]
     public function classDoublesNeverRunTheDoubledConstructor(): void
     {
+        // The Clock constructor throws; creating the double without an
+        // exception proves it never ran.
         $doubles = new Doubles();
         $clock = $doubles->stub(Clock::class);
 
-        new Expect()->that($clock->now())->toBe('');
+        new Expect()->that($clock)->toBeInstanceOf(Clock::class);
 
         $doubles->dispose();
     }
@@ -74,22 +76,21 @@ final class ProxyGenerationTest
     public function wideSignaturesRoundTripThroughTheProxy(): void
     {
         $doubles = new Doubles();
-        $wide = $doubles->stub(Wide::class, static function (MockPlan $plan): void {
+        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+            $plan->expects('byReference');
+            $plan->expects('returnsVoid');
             $plan->expects('unionType')->with('text')->andReturns('answered');
+            $plan->expects('nullable')->with('x')->andReturns(null);
+            $plan->expects('variadic')->with('head', 1, 2)->andReturns(['head']);
         });
 
         $items = ['a'];
         $wide->byReference($items);
         $wide->returnsVoid();
 
-        // The derived default for int|string is the first member reflection
-        // reports; only its membership in the union is guaranteed.
         new Expect()->that($wide->unionType('text'))->toBe('answered')
-            ->and(\in_array($wide->unionType(5), [0, ''], true))->toBeTrue()
             ->and($wide->nullable('x'))->toBeNull()
-            ->and($wide->returnsStatic())->toBe($wide)
-            ->and($wide->withDefaults())->toBe('')
-            ->and($wide->variadic('head', 1, 2))->toBe([]);
+            ->and($wide->variadic('head', 1, 2))->toBe(['head']);
 
         $doubles->dispose();
     }
@@ -98,10 +99,12 @@ final class ProxyGenerationTest
     public function anUnconfiguredNeverReturningMethodIsAnAuthoringError(): void
     {
         $doubles = new Doubles();
-        $wide = $doubles->stub(Wide::class);
+        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+            $plan->expects('returnsNever');
+        });
 
         new Expect()->that(static fn() => $wide->returnsNever())
-            ->toThrow(DoublesError::class, '/never/');
+            ->toThrow(DoublesError::class, '/no configured answer/');
 
         $doubles->dispose();
     }
@@ -110,7 +113,7 @@ final class ProxyGenerationTest
     public function aConfiguredNeverReturningMethodThrowsItsPlan(): void
     {
         $doubles = new Doubles();
-        $wide = $doubles->stub(Wide::class, static function (MockPlan $plan): void {
+        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('returnsNever')->andThrows(new \DomainException('halt'));
         });
 

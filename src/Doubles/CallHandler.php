@@ -10,9 +10,10 @@ use Greenlight\Expect\ValueRenderer;
 
 /**
  * Runtime behind every generated proxy method. Records the call, then
- * answers it according to the double's kind: mocks consume a matching
- * planned call or fail immediately, stubs answer from their configuration
- * or a derived default, spies only record and answer with defaults.
+ * answers it according to the double's kind. Nothing is ever guessed: a
+ * mock answers only what was explicitly configured, a stub exists purely to
+ * satisfy a type and errors on any call, and a spy records interactions but
+ * cannot invent return values.
  *
  * @internal
  */
@@ -32,8 +33,8 @@ final readonly class CallHandler
 
         return match ($this->state->kind) {
             DoubleKind::Mock => $this->invokeOnMock($double, $method, $arguments),
-            DoubleKind::Stub => $this->invokeOnStub($double, $method, $arguments),
-            DoubleKind::Spy => DefaultValues::forMethod($double, $method),
+            DoubleKind::Stub => throw DoublesError::stubWasCalled($this->state->type, $method),
+            DoubleKind::Spy => $this->invokeOnSpy($double, $method),
         };
     }
 
@@ -58,18 +59,13 @@ final readonly class CallHandler
         throw ExpectationFailed::fromDetail($detail);
     }
 
-    /**
-     * @param list<mixed> $arguments
-     */
-    private function invokeOnStub(object $double, string $method, array $arguments): mixed
+    private function invokeOnSpy(object $double, string $method): mixed
     {
-        foreach ($this->state->expectationsFor($method) as $expectation) {
-            if ($expectation->matchesArguments($arguments)) {
-                return $this->answer($expectation, $double, $method);
-            }
+        if ($this->returnsNothing($double, $method)) {
+            return null;
         }
 
-        return DefaultValues::forMethod($double, $method);
+        throw DoublesError::spyCannotAnswer($this->state->type, $method);
     }
 
     private function answer(MethodExpectation $expectation, object $double, string $method): mixed
@@ -84,7 +80,27 @@ final readonly class CallHandler
             return $expectation->configuredReturnValue();
         }
 
-        return DefaultValues::forMethod($double, $method);
+        if ($this->returnsNothing($double, $method)) {
+            return null;
+        }
+
+        throw DoublesError::returnNotConfigured($this->state->type, $method);
+    }
+
+    /**
+     * Only void and undeclared return types need no configured answer.
+     * Anything else, including never (which can only be satisfied by
+     * andThrows()), must be stated explicitly.
+     */
+    private function returnsNothing(object $double, string $method): bool
+    {
+        $type = new \ReflectionMethod($double, $method)->getReturnType();
+
+        if ($type === null) {
+            return true;
+        }
+
+        return $type instanceof \ReflectionNamedType && $type->getName() === 'void';
     }
 
     /**

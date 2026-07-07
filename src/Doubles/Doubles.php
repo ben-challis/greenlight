@@ -20,9 +20,10 @@ use Greenlight\Harness\Disposable;
  *         $plan->expects('charge')->with($amount)->once()->andReturns($ok);
  *     });
  *
- * Mocks are strict: a call that matches no planned expectation fails the
- * test immediately. Stubs are loose: plan only what should answer, anything
- * else returns a derived default. Spies record every call; read them back
+ * Nothing is ever guessed. Mocks are strict: a call that matches no planned
+ * expectation fails the test immediately, and every returned value must be
+ * configured explicitly. Stubs satisfy a type and error on any interaction.
+ * Spies record every call to methods that return nothing; read them back
  * with callsTo() and assert with Expect. Verification failures throw a
  * single ExpectationFailed carrying one FailureDetail per unmet expectation,
  * so they render exactly like Expect failures.
@@ -92,25 +93,27 @@ final class Doubles implements Disposable
     }
 
     /**
-     * A loose double: configured calls answer as planned, unconfigured calls
-     * return a derived default, and nothing is enforced at test end.
+     * An inert placeholder: it satisfies the type so a collaborator slot can
+     * be filled, and it errors the test on any interaction. When a test needs
+     * a collaborator that actually answers, that is a mock with explicit
+     * expectations.
      *
      * @template T of object
      *
      * @param class-string<T> $type
-     * @param \Closure(MockPlan): void|null $configure
      *
      * @return T
      */
-    public function stub(string $type, ?\Closure $configure = null): object
+    public function stub(string $type): object
     {
-        return $this->create($type, DoubleKind::Stub, $configure);
+        return $this->create($type, DoubleKind::Stub, null);
     }
 
     /**
-     * A recording double: every call is recorded with its arguments and
-     * answered with a derived default. Read the recording back with
-     * callsTo() and assert on it with Expect.
+     * A recording double: every call is recorded with its arguments. Only
+     * methods that return nothing can be spied on; a spy never invents a
+     * return value. Read the recording back with callsTo() and assert on it
+     * with Expect.
      *
      * @template T of object
      *

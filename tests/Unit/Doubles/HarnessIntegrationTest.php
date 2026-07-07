@@ -72,10 +72,9 @@ final class HarnessIntegrationTest
         $wire = $doubles->stub(WireSerializable::class);
         $events = $doubles->stub(EventSink::class);
 
-        $disposable->dispose();
-
-        new Expect()->that($condition->isSatisfied())->toBeFalse()
-            ->and($wire->toWire())->toBe([])
+        new Expect()->that($condition)->toBeInstanceOf(Condition::class)
+            ->and($disposable)->toBeInstanceOf(Disposable::class)
+            ->and($wire)->toBeInstanceOf(WireSerializable::class)
             ->and($sink)->toBeInstanceOf(FailureSink::class)
             ->and($extension)->toBeInstanceOf(ExpectationExtension::class)
             ->and($events)->toBeInstanceOf(EventSink::class);

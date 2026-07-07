@@ -9,7 +9,7 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
-use Greenlight\Tests\Fixture\Doubles\Wide;
+use Greenlight\Tests\Fixture\Doubles\Notifier;
 
 final class SpyTest
 {
@@ -17,14 +17,14 @@ final class SpyTest
     public function recordsEveryCallInOrderWithArguments(): void
     {
         $doubles = new Doubles();
-        $spy = $doubles->spy(Calculator::class);
+        $spy = $doubles->spy(Notifier::class);
 
-        $spy->add(1, 2);
-        $spy->describe('first');
-        $spy->add(3, 4);
+        $spy->notify('ops', 'first');
+        $spy->flush();
+        $spy->notify('dev', 'second');
 
-        new Expect()->that($doubles->callsTo($spy, 'add'))->toBe([[1, 2], [3, 4]])
-            ->and($doubles->callsTo($spy, 'describe'))->toBe([['first']]);
+        new Expect()->that($doubles->callsTo($spy, 'notify'))->toBe([['ops', 'first'], ['dev', 'second']])
+            ->and($doubles->callsTo($spy, 'flush'))->toBe([[]]);
 
         $doubles->dispose();
     }
@@ -33,9 +33,9 @@ final class SpyTest
     public function anUncalledMethodHasNoRecordedCalls(): void
     {
         $doubles = new Doubles();
-        $spy = $doubles->spy(Calculator::class);
+        $spy = $doubles->spy(Notifier::class);
 
-        new Expect()->that($doubles->callsTo($spy, 'add'))->toBe([]);
+        new Expect()->that($doubles->callsTo($spy, 'notify'))->toBe([]);
 
         $doubles->dispose();
     }
@@ -44,11 +44,23 @@ final class SpyTest
     public function variadicArgumentsAreRecordedFlattened(): void
     {
         $doubles = new Doubles();
-        $spy = $doubles->spy(Wide::class);
+        $spy = $doubles->spy(Notifier::class);
 
-        $spy->variadic('first', 1, 2, 3);
+        $spy->tag('first', 1, 2, 3);
 
-        new Expect()->that($doubles->callsTo($spy, 'variadic'))->toBe([['first', 1, 2, 3]]);
+        new Expect()->that($doubles->callsTo($spy, 'tag'))->toBe([['first', 1, 2, 3]]);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function valueReturningMethodsCannotBeSpiedOn(): void
+    {
+        $doubles = new Doubles();
+        $spy = $doubles->spy(Calculator::class);
+
+        new Expect()->that(static fn(): int => $spy->add(1, 2))
+            ->toThrow(DoublesError::class, '/Spies only record/');
 
         $doubles->dispose();
     }
@@ -67,12 +79,12 @@ final class SpyTest
     public function spyRecordingsWorkWithExpectDirectly(): void
     {
         $doubles = new Doubles();
-        $spy = $doubles->spy(Calculator::class);
+        $spy = $doubles->spy(Notifier::class);
 
-        $spy->add(10, 20);
+        $spy->notify('ops', 'deploy finished');
 
-        new Expect()->that($doubles->callsTo($spy, 'add'))->toHaveCount(1)
-            ->and($doubles->callsTo($spy, 'add')[0])->toEqual([10, 20]);
+        new Expect()->that($doubles->callsTo($spy, 'notify'))->toHaveCount(1)
+            ->and($doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
 
         $doubles->dispose();
     }
