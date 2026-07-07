@@ -38,6 +38,9 @@ The initial feature set, built and self-hosted in one development cycle:
 - A plugin API with live runtime context: test and run lifecycle
   subscribers, retry deciders, harness providers, expectation extensions,
   and reporters, with provenance-guarded outcome transformation.
+- A PHPStan extension (`extension.neon`) that reads extension matchers from
+  your config files and type-checks matcher calls on the expectation chain,
+  covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
 - Memory discipline: `--detect-leaks` names tests whose instances survive,
   and CI gates a 10,000-test single-worker run at under 1 MiB of drift.

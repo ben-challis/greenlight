@@ -2,6 +2,7 @@ includes:
     - vendor/phpstan/phpstan/conf/bleedingEdge.neon
     - vendor/phpstan/phpstan-strict-rules/rules.neon
     - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - extension.neon
 
 parameters:
     level: max
@@ -9,3 +10,6 @@ parameters:
         - src
         - tests
         - tools
+    greenlight:
+        configFiles:
+            - tests/Fixture/PhpStanExtension/greenlight.php

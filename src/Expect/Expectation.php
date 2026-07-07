@@ -49,8 +49,7 @@ final class Expectation
      * Dispatches extension matchers: an ExpectationExtension providing a
      * matcher named like the called method is evaluated against the subject
      * with the given arguments. Extensions cannot shadow native matchers,
-     * which always win by existing as real methods. Experimental until the
-     * plugin API GA review.
+     * which always win by existing as real methods.
      *
      * @param array<int, mixed> $arguments
      */
@@ -64,7 +63,7 @@ final class Expectation
             }
 
             return $this->verify(
-                $matcher($this->subject, ...$arguments),
+                $matcher($this->subject, ...$arguments) === true,
                 'to satisfy the extension matcher ' . $name,
             );
         }

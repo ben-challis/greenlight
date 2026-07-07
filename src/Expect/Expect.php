@@ -19,10 +19,10 @@ final class Expect
     private readonly ValueRenderer $renderer;
 
     /**
-     * @param list<ExpectationExtension> $extensions experimental: extensions
-     *                                               are registered but not
-     *                                               dispatched to yet, see
-     *                                               ExpectationExtension
+     * @param list<ExpectationExtension> $extensions matchers contributed by
+     *                                               plugins, dispatched by
+     *                                               name from the expectation
+     *                                               chain
      */
     public function __construct(
         private readonly array $extensions = [],

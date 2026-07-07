@@ -53,6 +53,14 @@ deptrac:
       collectors:
         - type: directory
           value: src/Cli/.*
+    - name: PhpStan
+      collectors:
+        - type: directory
+          value: src/PhpStan/.*
+    - name: PhpStanFramework
+      collectors:
+        - type: classNameRegex
+          value: /^PHPStan\\/
 
   ruleset:
     Core: []
@@ -67,3 +75,5 @@ deptrac:
     Reporting: [Core]
     Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner]
+    PhpStan: [Config, Expect, PhpStanFramework]
+    PhpStanFramework: []

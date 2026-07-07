@@ -91,7 +91,23 @@ final class UuidMatchers implements ExpectationExtension
 }
 ```
 
-Extension matchers dispatch through the expectation chain (`$this->expect->that($id)->toBeValidUuid()`), honour `not()`, and cannot shadow native matchers.
+Extension matchers dispatch through the expectation chain (`$this->expect->that($id)->toBeValidUuid()`), honour `not()`, and cannot shadow native matchers. Declare matcher parameters with real native types: they are enforced at runtime by PHP itself and read by the PHPStan extension below.
+
+#### Static analysis for extension matchers
+
+Matcher calls dispatch through `__call`, which PHPStan cannot check by itself. Greenlight ships a PHPStan extension that closes the gap: it loads your config files the same way workers do, reflects each matcher closure's signature, and presents every matcher to PHPStan as a real method on the expectation chain. Name typos, wrong argument counts, and wrong argument types then fail `phpstan analyse` like any other error.
+
+```neon
+includes:
+    - vendor/greenlight/greenlight/extension.neon
+
+parameters:
+    greenlight:
+        configFiles:
+            - greenlight.php
+```
+
+Relative paths resolve against the directory PHPStan runs from. Listing several config files unions their matchers; the same matcher name declared with two different signatures fails the analysis run loudly, because one analysis can only hold one signature per name. Plugin constructors run inside the PHPStan process when the map is first needed, exactly as they do inside each worker.
 
 ### Reporter (in Greenlight\Reporting)
 

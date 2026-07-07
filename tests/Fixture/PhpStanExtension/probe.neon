@@ -1,0 +1,8 @@
+includes:
+    - ../../../extension.neon
+
+parameters:
+    level: max
+    greenlight:
+        configFiles:
+            - tests/Fixture/PhpStanExtension/greenlight.php
