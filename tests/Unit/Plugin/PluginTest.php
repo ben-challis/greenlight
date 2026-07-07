@@ -93,6 +93,29 @@ final class PluginTest
     }
 
     #[Test]
+    public function contextSkipFromBeforeTestSkipsTheTest(): void
+    {
+        $skipper = new class implements TestLifecycleSubscriber {
+            #[\Override]
+            public function beforeTest(TestContext $context): void
+            {
+                $context->skip('flaky on this platform');
+            }
+
+            #[\Override]
+            public function afterTest(TestContext $context, TestResult $result): TestResult
+            {
+                return $result;
+            }
+        };
+
+        [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
+
+        new Expect()->that($summary->skipped)->toBe(1)
+            ->and($results[0]->skipReason)->toBe('flaky on this platform');
+    }
+
+    #[Test]
     public function skipSignalFromBeforeTestSkipsTheTest(): void
     {
         $skipper = new class implements TestLifecycleSubscriber {

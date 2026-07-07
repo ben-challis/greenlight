@@ -35,7 +35,7 @@ final class FlakyQuarantine implements TestLifecycleSubscriber
 }
 ```
 
-`beforeTest` runs after the test instance is constructed and before the `#[Before]` hooks. Throwing `Greenlight\Plugin\SkipTest` from it skips the test with the given reason; any other throwable errors the test with your plugin named.
+`beforeTest` runs after the test instance is constructed and before the `#[Before]` hooks. Calling `$context->skip('reason')` from it abandons the attempt and reports the test as skipped; the method is typed `never`, so nothing after the call runs. It works by throwing `Greenlight\Plugin\SkipTest`, declared as `@throws` on the interface, and throwing that yourself is equivalent. Any other throwable errors the test with your plugin named.
 
 `afterTest` receives the finished result and returns it, replaced or untouched. Outcome changes are only legal through `TestResult::withOutcome()`, which records who changed what: a replacement that flips the outcome without growing the transformation log errors the test, naming the plugin. Reports stay trustworthy because transformations are always attributable.
 
