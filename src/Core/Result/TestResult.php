@@ -13,6 +13,12 @@ use Greenlight\Core\Wire\WireSerializable;
  *
  * Plugins never mutate a result; they produce a replacement via
  * withOutcome(), which records provenance.
+ *
+ * expectations counts the verifications of the final attempt: each matcher
+ * in a chain individually, soft-mode failures included, and each mock
+ * expectation at disposal; stubs never count. A non-passed result carries
+ * whatever verified before the abort. Wire payloads written before the field
+ * existed decode to zero.
  */
 final readonly class TestResult implements WireSerializable
 {
@@ -40,6 +46,7 @@ final readonly class TestResult implements WireSerializable
         public array $transformations = [],
         public ?CapturedOutput $output = null,
         public bool $risky = false,
+        public int $expectations = 0,
     ) {
         if ($durationSeconds < 0.0) {
             throw new \InvalidArgumentException('Duration cannot be negative.');
@@ -69,6 +76,7 @@ final readonly class TestResult implements WireSerializable
             [...$this->transformations, new OutcomeTransformation($transformedBy, $this->outcome, $outcome)],
             $this->output,
             $this->risky,
+            $this->expectations,
         );
     }
 
@@ -90,6 +98,7 @@ final readonly class TestResult implements WireSerializable
             $this->transformations,
             $this->output,
             true,
+            $this->expectations,
         );
     }
 
@@ -111,6 +120,7 @@ final readonly class TestResult implements WireSerializable
             ),
             'output' => $this->output?->toWire(),
             'risky' => $this->risky,
+            'expectations' => $this->expectations,
         ];
     }
 
@@ -138,6 +148,7 @@ final readonly class TestResult implements WireSerializable
             ),
             $output === null ? null : CapturedOutput::fromWire($output),
             \array_key_exists('risky', $payload) && Wire::bool($payload, 'risky'),
+            \array_key_exists('expectations', $payload) ? \max(0, Wire::int($payload, 'expectations')) : 0,
         );
     }
 }

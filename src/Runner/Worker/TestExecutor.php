@@ -224,12 +224,13 @@ final readonly class TestExecutor
             $error,
             $skipReason,
             output: $captured,
+            expectations: ExpectationCounter::count(),
         );
 
         // The counter includes double verification, which ran at scope close
         // above; a passed test with zero verified expectations is risky
         // unless it declared the intent with #[NoExpectations].
-        if ($result->outcome === Outcome::Passed && !$metadata->noExpectations && ExpectationCounter::count() === 0) {
+        if ($result->outcome === Outcome::Passed && !$metadata->noExpectations && $result->expectations === 0) {
             $result = $result->asRisky();
         }
 
@@ -268,6 +269,8 @@ final readonly class TestExecutor
                         $result->skipReason,
                         $result->transformations,
                         $result->output,
+                        $result->risky,
+                        $result->expectations,
                     );
                 }
 
@@ -293,6 +296,8 @@ final readonly class TestExecutor
                     $result->skipReason,
                     $result->transformations,
                     $result->output,
+                    $result->risky,
+                    $result->expectations,
                 );
 
                 continue;

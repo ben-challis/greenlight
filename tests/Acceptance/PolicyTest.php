@@ -28,7 +28,10 @@ final class PolicyTest
 
             // Without flags everything passes; deprecations are recorded, not fatal.
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest');
-            $expect->that($exit)->toBe(0)->and($output)->toContain('Tests: 3, Passed: 3');
+            $expect->that($exit)->toBe(0)
+                ->and($output)->toContain('Tests: 3, Passed: 3')
+                // One matcher per test crossed the worker boundary into the summary.
+                ->and($output)->toContain('Expectations: 3');
 
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
             $expect->that($exit)->toBe(1)
@@ -61,7 +64,9 @@ final class PolicyTest
                 ->and($riskyBlock)->toContain('Risky: 1 passed without verifying any expectation')
                 ->and($riskyBlock)->toContain('RiskyProbeTest::assertsNothing')
                 ->and($riskyBlock)->not()->toContain('optedOut')
-                ->and($riskyBlock)->not()->toContain('mocksOnly');
+                ->and($riskyBlock)->not()->toContain('mocksOnly')
+                // Only the mock verification counts; the empty tests add nothing.
+                ->and($output)->toContain('Expectations: 1');
 
             [$exit, $output] = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
             $expect->that($exit)->toBe(1)

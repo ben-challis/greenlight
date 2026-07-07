@@ -54,3 +54,4 @@ A change that cannot be made additively increments `v`. Consumers should treat a
 - `error`: `{"class", "message", "file", "line", "stackFrames"}` or null.
 - `skipReason`: string or null.
 - `transformations`: a list of `{"transformedBy", "from", "to"}` provenance records for plugin outcome changes.
+- `expectations`: the number of expectations verified during the final attempt. Each matcher in a chain counts once, soft-mode failures count, and each mock expectation counts at verification; stubs never count. Failed, errored, and skipped tests carry the partial count verified before the abort. Streams written before this field existed omit the key; consumers should treat a missing key as 0.

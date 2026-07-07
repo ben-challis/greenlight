@@ -26,6 +26,7 @@ final class TestResultTest
             2,
             [new FailureDetail('expected 1, got 2', '1', '2', new SourceLocation('/app/tests/FooTest.php', 12))],
             ThrowableDetail::fromThrowable(new \RuntimeException('boom')),
+            expectations: 7,
         );
 
         $restored = TestResult::fromWire(Check::jsonRoundTrip($result->toWire()));
@@ -39,6 +40,18 @@ final class TestResultTest
         Check::same('expected 1, got 2', $restored->failures[0]->message, 'failure message');
         Check::same('/app/tests/FooTest.php:12', (string) $restored->failures[0]->location, 'failure location');
         Check::same(\RuntimeException::class, $restored->error?->class, 'error class');
+        Check::same(7, $restored->expectations, 'expectations');
+    }
+
+    #[Test]
+    public function toleratesPayloadsWithoutExpectations(): void
+    {
+        $payload = new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Passed, 0.1, 0)->toWire();
+        unset($payload['expectations']);
+
+        $restored = TestResult::fromWire(Check::jsonRoundTrip($payload));
+
+        Check::same(0, $restored->expectations, 'expectations to default to zero');
     }
 
     #[Test]
@@ -53,8 +66,10 @@ final class TestResultTest
     #[Test]
     public function withOutcomeRecordsProvenanceAndPreservesTheOriginal(): void
     {
-        $original = new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Failed, 0.1, 0);
+        $original = new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Failed, 0.1, 0, expectations: 3);
         $quarantined = $original->withOutcome(Outcome::Skipped, 'flaky-quarantine-plugin');
+
+        Check::same(3, $quarantined->expectations, 'expectations preserved through withOutcome');
 
         Check::same(Outcome::Failed, $original->outcome, 'original outcome untouched');
         Check::same([], $original->transformations, 'original transformation log untouched');

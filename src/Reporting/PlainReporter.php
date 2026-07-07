@@ -41,6 +41,11 @@ final class PlainReporter implements Reporter
     private int $workersSpawned = 0;
 
     /**
+     * @var non-negative-int
+     */
+    private int $expectations = 0;
+
+    /**
      * @var array<string, int>
      */
     private array $recycleCounts = [];
@@ -72,6 +77,7 @@ final class PlainReporter implements Reporter
         if ($event instanceof TestFinished) {
             $this->slowTests->record($event);
             $result = $event->result;
+            $this->expectations += $result->expectations;
             $attempts = $result->attempts > 1 ? \sprintf(' (attempts: %d)', $result->attempts) : '';
 
             $this->output->write(\sprintf(
@@ -129,12 +135,13 @@ final class PlainReporter implements Reporter
             $summary = $finished->summary;
 
             $this->output->write(\sprintf(
-                "\nTests: %d, Passed: %d, Failed: %d, Errored: %d, Skipped: %d\nTime: %.3fs\n",
+                "\nTests: %d, Passed: %d, Failed: %d, Errored: %d, Skipped: %d, Expectations: %d\nTime: %.3fs\n",
                 $summary->total(),
                 $summary->passed,
                 $summary->failed,
                 $summary->errored,
                 $summary->skipped,
+                $this->expectations,
                 $finished->durationSeconds,
             ));
         }

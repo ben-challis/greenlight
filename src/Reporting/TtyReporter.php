@@ -57,6 +57,11 @@ final class TtyReporter implements Reporter
 
     private int $workersRecycled = 0;
 
+    /**
+     * @var non-negative-int
+     */
+    private int $expectations = 0;
+
     private ?RunFinished $runFinished = null;
 
     private readonly SlowTests $slowTests;
@@ -82,6 +87,7 @@ final class TtyReporter implements Reporter
         if ($event instanceof TestFinished) {
             $this->slowTests->record($event);
             $result = $event->result;
+            $this->expectations += $result->expectations;
             $class = $result->id->class;
 
             if (isset($this->live[$class])) {
@@ -151,12 +157,13 @@ final class TtyReporter implements Reporter
             $summary = $finished->summary;
 
             $this->output->write(\sprintf(
-                "\nTests: %d, Passed: %d, Failed: %d, Errored: %d, Skipped: %d\nTime: %.3fs\n",
+                "\nTests: %d, Passed: %d, Failed: %d, Errored: %d, Skipped: %d, Expectations: %d\nTime: %.3fs\n",
                 $summary->total(),
                 $summary->passed,
                 $summary->failed,
                 $summary->errored,
                 $summary->skipped,
+                $this->expectations,
                 $finished->durationSeconds,
             ));
         }

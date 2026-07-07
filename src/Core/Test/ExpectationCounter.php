@@ -34,8 +34,11 @@ final class ExpectationCounter
         ++self::$count;
     }
 
+    /**
+     * @return non-negative-int
+     */
     public static function count(): int
     {
-        return self::$count;
+        return \max(0, self::$count);
     }
 }

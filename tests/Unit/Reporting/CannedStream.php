@@ -74,6 +74,7 @@ final class CannedStream
                     new SourceLocation('/project/tests/CalculatorTest.php', 42),
                 ),
             ],
+            expectations: 1,
         );
 
         $errored = new TestResult(
@@ -88,6 +89,7 @@ final class CannedStream
                 17,
                 ['Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17'],
             ),
+            expectations: 1,
         );
 
         $skipped = new TestResult(
@@ -105,11 +107,11 @@ final class CannedStream
             new SuiteStarted('unit', $at + 0.03),
             new TestClassStarted($calc, $at + 0.04),
             new TestStarted($adds, $at + 0.05),
-            new TestFinished(new TestResult($adds, Outcome::Passed, 0.012, 1024), $at + 0.06),
+            new TestFinished(new TestResult($adds, Outcome::Passed, 0.012, 1024, expectations: 2), $at + 0.06),
             new TestStarted($subtracts, $at + 0.07),
             new TestFinished($failed, $at + 0.08),
             new TestStarted($multiplies, $at + 0.09),
-            new TestFinished(new TestResult($multiplies, Outcome::Passed, 0.34, 262144), $at + 0.1),
+            new TestFinished(new TestResult($multiplies, Outcome::Passed, 0.34, 262144, expectations: 4), $at + 0.1),
             new TestClassFinished($calc, $at + 0.11),
             new TestClassStarted($network, $at + 0.12),
             new TestStarted($connects, $at + 0.13),
@@ -117,7 +119,7 @@ final class CannedStream
             new TestStarted($pings, $at + 0.15),
             new TestFinished($skipped, $at + 0.16),
             new TestStarted($retries, $at + 0.17),
-            new TestFinished(new TestResult($retries, Outcome::Passed, 0.15, 512, attempts: 3), $at + 0.18),
+            new TestFinished(new TestResult($retries, Outcome::Passed, 0.15, 512, attempts: 3, expectations: 3), $at + 0.18),
             new TestClassFinished($network, $at + 0.19),
             new WorkerRecycled('w-1', RecycleReason::Memory, $at + 0.2),
             new SuiteFinished('unit', $at + 0.21),

@@ -37,7 +37,7 @@ final class PlainReporterTest
                 Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
               at /project/tests/NetworkTest.php:17
 
-            Tests: 6, Passed: 3, Failed: 1, Errored: 1, Skipped: 1
+            Tests: 6, Passed: 3, Failed: 1, Errored: 1, Skipped: 1, Expectations: 11
             Time: 1.234s
             Workers: 2 spawned, 1 recycled (memory: 1)
 

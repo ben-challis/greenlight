@@ -25,8 +25,8 @@ final class ParallelRunTest
 
         $expect->that($sequentialExit)->toBe(0)
             ->and($parallelExit)->toBe(0)
-            ->and($this->summaryLine($sequential))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0')
-            ->and($this->summaryLine($parallel))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0');
+            ->and($this->summaryLine($sequential))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0, Expectations: 0')
+            ->and($this->summaryLine($parallel))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0, Expectations: 0');
     }
 
     #[Test]
@@ -35,7 +35,7 @@ final class ParallelRunTest
         [$exit, $output] = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
         new Expect()->that($exit)->toBe(1)
-            ->and($this->summaryLine($output))->toBe('Tests: 3, Passed: 2, Failed: 0, Errored: 1, Skipped: 0')
+            ->and($this->summaryLine($output))->toBe('Tests: 3, Passed: 2, Failed: 0, Errored: 1, Skipped: 0, Expectations: 0')
             ->and($output)->toContain('crashed while running');
     }
 
@@ -45,7 +45,7 @@ final class ParallelRunTest
         [$exit, $output] = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
         new Expect()->that($exit)->toBe(0)
-            ->and($this->summaryLine($output))->toBe('Tests: 2, Passed: 1, Failed: 0, Errored: 0, Skipped: 1');
+            ->and($this->summaryLine($output))->toBe('Tests: 2, Passed: 1, Failed: 0, Errored: 0, Skipped: 1, Expectations: 0');
     }
 
     #[Test]
@@ -54,7 +54,7 @@ final class ParallelRunTest
         [$exit, $output] = $this->runIn('RecycleConfig', ['run']);
 
         new Expect()->that($exit)->toBe(0)
-            ->and($this->summaryLine($output))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0');
+            ->and($this->summaryLine($output))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0, Expectations: 0');
     }
 
     #[Test]
@@ -111,7 +111,7 @@ final class ParallelRunTest
 
     private function summaryLine(string $output): string
     {
-        if (\preg_match('/^Tests: \d+, Passed: \d+, Failed: \d+, Errored: \d+, Skipped: \d+$/m', $output, $matches) !== 1) {
+        if (\preg_match('/^Tests: \d+, Passed: \d+, Failed: \d+, Errored: \d+, Skipped: \d+, Expectations: \d+$/m', $output, $matches) !== 1) {
             throw new \RuntimeException("No summary line found in output:\n" . $output);
         }
 

@@ -33,7 +33,7 @@ final class JUnitReporter implements Reporter
     private array $casesByClass = [];
 
     /**
-     * @var array<string, array{tests: int, failures: int, errors: int, skipped: int, time: float}>
+     * @var array<string, array{tests: int, failures: int, errors: int, skipped: int, assertions: int, time: float}>
      */
     private array $countsByClass = [];
 
@@ -51,8 +51,9 @@ final class JUnitReporter implements Reporter
             $class = $result->id->class;
 
             $this->casesByClass[$class][] = $this->renderCase($result);
-            $counts = $this->countsByClass[$class] ?? ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'time' => 0.0];
+            $counts = $this->countsByClass[$class] ?? ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'assertions' => 0, 'time' => 0.0];
             ++$counts['tests'];
+            $counts['assertions'] += $result->expectations;
             $counts['time'] += $result->durationSeconds;
 
             match ($result->outcome) {
@@ -103,12 +104,13 @@ final class JUnitReporter implements Reporter
             $counts = $this->countsByClass[$class];
 
             $this->output->write(\sprintf(
-                "  <testsuite name=\"%s\" tests=\"%d\" failures=\"%d\" errors=\"%d\" skipped=\"%d\" time=\"%s\">\n",
+                "  <testsuite name=\"%s\" tests=\"%d\" failures=\"%d\" errors=\"%d\" skipped=\"%d\" assertions=\"%d\" time=\"%s\">\n",
                 $this->attribute($class),
                 $counts['tests'],
                 $counts['failures'],
                 $counts['errors'],
                 $counts['skipped'],
+                $counts['assertions'],
                 $this->time($counts['time']),
             ));
 
@@ -152,6 +154,7 @@ final class JUnitReporter implements Reporter
         $writer->startElement('testcase');
         $writer->writeAttribute('name', $name);
         $writer->writeAttribute('classname', $result->id->class);
+        $writer->writeAttribute('assertions', (string) $result->expectations);
         $writer->writeAttribute('time', $this->time($result->durationSeconds));
 
         if ($result->outcome === Outcome::Failed) {
