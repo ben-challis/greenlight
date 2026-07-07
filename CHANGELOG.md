@@ -42,6 +42,11 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- Test selection: `--filter` id patterns (substring or `*` wildcards, case
+  insensitive, data-set labels included) and `--failed` re-running the
+  previous run's failures from state recorded on every run, with failed
+  classes ordered first on plain runs; the human reporters end with a
+  slowest-tests block when anything crossed 200 ms.
 - Memory discipline: `--detect-leaks` names tests whose instances survive,
   and CI gates a 10,000-test single-worker run at under 1 MiB of drift.
 - Greenlight tests itself: the suite runs under `bin/greenlight run` across

@@ -50,11 +50,15 @@ final class TtyReporter implements Reporter
 
     private ?RunFinished $runFinished = null;
 
+    private readonly SlowTests $slowTests;
+
     public function __construct(
         private readonly Output\Output $output,
         private readonly bool $ansi,
         private readonly ?int $seed = null,
-    ) {}
+    ) {
+        $this->slowTests = new SlowTests();
+    }
 
     #[\Override]
     public function onEvent(Event $event): void
@@ -67,6 +71,7 @@ final class TtyReporter implements Reporter
         }
 
         if ($event instanceof TestFinished) {
+            $this->slowTests->record($event);
             $result = $event->result;
             $class = $result->id->class;
 
@@ -152,6 +157,8 @@ final class TtyReporter implements Reporter
         if ($this->seed !== null) {
             $this->output->write(\sprintf("Seed: %d\n", $this->seed));
         }
+
+        $this->output->write($this->slowTests->render());
     }
 
     private function finalizeClass(string $class): void

@@ -38,9 +38,13 @@ final class PlainReporter implements Reporter
 
     private ?RunFinished $runFinished = null;
 
+    private readonly SlowTests $slowTests;
+
     public function __construct(
         private readonly Output $output,
-    ) {}
+    ) {
+        $this->slowTests = new SlowTests();
+    }
 
     #[\Override]
     public function onEvent(Event $event): void
@@ -57,6 +61,7 @@ final class PlainReporter implements Reporter
         }
 
         if ($event instanceof TestFinished) {
+            $this->slowTests->record($event);
             $result = $event->result;
             $attempts = $result->attempts > 1 ? \sprintf(' (attempts: %d)', $result->attempts) : '';
 
@@ -127,6 +132,8 @@ final class PlainReporter implements Reporter
             \array_sum($this->recycleCounts),
             $this->recycleBreakdown(),
         ));
+
+        $this->output->write($this->slowTests->render());
     }
 
     private function recycleBreakdown(): string

@@ -19,12 +19,14 @@ final readonly class CliOverrides
      * @param positive-int|null $stopAfterFailures
      * @param list<non-empty-string> $groups
      * @param int<0, max>|null $seed
+     * @param list<non-empty-string> $filters
      */
     public function __construct(
         public ?WorkerCount $workers = null,
         public ?int $stopAfterFailures = null,
         public array $groups = [],
         public ?int $seed = null,
+        public array $filters = [],
     ) {}
 
     /**
@@ -58,6 +60,16 @@ final readonly class CliOverrides
             $groups[] = $group;
         }
 
+        $filters = [];
+
+        foreach ($arguments->values('filter') as $pattern) {
+            if ($pattern === '') {
+                throw new CliError('--filter requires a non-empty pattern.');
+            }
+
+            $filters[] = $pattern;
+        }
+
         $seed = null;
 
         if ($arguments->has('seed')) {
@@ -76,7 +88,7 @@ final readonly class CliOverrides
             $seed = $parsed;
         }
 
-        return new self($workers, $stopAfterFailures, $groups, $seed);
+        return new self($workers, $stopAfterFailures, $groups, $seed, $filters);
     }
 
     /**

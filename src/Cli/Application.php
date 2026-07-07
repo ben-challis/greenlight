@@ -76,6 +76,9 @@ final readonly class Application
           --workers=<n|auto> Worker process count
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Only run this group; repeatable
+          --filter=<pattern> Only run tests whose id matches; substring, or
+                             full match with * wildcards; repeatable
+          --failed           Only re-run tests that failed in the previous run
           --seed=<n>         Randomize class order with this seed
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --watch            Re-run on file changes; Enter re-runs everything, q quits
@@ -195,7 +198,38 @@ final readonly class Application
             return $this->watchCommand($arguments, $workingDirectory, $binPath, $resolved, $configFile);
         }
 
-        $sink = new ReporterSink($reporter);
+        $state = RunState::forWorkingDirectory($workingDirectory);
+        $previousFailures = $state->failedTests();
+
+        if ($arguments->has('failed')) {
+            if ($previousFailures === null) {
+                ($this->err)("--failed needs a previous run to have recorded state for this project; run once without it first.\n");
+
+                return self::EXIT_USAGE;
+            }
+
+            if ($previousFailures === []) {
+                ($this->out)("Nothing failed in the previous run; nothing to re-run.\n");
+
+                return self::EXIT_OK;
+            }
+
+            $resolved = $resolved->withOnlyTests($previousFailures);
+        }
+
+        $priorityClasses = [];
+
+        if (!$resolved->randomizeOrder && \is_array($previousFailures)) {
+            foreach ($previousFailures as $id) {
+                $class = \strstr($id, '::', true);
+
+                if (\is_string($class) && $class !== '' && !\in_array($class, $priorityClasses, true)) {
+                    $priorityClasses[] = $class;
+                }
+            }
+        }
+
+        $failedTap = new FailedTestsTap(new ReporterSink($reporter));
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
@@ -204,10 +238,10 @@ final readonly class Application
         try {
             if ($workers === 1 || $realBin === false) {
                 $run = new InProcessRunner()
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $coverageSettings, $detectLeaks);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers, $coverageSettings, $configFile, $detectLeaks);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -216,6 +250,7 @@ final readonly class Application
         }
 
         $reporter->finish();
+        $state->record($failedTap->failedTests());
 
         if ($run->plannedTests === 0) {
             ($this->err)("No tests found. A misconfigured run must not pass.\n");
@@ -282,7 +317,7 @@ final readonly class Application
                     return $priorityClasses;
                 }
 
-                $tap = new ClassFailureTap(new ReporterSink($reporter));
+                $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
 
                 try {
                     if ($workers === 1 || $realBin === false) {
@@ -299,6 +334,7 @@ final readonly class Application
                 }
 
                 $reporter->finish();
+                RunState::forWorkingDirectory($workingDirectory)->record($failedTap->failedTests());
 
                 return $tap->failedClasses();
             };
@@ -518,7 +554,7 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        $filter = new Filter(includeGroups: $resolved->groups);
+        $filter = new Filter(includeGroups: $resolved->groups, includeIds: $resolved->filters, includeExactIds: $resolved->onlyTests ?? []);
 
         try {
             $plan = new TestDiscoverer()->discover($this->directories($resolved, $workingDirectory), $filter, $resolved->randomSeed);
@@ -605,6 +641,8 @@ final readonly class Application
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
+            new OptionSpec('filter', OptionValue::Required, repeatable: true),
+            new OptionSpec('failed'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('baseline', OptionValue::Required),

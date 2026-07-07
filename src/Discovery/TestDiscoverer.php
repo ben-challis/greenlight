@@ -143,7 +143,10 @@ final readonly class TestDiscoverer
             }
         }
 
-        return $entries;
+        return \array_values(\array_filter(
+            $entries,
+            static fn(PlanEntry $entry): bool => $filter->acceptsId((string) $entry->id),
+        ));
     }
 
     /**

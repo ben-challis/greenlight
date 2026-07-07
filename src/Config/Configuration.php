@@ -21,6 +21,10 @@ final readonly class Configuration
      * @param list<object> $plugins
      * @param positive-int|null $stopAfterFailures null means run everything regardless of failures
      * @param list<non-empty-string> $groups empty means no group filter
+     * @param list<non-empty-string> $filters test id patterns from --filter;
+     *   empty means no id filter
+     * @param list<non-empty-string>|null $onlyTests exact test ids to run
+     *   (the --failed selection); null means no restriction
      */
     public function __construct(
         public array $paths,
@@ -35,5 +39,30 @@ final readonly class Configuration
         public bool $randomizeOrder,
         public ?int $randomSeed,
         public array $groups = [],
+        public array $filters = [],
+        public ?array $onlyTests = null,
     ) {}
+
+    /**
+     * @param list<non-empty-string> $ids
+     */
+    public function withOnlyTests(array $ids): self
+    {
+        return new self(
+            paths: $this->paths,
+            suites: $this->suites,
+            workers: $this->workers,
+            recycleAfterTests: $this->recycleAfterTests,
+            recycleAboveMemoryBytes: $this->recycleAboveMemoryBytes,
+            coverage: $this->coverage,
+            watch: $this->watch,
+            plugins: $this->plugins,
+            stopAfterFailures: $this->stopAfterFailures,
+            randomizeOrder: $this->randomizeOrder,
+            randomSeed: $this->randomSeed,
+            groups: $this->groups,
+            filters: $this->filters,
+            onlyTests: $ids,
+        );
+    }
 }

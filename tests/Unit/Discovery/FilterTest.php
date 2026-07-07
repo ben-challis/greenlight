@@ -139,6 +139,53 @@ final class FilterTest
     }
 
     #[Test]
+    public function idPatternsMatchBySubstringCaseInsensitively(): void
+    {
+        $filter = new Filter(includeIds: ['bravotest::ALPHA']);
+
+        Check::true($filter->acceptsId('Greenlight\\Tests\\Fixture\\DiscoveryBasic\\BravoTest::alpha'), 'substring id match');
+        Check::true(!($filter->acceptsId('Greenlight\\Tests\\Fixture\\DiscoveryBasic\\BravoTest::beta')), 'non-matching id');
+    }
+
+    #[Test]
+    public function idWildcardsMatchTheWholeIdIncludingDataSetLabels(): void
+    {
+        $filter = new Filter(includeIds: ['*BravoTest::alpha*']);
+
+        Check::true($filter->acceptsId('Acme\\BravoTest::alpha'), 'wildcard without label');
+        Check::true($filter->acceptsId('Acme\\BravoTest::alpha[edge case]'), 'wildcard with label');
+        Check::true(!($filter->acceptsId('Acme\\BravoTest::beta')), 'wildcard rejects other method');
+
+        $labelled = new Filter(includeIds: ['*[edge case]']);
+
+        Check::true($labelled->acceptsId('Acme\\BravoTest::alpha[edge case]'), 'label-anchored wildcard');
+        Check::true(!($labelled->acceptsId('Acme\\BravoTest::alpha[other]')), 'label-anchored wildcard rejects');
+    }
+
+    #[Test]
+    public function exactIdsMatchVerbatimAndUnionWithPatterns(): void
+    {
+        $filter = new Filter(includeExactIds: ['Acme\\AlphaTest::one']);
+
+        Check::true($filter->acceptsId('Acme\\AlphaTest::one'), 'exact id match');
+        Check::true(!($filter->acceptsId('Acme\\AlphaTest::oneMore')), 'exact id refuses supersets');
+
+        $union = new Filter(includeIds: ['::two'], includeExactIds: ['Acme\\AlphaTest::one']);
+
+        Check::true($union->acceptsId('Acme\\AlphaTest::one'), 'union accepts exact side');
+        Check::true($union->acceptsId('Acme\\AlphaTest::two'), 'union accepts pattern side');
+        Check::true(!($union->acceptsId('Acme\\AlphaTest::three')), 'union rejects neither');
+    }
+
+    #[Test]
+    public function discovererAppliesIdFilters(): void
+    {
+        $plan = new TestDiscoverer()->discover([$this->basicDir()], new Filter(includeIds: ['bravotest::alpha']));
+
+        Check::same(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha'], $this->ids($plan), 'id-filtered plan');
+    }
+
+    #[Test]
     public function discovererAppliesPathPrefixFilters(): void
     {
         $real = \realpath($this->basicDir());

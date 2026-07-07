@@ -79,7 +79,7 @@ final readonly class InProcessRunner
      */
     private function discover(Configuration $configuration, array $directories, ?int $seed): ExecutionPlan
     {
-        $filter = new Filter(includeGroups: $configuration->groups);
+        $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
 
         return new TestDiscoverer()->discover($directories, $filter, $seed);
     }

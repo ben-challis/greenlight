@@ -33,6 +33,7 @@ final class ConfigurationResolver
             randomizeOrder: $overrides->seed !== null || $configuration->randomizeOrder,
             randomSeed: $overrides->seed ?? $configuration->randomSeed,
             groups: $overrides->groups === [] ? $configuration->groups : $overrides->groups,
+            filters: $overrides->filters,
         );
     }
 }

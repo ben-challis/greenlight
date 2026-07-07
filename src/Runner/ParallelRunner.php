@@ -53,7 +53,7 @@ final readonly class ParallelRunner
             $seed = $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1);
         }
 
-        $filter = new Filter(includeGroups: $configuration->groups);
+        $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
         $plan = PlanPriority::prioritize(new TestDiscoverer()->discover($directories, $filter, $seed), $priorityClasses);
 
         $runId = \bin2hex(\random_bytes(8));

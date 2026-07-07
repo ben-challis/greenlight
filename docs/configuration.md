@@ -102,6 +102,8 @@ Options:
 - `--workers=<n|auto>` overrides the worker process count.
 - `--bail[=<n>]` stops after `<n>` failures; bare `--bail` means 1.
 - `--group=<name>` only runs tests in this group. Repeatable.
+- `--filter=<pattern>` only runs tests whose id (`Class::method`, with the data-set label when present) matches. Case-insensitive substring by default; a pattern containing `*` or `?` must match the whole id. Repeatable; patterns union.
+- `--failed` re-runs only the tests that did not pass in the previous run. Failure state is recorded on every run under the system temp dir; with no recorded state this is a usage error, and with an all-passing previous run it reports nothing to re-run and exits 0. When state exists, plain runs also order previously failed classes first (skipped under `--seed`).
 - `--seed=<n>` randomizes class order with this seed.
 - `--reporter=<name>` selects the output format: `tty`, `plain`, `junit`, `jsonl`, `github`, `teamcity`. Repeatable; multiple reporters write concurrently. Default: `tty` on an interactive terminal, otherwise `plain`. `tty` is parallel-aware: one live line per in-flight class with a spinner and running count, finalised in place as each class completes, so multi-worker interleaving never scrambles the display.
 - `--watch` re-runs on file changes. Enter re-runs everything, q quits.
@@ -111,3 +113,5 @@ Options:
 - `-V, --version` shows the version.
 
 Exit codes: 0 success, 1 failure (including bad config, discovery errors, and zero discovered tests), 64 usage error.
+
+The `tty` and `plain` reporters end with a "Slowest tests" block naming the ten slowest tests when any test took 200 ms or longer; fast suites print nothing extra.
