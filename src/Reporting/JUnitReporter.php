@@ -13,20 +13,29 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Buffers finished tests and writes JUnit XML at finish(): one testsuite per
- * test class in order of first appearance, one testcase per test, with
- * failure, error, and skipped elements carrying messages and details.
+ * Writes JUnit XML at finish(): one testsuite per test class in order of
+ * first appearance, one testcase per test, with failure, error, and skipped
+ * elements carrying messages and details.
+ *
+ * Each testcase is rendered to its XML fragment as its event arrives; live
+ * TestResult objects (which may carry large captured-output payloads) are
+ * never retained, only the rendered strings and bounded per-class counters.
  *
  * @internal
  */
 final class JUnitReporter implements Reporter
 {
     /**
-     * @var array<string, list<TestResult>>
+     * @var array<string, list<string>> rendered testcase fragments per class
      */
-    private array $resultsByClass = [];
+    private array $casesByClass = [];
 
-    private ?RunFinished $runFinished = null;
+    /**
+     * @var array<string, array{tests: int, failures: int, errors: int, skipped: int, time: float}>
+     */
+    private array $countsByClass = [];
+
+    private ?float $runDurationSeconds = null;
 
     public function __construct(
         private readonly Output $output,
@@ -36,13 +45,28 @@ final class JUnitReporter implements Reporter
     public function onEvent(Event $event): void
     {
         if ($event instanceof TestFinished) {
-            $this->resultsByClass[$event->result->id->class][] = $event->result;
+            $result = $event->result;
+            $class = $result->id->class;
+
+            $this->casesByClass[$class][] = $this->renderCase($result);
+            $counts = $this->countsByClass[$class] ?? ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'time' => 0.0];
+            ++$counts['tests'];
+            $counts['time'] += $result->durationSeconds;
+
+            match ($result->outcome) {
+                Outcome::Failed => ++$counts['failures'],
+                Outcome::Errored => ++$counts['errors'],
+                Outcome::Skipped => ++$counts['skipped'],
+                Outcome::Passed => null,
+            };
+
+            $this->countsByClass[$class] = $counts;
 
             return;
         }
 
         if ($event instanceof RunFinished) {
-            $this->runFinished = $event;
+            $this->runDurationSeconds = $event->durationSeconds;
         }
     }
 
@@ -53,56 +77,70 @@ final class JUnitReporter implements Reporter
             throw ReportingError::xmlUnavailable();
         }
 
+        $totals = ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'time' => 0.0];
+
+        foreach ($this->countsByClass as $counts) {
+            $totals['tests'] += $counts['tests'];
+            $totals['failures'] += $counts['failures'];
+            $totals['errors'] += $counts['errors'];
+            $totals['skipped'] += $counts['skipped'];
+            $totals['time'] += $counts['time'];
+        }
+
+        $this->output->write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        $this->output->write(\sprintf(
+            "<testsuites name=\"greenlight\" tests=\"%d\" failures=\"%d\" errors=\"%d\" skipped=\"%d\" time=\"%s\">\n",
+            $totals['tests'],
+            $totals['failures'],
+            $totals['errors'],
+            $totals['skipped'],
+            $this->time($this->runDurationSeconds ?? $totals['time']),
+        ));
+
+        foreach ($this->casesByClass as $class => $cases) {
+            $counts = $this->countsByClass[$class];
+
+            $this->output->write(\sprintf(
+                "  <testsuite name=\"%s\" tests=\"%d\" failures=\"%d\" errors=\"%d\" skipped=\"%d\" time=\"%s\">\n",
+                $this->attribute($class),
+                $counts['tests'],
+                $counts['failures'],
+                $counts['errors'],
+                $counts['skipped'],
+                $this->time($counts['time']),
+            ));
+
+            foreach ($cases as $fragment) {
+                $this->output->write($fragment);
+            }
+
+            $this->output->write("  </testsuite>\n");
+        }
+
+        $this->output->write("</testsuites>\n");
+    }
+
+    private function attribute(string $value): string
+    {
+        return \htmlspecialchars($value, \ENT_XML1 | \ENT_COMPAT, 'UTF-8');
+    }
+
+    private function renderCase(TestResult $result): string
+    {
+        if (!\class_exists(\XMLWriter::class)) {
+            throw ReportingError::xmlUnavailable();
+        }
+
         $writer = new \XMLWriter();
         $writer->openMemory();
         $writer->setIndent(true);
         $writer->setIndentString('  ');
-        $writer->startDocument('1.0', 'UTF-8');
 
-        $totals = $this->count(\array_merge([], ...\array_values($this->resultsByClass)));
-
+        // Dummy ancestors put the fragment at document depth without
+        // indenting text nodes; their lines are stripped below.
         $writer->startElement('testsuites');
-        $writer->writeAttribute('name', 'greenlight');
-        $writer->writeAttribute('tests', (string) $totals['tests']);
-        $writer->writeAttribute('failures', (string) $totals['failures']);
-        $writer->writeAttribute('errors', (string) $totals['errors']);
-        $writer->writeAttribute('skipped', (string) $totals['skipped']);
-        $writer->writeAttribute('time', $this->time($this->runFinished->durationSeconds ?? $totals['time']));
-
-        foreach ($this->resultsByClass as $class => $results) {
-            $this->writeSuite($writer, $class, $results);
-        }
-
-        $writer->endElement();
-        $writer->endDocument();
-
-        $this->output->write($writer->outputMemory());
-    }
-
-    /**
-     * @param list<TestResult> $results
-     */
-    private function writeSuite(\XMLWriter $writer, string $class, array $results): void
-    {
-        $counts = $this->count($results);
-
         $writer->startElement('testsuite');
-        $writer->writeAttribute('name', $class);
-        $writer->writeAttribute('tests', (string) $counts['tests']);
-        $writer->writeAttribute('failures', (string) $counts['failures']);
-        $writer->writeAttribute('errors', (string) $counts['errors']);
-        $writer->writeAttribute('skipped', (string) $counts['skipped']);
-        $writer->writeAttribute('time', $this->time($counts['time']));
 
-        foreach ($results as $result) {
-            $this->writeCase($writer, $result);
-        }
-
-        $writer->endElement();
-    }
-
-    private function writeCase(\XMLWriter $writer, TestResult $result): void
-    {
         $name = $result->id->method;
 
         if ($result->id->dataSetKey !== null) {
@@ -167,30 +205,13 @@ final class JUnitReporter implements Reporter
         }
 
         $writer->endElement();
-    }
+        $writer->endElement();
+        $writer->endElement();
 
-    /**
-     * @param list<TestResult> $results
-     *
-     * @return array{tests: int, failures: int, errors: int, skipped: int, time: float}
-     */
-    private function count(array $results): array
-    {
-        $counts = ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'time' => 0.0];
+        $lines = \explode("\n", \trim($writer->outputMemory(), "\n"));
+        $lines = \array_slice($lines, 2, -2);
 
-        foreach ($results as $result) {
-            ++$counts['tests'];
-            $counts['time'] += $result->durationSeconds;
-
-            match ($result->outcome) {
-                Outcome::Failed => ++$counts['failures'],
-                Outcome::Errored => ++$counts['errors'],
-                Outcome::Skipped => ++$counts['skipped'],
-                Outcome::Passed => null,
-            };
-        }
-
-        return $counts;
+        return \implode("\n", $lines) . "\n";
     }
 
     private function time(float $seconds): string

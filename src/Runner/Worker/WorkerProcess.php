@@ -83,7 +83,9 @@ final readonly class WorkerProcess
 
                 $collector?->start();
 
-                $outcome = new Worker(DefaultServices::registry($plugins), $plugins)->run(
+                $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
+
+                $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $leakDetector)->run(
                     $message->slice,
                     new SocketEventSink($channel),
                     null,
@@ -99,7 +101,7 @@ final readonly class WorkerProcess
                     return 0;
                 }
 
-                $channel->send(new Done($outcome->summary, \memory_get_peak_usage(true), $coverage));
+                $channel->send(new Done($outcome->summary, \memory_get_peak_usage(true), $coverage, $outcome->leaks));
 
                 if ($outcome->drained) {
                     return 0;

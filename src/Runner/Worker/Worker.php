@@ -37,6 +37,7 @@ final readonly class Worker
     public function __construct(
         private HarnessRegistry $registry,
         private PluginRegistry $plugins = new PluginRegistry([]),
+        private ?LeakDetector $leakDetector = null,
     ) {}
 
     /**
@@ -56,6 +57,7 @@ final readonly class Worker
         $drained = false;
         $stopped = false;
         $remaining = [];
+        $leaks = [];
 
         foreach ($plan->entriesByClass() as $class => $entries) {
             if ($stopped) {
@@ -76,7 +78,7 @@ final readonly class Worker
 
                 try {
                     $context ??= ClassContext::for($class);
-                    $executor ??= new TestExecutor($scopes, $context, $this->plugins);
+                    $executor ??= new TestExecutor($scopes, $context, $this->plugins, $this->leakDetector);
                     $result = $executor->execute($entry);
                 } catch (\Throwable $threw) {
                     $result = new TestResult(
@@ -95,6 +97,10 @@ final readonly class Worker
                 $summary = $summary->add($result->outcome);
                 ++$executed;
                 $sink->emit(new TestFinished($result, \microtime(true)));
+
+                if ($this->leakDetector instanceof LeakDetector) {
+                    $leaks = [...$leaks, ...$this->leakDetector->sweep()];
+                }
 
                 $stopReached = match (true) {
                     $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
@@ -130,7 +136,7 @@ final readonly class Worker
 
         $scopes->closeRun();
 
-        return new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained);
+        return new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained, $leaks);
     }
 
     /**

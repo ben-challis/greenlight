@@ -15,8 +15,10 @@ use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerBudget;
+use Greenlight\Tests\Fixture\LeakSuite\LeakyTest;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
@@ -283,6 +285,26 @@ final class WorkerTest
         new Expect()->that($outcome->drained)->toBeTrue()
             ->and($outcome->summary->total())->toBe(1)
             ->and($outcome->recycleReason)->toBeNull();
+    }
+
+    #[Test]
+    public function leakDetectionNamesTheTestThatRetainedItsInstance(): void
+    {
+        LeakyTest::$retained = [];
+
+        $directory = \dirname(__DIR__, 2) . '/Fixture/LeakSuite';
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $sink = new CollectingEventSink();
+
+        $outcome = new Worker($this->registry(), new PluginRegistry(), new LeakDetector())
+            ->run($plan, $sink);
+
+        $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
+
+        new Expect()->that(\count($outcome->leaks))->toBe(1)
+            ->and($leakedIds[0])->toContain('LeakyTest::passesButLeaksItself');
+
+        LeakyTest::$retained = [];
     }
 
     #[Test]

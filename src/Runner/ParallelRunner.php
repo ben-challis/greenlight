@@ -43,6 +43,7 @@ final readonly class ParallelRunner
         int $workerCount,
         ?CoverageSettings $coverageSettings = null,
         ?string $configFile = null,
+        bool $detectLeaks = false,
     ): RunResult {
         $seed = null;
 
@@ -72,6 +73,7 @@ final readonly class ParallelRunner
             $configuration->stopAfterFailures,
             $coverageSettings,
             $configFile,
+            $detectLeaks,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);
@@ -79,6 +81,6 @@ final readonly class ParallelRunner
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage());
+        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
     }
 }

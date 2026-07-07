@@ -13,6 +13,7 @@ use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\EventSink;
+use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
 
 /**
@@ -34,6 +35,7 @@ final readonly class InProcessRunner
         array $directories,
         EventSink $sink,
         ?CoverageSettings $coverageSettings = null,
+        bool $detectLeaks = false,
     ): RunResult {
         $seed = null;
 
@@ -58,16 +60,16 @@ final readonly class InProcessRunner
         $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
         $collector?->start();
 
-        $summary = new Worker(DefaultServices::registry($plugins), $plugins)
-            ->run($plan, $sink, $configuration->stopAfterFailures)
-            ->summary;
+        $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null)
+            ->run($plan, $sink, $configuration->stopAfterFailures);
+        $summary = $outcome->summary;
 
         $coverage = $collector?->stop();
 
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage);
+        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
     }
 
     /**

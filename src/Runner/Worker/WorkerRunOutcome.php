@@ -18,11 +18,13 @@ final readonly class WorkerRunOutcome
 {
     /**
      * @param list<TestId> $remaining unexecuted entries, in plan order
+     * @param list<TestId> $leaks tests whose instances survived their test, leak detection only
      */
     public function __construct(
         public ResultSummary $summary,
         public array $remaining = [],
         public ?RecycleReason $recycleReason = null,
         public bool $drained = false,
+        public array $leaks = [],
     ) {}
 }

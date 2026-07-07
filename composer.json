@@ -54,6 +54,7 @@
         "lint": [
             "parallel-lint src tests tools bin"
         ],
+        "memory-gate": "php tools/memory-gate.php",
         "phpstan": "phpstan analyse --ansi --no-progress --memory-limit=-1",
         "rector:check": "rector --dry-run --ansi --no-progress-bar",
         "rector:fix": "rector --ansi --no-progress-bar",

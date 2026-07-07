@@ -68,6 +68,11 @@ final class Orchestrator
 
     private ?CoverageMap $coverage = null;
 
+    /**
+     * @var list<TestId>
+     */
+    private array $leaks = [];
+
     private bool $draining = false;
 
     private int $spawnedCount = 0;
@@ -85,6 +90,7 @@ final class Orchestrator
         private readonly ?int $stopAfterFailures = null,
         private readonly ?CoverageSettings $coverageSettings = null,
         private readonly ?string $configFile = null,
+        private readonly bool $detectLeaks = false,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -96,6 +102,14 @@ final class Orchestrator
     public function collectedCoverage(): ?CoverageMap
     {
         return $this->coverage;
+    }
+
+    /**
+     * @return list<TestId>
+     */
+    public function detectedLeaks(): array
+    {
+        return $this->leaks;
     }
 
     private function mergeCoverage(?CoverageMap $coverage): void
@@ -298,6 +312,7 @@ final class Orchestrator
                         $this->coverageSettings?->includePaths,
                         $this->coverageSettings?->driver,
                         $this->configFile === '' ? null : $this->configFile,
+                        $this->detectLeaks,
                     ));
 
                     continue;
@@ -341,6 +356,7 @@ final class Orchestrator
                 } elseif ($message instanceof Done) {
                     $this->crossCheck($handle, $message);
                     $this->mergeCoverage($message->coverage);
+                    $this->leaks = [...$this->leaks, ...$message->leaks];
                     $channel->send(new Drain());
                     $this->finishHandle($handle);
 
@@ -368,6 +384,9 @@ final class Orchestrator
         if ($event instanceof TestFinished) {
             $handle->inFlight = null;
             $handle->finished[(string) $event->result->id] = true;
+            // Finished tests no longer need plan lookups; the index tracks only
+            // outstanding tests so it shrinks as the run progresses.
+            unset($this->entriesById[(string) $event->result->id]);
             $handle->tally = $handle->tally->add($event->result->outcome);
             $this->summary = $this->summary->add($event->result->outcome);
         }

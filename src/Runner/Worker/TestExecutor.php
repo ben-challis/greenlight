@@ -34,6 +34,7 @@ final readonly class TestExecutor
         private HarnessScopes $scopes,
         private ClassContext $context,
         private PluginRegistry $plugins,
+        private ?LeakDetector $leakDetector = null,
     ) {}
 
     public function execute(PlanEntry $entry): TestResult
@@ -58,7 +59,7 @@ final readonly class TestExecutor
             }
 
             if (!$satisfied) {
-                return $this->skipped($entry, \sprintf('Condition %s is not satisfied.', $metadata->skipUnlessCondition));
+                return $this->skipped($entry, \sprintf('Condition "%s" is not satisfied.', $metadata->skipUnlessCondition));
             }
         }
 
@@ -113,7 +114,7 @@ final readonly class TestExecutor
                     break;
                 } catch (\Throwable $threw) {
                     $cause = new \RuntimeException(\sprintf(
-                        'Plugin %s failed in beforeTest: %s',
+                        'Plugin "%s" failed in beforeTest: %s',
                         $subscriber::class,
                         $threw->getMessage(),
                     ), 0, $threw);
@@ -217,6 +218,7 @@ final readonly class TestExecutor
 
         if ($context instanceof TestContext) {
             $result = $this->applyAfterSubscribers($context, $result);
+            $this->leakDetector?->watch($entry->id, $context->instance);
         }
 
         return [$result, $cause];
@@ -242,7 +244,7 @@ final readonly class TestExecutor
                         $result->attempts,
                         $result->failures,
                         ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                            'Plugin %s failed in afterTest: %s',
+                            'Plugin "%s" failed in afterTest: %s',
                             $subscriber::class,
                             $threw->getMessage(),
                         ), 0, $threw)),
@@ -266,7 +268,7 @@ final readonly class TestExecutor
                     $result->attempts,
                     $result->failures,
                     ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                        'Plugin %s changed the outcome from %s to %s without withOutcome() provenance.',
+                        'Plugin "%s" changed the outcome from %s to %s without withOutcome() provenance.',
                         $subscriber::class,
                         $result->outcome->value,
                         $replacement->outcome->value,
@@ -321,14 +323,14 @@ final readonly class TestExecutor
     {
         try {
             if (!\class_exists($conditionClass)) {
-                return new \RuntimeException(\sprintf('Condition class %s does not exist.', $conditionClass));
+                return new \RuntimeException(\sprintf('Condition class "%s" does not exist.', $conditionClass));
             }
 
             $condition = new $conditionClass();
 
             if (!$condition instanceof Condition) {
                 return new \RuntimeException(\sprintf(
-                    'Condition class %s must implement %s.',
+                    'Condition class "%s" must implement %s.',
                     $conditionClass,
                     Condition::class,
                 ));

@@ -52,5 +52,26 @@ jobs:
       - name: "Tests"
         run: "composer tests"
 
-# A `memory` job (the 10,000-test flat-memory gate) is added here in Phase 11.
-# See docs/plan/phase-11-memory.md.
+  memory:
+    name: "Flat-memory gate (10,000 tests, one worker)"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "8.4"
+          extensions: "pcntl, sockets"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the flat-memory gate"
+        run: "composer memory-gate"

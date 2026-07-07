@@ -42,7 +42,7 @@ final class ClassContext
     {
         if (!\class_exists($class)) {
             throw new \RuntimeException(\sprintf(
-                'Test class %s from the plan is not loadable in this process.',
+                'Test class "%s" from the plan is not loadable in this process.',
                 $class,
             ));
         }
@@ -95,7 +95,7 @@ final class ClassContext
 
         if (!\array_key_exists($key, $sets)) {
             throw new \RuntimeException(\sprintf(
-                "Data set '%s' of provider %s::%s() is in the plan but the provider no longer yields it. "
+                'Data set "%s" of provider "%s::%s()" is in the plan but the provider no longer yields it. '
                 . 'Re-run discovery.',
                 $key,
                 $this->reflection->getName(),
@@ -107,7 +107,7 @@ final class ClassContext
 
         if (!\is_array($value)) {
             throw new \RuntimeException(\sprintf(
-                "Data set '%s' of provider %s::%s() must be an array of arguments, got %s.",
+                'Data set "%s" of provider "%s::%s()" must be an array of arguments, got %s.',
                 $key,
                 $this->reflection->getName(),
                 $provider,

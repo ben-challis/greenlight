@@ -29,6 +29,7 @@ final readonly class Assign implements Message
         public ?array $coverageInclude = null,
         public ?string $coverageDriver = null,
         public ?string $configFile = null,
+        public bool $detectLeaks = false,
     ) {}
 
     #[\Override]
@@ -47,6 +48,7 @@ final readonly class Assign implements Message
             'coverageInclude' => $this->coverageInclude,
             'coverageDriver' => $this->coverageDriver,
             'configFile' => $this->configFile,
+            'detectLeaks' => $this->detectLeaks,
         ];
     }
 
@@ -71,6 +73,7 @@ final readonly class Assign implements Message
             $coverageInclude,
             $coverageDriver === '' ? null : $coverageDriver,
             $configFile === '' ? null : $configFile,
+            Wire::bool($payload, 'detectLeaks'),
         );
     }
 }

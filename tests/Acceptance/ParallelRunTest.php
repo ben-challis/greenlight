@@ -57,6 +57,21 @@ final class ParallelRunTest
     }
 
     #[Test]
+    public function leakDetectionNamesTheLeakAndFailsTheRun(): void
+    {
+        $expect = new Expect();
+
+        [$withFlagExit, $withFlag] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2']);
+
+        $expect->that($withFlagExit)->toBe(1)
+            ->and($withFlag)->toContain('LEAK Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
+
+        [$withoutFlagExit] = $this->runIn('LeakConfig', ['run', '--workers=2']);
+
+        $expect->that($withoutFlagExit)->toBe(0);
+    }
+
+    #[Test]
     public function hangingTestsAreHardKilledByTheOrchestrator(): void
     {
         $startedAt = \hrtime(true);

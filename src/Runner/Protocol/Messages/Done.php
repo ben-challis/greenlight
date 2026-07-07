@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol\Messages;
 
 use Greenlight\Core\Result\ResultSummary;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Runner\Protocol\Message;
@@ -19,11 +20,13 @@ final readonly class Done implements Message
 {
     /**
      * @param non-negative-int $peakMemoryBytes
+     * @param list<TestId> $leaks
      */
     public function __construct(
         public ResultSummary $summary,
         public int $peakMemoryBytes,
         public ?CoverageMap $coverage = null,
+        public array $leaks = [],
     ) {}
 
     #[\Override]
@@ -39,6 +42,7 @@ final readonly class Done implements Message
             'summary' => $this->summary->toWire(),
             'peakMemoryBytes' => $this->peakMemoryBytes,
             'coverage' => $this->coverage?->toWire(),
+            'leaks' => \array_map(static fn(TestId $id): array => $id->toWire(), $this->leaks),
         ];
     }
 
@@ -51,6 +55,7 @@ final readonly class Done implements Message
             ResultSummary::fromWire(Wire::map($payload, 'summary')),
             \max(0, Wire::int($payload, 'peakMemoryBytes')),
             $coverage === null ? null : CoverageMap::fromWire($coverage),
+            \array_map(TestId::fromWire(...), Wire::listOfMaps($payload, 'leaks')),
         );
     }
 }

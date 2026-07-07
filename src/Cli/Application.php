@@ -72,6 +72,7 @@ final readonly class Application
           --group=<name>     Only run this group; repeatable
           --seed=<n>         Randomize class order with this seed
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
+          --detect-leaks     Verify every test instance is collected; leaks fail the run
           --dry-run          Print the resolved configuration without executing
           -h, --help         Show this help
           -V, --version      Show the version
@@ -187,14 +188,15 @@ final readonly class Application
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
+        $detectLeaks = $arguments->has('detect-leaks');
 
         try {
             if ($workers === 1 || $realBin === false) {
                 $run = new InProcessRunner()
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $coverageSettings);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $coverageSettings, $detectLeaks);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers, $coverageSettings, $configFile);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers, $coverageSettings, $configFile, $detectLeaks);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -218,6 +220,14 @@ final readonly class Application
             } elseif (!$this->writeCoverage($coverageConfig, $run->coverage, $workingDirectory)) {
                 return self::EXIT_FAILURE;
             }
+        }
+
+        if ($run->leaks !== []) {
+            foreach ($run->leaks as $leak) {
+                ($this->err)(\sprintf("LEAK %s: the test instance survived its test.\n", $leak));
+            }
+
+            return self::EXIT_FAILURE;
         }
 
         return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
@@ -502,6 +512,7 @@ final readonly class Application
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('baseline', OptionValue::Required),
             new OptionSpec('current', OptionValue::Required),
+            new OptionSpec('detect-leaks'),
             new OptionSpec('dry-run'),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),
