@@ -56,8 +56,9 @@ use Greenlight\Runner\Worker\WorkerProcess;
  * The greenlight command.
  *
  * run() parses arguments, loads greenlight.php, applies command-line
- * overrides, and dispatches to a command: run prints the resolved plan,
- * list-tests prints every discovered test id.
+ * overrides, and dispatches to a command: run executes the tests (or prints
+ * the resolved plan under --dry-run), list-tests prints every discovered
+ * test id.
  *
  * Exit codes: 0 success, 1 failure (bad config, discovery error),
  * 64 usage error.

@@ -21,9 +21,7 @@ final class ClassFailureTap implements EventSink
      */
     private array $failedClasses = [];
 
-    public function __construct(
-        private readonly EventSink $inner,
-    ) {}
+    public function __construct(private readonly EventSink $inner) {}
 
     #[\Override]
     public function emit(Event $event): void

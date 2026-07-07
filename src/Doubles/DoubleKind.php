@@ -7,7 +7,7 @@ namespace Greenlight\Doubles;
 /**
  * Behavioural flavour of a double.
  *
- * Mocks enforce their plan, stubs answer from it loosely, spies only record.
+ * Mocks enforce their plan, stubs error on any call, spies only record.
  *
  * @internal
  */
