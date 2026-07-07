@@ -39,6 +39,15 @@ final class ParallelRunTest
     }
 
     #[Test]
+    public function configuredPluginsReachWorkersAcrossTheProcessBoundary(): void
+    {
+        [$exit, $output] = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
+
+        new Expect()->that($exit)->toBe(0)
+            ->and($this->summaryLine($output))->toBe('Tests: 2, Passed: 1, Failed: 0, Errored: 0, Skipped: 1');
+    }
+
+    #[Test]
     public function workerRecyclingKeepsResultsIntact(): void
     {
         [$exit, $output] = $this->runIn('RecycleConfig', ['run']);

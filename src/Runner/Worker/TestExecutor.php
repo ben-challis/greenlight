@@ -14,13 +14,17 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\UnresolvableService;
+use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Plugin\SkipTest;
+use Greenlight\Plugin\TestContext;
 
 /**
- * Runs one plan entry: skip checks before construction, constructor
- * injection, before-hooks in declaration order, the test method, after-hooks
- * in reverse declaration order (always), per-test scope teardown, timeout
- * accounting, and the retry loop. Every reference to the test instance is
- * dropped when the attempt ends.
+ * Runs one plan entry: attribute skip checks before construction, constructor
+ * injection, beforeTest subscribers, before-hooks in declaration order, the
+ * test method, after-hooks in reverse declaration order (always), per-test
+ * scope teardown, timeout accounting, afterTest subscribers with the
+ * provenance guard, and the decider-driven retry loop. Every reference to the
+ * test instance is dropped when the attempt ends.
  *
  * @internal
  */
@@ -29,6 +33,7 @@ final readonly class TestExecutor
     public function __construct(
         private HarnessScopes $scopes,
         private ClassContext $context,
+        private PluginRegistry $plugins,
     ) {}
 
     public function execute(PlanEntry $entry): TestResult
@@ -57,20 +62,18 @@ final readonly class TestExecutor
             }
         }
 
-        $maxAttempts = 1 + ($metadata->retryTimes ?? 0);
         $attempt = 0;
 
         do {
             ++$attempt;
             [$result, $cause] = $this->attempt($entry, $attempt);
 
-            if ($result->outcome->isSuccessful() || $attempt >= $maxAttempts) {
+            if ($result->outcome->isSuccessful()) {
                 return $result;
             }
+            $retry = array_any($this->plugins->retryDeciders(), fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause));
 
-            $retryOnlyOn = $metadata->retryOnlyOn;
-
-            if ($retryOnlyOn !== null && !($cause instanceof $retryOnlyOn)) {
+            if (!$retry) {
                 return $result;
             }
         } while (true);
@@ -88,43 +91,69 @@ final readonly class TestExecutor
         $failures = [];
         $cause = null;
         $error = null;
+        $skipReason = null;
         $captured = null;
+        $context = null;
         $capture = $metadata->capture ? new OutputCapture() : null;
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
-        $instance = null;
         $capture?->start();
 
         try {
             $instance = $this->instantiate($metadata->class);
+            $context = new TestContext($instance, $entry->id, $metadata, $this->scopes);
+            $instance = null;
 
-            try {
-                foreach ($this->context->beforeHooks as $hook) {
-                    $hook->invoke($instance);
+            foreach ($this->plugins->testSubscribers() as $subscriber) {
+                try {
+                    $subscriber->beforeTest($context);
+                } catch (SkipTest $skip) {
+                    $skipReason = $skip->reason;
+
+                    break;
+                } catch (\Throwable $threw) {
+                    $cause = new \RuntimeException(\sprintf(
+                        'Plugin %s failed in beforeTest: %s',
+                        $subscriber::class,
+                        $threw->getMessage(),
+                    ), 0, $threw);
+                    $error = ThrowableDetail::fromThrowable($cause);
+
+                    break;
                 }
+            }
 
-                $arguments = [];
+            if ($skipReason === null && !$cause instanceof \RuntimeException) {
+                try {
+                    foreach ($this->context->beforeHooks as $hook) {
+                        $hook->invoke($context->instance);
+                    }
 
-                if ($metadata->dataSetProvider !== null && $entry->id->dataSetKey !== null) {
-                    $arguments = $this->context->argumentsFor(
-                        $metadata->dataSetProvider,
-                        $metadata->method,
-                        $entry->id->dataSetKey,
-                    );
+                    $arguments = [];
+
+                    if ($metadata->dataSetProvider !== null && $entry->id->dataSetKey !== null) {
+                        $arguments = $this->context->argumentsFor(
+                            $metadata->dataSetProvider,
+                            $metadata->method,
+                            $entry->id->dataSetKey,
+                        );
+                    }
+
+                    $this->context->reflection->getMethod($metadata->method)->invokeArgs($context->instance, $arguments);
+                } catch (SkipTest $skip) {
+                    $skipReason = $skip->reason;
+                } catch (ExpectationFailed $failed) {
+                    $failures = $failed->details;
+                    $cause = $failed;
+                } catch (\Throwable $threw) {
+                    $cause = $threw;
+                    $error = ThrowableDetail::fromThrowable($threw);
                 }
-
-                $this->context->reflection->getMethod($metadata->method)->invokeArgs($instance, $arguments);
-            } catch (ExpectationFailed $failed) {
-                $failures = $failed->details;
-                $cause = $failed;
-            } catch (\Throwable $threw) {
-                $cause = $threw;
-                $error = ThrowableDetail::fromThrowable($threw);
             }
 
             foreach ($this->context->afterHooks as $hook) {
                 try {
-                    $hook->invoke($instance);
+                    $hook->invoke($context->instance);
                 } catch (\Throwable $threw) {
                     if (!$cause instanceof \Throwable) {
                         $cause = $threw;
@@ -136,11 +165,10 @@ final readonly class TestExecutor
             $cause = $threw;
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
-            $instance = null;
             $captured = $capture?->stop();
             $disposalFailures = $this->scopes->closeTest();
 
-            if ($disposalFailures !== [] && !$cause instanceof \Throwable) {
+            if ($disposalFailures !== [] && !$cause instanceof \Throwable && $skipReason === null) {
                 $cause = $disposalFailures[0];
 
                 // A disposal that throws expectation failures is a verification
@@ -160,6 +188,7 @@ final readonly class TestExecutor
         $outcome = match (true) {
             $error instanceof ThrowableDetail => Outcome::Errored,
             $failures !== [] => Outcome::Failed,
+            $skipReason !== null => Outcome::Skipped,
             default => Outcome::Passed,
         };
 
@@ -174,19 +203,86 @@ final readonly class TestExecutor
             ))];
         }
 
-        return [
-            new TestResult(
-                $entry->id,
-                $outcome,
-                \max(0.0, $durationSeconds),
-                $memoryDelta,
-                $attempt,
-                $failures,
-                $error,
-                output: $captured,
-            ),
-            $cause,
-        ];
+        $result = new TestResult(
+            $entry->id,
+            $outcome,
+            \max(0.0, $durationSeconds),
+            $memoryDelta,
+            $attempt,
+            $failures,
+            $error,
+            $skipReason,
+            output: $captured,
+        );
+
+        if ($context instanceof TestContext) {
+            $result = $this->applyAfterSubscribers($context, $result);
+        }
+
+        return [$result, $cause];
+    }
+
+    /**
+     * Runs afterTest subscribers with the provenance guard: an outcome change
+     * that did not grow the transformation log is unattributable and errors
+     * the test naming the plugin.
+     */
+    private function applyAfterSubscribers(TestContext $context, TestResult $result): TestResult
+    {
+        foreach ($this->plugins->testSubscribers() as $subscriber) {
+            try {
+                $replacement = $subscriber->afterTest($context, $result);
+            } catch (\Throwable $threw) {
+                if ($result->outcome->isSuccessful()) {
+                    $result = new TestResult(
+                        $result->id,
+                        Outcome::Errored,
+                        $result->durationSeconds,
+                        $result->memoryDeltaBytes,
+                        $result->attempts,
+                        $result->failures,
+                        ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
+                            'Plugin %s failed in afterTest: %s',
+                            $subscriber::class,
+                            $threw->getMessage(),
+                        ), 0, $threw)),
+                        $result->skipReason,
+                        $result->transformations,
+                        $result->output,
+                    );
+                }
+
+                continue;
+            }
+
+            if ($replacement->outcome !== $result->outcome
+                && \count($replacement->transformations) <= \count($result->transformations)
+            ) {
+                $result = new TestResult(
+                    $result->id,
+                    Outcome::Errored,
+                    $result->durationSeconds,
+                    $result->memoryDeltaBytes,
+                    $result->attempts,
+                    $result->failures,
+                    ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
+                        'Plugin %s changed the outcome from %s to %s without withOutcome() provenance.',
+                        $subscriber::class,
+                        $result->outcome->value,
+                        $replacement->outcome->value,
+                    ))),
+                    $result->skipReason,
+                    $result->transformations,
+                    $result->output,
+                );
+
+                continue;
+            }
+
+            $result = $replacement;
+        }
+
+        return $result;
     }
 
     /**

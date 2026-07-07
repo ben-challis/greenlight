@@ -10,6 +10,7 @@ use Greenlight\Core\Event\RunStarted;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -41,6 +42,7 @@ final readonly class ParallelRunner
         EventSink $sink,
         int $workerCount,
         ?CoverageSettings $coverageSettings = null,
+        ?string $configFile = null,
     ): RunResult {
         $seed = null;
 
@@ -54,6 +56,12 @@ final readonly class ParallelRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
 
+        $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
+
+        if ($orchestratorSide->runSubscribers() !== []) {
+            $sink = new PluginEventSink($orchestratorSide, $sink);
+        }
+
         $sink->emit(new RunStarted($runId, \count($plan), $workerCount, \microtime(true)));
 
         $orchestrator = new Orchestrator(
@@ -63,6 +71,7 @@ final readonly class ParallelRunner
             $configuration->recycleAboveMemoryBytes,
             $configuration->stopAfterFailures,
             $coverageSettings,
+            $configFile,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);

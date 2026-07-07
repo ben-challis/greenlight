@@ -84,6 +84,7 @@ final class Orchestrator
         private readonly ?int $recycleAboveMemoryBytes = null,
         private readonly ?int $stopAfterFailures = null,
         private readonly ?CoverageSettings $coverageSettings = null,
+        private readonly ?string $configFile = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -296,6 +297,7 @@ final class Orchestrator
                         $this->recycleAboveMemoryBytes,
                         $this->coverageSettings?->includePaths,
                         $this->coverageSettings?->driver,
+                        $this->configFile === '' ? null : $this->configFile,
                     ));
 
                     continue;

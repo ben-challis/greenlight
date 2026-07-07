@@ -18,6 +18,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Plugin\PluginRegistry;
 
 /**
  * Executes a plan slice sequentially in the current process, managing the
@@ -35,6 +36,7 @@ final readonly class Worker
 {
     public function __construct(
         private HarnessRegistry $registry,
+        private PluginRegistry $plugins = new PluginRegistry([]),
     ) {}
 
     /**
@@ -74,7 +76,7 @@ final readonly class Worker
 
                 try {
                     $context ??= ClassContext::for($class);
-                    $executor ??= new TestExecutor($scopes, $context);
+                    $executor ??= new TestExecutor($scopes, $context, $this->plugins);
                     $result = $executor->execute($entry);
                 } catch (\Throwable $threw) {
                     $result = new TestResult(

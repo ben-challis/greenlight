@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
+use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
@@ -74,9 +76,14 @@ final readonly class WorkerProcess
                     );
                 }
 
+                $userPlugins = $message->configFile === null
+                    ? []
+                    : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
+                $plugins = PluginRegistry::forWorker($userPlugins);
+
                 $collector?->start();
 
-                $outcome = new Worker(DefaultServices::registry())->run(
+                $outcome = new Worker(DefaultServices::registry($plugins), $plugins)->run(
                     $message->slice,
                     new SocketEventSink($channel),
                     null,

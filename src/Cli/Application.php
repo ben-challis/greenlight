@@ -194,7 +194,7 @@ final readonly class Application
                     ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $coverageSettings);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers, $coverageSettings);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers, $coverageSettings, $configFile);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");

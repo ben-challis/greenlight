@@ -14,6 +14,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
@@ -85,6 +86,15 @@ final class WorkerTest
 
         new Expect()->that($results[0]->outcome)->toBe(Outcome::Failed)
             ->and($results[0]->failures[0]->message)->toContain('Timed out');
+    }
+
+    #[Test]
+    public function runtimeSkipSignalReportsSkippedWithTheReason(): void
+    {
+        [$summary, $results] = $this->runFixture('RuntimeSkip');
+
+        new Expect()->that($summary->skipped)->toBe(1)
+            ->and($results[0]->skipReason)->toBe('the fixture backend is unreachable');
     }
 
     #[Test]
@@ -292,17 +302,24 @@ final class WorkerTest
     /**
      * @return array{ResultSummary, list<TestResult>}
      */
+    /**
+     * @param list<object> $plugins
+     *
+     * @return array{ResultSummary, list<TestResult>}
+     */
     private function runFixture(
         string $case,
         ?HarnessRegistry $registry = null,
         ?int $stopAfterFailures = null,
         ?CollectingEventSink $sink = null,
+        array $plugins = [],
     ): array {
         $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/' . $case;
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink ??= new CollectingEventSink();
 
-        $outcome = new Worker($registry ?? $this->registry())->run($plan, $sink, $stopAfterFailures);
+        $outcome = new Worker($registry ?? $this->registry(), PluginRegistry::forWorker($plugins))
+            ->run($plan, $sink, $stopAfterFailures);
 
         return [$outcome->summary, $sink->results()];
     }

@@ -35,12 +35,45 @@ final class Expectation
 
     /**
      * @internal use Expect::that() instead
+     *
+     * @param list<ExpectationExtension> $extensions
      */
     public function __construct(
         private readonly mixed $subject,
         private readonly FailureSink $sink,
         private readonly ValueRenderer $renderer,
+        private readonly array $extensions = [],
     ) {}
+
+    /**
+     * Dispatches extension matchers: an ExpectationExtension providing a
+     * matcher named like the called method is evaluated against the subject
+     * with the given arguments. Extensions cannot shadow native matchers,
+     * which always win by existing as real methods. Experimental until the
+     * plugin API GA review.
+     *
+     * @param array<int, mixed> $arguments
+     */
+    public function __call(string $name, array $arguments): self
+    {
+        foreach ($this->extensions as $extension) {
+            $matcher = $extension->matchers()[$name] ?? null;
+
+            if ($matcher === null) {
+                continue;
+            }
+
+            return $this->verify(
+                $matcher($this->subject, ...$arguments),
+                'to satisfy the extension matcher ' . $name,
+            );
+        }
+
+        throw new \BadMethodCallException(\sprintf(
+            'No matcher named %s exists natively or in any registered expectation extension.',
+            $name,
+        ));
+    }
 
     /**
      * Inverts the next matcher in the chain and is consumed by it. Subject
@@ -60,7 +93,7 @@ final class Expectation
      */
     public function and(mixed $value): self
     {
-        return new self($value, $this->sink, $this->renderer);
+        return new self($value, $this->sink, $this->renderer, $this->extensions);
     }
 
     /**

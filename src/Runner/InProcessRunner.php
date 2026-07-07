@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\Worker;
 
@@ -45,12 +46,19 @@ final readonly class InProcessRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
 
+        $plugins = PluginRegistry::forWorker($configuration->plugins);
+        $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
+
+        if ($orchestratorSide->runSubscribers() !== []) {
+            $sink = new PluginEventSink($orchestratorSide, $sink);
+        }
+
         $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
 
         $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
         $collector?->start();
 
-        $summary = new Worker(DefaultServices::registry())
+        $summary = new Worker(DefaultServices::registry($plugins), $plugins)
             ->run($plan, $sink, $configuration->stopAfterFailures)
             ->summary;
 

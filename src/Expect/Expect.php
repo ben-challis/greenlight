@@ -33,7 +33,7 @@ final class Expect
 
     public function that(mixed $value): Expectation
     {
-        return new Expectation($value, $this->sink, $this->renderer);
+        return new Expectation($value, $this->sink, $this->renderer, $this->extensions);
     }
 
     /**
