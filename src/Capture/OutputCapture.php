@@ -92,7 +92,7 @@ final class OutputCapture
         $handler = function (int $severity, string $message, string $file = '', int $line = 0): bool {
             $mapped = DiagnosticSeverity::fromErrorLevel($severity);
 
-            if ($mapped === null || (\error_reporting() & $severity) === 0) {
+            if (!$mapped instanceof DiagnosticSeverity || (\error_reporting() & $severity) === 0) {
                 return false;
             }
 
