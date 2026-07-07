@@ -43,8 +43,10 @@ final class ProfileRunTest
             $jsonl = \array_filter($output, static fn(string $line): bool => \str_starts_with($line, '{"v":'));
             \file_put_contents($artifact, \implode("\n", $jsonl) . "\n");
 
+            // stdout only: extensions like ddtrace write noise to stderr on
+            // spawn, and this comparison is exact.
             \exec(\sprintf(
-                'cd %s && %s %s profile:report --input=%s 2>&1',
+                'cd %s && %s %s profile:report --input=%s 2>/dev/null',
                 \escapeshellarg($root),
                 \escapeshellarg(\PHP_BINARY),
                 \escapeshellarg($root . '/bin/greenlight'),
