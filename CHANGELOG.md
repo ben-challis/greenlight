@@ -42,6 +42,11 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- CI gates: `--fail-on-deprecation` and `--fail-on-notice` fail passed
+  tests on captured diagnostics (with a config allow-list for dependency
+  noise), and risky-test detection lists passed tests that verified no
+  expectations, upgraded to failures by `--fail-on-risky`, with
+  `#[NoExpectations]` as the explicit opt-out.
 - Suite sharding: `--shard=<n>/<m>` selects disjoint class slices by
   stable hash for coordination-free CI splitting.
 - A discovery cache: per-file plan entries keyed by path, mtime, and size

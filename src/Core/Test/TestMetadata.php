@@ -43,6 +43,7 @@ final readonly class TestMetadata implements WireSerializable
         public bool $isolated = false,
         public ?string $dataSetProvider = null,
         public bool $capture = true,
+        public bool $noExpectations = false,
     ) {
         $validated = [];
 
@@ -72,6 +73,7 @@ final readonly class TestMetadata implements WireSerializable
             'isolated' => $this->isolated,
             'dataSetProvider' => $this->dataSetProvider,
             'capture' => $this->capture,
+            'noExpectations' => $this->noExpectations,
         ];
     }
 
@@ -105,6 +107,7 @@ final readonly class TestMetadata implements WireSerializable
             Wire::bool($payload, 'isolated'),
             $dataSetProvider === '' ? null : $dataSetProvider,
             Wire::bool($payload, 'capture'),
+            \array_key_exists('noExpectations', $payload) && Wire::bool($payload, 'noExpectations'),
         );
     }
 }

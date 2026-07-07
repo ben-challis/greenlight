@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
 use Greenlight\Attribute\Test;
+use Greenlight\Tests\Support\Check;
 
 final class AttributesTest
 {
@@ -21,9 +22,7 @@ final class AttributesTest
     #[Test]
     public function beforeHookRunsBeforeTests(): void
     {
-        if (!$this->beforeRan) {
-            throw new \RuntimeException('The #[Before] hook did not run before the test.');
-        }
+        Check::true($this->beforeRan, 'the #[Before] hook to run before the test');
     }
 
     #[Test]
@@ -32,9 +31,7 @@ final class AttributesTest
         foreach ([Test::class, Before::class, After::class] as $attributeClass) {
             $attributes = new \ReflectionClass($attributeClass)->getAttributes(\Attribute::class);
 
-            if (\count($attributes) !== 1) {
-                throw new \RuntimeException(\sprintf('%s must be declared as an attribute.', $attributeClass));
-            }
+            Check::same(1, \count($attributes), \sprintf('%s to be declared as an attribute', $attributeClass));
 
             $flags = $attributes[0]->newInstance()->flags;
 

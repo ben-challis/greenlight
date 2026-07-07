@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+use Greenlight\Core\Result\ResultPolicy;
+
 /**
  * The fully resolved, immutable configuration for a run. Produced by
  * GreenlightConfig::build() and, after command-line overrides are applied,
@@ -37,6 +39,7 @@ final readonly class Configuration
         public ?CoverageConfiguration $coverage,
         public WatchConfiguration $watch,
         public array $plugins,
+        public ResultPolicy $policy,
         public ?int $stopAfterFailures,
         public bool $randomizeOrder,
         public ?int $randomSeed,
@@ -60,6 +63,7 @@ final readonly class Configuration
             coverage: $this->coverage,
             watch: $this->watch,
             plugins: $this->plugins,
+            policy: $this->policy,
             stopAfterFailures: $this->stopAfterFailures,
             randomizeOrder: $this->randomizeOrder,
             randomSeed: $this->randomSeed,

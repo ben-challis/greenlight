@@ -7,6 +7,7 @@ namespace Greenlight\Discovery;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
+use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
@@ -84,6 +85,7 @@ final class MetadataFactory
                 $classIsolated || $method->getAttributes(Isolated::class) !== [],
                 $dataSet?->provider,
                 $testAttributes[0]->newInstance()->capture,
+                $method->getAttributes(NoExpectations::class) !== [],
             );
         }
 

@@ -11,6 +11,7 @@ use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -106,6 +107,7 @@ final class Orchestrator
         private readonly ?CoverageSettings $coverageSettings = null,
         private readonly ?string $configFile = null,
         private readonly bool $detectLeaks = false,
+        private readonly ?ResultPolicy $policy = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -420,6 +422,7 @@ final class Orchestrator
                 $this->coverageSettings?->driver,
                 $this->configFile === '' ? null : $this->configFile,
                 $this->detectLeaks,
+                $this->policy,
             ));
         } catch (ProtocolError) {
             // The worker died before the assignment arrived; containment

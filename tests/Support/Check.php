@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
+use Greenlight\Core\Test\ExpectationCounter;
+
 /**
  * Minimal assertion helper for the bootstrap era, replaced by Greenlight\Expect
  * once that exists. Do not grow this beyond what the bootstrap-phase tests need.
@@ -14,6 +16,7 @@ final class Check
 
     public static function same(mixed $expected, mixed $actual, string $what = 'value'): void
     {
+        ExpectationCounter::increment();
         if ($expected !== $actual) {
             throw new \RuntimeException(\sprintf(
                 'Expected %s to be %s, got %s.',
@@ -26,6 +29,7 @@ final class Check
 
     public static function true(bool $condition, string $what): void
     {
+        ExpectationCounter::increment();
         if (!$condition) {
             throw new \RuntimeException(\sprintf('Expected %s.', $what));
         }
@@ -36,6 +40,7 @@ final class Check
      */
     public static function throws(callable $callable, string $throwableClass, string $what = 'callable'): void
     {
+        ExpectationCounter::increment();
         try {
             $callable();
         } catch (\Throwable $e) {

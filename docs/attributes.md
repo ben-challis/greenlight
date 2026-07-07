@@ -60,6 +60,12 @@ One inline data set: the array holds the arguments in parameter order, and the l
 public function addsUp(int $a, int $b, int $sum): void { ... }
 ```
 
+## NoExpectations
+
+Target: method. No parameters.
+
+Declares that this test legitimately verifies no expectations (it passes by not throwing), so risky-test detection and `--fail-on-risky` leave it alone. The attribute states the intent explicitly where a bare zero-assertion test is indistinguishable from a forgotten one.
+
 ## Group
 
 Target: method or class. Repeatable. Parameters: `string $name`.

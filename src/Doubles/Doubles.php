@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ValueRenderer;
 use Greenlight\Harness\Disposable;
@@ -165,6 +166,8 @@ final class Doubles implements Disposable
             }
 
             foreach ($state->expectations as $expectation) {
+                ExpectationCounter::increment();
+
                 if (!$expectation->isSatisfied()) {
                     $details[] = $this->unmetExpectationDetail($state, $expectation);
                 }

@@ -9,6 +9,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Coverage\PathFilter;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\SkipTest;
 use Greenlight\Tests\Fixture\Coverage\Adder;
 
 final class XdebugDriverTest
@@ -17,12 +18,9 @@ final class XdebugDriverTest
     public function collectsRealLineCoverageOverTheFixture(): void
     {
         if (!XdebugDriver::isAvailable()) {
-            // Deliberate no-op: this integration test needs xdebug running
-            // with "coverage" in its mode, which is an environment property
-            // the test cannot change. The bootstrap runner has no skip
-            // mechanism, so an unavailable driver passes vacuously here and
-            // the behaviour is exercised on environments that have it.
-            return;
+            // This integration test needs xdebug running with "coverage" in
+            // its mode, an environment property the test cannot change.
+            throw new SkipTest('xdebug with coverage mode is not available');
         }
 
         $fixtureFile = (string) new \ReflectionClass(Adder::class)->getFileName();

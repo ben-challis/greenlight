@@ -28,13 +28,15 @@ final class SchedulingTest
             $expect->that($exit)->toBe(0)
                 ->and(\count($this->spawnedWorkers($lines)))->toBe(2);
 
-            // Warm run: the slow class must be the first assignment.
+            // Warm run: the slow class is dequeued first, so it must be
+            // among the first two class starts (one per worker; exact stream
+            // order between workers is arrival order and not deterministic).
             [$exit, $lines] = $this->run($project);
             $started = $this->classStartOrder($lines);
 
             $expect->that($exit)->toBe(0)
                 ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
-                ->and($started[0] ?? null)->toBe('SchedulingProbe\SlowTest');
+                ->and(\array_slice($started, 0, 2))->toContain('SchedulingProbe\SlowTest');
         } finally {
             $this->removeTree($project);
         }

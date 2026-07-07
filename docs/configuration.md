@@ -68,6 +68,18 @@ Default: 200 ms debounce. The configurator receives a `WatchBuilder` with one me
 ->watch(fn ($w) => $w->debounceMilliseconds(500))
 ```
 
+### failOnDeprecation(bool $enabled = true): self, failOnNotice(bool $enabled = true): self
+
+Default: off. Fails a passed test whose captured output contains a deprecation or notice, with the diagnostic as the failure detail; the flip is recorded as a provenance transformation, so every consumer (exit code, `--bail`, junit, plugins) sees the same truth. Applied by the worker to the final result, after retries and afterTest subscribers. Also available as `--fail-on-deprecation` and `--fail-on-notice`.
+
+### ignoreDeprecationsMatching(string ...$patterns): self
+
+Default: none. Exempts deprecation messages from `failOnDeprecation()`: case-insensitive substring, or whole-message match when the pattern contains `*` or `?`. Repeatable; patterns accumulate. This is the escape hatch for dependency noise you cannot fix.
+
+### failOnRisky(bool $enabled = true): self
+
+Default: off. A passed test that verified no expectations (nothing through `Expect`, no mock expectations verified at teardown) is marked risky; the `tty` and `plain` reporters list risky tests after the summary either way, and this setting (or `--fail-on-risky`) upgrades them to failures. A test that legitimately asserts nothing opts out with `#[NoExpectations]`.
+
 ### plugins(object ...$plugins): self
 
 Default: none. Registers plugin instances. Repeatable; instances accumulate.
@@ -110,6 +122,7 @@ Options:
 - `--reporter=<name>` selects the output format: `tty`, `plain`, `junit`, `jsonl`, `github`, `teamcity`. Repeatable; multiple reporters write concurrently. Default: `tty` on an interactive terminal, otherwise `plain`. `tty` is parallel-aware: one live line per in-flight class with a spinner and running count, finalised in place as each class completes, so multi-worker interleaving never scrambles the display.
 - `--watch` re-runs on file changes. Enter re-runs everything, q quits.
 - `--detect-leaks` verifies every test instance is collected after its test; any leak fails the run.
+- `--fail-on-deprecation`, `--fail-on-notice`, `--fail-on-risky` enable the matching config policies for this run.
 - `--profile` appends a run profile after the summary: workers requested, spawned, and recycled, average boot latency (spawn to first class), per-worker busy time and utilisation, the makespan spread between the first and last worker to finish, and the ten slowest classes. Derived entirely from the event stream, so `greenlight profile:report --input=<file>` reproduces the same block offline from a saved jsonl artifact.
 - `--dry-run` prints the resolved configuration without executing.
 - `-h, --help` shows the help text.

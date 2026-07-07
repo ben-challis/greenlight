@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
@@ -49,6 +50,7 @@ final class StubTest
     }
 
     #[Test]
+    #[NoExpectations]
     public function anUntouchedStubVerifiesCleanly(): void
     {
         $doubles = new Doubles();

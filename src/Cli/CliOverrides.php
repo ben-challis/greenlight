@@ -29,6 +29,9 @@ final readonly class CliOverrides
         public ?int $seed = null,
         public array $filters = [],
         public ?array $shard = null,
+        public bool $failOnDeprecation = false,
+        public bool $failOnNotice = false,
+        public bool $failOnRisky = false,
     ) {}
 
     /**
@@ -109,7 +112,17 @@ final readonly class CliOverrides
             $seed = $parsed;
         }
 
-        return new self($workers, $stopAfterFailures, $groups, $seed, $filters, $shard);
+        return new self(
+            $workers,
+            $stopAfterFailures,
+            $groups,
+            $seed,
+            $filters,
+            $shard,
+            $arguments->has('fail-on-deprecation'),
+            $arguments->has('fail-on-notice'),
+            $arguments->has('fail-on-risky'),
+        );
     }
 
     /**

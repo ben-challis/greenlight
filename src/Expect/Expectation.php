@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Core\Test\ExpectationCounter;
 
 /**
  * A fluent chain of matchers anchored on a single subject value. Create
@@ -445,6 +446,7 @@ final class Expectation
      */
     private function verify(bool $matched, string $description, ?string $expected = null, ?string $actual = null): self
     {
+        ExpectationCounter::increment();
         $negated = $this->negated;
         $this->negated = false;
 

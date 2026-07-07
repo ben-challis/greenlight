@@ -10,6 +10,7 @@ use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -39,6 +40,7 @@ final readonly class Worker
         private PluginRegistry $plugins = new PluginRegistry([]),
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
+        private ?ResultPolicy $policy = null,
     ) {}
 
     /**
@@ -84,7 +86,7 @@ final readonly class Worker
 
                 try {
                     $context ??= ClassContext::for($class);
-                    $executor ??= new TestExecutor($scopes, $context, $this->plugins, $this->leakDetector);
+                    $executor ??= new TestExecutor($scopes, $context, $this->plugins, $this->leakDetector, $this->policy);
                     $result = $executor->execute($entry);
                 } catch (\Throwable $threw) {
                     $result = new TestResult(

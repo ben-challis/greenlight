@@ -36,6 +36,7 @@ final readonly class TestResult implements WireSerializable
         public ?string $skipReason = null,
         public array $transformations = [],
         public ?CapturedOutput $output = null,
+        public bool $risky = false,
     ) {
         if ($durationSeconds < 0.0) {
             throw new \InvalidArgumentException('Duration cannot be negative.');
@@ -64,6 +65,28 @@ final readonly class TestResult implements WireSerializable
             $this->skipReason,
             [...$this->transformations, new OutcomeTransformation($transformedBy, $this->outcome, $outcome)],
             $this->output,
+            $this->risky,
+        );
+    }
+
+    /**
+     * The same result marked risky: it passed without verifying a single
+     * expectation.
+     */
+    public function asRisky(): self
+    {
+        return new self(
+            $this->id,
+            $this->outcome,
+            $this->durationSeconds,
+            $this->memoryDeltaBytes,
+            $this->attempts,
+            $this->failures,
+            $this->error,
+            $this->skipReason,
+            $this->transformations,
+            $this->output,
+            true,
         );
     }
 
@@ -84,6 +107,7 @@ final readonly class TestResult implements WireSerializable
                 $this->transformations,
             ),
             'output' => $this->output?->toWire(),
+            'risky' => $this->risky,
         ];
     }
 
@@ -110,6 +134,7 @@ final readonly class TestResult implements WireSerializable
                 Wire::listOfMaps($payload, 'transformations'),
             ),
             $output === null ? null : CapturedOutput::fromWire($output),
+            \array_key_exists('risky', $payload) && Wire::bool($payload, 'risky'),
         );
     }
 }

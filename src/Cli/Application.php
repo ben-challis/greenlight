@@ -92,6 +92,9 @@ final readonly class Application
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --watch            Re-run on file changes; Enter re-runs everything, q quits
           --detect-leaks     Verify every test instance is collected; leaks fail the run
+          --fail-on-deprecation  Fail passed tests that captured a deprecation
+          --fail-on-notice   Fail passed tests that captured a notice
+          --fail-on-risky    Fail passed tests that verified no expectations
           --profile          Append a run profile (worker utilisation, boot latency,
                              makespan spread, slowest classes) after the summary
           --dry-run          Print the resolved configuration without executing
@@ -751,6 +754,9 @@ final readonly class Application
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
             new OptionSpec('failed'),
             new OptionSpec('shard', OptionValue::Required),
+            new OptionSpec('fail-on-deprecation'),
+            new OptionSpec('fail-on-notice'),
+            new OptionSpec('fail-on-risky'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('baseline', OptionValue::Required),

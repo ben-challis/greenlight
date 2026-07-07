@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Core\Result\ResultPolicy;
 
 /**
  * Applies command-line overrides to a built configuration. Precedence is
@@ -29,6 +30,12 @@ final class ConfigurationResolver
             coverage: $configuration->coverage,
             watch: $configuration->watch,
             plugins: $configuration->plugins,
+            policy: new ResultPolicy(
+                $configuration->policy->failOnDeprecation || $overrides->failOnDeprecation,
+                $configuration->policy->failOnNotice || $overrides->failOnNotice,
+                $configuration->policy->ignoreDeprecations,
+                $configuration->policy->failOnRisky || $overrides->failOnRisky,
+            ),
             stopAfterFailures: $overrides->stopAfterFailures ?? $configuration->stopAfterFailures,
             randomizeOrder: $overrides->seed !== null || $configuration->randomizeOrder,
             randomSeed: $overrides->seed ?? $configuration->randomSeed,

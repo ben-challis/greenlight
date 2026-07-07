@@ -29,6 +29,11 @@ final class PlainReporter implements Reporter
      */
     private array $problems = [];
 
+    /**
+     * @var list<non-empty-string>
+     */
+    private array $risky = [];
+
     private int $workersSpawned = 0;
 
     /**
@@ -75,6 +80,10 @@ final class PlainReporter implements Reporter
 
             if (!$result->outcome->isSuccessful()) {
                 $this->problems[] = $result;
+            }
+
+            if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
+                $this->risky[] = $id;
             }
 
             return;
@@ -134,6 +143,14 @@ final class PlainReporter implements Reporter
         ));
 
         $this->output->write($this->slowTests->render());
+
+        if ($this->risky !== []) {
+            $this->output->write(\sprintf(
+                "\nRisky: %d passed without verifying any expectation (opt out with #[NoExpectations], enforce with --fail-on-risky):\n%s\n",
+                \count($this->risky),
+                \implode("\n", \array_map(static fn(string $id): string => '  ' . $id, $this->risky)),
+            ));
+        }
     }
 
     private function recycleBreakdown(): string

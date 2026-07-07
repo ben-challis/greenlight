@@ -8,8 +8,10 @@ use Greenlight\Capture\OutputCapture;
 use Greenlight\Core\Condition;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\HarnessScopes;
@@ -35,6 +37,7 @@ final readonly class TestExecutor
         private ClassContext $context,
         private PluginRegistry $plugins,
         private ?LeakDetector $leakDetector = null,
+        private ?ResultPolicy $policy = null,
     ) {}
 
     public function execute(PlanEntry $entry): TestResult
@@ -70,12 +73,12 @@ final readonly class TestExecutor
             [$result, $cause] = $this->attempt($entry, $attempt);
 
             if ($result->outcome->isSuccessful()) {
-                return $result;
+                return $this->policy?->apply($result) ?? $result;
             }
             $retry = array_any($this->plugins->retryDeciders(), fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause));
 
             if (!$retry) {
-                return $result;
+                return $this->policy?->apply($result) ?? $result;
             }
         } while (true);
     }
@@ -86,6 +89,7 @@ final readonly class TestExecutor
     private function attempt(PlanEntry $entry, int $attempt): array
     {
         $metadata = $entry->metadata;
+        ExpectationCounter::reset();
         $this->scopes->openTest();
 
         /** @var list<FailureDetail> $failures */
@@ -215,6 +219,13 @@ final readonly class TestExecutor
             $skipReason,
             output: $captured,
         );
+
+        // The counter includes double verification, which ran at scope close
+        // above; a passed test with zero verified expectations is risky
+        // unless it declared the intent with #[NoExpectations].
+        if ($result->outcome === Outcome::Passed && !$metadata->noExpectations && ExpectationCounter::count() === 0) {
+            $result = $result->asRisky();
+        }
 
         if ($context instanceof TestContext) {
             $result = $this->applyAfterSubscribers($context, $result);

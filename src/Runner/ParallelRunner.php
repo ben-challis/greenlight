@@ -84,6 +84,7 @@ final readonly class ParallelRunner
             $coverageSettings,
             $configFile,
             $detectLeaks,
+            $configuration->policy->isNoOp() ? null : $configuration->policy,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);

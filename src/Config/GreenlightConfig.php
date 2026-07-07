@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+use Greenlight\Core\Result\ResultPolicy;
+
 /**
  * The mutable fluent builder that greenlight.php files return. build()
  * produces the immutable Configuration.
@@ -44,6 +46,17 @@ final class GreenlightConfig
      * @var list<object>
      */
     private array $plugins = [];
+
+    private bool $failOnDeprecation = false;
+
+    private bool $failOnNotice = false;
+
+    private bool $failOnRisky = false;
+
+    /**
+     * @var list<non-empty-string>
+     */
+    private array $ignoreDeprecations = [];
 
     private bool $failFast = false;
 
@@ -161,6 +174,57 @@ final class GreenlightConfig
         return $this;
     }
 
+    /**
+     * Fails a passed test whose captured output contains a deprecation, with
+     * the diagnostic as the failure detail. Exempt known dependency noise
+     * with ignoreDeprecationsMatching().
+     */
+    public function failOnDeprecation(bool $enabled = true): self
+    {
+        $this->failOnDeprecation = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Fails a passed test whose captured output contains a notice.
+     */
+    public function failOnNotice(bool $enabled = true): self
+    {
+        $this->failOnNotice = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Fails a passed test that verified no expectations. Tests that
+     * legitimately assert nothing opt out with #[NoExpectations].
+     */
+    public function failOnRisky(bool $enabled = true): self
+    {
+        $this->failOnRisky = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Exempts deprecation messages from failOnDeprecation(): patterns match
+     * by case-insensitive substring, or against the whole message when they
+     * contain "*" or "?". Repeatable; patterns accumulate.
+     */
+    public function ignoreDeprecationsMatching(string ...$patterns): self
+    {
+        foreach ($patterns as $pattern) {
+            if ($pattern === '') {
+                throw new InvalidConfiguration('ignoreDeprecationsMatching() patterns cannot be empty.');
+            }
+
+            $this->ignoreDeprecations[] = $pattern;
+        }
+
+        return $this;
+    }
+
     public function plugins(object ...$plugins): self
     {
         foreach ($plugins as $plugin) {
@@ -229,6 +293,12 @@ final class GreenlightConfig
             coverage: $this->coverage?->toConfiguration(),
             watch: $this->watch?->toConfiguration() ?? new WatchConfiguration(),
             plugins: $this->plugins,
+            policy: new ResultPolicy(
+                $this->failOnDeprecation,
+                $this->failOnNotice,
+                $this->ignoreDeprecations,
+                $this->failOnRisky,
+            ),
             stopAfterFailures: $this->failFast ? 1 : null,
             randomizeOrder: $this->randomizeOrder,
             randomSeed: $this->randomSeed,
