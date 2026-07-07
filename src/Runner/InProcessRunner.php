@@ -27,6 +27,7 @@ final readonly class InProcessRunner
 {
     /**
      * @param list<non-empty-string> $directories
+     * @param list<non-empty-string> $priorityClasses classes to run first, in the given order
      *
      * @throws DiscoveryError
      */
@@ -36,6 +37,7 @@ final readonly class InProcessRunner
         EventSink $sink,
         ?CoverageSettings $coverageSettings = null,
         bool $detectLeaks = false,
+        array $priorityClasses = [],
     ): RunResult {
         $seed = null;
 
@@ -43,7 +45,7 @@ final readonly class InProcessRunner
             $seed = $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1);
         }
 
-        $plan = $this->discover($configuration, $directories, $seed);
+        $plan = PlanPriority::prioritize($this->discover($configuration, $directories, $seed), $priorityClasses);
 
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);

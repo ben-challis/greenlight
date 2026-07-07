@@ -38,6 +38,8 @@ final class GreenlightConfig
 
     private ?CoverageBuilder $coverage = null;
 
+    private ?WatchBuilder $watch = null;
+
     /**
      * @var list<object>
      */
@@ -147,6 +149,18 @@ final class GreenlightConfig
         return $this;
     }
 
+    /**
+     * @param callable(WatchBuilder): mixed $configurator
+     */
+    public function watch(callable $configurator): self
+    {
+        $builder = $this->watch ?? new WatchBuilder();
+        $configurator($builder);
+        $this->watch = $builder;
+
+        return $this;
+    }
+
     public function plugins(object ...$plugins): self
     {
         foreach ($plugins as $plugin) {
@@ -213,6 +227,7 @@ final class GreenlightConfig
             recycleAfterTests: $this->recycleAfterTests,
             recycleAboveMemoryBytes: MemorySize::parseToBytes($this->recycleAboveMemory),
             coverage: $this->coverage?->toConfiguration(),
+            watch: $this->watch?->toConfiguration() ?? new WatchConfiguration(),
             plugins: $this->plugins,
             stopAfterFailures: $this->failFast ? 1 : null,
             randomizeOrder: $this->randomizeOrder,

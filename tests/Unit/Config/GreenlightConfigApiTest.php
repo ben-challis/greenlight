@@ -37,6 +37,7 @@ final class GreenlightConfigApiTest
                 'plugins',
                 'randomizeOrder',
                 'suite',
+                'watch',
                 'workers',
             ],
             $methods,

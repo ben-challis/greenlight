@@ -27,6 +27,7 @@ final class ConfigurationResolver
             recycleAfterTests: $configuration->recycleAfterTests,
             recycleAboveMemoryBytes: $configuration->recycleAboveMemoryBytes,
             coverage: $configuration->coverage,
+            watch: $configuration->watch,
             plugins: $configuration->plugins,
             stopAfterFailures: $overrides->stopAfterFailures ?? $configuration->stopAfterFailures,
             randomizeOrder: $overrides->seed !== null || $configuration->randomizeOrder,

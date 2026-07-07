@@ -29,6 +29,7 @@ final readonly class Configuration
         public int $recycleAfterTests,
         public int $recycleAboveMemoryBytes,
         public ?CoverageConfiguration $coverage,
+        public WatchConfiguration $watch,
         public array $plugins,
         public ?int $stopAfterFailures,
         public bool $randomizeOrder,

@@ -33,6 +33,7 @@ final readonly class ParallelRunner
     /**
      * @param list<non-empty-string> $directories
      * @param positive-int $workerCount
+     * @param list<non-empty-string> $priorityClasses classes to run first, in the given order
      *
      * @throws DiscoveryError
      */
@@ -44,6 +45,7 @@ final readonly class ParallelRunner
         ?CoverageSettings $coverageSettings = null,
         ?string $configFile = null,
         bool $detectLeaks = false,
+        array $priorityClasses = [],
     ): RunResult {
         $seed = null;
 
@@ -52,7 +54,7 @@ final readonly class ParallelRunner
         }
 
         $filter = new Filter(includeGroups: $configuration->groups);
-        $plan = new TestDiscoverer()->discover($directories, $filter, $seed);
+        $plan = PlanPriority::prioritize(new TestDiscoverer()->discover($directories, $filter, $seed), $priorityClasses);
 
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);

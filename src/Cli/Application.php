@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
+use Greenlight\Cli\Watch\ClassFailureTap;
+use Greenlight\Cli\Watch\Debouncer;
+use Greenlight\Cli\Watch\StatChangeDetector;
+use Greenlight\Cli\Watch\StdinKeyInput;
+use Greenlight\Cli\Watch\SystemWatchClock;
+use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\Configuration;
@@ -72,6 +78,7 @@ final readonly class Application
           --group=<name>     Only run this group; repeatable
           --seed=<n>         Randomize class order with this seed
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
+          --watch            Re-run on file changes; Enter re-runs everything, q quits
           --detect-leaks     Verify every test instance is collected; leaks fail the run
           --dry-run          Print the resolved configuration without executing
           -h, --help         Show this help
@@ -184,6 +191,10 @@ final readonly class Application
             return self::EXIT_USAGE;
         }
 
+        if ($arguments->has('watch')) {
+            return $this->watchCommand($arguments, $workingDirectory, $binPath, $resolved, $configFile);
+        }
+
         $sink = new ReporterSink($reporter);
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null ? false : \realpath($binPath);
@@ -231,6 +242,82 @@ final readonly class Application
         }
 
         return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
+    }
+
+    private function watchCommand(
+        ParsedArguments $arguments,
+        string $workingDirectory,
+        ?string $binPath,
+        Configuration $resolved,
+        string $configFile,
+    ): int {
+        $directories = $this->directories($resolved, $workingDirectory);
+        $watched = $directories;
+
+        foreach ($resolved->coverage->includePaths ?? [] as $path) {
+            $absolute = $this->absolutePath($path, $workingDirectory);
+
+            if ($absolute !== '' && !\in_array($absolute, $watched, true)) {
+                $watched[] = $absolute;
+            }
+        }
+
+        $workers = $resolved->workers->fixed ?? CpuCores::count();
+        $realBin = $binPath === null ? false : \realpath($binPath);
+        $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
+        $detectLeaks = $arguments->has('detect-leaks');
+
+        $runOnce =
+            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $realBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks): array {
+                $priorityClasses = \array_values(\array_filter(
+                    $priorityClasses,
+                    static fn(mixed $class): bool => \is_string($class) && $class !== '',
+                ));
+
+                try {
+                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed);
+                } catch (CliError $error) {
+                    ($this->err)($error->getMessage() . "\n");
+
+                    return $priorityClasses;
+                }
+
+                $tap = new ClassFailureTap(new ReporterSink($reporter));
+
+                try {
+                    if ($workers === 1 || $realBin === false) {
+                        new InProcessRunner()
+                            ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses);
+                    } else {
+                        new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
+                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses);
+                    }
+                } catch (DiscoveryError|ProtocolError $error) {
+                    ($this->err)($error->getMessage() . "\n");
+
+                    return $priorityClasses;
+                }
+
+                $reporter->finish();
+
+                return $tap->failedClasses();
+            };
+
+        $keys = new StdinKeyInput();
+
+        try {
+            new WatchLoop(
+                new StatChangeDetector($watched),
+                new Debouncer($resolved->watch->debounceMilliseconds / 1000),
+                $keys,
+                new SystemWatchClock(),
+                $this->out,
+            )->run($runOnce);
+        } finally {
+            $keys->restore();
+        }
+
+        return self::EXIT_OK;
     }
 
     private function coverageSettings(?CoverageConfiguration $configuration, string $workingDirectory): ?CoverageSettings
@@ -512,6 +599,7 @@ final readonly class Application
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('baseline', OptionValue::Required),
             new OptionSpec('current', OptionValue::Required),
+            new OptionSpec('watch'),
             new OptionSpec('detect-leaks'),
             new OptionSpec('dry-run'),
             new OptionSpec('help', short: 'h'),
