@@ -197,7 +197,7 @@ final readonly class Application
 
         $sink = new ReporterSink($reporter);
         $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $realBin = $binPath === null ? false : \realpath($binPath);
+        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
 
@@ -263,7 +263,7 @@ final readonly class Application
         }
 
         $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $realBin = $binPath === null ? false : \realpath($binPath);
+        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
 
@@ -559,6 +559,16 @@ final readonly class Application
         }
 
         return [ConfigurationResolver::resolve($builder->build(), $overrides), $configFile];
+    }
+
+    /**
+     * Worker processes are spawned with proc_open over core stream sockets,
+     * so no extension is required; hosts that put proc_open in
+     * disable_functions get an in-process sequential run instead.
+     */
+    private function canSpawnWorkers(): bool
+    {
+        return \function_exists('proc_open') && \function_exists('stream_socket_server');
     }
 
     /**

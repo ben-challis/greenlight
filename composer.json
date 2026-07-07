@@ -24,9 +24,7 @@
         "rector/rector": "^2.0"
     },
     "suggest": {
-        "ext-pcntl": "Process control for the parallel runner (POSIX)",
         "ext-pcov": "Fast line coverage collection",
-        "ext-sockets": "Orchestrator/worker communication",
         "phpstan/phpstan": "Type-checks extension matcher calls via the bundled extension.neon"
     },
     "autoload": {

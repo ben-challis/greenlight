@@ -4,7 +4,7 @@ Greenlight is an attribute-driven, parallel-first testing framework for PHP 8.4 
 
 ## Requirements and installation
 
-You need PHP 8.4 or newer. Greenlight has no required extensions; `ext-pcntl` and `ext-sockets` improve the parallel runner and `ext-pcov` (or Xdebug in coverage mode) enables coverage collection.
+You need PHP 8.4 or newer. Greenlight has no required extensions: the parallel runner is built on core stream sockets and `proc_open`, and `ext-pcov` (or Xdebug in coverage mode) enables coverage collection. Hosts that disable `proc_open` get an in-process sequential run automatically.
 
 Greenlight is not yet published to Packagist, so the following is forward-looking. Once released, install it as a dev dependency:
 
