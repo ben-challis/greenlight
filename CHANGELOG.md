@@ -42,6 +42,9 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- A discovery cache: per-file plan entries keyed by path, mtime, and size
+  under the system temp dir, halving cold discovery on large suites and
+  speeding every watch iteration; any doubt falls back to parsing.
 - Demand-driven scheduling: workers pull one class at a time from the
   orchestrator's queue and are reused across assignments, with the queue
   ordered longest first from durations recorded in the run state (failed

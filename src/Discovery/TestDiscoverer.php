@@ -46,14 +46,21 @@ final readonly class TestDiscoverer
      *
      * @throws DiscoveryError
      */
-    public function discover(array $directories, ?Filter $filter = null, ?int $seed = null): ExecutionPlan
+    public function discover(array $directories, ?Filter $filter = null, ?int $seed = null, ?DiscoveryCache $cache = null): ExecutionPlan
     {
         $filter ??= Filter::all();
         $entriesByClass = [];
         $classOrder = [];
 
         foreach ($this->testFiles($directories) as $file) {
-            $entries = $this->entriesForFile($file, $filter);
+            $unfiltered = $cache?->lookup($file);
+
+            if ($unfiltered === null) {
+                $unfiltered = $this->entriesForFile($file);
+                $cache?->store($file, $unfiltered);
+            }
+
+            $entries = $this->filtered($unfiltered, $filter, $file);
 
             if ($entries === []) {
                 continue;
@@ -63,6 +70,8 @@ final readonly class TestDiscoverer
             $entriesByClass[$class] = $entries;
             $classOrder[] = $class;
         }
+
+        $cache?->persist();
 
         if ($seed !== null) {
             $classOrder = $this->shuffled($classOrder, $seed);
@@ -100,11 +109,14 @@ final readonly class TestDiscoverer
     }
 
     /**
+     * Every entry a file declares, unfiltered, so the result is cacheable
+     * regardless of the run's filters.
+     *
      * @param non-empty-string $file
      *
      * @return list<PlanEntry>
      */
-    private function entriesForFile(string $file, Filter $filter): array
+    private function entriesForFile(string $file): array
     {
         $class = $this->resolveClass($file);
 
@@ -121,10 +133,6 @@ final readonly class TestDiscoverer
         $entries = [];
 
         foreach ($this->metadataFactory->forClass($reflection) as $metadata) {
-            if (!$filter->accepts($metadata->class, $metadata->method, $metadata->groups, $file)) {
-                continue;
-            }
-
             $rows = $this->dataSetExpander->rowsFor(
                 $reflection,
                 $metadata->method,
@@ -143,9 +151,25 @@ final readonly class TestDiscoverer
             }
         }
 
+        return $entries;
+    }
+
+    /**
+     * @param list<PlanEntry> $entries
+     * @param non-empty-string $file
+     *
+     * @return list<PlanEntry>
+     */
+    private function filtered(array $entries, Filter $filter, string $file): array
+    {
         return \array_values(\array_filter(
             $entries,
-            static fn(PlanEntry $entry): bool => $filter->acceptsId((string) $entry->id),
+            static fn(PlanEntry $entry): bool => $filter->accepts(
+                $entry->metadata->class,
+                $entry->metadata->method,
+                $entry->metadata->groups,
+                $file,
+            ) && $filter->acceptsId((string) $entry->id),
         ));
     }
 

@@ -7,6 +7,7 @@ namespace Greenlight\Runner;
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
+use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
@@ -57,7 +58,7 @@ final readonly class ParallelRunner
 
         $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
         $plan = PlanOrder::schedule(
-            new TestDiscoverer()->discover($directories, $filter, $seed),
+            new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );

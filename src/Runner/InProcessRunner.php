@@ -7,6 +7,7 @@ namespace Greenlight\Runner;
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
+use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
@@ -87,6 +88,6 @@ final readonly class InProcessRunner
     {
         $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
 
-        return new TestDiscoverer()->discover($directories, $filter, $seed);
+        return new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories));
     }
 }

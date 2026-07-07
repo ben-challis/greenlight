@@ -25,6 +25,7 @@ use Greenlight\Coverage\Export\CoverageExporter;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\Export\LcovExporter;
+use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
@@ -655,7 +656,8 @@ final readonly class Application
         $filter = new Filter(includeGroups: $resolved->groups, includeIds: $resolved->filters, includeExactIds: $resolved->onlyTests ?? []);
 
         try {
-            $plan = new TestDiscoverer()->discover($this->directories($resolved, $workingDirectory), $filter, $resolved->randomSeed);
+            $directories = $this->directories($resolved, $workingDirectory);
+            $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
         } catch (DiscoveryError $error) {
             ($this->err)($error->getMessage() . "\n");
 

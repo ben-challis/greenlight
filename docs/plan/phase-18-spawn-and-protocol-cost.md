@@ -35,6 +35,14 @@ Phase 16 numbers pick which levers matter. Phase 17 lands first so batching and 
 
 Fork inherits state copied at fork time: opcache, random seeds, time-sensitive plugin constructor state. Mitigation: reseed randomness post-fork, keep the template minimal (no test has run in it), and gate the whole path behind a config flag during a bake-in period so any suspicion is answerable with "turn it off and compare".
 
+## Measured decisions
+
+The three levers were priced on an 800-class, 4,000-test synthetic suite plus the Phase 16/17 self-suite profiles, and two of the three do not pay:
+
+- Fork-based spawn: dropped. With Phase 17's worker reuse a run spawns exactly `workers` processes at 0.12s to 0.14s boot latency each, overlapped with the run; utilisation already sits at 95% or better. There is nothing left for copy-on-write boot to recover on realistic suites, and the lever carries the highest risk of the three. Revisit only if a future profile shows spawn-dominated runs (extreme recycling churn).
+- Event frame batching: dropped. The 4,000-test suite (roughly 10,000 frames) completes in 0.5s wall at four workers, so per-frame syscall cost is invisible next to test execution. The complexity of buffer-flush rules and the risk to event ordering buy nothing measurable.
+- Discovery cache: shipped. Discovery dominated cold starts (0.25s of a 0.32s `list-tests` on the synthetic suite) and repeats on every watch iteration. With the cache, `list-tests` drops from 0.35s to 0.17s, the remaining time being PHP boot and the directory scan; the parse itself is roughly five times cheaper.
+
 ## Validation
 
 - Fork path: the full self-hosted suite and the crash/recycling acceptance fixtures run green with fork active where the platform supports it, and CI runs both modes.
