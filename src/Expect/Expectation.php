@@ -8,8 +8,9 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * A fluent chain of matchers anchored on a single subject value. Create
- * instances via Expect::that().
+ * A fluent chain of matchers anchored on a single subject value.
+ *
+ * Create instances via Expect::that().
  *
  * A failed matcher reports through the failure sink: outside of
  * Expect::softly() that throws ExpectationFailed immediately; inside softly()
@@ -49,8 +50,10 @@ final class Expectation
     /**
      * Dispatches extension matchers: an ExpectationExtension providing a
      * matcher named like the called method is evaluated against the subject
-     * with the given arguments. Extensions cannot shadow native matchers,
-     * which always win by existing as real methods.
+     * with the given arguments.
+     *
+     * Extensions cannot shadow native matchers, which always win by existing
+     * as real methods.
      *
      * @param array<int, mixed> $arguments
      */
@@ -391,8 +394,10 @@ final class Expectation
     /**
      * The subject must be a callable; it is invoked with no arguments. Passes
      * when it throws an instance of the given class whose message matches the
-     * optional regular expression. Under not(), any throwable that does not
-     * satisfy both conditions is swallowed and counts as a pass.
+     * optional regular expression.
+     *
+     * Under not(), any throwable that does not satisfy both conditions is
+     * swallowed and counts as a pass.
      *
      * @param class-string<\Throwable> $throwable
      *

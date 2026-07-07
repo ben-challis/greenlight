@@ -9,8 +9,10 @@ use Greenlight\Core\Test\TestMetadata;
 
 /**
  * The #[Retry] attribute's policy, implemented through the same decider
- * interface user plugins get: retry up to the configured number of extra
- * attempts, only when the cause matches the declared throwable type.
+ * interface user plugins get.
+ *
+ * shouldRetry() allows up to the configured number of extra attempts, only
+ * when the cause matches the declared throwable type.
  *
  * @internal
  */

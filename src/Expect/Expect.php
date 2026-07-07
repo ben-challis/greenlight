@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Entry point of the expectation API. Inject it into a test or construct it
- * directly, then anchor a matcher chain on a subject with that().
+ * Entry point of the expectation API.
+ *
+ * Inject it into a test or construct it directly, then anchor a matcher chain
+ * on a subject with that().
  *
  * The default failure mode is throw on first failure: a failed matcher throws
  * ExpectationFailed immediately. softly() runs a callable against an Expect
@@ -37,8 +39,10 @@ final class Expect
     /**
      * Runs the callable with an Expect whose failed expectations are collected
      * instead of thrown, then throws one aggregate ExpectationFailed carrying
-     * every failure. Nothing is thrown when all expectations pass. This
-     * instance itself is untouched: expectations made on it keep failing fast.
+     * every failure. Nothing is thrown when all expectations pass.
+     *
+     * This instance itself is untouched: expectations made on it keep failing
+     * fast.
      *
      * @param callable(Expect): void $expectations
      *

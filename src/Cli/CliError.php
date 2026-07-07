@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * A user-facing command-line usage error. The application prints the message
- * and exits with the usage error code.
+ * A user-facing command-line usage error.
+ *
+ * The application prints the message and exits with the usage error code.
  *
  * @internal
  */

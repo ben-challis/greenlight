@@ -8,9 +8,11 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\SourceLocation;
 
 /**
- * Thrown when one or more expectations fail. Carries the structured
- * FailureDetail values so the runner can report rendered expected/actual
- * strings and the call site without re-parsing the message.
+ * Thrown when one or more expectations fail.
+ *
+ * Carries the structured FailureDetail values so the runner can report
+ * rendered expected/actual strings and the call site without re-parsing the
+ * message.
  */
 final class ExpectationFailed extends \Exception
 {

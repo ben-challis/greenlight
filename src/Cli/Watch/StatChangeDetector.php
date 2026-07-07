@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Watch;
 
 /**
- * Portable polling watcher: snapshots mtime and size for every PHP file under
- * the watched directories and reports paths whose fingerprint changed,
- * appeared, or disappeared. The first poll primes the snapshot and reports
- * nothing.
+ * A portable polling watcher.
+ *
+ * poll() snapshots mtime and size for every PHP file under the watched
+ * directories and reports paths whose fingerprint changed, appeared, or
+ * disappeared.
+ *
+ * The first poll primes the snapshot and reports nothing.
  *
  * @internal
  */

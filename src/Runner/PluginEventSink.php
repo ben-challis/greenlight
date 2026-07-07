@@ -10,6 +10,7 @@ use Greenlight\Runner\Worker\EventSink;
 
 /**
  * Feeds orchestrator-side run subscribers before forwarding each event.
+ *
  * Subscriber throwables bubble: an orchestrator-side plugin failure fails
  * the run loudly rather than being swallowed.
  *

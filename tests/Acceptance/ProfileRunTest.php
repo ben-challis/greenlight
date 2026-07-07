@@ -8,9 +8,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
 /**
- * The profile through the real CLI: --profile appends the block after the
- * summary, and profile:report reproduces the same numbers offline from the
- * jsonl artifact of the same run.
+ * The profile through the real CLI.
+ *
+ * --profile appends the block after the summary, and profile:report
+ * reproduces the same numbers offline from the jsonl artifact of the same
+ * run.
  */
 final class ProfileRunTest
 {

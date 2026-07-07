@@ -8,10 +8,13 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\RawCoverage;
 
 /**
- * Line coverage via the pcov extension. pcov reports each seen line as
- * covered (one) or executable but not executed (minus one); it has no dead
- * code detection. Collected state is cleared on every stop() so consecutive
- * collection windows do not bleed into each other.
+ * Line coverage via the pcov extension.
+ *
+ * pcov reports each seen line as covered (one) or executable but not executed
+ * (minus one); it has no dead code detection.
+ *
+ * Collected state is cleared on every stop() so consecutive collection
+ * windows do not bleed into each other.
  *
  * @internal
  */

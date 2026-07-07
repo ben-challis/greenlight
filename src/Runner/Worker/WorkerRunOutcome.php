@@ -9,8 +9,8 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
 
 /**
- * What one worker run produced: the tally of executed tests, the entries it
- * never reached, and why it stopped early when it did.
+ * Carries what one worker run produced: the tally of executed tests, the
+ * entries it never reached, and why it stopped early when it did.
  *
  * @internal
  */

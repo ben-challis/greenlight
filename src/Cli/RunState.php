@@ -6,11 +6,16 @@ namespace Greenlight\Cli;
 
 /**
  * Persists the previous run's failure set and per-class durations between
- * invocations: --failed re-runs the failures, plain runs order failed
- * classes first, and the scheduler orders the rest longest first. The file
- * lives under the system temp dir keyed by a hash of the working directory,
- * the same convention as the proxy cache, so the project tree stays
- * untouched and a lost file costs one full run plus one unpacked schedule.
+ * invocations.
+ *
+ * record() writes both after a run. failedTests() feeds --failed re-runs and
+ * lets plain runs order failed classes first; classSeconds() lets the
+ * scheduler order the rest longest first.
+ *
+ * The file lives under the system temp dir keyed by a hash of the working
+ * directory, the same convention as the proxy cache, so the project tree
+ * stays untouched and a lost file costs one full run plus one unpacked
+ * schedule.
  *
  * @internal
  */

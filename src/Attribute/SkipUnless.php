@@ -7,7 +7,9 @@ namespace Greenlight\Attribute;
 use Greenlight\Core\Condition;
 
 /**
- * Skips the test method, or every test in the class, unless the condition is satisfied.
+ * Skips the test method, or every test in the class, unless the condition is
+ * satisfied.
+ *
  * The condition is evaluated at execution time in the worker.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * The active scope containers of one worker. The run and suite containers
- * live for the worker's lifetime; the class and test containers are opened
- * and closed by the worker as execution progresses. The suite scope currently
- * shares the run container's lifetime because suite boundaries are not yet
- * part of the execution plan.
+ * The active scope containers of one worker.
+ *
+ * The run and suite containers live for the worker's lifetime; the class and
+ * test containers are opened and closed by the worker as execution
+ * progresses.
+ *
+ * The suite scope currently shares the run container's lifetime because suite
+ * boundaries are not yet part of the execution plan.
  *
  * @internal
  */

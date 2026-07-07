@@ -8,8 +8,10 @@ use Greenlight\Attribute\DataRow;
 
 /**
  * Invokes a #[DataSet] provider at plan time and derives one stable string
- * key per yielded data set. Providers are the only code discovery executes;
- * they must be pure and are held to a per-provider time budget.
+ * key per yielded data set.
+ *
+ * Providers are the only code discovery executes; they must be pure and are
+ * held to a per-provider time budget.
  *
  * Key derivation: printable string keys are used as-is, integer keys become
  * "#<value>", and empty or non-printable string keys become the first eight
@@ -34,12 +36,15 @@ final class DataSetExpander
     }
 
     /**
-     * Every data set of a test method under one key space: inline #[DataRow]
-     * attributes in declaration order (labelled, or "#<position>" by their
-     * position among the rows), then the #[DataSet] provider's yields. Both
-     * the planner and the worker resolve through this method, so keys can
-     * never drift between plan and execution. An empty result means the test
-     * takes no data sets.
+     * Returns every data set of a test method under one key space.
+     *
+     * Inline #[DataRow] attributes come first in declaration order, labelled
+     * or keyed "#<position>" by their position among the rows, then the
+     * #[DataSet] provider's yields. An empty result means the test takes no
+     * data sets.
+     *
+     * Both the planner and the worker resolve through this method, so keys
+     * can never drift between plan and execution.
      *
      * @param \ReflectionClass<covariant object> $class
      * @param non-empty-string $testMethod
@@ -83,9 +88,11 @@ final class DataSetExpander
     }
 
     /**
-     * Derived key mapped to the yielded data set, in provider order. Both the
-     * planner and the worker resolve data sets through this method, so the
-     * derivation can never drift between plan and execution.
+     * Returns each derived key mapped to its yielded data set, in provider
+     * order.
+     *
+     * Both the planner and the worker resolve data sets through this method,
+     * so the derivation can never drift between plan and execution.
      *
      * @param \ReflectionClass<covariant object> $class
      * @param non-empty-string $testMethod

@@ -15,10 +15,14 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Deterministic non-ANSI renderer for CI logs: one line per finished test,
- * failure and error details after the run, and a final summary including
- * worker recycling counts. No colours, no cursor control; identical event
- * streams produce byte-identical output.
+ * Deterministic non-ANSI renderer for CI logs.
+ *
+ * onEvent() writes one line per finished test as it arrives. finish() prints
+ * failure and error details after the run, then a final summary including
+ * worker recycling counts.
+ *
+ * No colours, no cursor control; identical event streams produce
+ * byte-identical output.
  *
  * @internal
  */

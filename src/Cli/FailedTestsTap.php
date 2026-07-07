@@ -9,9 +9,13 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Records the ids of failed and errored tests plus per-class durations while
- * forwarding the stream, feeding the run state that --failed, failed-first
- * ordering, and longest-first scheduling consume.
+ * Records failure ids and per-class durations while forwarding the stream.
+ *
+ * emit() passes every event through to the inner sink and notes the ids of
+ * failed and errored tests plus the time each class spent.
+ *
+ * failedTests() and classSeconds() feed the run state that --failed,
+ * failed-first ordering, and longest-first scheduling consume.
  *
  * @internal
  */

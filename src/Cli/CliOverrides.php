@@ -8,6 +8,7 @@ use Greenlight\Config\WorkerCount;
 
 /**
  * The settings the command line can override, already validated and typed.
+ *
  * A null field (or an empty group list) means the flag was absent and the
  * config file value stands.
  *

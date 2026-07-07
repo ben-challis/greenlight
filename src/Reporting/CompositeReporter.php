@@ -7,8 +7,10 @@ namespace Greenlight\Reporting;
 use Greenlight\Core\Event\Event;
 
 /**
- * Fans one event stream out to many reporters, preserving order. Reporters
- * are invoked in construction order for both events and finish().
+ * Fans one event stream out to many reporters.
+ *
+ * onEvent() and finish() invoke the reporters in construction order, so every
+ * reporter sees events and the finish signal in the same order.
  *
  * @internal
  */

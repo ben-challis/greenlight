@@ -7,9 +7,13 @@ namespace Greenlight\Runner\Worker;
 use Greenlight\Core\Test\TestId;
 
 /**
- * Debug-mode leak verification: every test instance is watched through a weak
- * reference, and a sweep after each test forces a collection cycle and names
- * any instance that survived its own test. Each leak is reported once.
+ * Verifies in debug mode that test instances do not leak.
+ *
+ * watch() tracks every test instance through a weak reference. sweep() runs
+ * after each test, forces a collection cycle, and names any instance that
+ * survived its own test.
+ *
+ * Each leak is reported once.
  *
  * @internal
  */

@@ -9,11 +9,14 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 
 /**
- * Static test discovery. Scans directories for *Test.php files, resolves
- * each file's class by token parsing before autoloading it, reflects the
- * attributes into metadata, expands data-set providers, applies filters,
- * and produces a deterministic execution plan. No test code runs during
- * discovery; data-set providers are the single, budgeted exception.
+ * Discovers tests statically and produces a deterministic execution plan.
+ *
+ * discover() scans directories for *Test.php files, resolves each file's
+ * class by token parsing before autoloading it, reflects the attributes into
+ * metadata, expands data-set providers, and applies filters.
+ *
+ * No test code runs during discovery; data-set providers are the single,
+ * budgeted exception.
  *
  * @internal
  */
@@ -177,8 +180,10 @@ final readonly class TestDiscoverer
      * Resolves the class declared in a file without executing the file:
      * token parsing yields the expected fully qualified name, autoloading
      * then loads exactly that class, and reflection confirms the class
-     * really came from this file. Returns null when the file declares a
-     * non-class type of the expected name, which is not a discovery error.
+     * really came from this file.
+     *
+     * Returns null when the file declares a non-class type of the expected
+     * name, which is not a discovery error.
      *
      * @param non-empty-string $file
      *

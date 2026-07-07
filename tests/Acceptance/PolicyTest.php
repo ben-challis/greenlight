@@ -8,11 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
 /**
- * The CI gates through the real CLI: deprecation and notice policies flip
- * passed tests to failed with the diagnostic as the detail, the allow-list
- * exempts matched deprecations, risky tests warn by default and fail under
- * the flag, and both the doubles-only test and the #[NoExpectations] opt-out
- * stay quiet.
+ * The CI gates through the real CLI.
+ *
+ * Deprecation and notice policies flip passed tests to failed with the
+ * diagnostic as the detail, and the allow-list exempts matched deprecations.
+ *
+ * Risky tests warn by default and fail under the flag, while both the
+ * doubles-only test and the #[NoExpectations] opt-out stay quiet.
  */
 final class PolicyTest
 {

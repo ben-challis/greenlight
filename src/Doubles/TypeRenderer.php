@@ -6,10 +6,14 @@ namespace Greenlight\Doubles;
 
 /**
  * Renders reflected parameter, property, and return types back to PHP source
- * for generated proxies. Handles named, nullable, union, and intersection
- * types, including intersections nested in unions. self and parent resolve
- * against the declaring class so the rendered code is position independent;
- * static stays literal because it is only valid, and correct, in the proxy.
+ * for generated proxies.
+ *
+ * render() handles named, nullable, union, and intersection types, including
+ * intersections nested in unions.
+ *
+ * self and parent resolve against the declaring class so the rendered code is
+ * position independent; static stays literal because it is only valid, and
+ * correct, in the proxy.
  *
  * @internal
  */

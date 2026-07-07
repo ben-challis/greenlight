@@ -6,7 +6,9 @@ namespace Greenlight\Doubles;
 
 /**
  * The planning DSL handed to the closures of Doubles::mock() and
- * Doubles::stub(). Declare call patterns fluently:
+ * Doubles::stub().
+ *
+ * Declare call patterns fluently:
  *
  *     $plan->expects('charge')->with(MockPlan::any())->once()->andReturns($ok);
  *

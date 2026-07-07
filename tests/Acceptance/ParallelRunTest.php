@@ -9,8 +9,9 @@ use Greenlight\Expect\Expect;
 
 /**
  * Drives bin/greenlight with a process pool against fixture projects and
- * asserts on observable behaviour: exit codes and summary lines. Crash and
- * hang fixtures must only ever run through here, never in-process.
+ * asserts on observable behaviour: exit codes and summary lines.
+ *
+ * Crash and hang fixtures must only ever run through here, never in-process.
  */
 final class ParallelRunTest
 {

@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * Fluent builder handed to suite configurators. Collects the paths a suite
- * covers and the tags it applies. Config files type-hint this class, so it
- * is part of the public configuration surface.
+ * Fluent builder handed to suite configurators.
+ *
+ * in() collects the paths a suite covers and tag() the tags it applies.
+ *
+ * Config files type-hint this class, so it is part of the public
+ * configuration surface.
  */
 final class SuiteBuilder
 {

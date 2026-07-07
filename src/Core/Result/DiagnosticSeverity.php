@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Core\Result;
 
 /**
- * Severity of a recorded PHP diagnostic. Only the non-fatal engine
- * severities are representable; anything PHP treats as fatal is never
- * recorded as a diagnostic and keeps its default handling.
+ * Severity of a recorded PHP diagnostic.
+ *
+ * Only the non-fatal engine severities are representable; anything PHP
+ * treats as fatal is never recorded as a diagnostic and keeps its default
+ * handling.
  */
 enum DiagnosticSeverity: string
 {

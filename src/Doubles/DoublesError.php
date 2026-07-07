@@ -8,8 +8,10 @@ namespace Greenlight\Doubles;
  * A misuse of the doubles API: doubling a type outside the supported
  * boundary, planning a method that cannot be intercepted, interacting with
  * a double in a way its kind forbids, or relying on a return value that was
- * never configured. These are authoring errors, not expectation failures,
- * so the test errors rather than fails.
+ * never configured.
+ *
+ * These are authoring errors, not expectation failures, so the test errors
+ * rather than fails.
  *
  * @internal
  */

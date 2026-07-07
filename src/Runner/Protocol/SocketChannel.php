@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * A framed message channel over one stream socket. Sending is blocking and
- * complete (partial writes are retried); receiving is either blocking with a
- * timeout or a non-blocking poll.
+ * A framed message channel over one stream socket.
+ *
+ * send() is blocking and complete: partial writes are retried until the
+ * whole frame is written.
+ *
+ * Receiving is either receive(), which blocks with a timeout, or poll(),
+ * which never blocks.
  *
  * @internal
  */

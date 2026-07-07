@@ -6,11 +6,14 @@ namespace Greenlight\Core\Test;
 
 /**
  * Process-local count of verified expectations, used to spot tests that
- * assert nothing. The executor resets it before each attempt and reads it
- * after per-test teardown, so double verification at scope close is
- * included; Expect and Doubles increment it on every verification, pass or
- * fail. A static counter is deliberate: harness service factories receive
- * no resolver, workers are single-threaded, and the executor owns the
+ * assert nothing.
+ *
+ * The executor calls reset() before each attempt and count() after per-test
+ * teardown, so double verification at scope close is included. Expect and
+ * Doubles call increment() on every verification, pass or fail.
+ *
+ * A static counter is deliberate: harness service factories receive no
+ * resolver, workers are single-threaded, and the executor owns the
  * reset/read lifecycle.
  *
  * @internal

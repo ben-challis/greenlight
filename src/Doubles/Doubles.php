@@ -12,6 +12,7 @@ use Greenlight\Harness\Disposable;
 
 /**
  * Factory for test doubles, and the service a test injects to create them.
+ *
  * It registers as a per-test harness service (Scope::PerTest), so every
  * double it creates is owned by the test that asked for it: when the
  * per-test scope closes, dispose() verifies every mock and then drops all
@@ -25,9 +26,11 @@ use Greenlight\Harness\Disposable;
  * expectation fails the test immediately, and every returned value must be
  * configured explicitly. Stubs satisfy a type and error on any interaction.
  * Spies record every call to methods that return nothing; read them back
- * with callsTo() and assert with Expect. Verification failures throw a
- * single ExpectationFailed carrying one FailureDetail per unmet expectation,
- * so they render exactly like Expect failures.
+ * with callsTo() and assert with Expect.
+ *
+ * Verification failures throw a single ExpectationFailed carrying one
+ * FailureDetail per unmet expectation, so they render exactly like Expect
+ * failures.
  *
  * Supported subjects are interfaces and non-final classes; class doubles
  * never run the doubled constructor. Final classes, readonly classes, and

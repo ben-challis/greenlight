@@ -14,8 +14,10 @@ use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 
 /**
- * Envelope encoding for protocol messages: version, type tag, payload.
- * Unknown versions and tags are protocol errors.
+ * Encodes protocol messages as envelopes of version, type tag, and payload.
+ *
+ * envelope() wraps a message; open() does the reverse. Unknown versions and
+ * tags are protocol errors.
  *
  * @internal
  */

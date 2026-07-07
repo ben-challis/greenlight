@@ -8,12 +8,15 @@ use Greenlight\Core\Wire\Utf8;
 
 /**
  * Renders arbitrary values as readable, bounded, single-line strings for
- * failure messages. Covered: scalars, null, arrays (depth-limited), enums,
+ * failure messages.
+ *
+ * render() covers scalars, null, arrays (depth-limited), enums,
  * DateTimeInterface, and plain objects via reflection (class name plus a
  * depth-limited property map). Everything else falls back to get_debug_type()
- * plus an "(unrendered)" marker. Output is always valid UTF-8: every rendered
- * string is scrubbed before it leaves this class, because failure details
- * cross a JSON wire.
+ * plus an "(unrendered)" marker.
+ *
+ * Output is always valid UTF-8: every rendered string is scrubbed before it
+ * leaves this class, because failure details cross a JSON wire.
  *
  * @internal
  */

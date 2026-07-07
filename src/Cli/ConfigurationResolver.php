@@ -8,10 +8,12 @@ use Greenlight\Config\Configuration;
 use Greenlight\Core\Result\ResultPolicy;
 
 /**
- * Applies command-line overrides to a built configuration. Precedence is
- * fixed: built-in defaults, then the config file, then command-line flags.
- * The first two are already collapsed into the incoming Configuration, so
- * this only decides flag-by-flag whether the command line wins.
+ * Applies command-line overrides to a built configuration.
+ *
+ * Precedence is fixed: built-in defaults, then the config file, then
+ * command-line flags. The first two are already collapsed into the incoming
+ * Configuration, so resolve() only decides flag-by-flag whether the command
+ * line wins.
  *
  * @internal
  */

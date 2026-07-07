@@ -13,10 +13,14 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\PluginRegistry;
 
 /**
- * The harness registry every worker starts from: the built-in services, the
- * Expect service carrying any configured expectation extensions, and the
- * services contributed by harness providers. A provider registering a type
- * that already exists is a configuration error and fails loudly.
+ * Builds the harness registry every worker starts from.
+ *
+ * registry() combines the built-in services, the Expect service carrying any
+ * configured expectation extensions, and the services contributed by harness
+ * providers.
+ *
+ * A provider registering a type that already exists is a configuration error
+ * and fails loudly.
  *
  * @internal
  */

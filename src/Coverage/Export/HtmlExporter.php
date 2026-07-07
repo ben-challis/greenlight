@@ -8,13 +8,18 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
 /**
- * Static HTML report: an index page listing every file with its line
- * percentage, and one page per file with line-by-line colouring. Covered
- * lines are green, uncovered lines red, non-executable lines plain. No
- * JavaScript, minimal inline CSS. Per-file page names are derived from a
- * hash of the file path so they are deterministic and filesystem safe.
- * When a source file is unreadable the page falls back to line numbers
- * and statuses only.
+ * Static HTML coverage report.
+ *
+ * The report is an index page listing every file with its line percentage,
+ * and one page per file with line-by-line colouring: covered lines green,
+ * uncovered lines red, non-executable lines plain. No JavaScript, minimal
+ * inline CSS.
+ *
+ * Per-file page names are derived by pageName() from a hash of the file path
+ * so they are deterministic and filesystem safe.
+ *
+ * When a source file is unreadable the page falls back to line numbers and
+ * statuses only.
  *
  * @internal
  */

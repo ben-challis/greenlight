@@ -17,8 +17,10 @@ use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Discovery plus the process pool. The default runner; workers=1 falls back
- * to the in-process runner at the call site.
+ * Runs discovery plus the process pool.
+ *
+ * This is the default runner; workers=1 falls back to the in-process runner
+ * at the call site.
  *
  * @internal
  */

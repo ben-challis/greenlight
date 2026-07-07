@@ -8,15 +8,21 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Result-level CI gates, applied by the worker to each final result (after
- * retries and afterTest subscribers) so every consumer, from exit code to
- * junit to plugins, sees the same truth. A passed test with a captured
- * deprecation or notice fails under the matching flag, with the diagnostic
- * as the failure detail and the flip recorded as a provenance
- * transformation; the ignore list exempts deprecation messages by
- * case-insensitive substring, or whole-message match when the pattern
- * contains "*" or "?". A passed test that verified no expectations is
- * marked risky, and failed outright under failOnRisky.
+ * Result-level CI gates that can fail a passed test.
+ *
+ * apply() is called by the worker on each final result, after retries and
+ * afterTest subscribers, so every consumer, from exit code to junit to
+ * plugins, sees the same truth.
+ *
+ * A passed test with a captured deprecation or notice fails under the
+ * matching flag, with the diagnostic as the failure detail and the flip
+ * recorded as a provenance transformation.
+ *
+ * The ignore list exempts deprecation messages by case-insensitive
+ * substring, or whole-message match when the pattern contains "*" or "?".
+ *
+ * A passed test that verified no expectations is marked risky, and failed
+ * outright under failOnRisky.
  *
  * @internal
  */

@@ -8,11 +8,13 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\RawCoverage;
 
 /**
- * Line coverage via the Xdebug extension, which must be running with a mode
- * that includes "coverage". Collection asks Xdebug for unused and dead code
- * analysis so uncovered lines (minus one) and dead code (minus two) are
- * distinguishable downstream; dead code is dropped during normalisation
- * into a CoverageMap.
+ * Line coverage via the Xdebug extension.
+ *
+ * Xdebug must be running with a mode that includes "coverage".
+ *
+ * Collection asks Xdebug for unused and dead code analysis so uncovered lines
+ * (minus one) and dead code (minus two) are distinguishable downstream; dead
+ * code is dropped during normalisation into a CoverageMap.
  *
  * @internal
  */

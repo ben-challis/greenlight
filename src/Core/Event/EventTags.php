@@ -7,6 +7,7 @@ namespace Greenlight\Core\Event;
 /**
  * The canonical stable tag per event class, shared by every surface that
  * names events outside PHP (the wire protocol, machine-readable reporters).
+ *
  * Additive only: a tag, once shipped, never changes meaning.
  *
  * @internal

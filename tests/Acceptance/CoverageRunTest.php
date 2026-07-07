@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 
 /**
  * Drives bin/greenlight with coverage enabled against a fixture project.
+ *
  * Collection needs a driver, so runs are spawned with XDEBUG_MODE=coverage;
  * the no-driver branch is exercised with XDEBUG_MODE=off.
  */

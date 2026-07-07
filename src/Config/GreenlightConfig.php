@@ -7,8 +7,9 @@ namespace Greenlight\Config;
 use Greenlight\Core\Result\ResultPolicy;
 
 /**
- * The mutable fluent builder that greenlight.php files return. build()
- * produces the immutable Configuration.
+ * The mutable fluent builder that greenlight.php files return.
+ *
+ * build() produces the immutable Configuration.
  *
  * Defaults: paths ['tests'], workers 'auto' recycling after 500 tests or
  * above '256M', no suites, no coverage, no plugins, failFast off, declared

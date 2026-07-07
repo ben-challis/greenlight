@@ -11,10 +11,12 @@ use PHPStan\Reflection\MethodsClassReflectionExtension;
 
 /**
  * Teaches PHPStan the extension matchers your greenlight config files
- * register, with parameter signatures reflected from the matcher closures.
- * Calls like $expect->that($id)->toBeValidUuid() are then checked for name
- * typos, argument count, and argument types instead of falling through to
- * the __call fallback.
+ * register.
+ *
+ * Parameter signatures are reflected from the matcher closures. Calls like
+ * $expect->that($id)->toBeValidUuid() are then checked for name typos,
+ * argument count, and argument types instead of falling through to the
+ * __call fallback.
  *
  * Registered by including extension.neon and listing config files:
  *
@@ -26,9 +28,10 @@ use PHPStan\Reflection\MethodsClassReflectionExtension;
  *                 - greenlight.php
  *
  * All listed files contribute their matchers as one union; the same matcher
- * name with two different signatures fails the analysis run loudly. Config
- * files are loaded the same way workers load them, so plugin constructors
- * run inside the PHPStan process.
+ * name with two different signatures fails the analysis run loudly.
+ *
+ * Config files are loaded the same way workers load them, so plugin
+ * constructors run inside the PHPStan process.
  */
 final class ExpectationMethodsExtension implements MethodsClassReflectionExtension
 {

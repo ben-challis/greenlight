@@ -9,8 +9,10 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Everything discovery knows about a test method before execution, with
- * class-level attributes already merged in (method-level wins on conflict).
+ * Everything discovery knows about a test method before execution.
+ *
+ * Class-level attributes are already merged in; method-level wins on
+ * conflict.
  */
 final readonly class TestMetadata implements WireSerializable
 {

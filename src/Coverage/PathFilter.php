@@ -6,8 +6,10 @@ namespace Greenlight\Coverage;
 
 /**
  * Include-directory filter applied when raw driver output is normalised
- * into a CoverageMap. A file is accepted when it sits under any of the
- * configured directories; an empty directory list accepts every file.
+ * into a CoverageMap.
+ *
+ * accepts() passes a file when it sits under any of the configured
+ * directories; an empty directory list accepts every file.
  *
  * @internal
  */

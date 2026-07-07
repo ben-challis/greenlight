@@ -9,9 +9,12 @@ use Greenlight\Core\Event\EventTags;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Streams one JSON object per event as it arrives, each shaped as
- * {"v": 1, "event": "<tag>", "data": {...}} where data is the event's wire
- * payload. Tags are stable and additive only; the schema is documented in
+ * Streams one JSON object per event as it arrives.
+ *
+ * Each line is shaped as {"v": 1, "event": "<tag>", "data": {...}} where data
+ * is the event's wire payload.
+ *
+ * Tags are stable and additive only; the schema is documented in
  * docs/architecture/jsonl.md.
  *
  * @internal

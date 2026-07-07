@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * Parses human-readable memory sizes into bytes. Accepted forms are a plain
- * byte count ('4096') or a positive integer with a K, M, or G suffix using
- * binary multiples ('512K', '256M', '1G'). An optional trailing 'B' is
- * tolerated ('256MB'). Anything else is rejected.
+ * Parses human-readable memory sizes into bytes.
+ *
+ * parseToBytes() accepts a plain byte count ('4096') or a positive integer
+ * with a K, M, or G suffix using binary multiples ('512K', '256M', '1G'). An
+ * optional trailing 'B' is tolerated ('256MB'). Anything else is rejected.
  *
  * @internal
  */

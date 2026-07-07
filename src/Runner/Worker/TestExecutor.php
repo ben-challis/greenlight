@@ -21,12 +21,18 @@ use Greenlight\Plugin\SkipTest;
 use Greenlight\Plugin\TestContext;
 
 /**
- * Runs one plan entry: attribute skip checks before construction, constructor
- * injection, beforeTest subscribers, before-hooks in declaration order, the
- * test method, after-hooks in reverse declaration order (always), per-test
- * scope teardown, timeout accounting, afterTest subscribers with the
- * provenance guard, and the decider-driven retry loop. Every reference to the
- * test instance is dropped when the attempt ends.
+ * Runs one plan entry.
+ *
+ * execute() checks attribute skips before construction, then runs attempts
+ * under the decider-driven retry loop.
+ *
+ * Each attempt covers constructor injection, beforeTest subscribers,
+ * before-hooks in declaration order, the test method, after-hooks in reverse
+ * declaration order, which always run, per-test scope teardown, and timeout
+ * accounting. afterTest subscribers run with the provenance guard; see
+ * applyAfterSubscribers() for the exact behaviour.
+ *
+ * Every reference to the test instance is dropped when the attempt ends.
  *
  * @internal
  */

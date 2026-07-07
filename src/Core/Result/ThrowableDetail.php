@@ -9,8 +9,9 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Rendered description of an unexpected throwable. Stack frames are bounded
- * so a deep trace cannot bloat the wire.
+ * Rendered description of an unexpected throwable.
+ *
+ * Stack frames are bounded so a deep trace cannot bloat the wire.
  */
 final readonly class ThrowableDetail implements WireSerializable
 {

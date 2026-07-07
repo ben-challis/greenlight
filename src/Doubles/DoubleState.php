@@ -8,9 +8,10 @@ use Greenlight\Core\Result\FailureDetail;
 
 /**
  * Mutable per-double bookkeeping: the planned expectations, every recorded
- * call, and failures raised at call time. Deliberately holds no reference to
- * the proxy object, so keeping states for verification never keeps a double
- * alive.
+ * call, and failures raised at call time.
+ *
+ * Deliberately holds no reference to the proxy object, so keeping states for
+ * verification never keeps a double alive.
  *
  * @internal
  */

@@ -10,10 +10,12 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * One spawned worker: its process, its channel once authenticated, its
- * current assignment, and the orchestrator-side tally used for crash
- * attribution and summary cross-checks. Tally and finished-set reset per
- * assignment, because the worker's Done summary covers one assignment.
+ * Tracks one spawned worker: its process, its channel once authenticated,
+ * its current assignment, and the orchestrator-side tally used for crash
+ * attribution and summary cross-checks.
+ *
+ * beginAssignment() resets the tally and finished set, because the worker's
+ * Done summary covers one assignment.
  *
  * @internal
  */

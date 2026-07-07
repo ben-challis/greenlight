@@ -10,9 +10,11 @@ use Greenlight\Discovery\DataSetExpander;
 use Greenlight\Discovery\DiscoveryError;
 
 /**
- * Per-class execution state: the reflection, hook lists, and the class's
- * expanded data sets (providers run once per class, cached for the class
- * scope's lifetime).
+ * Holds per-class execution state: the reflection, hook lists, and the
+ * class's expanded data sets.
+ *
+ * Providers run once per class and their expanded data sets are cached for
+ * the class scope's lifetime.
  *
  * @internal
  */
@@ -72,9 +74,11 @@ final class ClassContext
 
     /**
      * Positional arguments for one data-set key, resolved from the method's
-     * #[DataRow] attributes and #[DataSet] provider. The key came from the
-     * plan; a key the method's data sets no longer include means the code
-     * changed between planning and execution, and that is an error.
+     * #[DataRow] attributes and #[DataSet] provider.
+     *
+     * The key came from the plan; a key the method's data sets no longer
+     * include means the code changed between planning and execution, and
+     * that is an error.
      *
      * @param non-empty-string|null $provider
      * @param non-empty-string $testMethod

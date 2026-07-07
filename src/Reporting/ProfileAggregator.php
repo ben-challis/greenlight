@@ -13,11 +13,15 @@ use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 
 /**
- * Derives a run profile purely from the event stream, so the same numbers
- * come out of a live run and a saved jsonl artifact. Timestamp semantics:
- * class events carry worker-side clocks, worker and run events carry
- * orchestrator-side clocks; both are wall clocks on one machine, so cross
- * clock arithmetic (boot latency) is honest to within scheduler noise.
+ * Derives a run profile purely from the event stream.
+ *
+ * Working from events alone means the same numbers come out of a live run and
+ * a saved jsonl artifact.
+ *
+ * Timestamp semantics: class events carry worker-side clocks, worker and run
+ * events carry orchestrator-side clocks. Both are wall clocks on one machine,
+ * so cross clock arithmetic (boot latency) is honest to within scheduler
+ * noise.
  *
  * Per worker: busy time is the sum of its class spans, the window runs from
  * its spawn (or first class, whichever is known) to its last class finish,

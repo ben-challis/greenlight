@@ -8,11 +8,13 @@ use Fidry\CpuCoreCounter\CpuCoreCounter;
 use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
 
 /**
- * Resolves the 'auto' worker count to the number of logical cores. When the
- * consuming project has fidry/cpu-core-counter installed, its detection is
- * used (it understands cgroup limits and more platforms); otherwise a small
- * built-in probe answers, falling back to a conservative default when the
- * platform gives no answer.
+ * Resolves the 'auto' worker count to the number of logical cores.
+ *
+ * When the consuming project has fidry/cpu-core-counter installed, count()
+ * uses its detection because it understands cgroup limits and more platforms.
+ * Otherwise a small built-in probe answers.
+ *
+ * When the platform gives no answer, a conservative default is used.
  *
  * @internal
  */

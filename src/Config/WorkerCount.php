@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * The requested worker pool size. 'auto' is kept as an explicit marker; the
- * runner decides what it means (typically the number of available cores).
- * Configuration code never guesses a CPU count.
+ * The requested worker pool size.
+ *
+ * 'auto' is kept as an explicit marker; the runner decides what it means
+ * (typically the number of available cores). Configuration code never
+ * guesses a CPU count.
  *
  * @internal
  */

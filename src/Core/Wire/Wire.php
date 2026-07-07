@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Core\Wire;
 
 /**
- * Typed readers for wire payloads. Every reader throws InvalidWirePayload
- * naming the offending key, so protocol errors are diagnosable from the
- * message alone. Floats tolerate integer values because JSON does not
- * preserve the distinction.
+ * Typed readers for wire payloads.
+ *
+ * Every reader throws InvalidWirePayload naming the offending key, so
+ * protocol errors are diagnosable from the message alone.
+ *
+ * Floats tolerate integer values because JSON does not preserve the
+ * distinction.
  *
  * @internal
  */

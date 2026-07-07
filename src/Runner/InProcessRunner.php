@@ -18,9 +18,10 @@ use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
 
 /**
- * Discovery plus one in-process worker plus a summary. This is the whole
- * runner until the process pool exists; after that it remains the workers=1
- * fallback for hosts without process support.
+ * Runs discovery plus one in-process worker and returns a summary.
+ *
+ * This is the whole runner until the process pool exists; after that it
+ * remains the workers=1 fallback for hosts without process support.
  *
  * @internal
  */

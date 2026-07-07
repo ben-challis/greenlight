@@ -14,11 +14,15 @@ use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Result\TestResult;
 
 /**
- * A parallel-aware live display: one line per in-flight class with a spinner
- * and a running count, finalised in place to a tick or a cross as classes
- * complete. Because workers interleave freely, the unit of progress is the
- * class, not the individual dot; the live region is redrawn on every event,
- * which is also what advances the spinner.
+ * A parallel-aware live display for interactive terminals.
+ *
+ * The live region shows one line per in-flight class with a spinner and a
+ * running count, finalised in place to a tick or a cross as classes complete.
+ * Because workers interleave freely, the unit of progress is the class, not
+ * the individual dot.
+ *
+ * The live region is redrawn on every event, which is also what advances the
+ * spinner.
  *
  * Without ANSI support the live region is skipped and each class prints one
  * summary line as it finishes. A seed line is appended when the run was

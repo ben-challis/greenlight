@@ -7,8 +7,10 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * lcov tracefile output (the .info format read by genhtml and most coverage
- * services): one SF record per file, a DA record per executable line with a
+ * lcov tracefile output, the .info format read by genhtml and most coverage
+ * services.
+ *
+ * Each file produces one SF record, a DA record per executable line with a
  * hit count of one or zero, then LF and LH line totals.
  *
  * @internal

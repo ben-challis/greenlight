@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * Length-prefixed JSON frames: a 4-byte big-endian unsigned length followed
- * by that many bytes of JSON. Invalid UTF-8 is substituted at encode time as
- * defence in depth behind capture-side scrubbing.
+ * Encodes length-prefixed JSON frames: a 4-byte big-endian unsigned length
+ * followed by that many bytes of JSON.
+ *
+ * Invalid UTF-8 is substituted at encode time as defence in depth behind
+ * capture-side scrubbing.
  *
  * @internal
  */

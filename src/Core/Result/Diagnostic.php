@@ -11,6 +11,7 @@ use Greenlight\Core\Wire\WireSerializable;
 
 /**
  * One PHP notice, warning, or deprecation recorded during a capture window.
+ *
  * Message and file are scrubbed to valid UTF-8 when the diagnostic crosses
  * the wire, because they originate in user code.
  */

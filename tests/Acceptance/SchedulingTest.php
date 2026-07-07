@@ -8,9 +8,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
 /**
- * Demand-driven scheduling through the real CLI: workers are reused across
- * classes instead of spawning per unit, and once the timing cache knows a
- * slow class it is assigned first on the next run.
+ * Demand-driven scheduling through the real CLI.
+ *
+ * Workers are reused across classes instead of spawning per unit, and once
+ * the timing cache knows a slow class it is assigned first on the next run.
  */
 final class SchedulingTest
 {

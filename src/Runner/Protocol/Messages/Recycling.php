@@ -11,8 +11,10 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: a recycle threshold was hit; the listed entries
- * remain unexecuted and need reassignment. The worker exits after sending.
+ * Worker to orchestrator: a recycle threshold was hit.
+ *
+ * The listed entries remain unexecuted and need reassignment. The worker
+ * exits after sending.
  *
  * @internal
  */

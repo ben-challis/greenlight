@@ -7,10 +7,14 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * Cobertura XML output. One class element per file with per-line hit counts
- * and line-rate attributes at class, package, and root level. Branch rates
- * are reported as zero because only line coverage is collected. The
- * timestamp is injected so output is deterministic and testable.
+ * Cobertura XML output.
+ *
+ * Each file becomes one class element with per-line hit counts, and line-rate
+ * attributes appear at class, package, and root level.
+ *
+ * Branch rates are reported as zero because only line coverage is collected.
+ *
+ * The timestamp is injected so output is deterministic and testable.
  *
  * @internal
  */

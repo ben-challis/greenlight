@@ -12,9 +12,12 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Emits GitHub Actions workflow commands for failures and errors and nothing
- * else, so annotations land on the PR diff without drowning the log. Messages
- * and properties are escaped per the workflow-command encoding rules.
+ * Emits GitHub Actions workflow commands for test failures and errors.
+ *
+ * Only failures and errors produce output, nothing else, so annotations land
+ * on the PR diff without drowning the log.
+ *
+ * Messages and properties are escaped per the workflow-command encoding rules.
  *
  * @internal
  */

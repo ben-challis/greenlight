@@ -7,9 +7,10 @@ namespace Greenlight\Reporting;
 use Greenlight\Core\Event\TestFinished;
 
 /**
- * Collects the slowest tests of a run for the human-facing reporters. Only
- * tests over the threshold are reported, so fast suites get no extra noise,
- * and at most ten lines print.
+ * Collects the slowest tests of a run for the human-facing reporters.
+ *
+ * Only tests over the threshold are reported, so fast suites get no extra
+ * noise, and at most ten lines print.
  *
  * @internal
  */

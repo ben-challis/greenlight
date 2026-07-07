@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * Locates and loads greenlight.php, returning the builder it produced. The
- * caller decides when to build() and what overrides to apply afterwards.
+ * Locates and loads greenlight.php, returning the builder it produced.
+ *
+ * The caller decides when to build() and what overrides to apply afterwards.
  *
  * @internal
  */

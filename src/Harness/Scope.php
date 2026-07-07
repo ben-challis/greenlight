@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Lifetime of a harness service. PerRun means per worker lifetime.
+ * Lifetime of a harness service.
+ *
+ * PerRun means per worker lifetime.
  */
 enum Scope: string
 {

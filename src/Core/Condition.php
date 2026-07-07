@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 /**
- * Execution-time condition referenced by #[SkipUnless]. Implementations must be
- * constructible without arguments and side-effect free.
+ * Execution-time condition referenced by #[SkipUnless].
+ *
+ * Implementations must be constructible without arguments and side-effect
+ * free.
  */
 interface Condition
 {

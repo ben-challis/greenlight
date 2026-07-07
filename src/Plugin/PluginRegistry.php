@@ -7,8 +7,9 @@ namespace Greenlight\Plugin;
 use Greenlight\Harness\ServiceDefinition;
 
 /**
- * The configured plugins of one run, filtered by capability. Internal
- * plugins (retry policy) run before user plugins; within each group,
+ * The configured plugins of one run, filtered by capability.
+ *
+ * Internal plugins (retry policy) run before user plugins; within each group,
  * Prioritized ordering applies with a stable sort.
  *
  * @internal

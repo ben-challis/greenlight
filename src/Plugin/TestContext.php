@@ -10,11 +10,14 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\UnresolvableService;
 
 /**
- * Live runtime context of one test attempt: the actual test instance, its
- * identity and metadata, access to the harness services in scope, and skip()
- * to abandon the attempt from beforeTest. service() is usable during
- * beforeTest and the test itself; by the time afterTest runs, the per-test
- * scope has closed and service() throws.
+ * Live runtime context of one test attempt.
+ *
+ * It carries the actual test instance, its identity and metadata, access to
+ * the harness services in scope, and skip() to abandon the attempt from
+ * beforeTest.
+ *
+ * service() is usable during beforeTest and the test itself; by the time
+ * afterTest runs, the per-test scope has closed and service() throws.
  */
 final readonly class TestContext
 {

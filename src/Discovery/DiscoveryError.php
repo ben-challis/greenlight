@@ -6,9 +6,10 @@ namespace Greenlight\Discovery;
 
 /**
  * Raised whenever discovery cannot turn a test file into plan entries.
+ *
  * Discovery never silently skips a file it cannot resolve; every failure
- * mode has a named constructor whose message identifies the file, class,
- * or method involved.
+ * mode has a named constructor whose message identifies the file, class, or
+ * method involved.
  *
  * @internal
  */

@@ -52,9 +52,11 @@ use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
- * The greenlight command. Parses arguments, loads greenlight.php, applies
- * command-line overrides, and dispatches to a command: run prints the
- * resolved plan, list-tests prints every discovered test id.
+ * The greenlight command.
+ *
+ * run() parses arguments, loads greenlight.php, applies command-line
+ * overrides, and dispatches to a command: run prints the resolved plan,
+ * list-tests prints every discovered test id.
  *
  * Exit codes: 0 success, 1 failure (bad config, discovery error),
  * 64 usage error.
@@ -583,13 +585,11 @@ final readonly class Application
     }
 
     /**
-     * Replays a saved jsonl event stream through the profile aggregator, so
-     * a CI run's profile is recoverable from its artifact without a re-run.
-     */
-    /**
      * Writes the duplicate-declaration helper file IDEs index for extension
-     * matcher autocomplete. Loads the same config file the run would, so the
-     * generated signatures match what the PHPStan extension enforces.
+     * matcher autocomplete.
+     *
+     * Loads the same config file the run would, so the generated signatures
+     * match what the PHPStan extension enforces.
      */
     private function ideHelperCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
@@ -656,6 +656,10 @@ final readonly class Application
         return self::EXIT_OK;
     }
 
+    /**
+     * Replays a saved jsonl event stream through the profile aggregator, so
+     * a CI run's profile is recoverable from its artifact without a re-run.
+     */
     private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         $input = $arguments->value('input');

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * Turns an envelope array into framed bytes and back. JSON is the v1
- * encoding; the interface exists so a binary encoding can replace it if
- * measurement ever justifies the swap.
+ * Turns an envelope array into framed bytes and back.
+ *
+ * JSON is the v1 encoding; the interface exists so a binary encoding can
+ * replace it if measurement ever justifies the swap.
  *
  * @internal
  */

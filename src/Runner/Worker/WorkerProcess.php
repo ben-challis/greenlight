@@ -23,10 +23,14 @@ use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * Main loop of a spawned worker process: connect, authenticate, execute
- * assigned slices while streaming events, recycle itself when its budget is
- * exhausted, drain on request. Invoked through the hidden __worker command,
- * which carries no compatibility promise.
+ * Runs the main loop of a spawned worker process.
+ *
+ * run() connects, authenticates, executes assigned slices while streaming
+ * events, recycles the worker when its budget is exhausted, and drains on
+ * request.
+ *
+ * Invoked through the hidden __worker command, which carries no
+ * compatibility promise.
  *
  * @internal
  */

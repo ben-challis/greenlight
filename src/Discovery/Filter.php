@@ -5,14 +5,20 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 /**
- * Pure, composable selection rules applied to discovered tests before data-set
- * expansion. Include lists are OR-ed within a dimension and AND-ed across
- * dimensions; exclude lists always win. Class and method filters match by
- * substring, or by shell-style wildcard when the filter contains "*" or "?".
- * Path filters match by path prefix. Id filters apply after data-set
- * expansion against the rendered test id (Class::method, with the data-set
- * label when present), case insensitively, with the same substring-or-
- * wildcard rule; exact ids match the rendered id verbatim.
+ * Pure, composable selection rules applied to discovered tests before
+ * data-set expansion.
+ *
+ * Include lists are OR-ed within a dimension and AND-ed across dimensions;
+ * exclude lists always win.
+ *
+ * accepts() applies the group, class, method, and path dimensions. Class and
+ * method filters match by substring, or by shell-style wildcard when the
+ * filter contains "*" or "?". Path filters match by path prefix.
+ *
+ * acceptsId() applies the id filters after data-set expansion, against the
+ * rendered test id (Class::method, with the data-set label when present),
+ * case insensitively, with the same substring-or-wildcard rule; exact ids
+ * match the rendered id verbatim.
  *
  * @internal
  */

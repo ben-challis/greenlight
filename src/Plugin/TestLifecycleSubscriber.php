@@ -7,9 +7,11 @@ namespace Greenlight\Plugin;
 use Greenlight\Core\Result\TestResult;
 
 /**
- * Worker-side interception around each test attempt. afterTest receives the
- * result and returns it, replaced or untouched; outcome changes are only
- * legal through TestResult::withOutcome() so every change carries provenance.
+ * Worker-side interception around each test attempt.
+ *
+ * afterTest() receives the result and returns it, replaced or untouched;
+ * outcome changes are only legal through TestResult::withOutcome() so every
+ * change carries provenance.
  */
 interface TestLifecycleSubscriber
 {

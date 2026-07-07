@@ -6,10 +6,14 @@ namespace Greenlight\Cli\Watch;
 
 /**
  * The watch mode loop: an initial run, then re-runs on debounced filesystem
- * changes. Enter forces an immediate full re-run, q quits. Each iteration is
- * an ordinary run producing ordinary reporter output; the loop only decides
- * when to run and hands the previous iteration's failed classes to the
- * runner so they execute first.
+ * changes.
+ *
+ * run() performs the initial run, then polls for changes and keys. Enter
+ * forces an immediate full re-run, q quits.
+ *
+ * Each iteration is an ordinary run producing ordinary reporter output; the
+ * loop only decides when to run and hands the previous iteration's failed
+ * classes to the runner so they execute first.
  *
  * @internal
  */

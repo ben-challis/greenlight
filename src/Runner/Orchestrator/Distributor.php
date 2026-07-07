@@ -7,11 +7,14 @@ namespace Greenlight\Runner\Orchestrator;
 use Greenlight\Discovery\ExecutionPlan;
 
 /**
- * Splits a plan into assignable units for demand-driven scheduling: one unit
- * per class, in plan order, so workers pull the next class as they finish
- * and no worker idles while another holds a long static bucket. Isolated
- * entries each get a unit of their own, executed by a dedicated fresh
- * worker.
+ * Splits a plan into assignable units for demand-driven scheduling.
+ *
+ * units() produces one unit per class, in plan order, so workers pull the
+ * next class as they finish and no worker idles while another holds a long
+ * static bucket.
+ *
+ * Isolated entries each get a unit of their own, executed by a dedicated
+ * fresh worker.
  *
  * @internal
  */

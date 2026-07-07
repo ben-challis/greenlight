@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Worker;
 
 /**
- * Recycling thresholds a worker checks after each test. The worker knows its
- * own memory; recycling is worker-initiated.
+ * Holds the recycling thresholds a worker checks after each test.
+ *
+ * The worker knows its own memory; recycling is worker-initiated.
  *
  * @internal
  */

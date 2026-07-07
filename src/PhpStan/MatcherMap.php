@@ -10,10 +10,11 @@ use Greenlight\Expect\ExpectationExtension;
 
 /**
  * The union of every extension matcher declared across a set of greenlight
- * config files, keyed by matcher name. Two files may declare the same matcher
- * with the same signature (typically by registering the same plugin); the
- * same name with a different signature is refused, because static analysis
- * needs one signature per name.
+ * config files, keyed by matcher name.
+ *
+ * Two files may declare the same matcher with the same signature (typically
+ * by registering the same plugin); the same name with a different signature
+ * is refused, because static analysis needs one signature per name.
  *
  * Free of PHPStan symbols on purpose: everything except the thin adapter
  * classes can run, and be tested, outside a PHPStan process.

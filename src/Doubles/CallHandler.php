@@ -9,11 +9,13 @@ use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ValueRenderer;
 
 /**
- * Runtime behind every generated proxy method. Records the call, then
- * answers it according to the double's kind. Nothing is ever guessed: a
- * mock answers only what was explicitly configured, a stub exists purely to
- * satisfy a type and errors on any call, and a spy records interactions but
- * cannot invent return values.
+ * Runtime behind every generated proxy method.
+ *
+ * invoke() records the call, then answers it according to the double's kind.
+ *
+ * Nothing is ever guessed: a mock answers only what was explicitly
+ * configured, a stub exists purely to satisfy a type and errors on any call,
+ * and a spy records interactions but cannot invent return values.
  *
  * @internal
  */

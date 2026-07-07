@@ -6,8 +6,10 @@ namespace Greenlight\Cli;
 
 /**
  * The outcome of parsing argv: at most one command word plus the options that
- * were present. A null entry in an option's value list means the option was
- * given without a value (allowed for flags and optional-value options).
+ * were present.
+ *
+ * A null entry in an option's value list means the option was given without
+ * a value (allowed for flags and optional-value options).
  *
  * @internal
  */

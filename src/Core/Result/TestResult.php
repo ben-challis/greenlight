@@ -9,8 +9,10 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Immutable result of one test. Plugins never mutate a result; they produce a
- * replacement via withOutcome(), which records provenance.
+ * Immutable result of one test.
+ *
+ * Plugins never mutate a result; they produce a replacement via
+ * withOutcome(), which records provenance.
  */
 final readonly class TestResult implements WireSerializable
 {
@@ -22,6 +24,7 @@ final readonly class TestResult implements WireSerializable
     /**
      * @param list<FailureDetail> $failures
      * @param list<OutcomeTransformation> $transformations
+     * @param non-negative-int $expectations
      *
      * @throws \InvalidArgumentException
      */

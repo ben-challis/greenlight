@@ -13,9 +13,11 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Writes JUnit XML at finish(): one testsuite per test class in order of
- * first appearance, one testcase per test, with failure, error, and skipped
- * elements carrying messages and details.
+ * Writes JUnit XML for the whole run at finish().
+ *
+ * The document has one testsuite per test class in order of first appearance
+ * and one testcase per test, with failure, error, and skipped elements
+ * carrying messages and details.
  *
  * Each testcase is rendered to its XML fragment as its event arrives; live
  * TestResult objects (which may carry large captured-output payloads) are

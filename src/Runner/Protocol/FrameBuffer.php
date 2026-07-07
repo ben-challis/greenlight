@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * Incremental frame decoder. Feed it bytes as they arrive from the socket;
- * it yields complete frame bodies as they become available, holding partial
- * frames until the rest arrives.
+ * Decodes frames incrementally from a byte stream.
+ *
+ * feed() accepts bytes as they arrive from the socket. next() yields
+ * complete frame bodies as they become available, holding partial frames
+ * until the rest arrives.
  *
  * @internal
  */

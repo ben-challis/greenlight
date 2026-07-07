@@ -9,9 +9,10 @@ use Greenlight\Core\Wire\WireSerializable;
 
 /**
  * Stable identity of a single runnable test: class, method, and the data-set
- * key when the method is expanded from a #[DataSet] provider. Identical across
- * processes and runs for the same code state; used for distribution, rerun
- * selection, and timing caches.
+ * key when the method is expanded from a #[DataSet] provider.
+ *
+ * Identical across processes and runs for the same code state; used for
+ * distribution, rerun selection, and timing caches.
  */
 final readonly class TestId implements WireSerializable, \Stringable
 {

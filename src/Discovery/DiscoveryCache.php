@@ -7,11 +7,12 @@ namespace Greenlight\Discovery;
 use Greenlight\Core\Wire\InvalidWirePayload;
 
 /**
- * Per-file cache of derived plan entries, keyed by path, mtime, and size, so
- * unchanged files skip parsing, class loading, and attribute reflection on
- * the next discovery. Watch mode benefits most: its iterations re-discover
- * constantly. Entries are cached unfiltered; filters apply after load, so a
- * changed filter never needs a re-parse.
+ * Per-file cache of derived plan entries, keyed by path, mtime, and size.
+ *
+ * A hit lets an unchanged file skip parsing, class loading, and attribute
+ * reflection on the next discovery. Watch mode benefits most: its iterations
+ * re-discover constantly. Entries are cached unfiltered; filters apply after
+ * load, so a changed filter never needs a re-parse.
  *
  * Correctness rule: any doubt (missing file, mtime or size mismatch, corrupt
  * cache, version bump) falls back to parsing. One soft spot is inherent: a

@@ -8,12 +8,15 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
 /**
- * The mutation-testing half of the extensibility proof: a prototype mutation
- * loop built entirely on public surfaces (the CLI, its exit codes, and the
- * plain reporter's failure lines), with no core patching. Each mutant is a
- * source edit in a throwaway copy of a small project; a mutant is killed
- * when the suite fails against it and the failing test is attributable from
- * the report.
+ * The mutation-testing half of the extensibility proof.
+ *
+ * It is a prototype mutation loop built entirely on public surfaces (the CLI,
+ * its exit codes, and the plain reporter's failure lines), with no core
+ * patching.
+ *
+ * Each mutant is a source edit in a throwaway copy of a small project; a
+ * mutant is killed when the suite fails against it and the failing test is
+ * attributable from the report.
  */
 final class MutationPrototypeTest
 {

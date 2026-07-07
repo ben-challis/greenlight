@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Diff;
 
 /**
- * The full result of comparing a coverage baseline against the current run:
- * one delta per changed file plus total percentages on both sides. Files
- * whose percentage is unchanged and which gained no uncovered lines are
+ * The full result of comparing a coverage baseline against the current run.
+ *
+ * It carries one delta per changed file plus total percentages on both sides.
+ * Files whose percentage is unchanged and which gained no uncovered lines are
  * omitted from the per-file list.
  *
  * @internal

@@ -32,18 +32,29 @@ use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * The process pool: spawns workers and assigns work class by class on
- * demand, so a worker that finishes early pulls the next class instead of
- * idling behind a static bucket. Forwards worker event streams, recycles on
- * request (mid-assignment or between assignments once the cumulative budget
- * is spent), contains crashes by attributing the in-flight test and
- * reassigning the remainder (minus the crashed test), and drains everything
- * on bail. Isolated entries run on dedicated fresh workers. Fails loudly on
- * any bookkeeping mismatch.
+ * Runs the process pool: spawns workers and assigns work class by class on
+ * demand.
  *
- * Worker placement is load-dependent by design; what stays deterministic is
+ * Demand-driven assignment means a worker that finishes early pulls the next
+ * class instead of idling behind a static bucket. Isolated entries run on
+ * dedicated fresh workers.
+ *
+ * run() forwards worker event streams to the sink, recycles workers on
+ * request (mid-assignment or between assignments once the cumulative budget
+ * is spent), and drains everything on bail.
+ *
+ * Crashes are contained: the in-flight test is attributed to the crash and
+ * the remainder of the assignment is reassigned, minus the crashed test. Any
+ * bookkeeping mismatch fails loudly.
+ *
+ * Worker placement is load-dependent by design. What stays deterministic is
  * the queue order for a given plan, within-class method order under the
  * seed, and per-class results. The seed reproduces failures, not placement.
+ *
+ * Every spawned worker gets a channel from a ChannelAllocator bounded by the
+ * worker count, exported as GREENLIGHT_CHANNEL in its environment.
+ * finishHandle() releases the channel on every path that retires a handle,
+ * so replacements reuse freed slots and live workers never share one.
  *
  * @internal
  */

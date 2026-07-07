@@ -16,10 +16,11 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Test\TestMetadata;
 
 /**
- * Turns a reflected test class into one TestMetadata per #[Test] method,
- * merging class-level attributes into each method: the method-level value
- * wins on conflict, groups merge as a union (class groups first), and
- * isolation applies when either level declares it.
+ * Turns a reflected test class into one TestMetadata per #[Test] method.
+ *
+ * Class-level attributes merge into each method: the method-level value wins
+ * on conflict, groups merge as a union (class groups first), and isolation
+ * applies when either level declares it.
  *
  * @internal
  */

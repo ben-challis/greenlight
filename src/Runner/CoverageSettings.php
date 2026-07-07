@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 /**
- * What the runner needs to collect coverage: absolute include paths and an
- * optional driver preference. Null settings mean coverage is off.
+ * Carries what the runner needs to collect coverage: absolute include paths
+ * and an optional driver preference.
+ *
+ * Null settings mean coverage is off.
  *
  * @internal
  */

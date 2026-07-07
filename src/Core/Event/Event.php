@@ -7,7 +7,9 @@ namespace Greenlight\Core\Event;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * A run event. The set of events is closed and may only grow additively.
+ * A run event.
+ *
+ * The set of events is closed and may only grow additively.
  */
 interface Event extends WireSerializable
 {

@@ -9,11 +9,14 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * The mergeable coverage model: per-file line coverage keyed by file path,
- * kept sorted so identical coverage always serialises identically. merge()
- * is commutative, associative, and idempotent, which lets the orchestrator
- * fold worker payloads in as they arrive, in any order, without a final
- * end-of-run merge pass.
+ * The mergeable coverage model: per-file line coverage keyed by file path.
+ *
+ * Files are kept sorted by path so identical coverage always serialises
+ * identically.
+ *
+ * merge() is commutative, associative, and idempotent, which lets the
+ * orchestrator fold worker payloads in as they arrive, in any order, without
+ * a final end-of-run merge pass.
  *
  * The wire payload is compact: under "files", each path maps to a two-element
  * list holding the covered line list and the uncovered line list.

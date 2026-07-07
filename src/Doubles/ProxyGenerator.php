@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Generates, caches, and loads proxy classes for doubled types. Interfaces
- * get generated implementations; non-final classes get generated subclasses
- * whose parent constructor never runs. Every overridable instance method
- * delegates to the attached CallHandler.
+ * Generates, caches, and loads proxy classes for doubled types.
+ *
+ * Interfaces get generated implementations; non-final classes get generated
+ * subclasses whose parent constructor never runs. Every overridable instance
+ * method delegates to the attached CallHandler.
  *
  * Generated code is written under the configured directory (by default a
  * per-project directory under the system temp dir) so it is opcache friendly

@@ -15,10 +15,13 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Emits TeamCity service messages: a test suite per class, testStarted and
- * testFinished per test with the duration in milliseconds, testFailed with
- * comparison details, and testIgnored for skips. Values are escaped per the
- * TeamCity service message rules.
+ * Emits TeamCity service messages for the run.
+ *
+ * The stream carries a test suite per class, testStarted and testFinished per
+ * test with the duration in milliseconds, testFailed with comparison details,
+ * and testIgnored for skips.
+ *
+ * Values are escaped per the TeamCity service message rules.
  *
  * @internal
  */

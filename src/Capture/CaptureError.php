@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Capture;
 
 /**
- * Raised when the capture lifecycle is misused: starting a capture that is
- * already active, or stopping one that was never started. Both indicate a
+ * Raised when the capture lifecycle is misused.
+ *
+ * alreadyStarted() covers starting a capture that is already active, and
+ * notStarted() covers stopping one that was never started. Both indicate a
  * bug in the calling framework code, never in user tests.
  *
  * @internal

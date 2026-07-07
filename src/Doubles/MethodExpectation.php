@@ -9,8 +9,11 @@ use Greenlight\Expect\ValueRenderer;
 
 /**
  * One planned call pattern on a doubled method: which arguments it accepts,
- * how often it may run, and what it does when it runs. Built fluently from
- * MockPlan::expects() and consumed by the call handler and the verifier.
+ * how often it may run, and what it does when it runs.
+ *
+ * Built fluently from MockPlan::expects() and consumed by the call handler
+ * and the verifier.
+ *
  * Argument values compare with the same deep equality as Expect's toEqual().
  *
  * @internal

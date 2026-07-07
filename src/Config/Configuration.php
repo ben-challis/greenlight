@@ -7,9 +7,10 @@ namespace Greenlight\Config;
 use Greenlight\Core\Result\ResultPolicy;
 
 /**
- * The fully resolved, immutable configuration for a run. Produced by
- * GreenlightConfig::build() and, after command-line overrides are applied,
- * consumed by the runner and exposed to plugins.
+ * The fully resolved, immutable configuration for a run.
+ *
+ * GreenlightConfig::build() produces it. After command-line overrides are
+ * applied, it is consumed by the runner and exposed to plugins.
  *
  * @internal
  */

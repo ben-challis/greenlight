@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Services created within one scope instance, disposed in reverse creation
- * order when the scope closes. Services are lazy proxies where the class
- * allows it, so an injected but untouched service is never constructed and
- * never disposed.
+ * Services created within one scope instance.
+ *
+ * dispose() tears them down in reverse creation order when the scope closes.
+ *
+ * Services are lazy proxies where the class allows it, so an injected but
+ * untouched service is never constructed and never disposed.
  *
  * @internal
  */

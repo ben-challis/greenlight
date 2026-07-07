@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Watch;
 
 /**
- * Reads single keys from stdin without blocking. On an interactive terminal,
- * canonical mode is disabled so keys arrive without a newline and restored
- * when the loop ends; a piped stdin works as-is, which is what the
- * acceptance tests drive.
+ * Reads single keys from stdin without blocking.
+ *
+ * On an interactive terminal the constructor disables canonical mode so keys
+ * arrive without a newline; restore() re-enables it when the loop ends.
+ *
+ * A piped stdin works as-is, which is what the acceptance tests drive.
  *
  * @internal
  */
