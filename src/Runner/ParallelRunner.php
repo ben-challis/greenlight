@@ -35,8 +35,13 @@ final readonly class ParallelRunner
      *
      * @throws DiscoveryError
      */
-    public function run(Configuration $configuration, array $directories, EventSink $sink, int $workerCount): RunResult
-    {
+    public function run(
+        Configuration $configuration,
+        array $directories,
+        EventSink $sink,
+        int $workerCount,
+        ?CoverageSettings $coverageSettings = null,
+    ): RunResult {
         $seed = null;
 
         if ($configuration->randomizeOrder) {
@@ -57,6 +62,7 @@ final readonly class ParallelRunner
             $configuration->recycleAfterTests,
             $configuration->recycleAboveMemoryBytes,
             $configuration->stopAfterFailures,
+            $coverageSettings,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);
@@ -64,6 +70,6 @@ final readonly class ParallelRunner
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed);
+        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage());
     }
 }

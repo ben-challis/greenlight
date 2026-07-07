@@ -231,6 +231,24 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
+     * @return list<string>|null
+     *
+     * @throws InvalidWirePayload
+     */
+    public static function nullableListOfStrings(array $payload, string $key): ?array
+    {
+        $value = self::require($payload, $key);
+
+        if ($value === null) {
+            return null;
+        }
+
+        return self::listOfStrings($payload, $key);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
      * @return list<array<string, mixed>>
      *
      * @throws InvalidWirePayload

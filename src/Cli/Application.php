@@ -7,7 +7,16 @@ namespace Greenlight\Cli;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\Configuration;
+use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\Diff\BaselineDiff;
+use Greenlight\Coverage\Export\CloverExporter;
+use Greenlight\Coverage\Export\CoberturaExporter;
+use Greenlight\Coverage\Export\CoverageExporter;
+use Greenlight\Coverage\Export\HtmlExporter;
+use Greenlight\Coverage\Export\JsonExporter;
+use Greenlight\Coverage\Export\LcovExporter;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
@@ -20,6 +29,7 @@ use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\TtyReporter;
+use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\ParallelRunner;
@@ -51,8 +61,9 @@ final readonly class Application
           greenlight [command] [options]
 
         Commands:
-          run          Discover and execute tests (default)
-          list-tests   List every discovered test id, one per line
+          run            Discover and execute tests (default)
+          list-tests     List every discovered test id, one per line
+          coverage:diff  Compare two coverage JSON exports (--baseline, --current)
 
         Options:
           --config=<path>    Use this config file instead of ./greenlight.php
@@ -135,6 +146,10 @@ final readonly class Application
             return $this->listTestsCommand($arguments, $workingDirectory);
         }
 
+        if ($command === 'coverage:diff') {
+            return $this->coverageDiffCommand($arguments, $workingDirectory);
+        }
+
         ($this->err)(\sprintf("Unknown command '%s'. Run greenlight --help for the available commands.\n", $command));
 
         return self::EXIT_USAGE;
@@ -171,13 +186,15 @@ final readonly class Application
         $sink = new ReporterSink($reporter);
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null ? false : \realpath($binPath);
+        $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
 
         try {
             if ($workers === 1 || $realBin === false) {
-                $run = new InProcessRunner()->run($resolved, $this->directories($resolved, $workingDirectory), $sink);
+                $run = new InProcessRunner()
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $coverageSettings);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers, $coverageSettings);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -193,7 +210,167 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
+        $coverageConfig = $resolved->coverage;
+
+        if ($coverageConfig instanceof CoverageConfiguration) {
+            if (!$run->coverage instanceof CoverageMap) {
+                ($this->err)("Coverage was requested but no worker could collect it. Is pcov or xdebug (mode=coverage) available?\n");
+            } elseif (!$this->writeCoverage($coverageConfig, $run->coverage, $workingDirectory)) {
+                return self::EXIT_FAILURE;
+            }
+        }
+
         return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
+    }
+
+    private function coverageSettings(?CoverageConfiguration $configuration, string $workingDirectory): ?CoverageSettings
+    {
+        if (!$configuration instanceof CoverageConfiguration) {
+            return null;
+        }
+
+        $include = [];
+
+        foreach ($configuration->includePaths as $path) {
+            $absolute = $this->absolutePath($path, $workingDirectory);
+            $real = \realpath($absolute);
+
+            if ($real !== false) {
+                $include[] = $real;
+            } elseif ($absolute !== '') {
+                $include[] = $absolute;
+            }
+        }
+
+        return new CoverageSettings($include, $configuration->driver);
+    }
+
+    private function writeCoverage(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory): bool
+    {
+        ($this->out)(\sprintf(
+            "Coverage: %.2f%% of %d executable lines\n",
+            $coverage->totalPercentage(),
+            $coverage->executableLineTotal(),
+        ));
+
+        foreach ($configuration->exports as $export) {
+            $exporter = $this->exporterFor($export->format);
+
+            if (!$exporter instanceof CoverageExporter) {
+                ($this->err)(\sprintf("Unknown coverage export format \"%s\".\n", $export->format));
+
+                return false;
+            }
+
+            $files = $exporter->export($coverage);
+            $target = $this->absolutePath($export->target, $workingDirectory);
+
+            if (\count($files) === 1) {
+                @\mkdir(\dirname($target), 0o777, true);
+
+                if (@\file_put_contents($target, \reset($files)) === false) {
+                    ($this->err)(\sprintf("Could not write coverage export to \"%s\".\n", $target));
+
+                    return false;
+                }
+            } else {
+                @\mkdir($target, 0o777, true);
+
+                foreach ($files as $name => $content) {
+                    if (@\file_put_contents($target . '/' . $name, $content) === false) {
+                        ($this->err)(\sprintf("Could not write coverage export to \"%s\".\n", $target . '/' . $name));
+
+                        return false;
+                    }
+                }
+            }
+
+            ($this->out)(\sprintf("  wrote %s to %s\n", $export->format, $export->target));
+        }
+
+        return true;
+    }
+
+    private function exporterFor(string $format): ?CoverageExporter
+    {
+        return match ($format) {
+            'lcov' => new LcovExporter(),
+            'clover' => new CloverExporter(),
+            'cobertura' => new CoberturaExporter(),
+            'html' => new HtmlExporter(),
+            'json' => new JsonExporter(),
+            default => null,
+        };
+    }
+
+    private function coverageDiffCommand(ParsedArguments $arguments, string $workingDirectory): int
+    {
+        $baselinePath = $arguments->value('baseline');
+        $currentPath = $arguments->value('current');
+
+        if ($baselinePath === null || $currentPath === null) {
+            ($this->err)("coverage:diff requires --baseline=<path> and --current=<path>.\n");
+
+            return self::EXIT_USAGE;
+        }
+
+        $maps = [];
+
+        foreach (['baseline' => $baselinePath, 'current' => $currentPath] as $label => $path) {
+            $absolute = $this->absolutePath($path, $workingDirectory);
+            $json = @\file_get_contents($absolute);
+
+            if ($json === false) {
+                ($this->err)(\sprintf("Could not read the %s coverage export at \"%s\".\n", $label, $path));
+
+                return self::EXIT_FAILURE;
+            }
+
+            try {
+                $maps[$label] = JsonExporter::import($json);
+            } catch (\Throwable $error) {
+                ($this->err)(\sprintf("The %s file is not a valid coverage export: %s\n", $label, $error->getMessage()));
+
+                return self::EXIT_FAILURE;
+            }
+        }
+
+        $report = BaselineDiff::between($maps['baseline'], $maps['current']);
+
+        ($this->out)(\sprintf(
+            "Coverage: baseline %.2f%%, current %.2f%% (%+.2f)\n",
+            $report->baselinePercentage,
+            $report->currentPercentage,
+            $report->totalDelta(),
+        ));
+
+        foreach ($report->fileDeltas as $delta) {
+            if ($delta->delta() === 0.0 && $delta->newlyUncoveredLines === []) {
+                continue;
+            }
+
+            $line = \sprintf(
+                '%s: %s -> %s (%+.2f)',
+                $delta->file,
+                $delta->baselinePercentage === null ? 'absent' : \sprintf('%.2f%%', $delta->baselinePercentage),
+                $delta->currentPercentage === null ? 'absent' : \sprintf('%.2f%%', $delta->currentPercentage),
+                $delta->delta(),
+            );
+
+            if ($delta->newlyUncoveredLines !== []) {
+                $line .= ', newly uncovered lines: ' . \implode(', ', $delta->newlyUncoveredLines);
+            }
+
+            ($this->out)($line . "\n");
+        }
+
+        if ($report->hasRegressions()) {
+            ($this->err)("Coverage regressed against the baseline.\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        return self::EXIT_OK;
     }
 
     /**
@@ -323,6 +500,8 @@ final readonly class Application
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
+            new OptionSpec('baseline', OptionValue::Required),
+            new OptionSpec('current', OptionValue::Required),
             new OptionSpec('dry-run'),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),

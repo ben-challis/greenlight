@@ -15,8 +15,10 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
@@ -64,6 +66,8 @@ final class Orchestrator
 
     private ResultSummary $summary;
 
+    private ?CoverageMap $coverage = null;
+
     private bool $draining = false;
 
     private int $spawnedCount = 0;
@@ -79,8 +83,27 @@ final class Orchestrator
         private readonly ?int $recycleAfterTests = null,
         private readonly ?int $recycleAboveMemoryBytes = null,
         private readonly ?int $stopAfterFailures = null,
+        private readonly ?CoverageSettings $coverageSettings = null,
     ) {
         $this->summary = new ResultSummary();
+    }
+
+    /**
+     * Coverage merged incrementally from worker reports; null when coverage
+     * was off or no worker could collect.
+     */
+    public function collectedCoverage(): ?CoverageMap
+    {
+        return $this->coverage;
+    }
+
+    private function mergeCoverage(?CoverageMap $coverage): void
+    {
+        if (!$coverage instanceof CoverageMap) {
+            return;
+        }
+
+        $this->coverage = $this->coverage instanceof CoverageMap ? $this->coverage->merge($coverage) : $coverage;
     }
 
     /**
@@ -271,6 +294,8 @@ final class Orchestrator
                         $handle->slice,
                         $this->recycleAfterTests,
                         $this->recycleAboveMemoryBytes,
+                        $this->coverageSettings?->includePaths,
+                        $this->coverageSettings?->driver,
                     ));
 
                     continue;
@@ -305,6 +330,7 @@ final class Orchestrator
                 if ($message instanceof EventEnvelope) {
                     $this->onEvent($handle, $message->event, $sink);
                 } elseif ($message instanceof Recycling) {
+                    $this->mergeCoverage($message->coverage);
                     $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
                     $this->finishHandle($handle);
                     $this->enqueueRemainder($message->remaining);
@@ -312,6 +338,7 @@ final class Orchestrator
                     break;
                 } elseif ($message instanceof Done) {
                     $this->crossCheck($handle, $message);
+                    $this->mergeCoverage($message->coverage);
                     $channel->send(new Drain());
                     $this->finishHandle($handle);
 

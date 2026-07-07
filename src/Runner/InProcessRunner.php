@@ -28,8 +28,12 @@ final readonly class InProcessRunner
      *
      * @throws DiscoveryError
      */
-    public function run(Configuration $configuration, array $directories, EventSink $sink): RunResult
-    {
+    public function run(
+        Configuration $configuration,
+        array $directories,
+        EventSink $sink,
+        ?CoverageSettings $coverageSettings = null,
+    ): RunResult {
         $seed = null;
 
         if ($configuration->randomizeOrder) {
@@ -43,14 +47,19 @@ final readonly class InProcessRunner
 
         $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
 
+        $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
+        $collector?->start();
+
         $summary = new Worker(DefaultServices::registry())
             ->run($plan, $sink, $configuration->stopAfterFailures)
             ->summary;
 
+        $coverage = $collector?->stop();
+
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed);
+        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage);
     }
 
     /**

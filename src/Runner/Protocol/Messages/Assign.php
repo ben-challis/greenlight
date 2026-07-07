@@ -18,11 +18,15 @@ final readonly class Assign implements Message
     /**
      * @param positive-int|null $recycleAfterTests
      * @param positive-int|null $recycleAboveMemoryBytes
+     * @param list<non-empty-string>|null $coverageInclude null means coverage is off
+     * @param non-empty-string|null $coverageDriver
      */
     public function __construct(
         public ExecutionPlan $slice,
         public ?int $recycleAfterTests = null,
         public ?int $recycleAboveMemoryBytes = null,
+        public ?array $coverageInclude = null,
+        public ?string $coverageDriver = null,
     ) {}
 
     #[\Override]
@@ -38,6 +42,8 @@ final readonly class Assign implements Message
             'slice' => $this->slice->toWire(),
             'recycleAfterTests' => $this->recycleAfterTests,
             'recycleAboveMemoryBytes' => $this->recycleAboveMemoryBytes,
+            'coverageInclude' => $this->coverageInclude,
+            'coverageDriver' => $this->coverageDriver,
         ];
     }
 
@@ -46,11 +52,19 @@ final readonly class Assign implements Message
     {
         $recycleAfterTests = Wire::nullableInt($payload, 'recycleAfterTests');
         $recycleAboveMemory = Wire::nullableInt($payload, 'recycleAboveMemoryBytes');
+        $coverageInclude = Wire::nullableListOfStrings($payload, 'coverageInclude');
+        $coverageDriver = Wire::nullableString($payload, 'coverageDriver');
+
+        if ($coverageInclude !== null) {
+            $coverageInclude = \array_values(\array_filter($coverageInclude, static fn(string $path): bool => $path !== ''));
+        }
 
         return new self(
             ExecutionPlan::fromWire(Wire::map($payload, 'slice')),
             $recycleAfterTests === null ? null : \max(1, $recycleAfterTests),
             $recycleAboveMemory === null ? null : \max(1, $recycleAboveMemory),
+            $coverageInclude,
+            $coverageDriver === '' ? null : $coverageDriver,
         );
     }
 }
