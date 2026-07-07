@@ -16,6 +16,7 @@
     "require-dev": {
         "deptrac/deptrac": "^4.0",
         "ergebnis/composer-normalize": "^2.47",
+        "fidry/cpu-core-counter": "^1.3",
         "php-cs-fixer/shim": "^3.75",
         "php-parallel-lint/php-parallel-lint": "^1.4",
         "phpstan/phpstan": "^2.1",
@@ -25,6 +26,7 @@
     },
     "suggest": {
         "ext-pcov": "Fast line coverage collection",
+        "fidry/cpu-core-counter": "Sharper core detection for workers: auto (cgroup limits, more platforms)",
         "phpstan/phpstan": "Type-checks extension matcher calls via the bundled extension.neon"
     },
     "autoload": {

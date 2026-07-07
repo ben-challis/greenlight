@@ -61,6 +61,10 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^PHPStan\\/
+    - name: CpuCoreCounter
+      collectors:
+        - type: classNameRegex
+          value: /^Fidry\\CpuCoreCounter\\/
 
   ruleset:
     Core: []
@@ -73,7 +77,8 @@ deptrac:
     Coverage: [Core]
     Plugin: [Core, Harness]
     Reporting: [Core]
-    Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting]
+    Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner]
     PhpStan: [Config, Expect, PhpStanFramework]
     PhpStanFramework: []
+    CpuCoreCounter: []

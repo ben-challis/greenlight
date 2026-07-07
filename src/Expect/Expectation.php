@@ -441,8 +441,7 @@ final class Expectation
 
     /**
      * @param non-empty-string $description sentence fragment starting with
-     *                                      "to", negation inserts "not" in
-     *                                      front of it
+     *   "to", negation inserts "not" in front of it
      */
     private function verify(bool $matched, string $description, ?string $expected = null, ?string $actual = null): self
     {

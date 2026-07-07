@@ -31,7 +31,7 @@ final readonly class MatcherMap
 
     /**
      * @param list<string> $configFiles relative paths resolve against the
-     *                                  current working directory
+     *   current working directory
      *
      * @throws ConfigFileError
      * @throws MatcherMapError

@@ -36,7 +36,7 @@ final class ExpectationMethodsExtension implements MethodsClassReflectionExtensi
 
     /**
      * @param list<string> $configFiles relative paths resolve against the
-     *                                  directory PHPStan runs from
+     *   directory PHPStan runs from
      */
     public function __construct(
         private readonly array $configFiles,

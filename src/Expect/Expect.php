@@ -20,9 +20,7 @@ final class Expect
 
     /**
      * @param list<ExpectationExtension> $extensions matchers contributed by
-     *                                               plugins, dispatched by
-     *                                               name from the expectation
-     *                                               chain
+     *   plugins, dispatched by name from the expectation chain
      */
     public function __construct(
         private readonly array $extensions = [],

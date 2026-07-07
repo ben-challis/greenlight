@@ -22,8 +22,7 @@ final class Equality
 
     /**
      * @param list<non-empty-string> $comparing object pairs already on the
-     *                                          comparison stack, so cyclic
-     *                                          structures terminate
+     *   comparison stack, so cyclic structures terminate
      */
     private static function compare(mixed $a, mixed $b, array $comparing): bool
     {

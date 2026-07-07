@@ -53,14 +53,10 @@ final class Doubles implements Disposable
     private \WeakMap $doubles;
 
     /**
-     * @param non-empty-string|null $proxyDirectory where generated proxy
-     *                                              classes are cached;
-     *                                              defaults to a per-project
-     *                                              directory under the system
-     *                                              temp dir, keyed by a hash
-     *                                              of the working directory,
-     *                                              so the project tree stays
-     *                                              untouched
+     * @param non-empty-string|null $proxyDirectory where generated proxy classes
+     *   are cached; defaults to a per-project directory under the system temp
+     *   dir, keyed by a hash of the working directory, so the project tree
+     *   stays untouched
      */
     public function __construct(?string $proxyDirectory = null)
     {

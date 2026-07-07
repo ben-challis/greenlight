@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
+use Fidry\CpuCoreCounter\CpuCoreCounter;
+use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
+
 /**
- * Resolves the 'auto' worker count to the number of logical cores, falling
- * back to a conservative default when the platform gives no answer.
+ * Resolves the 'auto' worker count to the number of logical cores. When the
+ * consuming project has fidry/cpu-core-counter installed, its detection is
+ * used (it understands cgroup limits and more platforms); otherwise a small
+ * built-in probe answers, falling back to a conservative default when the
+ * platform gives no answer.
  *
  * @internal
  */
@@ -20,6 +26,21 @@ final class CpuCores
      * @return positive-int
      */
     public static function count(): int
+    {
+        if (\class_exists(CpuCoreCounter::class)) {
+            try {
+                return new CpuCoreCounter()->getCount();
+            } catch (NumberOfCpuCoreNotFound) {
+            }
+        }
+
+        return self::probe();
+    }
+
+    /**
+     * @return positive-int
+     */
+    private static function probe(): int
     {
         if (\is_file('/proc/cpuinfo')) {
             $cpuinfo = @\file_get_contents('/proc/cpuinfo');
