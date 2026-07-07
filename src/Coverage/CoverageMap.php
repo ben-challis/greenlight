@@ -147,11 +147,8 @@ final readonly class CoverageMap implements WireSerializable
     #[\Override]
     public function toWire(): array
     {
-        $files = [];
 
-        foreach ($this->files as $path => $file) {
-            $files[$path] = [$file->coveredLines, $file->uncoveredLines];
-        }
+        $files = array_map(fn($file) => [$file->coveredLines, $file->uncoveredLines], $this->files);
 
         return ['files' => $files];
     }

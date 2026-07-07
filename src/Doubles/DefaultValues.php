@@ -77,7 +77,7 @@ final class DefaultValues
                 'bool', 'false' => false,
                 'true' => true,
                 'array', 'iterable' => [],
-                'callable' => static fn(): mixed => null,
+                'callable' => static fn(): null => null,
                 'void', 'null', 'mixed' => null,
                 'never' => new Underivable('the method is declared to never return'),
                 'object' => new \stdClass(),

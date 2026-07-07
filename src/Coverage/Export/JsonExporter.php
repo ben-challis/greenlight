@@ -26,15 +26,12 @@ final readonly class JsonExporter implements CoverageExporter
     #[\Override]
     public function export(CoverageMap $map): array
     {
-        $files = [];
 
-        foreach ($map->files() as $path => $file) {
-            $files[$path] = [
-                'covered' => $file->coveredLines,
-                'uncovered' => $file->uncoveredLines,
-                'percentage' => \round($file->percentage(), 2),
-            ];
-        }
+        $files = array_map(fn($file) => [
+            'covered' => $file->coveredLines,
+            'uncovered' => $file->uncoveredLines,
+            'percentage' => \round($file->percentage(), 2),
+        ], $map->files());
 
         $document = [
             'v' => self::VERSION,

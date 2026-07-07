@@ -72,13 +72,7 @@ final class PcovDriver implements CoverageDriver
                 continue;
             }
 
-            $statuses = [];
-
-            foreach ($fileLines as $line => $status) {
-                if (\is_int($line) && \is_int($status)) {
-                    $statuses[$line] = $status;
-                }
-            }
+            $statuses = array_filter($fileLines, fn($status, $line) => \is_int($line) && \is_int($status), ARRAY_FILTER_USE_BOTH);
 
             $lines[$path] = $statuses;
         }
