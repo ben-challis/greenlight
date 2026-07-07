@@ -85,7 +85,7 @@ final readonly class WorkerProcess
 
                 $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
-                $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $leakDetector)->run(
+                $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $leakDetector, $workerId)->run(
                     $message->slice,
                     new SocketEventSink($channel),
                     null,

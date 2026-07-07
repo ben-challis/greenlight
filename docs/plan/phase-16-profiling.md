@@ -36,6 +36,16 @@ Phase 14 only to avoid churn in the summary rendering both phases touch.
 
 The numbers mislead if event timestamps are taken at different points than assumed (send time versus receive time under buffering). Mitigation: timestamps are worker-side event creation times already carried on the wire; the aggregator documents which timestamp each metric uses.
 
+## Recorded baseline (self-hosted suite, 407 tests)
+
+Measured at the phase's completion, workers=4 on an 11-core machine:
+
+- Boot latency: 0.125s average, spawn to first class.
+- Utilisation: 77% to 98% per worker, but the busy totals expose the static-bucket problem: one worker carried 6.6s of the 13.2s total busy time (ParallelRunTest alone is 4.9s) while another finished its whole bucket in 0.4s.
+- Makespan spread: 6.2s between the first and last worker finish. This spread is the headroom Phase 17's pull scheduling and longest-first ordering exist to recover; acceptance-test classes that shell out to the CLI dominate the slow list.
+
+The 10,000-test synthetic baseline is deferred to Phase 17's before/after measurement, where the same generator run feeds both sides of the comparison; the memory gate's own run is single-worker by design and profiles nothing useful.
+
 ## Validation
 
 - Unit: the aggregator over a canned event stream with known gaps asserts exact busy/idle/utilisation numbers, including recycling mid-run and an idle worker.

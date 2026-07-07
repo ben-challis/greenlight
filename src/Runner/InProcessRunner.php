@@ -62,7 +62,7 @@ final readonly class InProcessRunner
         $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
         $collector?->start();
 
-        $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null)
+        $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null, 'in-process')
             ->run($plan, $sink, $configuration->stopAfterFailures);
         $summary = $outcome->summary;
 

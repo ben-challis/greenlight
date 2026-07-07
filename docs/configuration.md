@@ -95,6 +95,7 @@ Commands:
 - `run` discovers and executes tests. The default when no command is given.
 - `list-tests` prints every discovered test id, one per line, followed by a count.
 - `coverage:diff` compares two coverage JSON exports. Requires `--baseline=<path>` and `--current=<path>`; exits 1 when coverage regressed against the baseline.
+- `profile:report` renders the run profile from a saved jsonl event stream. Requires `--input=<path>`.
 
 Options:
 
@@ -108,6 +109,7 @@ Options:
 - `--reporter=<name>` selects the output format: `tty`, `plain`, `junit`, `jsonl`, `github`, `teamcity`. Repeatable; multiple reporters write concurrently. Default: `tty` on an interactive terminal, otherwise `plain`. `tty` is parallel-aware: one live line per in-flight class with a spinner and running count, finalised in place as each class completes, so multi-worker interleaving never scrambles the display.
 - `--watch` re-runs on file changes. Enter re-runs everything, q quits.
 - `--detect-leaks` verifies every test instance is collected after its test; any leak fails the run.
+- `--profile` appends a run profile after the summary: workers requested, spawned, and recycled, average boot latency (spawn to first class), per-worker busy time and utilisation, the makespan spread between the first and last worker to finish, and the ten slowest classes. Derived entirely from the event stream, so `greenlight profile:report --input=<file>` reproduces the same block offline from a saved jsonl artifact.
 - `--dry-run` prints the resolved configuration without executing.
 - `-h, --help` shows the help text.
 - `-V, --version` shows the version.

@@ -42,6 +42,10 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- Run profiling: `--profile` appends worker utilisation, boot latency,
+  makespan spread, and the slowest classes after the summary, and
+  `profile:report --input=<jsonl>` reproduces the block offline from a
+  saved artifact; class events now carry the executing worker's id.
 - Inline data sets: repeatable `#[DataRow([args], label: ...)]` rows,
   combinable with a `#[DataSet]` provider under one key space.
 - Test selection: `--filter` id patterns (substring or `*` wildcards, case

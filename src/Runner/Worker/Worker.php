@@ -38,6 +38,7 @@ final readonly class Worker
         private HarnessRegistry $registry,
         private PluginRegistry $plugins = new PluginRegistry([]),
         private ?LeakDetector $leakDetector = null,
+        private string $workerId = '',
     ) {}
 
     /**
@@ -66,7 +67,7 @@ final readonly class Worker
                 continue;
             }
 
-            $sink->emit(new TestClassStarted($class, \microtime(true)));
+            $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId));
             $scopes->openClass();
             $lastIndex = \count($entries) - 1;
 
@@ -131,7 +132,7 @@ final readonly class Worker
                 }
             }
 
-            $sink->emit(new TestClassFinished($class, \microtime(true)));
+            $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
         }
 
         $scopes->closeRun();

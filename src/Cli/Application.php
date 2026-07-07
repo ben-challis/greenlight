@@ -15,6 +15,8 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Core\Event\EventTags;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Export\CloverExporter;
@@ -32,6 +34,8 @@ use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\PlainReporter;
+use Greenlight\Reporting\ProfileAggregator;
+use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\TtyReporter;
@@ -70,6 +74,7 @@ final readonly class Application
           run            Discover and execute tests (default)
           list-tests     List every discovered test id, one per line
           coverage:diff  Compare two coverage JSON exports (--baseline, --current)
+          profile:report Render the run profile from a saved jsonl stream (--input)
 
         Options:
           --config=<path>    Use this config file instead of ./greenlight.php
@@ -83,6 +88,8 @@ final readonly class Application
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --watch            Re-run on file changes; Enter re-runs everything, q quits
           --detect-leaks     Verify every test instance is collected; leaks fail the run
+          --profile          Append a run profile (worker utilisation, boot latency,
+                             makespan spread, slowest classes) after the summary
           --dry-run          Print the resolved configuration without executing
           -h, --help         Show this help
           -V, --version      Show the version
@@ -159,6 +166,10 @@ final readonly class Application
 
         if ($command === 'coverage:diff') {
             return $this->coverageDiffCommand($arguments, $workingDirectory);
+        }
+
+        if ($command === 'profile:report') {
+            return $this->profileReportCommand($arguments, $workingDirectory);
         }
 
         ($this->err)(\sprintf("Unknown command '%s'. Run greenlight --help for the available commands.\n", $command));
@@ -537,7 +548,91 @@ final readonly class Application
             };
         }
 
+        if ($arguments->has('profile')) {
+            $reporters[] = new ProfileReporter($output);
+        }
+
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
+    }
+
+    /**
+     * Replays a saved jsonl event stream through the profile aggregator, so
+     * a CI run's profile is recoverable from its artifact without a re-run.
+     */
+    private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
+    {
+        $input = $arguments->value('input');
+
+        if ($input === null || $input === '') {
+            ($this->err)("profile:report requires --input=<path to a jsonl stream>.\n");
+
+            return self::EXIT_USAGE;
+        }
+
+        $path = $this->absolutePath($input, $workingDirectory);
+        $raw = @\file_get_contents($path);
+
+        if (!\is_string($raw)) {
+            ($this->err)(\sprintf("Could not read \"%s\".\n", $path));
+
+            return self::EXIT_FAILURE;
+        }
+
+        $aggregator = new ProfileAggregator();
+
+        foreach (\explode("\n", $raw) as $line) {
+            if (\trim($line) === '') {
+                continue;
+            }
+
+            try {
+                $decoded = \json_decode($line, true, 32, \JSON_THROW_ON_ERROR);
+            } catch (\JsonException) {
+                ($this->err)("The input is not a jsonl event stream: a line is not valid JSON.\n");
+
+                return self::EXIT_FAILURE;
+            }
+
+            if (!\is_array($decoded) || !\is_string($decoded['event'] ?? null) || !\is_array($decoded['data'] ?? null)) {
+                ($this->err)("The input is not a jsonl event stream: a line is missing the event envelope.\n");
+
+                return self::EXIT_FAILURE;
+            }
+
+            $class = EventTags::classFor($decoded['event']);
+
+            if ($class === null) {
+                continue;
+            }
+
+            $data = [];
+
+            foreach ($decoded['data'] as $key => $value) {
+                if (\is_string($key)) {
+                    $data[$key] = $value;
+                }
+            }
+
+            try {
+                $aggregator->onEvent($class::fromWire($data));
+            } catch (InvalidWirePayload $error) {
+                ($this->err)(\sprintf("Could not decode a \"%s\" event: %s\n", $decoded['event'], $error->getMessage()));
+
+                return self::EXIT_FAILURE;
+            }
+        }
+
+        $report = $aggregator->render();
+
+        if ($report === '') {
+            ($this->err)("The stream contains no finished run to profile.\n");
+
+            return self::EXIT_FAILURE;
+        }
+
+        ($this->out)(\ltrim($report, "\n"));
+
+        return self::EXIT_OK;
     }
 
     private function listTestsCommand(ParsedArguments $arguments, string $workingDirectory): int
@@ -650,6 +745,8 @@ final readonly class Application
             new OptionSpec('watch'),
             new OptionSpec('detect-leaks'),
             new OptionSpec('dry-run'),
+            new OptionSpec('profile'),
+            new OptionSpec('input', OptionValue::Required),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),
         ]);

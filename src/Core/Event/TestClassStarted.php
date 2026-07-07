@@ -10,10 +10,13 @@ final readonly class TestClassStarted implements Event
 {
     /**
      * @param non-empty-string $class
+     * @param string $workerId the worker that ran the class; empty when the
+     *   producer predates worker attribution
      */
     public function __construct(
         public string $class,
         public float $occurredAt,
+        public string $workerId = '',
     ) {}
 
     #[\Override]
@@ -22,6 +25,7 @@ final readonly class TestClassStarted implements Event
         return [
             'class' => $this->class,
             'occurredAt' => $this->occurredAt,
+            'workerId' => $this->workerId,
         ];
     }
 
@@ -31,6 +35,7 @@ final readonly class TestClassStarted implements Event
         return new self(
             Wire::nonEmptyString($payload, 'class'),
             Wire::float($payload, 'occurredAt'),
+            \array_key_exists('workerId', $payload) ? Wire::string($payload, 'workerId') : '',
         );
     }
 }
