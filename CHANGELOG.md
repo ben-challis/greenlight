@@ -42,6 +42,10 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- A reproducible benchmark harness (`tools/benchmark.php`) with published
+  numbers in docs/benchmarks.md, including the losses, and a decision
+  record deferring an Infection adapter until per-test coverage mapping
+  ships.
 - CI gates: `--fail-on-deprecation` and `--fail-on-notice` fail passed
   tests on captured diagnostics (with a config allow-list for dependency
   noise), and risky-test detection lists passed tests that verified no

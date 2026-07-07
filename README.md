@@ -2,7 +2,7 @@
 
 **Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
 
-Greenlight is an opinionated testing framework for PHP 8.4+, built around three ideas: tests are plain typed PHP that your tools already understand, parallel execution is the only code path rather than an add-on, and extensions get real runtime context instead of a sanitised events feed. It has zero runtime dependencies, so it never version-conflicts with the code under test.
+Greenlight is an opinionated testing framework for PHP 8.4+, built around three ideas: tests are plain typed PHP that your tools already understand, parallel execution is the only code path rather than an add-on, and extensions get real runtime context instead of a sanitised events feed. It has zero runtime dependencies, so it never version-conflicts with the code under test, and on [generated benchmark suites](docs/benchmarks.md) its best configuration beats PHPUnit's best by 2.5x to 7x.
 
 Greenlight tests itself: this repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
 
@@ -39,6 +39,7 @@ PHP 8.4 or later, nothing else. Lazy objects, property hooks, and asymmetric vis
 - [Attribute reference](docs/attributes.md)
 - [Writing plugins](docs/plugins.md)
 - [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
+- [Benchmarks](docs/benchmarks.md)
 - [Product Requirements Document](docs/PRD.md) describes the full design.
 - [Build plan](docs/plan/README.md) and [RFCs](docs/rfcs/) record how and why it was built this way.
 - [Contributing guide](CONTRIBUTING.md) covers the rules for changes.

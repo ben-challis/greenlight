@@ -75,3 +75,26 @@ jobs:
 
       - name: "Run the flat-memory gate"
         run: "composer memory-gate"
+
+  benchmark-harness:
+    name: "Benchmark harness smoke (numbers not published)"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "8.4"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the harness on a small parameter set"
+        run: "php tools/benchmark.php --shape=many-fast --scale=1 --runs=1"
