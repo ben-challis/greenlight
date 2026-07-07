@@ -32,7 +32,6 @@ use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\PlainReporter;
-use Greenlight\Reporting\ProgressReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\TtyReporter;
@@ -78,7 +77,7 @@ final readonly class Application
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Only run this group; repeatable
           --seed=<n>         Randomize class order with this seed
-          --reporter=<name>  Output format: tty, progress, plain, junit, jsonl, github, teamcity; repeatable
+          --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --watch            Re-run on file changes; Enter re-runs everything, q quits
           --detect-leaks     Verify every test instance is collected; leaks fail the run
           --dry-run          Print the resolved configuration without executing
@@ -490,14 +489,13 @@ final readonly class Application
         foreach ($names as $name) {
             $reporters[] = match ($name) {
                 'tty' => new TtyReporter($output, $ansi, $seed),
-                'progress' => new ProgressReporter($output, $ansi),
                 'plain' => new PlainReporter($output),
                 'junit' => new JUnitReporter($output),
                 'jsonl' => new JsonLinesReporter($output),
                 'github' => new GithubReporter($output),
                 'teamcity' => new TeamCityReporter($output),
                 default => throw new CliError(\sprintf(
-                    'Unknown reporter "%s". Available: tty, progress, plain, junit, jsonl, github, teamcity.',
+                    'Unknown reporter "%s". Available: tty, plain, junit, jsonl, github, teamcity.',
                     $name,
                 )),
             };

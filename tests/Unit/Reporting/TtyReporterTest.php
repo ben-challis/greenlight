@@ -5,95 +5,74 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\RunFinished;
+use Greenlight\Core\Event\TestClassFinished;
+use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\ResultSummary;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TtyReporter;
 
 final class TtyReporterTest
 {
     #[Test]
-    public function cannedStreamWithoutAnsiRendersTheGoldenOutput(): void
+    public function interleavedClassesFinalizeInPlaceWithAnsi(): void
     {
         $output = new BufferOutput();
-        CannedStream::feed(new TtyReporter($output, ansi: false, seed: 424242));
+        $reporter = new TtyReporter($output, ansi: true, seed: 4242);
 
-        $expected = <<<'TXT'
-            Running 6 tests on 2 workers
+        // Two classes in flight at once, exactly what multiple workers produce.
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.0));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
+        $reporter->onEvent(new TestFinished($this->result('App\BetaTest', 'one', Outcome::Failed), 1.2));
+        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.3));
+        $reporter->onEvent(new TestClassFinished('App\BetaTest', 1.4));
+        $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1, failed: 1), 0.4, 1.5));
+        $reporter->finish();
 
-            Acme\CalculatorTest .F.
-            Acme\NetworkTest ES.
+        $buffer = $output->buffer();
+        $expect = new Expect();
 
-            FAIL Acme\CalculatorTest::subtractsIntegers
-              Failed asserting that two values are equal.
-              expected: 2
-              actual: 3
-              at /project/tests/CalculatorTest.php:42
+        // The live region is erased and redrawn: cursor-up plus clear-to-end.
+        $expect->that($buffer)->toContain("\x1b[2A\r\x1b[0J")
+            ->and($buffer)->toContain("\x1b[32m✓\x1b[0m App\AlphaTest (1 tests, 0.010s)")
+            ->and($buffer)->toContain("\x1b[31m✗\x1b[0m App\BetaTest (1 tests, 1 failed, 0.010s)")
+            ->and($buffer)->toContain('Tests: 2, Passed: 1, Failed: 1, Errored: 0, Skipped: 0')
+            ->and($buffer)->toContain("Seed: 4242\n");
 
-            ERROR Acme\NetworkTest::connects
-              RuntimeException: Connection refused.
-                Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
-              at /project/tests/NetworkTest.php:17
-
-            Slowest tests:
-              0.340s Acme\CalculatorTest::multipliesIntegers[large numbers]
-              0.150s Acme\NetworkTest::retriesFlakyEndpoint
-              0.020s Acme\CalculatorTest::subtractsIntegers
-              0.012s Acme\CalculatorTest::addsIntegers
-              0.005s Acme\NetworkTest::connects
-
-            Memory: 263.5 KB total delta, 256.0 KB peak test delta
-            Seed: 424242
-
-            Tests: 6, Passed: 3, Failed: 1, Errored: 1, Skipped: 1 (1.234s)
-            TXT;
-
-        new Expect()->that($output->buffer())->toBe($expected . "\n");
+        // A live line for the still-running class carries its running count.
+        $expect->that($buffer)->toContain('App\BetaTest (1)');
     }
 
     #[Test]
-    public function cannedStreamWithAnsiColoursOutcomesAndHeadings(): void
+    public function withoutAnsiOnlyFinalizedLinesAreWritten(): void
     {
         $output = new BufferOutput();
-        CannedStream::feed(new TtyReporter($output, ansi: true, seed: 424242));
+        $reporter = new TtyReporter($output, ansi: false);
 
-        $expected = <<<TXT
-            Running 6 tests on 2 workers
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
+        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.2));
+        $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
+        $reporter->finish();
 
-            Acme\CalculatorTest \e[32m.\e[0m\e[31mF\e[0m\e[32m.\e[0m
-            Acme\NetworkTest \e[31mE\e[0m\e[33mS\e[0m\e[32m.\e[0m
+        $buffer = $output->buffer();
 
-            \e[31mFAIL Acme\CalculatorTest::subtractsIntegers\e[0m
-              Failed asserting that two values are equal.
-              expected: 2
-              actual: 3
-              at /project/tests/CalculatorTest.php:42
-
-            \e[31mERROR Acme\NetworkTest::connects\e[0m
-              RuntimeException: Connection refused.
-                Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
-              at /project/tests/NetworkTest.php:17
-
-            Slowest tests:
-              0.340s Acme\CalculatorTest::multipliesIntegers[large numbers]
-              0.150s Acme\NetworkTest::retriesFlakyEndpoint
-              0.020s Acme\CalculatorTest::subtractsIntegers
-              0.012s Acme\CalculatorTest::addsIntegers
-              0.005s Acme\NetworkTest::connects
-
-            Memory: 263.5 KB total delta, 256.0 KB peak test delta
-            Seed: 424242
-
-            \e[31mTests: 6, Passed: 3, Failed: 1, Errored: 1, Skipped: 1 (1.234s)\e[0m
-            TXT;
-
-        new Expect()->that($output->buffer())->toBe($expected . "\n");
+        new Expect()->that($buffer)->not()->toContain("\x1b[")
+            ->and($buffer)->toContain("✓ App\AlphaTest (1 tests, 0.010s)\n")
+            ->and($buffer)->toContain('Tests: 1, Passed: 1, Failed: 0, Errored: 0, Skipped: 0');
     }
 
-    #[Test]
-    public function seedLineIsOmittedWhenTheRunWasNotRandomized(): void
+    /**
+     * @param non-empty-string $class
+     * @param non-empty-string $method
+     */
+    private function result(string $class, string $method, Outcome $outcome): TestResult
     {
-        $output = new BufferOutput();
-        CannedStream::feed(new TtyReporter($output, ansi: false));
-
-        new Expect()->that($output->buffer())->not()->toContain('Seed:');
+        return new TestResult(new TestId($class, $method), $outcome, 0.01, 0);
     }
 }
