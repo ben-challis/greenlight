@@ -36,6 +36,11 @@ final class SocketChannel
             throw ProtocolError::malformedFrame('the channel is closed');
         }
 
+        // poll() leaves the stream non-blocking; a large frame written to a
+        // full socket buffer would then short-write or return zero, which is
+        // indistinguishable from a closed peer. Writes are always blocking.
+        \stream_set_blocking($this->stream, true);
+
         $bytes = $this->codec->encode(MessageRegistry::envelope($message));
         $remaining = \strlen($bytes);
 

@@ -77,6 +77,8 @@ final class Orchestrator
 
     private int $spawnedCount = 0;
 
+    private int $spawnBudget = 0;
+
     /**
      * @param non-empty-list<non-empty-string> $workerCommand argv prefix invoking bin/greenlight
      * @param positive-int|null $recycleAfterTests
@@ -140,6 +142,11 @@ final class Orchestrator
         if ($this->queue === []) {
             return $this->summary;
         }
+
+        // Recycling and crash containment legitimately respawn, but never
+        // more than a few times per planned test; anything beyond that is a
+        // respawn loop and must fail loudly instead of spawning forever.
+        $this->spawnBudget = \count($plan->entries) + $workerCount * 8 + 16;
 
         $token = \bin2hex(\random_bytes(16));
         [$server, $address, $socketPath] = $this->listen();
@@ -218,6 +225,13 @@ final class Orchestrator
                 2 => ['pipe', 'w'],
             ];
 
+            if ($this->spawnedCount > $this->spawnBudget) {
+                throw ProtocolError::malformedFrame(\sprintf(
+                    'spawned %d workers for a plan that should need far fewer; a respawn loop is a bug, not a retry strategy',
+                    $this->spawnedCount,
+                ));
+            }
+
             $process = @\proc_open($command, $descriptors, $pipes, $this->workingDirectory);
 
             if (!\is_resource($process)) {
@@ -284,7 +298,7 @@ final class Orchestrator
             $this->awaitingHello[] = [new SocketChannel($connection), \microtime(true)];
         }
 
-        $this->processHellos($token);
+        $this->processHellos($token, $sink);
         $this->pumpChannels($sink);
         $this->detectCrashes($sink);
         $this->enforceTimeouts($sink);
@@ -293,7 +307,7 @@ final class Orchestrator
     /**
      * @param non-empty-string $token
      */
-    private function processHellos(string $token): void
+    private function processHellos(string $token, EventSink $sink): void
     {
         $still = [];
 
@@ -305,15 +319,22 @@ final class Orchestrator
 
                 if ($handle !== null && $handle->channel === null && $handle->slice !== null) {
                     $handle->channel = $channel;
-                    $channel->send(new Assign(
-                        $handle->slice,
-                        $this->recycleAfterTests,
-                        $this->recycleAboveMemoryBytes,
-                        $this->coverageSettings?->includePaths,
-                        $this->coverageSettings?->driver,
-                        $this->configFile === '' ? null : $this->configFile,
-                        $this->detectLeaks,
-                    ));
+
+                    try {
+                        $channel->send(new Assign(
+                            $handle->slice,
+                            $this->recycleAfterTests,
+                            $this->recycleAboveMemoryBytes,
+                            $this->coverageSettings?->includePaths,
+                            $this->coverageSettings?->driver,
+                            $this->configFile === '' ? null : $this->configFile,
+                            $this->detectLeaks,
+                        ));
+                    } catch (ProtocolError) {
+                        // The worker died before its assignment arrived; crash
+                        // containment reassigns the slice to a replacement.
+                        $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
+                    }
 
                     continue;
                 }
@@ -357,7 +378,13 @@ final class Orchestrator
                     $this->crossCheck($handle, $message);
                     $this->mergeCoverage($message->coverage);
                     $this->leaks = [...$this->leaks, ...$message->leaks];
-                    $channel->send(new Drain());
+
+                    try {
+                        $channel->send(new Drain());
+                    } catch (ProtocolError) {
+                        // Already gone after done; nothing left to drain.
+                    }
+
                     $this->finishHandle($handle);
 
                     break;

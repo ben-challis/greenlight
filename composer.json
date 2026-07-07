@@ -67,6 +67,6 @@
             "@rector:check",
             "@deptrac"
         ],
-        "tests": "php tools/bootstrap-runner.php tests/Unit tests/Acceptance"
+        "tests": "@php bin/greenlight run"
     }
 }
