@@ -41,6 +41,10 @@ The initial feature set, built and self-hosted in one development cycle:
 - An `ide-helper` command writing the duplicate-declaration file IDEs
   index so extension matchers autocomplete with real signatures, generated
   from the same matcher map the PHPStan extension enforces.
+- A `completion` command printing static shell completion scripts for
+  bash, zsh, and fish to stdout, generated from the same option table the
+  argument parser reads, covering command names, flags, and the value
+  lists for `--reporter` and `--workers`.
 - A PHPStan extension (`extension.neon`) that reads extension matchers from
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.

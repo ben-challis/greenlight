@@ -82,6 +82,8 @@ final readonly class Application
           profile:report Render the run profile from a saved jsonl stream (--input)
           ide-helper     Write the IDE autocomplete helper for extension matchers
                          (--output, default _greenlight_ide_helper.php)
+          completion     Print a shell completion script for bash, zsh, or fish
+                         to stdout, e.g. source <(greenlight completion bash)
 
         Options:
           --config=<path>    Use this config file instead of ./greenlight.php
@@ -144,6 +146,12 @@ final readonly class Application
             }
 
             return new WorkerProcess()->run($argv[1], $argv[2], $argv[3]);
+        }
+
+        // Handled before parsing because the shell name is a positional
+        // argument the parser does not model.
+        if (($argv[0] ?? null) === 'completion') {
+            return $this->completionCommand(\array_slice($argv, 1));
         }
 
         try {
@@ -618,6 +626,36 @@ final readonly class Application
         return self::EXIT_OK;
     }
 
+    /**
+     * Prints the completion script for the requested shell to stdout. The
+     * script is generated from the same option specs the parser is built
+     * from, so there is no second flag list to maintain.
+     *
+     * @param list<string> $rest the arguments after the completion command word
+     */
+    private function completionCommand(array $rest): int
+    {
+        $shell = $rest[0] ?? null;
+
+        if ($shell === null) {
+            ($this->err)(\sprintf("completion requires a shell argument: %s.\n", \implode(', ', CompletionScripts::SHELLS)));
+
+            return self::EXIT_USAGE;
+        }
+
+        $script = new CompletionScripts($this->optionSpecs())->render($shell);
+
+        if ($script === null) {
+            ($this->err)(\sprintf("Unknown shell \"%s\". Available: %s.\n", $shell, \implode(', ', CompletionScripts::SHELLS)));
+
+            return self::EXIT_USAGE;
+        }
+
+        ($this->out)($script);
+
+        return self::EXIT_OK;
+    }
+
     private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         $input = $arguments->value('input');
@@ -795,7 +833,18 @@ final readonly class Application
 
     private function parser(): ArgumentParser
     {
-        return new ArgumentParser([
+        return new ArgumentParser($this->optionSpecs());
+    }
+
+    /**
+     * The single option table: the parser accepts exactly these options and
+     * the completion scripts offer exactly these flags.
+     *
+     * @return list<OptionSpec>
+     */
+    private function optionSpecs(): array
+    {
+        return [
             new OptionSpec('config', OptionValue::Required),
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('bail', OptionValue::Optional),
@@ -818,7 +867,7 @@ final readonly class Application
             new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),
-        ]);
+        ];
     }
 
     private function absolutePath(string $path, string $workingDirectory): string

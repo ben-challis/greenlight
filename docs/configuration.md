@@ -109,6 +109,7 @@ Commands:
 - `coverage:diff` compares two coverage JSON exports. Requires `--baseline=<path>` and `--current=<path>`; exits 1 when coverage regressed against the baseline.
 - `profile:report` renders the run profile from a saved jsonl event stream. Requires `--input=<path>`.
 - `ide-helper` writes the IDE autocomplete helper for extension matchers to `--output=<path>` (default `_greenlight_ide_helper.php`). Gitignore it and regenerate after changing matchers.
+- `completion` prints a shell completion script to stdout. Wire it up with `source <(greenlight completion bash)`, `source <(greenlight completion zsh)` (after `compinit`), or `greenlight completion fish > ~/.config/fish/completions/greenlight.fish`.
 
 Options:
 
