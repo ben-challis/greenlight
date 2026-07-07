@@ -50,7 +50,7 @@ final class JsonLinesReporterTest
 
             new Expect()
                 ->that($decoded['v'])->toBe(1)
-                ->and($decoded['event'])->toBe($tags[$event::class])
+                ->and($decoded['event'])->toBe(\array_search($event::class, $tags, true))
                 ->and($decoded['data'])->toEqual($expectedData);
         }
     }
@@ -61,7 +61,7 @@ final class JsonLinesReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new JsonLinesReporter($output));
 
-        $classesByTag = \array_flip(JsonLinesReporter::tags());
+        $classesByTag = JsonLinesReporter::tags();
         $events = CannedStream::events();
 
         foreach (\explode("\n", \rtrim($output->buffer(), "\n")) as $index => $line) {
