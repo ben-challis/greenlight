@@ -25,6 +25,8 @@ final readonly class Configuration
      *   empty means no id filter
      * @param list<non-empty-string>|null $onlyTests exact test ids to run
      *   (the --failed selection); null means no restriction
+     * @param array{int, int}|null $shard 1-based shard index and total shard
+     *   count from --shard; null means the whole plan
      */
     public function __construct(
         public array $paths,
@@ -41,6 +43,7 @@ final readonly class Configuration
         public array $groups = [],
         public array $filters = [],
         public ?array $onlyTests = null,
+        public ?array $shard = null,
     ) {}
 
     /**
@@ -63,6 +66,7 @@ final readonly class Configuration
             groups: $this->groups,
             filters: $this->filters,
             onlyTests: $ids,
+            shard: $this->shard,
         );
     }
 }

@@ -34,6 +34,7 @@ final class ConfigurationResolver
             randomSeed: $overrides->seed ?? $configuration->randomSeed,
             groups: $overrides->groups === [] ? $configuration->groups : $overrides->groups,
             filters: $overrides->filters,
+            shard: $overrides->shard,
         );
     }
 }

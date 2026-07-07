@@ -42,6 +42,8 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- Suite sharding: `--shard=<n>/<m>` selects disjoint class slices by
+  stable hash for coordination-free CI splitting.
 - A discovery cache: per-file plan entries keyed by path, mtime, and size
   under the system temp dir, halving cold discovery on large suites and
   speeding every watch iteration; any doubt falls back to parsing.

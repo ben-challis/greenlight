@@ -44,6 +44,7 @@ use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\ParallelRunner;
+use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\WorkerProcess;
 
@@ -85,6 +86,8 @@ final readonly class Application
           --filter=<pattern> Only run tests whose id matches; substring, or
                              full match with * wildcards; repeatable
           --failed           Only re-run tests that failed in the previous run
+          --shard=<n>/<m>    Run the nth of m disjoint slices of the plan; whole
+                             classes, stable across machines, no coordination
           --seed=<n>         Randomize class order with this seed
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --watch            Re-run on file changes; Enter re-runs everything, q quits
@@ -658,6 +661,10 @@ final readonly class Application
         try {
             $directories = $this->directories($resolved, $workingDirectory);
             $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
+
+            if ($resolved->shard !== null) {
+                $plan = PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));
+            }
         } catch (DiscoveryError $error) {
             ($this->err)($error->getMessage() . "\n");
 
@@ -743,6 +750,7 @@ final readonly class Application
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
             new OptionSpec('failed'),
+            new OptionSpec('shard', OptionValue::Required),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('baseline', OptionValue::Required),

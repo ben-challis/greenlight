@@ -49,7 +49,7 @@ final readonly class InProcessRunner
         }
 
         $plan = PlanOrder::schedule(
-            $this->discover($configuration, $directories, $seed),
+            $this->sharded($this->discover($configuration, $directories, $seed), $configuration),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );
@@ -90,4 +90,16 @@ final readonly class InProcessRunner
 
         return new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories));
     }
+
+    private function sharded(ExecutionPlan $plan, Configuration $configuration): ExecutionPlan
+    {
+        if ($configuration->shard === null) {
+            return $plan;
+        }
+
+        [$index, $count] = $configuration->shard;
+
+        return PlanShard::select($plan, \max(1, $index), \max(1, $count));
+    }
+
 }

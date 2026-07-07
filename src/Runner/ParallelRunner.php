@@ -9,6 +9,7 @@ use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
@@ -58,7 +59,7 @@ final readonly class ParallelRunner
 
         $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
         $plan = PlanOrder::schedule(
-            new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)),
+            $this->sharded(new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)), $configuration),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );
@@ -92,4 +93,16 @@ final readonly class ParallelRunner
 
         return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
     }
+
+    private function sharded(ExecutionPlan $plan, Configuration $configuration): ExecutionPlan
+    {
+        if ($configuration->shard === null) {
+            return $plan;
+        }
+
+        [$index, $count] = $configuration->shard;
+
+        return PlanShard::select($plan, \max(1, $index), \max(1, $count));
+    }
+
 }

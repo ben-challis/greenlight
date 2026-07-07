@@ -20,6 +20,7 @@ final readonly class CliOverrides
      * @param list<non-empty-string> $groups
      * @param int<0, max>|null $seed
      * @param list<non-empty-string> $filters
+     * @param array{int, int}|null $shard
      */
     public function __construct(
         public ?WorkerCount $workers = null,
@@ -27,6 +28,7 @@ final readonly class CliOverrides
         public array $groups = [],
         public ?int $seed = null,
         public array $filters = [],
+        public ?array $shard = null,
     ) {}
 
     /**
@@ -70,6 +72,25 @@ final readonly class CliOverrides
             $filters[] = $pattern;
         }
 
+        $shard = null;
+
+        if ($arguments->has('shard')) {
+            $raw = $arguments->value('shard') ?? '';
+
+            if (\preg_match('/^(\d+)\/(\d+)$/', $raw, $matches) !== 1) {
+                throw new CliError(\sprintf('--shard must look like <n>/<m>, for example 1/4, got "%s".', $raw));
+            }
+
+            $index = (int) $matches[1];
+            $count = (int) $matches[2];
+
+            if ($count < 1 || $index < 1 || $index > $count) {
+                throw new CliError(\sprintf('--shard needs 1 <= n <= m, got "%s".', $raw));
+            }
+
+            $shard = [$index, $count];
+        }
+
         $seed = null;
 
         if ($arguments->has('seed')) {
@@ -88,7 +109,7 @@ final readonly class CliOverrides
             $seed = $parsed;
         }
 
-        return new self($workers, $stopAfterFailures, $groups, $seed, $filters);
+        return new self($workers, $stopAfterFailures, $groups, $seed, $filters, $shard);
     }
 
     /**
