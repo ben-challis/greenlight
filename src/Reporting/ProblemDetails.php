@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
+use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -62,6 +63,32 @@ final class ProblemDetails
                 $transformation->to->value,
                 $transformation->transformedBy,
             );
+        }
+
+        $captured = $result->output;
+
+        if ($captured instanceof CapturedOutput && $captured->stdout !== '') {
+            $lines[] = '  captured output:';
+
+            foreach (\explode("\n", \rtrim($captured->stdout, "\n")) as $capturedLine) {
+                $lines[] = '    ' . $capturedLine;
+            }
+
+            if ($captured->stdoutTruncated) {
+                $lines[] = '    (truncated)';
+            }
+        }
+
+        if ($captured instanceof CapturedOutput) {
+            foreach ($captured->diagnostics as $diagnostic) {
+                $lines[] = \sprintf(
+                    '  %s: %s at %s:%d',
+                    $diagnostic->severity->value,
+                    $diagnostic->message,
+                    $diagnostic->file,
+                    $diagnostic->line,
+                );
+            }
         }
 
         if ($lines === []) {

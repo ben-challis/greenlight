@@ -11,6 +11,15 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Reporting\CompositeReporter;
+use Greenlight\Reporting\GithubReporter;
+use Greenlight\Reporting\JsonLinesReporter;
+use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Reporting\Output\StreamOutput;
+use Greenlight\Reporting\PlainReporter;
+use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Reporting\TtyReporter;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\ParallelRunner;
@@ -51,6 +60,7 @@ final readonly class Application
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Only run this group; repeatable
           --seed=<n>         Randomize class order with this seed
+          --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --dry-run          Print the resolved configuration without executing
           -h, --help         Show this help
           -V, --version      Show the version
@@ -150,16 +160,24 @@ final readonly class Application
             return self::EXIT_OK;
         }
 
-        $printer = new DotPrinter($this->out);
+        try {
+            $reporter = $this->buildReporter($arguments, $resolved->randomSeed);
+        } catch (CliError $error) {
+            ($this->err)($error->getMessage() . "\n");
+
+            return self::EXIT_USAGE;
+        }
+
+        $sink = new ReporterSink($reporter);
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null ? false : \realpath($binPath);
 
         try {
             if ($workers === 1 || $realBin === false) {
-                $run = new InProcessRunner()->run($resolved, $this->directories($resolved, $workingDirectory), $printer);
+                $run = new InProcessRunner()->run($resolved, $this->directories($resolved, $workingDirectory), $sink);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $printer, $workers);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $sink, $workers);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -167,7 +185,7 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        $printer->finish();
+        $reporter->finish();
 
         if ($run->plannedTests === 0) {
             ($this->err)("No tests found. A misconfigured run must not pass.\n");
@@ -175,22 +193,41 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        $summary = $run->summary;
-        ($this->out)(\sprintf(
-            "\n%d tests: %d passed, %d failed, %d errored, %d skipped (%.3fs)\n",
-            $summary->total(),
-            $summary->passed,
-            $summary->failed,
-            $summary->errored,
-            $summary->skipped,
-            $run->durationSeconds,
-        ));
+        return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
+    }
 
-        if ($run->seed !== null) {
-            ($this->out)(\sprintf("Randomized order with seed %d.\n", $run->seed));
+    /**
+     * @throws CliError
+     */
+    private function buildReporter(ParsedArguments $arguments, ?int $seed): Reporter
+    {
+        $output = new StreamOutput(\STDOUT);
+        $ansi = \function_exists('stream_isatty') && @\stream_isatty(\STDOUT);
+
+        $names = $arguments->values('reporter');
+
+        if ($names === []) {
+            $names = [$ansi ? 'tty' : 'plain'];
         }
 
-        return $summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
+        $reporters = [];
+
+        foreach ($names as $name) {
+            $reporters[] = match ($name) {
+                'tty' => new TtyReporter($output, $ansi, $seed),
+                'plain' => new PlainReporter($output),
+                'junit' => new JUnitReporter($output),
+                'jsonl' => new JsonLinesReporter($output),
+                'github' => new GithubReporter($output),
+                'teamcity' => new TeamCityReporter($output),
+                default => throw new CliError(\sprintf(
+                    'Unknown reporter "%s". Available: tty, plain, junit, jsonl, github, teamcity.',
+                    $name,
+                )),
+            };
+        }
+
+        return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
     }
 
     private function listTestsCommand(ParsedArguments $arguments, string $workingDirectory): int
@@ -285,6 +322,7 @@ final readonly class Application
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('seed', OptionValue::Required),
+            new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('dry-run'),
             new OptionSpec('help', short: 'h'),
             new OptionSpec('version', short: 'V'),

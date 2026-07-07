@@ -70,7 +70,7 @@ final class CliTest
 
         Check::same(0, $exit, 'passing run exit code');
         Check::true(
-            \str_contains(\implode("\n", $output), '7 tests: 7 passed, 0 failed, 0 errored, 0 skipped'),
+            \str_contains(\implode("\n", $output), 'Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0'),
             'summary line to report all seven fixture tests passing',
         );
         Check::true(

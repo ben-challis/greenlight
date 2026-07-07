@@ -66,4 +66,4 @@ deptrac:
     Plugin: [Core, Harness]
     Reporting: [Core]
     Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting]
-    Cli: [Core, Config, Discovery, Runner]
+    Cli: [Core, Config, Discovery, Reporting, Runner]
