@@ -16,6 +16,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Core\Event\EventTags;
+use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
@@ -231,8 +232,11 @@ final readonly class Application
             return self::EXIT_USAGE;
         }
 
+        $shutdown = new GracefulShutdown();
+        SignalHandlers::install($shutdown);
+
         if ($arguments->has('watch')) {
-            return $this->watchCommand($arguments, $workingDirectory, $binPath, $resolved, $configFile);
+            return $this->watchCommand($arguments, $workingDirectory, $binPath, $resolved, $configFile, $shutdown);
         }
 
         $state = RunState::forWorkingDirectory($workingDirectory);
@@ -276,10 +280,10 @@ final readonly class Application
         try {
             if ($workers === 1 || $realBin === false) {
                 $run = new InProcessRunner()
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -289,6 +293,14 @@ final readonly class Application
 
         $reporter->finish();
         $state->record($failedTap->failedTests(), $failedTap->classSeconds());
+
+        $interruptExit = $shutdown->exitCode();
+
+        if ($interruptExit !== null) {
+            ($this->err)("Interrupted. The summary covers only the tests that completed before shutdown.\n");
+
+            return $interruptExit;
+        }
 
         if ($run->plannedTests === 0) {
             ($this->err)("No tests found. A misconfigured run must not pass.\n");
@@ -323,6 +335,7 @@ final readonly class Application
         ?string $binPath,
         Configuration $resolved,
         string $configFile,
+        GracefulShutdown $shutdown,
     ): int {
         $directories = $this->directories($resolved, $workingDirectory);
         $watched = $directories;
@@ -341,7 +354,7 @@ final readonly class Application
         $detectLeaks = $arguments->has('detect-leaks');
 
         $runOnce =
-            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $realBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks): array {
+            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $realBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown): array {
                 $priorityClasses = \array_values(\array_filter(
                     $priorityClasses,
                     static fn(mixed $class): bool => \is_string($class) && $class !== '',
@@ -362,10 +375,10 @@ final readonly class Application
                 try {
                     if ($workers === 1 || $realBin === false) {
                         new InProcessRunner()
-                            ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds);
+                            ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
                     } else {
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds);
+                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
                     }
                 } catch (DiscoveryError|ProtocolError $error) {
                     ($this->err)($error->getMessage() . "\n");
@@ -388,12 +401,13 @@ final readonly class Application
                 $keys,
                 new SystemWatchClock(),
                 $this->out,
+                $shutdown,
             )->run($runOnce);
         } finally {
             $keys->restore();
         }
 
-        return self::EXIT_OK;
+        return $shutdown->exitCode() ?? self::EXIT_OK;
     }
 
     private function coverageSettings(?CoverageConfiguration $configuration, string $workingDirectory): ?CoverageSettings

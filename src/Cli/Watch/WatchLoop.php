@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
+use Greenlight\Core\GracefulShutdown;
+
 /**
  * The watch mode loop: an initial run, then re-runs on debounced filesystem
  * changes.
@@ -14,6 +16,10 @@ namespace Greenlight\Cli\Watch;
  * Each iteration is an ordinary run producing ordinary reporter output; the
  * loop only decides when to run and hands the previous iteration's failed
  * classes to the runner so they execute first.
+ *
+ * When the injected GracefulShutdown flag reports a request, run() returns
+ * after the current iteration instead of waiting for the next change, so the
+ * caller can restore the terminal and exit with the signal's exit code.
  *
  * @internal
  */
@@ -30,6 +36,7 @@ final readonly class WatchLoop
         private KeyInput $keys,
         private WatchClock $clock,
         private \Closure $out,
+        private ?GracefulShutdown $shutdown = null,
     ) {}
 
     /**
@@ -45,6 +52,10 @@ final readonly class WatchLoop
         ($this->out)("\nWatching for changes. Enter re-runs everything, q quits.\n");
 
         while ($maxIterations === null || $iterations < $maxIterations) {
+            if ($this->shutdown?->requested() === true) {
+                return;
+            }
+
             $key = $this->keys->poll();
 
             if ($key === 'q') {

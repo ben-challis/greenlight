@@ -45,6 +45,14 @@ final readonly class WorkerProcess
      */
     public function run(string $address, string $workerId, string $token): int
     {
+        // The terminal delivers Ctrl+C to the whole process group. Workers
+        // ignore SIGINT so the orchestrator can drive an orderly drain
+        // instead of crash containment attributing in-flight tests to a
+        // dead worker.
+        if (\function_exists('pcntl_signal')) {
+            \pcntl_signal(\SIGINT, \SIG_IGN);
+        }
+
         $stream = @\stream_socket_client($address, $errorCode, $errorMessage, 10.0);
 
         if ($stream === false) {

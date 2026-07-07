@@ -132,6 +132,8 @@ Options:
 
 Exit codes: 0 success, 1 failure (including bad config, discovery errors, and zero discovered tests), 64 usage error.
 
+Interruption: the first Ctrl+C (SIGINT) or SIGTERM starts a graceful shutdown. No new work is assigned, workers finish their in-flight test and drain, the reporter prints the summary for everything that completed, and the failure state used by `--failed` and the timing cache is still recorded. Watch mode restores the terminal on the way out. The run then exits 130 for SIGINT or 143 for SIGTERM, and a second signal during the drain terminates immediately. Graceful shutdown requires ext-pcntl; without it the process keeps PHP's default behaviour and exits at once.
+
 Discovery caches per-file results (keyed by path, mtime, and size) under the system temp dir, so unchanged files skip re-parsing on the next run; any doubt falls back to parsing. Watch mode benefits most, since every iteration re-discovers.
 
 The `tty` and `plain` reporters end with a "Slowest tests" block naming the ten slowest tests when any test took 200 ms or longer; fast suites print nothing extra.

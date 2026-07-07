@@ -7,6 +7,7 @@ namespace Greenlight\Runner;
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
+use Greenlight\Core\GracefulShutdown;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
@@ -52,6 +53,7 @@ final readonly class ParallelRunner
         bool $detectLeaks = false,
         array $priorityClasses = [],
         array $classSeconds = [],
+        ?GracefulShutdown $shutdown = null,
     ): RunResult {
         $seed = null;
 
@@ -87,6 +89,7 @@ final readonly class ParallelRunner
             $configFile,
             $detectLeaks,
             $configuration->policy->isNoOp() ? null : $configuration->policy,
+            $shutdown,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);

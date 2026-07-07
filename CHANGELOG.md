@@ -83,5 +83,9 @@ The initial feature set, built and self-hosted in one development cycle:
   slowest-tests block when anything crossed 200 ms.
 - Memory discipline: `--detect-leaks` names tests whose instances survive,
   and CI gates a 10,000-test single-worker run at under 1 MiB of drift.
+- Graceful shutdown on SIGINT and SIGTERM (requires ext-pcntl): the first
+  signal drains workers, prints the summary for completed tests, records
+  the run state, and exits 130 or 143; a second signal terminates
+  immediately, and watch mode restores the terminal on the way out.
 - Greenlight tests itself: the suite runs under `bin/greenlight run` across
   an auto-sized worker pool.

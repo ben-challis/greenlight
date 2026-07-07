@@ -10,6 +10,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\ResultSummary;
@@ -46,6 +47,11 @@ use Greenlight\Runner\Worker\EventSink;
  * Crashes are contained: the in-flight test is attributed to the crash and
  * the remainder of the assignment is reassigned, minus the crashed test. Any
  * bookkeeping mismatch fails loudly.
+ *
+ * When the injected GracefulShutdown flag reports a request, run() switches
+ * to the same drain path used for bail: no further units are assigned,
+ * workers finish their in-flight test and report Done, and the finally
+ * block reaps processes and removes the socket directory as on any run.
  *
  * Worker placement is load-dependent by design. What stays deterministic is
  * the queue order for a given plan, within-class method order under the
@@ -119,6 +125,7 @@ final class Orchestrator
         private readonly ?string $configFile = null,
         private readonly bool $detectLeaks = false,
         private readonly ?ResultPolicy $policy = null,
+        private readonly ?GracefulShutdown $shutdown = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -176,6 +183,10 @@ final class Orchestrator
 
         try {
             while (true) {
+                if (!$this->draining && $this->shutdown?->requested() === true) {
+                    $this->drainAll();
+                }
+
                 $this->spawnUpTo($workerCount, $address, $token, $sink);
 
                 if ($this->finished()) {

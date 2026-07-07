@@ -7,6 +7,7 @@ namespace Greenlight\Runner;
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
+use Greenlight\Core\GracefulShutdown;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
@@ -42,6 +43,7 @@ final readonly class InProcessRunner
         bool $detectLeaks = false,
         array $priorityClasses = [],
         array $classSeconds = [],
+        ?GracefulShutdown $shutdown = null,
     ): RunResult {
         $seed = null;
 
@@ -71,7 +73,13 @@ final readonly class InProcessRunner
         $collector?->start();
 
         $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null, 'in-process', $configuration->policy->isNoOp() ? null : $configuration->policy)
-            ->run($plan, $sink, $configuration->stopAfterFailures);
+            ->run(
+                $plan,
+                $sink,
+                $configuration->stopAfterFailures,
+                null,
+                $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
+            );
         $summary = $outcome->summary;
 
         $coverage = $collector?->stop();
