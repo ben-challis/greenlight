@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, track I (parallelisable: fork spawn, frame batching, and discovery cache are independent) |
+| **Track** | post-GA, track I (parallelisable: fork spawn, frame batching, and discovery cache are independent) |
 | **Unblocked by** | Phase 16 (only worth doing where the profile says spawn or protocol cost matters), Phase 17 (assignment shape settles first) |
 | **PRD sections** | 7.1 (architecture), 12 (memory and lifecycle principles) |
 | **Writes to** | `src/Runner/Orchestrator/`, `src/Runner/Protocol/`, `src/Discovery/`, `tests/` |

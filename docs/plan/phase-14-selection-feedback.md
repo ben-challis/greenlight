@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, track H (parallelisable: filter, rerun cache, and slow report are independent once the flag surface is agreed) |
+| **Track** | post-GA, track H (parallelisable: filter, rerun cache, and slow report are independent once the flag surface is agreed) |
 | **Unblocked by** | Phase 13 |
 | **PRD sections** | 5.3 (flow-control attributes), 7.2 (flow control), 10 (output and reporting) |
 | **Writes to** | `src/Cli/`, `src/Discovery/` (filter engine), `src/Reporting/`, `tests/` |

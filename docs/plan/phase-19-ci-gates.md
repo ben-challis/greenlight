@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, track J (parallelisable: sharding, policy flags, and risky-test detection are independent) |
+| **Track** | post-GA, track J (parallelisable: sharding, policy flags, and risky-test detection are independent) |
 | **Unblocked by** | Phase 17 (sharding composes with the queue), Phase 14 (summary rendering) |
 | **PRD sections** | 7.2 (flow control), 10 (output and reporting), 16 (success metrics) |
 | **Writes to** | `src/Cli/`, `src/Discovery/`, `src/Expect/`, `src/Runner/`, `tests/` |

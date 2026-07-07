@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, track B follow-on (serial: touches the discovery/execution seam) |
+| **Track** | post-GA, track B follow-on (serial: touches the discovery/execution seam) |
 | **Unblocked by** | Phase 14 (filter semantics for data-set labels must be settled first) |
 | **PRD sections** | 5.1 (shape of a test), 5.3 (flow-control attributes) |
 | **Writes to** | `src/Attribute/`, `src/Core/`, `src/Discovery/`, `src/Runner/Worker/`, `tests/` |

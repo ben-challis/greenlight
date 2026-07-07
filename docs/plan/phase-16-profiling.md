@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, spine (small, serial; gates the performance phases) |
+| **Track** | post-GA, spine (small, serial; gates the performance phases) |
 | **Unblocked by** | Phase 14 |
 | **PRD sections** | 7.1 (architecture), 10 (output and reporting) |
 | **Writes to** | `src/Cli/`, `src/Reporting/`, `tests/` |

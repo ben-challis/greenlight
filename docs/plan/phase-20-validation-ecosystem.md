@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, integration (parallelisable: the three proofs are independent) |
+| **Track** | post-GA, integration (parallelisable: the three proofs are independent) |
 | **Unblocked by** | Phases 17 and 18 (benchmark numbers should describe the improved runner, not the one being replaced) |
 | **PRD sections** | 16 (success metrics), 17 (risks) |
 | **Writes to** | `.github/workflows/`, `tools/`, `docs/`, `tests/` |

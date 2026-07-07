@@ -37,7 +37,7 @@ This is the shared context for anyone (human or agent) executing a phase. Read t
 | 11 Memory gates | [phase-11-memory.md](phase-11-memory.md) | convergence | 5b, 9 |
 | 12 Self-hosting cutover | [phase-12-self-hosting.md](phase-12-self-hosting.md) | integration | 4, 5b, 6, 8 |
 | 12b Watch mode | [phase-12b-watch.md](phase-12b-watch.md) | integration | Phase 12 (Phase 10 additionally for coverage-based affected-test selection) |
-| 13 Docs + GA + v1.0 | [phase-13-release.md](phase-13-release.md) | integration | all |
+| 13 Docs + plugin API GA | [phase-13-release.md](phase-13-release.md) | integration | all |
 | 14 Selection + feedback | [phase-14-selection-feedback.md](phase-14-selection-feedback.md) | track H | Phase 13 |
 | 15 Data providers | [phase-15-data-providers.md](phase-15-data-providers.md) | track B follow-on | Phase 14 |
 | 16 Profiling | [phase-16-profiling.md](phase-16-profiling.md) | spine | Phase 14 |
@@ -64,9 +64,9 @@ Phase 7 (plugin API, RFC-004)                spine
 Phase 11 (memory gates)                      convergence
 Phase 12 (self-hosting cutover)              integration
 Phase 12b (watch mode)                       integration
-Phase 13 (docs + GA + v1.0)                  integration
+Phase 13 (docs + plugin API GA)              integration
 
-Post-1.0:
+Post-GA (still untagged; no release mechanics until a deliberate later decision):
 
 Phase 14 (selection + feedback)              track H
   ├── Phase 15 Data providers                track B follow-on
@@ -77,7 +77,7 @@ Phase 17 (scheduling + timing cache)         spine
 Phase 20 (validation + ecosystem)            integration
 ```
 
-The post-1.0 ordering is deliberate: user-facing selection tools first (Phase 14 also establishes the temp-dir state-file convention later phases reuse), profiling before any performance work so Phases 17 and 18 optimise measured problems, and published benchmarks last so they describe the improved runner.
+The post-GA ordering is deliberate: user-facing selection tools first (Phase 14 also establishes the temp-dir state-file convention later phases reuse), profiling before any performance work so Phases 17 and 18 optimise measured problems, and published benchmarks last so they describe the improved runner.
 
 ## The serial spine
 

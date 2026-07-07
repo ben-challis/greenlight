@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Track** | post-1.0, spine (serial: rewires the orchestrator/distributor seam) |
+| **Track** | post-GA, spine (serial: rewires the orchestrator/distributor seam) |
 | **Unblocked by** | Phase 16 (the baseline decides how far to go) |
 | **PRD sections** | 7.1 (architecture), 7.2 (flow control) |
 | **Writes to** | `src/Runner/Orchestrator/`, `src/Runner/Protocol/`, `tests/` |
