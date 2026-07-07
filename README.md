@@ -2,31 +2,118 @@
 
 **Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
 
-Greenlight is an opinionated testing framework for PHP 8.4+, built around three ideas: tests are plain typed PHP that your tools already understand, parallel execution is the only code path rather than an add-on, and extensions get real runtime context instead of a sanitised events feed. It has zero runtime dependencies, so it never version-conflicts with the code under test, and on [generated benchmark suites](docs/benchmarks.md) its best configuration beats PHPUnit's best by 2.5x to 7x.
+Greenlight is a testing framework for PHP 8.4 and later. Tests are plain typed classes: attributes mark the tests, constructor injection delivers the services they need, and there is no base class, so PHPStan and your IDE understand your test code with no framework-specific plugins. Every run executes across a parallel worker pool by default, memory stays flat however large the suite grows, and the framework itself has zero runtime dependencies, so it never version-conflicts with the code under test.
 
 Greenlight tests itself: this repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
 
-## Authoring: typed PHP all the way down
+## What a test looks like
 
-- Attribute-driven tests with no base class: `#[Test]`, `#[Before]`, `#[After]`, `#[DataSet]`, `#[Group]`, `#[Skip]`, `#[SkipUnless]`, `#[Retry]`, `#[Timeout]`, `#[Isolated]`, and constructor injection for the services a test needs.
-- The `Expect` assertion service: a fluent matcher chain with a `not()` modifier, soft expectations that collect several failures per test, typed diff rendering, and plugin-contributed matchers.
-- Test doubles that never guess: mocks answer only what you configured, stubs exist to satisfy a type and error on any interaction, spies record void-returning calls. Every double is verified and torn down at the end of its test, and unmet plans read like assertion failures. Doubles are generated proxy classes whose real constructor never runs, cached on disk per signature so they are opcache friendly and debuggable.
-- Static discovery with plan-time data-set expansion and deterministic seeded ordering: `--seed=N` reproduces any randomized run exactly.
-- Fluent configuration in plain PHP (`greenlight.php`) with a typed builder, documented precedence, and sub-builders for suites, coverage, and watch mode. PHPStan checks your config file like any other code.
+```php
+<?php
 
-## Execution: parallel first, memory flat
+declare(strict_types=1);
 
-- An orchestrator/worker process pool over a framed socket protocol, with deterministic distribution, crash containment that attributes the failure to the test that caused it, orchestrator-side hard kills for hung tests, and a summary cross-check that fails the run on any bookkeeping mismatch. Sequential is simply `workers: 1`, and hosts without `proc_open` fall back to it automatically.
-- Memory stays flat over arbitrary suite sizes: workers recycle by test count or memory ceiling, CI gates a 10,000-test run at under 1 MiB of drift, and `--detect-leaks` names any test whose instance survives collection.
-- Scoped harness services (per test, class, suite, or run) with lazy construction and deterministic reverse-order disposal, so expensive fixtures are built once and torn down predictably.
-- Watch mode with debounced re-runs and failed-first ordering, and per-test output capture (stdout plus notices, warnings, and deprecations) attached to results instead of polluting the report stream.
-- Coverage via pcov or Xdebug with per-worker collection, incremental merge, five export formats, and a `coverage:diff` regression gate.
+namespace App\Tests;
 
-## Extending: plugins with live context
+use Greenlight\Attribute\DataRow;
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
 
-- Lifecycle subscribers receive the actual test instance, its metadata, and its harness services, not a copy. Retry deciders, harness providers, run subscribers, custom reporters, and expectation extensions all hang off small capability interfaces, and outcome changes are provenance-guarded so reports stay trustworthy.
-- Extension matchers stay statically checked: the bundled PHPStan extension reads your config files, reflects each matcher's signature, and fails analysis on name typos, wrong argument counts, and wrong argument types.
-- Six reporters over one event stream: a parallel-aware live terminal display, plain, junit, jsonl, github, teamcity. Reporters are ordinary plugin implementations; yours plugs in the same way.
+final class PriceTest
+{
+    public function __construct(
+        private readonly Expect $expect,
+    ) {}
+
+    #[Test]
+    #[DataRow(['9.99', 2, '19.98'], label: 'two units')]
+    #[DataRow(['0.50', 3, '1.50'], label: 'three small units')]
+    public function multipliesLineTotals(string $unit, int $quantity, string $expected): void
+    {
+        $total = Price::fromString($unit)->times($quantity);
+
+        $this->expect->that($total->format())->toBe($expected);
+    }
+
+    #[Test]
+    public function rejectsNegativeQuantities(): void
+    {
+        $this->expect->that(static function (): void {
+            Price::fromString('9.99')->times(-1);
+        })->toThrow(\InvalidArgumentException::class, matching: '/quantity/');
+    }
+}
+```
+
+No `TestCase` to extend, no method-name conventions, no closure DSL. `Expect` arrives through the constructor like any other dependency, and a failed matcher throws immediately with a typed, rendered diff. Configuration is one PHP file at the project root, checked by PHPStan like the rest of your code:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+use Greenlight\Config\GreenlightConfig;
+
+return GreenlightConfig::create()
+    ->paths(['tests'])
+    ->workers(count: 'auto');
+```
+
+Then run it:
+
+```
+$ vendor/bin/greenlight run
+
+  ✓ PriceTest multipliesLineTotals [two units]
+  ✓ PriceTest multipliesLineTotals [three small units]
+  ✓ PriceTest rejectsNegativeQuantities
+
+  3 passed in 0.1s
+```
+
+On an interactive terminal you get a live, parallel-aware display; in CI the plain reporter prints one line per event, and `--reporter=junit` (repeatable, so you can have both) feeds your dashboard.
+
+## Parallel by default
+
+Tests run across a pool of worker processes sized to your CPU count, with workers pulling work on demand so none of them idles behind another's slow class. Workers recycle by test count or memory ceiling, which keeps memory flat over arbitrary suite sizes: CI gates a 10,000-test single-worker run at under 1 MiB of drift, and `--detect-leaks` names any test whose instance survives collection. Sequential execution is just `--workers=1`, the same code path and the easiest mode to attach a debugger to.
+
+## Fast, with the losses published
+
+On [generated benchmark suites](docs/benchmarks.md), Greenlight's best configuration beats PHPUnit's best by 2.5x to 7x, and most of the margin is engine overhead per test rather than parallelism. The benchmarks document also publishes where parallelism costs more than it saves: on trivial test bodies, worker spawn outweighs the work, so one worker wins. Real suites do real work, which is where the pool pays off. The numbers are reproducible with `php tools/benchmark.php --with-phpunit`, and CI runs the harness so it cannot rot.
+
+## Strict where guessing hides bugs
+
+Test doubles never guess: mocks answer only what you planned, stubs exist to satisfy a type and error on any interaction, spies record void-returning calls. Every double is verified when its test ends, and an unmet plan reads like an assertion failure. On the runner side, a passed test that verified nothing is flagged as risky, `--fail-on-risky` upgrades it to a failure, and `#[NoExpectations]` is the explicit opt-out for tests that legitimately assert nothing by design.
+
+## What you get
+
+Writing tests:
+
+- Attributes for the full lifecycle: `#[Test]`, `#[Before]`, `#[After]`, `#[Group]`, `#[Skip]`, `#[SkipUnless]`, `#[Retry]`, `#[Timeout]`, `#[Isolated]`.
+- Data-driven tests through `#[DataSet]` provider methods and inline `#[DataRow]` rows, expanded at plan time with named keys in every report.
+- A fluent `Expect` chain with a `not()` modifier, soft expectations that collect several failures per test, and typed diff rendering.
+- Scoped harness services (per test, class, suite, or run) for expensive fixtures, built lazily and disposed in reverse order.
+
+Running them:
+
+- `--filter` patterns, `--group` tags, `--failed` to re-run the previous run's failures, and `--shard=n/m` to split a suite across CI machines with no coordination.
+- Watch mode with debounced re-runs and failed-first ordering.
+- Deterministic seeded ordering: `--seed=N` reproduces any randomized run exactly.
+- `--profile` appends worker utilisation, boot latency, and the slowest classes after the summary; `profile:report` reproduces the block offline from a saved artifact.
+- Per-test output capture, so stdout and PHP diagnostics land on the result instead of corrupting the report stream.
+
+Gating CI:
+
+- `--fail-on-deprecation` and `--fail-on-notice` fail passed tests on captured diagnostics, with a config allow-list for dependency noise.
+- Coverage via pcov or Xdebug with five export formats (json, lcov, clover, cobertura, html) and a `coverage:diff` regression gate.
+- Six reporters over one event stream: tty, plain, junit, jsonl, github, teamcity.
+- Three exit codes with honest semantics: a run that discovers zero tests fails as a misconfiguration.
+
+Extending it:
+
+- Plugins receive live runtime context: the actual test instance, its metadata, and its harness services. Lifecycle subscribers, retry deciders, harness providers, and custom reporters all hang off small capability interfaces.
+- Custom expectation matchers stay statically checked: the bundled PHPStan extension reads your config and fails analysis on name typos and wrong arguments, and the `ide-helper` command makes them autocomplete with real signatures.
+- A `completion` command prints shell completion scripts for bash, zsh, and fish.
 
 ## Requirements
 
