@@ -14,7 +14,7 @@ Greenlight is a testing framework for PHP 8.4 and later: fully typed, leak-free 
 
 PHP testing today forces a choice between two compromises. PHPUnit carries twenty years of accumulated API surface, an event system that deliberately withholds runtime context, and an execution model where parallelism (paratest) and memory hygiene are bolt-ons. Pest fixes ergonomics but does so with closure rebinding and file-level magic that static analysis and refactoring tools cannot see through, and it inherits PHPUnit underneath.
 
-Greenlight is a new engine rather than a layer over an existing one. It combines an attribute-driven authoring model that PHPStan and IDEs understand natively, an orchestrator/worker runner where parallelism and worker recycling are the core execution path, a test-double library built on PHP 8.4 lazy objects with mandatory end-of-test teardown, and a plugin system whose interception points receive the actual test instance and its harness.
+Greenlight is a new engine rather than a layer over an existing one. It combines an attribute-driven authoring model that PHPStan and IDEs understand natively, an orchestrator/worker runner where parallelism and worker recycling are the core execution path, a test-double library of generated constructor-skipping proxies with mandatory end-of-test teardown, and a plugin system whose interception points receive the actual test instance and its harness.
 
 The pitch in one sentence: write typed tests, run them in parallel with flat memory, and extend the runner without fighting it.
 
@@ -246,7 +246,7 @@ public function chargesTheCard(): void
 }
 ```
 
-- Built on PHP 8.4 lazy objects plus generated proxies. Doubling a class does not run its constructor; interfaces get generated implementations. Proxy classes are cached per-worker and invalidated by signature hash.
+- Built on generated proxies instantiated without running the real constructor. Interfaces get generated implementations; non-final classes get generated subclasses. Proxy classes are cached on disk and invalidated by signature hash.
 - Strict everywhere, with nothing guessed. An unexpected call on a mock fails the test immediately with the received arguments diffed against declared expectations, and every value a mock returns must be configured explicitly; there are no derived defaults. `stub()` produces an inert placeholder that satisfies a type and errors on any interaction. `spy()` records calls to methods that return nothing and errors on value-returning calls (a collaborator that answers is a mock). `fake()` covers hand-written in-memory implementations, supported by a `Fake` marker interface so reporters can label them.
 - Verification is integrated with the expectation engine. Mock failures render with the same diff quality as `expect` failures, and spy assertions read as expectations: `$this->expect->that($spy)->toHaveReceived('charge')->once()`.
 - Doubles are per-test scoped services. They are created through the injected `Doubles` factory, owned by the per-test scope, auto-verified and auto-disposed at test end (principle 12.3). A double cannot outlive its test.

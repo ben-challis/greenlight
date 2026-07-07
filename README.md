@@ -10,7 +10,7 @@ Greenlight tests itself: this repository's suite runs under `bin/greenlight run`
 
 - Attribute-driven tests with no base class: `#[Test]`, `#[Before]`, `#[After]`, `#[DataSet]`, `#[Group]`, `#[Skip]`, `#[SkipUnless]`, `#[Retry]`, `#[Timeout]`, `#[Isolated]`, and constructor injection for the services a test needs.
 - The `Expect` assertion service: a fluent matcher chain with a `not()` modifier, soft expectations that collect several failures per test, typed diff rendering, and plugin-contributed matchers.
-- Test doubles that never guess: mocks answer only what you configured, stubs exist to satisfy a type and error on any interaction, spies record void-returning calls. Every double is verified and torn down at the end of its test, and unmet plans read like assertion failures. Built on PHP 8.4 lazy objects, so doubling never executes a constructor.
+- Test doubles that never guess: mocks answer only what you configured, stubs exist to satisfy a type and error on any interaction, spies record void-returning calls. Every double is verified and torn down at the end of its test, and unmet plans read like assertion failures. Doubles are generated proxy classes whose real constructor never runs, cached on disk per signature so they are opcache friendly and debuggable.
 - Static discovery with plan-time data-set expansion and deterministic seeded ordering: `--seed=N` reproduces any randomized run exactly.
 - Fluent configuration in plain PHP (`greenlight.php`) with a typed builder, documented precedence, and sub-builders for suites, coverage, and watch mode. PHPStan checks your config file like any other code.
 
