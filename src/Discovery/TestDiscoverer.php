@@ -125,20 +125,20 @@ final readonly class TestDiscoverer
                 continue;
             }
 
-            if ($metadata->dataSetProvider === null) {
-                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method), $metadata);
-
-                continue;
-            }
-
-            $keys = $this->dataSetExpander->keysFor(
+            $rows = $this->dataSetExpander->rowsFor(
                 $reflection,
                 $metadata->method,
                 $metadata->dataSetProvider,
                 $this->providerTimeBudgetSeconds,
             );
 
-            foreach ($keys as $key) {
+            if ($rows === []) {
+                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method), $metadata);
+
+                continue;
+            }
+
+            foreach (\array_keys($rows) as $key) {
                 $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method, $key), $metadata);
             }
         }

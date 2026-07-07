@@ -11,6 +11,7 @@ This is a conceptual guide, not an automated migration. Greenlight deliberately 
 | `setUp()` | `#[Before]` on a public method |
 | `tearDown()` | `#[After]` on a public method |
 | `#[DataProvider('cases')]` | `#[DataSet('cases')]`, static provider on the same class |
+| `#[TestWith([1, 2])]` | `#[DataRow([1, 2])]`, optionally labelled |
 | `#[Group('slow')]` / `@group` | `#[Group('slow')]`, repeatable, method or class |
 | `$this->markTestSkipped($reason)` | `throw new SkipTest($reason)` from `Greenlight\Plugin` |
 | `#[RequiresPhpExtension]` and friends | `#[SkipUnless(SomeCondition::class)]` |

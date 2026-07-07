@@ -47,6 +47,19 @@ public static function currencies(): iterable
 }
 ```
 
+## DataRow
+
+Target: method. Repeatable. Parameters: `array $arguments`, `?string $label = null`.
+
+One inline data set: the array holds the arguments in parameter order, and the label (or `#<position>` among the rows when unlabelled) becomes the data-set key in test ids. Rows are limited to what attributes can express (scalars, arrays, constants); for computed rows, ranges, or objects, use a `#[DataSet]` provider. Both can sit on the same method and share one key space; a duplicate key is a discovery error.
+
+```php
+#[Test]
+#[DataRow([1, 2, 3], label: 'small')]
+#[DataRow([10, 20, 30])]
+public function addsUp(int $a, int $b, int $sum): void { ... }
+```
+
 ## Group
 
 Target: method or class. Repeatable. Parameters: `string $name`.

@@ -19,7 +19,9 @@ use Greenlight\Discovery\DiscoveryError;
 final class ClassContext
 {
     /**
-     * @var array<string, non-empty-array<string, mixed>>
+     * Resolved data sets cached per test method.
+     *
+     * @var array<string, array<string, mixed>>
      */
     private array $dataSets = [];
 
@@ -69,21 +71,22 @@ final class ClassContext
     }
 
     /**
-     * Positional arguments for one data-set key. The key came from the plan;
-     * a key the provider no longer yields means the code changed between
-     * planning and execution, and that is an error.
+     * Positional arguments for one data-set key, resolved from the method's
+     * #[DataRow] attributes and #[DataSet] provider. The key came from the
+     * plan; a key the method's data sets no longer include means the code
+     * changed between planning and execution, and that is an error.
      *
-     * @param non-empty-string $provider
+     * @param non-empty-string|null $provider
      * @param non-empty-string $testMethod
      *
      * @return list<mixed>
      *
      * @throws DiscoveryError
      */
-    public function argumentsFor(string $provider, string $testMethod, string $key): array
+    public function argumentsFor(?string $provider, string $testMethod, string $key): array
     {
-        if (!\array_key_exists($provider, $this->dataSets)) {
-            $this->dataSets[$provider] = new DataSetExpander()->expand(
+        if (!\array_key_exists($testMethod, $this->dataSets)) {
+            $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
                 $this->reflection,
                 $testMethod,
                 $provider,
@@ -91,15 +94,15 @@ final class ClassContext
             );
         }
 
-        $sets = $this->dataSets[$provider];
+        $sets = $this->dataSets[$testMethod];
 
         if (!\array_key_exists($key, $sets)) {
             throw new \RuntimeException(\sprintf(
-                'Data set "%s" of provider "%s::%s()" is in the plan but the provider no longer yields it. '
+                'Data set "%s" of "%s::%s()" is in the plan but the method\'s data sets no longer include it. '
                 . 'Re-run discovery.',
                 $key,
                 $this->reflection->getName(),
-                $provider,
+                $testMethod,
             ));
         }
 
@@ -107,10 +110,10 @@ final class ClassContext
 
         if (!\is_array($value)) {
             throw new \RuntimeException(\sprintf(
-                'Data set "%s" of provider "%s::%s()" must be an array of arguments, got %s.',
+                'Data set "%s" of "%s::%s()" must be an array of arguments, got %s.',
                 $key,
                 $this->reflection->getName(),
-                $provider,
+                $testMethod,
                 \get_debug_type($value),
             ));
         }

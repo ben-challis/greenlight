@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Attribute\DataRow;
+
 /**
  * Invokes a #[DataSet] provider at plan time and derives one stable string
  * key per yielded data set. Providers are the only code discovery executes;
@@ -18,7 +20,7 @@ namespace Greenlight\Discovery;
 final class DataSetExpander
 {
     /**
-     * @param \ReflectionClass<object> $class
+     * @param \ReflectionClass<covariant object> $class
      * @param non-empty-string $testMethod
      * @param non-empty-string $provider
      *
@@ -32,11 +34,60 @@ final class DataSetExpander
     }
 
     /**
+     * Every data set of a test method under one key space: inline #[DataRow]
+     * attributes in declaration order (labelled, or "#<position>" by their
+     * position among the rows), then the #[DataSet] provider's yields. Both
+     * the planner and the worker resolve through this method, so keys can
+     * never drift between plan and execution. An empty result means the test
+     * takes no data sets.
+     *
+     * @param \ReflectionClass<covariant object> $class
+     * @param non-empty-string $testMethod
+     * @param non-empty-string|null $provider
+     *
+     * @return array<string, mixed>
+     *
+     * @throws DiscoveryError
+     */
+    public function rowsFor(\ReflectionClass $class, string $testMethod, ?string $provider, float $budgetSeconds): array
+    {
+        $className = $class->getName();
+        $rows = [];
+        $position = 0;
+
+        foreach ($class->getMethod($testMethod)->getAttributes(DataRow::class) as $attribute) {
+            $row = $attribute->newInstance();
+            $key = $row->label ?? \sprintf('#%d', $position);
+
+            if (\array_key_exists($key, $rows)) {
+                throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $key);
+            }
+
+            $rows[$key] = $row->arguments;
+            ++$position;
+        }
+
+        if ($provider === null) {
+            return $rows;
+        }
+
+        foreach ($this->expand($class, $testMethod, $provider, $budgetSeconds) as $key => $value) {
+            if (\array_key_exists($key, $rows)) {
+                throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $key);
+            }
+
+            $rows[$key] = $value;
+        }
+
+        return $rows;
+    }
+
+    /**
      * Derived key mapped to the yielded data set, in provider order. Both the
      * planner and the worker resolve data sets through this method, so the
      * derivation can never drift between plan and execution.
      *
-     * @param \ReflectionClass<object> $class
+     * @param \ReflectionClass<covariant object> $class
      * @param non-empty-string $testMethod
      * @param non-empty-string $provider
      *

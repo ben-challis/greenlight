@@ -132,7 +132,7 @@ final readonly class TestExecutor
 
                     $arguments = [];
 
-                    if ($metadata->dataSetProvider !== null && $entry->id->dataSetKey !== null) {
+                    if ($entry->id->dataSetKey !== null) {
                         $arguments = $this->context->argumentsFor(
                             $metadata->dataSetProvider,
                             $metadata->method,

@@ -39,7 +39,7 @@ This is the shared context for anyone (human or agent) executing a phase. Read t
 | 12b Watch mode | [phase-12b-watch.md](phase-12b-watch.md) | integration | Phase 12 (Phase 10 additionally for coverage-based affected-test selection) |
 | 13 Docs + plugin API GA | [phase-13-release.md](phase-13-release.md) | integration | all |
 | 14 Selection + feedback | [phase-14-selection-feedback.md](phase-14-selection-feedback.md) | track H | Phase 13 |
-| 15 Data providers | [phase-15-data-providers.md](phase-15-data-providers.md) | track B follow-on | Phase 14 |
+| 15 Inline data rows | [phase-15-data-providers.md](phase-15-data-providers.md) | track B follow-on | Phase 14 |
 | 16 Profiling | [phase-16-profiling.md](phase-16-profiling.md) | spine | Phase 14 |
 | 17 Scheduling + timing cache | [phase-17-scheduling.md](phase-17-scheduling.md) | spine | Phase 16 |
 | 18 Spawn + protocol cost | [phase-18-spawn-and-protocol-cost.md](phase-18-spawn-and-protocol-cost.md) | track I | Phases 16, 17 |
@@ -69,7 +69,7 @@ Phase 13 (docs + plugin API GA)              integration
 Post-GA (still untagged; no release mechanics until a deliberate later decision):
 
 Phase 14 (selection + feedback)              track H
-  ├── Phase 15 Data providers                track B follow-on
+  ├── Phase 15 Inline data rows              track B follow-on
   └── Phase 16 Profiling                     spine
 Phase 17 (scheduling + timing cache)         spine
   ├── Phase 18 Spawn + protocol cost         track I
