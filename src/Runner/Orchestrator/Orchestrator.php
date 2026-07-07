@@ -110,6 +110,8 @@ final class Orchestrator
 
     private int $spawnBudget = 0;
 
+    private ?ChannelAllocator $channels = null;
+
     /**
      * @param non-empty-list<non-empty-string> $workerCommand argv prefix invoking bin/greenlight
      * @param positive-int|null $recycleAfterTests
@@ -248,6 +250,11 @@ final class Orchestrator
      */
     private function spawnUpTo(int $workerCount, string $address, string $token, EventSink $sink): void
     {
+        // Isolated workers draw from the same pool as reused ones, and the
+        // active-count cap below holds live workers at the worker count, so
+        // the bound covers every worker that can be alive at once.
+        $channels = $this->channels ??= new ChannelAllocator($workerCount);
+
         while (!$this->draining && $this->pendingUnits() > $this->unassignedActiveCount() && $this->activeCount() < $workerCount) {
             $workerId = 'w-' . ++$this->spawnedCount;
 
@@ -265,15 +272,24 @@ final class Orchestrator
                 ));
             }
 
-            $process = @\proc_open($command, $descriptors, $pipes, $this->workingDirectory);
+            $channelNumber = $channels->allocate();
+            // proc_open's env parameter replaces the whole environment, so
+            // the channel is merged into the parent's rather than passed
+            // alone.
+            $environment = \getenv();
+            $environment['GREENLIGHT_CHANNEL'] = (string) $channelNumber;
+
+            $process = @\proc_open($command, $descriptors, $pipes, $this->workingDirectory, $environment);
 
             if (!\is_resource($process)) {
+                $channels->release($channelNumber);
+
                 throw ProtocolError::malformedFrame('could not spawn a worker process');
             }
 
             \fclose($pipes[0]);
 
-            $handle = new WorkerHandle($workerId, $process, $pipes[1], $pipes[2]);
+            $handle = new WorkerHandle($workerId, $channelNumber, $process, $pipes[1], $pipes[2]);
             $this->handles[$workerId] = $handle;
 
             $status = \proc_get_status($process);
@@ -694,6 +710,10 @@ final class Orchestrator
 
     private function finishHandle(WorkerHandle $handle): void
     {
+        if (!$handle->done) {
+            $this->channels?->release($handle->channelNumber);
+        }
+
         $handle->done = true;
         $handle->drainPipes();
         $handle->channel?->close();

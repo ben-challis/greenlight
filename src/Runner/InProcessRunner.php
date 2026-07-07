@@ -72,6 +72,11 @@ final readonly class InProcessRunner
         $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
         $collector?->start();
 
+        // A single in-process worker is always channel 1. Setting the
+        // variable, rather than relying on its absence, overrides any value
+        // inherited from an outer Greenlight run spawning this one.
+        \putenv('GREENLIGHT_CHANNEL=1');
+
         $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null, 'in-process', $configuration->policy->isNoOp() ? null : $configuration->policy)
             ->run(
                 $plan,

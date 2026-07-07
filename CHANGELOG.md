@@ -60,6 +60,11 @@ The initial feature set, built and self-hosted in one development cycle:
   `#[NoExpectations]` as the explicit opt-out.
 - Suite sharding: `--shard=<n>/<m>` selects disjoint class slices by
   stable hash for coordination-free CI splitting.
+- Worker channels: every worker holds a stable slot from 1 to the worker
+  count, exported as `GREENLIGHT_CHANNEL` and injectable as `TestChannel`,
+  for deriving per-slot external resources such as database names, ports,
+  and temp dirs; recycled and crashed workers pass their slot to the
+  replacement.
 - A discovery cache: per-file plan entries keyed by path, mtime, and size
   under the system temp dir, halving cold discovery on large suites and
   speeding every watch iteration; any doubt falls back to parsing.

@@ -96,6 +96,17 @@ Default: declared order, no seed. Enables randomized class order. A null seed me
 
 Called by the loader, not by you. Validates the builder and produces the immutable configuration. Your config file returns the builder itself, without calling `build()`.
 
+## Channels
+
+Every worker process runs in a channel: a stable slot numbered 1 to the worker count. Use it to derive external resources that parallel tests must not share, such as database names, ports, virtual hosts, or temp directories. Two tests running at the same time never share a channel, and the numbers stay within 1 to the worker count no matter how many worker processes a run spawns: when a worker is recycled or crashes, its replacement reuses the freed slot. A `--workers=1` run executes in-process on channel 1.
+
+The channel is exposed two ways, always in agreement:
+
+- The `GREENLIGHT_CHANNEL` environment variable, set in each worker's environment, for bootstrap files and spawned tools that read `getenv()`.
+- The `Greenlight\Core\Test\TestChannel` harness service, for constructor injection into tests and for harness providers. `TestChannel->number` is the slot; `TestChannel->label()` returns `gl-<number>` for resource names.
+
+Because slots are reused, channel-derived resources persist across worker recycling: a replacement worker on channel 2 sees whatever the previous channel-2 worker left behind. That is what makes patterns like one database schema per channel cheap, since the schema is created once and reused for the whole run.
+
 ## CLI reference
 
 ```

@@ -17,6 +17,9 @@ use Greenlight\Runner\Protocol\SocketChannel;
  * beginAssignment() resets the tally and finished set, because the worker's
  * Done summary covers one assignment.
  *
+ * channelNumber is the slot allocated to this worker at spawn; the
+ * orchestrator returns it to the allocator when the handle finishes.
+ *
  * @internal
  */
 final class WorkerHandle
@@ -44,12 +47,14 @@ final class WorkerHandle
 
     /**
      * @param non-empty-string $workerId
+     * @param positive-int $channelNumber
      * @param resource $process
      * @param resource $stdout
      * @param resource $stderr
      */
     public function __construct(
         public readonly string $workerId,
+        public readonly int $channelNumber,
         public readonly mixed $process,
         public readonly mixed $stdout,
         public readonly mixed $stderr,

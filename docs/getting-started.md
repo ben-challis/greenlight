@@ -104,6 +104,26 @@ Watch mode re-runs affected tests when files under your configured paths change.
 
 Tests run in parallel worker processes by default. `--workers=auto` (the default) uses one worker per CPU core; `--workers=4` pins the count; `--workers=1` runs everything in a single in-process runner, which is the easiest mode to attach a debugger to. Workers are recycled after 500 tests or when they grow past 256M, so long runs keep flat memory. Both thresholds are configurable through `workers()` in the config file.
 
+When parallel tests share an external resource such as a database, give each worker its own copy using the channel: a stable slot from 1 to the worker count, injectable as `Greenlight\Core\Test\TestChannel` and exported to each worker as the `GREENLIGHT_CHANNEL` environment variable.
+
+```php
+final class OrderRepositoryTest
+{
+    public function __construct(
+        private readonly TestChannel $channel,
+    ) {}
+
+    #[Test]
+    public function persistsAnOrder(): void
+    {
+        $pdo = new \PDO('mysql:host=127.0.0.1;dbname=app_test_' . $this->channel->number, 'app', 'secret');
+        // ...
+    }
+}
+```
+
+Two tests running at the same time never share a channel, so `app_test_1` and `app_test_2` never race. See [configuration](configuration.md) for the full channel semantics.
+
 ## Exit codes
 
 Greenlight uses three exit codes:
