@@ -34,6 +34,7 @@ final readonly class ParallelRunner
      * @param list<non-empty-string> $directories
      * @param positive-int $workerCount
      * @param list<non-empty-string> $priorityClasses classes to run first, in the given order
+     * @param array<string, float> $classSeconds recorded class durations for longest-first ordering; ignored on seeded runs
      *
      * @throws DiscoveryError
      */
@@ -46,6 +47,7 @@ final readonly class ParallelRunner
         ?string $configFile = null,
         bool $detectLeaks = false,
         array $priorityClasses = [],
+        array $classSeconds = [],
     ): RunResult {
         $seed = null;
 
@@ -54,7 +56,11 @@ final readonly class ParallelRunner
         }
 
         $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
-        $plan = PlanPriority::prioritize(new TestDiscoverer()->discover($directories, $filter, $seed), $priorityClasses);
+        $plan = PlanOrder::schedule(
+            new TestDiscoverer()->discover($directories, $filter, $seed),
+            $priorityClasses,
+            $configuration->randomizeOrder ? [] : $classSeconds,
+        );
 
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);

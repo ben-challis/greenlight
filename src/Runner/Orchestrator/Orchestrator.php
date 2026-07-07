@@ -31,10 +31,18 @@ use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * The process pool: spawns workers, assigns slices, forwards their event
- * streams, recycles on request, contains crashes by attributing the in-flight
- * test and reassigning the remainder (minus the crashed test), and drains
- * everything on bail. Fails loudly on any bookkeeping mismatch.
+ * The process pool: spawns workers and assigns work class by class on
+ * demand, so a worker that finishes early pulls the next class instead of
+ * idling behind a static bucket. Forwards worker event streams, recycles on
+ * request (mid-assignment or between assignments once the cumulative budget
+ * is spent), contains crashes by attributing the in-flight test and
+ * reassigning the remainder (minus the crashed test), and drains everything
+ * on bail. Isolated entries run on dedicated fresh workers. Fails loudly on
+ * any bookkeeping mismatch.
+ *
+ * Worker placement is load-dependent by design; what stays deterministic is
+ * the queue order for a given plan, within-class method order under the
+ * seed, and per-class results. The seed reproduces failures, not placement.
  *
  * @internal
  */
@@ -45,9 +53,14 @@ final class Orchestrator
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
 
     /**
-     * @var list<ExecutionPlan>
+     * @var list<ExecutionPlan> pooled per-class units, assigned on demand
      */
     private array $queue = [];
+
+    /**
+     * @var list<ExecutionPlan> isolated single-entry units, fresh workers only
+     */
+    private array $isolatedQueue = [];
 
     /**
      * @var array<string, WorkerHandle>
@@ -134,12 +147,9 @@ final class Orchestrator
             $this->entriesById[(string) $entry->id] = $entry;
         }
 
-        $this->queue = \array_values(\array_filter(
-            new Distributor()->slices($plan, $workerCount),
-            static fn(ExecutionPlan $slice): bool => \count($slice) > 0,
-        ));
+        [$this->queue, $this->isolatedQueue] = new Distributor()->units($plan);
 
-        if ($this->queue === []) {
+        if ($this->queue === [] && $this->isolatedQueue === []) {
             return $this->summary;
         }
 
@@ -214,8 +224,7 @@ final class Orchestrator
      */
     private function spawnUpTo(int $workerCount, string $address, string $token, EventSink $sink): void
     {
-        while (!$this->draining && $this->queue !== [] && $this->activeCount() < $workerCount) {
-            $slice = \array_shift($this->queue);
+        while (!$this->draining && $this->pendingUnits() > $this->unassignedActiveCount() && $this->activeCount() < $workerCount) {
             $workerId = 'w-' . ++$this->spawnedCount;
 
             $command = [...$this->workerCommand, '__worker', $address, $workerId, $token];
@@ -241,7 +250,6 @@ final class Orchestrator
             \fclose($pipes[0]);
 
             $handle = new WorkerHandle($workerId, $process, $pipes[1], $pipes[2]);
-            $handle->slice = $slice;
             $this->handles[$workerId] = $handle;
 
             $status = \proc_get_status($process);
@@ -264,10 +272,33 @@ final class Orchestrator
 
     private function finished(): bool
     {
-        if ($this->queue !== [] && !$this->draining) {
+        if ($this->pendingUnits() > 0 && !$this->draining) {
             return false;
         }
         return array_all($this->handles, fn($handle) => $handle->done);
+    }
+
+    private function pendingUnits(): int
+    {
+        return \count($this->queue) + \count($this->isolatedQueue);
+    }
+
+    /**
+     * Live workers that have not yet received their first assignment; they
+     * will consume queue units, so spawning must not over-provision for the
+     * same units.
+     */
+    private function unassignedActiveCount(): int
+    {
+        $count = 0;
+
+        foreach ($this->handles as $handle) {
+            if (!$handle->done && $handle->assigned === null) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 
     /**
@@ -317,24 +348,12 @@ final class Orchestrator
             if ($message instanceof Hello && $message->token === $token) {
                 $handle = $this->handles[$message->workerId] ?? null;
 
-                if ($handle !== null && $handle->channel === null && $handle->slice !== null) {
+                if ($handle !== null && $handle->channel === null) {
                     $handle->channel = $channel;
-
-                    try {
-                        $channel->send(new Assign(
-                            $handle->slice,
-                            $this->recycleAfterTests,
-                            $this->recycleAboveMemoryBytes,
-                            $this->coverageSettings?->includePaths,
-                            $this->coverageSettings?->driver,
-                            $this->configFile === '' ? null : $this->configFile,
-                            $this->detectLeaks,
-                        ));
-                    } catch (ProtocolError) {
-                        // The worker died before its assignment arrived; crash
-                        // containment reassigns the slice to a replacement.
-                        $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
-                    }
+                    // Fresh workers may take isolated units; a reused worker
+                    // never does, because isolation promises a process no
+                    // other test has touched.
+                    $this->assignNext($handle, $sink, allowIsolated: true);
 
                     continue;
                 }
@@ -351,6 +370,62 @@ final class Orchestrator
         }
 
         $this->awaitingHello = $still;
+    }
+
+    /**
+     * Hands the next queue unit to a connected worker, or drains it when no
+     * suitable work remains. Fresh workers (first assignment) may take
+     * isolated units once the pooled queue is empty.
+     */
+    private function assignNext(WorkerHandle $handle, EventSink $sink, bool $allowIsolated): void
+    {
+        $channel = $handle->channel;
+
+        if (!$channel instanceof SocketChannel) {
+            return;
+        }
+
+        $unit = null;
+        $isolated = false;
+
+        if (!$this->draining) {
+            $unit = \array_shift($this->queue);
+
+            if ($unit === null && $allowIsolated) {
+                $unit = \array_shift($this->isolatedQueue);
+                $isolated = $unit !== null;
+            }
+        }
+
+        if ($unit === null) {
+            try {
+                $channel->send(new Drain());
+            } catch (ProtocolError) {
+                // Already gone; crash detection covers it.
+            }
+
+            $this->finishHandle($handle);
+
+            return;
+        }
+
+        $handle->beginAssignment($unit, $isolated);
+
+        try {
+            $channel->send(new Assign(
+                $unit,
+                $this->recycleAfterTests,
+                $this->recycleAboveMemoryBytes,
+                $this->coverageSettings?->includePaths,
+                $this->coverageSettings?->driver,
+                $this->configFile === '' ? null : $this->configFile,
+                $this->detectLeaks,
+            ));
+        } catch (ProtocolError) {
+            // The worker died before the assignment arrived; containment
+            // re-enqueues the whole unit for a replacement.
+            $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
+        }
     }
 
     private function pumpChannels(EventSink $sink): void
@@ -379,15 +454,32 @@ final class Orchestrator
                     $this->mergeCoverage($message->coverage);
                     $this->leaks = [...$this->leaks, ...$message->leaks];
 
-                    try {
-                        $channel->send(new Drain());
-                    } catch (ProtocolError) {
-                        // Already gone after done; nothing left to drain.
+                    if ($message->wantsRecycle instanceof RecycleReason) {
+                        // The worker's cumulative budget is spent; it exits
+                        // after Done and a replacement covers the queue.
+                        $sink->emit(new WorkerRecycled($handle->workerId, $message->wantsRecycle, \microtime(true)));
+                        $this->finishHandle($handle);
+
+                        break;
                     }
 
-                    $this->finishHandle($handle);
+                    if ($this->draining || $handle->isolatedAssignment) {
+                        try {
+                            $channel->send(new Drain());
+                        } catch (ProtocolError) {
+                            // Already gone after done; nothing left to drain.
+                        }
 
-                    break;
+                        $this->finishHandle($handle);
+
+                        break;
+                    }
+
+                    $this->assignNext($handle, $sink, allowIsolated: false);
+
+                    if ($handle->done) {
+                        break;
+                    }
                 } elseif ($message instanceof Fatal) {
                     throw new ProtocolError(\sprintf(
                         'Worker "%s" reported a fatal framework error: %s (%s:%d)',
@@ -448,7 +540,18 @@ final class Orchestrator
     private function detectCrashes(EventSink $sink): void
     {
         foreach ($this->handles as $handle) {
-            if ($handle->done || $handle->channel === null) {
+            if ($handle->done) {
+                continue;
+            }
+
+            if ($handle->channel === null) {
+                // Died before it ever connected: nothing was assigned yet,
+                // so containment just reaps the handle and the spawn loop
+                // provisions a replacement for the still-queued work.
+                if (!$handle->isRunning()) {
+                    $this->containCrash($handle, $sink, 'the worker exited before connecting');
+                }
+
                 continue;
             }
 
@@ -530,17 +633,25 @@ final class Orchestrator
             return;
         }
 
-        $entries = [];
+        $byClass = [];
 
         foreach ($ids as $id) {
             $entry = $this->entriesById[(string) $id] ?? null;
 
-            if ($entry !== null) {
-                $entries[] = $entry;
+            if ($entry === null) {
+                continue;
             }
+
+            if ($entry->metadata->isolated) {
+                $this->isolatedQueue[] = new ExecutionPlan([$entry]);
+
+                continue;
+            }
+
+            $byClass[$entry->id->class][] = $entry;
         }
 
-        if ($entries !== []) {
+        foreach ($byClass as $entries) {
             $this->queue[] = new ExecutionPlan($entries);
         }
     }

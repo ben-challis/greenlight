@@ -39,6 +39,13 @@ Phase 16's baseline, both to justify the work and to prove the delta. Phase 14's
 
 This rewires the most intricate code in the project (crash containment, drain, recycling, the summary cross-check were all hardened against real bugs). Mitigation: the existing orchestrator acceptance suite runs unchanged and green before and after; the cross-check stays on; the old distributor is deleted only at the end of the phase, not the start.
 
+## Measured delta (self-hosted suite, 407 tests at the time, workers=4)
+
+Baseline from Phase 16: 6.204s makespan spread, one static bucket holding 6.6s of busy time while another held 0.4s. After this phase:
+
+- Pull scheduling alone (cold cache): 2.6s spread, every worker at 95% utilisation or better, per-worker class counts of 2/3/31/42 showing the queue balancing load dynamically.
+- With the warm timing cache: 2.0s spread. The slowest class (ParallelRunTest, 4.8s) is assigned first to a worker that runs nothing else, and one worker mops up 71 fast classes. The remaining spread is the floor set by that single indivisible class, which is exactly the case the deferred giant-class splitting would address.
+
 ## Validation
 
 - Unit: queue ordering (LPT, failed-first composition, seeded bypass, unknown classes), per-class containment bookkeeping, spawn budget under the new formula.

@@ -9,8 +9,9 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Records the ids of failed and errored tests while forwarding the stream,
- * feeding the run state that --failed and failed-first ordering consume.
+ * Records the ids of failed and errored tests plus per-class durations while
+ * forwarding the stream, feeding the run state that --failed, failed-first
+ * ordering, and longest-first scheduling consume.
  *
  * @internal
  */
@@ -21,6 +22,11 @@ final class FailedTestsTap implements EventSink
      */
     private array $failedTests = [];
 
+    /**
+     * @var array<non-empty-string, float>
+     */
+    private array $classSeconds = [];
+
     public function __construct(
         private readonly EventSink $inner,
     ) {}
@@ -28,11 +34,16 @@ final class FailedTestsTap implements EventSink
     #[\Override]
     public function emit(Event $event): void
     {
-        if ($event instanceof TestFinished && !$event->result->outcome->isSuccessful()) {
-            $id = (string) $event->result->id;
+        if ($event instanceof TestFinished) {
+            $class = $event->result->id->class;
+            $this->classSeconds[$class] = ($this->classSeconds[$class] ?? 0.0) + $event->result->durationSeconds;
 
-            if ($id !== '') {
-                $this->failedTests[$id] = true;
+            if (!$event->result->outcome->isSuccessful()) {
+                $id = (string) $event->result->id;
+
+                if ($id !== '') {
+                    $this->failedTests[$id] = true;
+                }
             }
         }
 
@@ -45,5 +56,13 @@ final class FailedTestsTap implements EventSink
     public function failedTests(): array
     {
         return \array_keys($this->failedTests);
+    }
+
+    /**
+     * @return array<non-empty-string, float>
+     */
+    public function classSeconds(): array
+    {
+        return $this->classSeconds;
     }
 }

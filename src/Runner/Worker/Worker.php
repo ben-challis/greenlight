@@ -50,8 +50,13 @@ final readonly class Worker
         ?int $stopAfterFailures = null,
         ?WorkerBudget $budget = null,
         ?\Closure $drainRequested = null,
+        ?HarnessScopes $scopes = null,
     ): WorkerRunOutcome {
-        $scopes = new HarnessScopes($this->registry);
+        // Externally owned scopes survive this call, so per-run services
+        // keep worker-lifetime semantics when one worker runs several
+        // assignments; the owner closes the run scope on exit.
+        $ownScopes = !$scopes instanceof HarnessScopes;
+        $scopes ??= new HarnessScopes($this->registry);
         $summary = new ResultSummary();
         $executed = 0;
         $recycleReason = null;
@@ -135,7 +140,9 @@ final readonly class Worker
             $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
         }
 
-        $scopes->closeRun();
+        if ($ownScopes) {
+            $scopes->closeRun();
+        }
 
         return new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained, $leaks);
     }

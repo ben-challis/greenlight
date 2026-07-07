@@ -42,6 +42,13 @@ The initial feature set, built and self-hosted in one development cycle:
   your config files and type-checks matcher calls on the expectation chain,
   covering name typos, argument counts, and argument types.
 - Watch mode: polling watcher, debounced re-runs, failed-first ordering.
+- Demand-driven scheduling: workers pull one class at a time from the
+  orchestrator's queue and are reused across assignments, with the queue
+  ordered longest first from durations recorded in the run state (failed
+  classes still first, seeded runs untouched); cumulative recycling budgets
+  now span assignments, and per-run harness services keep worker-lifetime
+  semantics across them. On the self-hosted suite this cut the makespan
+  spread from 6.2s to 2.0s at four workers.
 - Run profiling: `--profile` appends worker utilisation, boot latency,
   makespan spread, and the slowest classes after the summary, and
   `profile:report --input=<jsonl>` reproduces the block offline from a

@@ -5,61 +5,42 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 
 /**
- * Deterministic assignment of plan entries to worker slices: whole classes
- * placed by stable hash of the class name, so a given seed and code state
- * always yield the same placement. Isolated entries each get a slice of
- * their own, executed by a dedicated fresh worker.
+ * Splits a plan into assignable units for demand-driven scheduling: one unit
+ * per class, in plan order, so workers pull the next class as they finish
+ * and no worker idles while another holds a long static bucket. Isolated
+ * entries each get a unit of their own, executed by a dedicated fresh
+ * worker.
  *
  * @internal
  */
 final readonly class Distributor
 {
     /**
-     * @param positive-int $workerCount
-     *
-     * @return non-empty-list<ExecutionPlan> at most workerCount pooled slices, plus one slice per isolated entry
+     * @return array{list<ExecutionPlan>, list<ExecutionPlan>} pooled per-class units in plan order, then isolated single-entry units
      */
-    public function slices(ExecutionPlan $plan, int $workerCount): array
+    public function units(ExecutionPlan $plan): array
     {
-        /** @var array<int, list<PlanEntry>> $buckets */
-        $buckets = [];
+        $pooled = [];
         $isolated = [];
 
-        foreach ($plan->entriesByClass() as $class => $entries) {
-            $pooled = [];
+        foreach ($plan->entriesByClass() as $entries) {
+            $pooledEntries = [];
 
             foreach ($entries as $entry) {
                 if ($entry->metadata->isolated) {
-                    $isolated[] = $entry;
+                    $isolated[] = new ExecutionPlan([$entry], $plan->seed);
                 } else {
-                    $pooled[] = $entry;
+                    $pooledEntries[] = $entry;
                 }
             }
 
-            if ($pooled !== []) {
-                $bucket = \crc32($class) % $workerCount;
-                $buckets[$bucket] = [...$buckets[$bucket] ?? [], ...$pooled];
+            if ($pooledEntries !== []) {
+                $pooled[] = new ExecutionPlan($pooledEntries, $plan->seed);
             }
         }
 
-        \ksort($buckets);
-        $slices = [];
-
-        foreach ($buckets as $entries) {
-            $slices[] = new ExecutionPlan($entries, $plan->seed);
-        }
-
-        foreach ($isolated as $entry) {
-            $slices[] = new ExecutionPlan([$entry], $plan->seed);
-        }
-
-        if ($slices === []) {
-            $slices[] = new ExecutionPlan([], $plan->seed);
-        }
-
-        return $slices;
+        return [$pooled, $isolated];
     }
 }

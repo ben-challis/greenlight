@@ -240,6 +240,7 @@ final readonly class Application
             }
         }
 
+        $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
         $failedTap = new FailedTestsTap(new ReporterSink($reporter));
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
@@ -249,10 +250,10 @@ final readonly class Application
         try {
             if ($workers === 1 || $realBin === false) {
                 $run = new InProcessRunner()
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -261,7 +262,7 @@ final readonly class Application
         }
 
         $reporter->finish();
-        $state->record($failedTap->failedTests());
+        $state->record($failedTap->failedTests(), $failedTap->classSeconds());
 
         if ($run->plannedTests === 0) {
             ($this->err)("No tests found. A misconfigured run must not pass.\n");
@@ -330,13 +331,15 @@ final readonly class Application
 
                 $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
 
+                $classSeconds = $resolved->randomizeOrder ? [] : RunState::forWorkingDirectory($workingDirectory)->classSeconds();
+
                 try {
                     if ($workers === 1 || $realBin === false) {
                         new InProcessRunner()
-                            ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses);
+                            ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds);
                     } else {
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses);
+                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds);
                     }
                 } catch (DiscoveryError|ProtocolError $error) {
                     ($this->err)($error->getMessage() . "\n");
@@ -345,7 +348,7 @@ final readonly class Application
                 }
 
                 $reporter->finish();
-                RunState::forWorkingDirectory($workingDirectory)->record($failedTap->failedTests());
+                RunState::forWorkingDirectory($workingDirectory)->record($failedTap->failedTests(), $failedTap->classSeconds());
 
                 return $tap->failedClasses();
             };

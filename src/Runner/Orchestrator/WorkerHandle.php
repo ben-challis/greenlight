@@ -11,8 +11,9 @@ use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
  * One spawned worker: its process, its channel once authenticated, its
- * current slice, and the orchestrator-side tally used for crash attribution
- * and summary cross-checks.
+ * current assignment, and the orchestrator-side tally used for crash
+ * attribution and summary cross-checks. Tally and finished-set reset per
+ * assignment, because the worker's Done summary covers one assignment.
  *
  * @internal
  */
@@ -20,7 +21,9 @@ final class WorkerHandle
 {
     public ?SocketChannel $channel = null;
 
-    public ?ExecutionPlan $slice = null;
+    public ?ExecutionPlan $assigned = null;
+
+    public bool $isolatedAssignment = false;
 
     public ResultSummary $tally;
 
@@ -50,6 +53,15 @@ final class WorkerHandle
         public readonly mixed $stderr,
     ) {
         $this->tally = new ResultSummary();
+    }
+
+    public function beginAssignment(ExecutionPlan $unit, bool $isolated): void
+    {
+        $this->assigned = $unit;
+        $this->isolatedAssignment = $isolated;
+        $this->tally = new ResultSummary();
+        $this->finished = [];
+        $this->inFlight = null;
     }
 
     public function isRunning(): bool
@@ -93,23 +105,23 @@ final class WorkerHandle
     }
 
     /**
-     * Entries of the current slice that have not finished, excluding the one
-     * in flight (used for crash reassignment: crashed tests are never
-     * retried automatically).
+     * Entries of the current assignment that have not finished, excluding
+     * the one in flight (used for crash reassignment: crashed tests are
+     * never retried automatically).
      *
      * @return list<TestId>
      */
     public function unfinished(): array
     {
-        $slice = $this->slice;
+        $assigned = $this->assigned;
 
-        if (!$slice instanceof ExecutionPlan) {
+        if (!$assigned instanceof ExecutionPlan) {
             return [];
         }
 
         $remaining = [];
 
-        foreach ($slice->entries as $entry) {
+        foreach ($assigned->entries as $entry) {
             $key = (string) $entry->id;
 
             if (isset($this->finished[$key])) {

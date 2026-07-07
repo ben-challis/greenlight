@@ -27,6 +27,18 @@ final class RunStateTest
     }
 
     #[Test]
+    public function classDurationsRoundTripAndDefaultToEmpty(): void
+    {
+        $state = RunState::forWorkingDirectory('/fake/project-' . \bin2hex(\random_bytes(6)));
+        $expect = new Expect();
+
+        $expect->that($state->classSeconds())->toBe([]);
+
+        $state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        $expect->that($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+    }
+
+    #[Test]
     public function corruptStateReadsAsAbsent(): void
     {
         $directory = '/fake/project-' . \bin2hex(\random_bytes(6));

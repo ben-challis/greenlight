@@ -36,7 +36,7 @@ Default: no suites. Declares a named suite. The configurator receives a `SuiteBu
 
 ### workers(int|string $count = 'auto', int $recycleAfterTests = 500, string $recycleAboveMemory = '256M'): self
 
-Default: `'auto'` workers, recycling after 500 tests or above 256M. `$count` is a positive integer or the string `'auto'` (one worker per CPU core; install the suggested `fidry/cpu-core-counter` for detection that respects cgroup limits in containers). A worker is recycled once it has executed `$recycleAfterTests` tests or its memory use exceeds `$recycleAboveMemory` (a size string such as `'256M'` or `'1G'`).
+Workers pull one class at a time from an orchestrator-held queue as they finish, so a worker never idles behind another's long bucket, and the queue is ordered longest first from durations recorded on the previous run (previously failed classes still go first). Worker placement is therefore load-dependent; what stays deterministic is the queue order for a given plan, within-class method order under the seed, and per-class results. The seed reproduces failures, not placement. Default: `'auto'` workers, recycling after 500 tests or above 256M. `$count` is a positive integer or the string `'auto'` (one worker per CPU core; install the suggested `fidry/cpu-core-counter` for detection that respects cgroup limits in containers). A worker is recycled once it has executed `$recycleAfterTests` tests or its memory use exceeds `$recycleAboveMemory` (a size string such as `'256M'` or `'1G'`).
 
 ### coverage(callable $configurator): self
 
@@ -105,7 +105,7 @@ Options:
 - `--group=<name>` only runs tests in this group. Repeatable.
 - `--filter=<pattern>` only runs tests whose id (`Class::method`, with the data-set label when present) matches. Case-insensitive substring by default; a pattern containing `*` or `?` must match the whole id. Repeatable; patterns union.
 - `--failed` re-runs only the tests that did not pass in the previous run. Failure state is recorded on every run under the system temp dir; with no recorded state this is a usage error, and with an all-passing previous run it reports nothing to re-run and exits 0. When state exists, plain runs also order previously failed classes first (skipped under `--seed`).
-- `--seed=<n>` randomizes class order with this seed.
+- `--seed=<n>` randomizes class order with this seed. Seeded runs also skip the timing-cache ordering below, so the randomized order stays exactly what the seed says.
 - `--reporter=<name>` selects the output format: `tty`, `plain`, `junit`, `jsonl`, `github`, `teamcity`. Repeatable; multiple reporters write concurrently. Default: `tty` on an interactive terminal, otherwise `plain`. `tty` is parallel-aware: one live line per in-flight class with a spinner and running count, finalised in place as each class completes, so multi-worker interleaving never scrambles the display.
 - `--watch` re-runs on file changes. Enter re-runs everything, q quits.
 - `--detect-leaks` verifies every test instance is collected after its test; any leak fails the run.

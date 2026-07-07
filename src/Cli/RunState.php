@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * Persists the previous run's failure set between invocations, so --failed
- * can re-run it and plain runs can order failed classes first. The file
+ * Persists the previous run's failure set and per-class durations between
+ * invocations: --failed re-runs the failures, plain runs order failed
+ * classes first, and the scheduler orders the rest longest first. The file
  * lives under the system temp dir keyed by a hash of the working directory,
  * the same convention as the proxy cache, so the project tree stays
- * untouched and a lost file costs one full run.
+ * untouched and a lost file costs one full run plus one unpacked schedule.
  *
  * @internal
  */
@@ -37,6 +38,28 @@ final readonly class RunState
      */
     public function failedTests(): ?array
     {
+        $decoded = $this->decoded();
+
+        if ($decoded === null || !\is_array($decoded['failed'] ?? null)) {
+            return null;
+        }
+
+        $ids = [];
+
+        foreach ($decoded['failed'] as $id) {
+            if (\is_string($id) && $id !== '') {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @return array<mixed>|null
+     */
+    private function decoded(): ?array
+    {
         if (!\is_file($this->file)) {
             return null;
         }
@@ -53,28 +76,42 @@ final readonly class RunState
             return null;
         }
 
-        if (!\is_array($decoded) || !\is_array($decoded['failed'] ?? null)) {
-            return null;
+        return \is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Recorded class durations from the previous run, advisory only: a
+     * missing or corrupt file reads as no data.
+     *
+     * @return array<non-empty-string, float>
+     */
+    public function classSeconds(): array
+    {
+        $decoded = $this->decoded();
+
+        if ($decoded === null || !\is_array($decoded['classSeconds'] ?? null)) {
+            return [];
         }
 
-        $ids = [];
+        $durations = [];
 
-        foreach ($decoded['failed'] as $id) {
-            if (\is_string($id) && $id !== '') {
-                $ids[] = $id;
+        foreach ($decoded['classSeconds'] as $class => $seconds) {
+            if (\is_string($class) && $class !== '' && (\is_float($seconds) || \is_int($seconds))) {
+                $durations[$class] = (float) $seconds;
             }
         }
 
-        return $ids;
+        return $durations;
     }
 
     /**
      * @param list<non-empty-string> $failedTests
+     * @param array<non-empty-string, float> $classSeconds
      */
-    public function record(array $failedTests): void
+    public function record(array $failedTests, array $classSeconds = []): void
     {
         @\file_put_contents($this->file, \json_encode(
-            ['failed' => $failedTests],
+            ['failed' => $failedTests, 'classSeconds' => $classSeconds],
             \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES,
         ));
     }
