@@ -10,6 +10,8 @@ It runs suites in parallel by default, keeps memory usage stable across long run
 
 Greenlight already tests itself. This repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
 
+![Greenlight running its own test suite in parallel](docs/demo.gif)
+
 ## Why Greenlight?
 
 PHP test suites tend to get slower as they grow. They also get harder to trust when state leaks between tests, CI logs are noisy, worker memory creeps upward, or failures only reproduce on one machine.
