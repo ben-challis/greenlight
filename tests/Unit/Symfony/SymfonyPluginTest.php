@@ -17,6 +17,7 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Symfony\Service;
 use Greenlight\Symfony\SymfonyBridgeError;
 use Greenlight\Symfony\SymfonyPlugin;
+use Greenlight\Tests\Fixture\Symfony\BareKernel;
 use Greenlight\Tests\Fixture\Symfony\FixtureKernel;
 use Greenlight\Tests\Fixture\Symfony\Greeter;
 use Greenlight\Tests\Fixture\Symfony\NamedGreeter;
@@ -87,15 +88,52 @@ final class SymfonyPluginTest
     }
 
     #[Test]
-    public function withoutTheTestContainerExplicitIdsHintAtFrameworkTest(): void
+    public function aKernelWithoutTheTestContainerFailsAtBoot(): void
     {
-        // The prod environment compiles without framework.test, so private
-        // services vanish and the error points at the missing test container.
+        // The prod environment compiles without framework.test; the boot
+        // validation rejects it before any resolution can degrade silently.
         $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'prod', debug: true);
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(NamedGreeter::class, [new Service('fixture.named_greeter')]);
+            $plugin->resolve(Greeter::class, []);
         })->toThrow(SymfonyBridgeError::class, matching: '/framework\.test/');
+    }
+
+    #[Test]
+    public function aKernelWithoutServicesResetterFailsAtBoot(): void
+    {
+        $plugin = new SymfonyPlugin(static fn(): KernelInterface => BareKernel::withTestContainer());
+
+        Expect::that(static function () use ($plugin): void {
+            $plugin->resolve(Greeter::class, []);
+        })->toThrow(SymfonyBridgeError::class, matching: '/services_resetter.*resetBetweenTests: false/s');
+    }
+
+    #[Test]
+    public function waivingResetsAcceptsAKernelWithoutTheResetter(): void
+    {
+        $plugin = new SymfonyPlugin(
+            static fn(): KernelInterface => BareKernel::withTestContainer(),
+            resetBetweenTests: false,
+        );
+
+        Expect::that($plugin->resolve(Greeter::class, []))->toBeNull();
+    }
+
+    #[Test]
+    public function waivedResetsLeaveStateInPlace(): void
+    {
+        $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'test', debug: true, resetBetweenTests: false);
+        $counter = $plugin->resolve(VisitCounter::class, []);
+
+        if (!$counter instanceof VisitCounter) {
+            throw new \RuntimeException('Expected the VisitCounter.');
+        }
+
+        $counter->record();
+        $plugin->afterTest($this->context(), $this->result());
+
+        Expect::that($counter->count())->toBe(1);
     }
 
     #[Test]

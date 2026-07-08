@@ -31,8 +31,10 @@ service.
 
 Requirements: `symfony/framework-bundle` 6.4, 7.x, or 8.x in your project,
 and a kernel environment with `framework.test: true` (the standard `test`
-environment). Without the test container, private services are unreachable
-and explicit-id lookups fail with a hint saying exactly that.
+environment). The bridge validates its strategy once at boot and fails
+loudly when the kernel cannot honour it: a container without the test
+container, or without `services_resetter` while resets are active, is a
+configuration error naming the fix, never a silent degradation.
 
 ## Injecting services
 
@@ -91,6 +93,12 @@ framework uses between requests: every service tagged `kernel.reset`
 Doctrine's `ManagerRegistry`, cache pools, and the profiler out of the box)
 is reset. A stateful service of your own that must not leak across tests
 should implement `ResetInterface`.
+
+The resetter is captured and validated at kernel boot; a container without
+it fails every test rather than running unisolated. For the rare container
+with genuinely no stateful services, `resetBetweenTests: false` on the
+plugin waives the requirement explicitly. It is unsafe with any service
+that carries state: tests on one worker then share every instance unreset.
 
 There is no transaction-per-test wrapping and none is planned: it breaks
 any test crossing a process or connection boundary. Data written by a test

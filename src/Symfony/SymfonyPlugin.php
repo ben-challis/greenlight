@@ -27,18 +27,23 @@ use Symfony\Contracts\Service\ResetInterface;
  * lifetime; KernelInterface itself is injectable as a per-run harness
  * service through services().
  *
- * resolve() serves constructor parameters no harness service covers: the
- * declared type is looked up in the container, and a #[Service] attribute on
- * the parameter overrides the lookup with an explicit id. Private services
- * resolve through Symfony's test container, which requires the kernel to be
- * booted with framework.test enabled; without it, only public services are
- * reachable and explicit ids fail with a hint.
+ * The isolation strategy is validated once at boot, and a kernel that
+ * cannot honour it is a configuration error, never a silent degradation:
+ * the container must expose Symfony's test container (framework.test
+ * enabled), and unless resets are explicitly waived it must expose
+ * services_resetter. Passing resetBetweenTests: false waives the reset
+ * requirement for containers with no stateful services; it is unsafe with
+ * any service that carries state across tests.
  *
- * afterTest() calls the container's services_resetter, so stateful services
- * reset between tests without rebooting the kernel. Tests on one worker
- * share the kernel, and isolation of external resources (databases, caches)
- * belongs to the container build, keyed off the GREENLIGHT_CHANNEL
- * environment variable.
+ * resolve() serves constructor parameters no harness service covers: the
+ * declared type is looked up in the test container, and a #[Service]
+ * attribute on the parameter overrides the lookup with an explicit id.
+ *
+ * afterTest() resets every kernel.reset tagged service through the
+ * services_resetter captured at boot, so stateful services reset between
+ * tests without rebooting the kernel. Tests on one worker share the kernel,
+ * and isolation of external resources (databases, caches) belongs to the
+ * container build, keyed off the GREENLIGHT_CHANNEL environment variable.
  */
 final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
 {
@@ -49,14 +54,25 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
 
     private ?KernelInterface $kernel = null;
 
+    private ?ContainerInterface $testContainer = null;
+
+    private ?ResetInterface $resetter = null;
+
     /**
      * @param string|\Closure(): KernelInterface $kernel
      *   A kernel class name to construct as new $kernel($env, $debug), or a
      *   closure returning the kernel when exotic construction is needed.
      * @param non-empty-string $env
+     * @param bool $resetBetweenTests
+     *   Set to false only when the container holds no stateful services;
+     *   tests on one worker then share every service instance unreset.
      */
-    public function __construct(string|\Closure $kernel, string $env = 'test', bool $debug = false)
-    {
+    public function __construct(
+        string|\Closure $kernel,
+        string $env = 'test',
+        bool $debug = false,
+        private readonly bool $resetBetweenTests = true,
+    ) {
         $this->factory = $kernel instanceof \Closure
             ? $kernel
             : static function () use ($kernel, $env, $debug): KernelInterface {
@@ -98,7 +114,7 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
 
         if (!$container->has($id)) {
             if ($id !== $type) {
-                throw SymfonyBridgeError::unknownServiceId($id, $type, $this->hasTestContainer());
+                throw SymfonyBridgeError::unknownServiceId($id, $type);
             }
 
             return null;
@@ -119,54 +135,58 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {
-        $kernel = $this->kernel;
-
-        if ($kernel instanceof KernelInterface) {
-            $container = $kernel->getContainer();
-
-            if ($container->has('services_resetter')) {
-                $resetter = $container->get('services_resetter');
-
-                if ($resetter instanceof ResetInterface) {
-                    $resetter->reset();
-                }
-            }
-        }
+        // Set exactly when the kernel booted with the reset strategy; boot
+        // validation guarantees it, so a null here means either no kernel
+        // was used yet or resets were explicitly waived.
+        $this->resetter?->reset();
 
         return $result;
     }
 
+    /**
+     * Boots the kernel on first use and validates the isolation strategy
+     * before memoizing anything, so a kernel that cannot honour it fails
+     * every test loudly instead of running unisolated.
+     */
     private function kernel(): KernelInterface
     {
-        if (!$this->kernel instanceof KernelInterface) {
-            $this->kernel = ($this->factory)();
-            $this->kernel->boot();
+        if ($this->kernel instanceof KernelInterface) {
+            return $this->kernel;
         }
 
-        return $this->kernel;
+        $kernel = ($this->factory)();
+        $kernel->boot();
+        $container = $kernel->getContainer();
+
+        $testContainer = $container->has('test.service_container')
+            ? $container->get('test.service_container')
+            : null;
+
+        if (!$testContainer instanceof ContainerInterface) {
+            throw SymfonyBridgeError::testContainerUnavailable($kernel->getEnvironment());
+        }
+
+        if ($this->resetBetweenTests) {
+            $resetter = $container->has('services_resetter') ? $container->get('services_resetter') : null;
+
+            if (!$resetter instanceof ResetInterface) {
+                throw SymfonyBridgeError::resetterUnavailable($kernel->getEnvironment());
+            }
+
+            $this->resetter = $resetter;
+        }
+
+        $this->testContainer = $testContainer;
+        $this->kernel = $kernel;
+
+        return $kernel;
     }
 
-    /**
-     * The test container when framework.test exposed it, the compiled
-     * container otherwise.
-     */
     private function container(): ContainerInterface
     {
-        $container = $this->kernel()->getContainer();
+        $this->kernel();
+        \assert($this->testContainer instanceof ContainerInterface);
 
-        if ($container->has('test.service_container')) {
-            $testContainer = $container->get('test.service_container');
-
-            if ($testContainer instanceof ContainerInterface) {
-                return $testContainer;
-            }
-        }
-
-        return $container;
-    }
-
-    private function hasTestContainer(): bool
-    {
-        return $this->kernel()->getContainer()->has('test.service_container');
+        return $this->testContainer;
     }
 }
