@@ -98,14 +98,22 @@ Run the suite:
 ```bash
 $ vendor/bin/greenlight run
 
-  ✓ PriceTest multipliesLineTotals [two units]
-  ✓ PriceTest multipliesLineTotals [three small units]
-  ✓ PriceTest rejectsNegativeQuantities
+Greenlight dev-main | PHP 8.4.14 | config: greenlight.php | workers: 11
 
-  3 passed in 0.1s
+3 tests, 3 passed, 3 expectations
+Time: 0.110s
+Workers: 1 spawned
 ```
 
-On an interactive terminal, Greenlight uses a live, parallel-aware display. In CI, the plain reporter emits deterministic append-only output. Reporters are repeatable, so a run can emit terminal output, JUnit, and JSONL from the same execution: `--reporter=plain --reporter=junit --reporter=jsonl`.
+While the run is in flight, an interactive terminal shows a live progress window with per-worker class activity; `--verbose` keeps a permanent line per completed class. In CI, the plain reporter emits deterministic append-only output with one line per test:
+
+```
+PASS App\Tests\PriceTest::multipliesLineTotals[two units] (0.001s)
+PASS App\Tests\PriceTest::multipliesLineTotals[three small units] (0.000s)
+PASS App\Tests\PriceTest::rejectsNegativeQuantities (0.000s)
+```
+
+Reporters are repeatable, so a run can emit terminal output, JUnit, and JSONL from the same execution: `--reporter=plain --reporter=junit --reporter=jsonl`.
 
 ## Parallel execution
 
