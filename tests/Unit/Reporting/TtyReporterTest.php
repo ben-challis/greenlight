@@ -44,7 +44,7 @@ final class TtyReporterTest
         Expect::that($buffer)->toContain("\x1b[2A\r\x1b[0J")
             ->and($buffer)->toContain('Greenlight dev-main | PHP 8.4.0 | config: greenlight.php | seed: 4242 | workers: 2')
             // Only the failing class earns a permanent line; the pass just counts.
-            ->and($buffer)->not()->toContain('✓ App\AlphaTest')
+            ->and($buffer)->not()->toContain("\x1b[32m✓\x1b[0m App\AlphaTest")
             ->and($buffer)->toContain("\x1b[31m✗\x1b[0m App\BetaTest (1 test, 1 failed, 0.010s)")
             ->and($buffer)->toContain("2 tests, \x1b[32m1 passed\x1b[0m, \x1b[31m1 failed\x1b[0m, 0 expectations");
     }
