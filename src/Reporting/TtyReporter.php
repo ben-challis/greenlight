@@ -6,11 +6,13 @@ namespace Greenlight\Reporting;
 
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RunFinished;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 
 /**
@@ -24,9 +26,11 @@ use Greenlight\Core\Result\TestResult;
  * The live region is redrawn on every event, which is also what advances the
  * spinner.
  *
- * Without ANSI support the live region is skipped and each class prints one
- * summary line as it finishes. A seed line is appended when the run was
- * randomized.
+ * In bounded mode a cleanly passing class prints nothing permanent; only
+ * classes containing failures or skips append a line, the moment they
+ * finish. verbose restores a permanent line per class. Without cursor
+ * support the live region is skipped and every class appends its line, so
+ * output degrades to append-only rather than losing information.
  *
  * @internal
  */
@@ -43,6 +47,11 @@ final class TtyReporter implements Reporter
      * @var list<TestResult>
      */
     private array $problems = [];
+
+    /**
+     * @var list<TestResult>
+     */
+    private array $skipped = [];
 
     /**
      * @var list<non-empty-string>
@@ -64,19 +73,33 @@ final class TtyReporter implements Reporter
 
     private ?RunFinished $runFinished = null;
 
+    private readonly Style $style;
+
     private readonly SlowTests $slowTests;
 
     public function __construct(
         private readonly Output\Output $output,
-        private readonly bool $ansi,
-        private readonly ?int $seed = null,
+        bool $colour,
+        private readonly bool $cursor,
+        private readonly ?RunHeader $header = null,
+        bool $extendedSlowTests = false,
+        private readonly bool $verbose = false,
     ) {
-        $this->slowTests = new SlowTests();
+        $this->style = new Style($colour);
+        $this->slowTests = new SlowTests($extendedSlowTests);
     }
 
     #[\Override]
     public function onEvent(Event $event): void
     {
+        if ($event instanceof RunStarted) {
+            if ($this->header instanceof RunHeader) {
+                $this->output->write($this->header->render($event->workers) . "\n\n");
+            }
+
+            return;
+        }
+
         if ($event instanceof TestClassStarted) {
             $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0];
             $this->redraw();
@@ -96,13 +119,17 @@ final class TtyReporter implements Reporter
 
                 if (!$result->outcome->isSuccessful()) {
                     ++$this->live[$class]['failed'];
-                } elseif ($result->skipReason !== null) {
+                } elseif ($result->outcome === Outcome::Skipped) {
                     ++$this->live[$class]['skipped'];
                 }
             }
 
             if (!$result->outcome->isSuccessful()) {
                 $this->problems[] = $result;
+            }
+
+            if ($result->outcome === Outcome::Skipped) {
+                $this->skipped[] = $result;
             }
 
             if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
@@ -145,7 +172,7 @@ final class TtyReporter implements Reporter
         foreach ($this->problems as $problem) {
             $this->output->write(\sprintf(
                 "\n%s %s\n%s",
-                ProblemDetails::outcomeLabel($problem),
+                $this->style->fail(ProblemDetails::outcomeLabel($problem)),
                 $problem->id,
                 ProblemDetails::render($problem),
             ));
@@ -154,31 +181,21 @@ final class TtyReporter implements Reporter
         $finished = $this->runFinished;
 
         if ($finished instanceof RunFinished) {
-            $summary = $finished->summary;
-
             $this->output->write(\sprintf(
-                "\nTests: %d, Passed: %d, Failed: %d, Errored: %d, Skipped: %d, Expectations: %d\nTime: %.3fs\n",
-                $summary->total(),
-                $summary->passed,
-                $summary->failed,
-                $summary->errored,
-                $summary->skipped,
-                $this->expectations,
+                "\n%s\nTime: %.3fs\n",
+                SummaryFormat::tests($finished->summary, $this->expectations, $this->style),
                 $finished->durationSeconds,
             ));
         }
 
-        $this->output->write(\sprintf(
-            "Workers: %d spawned, %d recycled\n",
-            $this->workersSpawned,
-            $this->workersRecycled,
-        ));
+        $workers = SummaryFormat::workers($this->workersSpawned, $this->workersRecycled);
 
-        if ($this->seed !== null) {
-            $this->output->write(\sprintf("Seed: %d\n", $this->seed));
+        if ($workers !== null) {
+            $this->output->write($workers . "\n");
         }
 
-        $this->output->write($this->slowTests->render());
+        $this->output->write(SummaryFormat::skipped($this->skipped, $this->style));
+        $this->output->write($this->slowTests->render($this->style));
 
         if ($this->risky !== []) {
             $this->output->write(\sprintf(
@@ -195,7 +212,11 @@ final class TtyReporter implements Reporter
         unset($this->live[$class]);
 
         $this->eraseLiveRegion();
-        $this->output->write($this->finalLine($class, $state) . "\n");
+
+        if ($this->verbose || !$this->cursor || $state['failed'] > 0 || $state['skipped'] > 0) {
+            $this->output->write($this->finalLine($class, $state) . "\n");
+        }
+
         $this->redraw();
     }
 
@@ -204,26 +225,28 @@ final class TtyReporter implements Reporter
      */
     private function finalLine(string $class, array $state): string
     {
-        $counts = \sprintf('%d tests', $state['done']);
+        $counts = Style::count($state['done'], 'test');
 
         if ($state['failed'] > 0) {
             $counts .= \sprintf(', %d failed', $state['failed']);
         }
 
         if ($state['skipped'] > 0) {
-            $counts .= \sprintf(', %d skipped', $state['skipped']);
+            $counts .= $state['skipped'] === $state['done']
+                ? ', skipped'
+                : \sprintf(', %d skipped', $state['skipped']);
         }
 
         $mark = $state['failed'] > 0
-            ? $this->paint('✗', '31')
-            : ($state['done'] === $state['skipped'] && $state['done'] > 0 ? $this->paint('−', '33') : $this->paint('✓', '32'));
+            ? $this->style->fail('✗')
+            : ($state['done'] === $state['skipped'] && $state['done'] > 0 ? $this->style->skip('−') : $this->style->pass('✓'));
 
-        return \sprintf('%s %s (%s, %.3fs)', $mark, $class, $counts, $state['duration']);
+        return \sprintf('%s %s (%s, %s)', $mark, $class, $counts, $this->style->duration($state['duration']));
     }
 
     private function redraw(): void
     {
-        if (!$this->ansi) {
+        if (!$this->cursor) {
             return;
         }
 
@@ -232,7 +255,7 @@ final class TtyReporter implements Reporter
         $spinner = self::SPINNER[$this->spinnerFrame];
 
         foreach ($this->live as $class => $state) {
-            $mark = $state['failed'] > 0 ? $this->paint('✗', '31') : $this->paint($spinner, '2');
+            $mark = $state['failed'] > 0 ? $this->style->fail('✗') : $this->style->dim($spinner);
             $this->output->write(\sprintf("%s %s (%d)\n", $mark, $class, $state['done']));
         }
 
@@ -241,21 +264,12 @@ final class TtyReporter implements Reporter
 
     private function eraseLiveRegion(): void
     {
-        if (!$this->ansi || $this->drawnLines === 0) {
+        if (!$this->cursor || $this->drawnLines === 0) {
             return;
         }
 
         // Move to the start of the live region and clear to screen end.
         $this->output->write(\sprintf("\x1b[%dA\r\x1b[0J", $this->drawnLines));
         $this->drawnLines = 0;
-    }
-
-    private function paint(string $glyph, string $code): string
-    {
-        if (!$this->ansi) {
-            return $glyph;
-        }
-
-        return \sprintf("\x1b[%sm%s\x1b[0m", $code, $glyph);
     }
 }

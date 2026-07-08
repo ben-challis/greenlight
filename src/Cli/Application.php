@@ -42,6 +42,7 @@ use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\ProfileAggregator;
 use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\TtyReporter;
 use Greenlight\Runner\CoverageSettings;
@@ -108,6 +109,7 @@ final readonly class Application
           --fail-on-risky    Fail passed tests that verified no expectations
           --profile          Append a run profile (worker utilisation, boot latency,
                              makespan spread, slowest classes) after the summary
+                             and extend the slowest-tests list
           --dry-run          Print the resolved configuration without executing
           -h, --help         Show this help
           -V, --version      Show the version
@@ -226,7 +228,7 @@ final readonly class Application
         }
 
         try {
-            $reporter = $this->buildReporter($arguments, $resolved->randomSeed);
+            $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory);
         } catch (CliError $error) {
             ($this->err)($error->getMessage() . "\n");
 
@@ -362,7 +364,7 @@ final readonly class Application
                 ));
 
                 try {
-                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed);
+                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory);
                 } catch (CliError $error) {
                     ($this->err)($error->getMessage() . "\n");
 
@@ -564,7 +566,7 @@ final readonly class Application
     /**
      * @throws CliError
      */
-    private function buildReporter(ParsedArguments $arguments, ?int $seed): Reporter
+    private function buildReporter(ParsedArguments $arguments, ?int $seed, string $configFile, string $workingDirectory): Reporter
     {
         $output = new StreamOutput(\STDOUT);
         $ansi = \function_exists('stream_isatty') && @\stream_isatty(\STDOUT);
@@ -575,12 +577,16 @@ final readonly class Application
             $names = [$ansi ? 'tty' : 'plain'];
         }
 
+        $prefix = \rtrim($workingDirectory, '/') . '/';
+        $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
+        $header = new RunHeader(self::VERSION, $displayedConfig, $seed);
+        $profile = $arguments->has('profile');
         $reporters = [];
 
         foreach ($names as $name) {
             $reporters[] = match ($name) {
-                'tty' => new TtyReporter($output, $ansi, $seed),
-                'plain' => new PlainReporter($output),
+                'tty' => new TtyReporter($output, $ansi, $ansi, $header, extendedSlowTests: $profile),
+                'plain' => new PlainReporter($output, $header, extendedSlowTests: $profile),
                 'junit' => new JUnitReporter($output),
                 'jsonl' => new JsonLinesReporter($output),
                 'github' => new GithubReporter($output),
@@ -592,7 +598,7 @@ final readonly class Application
             };
         }
 
-        if ($arguments->has('profile')) {
+        if ($profile) {
             $reporters[] = new ProfileReporter($output);
         }
 
