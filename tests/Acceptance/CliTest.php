@@ -82,6 +82,10 @@ final class CliTest
     #[Test]
     public function noAnsiAndVerboseAreAcceptedAndOutputStaysEscapeFree(): void
     {
+        // The subprocess pipes stdout, so detection already lands on plain
+        // output with or without the flag; this pins flag parsing and the
+        // escape-free contract, while the TTY behaviour matrix lives in
+        // TerminalCapabilitiesTest and TtyReporterTest.
         [$exit, $output] = $this->runCli(['run', '--no-ansi', '--verbose'], 'tests/Fixture/ListTestsConfig');
 
         Check::same(0, $exit, 'no-ansi verbose run exit code');
