@@ -8,7 +8,7 @@ It runs suites in parallel by default, keeps memory usage stable across long run
 
 **Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
 
-Greenlight already tests itself. This repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
+Greenlight already tests itself. This repository's suite runs under its own `bin/greenlight run` across an auto-sized worker pool.
 
 ![Greenlight running its own test suite in parallel](docs/demo.gif)
 
@@ -91,6 +91,8 @@ return GreenlightConfig::create()
     ->workers(count: 'auto');
 ```
 
+The same fluent API covers the rest of the runner: `suite()` declares named suites with per-suite filtering, `coverage()` selects a driver and export formats, `watch()` tunes the watch-mode debounce, `randomizeOrder()` opts into seeded random ordering, `failFast()` stops the run on first failure, and `ignoreDeprecationsMatching()` exempts known dependency deprecations from `failOnDeprecation()`. The full surface is in the [configuration reference](docs/configuration.md).
+
 Run the suite:
 
 ```bash
@@ -103,7 +105,7 @@ $ vendor/bin/greenlight run
   3 passed in 0.1s
 ```
 
-On an interactive terminal, Greenlight uses a live, parallel-aware display. In CI, the plain reporter emits deterministic append-only output. Reporters are repeatable, so a run can emit terminal output, JUnit, and JSONL from the same execution.
+On an interactive terminal, Greenlight uses a live, parallel-aware display. In CI, the plain reporter emits deterministic append-only output. Reporters are repeatable, so a run can emit terminal output, JUnit, and JSONL from the same execution: `--reporter=plain --reporter=junit --reporter=jsonl`.
 
 ## Parallel execution
 
@@ -115,7 +117,7 @@ Worker recycling keeps long suites healthy. A worker can be recycled after a tes
 
 ## Isolation
 
-Some tests need a clean process. Greenlight supports explicit isolation for those cases without forcing the entire suite into the slowest mode.
+Some tests need a clean process. Greenlight runs tests marked `#[Isolated]` in a fresh process without forcing the entire suite into the slowest mode.
 
 Use isolation when a test mutates global state, touches process-wide configuration, exercises shutdown behaviour, or loads code that cannot be safely unloaded. The rest of the suite can continue to run in the normal worker pool.
 
@@ -135,11 +137,13 @@ Reproduce the numbers with:
 php tools/benchmark.php --with-phpunit
 ```
 
-CI runs the benchmark harness so it stays current.
+CI smoke-runs the benchmark harness so the tooling keeps working; the published numbers come from full local runs.
 
 ## Strict test doubles
 
 Greenlight's test doubles are designed to catch accidental gaps in verification.
+
+Tests receive a per-test `Doubles` service through constructor injection and create doubles with `mock()`, `stub()`, and `spy()`.
 
 Mocks answer only planned interactions. Stubs satisfy a type and error on unexpected interaction. Spies record void-returning calls. Every double is verified when its test ends, and an unmet plan is reported like an assertion failure.
 
@@ -186,11 +190,16 @@ Greenlight includes the controls needed for local development and CI:
 * `--filter` for name patterns.
 * `--group` for tagged subsets.
 * `--failed` to re-run the previous run's failures.
+* `--bail[=n]` to stop after the first (or nth) failure.
 * `--shard=n/m` to split a suite across CI machines without coordination.
 * `--seed=N` to reproduce randomized order exactly.
-* `--workers=N` to control parallelism.
-* `--workers=1` for sequential debugging.
-* Watch mode with debounced re-runs and failed-first ordering.
+* `--workers=N` to control parallelism; `--workers=1` runs sequentially for debugging.
+* `--reporter=<name>` to select output, repeatable to emit several formats at once.
+* `--watch` for debounced re-runs with failed-first ordering.
+* `--config=<path>` to run against a config file other than `./greenlight.php`.
+* `--dry-run` to print the resolved configuration without executing.
+
+`--no-ansi` disables colours and the live progress window, and `--verbose` prints a permanent line per completed class. The `list-tests` command prints every discovered test id, one per line, for tooling and shard debugging.
 
 Per-test output capture keeps stdout and PHP diagnostics attached to the result that produced them.
 
@@ -217,7 +226,7 @@ CI gates include:
 
 * `--fail-on-deprecation`
 * `--fail-on-notice`
-* config allow-lists for dependency noise
+* `ignoreDeprecationsMatching()` to exempt known dependency deprecations
 * coverage through pcov or Xdebug
 * `coverage:diff` for regression gating
 
@@ -229,7 +238,7 @@ Coverage export formats:
 * cobertura
 * html
 
-Greenlight uses distinct exit semantics. A run that discovers zero tests fails as a misconfiguration.
+Exit codes are deterministic: 0 for success, 1 for any failure, 64 for usage errors. A run that discovers zero tests exits 1 as a misconfiguration.
 
 ## Extending Greenlight
 
@@ -239,9 +248,9 @@ Plugins receive live runtime context:
 * test metadata
 * harness services
 
-Extension points include lifecycle subscribers, retry deciders, harness providers, custom expectation matchers, and custom reporters.
+Extension points include per-test lifecycle subscribers, run-level event subscribers, retry deciders, harness providers, service resolvers, custom expectation matchers, and custom reporters.
 
-Custom expectation matchers stay statically checked. The bundled PHPStan extension reads the Greenlight config and fails analysis on matcher name typos or wrong arguments. The `ide-helper` command generates autocomplete support with real signatures.
+Custom expectation matchers stay statically checked. The bundled PHPStan extension reads the Greenlight config and fails analysis on matcher name typos or wrong arguments; enable it by including the package's `extension.neon` in your PHPStan configuration. The `ide-helper` command generates autocomplete support with real signatures.
 
 The `completion` command prints shell completion scripts for:
 
@@ -271,9 +280,9 @@ Coverage requires one of:
 * [Testing Symfony applications](docs/symfony.md)
 * [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
-* [Product Requirements Document](docs/PRD.md)
-* [Build plan](docs/plan/README.md)
-* [RFCs](docs/rfcs/)
+* [JSONL reporter schema](docs/architecture/jsonl.md)
+* [Coverage JSON schema](docs/architecture/coverage-json.md)
+* [Code conventions](docs/architecture/conventions.md)
 * [Contributing guide](CONTRIBUTING.md)
 
 ## License

@@ -56,7 +56,7 @@ final class TypeRenderer
             return self::renderIntersection($type, $context);
         }
 
-        throw new DoublesError(\sprintf('Unsupported reflection type %s.', $type::class));
+        throw DoublesError::unsupportedReflectionType($type::class);
     }
 
     /**
@@ -89,7 +89,7 @@ final class TypeRenderer
             $parent = $context->getParentClass();
 
             if ($parent === false) {
-                throw new DoublesError(\sprintf('%s uses the parent type but has no parent class.', $context->name));
+                throw DoublesError::parentTypeWithoutParent($context->name);
             }
 
             return '\\' . $parent->name;
@@ -101,7 +101,7 @@ final class TypeRenderer
     private static function expectNamed(\ReflectionType $type): \ReflectionNamedType
     {
         if (!$type instanceof \ReflectionNamedType) {
-            throw new DoublesError(\sprintf('Unsupported nested reflection type %s.', $type::class));
+            throw DoublesError::unsupportedNestedReflectionType($type::class);
         }
 
         return $type;

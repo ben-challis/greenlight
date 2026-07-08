@@ -19,6 +19,11 @@ namespace Greenlight\Symfony;
  */
 final class SymfonyBridgeError extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function testContainerUnavailable(string $environment): self
     {
         return new self(\sprintf(

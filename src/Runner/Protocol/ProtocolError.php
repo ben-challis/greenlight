@@ -13,6 +13,11 @@ namespace Greenlight\Runner\Protocol;
  */
 final class ProtocolError extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function frameTooLarge(int $length, int $limit): self
     {
         return new self(\sprintf('Frame of %d bytes exceeds the %d byte limit.', $length, $limit));
@@ -46,6 +51,17 @@ final class ProtocolError extends \RuntimeException
             $workerId,
             $reported,
             $expected,
+        ));
+    }
+
+    public static function workerFatal(string $workerId, string $message, string $file, int $line): self
+    {
+        return new self(\sprintf(
+            'Worker "%s" reported a fatal framework error: %s (%s:%d)',
+            $workerId,
+            $message,
+            $file,
+            $line,
         ));
     }
 }

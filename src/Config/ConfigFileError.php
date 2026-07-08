@@ -13,6 +13,11 @@ namespace Greenlight\Config;
  */
 final class ConfigFileError extends \RuntimeException
 {
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
     public static function noneInDirectory(string $directory): self
     {
         return new self(\sprintf(
@@ -44,6 +49,6 @@ final class ConfigFileError extends \RuntimeException
             $file,
             $cause::class,
             $cause->getMessage(),
-        ), 0, $cause);
+        ), $cause);
     }
 }

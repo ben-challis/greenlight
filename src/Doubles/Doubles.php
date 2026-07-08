@@ -68,7 +68,7 @@ final class Doubles implements Disposable
             $workingDirectory = \getcwd();
 
             if ($workingDirectory === false) {
-                throw new DoublesError('The working directory could not be resolved; pass a proxy directory explicitly.');
+                throw DoublesError::workingDirectoryUnresolved();
             }
 
             $proxyDirectory = \sprintf(
@@ -142,7 +142,7 @@ final class Doubles implements Disposable
     public function callsTo(object $double, string $method): array
     {
         if (!isset($this->doubles[$double])) {
-            throw new DoublesError(\sprintf('The given %s instance was not created by this Doubles factory.', $double::class));
+            throw DoublesError::foreignDouble($double::class);
         }
 
         return $this->doubles[$double]->recordedCalls[$method] ?? [];

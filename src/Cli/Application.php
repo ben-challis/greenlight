@@ -608,10 +608,7 @@ final readonly class Application
                 'jsonl' => new JsonLinesReporter($output),
                 'github' => new GithubReporter($output),
                 'teamcity' => new TeamCityReporter($output),
-                default => throw new CliError(\sprintf(
-                    'Unknown reporter "%s". Available: tty, plain, junit, jsonl, github, teamcity.',
-                    $name,
-                )),
+                default => throw CliError::unknownReporter($name),
             };
         }
 

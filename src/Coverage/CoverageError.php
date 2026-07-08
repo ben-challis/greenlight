@@ -13,6 +13,11 @@ namespace Greenlight\Coverage;
  */
 final class CoverageError extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function driverUnavailable(string $driver, string $hint): self
     {
         return new self(\sprintf('Coverage driver "%s" is not available. %s', $driver, $hint));

@@ -15,6 +15,11 @@ namespace Greenlight\Capture;
  */
 final class CaptureError extends \LogicException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function alreadyStarted(): self
     {
         return new self('Output capture is already active. Call stop() before starting another capture window.');

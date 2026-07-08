@@ -12,6 +12,11 @@ namespace Greenlight\Reporting;
  */
 final class ReportingError extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function writeFailed(): self
     {
         return new self('Could not write reporter output to the underlying stream.');

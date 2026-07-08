@@ -62,7 +62,7 @@ final class MethodExpectation
     public function times(int $count): self
     {
         if ($count < 0) {
-            throw new DoublesError(\sprintf('times(%d) is invalid: the count must be zero or more.', $count));
+            throw DoublesError::invalidTimes($count);
         }
 
         $this->minimumCalls = $count;
@@ -74,7 +74,7 @@ final class MethodExpectation
     public function atLeast(int $count): self
     {
         if ($count < 1) {
-            throw new DoublesError(\sprintf('atLeast(%d) is invalid: the count must be one or more.', $count));
+            throw DoublesError::invalidAtLeast($count);
         }
 
         $this->minimumCalls = $count;

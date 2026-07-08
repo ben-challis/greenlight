@@ -79,28 +79,28 @@ final readonly class ProxyGenerator
         }
 
         if (\enum_exists($type)) {
-            throw new DoublesError(\sprintf('%s is an enum and cannot be doubled. Double an interface it implements instead.', $type));
+            throw DoublesError::cannotDoubleEnum($type);
         }
 
         if (\class_exists($type)) {
             $reflection = new \ReflectionClass($type);
 
             if ($reflection->isReadOnly()) {
-                throw new DoublesError(\sprintf('%s is a readonly class and cannot be doubled in v1. Double an interface instead.', $type));
+                throw DoublesError::cannotDoubleReadonly($type);
             }
 
             if ($reflection->isFinal()) {
-                throw new DoublesError(\sprintf('%s is final and cannot be doubled. Double an interface instead; that boundary is deliberate.', $type));
+                throw DoublesError::cannotDoubleFinal($type);
             }
 
             return $reflection;
         }
 
         if (\trait_exists($type)) {
-            throw new DoublesError(\sprintf('%s is a trait and cannot be doubled. Double a class or interface using it instead.', $type));
+            throw DoublesError::cannotDoubleTrait($type);
         }
 
-        throw new DoublesError(\sprintf('%s is not a loadable class or interface, so it cannot be doubled.', $type));
+        throw DoublesError::notDoubleable($type);
     }
 
     /**
@@ -185,7 +185,7 @@ final readonly class ProxyGenerator
         }
 
         if ($method->name === '__greenlightAttachHandler') {
-            throw new DoublesError(\sprintf('%s declares __greenlightAttachHandler(), which collides with the proxy plumbing.', $method->getDeclaringClass()->name));
+            throw DoublesError::attachHandlerCollision($method->getDeclaringClass()->name);
         }
 
         if ($method->isFinal() || $method->isPrivate()) {
@@ -295,19 +295,14 @@ final readonly class ProxyGenerator
     private function renderDefault(\ReflectionParameter $parameter, \ReflectionClass $context): string
     {
         if (!$parameter->isDefaultValueAvailable()) {
-            throw new DoublesError(\sprintf(
-                'The default value of parameter $%s of %s::%s() cannot be reproduced in a proxy.',
-                $parameter->name,
-                $context->name,
-                $parameter->getDeclaringFunction()->name,
-            ));
+            throw DoublesError::defaultValueNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         if ($parameter->isDefaultValueConstant()) {
             $constant = $parameter->getDefaultValueConstantName();
 
             if ($constant === null) {
-                throw new DoublesError(\sprintf('The default constant of parameter $%s could not be resolved.', $parameter->name));
+                throw DoublesError::defaultConstantUnresolvable($parameter->name);
             }
 
             if (\str_starts_with($constant, 'self::')) {
@@ -320,12 +315,7 @@ final readonly class ProxyGenerator
         $value = $parameter->getDefaultValue();
 
         if (\is_object($value) && !$value instanceof \UnitEnum) {
-            throw new DoublesError(\sprintf(
-                'The object default of parameter $%s of %s::%s() cannot be reproduced in a proxy. Double an interface without object defaults instead.',
-                $parameter->name,
-                $context->name,
-                $parameter->getDeclaringFunction()->name,
-            ));
+            throw DoublesError::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         return \var_export($value, true);
@@ -334,7 +324,7 @@ final readonly class ProxyGenerator
     private function write(string $file, string $source): void
     {
         if (!\is_dir($this->directory) && !@\mkdir($this->directory, 0o777, true) && !\is_dir($this->directory)) {
-            throw new DoublesError(\sprintf('The proxy directory %s could not be created.', $this->directory));
+            throw DoublesError::proxyDirectoryNotCreated($this->directory);
         }
 
         $temporary = $this->directory . '/.' . \bin2hex(\random_bytes(8)) . '.tmp';
@@ -342,7 +332,7 @@ final readonly class ProxyGenerator
         if (\file_put_contents($temporary, $source) === false || !\rename($temporary, $file)) {
             @\unlink($temporary);
 
-            throw new DoublesError(\sprintf('The proxy file %s could not be written.', $file));
+            throw DoublesError::proxyFileNotWritten($file);
         }
     }
 }

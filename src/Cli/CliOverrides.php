@@ -60,7 +60,7 @@ final readonly class CliOverrides
 
         foreach ($arguments->values('group') as $group) {
             if ($group === '') {
-                throw new CliError('--group requires a non-empty group name.');
+                throw CliError::emptyGroupName();
             }
 
             $groups[] = $group;
@@ -70,7 +70,7 @@ final readonly class CliOverrides
 
         foreach ($arguments->values('filter') as $pattern) {
             if ($pattern === '') {
-                throw new CliError('--filter requires a non-empty pattern.');
+                throw CliError::emptyFilterPattern();
             }
 
             $filters[] = $pattern;
@@ -82,14 +82,14 @@ final readonly class CliOverrides
             $raw = $arguments->value('shard') ?? '';
 
             if (\preg_match('/^(\d+)\/(\d+)$/', $raw, $matches) !== 1) {
-                throw new CliError(\sprintf('--shard must look like <n>/<m>, for example 1/4, got "%s".', $raw));
+                throw CliError::malformedShard($raw);
             }
 
             $index = (int) $matches[1];
             $count = (int) $matches[2];
 
             if ($count < 1 || $index < 1 || $index > $count) {
-                throw new CliError(\sprintf('--shard needs 1 <= n <= m, got "%s".', $raw));
+                throw CliError::shardOutOfRange($raw);
             }
 
             $shard = [$index, $count];
@@ -101,13 +101,13 @@ final readonly class CliOverrides
             $raw = $arguments->value('seed') ?? '';
 
             if (\preg_match('/^\d+$/', $raw) !== 1) {
-                throw new CliError(\sprintf('--seed must be a non-negative integer, got "%s".', $raw));
+                throw CliError::invalidSeed($raw);
             }
 
             $parsed = (int) $raw;
 
             if ($parsed < 0) {
-                throw new CliError(\sprintf('--seed must be a non-negative integer, got "%s".', $raw));
+                throw CliError::invalidSeed($raw);
             }
 
             $seed = $parsed;
@@ -134,7 +134,7 @@ final readonly class CliOverrides
         $value = \preg_match('/^\d+$/', $raw) === 1 ? (int) $raw : 0;
 
         if ($value < 1) {
-            throw new CliError(\sprintf('%s must be a positive integer, got "%s".', $flag, $raw));
+            throw CliError::notAPositiveInteger($flag, $raw);
         }
 
         return $value;

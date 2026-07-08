@@ -55,7 +55,7 @@ final class ArgumentParser
                 $body = \substr($argument, 2);
 
                 if ($body === '') {
-                    throw new CliError('Unexpected bare "--".');
+                    throw CliError::bareDoubleDash();
                 }
 
                 $separator = \strpos($body, '=');
@@ -65,11 +65,11 @@ final class ArgumentParser
                 $spec = $this->byName[$name] ?? throw CliError::unknownOption('--' . $name);
 
                 if ($value !== null && $spec->value === OptionValue::None) {
-                    throw new CliError(\sprintf('Option --%s does not take a value.', $name));
+                    throw CliError::optionTakesNoValue($name);
                 }
 
                 if ($value === null && $spec->value === OptionValue::Required) {
-                    throw new CliError(\sprintf('Option --%s requires a value, use --%s=<value>.', $name, $name));
+                    throw CliError::optionRequiresValue($name);
                 }
 
                 $this->record($options, $spec, $value);
@@ -78,14 +78,14 @@ final class ArgumentParser
                 $spec = $this->byShort[$short] ?? throw CliError::unknownOption($argument);
 
                 if ($spec->value === OptionValue::Required) {
-                    throw new CliError(\sprintf('Option -%s requires a value, use --%s=<value>.', $short, $spec->name));
+                    throw CliError::shortOptionRequiresValue($short, $spec->name);
                 }
 
                 $this->record($options, $spec, null);
             } elseif ($command === null) {
                 $command = $argument;
             } else {
-                throw new CliError(\sprintf('Unexpected argument "%s".', $argument));
+                throw CliError::unexpectedArgument($argument);
             }
         }
 
@@ -98,7 +98,7 @@ final class ArgumentParser
     private function record(array &$options, OptionSpec $spec, ?string $value): void
     {
         if (!$spec->repeatable && isset($options[$spec->name])) {
-            throw new CliError(\sprintf('Option --%s cannot be given more than once.', $spec->name));
+            throw CliError::duplicateOption($spec->name);
         }
 
         $options[$spec->name][] = $value;

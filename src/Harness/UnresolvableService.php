@@ -14,6 +14,11 @@ namespace Greenlight\Harness;
  */
 final class UnresolvableService extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function unknownType(string $type, string $consumer, int $resolversConsulted = 0): self
     {
         $suffix = $resolversConsulted === 0

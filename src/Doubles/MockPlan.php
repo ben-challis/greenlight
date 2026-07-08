@@ -54,21 +54,21 @@ final readonly class MockPlan
         $reflection = new \ReflectionClass($this->state->type);
 
         if (!$reflection->hasMethod($method)) {
-            throw new DoublesError(\sprintf('%s has no method %s(), so it cannot be planned.', $this->state->type, $method));
+            throw DoublesError::noSuchMethod($this->state->type, $method);
         }
 
         $declared = $reflection->getMethod($method);
 
         if ($declared->isStatic()) {
-            throw new DoublesError(\sprintf('%s::%s() is static; static methods cannot be doubled.', $this->state->type, $method));
+            throw DoublesError::staticMethod($this->state->type, $method);
         }
 
         if (!$declared->isPublic()) {
-            throw new DoublesError(\sprintf('%s::%s() is not public, so it cannot be planned on a double.', $this->state->type, $method));
+            throw DoublesError::methodNotPublic($this->state->type, $method);
         }
 
         if ($declared->isFinal()) {
-            throw new DoublesError(\sprintf('%s::%s() is final and cannot be intercepted. Double an interface instead.', $this->state->type, $method));
+            throw DoublesError::finalMethod($this->state->type, $method);
         }
     }
 }

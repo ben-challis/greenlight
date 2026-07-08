@@ -13,6 +13,11 @@ namespace Greenlight\Core\Wire;
  */
 final class InvalidWirePayload extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function missingKey(string $key): self
     {
         return new self(\sprintf('Wire payload is missing the "%s" key.', $key));

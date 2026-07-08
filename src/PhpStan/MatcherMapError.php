@@ -12,6 +12,11 @@ namespace Greenlight\PhpStan;
  */
 final class MatcherMapError extends \RuntimeException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function conflictingSignatures(
         string $matcher,
         string $firstFile,

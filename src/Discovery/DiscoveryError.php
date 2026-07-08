@@ -15,6 +15,11 @@ namespace Greenlight\Discovery;
  */
 final class DiscoveryError extends \RuntimeException
 {
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
     public static function directoryNotFound(string $directory): self
     {
         return new self(\sprintf('Discovery directory "%s" does not exist or is not a directory.', $directory));
@@ -68,7 +73,6 @@ final class DiscoveryError extends \RuntimeException
     {
         return new self(
             \sprintf('Invalid attribute on %s: %s', $where, $cause->getMessage()),
-            0,
             $cause,
         );
     }
@@ -115,7 +119,6 @@ final class DiscoveryError extends \RuntimeException
                 $cause::class,
                 $cause->getMessage(),
             ),
-            0,
             $cause,
         );
     }

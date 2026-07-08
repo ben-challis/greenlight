@@ -522,13 +522,12 @@ final class Orchestrator
                         break;
                     }
                 } elseif ($message instanceof Fatal) {
-                    throw new ProtocolError(\sprintf(
-                        'Worker "%s" reported a fatal framework error: %s (%s:%d)',
+                    throw ProtocolError::workerFatal(
                         $handle->workerId,
                         $message->detail->message,
                         $message->detail->file,
                         $message->detail->line,
-                    ));
+                    );
                 }
             }
         }
