@@ -159,6 +159,27 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function noColourKeepsTheLiveWindowWithoutColourCodes(): void
+    {
+        // The NO_COLOR matrix row: cursor control stays, colour goes.
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new RunStarted('run-1', 2, 1, 1.0));
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
+        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.2));
+        $reporter->finish();
+
+        $buffer = $output->buffer();
+
+        Expect::that($buffer)->toContain("\x1b[0J")
+            ->and($buffer)->not()->toContain("\x1b[32m")
+            ->and($buffer)->not()->toContain("\x1b[31m")
+            ->and($buffer)->not()->toContain("\x1b[33m");
+    }
+
+    #[Test]
     public function withoutCursorEveryClassStillAppendsALine(): void
     {
         // --reporter=tty on a non-TTY degrades to append-only output; nothing
