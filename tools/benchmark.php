@@ -207,7 +207,7 @@ function writeClasses(string $project, string $prefix, int $classes, int $method
                     #[Test]
                     public function case%d(): void
                     {
-                        %s$this->expect->that(%d + 1)->toBe(%d);
+                        %sExpect::that(%d + 1)->toBe(%d);
                     }
 
                 PHP, $m, $work, $m, $m + 1);
@@ -232,9 +232,7 @@ function writeClasses(string $project, string $prefix, int $classes, int $method
             use Greenlight\Expect\Expect;
 
             final class %s
-            {
-                public function __construct(private readonly Expect $expect) {}
-            %s}
+            {%s}
 
             PHP, $name, $glBody));
 
@@ -272,13 +270,11 @@ function writeGiantDataSet(string $project, int $rows): int
 
         final class GiantTest
         {
-            public function __construct(private readonly Expect $expect) {}
-
             #[Test]
             #[DataSet('rows')]
             public function handles(int $value): void
             {
-                $this->expect->that($value)->toBeGreaterThan(-1);
+                Expect::that($value)->toBeGreaterThan(-1);
             }
 
             /** @return iterable<string, array{int}> */
