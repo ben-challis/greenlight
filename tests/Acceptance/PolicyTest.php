@@ -27,13 +27,13 @@ final class PolicyTest
             // Without flags everything passes; deprecations are recorded, not fatal.
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest');
             Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('Tests: 3, Passed: 3')
+                ->and($output)->toContain('3 tests, 3 passed')
                 // One matcher per test crossed the worker boundary into the summary.
-                ->and($output)->toContain('Expectations: 3');
+                ->and($output)->toContain('3 expectations');
 
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
             Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('Tests: 3, Passed: 2, Failed: 1')
+                ->and($output)->toContain('3 tests, 2 passed, 1 failed')
                 ->and($output)->toContain('deprecation policy failed this passed test')
                 ->and($output)->toContain('old api is deprecated')
                 // The allow-listed deprecation stays green.
@@ -62,11 +62,11 @@ final class PolicyTest
                 ->and($riskyBlock)->not()->toContain('optedOut')
                 ->and($riskyBlock)->not()->toContain('mocksOnly')
                 // Only the mock verification counts; the empty tests add nothing.
-                ->and($output)->toContain('Expectations: 1');
+                ->and($output)->toContain('1 expectation');
 
             [$exit, $output] = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
             Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('Tests: 3, Passed: 2, Failed: 1')
+                ->and($output)->toContain('3 tests, 2 passed, 1 failed')
                 ->and($output)->toContain('fail-on-risky policy failed this passed test');
         } finally {
             $this->removeTree($project);

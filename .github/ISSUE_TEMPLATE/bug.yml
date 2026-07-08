@@ -52,6 +52,6 @@ body:
     id: os
     attributes:
       label: Operating system
-      placeholder: "e.g. Ubuntu 24.04, macOS 15"
+      placeholder: "e.g. Ubuntu 24.04, macOS 26"
     validations:
       required: true

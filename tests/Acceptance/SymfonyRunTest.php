@@ -29,7 +29,7 @@ final readonly class SymfonyRunTest
             $output = \implode("\n", $lines);
 
             Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('Tests: 4, Passed: 4');
+                ->and($output)->toContain('4 tests, 4 passed');
         } finally {
             $this->removeTree($project);
         }

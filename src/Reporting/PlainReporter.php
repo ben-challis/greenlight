@@ -11,6 +11,7 @@ use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Reporting\Output\Output;
 
@@ -19,10 +20,11 @@ use Greenlight\Reporting\Output\Output;
  *
  * onEvent() writes one line per finished test as it arrives. finish() prints
  * failure and error details after the run, then a final summary including
- * worker recycling counts.
+ * worker recycling counts and the skipped tests with their reasons.
  *
  * No colours, no cursor control; identical event streams produce
- * byte-identical output.
+ * byte-identical output. When a header is provided it prints once, before
+ * the run line.
  *
  * @internal
  */
@@ -32,6 +34,11 @@ final class PlainReporter implements Reporter
      * @var list<TestResult>
      */
     private array $problems = [];
+
+    /**
+     * @var list<TestResult>
+     */
+    private array $skipped = [];
 
     /**
      * @var list<non-empty-string>
@@ -52,23 +59,32 @@ final class PlainReporter implements Reporter
 
     private ?RunFinished $runFinished = null;
 
+    private readonly Style $style;
+
     private readonly SlowTests $slowTests;
 
     public function __construct(
         private readonly Output $output,
+        private readonly ?RunHeader $header = null,
+        bool $extendedSlowTests = false,
     ) {
-        $this->slowTests = new SlowTests();
+        $this->style = new Style(ansi: false);
+        $this->slowTests = new SlowTests($extendedSlowTests);
     }
 
     #[\Override]
     public function onEvent(Event $event): void
     {
         if ($event instanceof RunStarted) {
+            if ($this->header instanceof RunHeader) {
+                $this->output->write($this->header->render($event->workers) . "\n");
+            }
+
             $this->output->write(\sprintf(
-                "Run %s: %d tests, %d workers\n\n",
+                "Run %s: %s, %s\n\n",
                 $event->runId,
-                $event->plannedTests,
-                $event->workers,
+                Style::count($event->plannedTests, 'test'),
+                Style::count($event->workers, 'worker'),
             ));
 
             return;
@@ -90,6 +106,10 @@ final class PlainReporter implements Reporter
 
             if (!$result->outcome->isSuccessful()) {
                 $this->problems[] = $result;
+            }
+
+            if ($result->outcome === Outcome::Skipped) {
+                $this->skipped[] = $result;
             }
 
             if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
@@ -132,28 +152,25 @@ final class PlainReporter implements Reporter
         $finished = $this->runFinished;
 
         if ($finished instanceof RunFinished) {
-            $summary = $finished->summary;
-
             $this->output->write(\sprintf(
-                "\nTests: %d, Passed: %d, Failed: %d, Errored: %d, Skipped: %d, Expectations: %d\nTime: %.3fs\n",
-                $summary->total(),
-                $summary->passed,
-                $summary->failed,
-                $summary->errored,
-                $summary->skipped,
-                $this->expectations,
+                "\n%s\nTime: %.3fs\n",
+                SummaryFormat::tests($finished->summary, $this->expectations, $this->style),
                 $finished->durationSeconds,
             ));
         }
 
-        $this->output->write(\sprintf(
-            "Workers: %d spawned, %d recycled%s\n",
+        $workers = SummaryFormat::workers(
             $this->workersSpawned,
             \array_sum($this->recycleCounts),
             $this->recycleBreakdown(),
-        ));
+        );
 
-        $this->output->write($this->slowTests->render());
+        if ($workers !== null) {
+            $this->output->write($workers . "\n");
+        }
+
+        $this->output->write(SummaryFormat::skipped($this->skipped, $this->style));
+        $this->output->write($this->slowTests->render($this->style));
 
         if ($this->risky !== []) {
             $this->output->write(\sprintf(

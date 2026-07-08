@@ -3,13 +3,6 @@
 
 # Tooling caches
 .php-cs-fixer.cache
-
-# Greenlight runtime caches (timings, proxies)
-
-# IDE
-.idea/
-
-# Deptrac cache
 .deptrac.cache
 
 # PHPStan API sources extracted from phpstan.phar for IDE indexing

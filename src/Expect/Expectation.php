@@ -445,6 +445,8 @@ final class Expectation
     /**
      * @param non-empty-string $description sentence fragment starting with
      *   "to", negation inserts "not" in front of it
+     *
+     * @throws ExpectationFailed
      */
     private function verify(bool $matched, string $description, ?string $expected = null, ?string $actual = null): self
     {
@@ -471,6 +473,8 @@ final class Expectation
      * failure that ignores negation, so not() cannot turn misuse into a pass.
      *
      * @param non-empty-string $message
+     *
+     * @throws ExpectationFailed
      */
     private function usageFailure(string $message): never
     {

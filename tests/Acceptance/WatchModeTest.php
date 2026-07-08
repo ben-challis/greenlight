@@ -47,14 +47,14 @@ final class WatchModeTest
 
         try {
             $output = $this->readUntil($pipes[1], 'Watching for changes', 20.0);
-            Expect::that($output)->toContain('Tests: 1, Passed: 1');
+            Expect::that($output)->toContain('1 test, 1 passed');
 
             // A synthetic change: append a comment, size changes, mtime may not.
             \file_put_contents($watchedFile, $original . "// touched\n");
 
             $output = $this->readUntil($pipes[1], 'Watching for changes', 20.0);
             Expect::that($output)->toContain('Change detected')
-                ->and($output)->toContain('Tests: 1, Passed: 1');
+                ->and($output)->toContain('1 test, 1 passed');
 
             \fwrite($pipes[0], 'q');
             \fflush($pipes[0]);

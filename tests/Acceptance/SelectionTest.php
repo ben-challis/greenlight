@@ -21,13 +21,13 @@ final class SelectionTest
 
         try {
             [$exit, $output] = $this->run($project, '--filter=alwaysPasses');
-            Expect::that($exit)->toBe(0)->and($output)->toContain('Tests: 1, Passed: 1');
+            Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
 
             [$exit, $output] = $this->run($project, '--filter=SelectionProbeTest');
-            Expect::that($output)->toContain('Tests: 3,');
+            Expect::that($output)->toContain('3 tests,');
 
             [$exit, $output] = $this->run($project, '--filter=*::breaks?ometimes');
-            Expect::that($exit)->toBe(1)->and($output)->toContain('Tests: 1, Passed: 0, Failed: 0, Errored: 1');
+            Expect::that($exit)->toBe(1)->and($output)->toContain('1 test, 0 passed, 1 errored');
 
             [$exit, $output] = $this->run($project, '--filter=nothingMatchesThis');
             Expect::that($exit)->toBe(1)->and($output)->toContain('No tests found');
@@ -53,7 +53,7 @@ final class SelectionTest
             // --failed re-runs exactly that one test.
             [$exit, $output] = $this->run($project, '--failed');
             Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('Tests: 1, Passed: 0, Failed: 0, Errored: 1')
+                ->and($output)->toContain('1 test, 0 passed, 1 errored')
                 ->and($output)->toContain('breaksSometimes');
 
             // A run where everything passes empties the state.

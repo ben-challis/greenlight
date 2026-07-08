@@ -11,6 +11,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\SlowTests;
+use Greenlight\Reporting\Style;
 
 final class SlowTestsTest
 {
@@ -18,31 +19,52 @@ final class SlowTestsTest
     public function fastRunsRenderNothing(): void
     {
         $slow = new SlowTests();
-        $slow->record($this->finished('Acme\FastTest::quick', 0.05));
+        $slow->record($this->finished('Acme\FastTest::quick', 0.4));
 
-        Expect::that($slow->render())->toBe('');
+        Expect::that($slow->render(new Style(ansi: false)))->toBe('');
     }
 
     #[Test]
-    public function rendersSlowestFirstAndCapsAtTen(): void
+    public function rendersSlowestFirstAndCapsAtFive(): void
     {
         $slow = new SlowTests();
 
-        for ($i = 1; $i <= 12; ++$i) {
-            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.2 + $i / 100));
+        for ($i = 1; $i <= 8; ++$i) {
+            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
         }
 
-        $rendered = $slow->render();
+        $rendered = $slow->render(new Style(ansi: false));
         $lines = \array_values(\array_filter(
             \explode("\n", \trim($rendered)),
             static fn(string $line): bool => $line !== '',
         ));
 
         Expect::that($lines[0])->toBe('Slowest tests:')
-            ->and(\count($lines))->toBe(11)
-            ->and($lines[1])->toBe('  0.320s Acme\SlowTest::case12')
-            ->and($lines[10])->toBe('  0.230s Acme\SlowTest::case03')
-            ->and($rendered)->not()->toContain('case01');
+            ->and(\count($lines))->toBe(6)
+            ->and($lines[1])->toBe('  0.580s Acme\SlowTest::case08')
+            ->and($lines[5])->toBe('  0.540s Acme\SlowTest::case04')
+            ->and($rendered)->not()->toContain('case03');
+    }
+
+    #[Test]
+    public function extendedModeKeepsMoreEntries(): void
+    {
+        $slow = new SlowTests(extended: true);
+
+        for ($i = 1; $i <= 8; ++$i) {
+            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+        }
+
+        Expect::that($slow->render(new Style(ansi: false)))->toContain('case01');
+    }
+
+    #[Test]
+    public function durationsAreColouredThroughTheStyle(): void
+    {
+        $slow = new SlowTests();
+        $slow->record($this->finished('Acme\SlowTest::crawls', 1.5));
+
+        Expect::that($slow->render(new Style(ansi: true)))->toContain("\x1b[33m1.500s\x1b[0m");
     }
 
     /**

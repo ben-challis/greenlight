@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
+use Greenlight\Reporting\RunHeader;
 
 final class PlainReporterTest
 {
@@ -37,15 +38,25 @@ final class PlainReporterTest
                 Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
               at /project/tests/NetworkTest.php:17
 
-            Tests: 6, Passed: 3, Failed: 1, Errored: 1, Skipped: 1, Expectations: 11
+            6 tests, 3 passed, 1 failed, 1 errored, 1 skipped, 11 expectations
             Time: 1.234s
             Workers: 2 spawned, 1 recycled (memory: 1)
 
-            Slowest tests:
-              0.340s Acme\CalculatorTest::multipliesIntegers[large numbers]
+            Skipped:
+              Acme\NetworkTest::pings (Requires ext-redis.)
             TXT;
 
         Expect::that($output->buffer())->toBe($expected . "\n");
+    }
+
+    #[Test]
+    public function headerLinePrecedesTheRunLineWhenProvided(): void
+    {
+        $output = new BufferOutput();
+        CannedStream::feed(new PlainReporter($output, new RunHeader('0.4.0', 'greenlight.php', 7, phpVersion: '8.3.1')));
+
+        Expect::that($output->buffer())
+            ->toStartWith("Greenlight 0.4.0 | PHP 8.3.1 | config: greenlight.php | seed: 7 | workers: 2\nRun run-1: 6 tests, 2 workers\n");
     }
 
     #[Test]

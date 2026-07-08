@@ -18,14 +18,14 @@ final class DataRowRunTest
     {
         [$exit, $output] = $this->run('--workers=2');
         Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('Tests: 4, Passed: 4')
+            ->and($output)->toContain('4 tests, 4 passed')
             ->and($output)->toContain('addsUp[small]')
             ->and($output)->toContain('addsUp[#1]')
             ->and($output)->toContain('acceptsWord[from attribute]')
             ->and($output)->toContain('acceptsWord[from provider]');
 
         [$exit, $output] = $this->run('--filter=*[from attribute]');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('Tests: 1, Passed: 1');
+        Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
     }
 
     /**

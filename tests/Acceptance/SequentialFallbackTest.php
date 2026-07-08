@@ -30,7 +30,7 @@ final class SequentialFallbackTest
         $text = \implode("\n", $output);
 
         Expect::that($exit)->toBe(0)
-            ->and($text)->toContain('Tests: 7, Passed: 7')
+            ->and($text)->toContain('7 tests, 7 passed')
             ->and($text)->not()->toContain('proc_open');
     }
 }

@@ -27,14 +27,3 @@ body:
       description: Other designs you thought about and why you set them aside.
     validations:
       required: false
-  - type: dropdown
-    id: rfc
-    attributes:
-      label: Willing to write an RFC?
-      description: Interface-changing work needs an RFC in docs/rfcs/ before implementation.
-      options:
-        - "Yes"
-        - "No"
-        - "Not sure yet"
-    validations:
-      required: true
