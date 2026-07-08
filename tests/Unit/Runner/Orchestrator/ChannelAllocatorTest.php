@@ -10,16 +10,12 @@ use Greenlight\Runner\Orchestrator\ChannelAllocator;
 
 final readonly class ChannelAllocatorTest
 {
-    public function __construct(
-        private Expect $expect,
-    ) {}
-
     #[Test]
     public function allocatesTheLowestFreeChannelFirst(): void
     {
         $allocator = new ChannelAllocator(4);
 
-        $this->expect->that($allocator->allocate())->toBe(1)
+        Expect::that($allocator->allocate())->toBe(1)
             ->and($allocator->allocate())->toBe(2)
             ->and($allocator->allocate())->toBe(3)
             ->and($allocator->allocate())->toBe(4);
@@ -35,7 +31,7 @@ final readonly class ChannelAllocatorTest
 
         $allocator->release(2);
 
-        $this->expect->that($allocator->allocate())->toBe(2);
+        Expect::that($allocator->allocate())->toBe(2);
     }
 
     #[Test]
@@ -45,7 +41,7 @@ final readonly class ChannelAllocatorTest
         $allocator->allocate();
         $allocator->allocate();
 
-        $this->expect->that(static function () use ($allocator): void {
+        Expect::that(static function () use ($allocator): void {
             $allocator->allocate();
         })->toThrow(\LogicException::class, matching: '/channels are in use/');
     }
@@ -63,7 +59,7 @@ final readonly class ChannelAllocatorTest
             $allocator->release($second);
             $second = $allocator->allocate();
 
-            $this->expect->that($second)->toBeLessThan(3)
+            Expect::that($second)->toBeLessThan(3)
                 ->and($second)->toBeGreaterThan(0)
                 ->and($second === $first)->toBeFalse();
         }
@@ -76,7 +72,7 @@ final readonly class ChannelAllocatorTest
         $allocator->allocate();
         $allocator->release(1);
 
-        $this->expect->that(static function () use ($allocator): void {
+        Expect::that(static function () use ($allocator): void {
             $allocator->release(1);
         })->toThrow(\LogicException::class, matching: '/not allocated/');
     }

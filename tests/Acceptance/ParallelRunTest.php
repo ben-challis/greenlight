@@ -18,12 +18,10 @@ final class ParallelRunTest
     #[Test]
     public function parallelResultsMatchSequentialResults(): void
     {
-        $expect = new Expect();
-
         [$sequentialExit, $sequential] = $this->runIn('ListTestsConfig', ['run', '--workers=1']);
         [$parallelExit, $parallel] = $this->runIn('ListTestsConfig', ['run', '--workers=3']);
 
-        $expect->that($sequentialExit)->toBe(0)
+        Expect::that($sequentialExit)->toBe(0)
             ->and($parallelExit)->toBe(0)
             ->and($this->summaryLine($sequential))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0, Expectations: 0')
             ->and($this->summaryLine($parallel))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0, Expectations: 0');
@@ -34,7 +32,7 @@ final class ParallelRunTest
     {
         [$exit, $output] = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
-        new Expect()->that($exit)->toBe(1)
+        Expect::that($exit)->toBe(1)
             ->and($this->summaryLine($output))->toBe('Tests: 3, Passed: 2, Failed: 0, Errored: 1, Skipped: 0, Expectations: 0')
             ->and($output)->toContain('crashed while running');
     }
@@ -44,7 +42,7 @@ final class ParallelRunTest
     {
         [$exit, $output] = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
-        new Expect()->that($exit)->toBe(0)
+        Expect::that($exit)->toBe(0)
             ->and($this->summaryLine($output))->toBe('Tests: 2, Passed: 1, Failed: 0, Errored: 0, Skipped: 1, Expectations: 0');
     }
 
@@ -53,23 +51,21 @@ final class ParallelRunTest
     {
         [$exit, $output] = $this->runIn('RecycleConfig', ['run']);
 
-        new Expect()->that($exit)->toBe(0)
+        Expect::that($exit)->toBe(0)
             ->and($this->summaryLine($output))->toBe('Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0, Expectations: 0');
     }
 
     #[Test]
     public function leakDetectionNamesTheLeakAndFailsTheRun(): void
     {
-        $expect = new Expect();
-
         [$withFlagExit, $withFlag] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2']);
 
-        $expect->that($withFlagExit)->toBe(1)
+        Expect::that($withFlagExit)->toBe(1)
             ->and($withFlag)->toContain('LEAK Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         [$withoutFlagExit] = $this->runIn('LeakConfig', ['run', '--workers=2']);
 
-        $expect->that($withoutFlagExit)->toBe(0);
+        Expect::that($withoutFlagExit)->toBe(0);
     }
 
     #[Test]
@@ -79,7 +75,7 @@ final class ParallelRunTest
         [$exit, $output] = $this->runIn('HangConfig', ['run', '--workers=2']);
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
 
-        new Expect()->that($exit)->toBe(1)
+        Expect::that($exit)->toBe(1)
             ->and($output)->toContain('timeout budget')
             ->and($durationSeconds)->toBeLessThan(20.0);
     }

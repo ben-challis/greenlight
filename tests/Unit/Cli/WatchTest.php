@@ -18,27 +18,25 @@ final class WatchTest
     #[Test]
     public function debounceFiresOnlyAfterTheQuietPeriod(): void
     {
-        $expect = new Expect();
         $debouncer = new Debouncer(0.2);
 
-        $expect->that($debouncer->shouldFire(10.0))->toBeFalse();
+        Expect::that($debouncer->shouldFire(10.0))->toBeFalse();
 
         $debouncer->noteChange(10.0);
-        $expect->that($debouncer->shouldFire(10.1))->toBeFalse();
+        Expect::that($debouncer->shouldFire(10.1))->toBeFalse();
 
         // A burst restarts the quiet timer.
         $debouncer->noteChange(10.15);
-        $expect->that($debouncer->shouldFire(10.3))->toBeFalse()
+        Expect::that($debouncer->shouldFire(10.3))->toBeFalse()
             ->and($debouncer->shouldFire(10.4))->toBeTrue();
 
         $debouncer->reset();
-        $expect->that($debouncer->shouldFire(11.0))->toBeFalse();
+        Expect::that($debouncer->shouldFire(11.0))->toBeFalse();
     }
 
     #[Test]
     public function statDetectorReportsTouchedNewAndDeletedFiles(): void
     {
-        $expect = new Expect();
         $dir = \sys_get_temp_dir() . '/greenlight-watch-' . \bin2hex(\random_bytes(4));
         \mkdir($dir, 0o777, true);
 
@@ -46,18 +44,18 @@ final class WatchTest
             \file_put_contents($dir . '/A.php', '<?php // a');
             $detector = new StatChangeDetector([$dir]);
 
-            $expect->that($detector->poll())->toBe([]);
+            Expect::that($detector->poll())->toBe([]);
 
             // Same second, so a size change proves the fingerprint works.
             \file_put_contents($dir . '/A.php', '<?php // a changed');
-            $expect->that($detector->poll())->toBe([$dir . '/A.php']);
-            $expect->that($detector->poll())->toBe([]);
+            Expect::that($detector->poll())->toBe([$dir . '/A.php']);
+            Expect::that($detector->poll())->toBe([]);
 
             \file_put_contents($dir . '/B.php', '<?php // b');
-            $expect->that($detector->poll())->toBe([$dir . '/B.php']);
+            Expect::that($detector->poll())->toBe([$dir . '/B.php']);
 
             \unlink($dir . '/A.php');
-            $expect->that($detector->poll())->toBe([$dir . '/A.php']);
+            Expect::that($detector->poll())->toBe([$dir . '/A.php']);
         } finally {
             @\unlink($dir . '/A.php');
             @\unlink($dir . '/B.php');
@@ -68,8 +66,6 @@ final class WatchTest
     #[Test]
     public function loopDebouncesBurstsForcesOnEnterAndQuitsOnQ(): void
     {
-        $expect = new Expect();
-
         // Scripted world: each tick advances virtual time by 0.1s.
         $clock = new class implements WatchClock {
             public float $time = 0.0;
@@ -134,7 +130,7 @@ final class WatchTest
 
         // Initial run, one debounced run for the burst (with failed-first
         // classes from the initial run), and one forced full run from Enter.
-        $expect->that(\count($runs))->toBe(3)
+        Expect::that(\count($runs))->toBe(3)
             ->and($runs[0])->toBe([])
             ->and($runs[1])->toBe(['App\\BrokenTest'])
             ->and($runs[2])->toBe([])

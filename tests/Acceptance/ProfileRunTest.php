@@ -33,8 +33,7 @@ final class ProfileRunTest
             \exec($command, $output, $exit);
             $live = \implode("\n", $output);
 
-            $expect = new Expect();
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($live)->toContain('Profile:')
                 ->and($live)->toContain('spawned, 0 recycled')
                 ->and($live)->toContain('Boot latency:')
@@ -60,7 +59,7 @@ final class ProfileRunTest
             // verbatim from the artifact.
             $liveBlock = \substr($live, (int) \strpos($live, 'Profile:'));
 
-            $expect->that($reportExit)->toBe(0)
+            Expect::that($reportExit)->toBe(0)
                 ->and($offline . "\n")->toBe($liveBlock . "\n");
         } finally {
             @\unlink($artifact);

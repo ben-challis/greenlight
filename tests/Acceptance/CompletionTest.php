@@ -17,10 +17,8 @@ final class CompletionTest
     #[Test]
     public function printsAScriptPerShellAndRejectsUnknownShells(): void
     {
-        $expect = new Expect();
-
         [$exit, $output] = $this->run('bash');
-        $expect->that($exit)->toBe(0)
+        Expect::that($exit)->toBe(0)
             ->and($output)->toContain('_greenlight_completions')
             ->and($output)->toContain('coverage:diff')
             ->and($output)->toContain('--detect-leaks')
@@ -29,33 +27,33 @@ final class CompletionTest
         $bashScript = $output;
 
         [$exit, $output] = $this->run('zsh');
-        $expect->that($exit)->toBe(0)
+        Expect::that($exit)->toBe(0)
             ->and($output)->toContain('compdef _greenlight greenlight')
             ->and($output)->toContain('--detect-leaks')
             ->and($output)->toContain('teamcity');
 
         [$exit, $output] = $this->run('fish');
-        $expect->that($exit)->toBe(0)
+        Expect::that($exit)->toBe(0)
             ->and($output)->toContain('complete -c greenlight')
             ->and($output)->toContain('-l detect-leaks')
             ->and($output)->toContain('teamcity');
 
         [$exit, $output] = $this->run('powershell');
-        $expect->that($exit)->toBe(64)
+        Expect::that($exit)->toBe(64)
             ->and($output)->toContain('Unknown shell');
 
         [$exit, $output] = $this->run();
-        $expect->that($exit)->toBe(64)
+        Expect::that($exit)->toBe(64)
             ->and($output)->toContain('requires a shell argument');
 
-        $this->syntaxCheckWhenBashIsAvailable($bashScript, $expect);
+        $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }
 
     /**
      * Pipes the rendered bash script through bash -n. Skipped silently when
      * bash is not installed; the rest of the test has already run by then.
      */
-    private function syntaxCheckWhenBashIsAvailable(string $script, Expect $expect): void
+    private function syntaxCheckWhenBashIsAvailable(string $script): void
     {
         \exec('command -v bash 2>/dev/null', $paths, $missing);
 
@@ -68,7 +66,7 @@ final class CompletionTest
         try {
             \file_put_contents($file, $script . "\n");
             \exec(\sprintf('bash -n %s 2>&1', \escapeshellarg($file)), $lint, $lintExit);
-            $expect->that($lintExit)->toBe(0);
+            Expect::that($lintExit)->toBe(0);
         } finally {
             @\unlink($file);
         }

@@ -19,21 +19,20 @@ final class IdeHelperTest
     {
         $root = \dirname(__DIR__, 2);
         $target = \sys_get_temp_dir() . '/greenlight-ide-helper-' . \bin2hex(\random_bytes(6)) . '.php';
-        $expect = new Expect();
 
         try {
             [$exit, $output] = $this->run($root . '/tests/Fixture/PhpStanExtension', '--output=' . $target);
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($output)->toContain('2 matchers');
 
             $helper = (string) \file_get_contents($target);
-            $expect->that($helper)->toContain('@method self toHaveDigestLength(int $length)');
+            Expect::that($helper)->toContain('@method self toHaveDigestLength(int $length)');
 
             \exec(\sprintf('%s -l %s 2>&1', \escapeshellarg(\PHP_BINARY), \escapeshellarg($target)), $lint, $lintExit);
-            $expect->that($lintExit)->toBe(0);
+            Expect::that($lintExit)->toBe(0);
 
             [$exit, $output] = $this->run($root . '/tests/Fixture/ListTestsConfig', '--output=' . $target . '.none');
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($output)->toContain('No extension matchers')
                 ->and(\is_file($target . '.none'))->toBeFalse();
         } finally {

@@ -21,11 +21,11 @@ final class JsonLinesReporterTest
         $buffer = $output->buffer();
         $events = CannedStream::events();
 
-        new Expect()->that($buffer)->toEndWith("\n");
+        Expect::that($buffer)->toEndWith("\n");
 
         $lines = \explode("\n", \rtrim($buffer, "\n"));
 
-        new Expect()->that($lines)->toHaveCount(\count($events));
+        Expect::that($lines)->toHaveCount(\count($events));
 
         $tags = JsonLinesReporter::tags();
 
@@ -33,8 +33,7 @@ final class JsonLinesReporterTest
             $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
             $event = $events[$index];
 
-            new Expect()
-                ->that($decoded)->toHaveKey('v')
+            Expect::that($decoded)->toHaveKey('v')
                 ->and($decoded)->toHaveKey('event')
                 ->and($decoded)->toHaveKey('data');
 
@@ -48,8 +47,7 @@ final class JsonLinesReporterTest
                 flags: \JSON_THROW_ON_ERROR,
             );
 
-            new Expect()
-                ->that($decoded['v'])->toBe(1)
+            Expect::that($decoded['v'])->toBe(1)
                 ->and($decoded['event'])->toBe(\array_search($event::class, $tags, true))
                 ->and($decoded['data'])->toEqual($expectedData);
         }
@@ -71,8 +69,7 @@ final class JsonLinesReporterTest
             $class = $classesByTag[$decoded['event']];
             $restored = $class::fromWire($decoded['data']);
 
-            new Expect()
-                ->that($restored::class)->toBe($events[$index]::class)
+            Expect::that($restored::class)->toBe($events[$index]::class)
                 ->and($restored->occurredAt)->toBe($events[$index]->occurredAt);
         }
     }
@@ -85,7 +82,7 @@ final class JsonLinesReporterTest
 
         $lines = \explode("\n", $output->buffer());
 
-        new Expect()->that($lines[0])->toBe(
+        Expect::that($lines[0])->toBe(
             '{"v":1,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5}}',
         );
     }
@@ -111,8 +108,7 @@ final class JsonLinesReporterTest
             }
         };
 
-        new Expect()
-            ->that(static fn() => $reporter->onEvent($event))
+        Expect::that(static fn() => $reporter->onEvent($event))
             ->toThrow(ReportingError::class, '/no stable tag/');
     }
 }

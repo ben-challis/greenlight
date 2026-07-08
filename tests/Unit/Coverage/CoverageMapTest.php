@@ -23,7 +23,7 @@ final class CoverageMapTest
 
         $file = $map->files()['/src/A.php'];
 
-        new Expect()->that($file->coveredLines)->toBe([3, 6])
+        Expect::that($file->coveredLines)->toBe([3, 6])
             ->and($file->uncoveredLines)->toBe([4]);
     }
 
@@ -37,7 +37,7 @@ final class CoverageMapTest
 
         $map = CoverageMap::fromRaw($raw, new PathFilter(['/project/src']));
 
-        new Expect()->that(\array_keys($map->files()))->toBe(['/project/src/A.php']);
+        Expect::that(\array_keys($map->files()))->toBe(['/project/src/A.php']);
     }
 
     #[Test]
@@ -45,7 +45,7 @@ final class CoverageMapTest
     {
         $map = CoverageMap::fromRaw(new RawCoverage(['/src/A.php' => [3 => -2]]));
 
-        new Expect()->that($map->isEmpty())->toBeTrue();
+        Expect::that($map->isEmpty())->toBeTrue();
     }
 
     #[Test]
@@ -56,7 +56,7 @@ final class CoverageMapTest
             new FileCoverage('/src/a.php', [1], []),
         ]);
 
-        new Expect()->that(\array_keys($map->files()))->toBe(['/src/a.php', '/src/b.php']);
+        Expect::that(\array_keys($map->files()))->toBe(['/src/a.php', '/src/b.php']);
     }
 
     #[Test]
@@ -64,7 +64,7 @@ final class CoverageMapTest
     {
         $a = $this->sampleA();
 
-        new Expect()->that($a->merge($a)->toWire())->toBe($a->toWire());
+        Expect::that($a->merge($a)->toWire())->toBe($a->toWire());
     }
 
     #[Test]
@@ -77,7 +77,7 @@ final class CoverageMapTest
         $left = $a->merge($b)->merge($c);
         $right = $a->merge($b->merge($c));
 
-        new Expect()->that($left->toWire())->toBe($right->toWire());
+        Expect::that($left->toWire())->toBe($right->toWire());
     }
 
     #[Test]
@@ -86,7 +86,7 @@ final class CoverageMapTest
         $a = $this->sampleA();
         $b = $this->sampleB();
 
-        new Expect()->that($a->merge($b)->toWire())->toBe($b->merge($a)->toWire());
+        Expect::that($a->merge($b)->toWire())->toBe($b->merge($a)->toWire());
     }
 
     #[Test]
@@ -97,7 +97,7 @@ final class CoverageMapTest
 
         $file = $sawItUncovered->merge($sawItCovered)->files()['/src/A.php'];
 
-        new Expect()->that($file->coveredLines)->toBe([10])
+        Expect::that($file->coveredLines)->toBe([10])
             ->and($file->uncoveredLines)->toBe([]);
     }
 
@@ -109,7 +109,7 @@ final class CoverageMapTest
             new FileCoverage('/src/B.php', [1], [2, 3, 4]),
         ]);
 
-        new Expect()->that($map->coveredLineTotal())->toBe(4)
+        Expect::that($map->coveredLineTotal())->toBe(4)
             ->and($map->executableLineTotal())->toBe(8)
             ->and($map->totalPercentage())->toBeWithin(0.001, 50.0);
     }
@@ -117,7 +117,7 @@ final class CoverageMapTest
     #[Test]
     public function emptyMapCountsAsFullyCovered(): void
     {
-        new Expect()->that(CoverageMap::empty()->totalPercentage())->toBe(100.0);
+        Expect::that(CoverageMap::empty()->totalPercentage())->toBe(100.0);
     }
 
     #[Test]
@@ -130,7 +130,7 @@ final class CoverageMapTest
         /** @var array<string, mixed> $decoded */
         $restored = CoverageMap::fromWire($decoded);
 
-        new Expect()->that($restored->toWire())->toBe($map->toWire());
+        Expect::that($restored->toWire())->toBe($map->toWire());
     }
 
     #[Test]
@@ -141,14 +141,13 @@ final class CoverageMapTest
         /** @var array<string, mixed> $decoded */
         $restored = CoverageMap::fromWire($decoded);
 
-        new Expect()->that($restored->isEmpty())->toBeTrue();
+        Expect::that($restored->isEmpty())->toBeTrue();
     }
 
     #[Test]
     public function malformedWirePayloadsAreRejected(): void
     {
-        new Expect()
-            ->that(static fn(): CoverageMap => CoverageMap::fromWire([]))
+        Expect::that(static fn(): CoverageMap => CoverageMap::fromWire([]))
             ->toThrow(InvalidWirePayload::class)
             ->and(static fn(): CoverageMap => CoverageMap::fromWire(['files' => ['/src/A.php' => [[1]]]]))
             ->toThrow(InvalidWirePayload::class, '/two-element list/')

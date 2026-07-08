@@ -42,6 +42,6 @@ final class LeakTest
             static fn(\WeakReference $reference): bool => $reference->get() !== null,
         ));
 
-        new Expect()->that($survivors)->toBe([]);
+        Expect::that($survivors)->toBe([]);
     }
 }

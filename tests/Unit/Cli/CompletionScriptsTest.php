@@ -15,14 +15,12 @@ final class CompletionScriptsTest
     #[Test]
     public function rendersTheCommandNamesForEveryShell(): void
     {
-        $expect = new Expect();
-
         foreach (['bash', 'zsh', 'fish'] as $shell) {
             $script = (string) $this->scripts()->render($shell);
 
             foreach (['run', 'list-tests', 'coverage:diff', 'profile:report', 'ide-helper', 'completion'] as $command) {
                 // The zsh _describe entries escape the colon in a command name.
-                $expect->that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
+                Expect::that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
             }
         }
     }
@@ -30,15 +28,13 @@ final class CompletionScriptsTest
     #[Test]
     public function generatesFlagCandidatesFromTheOptionSpecList(): void
     {
-        $expect = new Expect();
-
         foreach (['bash', 'zsh'] as $shell) {
-            $expect->that((string) $this->scripts()->render($shell))
+            Expect::that((string) $this->scripts()->render($shell))
                 ->toContain('--only-in-the-spec-table=')
                 ->and((string) $this->scripts()->render($shell))->toContain('--watch');
         }
 
-        $expect->that((string) $this->scripts()->render('fish'))
+        Expect::that((string) $this->scripts()->render('fish'))
             ->toContain('-l only-in-the-spec-table -r')
             ->and((string) $this->scripts()->render('fish'))->toContain('-l watch');
     }
@@ -46,23 +42,21 @@ final class CompletionScriptsTest
     #[Test]
     public function offersReporterValuesAndCompletionShellArguments(): void
     {
-        $expect = new Expect();
-
         foreach (['bash', 'zsh', 'fish'] as $shell) {
             $script = (string) $this->scripts()->render($shell);
 
             foreach (['tty', 'plain', 'junit', 'jsonl', 'github', 'teamcity'] as $reporter) {
-                $expect->that($script)->toContain($reporter);
+                Expect::that($script)->toContain($reporter);
             }
 
-            $expect->that($script)->toContain('bash zsh fish');
+            Expect::that($script)->toContain('bash zsh fish');
         }
     }
 
     #[Test]
     public function returnsNullForAnUnknownShell(): void
     {
-        new Expect()->that($this->scripts()->render('powershell'))->toBeNull();
+        Expect::that($this->scripts()->render('powershell'))->toBeNull();
     }
 
     private function scripts(): CompletionScripts

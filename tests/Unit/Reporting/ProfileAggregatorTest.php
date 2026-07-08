@@ -45,9 +45,8 @@ final class ProfileAggregatorTest
         }
 
         $rendered = $aggregator->render();
-        $expect = new Expect();
 
-        $expect->that($rendered)->toContain('Workers: 2 requested, 2 spawned, 1 recycled')
+        Expect::that($rendered)->toContain('Workers: 2 requested, 2 spawned, 1 recycled')
             ->and($rendered)->toContain('Boot latency: 0.750s average (spawn to first class, 2 workers)')
             ->and($rendered)->toContain('Worker w-1: 2 classes, busy 3.500s, utilisation 78%')
             ->and($rendered)->toContain('Worker w-2: 1 classes, busy 1.000s, utilisation 50%')
@@ -62,6 +61,6 @@ final class ProfileAggregatorTest
         $aggregator = new ProfileAggregator();
         $aggregator->onEvent(new WorkerSpawned('w-1', 11, 100.0));
 
-        new Expect()->that($aggregator->render())->toBe('');
+        Expect::that($aggregator->render())->toBe('');
     }
 }

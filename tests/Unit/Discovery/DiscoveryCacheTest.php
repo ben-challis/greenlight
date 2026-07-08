@@ -15,7 +15,6 @@ final class DiscoveryCacheTest
     public function hitsServeFromCacheAndAnyChangeInvalidates(): void
     {
         $directory = $this->writeFixture();
-        $expect = new Expect();
 
         \spl_autoload_register(static function (string $class) use ($directory): void {
             if ($class === 'GreenlightDiscoCache\\CachedProbeTest') {
@@ -25,7 +24,7 @@ final class DiscoveryCacheTest
 
         try {
             $cold = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            $expect->that($cold->count())->toBe(2);
+            Expect::that($cold->count())->toBe(2);
 
             // Prove the second discovery reads the cache, not the file: plant
             // an extra entry in the cached payload without touching the file.
@@ -44,7 +43,7 @@ final class DiscoveryCacheTest
             \file_put_contents($cacheFile, \json_encode($decoded));
 
             $warm = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            $expect->that($warm->count())->toBe(3);
+            Expect::that($warm->count())->toBe(3);
 
             // Touching the file (content change, so size shifts) must force a
             // re-parse that drops the planted entry.
@@ -55,12 +54,12 @@ final class DiscoveryCacheTest
             ));
 
             $reparsed = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            $expect->that($reparsed->count())->toBe(2);
+            Expect::that($reparsed->count())->toBe(2);
 
             // A corrupt cache file falls back to parsing.
             \file_put_contents($cacheFile, 'not json');
             $recovered = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            $expect->that($recovered->count())->toBe(2);
+            Expect::that($recovered->count())->toBe(2);
         } finally {
             @\unlink($this->cacheFile($directory));
             @\unlink($directory . '/CachedProbeTest.php');

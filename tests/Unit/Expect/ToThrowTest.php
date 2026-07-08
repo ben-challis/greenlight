@@ -12,16 +12,14 @@ final class ToThrowTest
     #[Test]
     public function toThrowPassesOnMatchingClass(): void
     {
-        new Expect()
-            ->that(static fn() => throw new \DomainException('insufficient funds'))
+        Expect::that(static fn() => throw new \DomainException('insufficient funds'))
             ->toThrow(\DomainException::class);
     }
 
     #[Test]
     public function toThrowPassesOnSubclassesAndMessagePattern(): void
     {
-        new Expect()
-            ->that(static fn() => throw new \DomainException('insufficient funds'))
+        Expect::that(static fn() => throw new \DomainException('insufficient funds'))
             ->toThrow(\LogicException::class, matching: '/insufficient funds/');
     }
 
@@ -29,25 +27,23 @@ final class ToThrowTest
     public function toThrowFailsWhenNothingIsThrown(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => new Expect()->that(static fn(): int => 1)->toThrow(\DomainException::class),
+            static fn() => Expect::that(static fn(): int => 1)->toThrow(\DomainException::class),
         );
 
-        $expect = new Expect();
-        $expect->that($detail->message)->toBe('Expected a callable that threw nothing to throw DomainException.');
-        $expect->that($detail->expected)->toBe('DomainException');
-        $expect->that($detail->actual)->toBe('a callable that threw nothing');
+        Expect::that($detail->message)->toBe('Expected a callable that threw nothing to throw DomainException.');
+        Expect::that($detail->expected)->toBe('DomainException');
+        Expect::that($detail->actual)->toBe('a callable that threw nothing');
     }
 
     #[Test]
     public function toThrowFailsOnTheWrongClass(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => new Expect()
-                ->that(static fn() => throw new \RuntimeException('boom'))
+            static fn() => Expect::that(static fn() => throw new \RuntimeException('boom'))
                 ->toThrow(\DomainException::class),
         );
 
-        new Expect()->that($detail->message)->toBe(
+        Expect::that($detail->message)->toBe(
             "Expected a callable that threw RuntimeException with message 'boom' to throw DomainException.",
         );
     }
@@ -56,12 +52,11 @@ final class ToThrowTest
     public function toThrowFailsOnAMessageMismatch(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => new Expect()
-                ->that(static fn() => throw new \DomainException('boom'))
+            static fn() => Expect::that(static fn() => throw new \DomainException('boom'))
                 ->toThrow(\DomainException::class, matching: '/insufficient funds/'),
         );
 
-        new Expect()->that($detail->message)->toBe(
+        Expect::that($detail->message)->toBe(
             "Expected a callable that threw DomainException with message 'boom' "
             . 'to throw DomainException with message matching /insufficient funds/.',
         );
@@ -70,14 +65,13 @@ final class ToThrowTest
     #[Test]
     public function notToThrowPassesWhenNothingIsThrown(): void
     {
-        new Expect()->that(static fn(): int => 1)->not()->toThrow(\DomainException::class);
+        Expect::that(static fn(): int => 1)->not()->toThrow(\DomainException::class);
     }
 
     #[Test]
     public function notToThrowPassesWhenADifferentThrowableIsThrown(): void
     {
-        new Expect()
-            ->that(static fn() => throw new \RuntimeException('boom'))
+        Expect::that(static fn() => throw new \RuntimeException('boom'))
             ->not()->toThrow(\DomainException::class);
     }
 
@@ -85,12 +79,11 @@ final class ToThrowTest
     public function notToThrowFailsWhenTheThrowableMatches(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => new Expect()
-                ->that(static fn() => throw new \DomainException('boom'))
+            static fn() => Expect::that(static fn() => throw new \DomainException('boom'))
                 ->not()->toThrow(\DomainException::class),
         );
 
-        new Expect()->that($detail->message)->toBe(
+        Expect::that($detail->message)->toBe(
             "Expected a callable that threw DomainException with message 'boom' not to throw DomainException.",
         );
     }
@@ -99,10 +92,10 @@ final class ToThrowTest
     public function toThrowGuardsTheSubjectTypeEvenWhenNegated(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => new Expect()->that(42)->not()->toThrow(\DomainException::class),
+            static fn() => Expect::that(42)->not()->toThrow(\DomainException::class),
         );
 
-        new Expect()->that($detail->message)->toBe('toThrow() requires a callable subject, got int.');
+        Expect::that($detail->message)->toBe('toThrow() requires a callable subject, got int.');
     }
 
     #[Test]
@@ -110,16 +103,14 @@ final class ToThrowTest
     {
         $invoked = false;
 
-        new Expect()
-            ->that(function () use (&$invoked): void {
-                new Expect()
-                    ->that(static function () use (&$invoked): void {
-                        $invoked = true;
-                    })
-                    ->toThrow(\DomainException::class, matching: 'not a pattern');
+        Expect::that(function () use (&$invoked): void {
+            Expect::that(static function () use (&$invoked): void {
+                $invoked = true;
             })
+                ->toThrow(\DomainException::class, matching: 'not a pattern');
+        })
             ->toThrow(\InvalidArgumentException::class, matching: '/invalid regular expression/');
 
-        new Expect()->that($invoked)->toBeFalse();
+        Expect::that($invoked)->toBeFalse();
     }
 }

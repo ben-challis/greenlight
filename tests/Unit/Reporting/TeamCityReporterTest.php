@@ -43,7 +43,7 @@ final class TeamCityReporterTest
             ##teamcity[testSuiteFinished name='Acme\NetworkTest']
             TXT;
 
-        new Expect()->that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->toBe($expected . "\n");
     }
 
     #[Test]
@@ -63,7 +63,7 @@ final class TeamCityReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        new Expect()->that($output->buffer())->toBe(
+        Expect::that($output->buffer())->toBe(
             "##teamcity[testFailed name='Acme\EscapeTest::escapes' message='pipe || quote |' bracket |[x|]|nnext']\n"
             . "##teamcity[testFinished name='Acme\EscapeTest::escapes' duration='1']\n",
         );

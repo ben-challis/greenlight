@@ -29,19 +29,18 @@ final class MutationPrototypeTest
         $pristine = \file_get_contents($subject);
         \assert(\is_string($pristine));
 
-        $expect = new Expect();
 
         try {
             // The loop is meaningless unless the unmutated suite passes.
             [$exit] = $this->runSuite($root, $project);
-            $expect->that($exit)->toBe(0);
+            Expect::that($exit)->toBe(0);
 
             // Mutant one: relax the freezing boundary. zeroIsFreezing covers
             // exactly this boundary, so the mutant must die and the report
             // must attribute the kill to that test.
             \file_put_contents($subject, \str_replace('$celsius <= 0.0', '$celsius < 0.0', $pristine));
             [$exit, $output] = $this->runSuite($root, $project);
-            $expect->that($exit)->toBe(1)
+            Expect::that($exit)->toBe(1)
                 ->and($output)->toContain('FAIL MutationPrototype\Tests\TemperatureTest::zeroIsFreezing');
 
             // Mutant two: change describe()'s wording. Nothing tests
@@ -49,7 +48,7 @@ final class MutationPrototypeTest
             // signal a real mutation tool would report.
             \file_put_contents($subject, \str_replace("'freezing'", "'cold'", $pristine));
             [$exit] = $this->runSuite($root, $project);
-            $expect->that($exit)->toBe(0);
+            Expect::that($exit)->toBe(0);
         } finally {
             \file_put_contents($subject, $pristine);
             $this->removeTree($project);

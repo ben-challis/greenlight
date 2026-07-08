@@ -41,7 +41,7 @@ final class JUnitReporterTest
             </testsuites>
             TXT;
 
-        new Expect()->that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->toBe($expected . "\n");
     }
 
     #[Test]
@@ -52,14 +52,13 @@ final class JUnitReporterTest
 
         $document = \simplexml_load_string($output->buffer());
 
-        new Expect()->that($document)->toBeInstanceOf(\SimpleXMLElement::class);
+        Expect::that($document)->toBeInstanceOf(\SimpleXMLElement::class);
 
         if ($document === false) {
             return;
         }
 
-        new Expect()
-            ->that((string) $document['tests'])->toBe('6')
+        Expect::that((string) $document['tests'])->toBe('6')
             ->and((string) $document['failures'])->toBe('1')
             ->and((string) $document['errors'])->toBe('1')
             ->and((string) $document['skipped'])->toBe('1')

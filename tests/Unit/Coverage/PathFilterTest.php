@@ -13,7 +13,7 @@ final class PathFilterTest
     #[Test]
     public function emptyFilterAcceptsEverything(): void
     {
-        new Expect()->that(PathFilter::all()->accepts('/anywhere/at/all.php'))->toBeTrue();
+        Expect::that(PathFilter::all()->accepts('/anywhere/at/all.php'))->toBeTrue();
     }
 
     #[Test]
@@ -21,7 +21,7 @@ final class PathFilterTest
     {
         $filter = new PathFilter(['/project/src', '/project/lib/']);
 
-        new Expect()->that($filter->accepts('/project/src/A.php'))->toBeTrue()
+        Expect::that($filter->accepts('/project/src/A.php'))->toBeTrue()
             ->and($filter->accepts('/project/src/Deep/Nested/B.php'))->toBeTrue()
             ->and($filter->accepts('/project/lib/C.php'))->toBeTrue()
             ->and($filter->accepts('/project/vendor/D.php'))->toBeFalse();
@@ -32,13 +32,13 @@ final class PathFilterTest
     {
         $filter = new PathFilter(['/project/src']);
 
-        new Expect()->that($filter->accepts('/project/srcond/A.php'))->toBeFalse();
+        Expect::that($filter->accepts('/project/srcond/A.php'))->toBeFalse();
     }
 
     #[Test]
     public function emptyDirectoryEntriesAreRejected(): void
     {
-        new Expect()->that(static fn(): PathFilter => new PathFilter(['']))
+        Expect::that(static fn(): PathFilter => new PathFilter(['']))
             ->toThrow(\InvalidArgumentException::class, '/non-empty paths/');
     }
 }

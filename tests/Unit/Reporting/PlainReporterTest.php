@@ -45,7 +45,7 @@ final class PlainReporterTest
               0.340s Acme\CalculatorTest::multipliesIntegers[large numbers]
             TXT;
 
-        new Expect()->that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->toBe($expected . "\n");
     }
 
     #[Test]
@@ -57,7 +57,7 @@ final class PlainReporterTest
         $second = new BufferOutput();
         CannedStream::feed(new PlainReporter($second));
 
-        new Expect()->that($first->buffer())->toBe($second->buffer());
+        Expect::that($first->buffer())->toBe($second->buffer());
     }
 
     #[Test]
@@ -66,6 +66,6 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output));
 
-        new Expect()->that($output->buffer())->not()->toContain("\e");
+        Expect::that($output->buffer())->not()->toContain("\e");
     }
 }

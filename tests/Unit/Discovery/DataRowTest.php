@@ -20,7 +20,7 @@ final class DataRowTest
     {
         $rows = new DataSetExpander()->rowsFor(new \ReflectionClass(InlineRowsTest::class), 'addsUp', null, 5.0);
 
-        new Expect()->that(\array_keys($rows))->toBe(['small', '#1'])
+        Expect::that(\array_keys($rows))->toBe(['small', '#1'])
             ->and($rows['small'])->toBe([1, 2, 3])
             ->and($rows['#1'])->toBe([10, 20, 30]);
     }
@@ -35,7 +35,7 @@ final class DataRowTest
             5.0,
         );
 
-        new Expect()->that(\array_keys($rows))->toBe(['from attribute', 'from provider']);
+        Expect::that(\array_keys($rows))->toBe(['from attribute', 'from provider']);
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final class DataRowTest
     {
         $reflection = new \ReflectionClass(DuplicateRowKeyTest::class);
 
-        new Expect()->that(
+        Expect::that(
             static fn(): array => new DataSetExpander()->rowsFor($reflection, 'probe', 'rows', 5.0),
         )->toThrow(DiscoveryError::class, '/twice/');
     }
@@ -58,7 +58,7 @@ final class DataRowTest
 
         $ids = \array_map(static fn($entry): string => (string) $entry->id, $plan->entries);
 
-        new Expect()->that($ids)->toBe([
+        Expect::that($ids)->toBe([
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::addsUp[small]',
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::addsUp[#1]',
         ]);

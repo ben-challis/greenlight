@@ -82,19 +82,18 @@ final class InterruptionTest
             \fclose($pipes[2]);
             \proc_close($process);
 
-            $expect = new Expect();
 
-            $expect->that($stdout)->toContain('"test-finished"')
+            Expect::that($stdout)->toContain('"test-finished"')
                 ->and($exit)->toBe(130)
                 ->and($stderr)->toContain('Interrupted');
 
             foreach ($this->spawnedWorkerPids($stdout) as $pid) {
                 \exec(\sprintf('ps -p %d -o pid=', $pid), $alive);
-                $expect->that(\trim(\implode('', $alive)))->toBe('');
+                Expect::that(\trim(\implode('', $alive)))->toBe('');
             }
 
             $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
-            $expect->that(\is_array($sockets) ? $sockets : [])->toBe([]);
+            Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
         } finally {
             $this->removeTree($project);
         }

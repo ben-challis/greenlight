@@ -28,18 +28,16 @@ final class ShardingTest
         \sort($all);
         \sort($union);
 
-        new Expect()->that($all)->not()->toHaveCount(0)
+        Expect::that($all)->not()->toHaveCount(0)
             ->and($union)->toBe($all);
     }
 
     #[Test]
     public function malformedShardSpecsAreUsageErrors(): void
     {
-        $expect = new Expect();
-
         foreach (['--shard=4/3', '--shard=0/3', '--shard=banana'] as $flag) {
             [$exit, $output] = $this->run($flag);
-            $expect->that($exit)->toBe(64)->and($output)->toContain('--shard');
+            Expect::that($exit)->toBe(64)->and($output)->toContain('--shard');
         }
     }
 

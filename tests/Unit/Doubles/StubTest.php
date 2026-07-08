@@ -19,7 +19,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        new Expect()->that($stub)->toBeInstanceOf(Stubbable::class);
+        Expect::that($stub)->toBeInstanceOf(Stubbable::class);
 
         $doubles->dispose();
     }
@@ -30,7 +30,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        new Expect()->that(static fn(): string => $stub->name())
+        Expect::that(static fn(): string => $stub->name())
             ->toThrow(DoublesError::class, '/must never be interacted with/');
 
         $doubles->dispose();
@@ -42,7 +42,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        new Expect()->that(static function () use ($stub): void {
+        Expect::that(static function () use ($stub): void {
             $stub->touch();
         })->toThrow(DoublesError::class, '/must never be interacted with/');
 

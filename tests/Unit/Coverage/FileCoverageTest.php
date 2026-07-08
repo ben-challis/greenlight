@@ -15,7 +15,7 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [9, 3, 3, 5], [12, 7, 12]);
 
-        new Expect()->that($file->coveredLines)->toBe([3, 5, 9])
+        Expect::that($file->coveredLines)->toBe([3, 5, 9])
             ->and($file->uncoveredLines)->toBe([7, 12]);
     }
 
@@ -24,7 +24,7 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [3, 5], [3, 7]);
 
-        new Expect()->that($file->coveredLines)->toBe([3, 5])
+        Expect::that($file->coveredLines)->toBe([3, 5])
             ->and($file->uncoveredLines)->toBe([7]);
     }
 
@@ -33,7 +33,7 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [1, 2, 3], [4]);
 
-        new Expect()->that($file->percentage())->toBeWithin(0.001, 75.0)
+        Expect::that($file->percentage())->toBeWithin(0.001, 75.0)
             ->and($file->executableLineCount())->toBe(4)
             ->and($file->coveredLineCount())->toBe(3);
     }
@@ -41,7 +41,7 @@ final class FileCoverageTest
     #[Test]
     public function fileWithoutExecutableLinesCountsAsFullyCovered(): void
     {
-        new Expect()->that(new FileCoverage('/src/A.php', [], [])->percentage())->toBe(100.0);
+        Expect::that(new FileCoverage('/src/A.php', [], [])->percentage())->toBe(100.0);
     }
 
     #[Test]
@@ -52,7 +52,7 @@ final class FileCoverageTest
 
         $merged = $a->merge($b);
 
-        new Expect()->that($merged->coveredLines)->toBe([3, 5])
+        Expect::that($merged->coveredLines)->toBe([3, 5])
             ->and($merged->uncoveredLines)->toBe([7, 9]);
     }
 
@@ -62,14 +62,14 @@ final class FileCoverageTest
         $a = new FileCoverage('/src/A.php', [1], []);
         $b = new FileCoverage('/src/B.php', [1], []);
 
-        new Expect()->that(static fn(): FileCoverage => $a->merge($b))
+        Expect::that(static fn(): FileCoverage => $a->merge($b))
             ->toThrow(\LogicException::class, '/Cannot merge coverage of "\/src\/B\.php"/');
     }
 
     #[Test]
     public function nonPositiveLineNumbersAreRejected(): void
     {
-        new Expect()->that(static fn(): FileCoverage => new FileCoverage('/src/A.php', [0], []))
+        Expect::that(static fn(): FileCoverage => new FileCoverage('/src/A.php', [0], []))
             ->toThrow(\InvalidArgumentException::class, '/must be positive/');
     }
 }

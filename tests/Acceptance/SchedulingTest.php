@@ -21,12 +21,10 @@ final class SchedulingTest
         $project = $this->writeProject();
 
         try {
-            $expect = new Expect();
-
             // Cold run: no cache yet. Records durations and proves reuse:
             // two workers cover four classes.
             [$exit, $lines] = $this->run($project);
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and(\count($this->spawnedWorkers($lines)))->toBe(2);
 
             // Warm run: the slow class is dequeued first, so it must be
@@ -35,7 +33,7 @@ final class SchedulingTest
             [$exit, $lines] = $this->run($project);
             $started = $this->classStartOrder($lines);
 
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
                 ->and(\array_slice($started, 0, 2))->toContain('SchedulingProbe\SlowTest');
         } finally {

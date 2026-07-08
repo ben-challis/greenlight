@@ -22,7 +22,7 @@ final class JsonExporterTest
 
         $decoded = \json_decode(new JsonExporter()->export($map)[JsonExporter::FILE_NAME], true, 512, JSON_THROW_ON_ERROR);
 
-        new Expect()->that($decoded)->toBe([
+        Expect::that($decoded)->toBe([
             'v' => 1,
             'files' => [
                 '/src/A.php' => [
@@ -45,7 +45,7 @@ final class JsonExporterTest
     {
         $json = new JsonExporter()->export(CoverageMap::empty())[JsonExporter::FILE_NAME];
 
-        new Expect()->that($json)->toContain('"files":{}');
+        Expect::that($json)->toContain('"files":{}');
     }
 
     #[Test]
@@ -58,14 +58,13 @@ final class JsonExporterTest
 
         $restored = JsonExporter::import(new JsonExporter()->export($map)[JsonExporter::FILE_NAME]);
 
-        new Expect()->that($restored->toWire())->toBe($map->toWire());
+        Expect::that($restored->toWire())->toBe($map->toWire());
     }
 
     #[Test]
     public function importRejectsMalformedDocuments(): void
     {
-        new Expect()
-            ->that(static fn(): CoverageMap => JsonExporter::import('not json'))
+        Expect::that(static fn(): CoverageMap => JsonExporter::import('not json'))
             ->toThrow(CoverageError::class)
             ->and(static fn(): CoverageMap => JsonExporter::import('{"v":2,"files":{}}'))
             ->toThrow(CoverageError::class, '/schema version/')

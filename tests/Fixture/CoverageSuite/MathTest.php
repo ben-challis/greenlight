@@ -10,13 +10,9 @@ use Greenlight\Tests\Fixture\CoverageLib\Math;
 
 final readonly class MathTest
 {
-    public function __construct(
-        private Expect $expect,
-    ) {}
-
     #[Test]
     public function addsTwoIntegers(): void
     {
-        $this->expect->that(new Math()->add(2, 3))->toBe(5);
+        Expect::that(new Math()->add(2, 3))->toBe(5);
     }
 }

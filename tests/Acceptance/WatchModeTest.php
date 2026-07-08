@@ -17,7 +17,6 @@ final class WatchModeTest
     #[Test]
     public function reRunsOnFileChangesAndQuitsOnQ(): void
     {
-        $expect = new Expect();
         $root = \dirname(__DIR__, 2);
         $cwd = $root . '/tests/Fixture/WatchConfig';
         $watchedFile = $root . '/tests/Fixture/WatchSuite/WatchDemoTest.php';
@@ -48,13 +47,13 @@ final class WatchModeTest
 
         try {
             $output = $this->readUntil($pipes[1], 'Watching for changes', 20.0);
-            $expect->that($output)->toContain('Tests: 1, Passed: 1');
+            Expect::that($output)->toContain('Tests: 1, Passed: 1');
 
             // A synthetic change: append a comment, size changes, mtime may not.
             \file_put_contents($watchedFile, $original . "// touched\n");
 
             $output = $this->readUntil($pipes[1], 'Watching for changes', 20.0);
-            $expect->that($output)->toContain('Change detected')
+            Expect::that($output)->toContain('Change detected')
                 ->and($output)->toContain('Tests: 1, Passed: 1');
 
             \fwrite($pipes[0], 'q');
@@ -68,7 +67,7 @@ final class WatchModeTest
 
                 if (!$status['running']) {
                     $running = false;
-                    $expect->that($status['exitcode'])->toBe(0);
+                    Expect::that($status['exitcode'])->toBe(0);
 
                     break;
                 }
@@ -76,7 +75,7 @@ final class WatchModeTest
                 \usleep(50_000);
             }
 
-            $expect->that($running)->toBeFalse();
+            Expect::that($running)->toBeFalse();
         } finally {
             \file_put_contents($watchedFile, $original);
             @\fclose($pipes[0]);

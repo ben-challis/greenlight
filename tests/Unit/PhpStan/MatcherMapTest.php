@@ -22,7 +22,7 @@ final class MatcherMapTest
         $lengthParameters = $map->parameters('toHaveDigestLength');
         $lengthType = $lengthParameters[0]->getType();
 
-        new Expect()->that($map->has('toBeHexadecimal'))->toBeTrue()
+        Expect::that($map->has('toBeHexadecimal'))->toBeTrue()
             ->and($map->has('toHaveDigestLength'))->toBeTrue()
             ->and($map->has('toBeSomethingElse'))->toBeFalse()
             ->and($map->parameters('toBeHexadecimal'))->toBe([])
@@ -36,13 +36,13 @@ final class MatcherMapTest
     {
         $map = MatcherMap::fromConfigFiles([self::CONFIG, self::CONFIG]);
 
-        new Expect()->that($map->has('toHaveDigestLength'))->toBeTrue();
+        Expect::that($map->has('toHaveDigestLength'))->toBeTrue();
     }
 
     #[Test]
     public function conflictingSignaturesAreRefused(): void
     {
-        new Expect()->that(
+        Expect::that(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([self::CONFIG, self::CONFLICTING_CONFIG]),
         )->toThrow(MatcherMapError::class);
     }

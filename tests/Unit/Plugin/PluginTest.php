@@ -41,7 +41,7 @@ final class PluginTest
 
         $quarantined = $byMethod['flakyAndQuarantined'];
 
-        new Expect()->that($quarantined->outcome)->toBe(Outcome::Skipped)
+        Expect::that($quarantined->outcome)->toBe(Outcome::Skipped)
             ->and($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class)
             ->and($quarantined->transformations[0]->from)->toBe(Outcome::Errored)
             ->and($byMethod['passes']->outcome)->toBe(Outcome::Passed);
@@ -64,7 +64,7 @@ final class PluginTest
 
         [, $results] = $this->runSuite('Lifecycle/Order', [$rogue]);
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Errored)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('without withOutcome() provenance');
     }
 
@@ -87,7 +87,7 @@ final class PluginTest
 
         [, $results] = $this->runSuite('Lifecycle/Order', [$broken]);
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Errored)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('failed in beforeTest')
             ->and($results[0]->error?->message)->toContain('plugin exploded');
     }
@@ -111,7 +111,7 @@ final class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        new Expect()->that($summary->skipped)->toBe(1)
+        Expect::that($summary->skipped)->toBe(1)
             ->and($results[0]->skipReason)->toBe('flaky on this platform');
     }
 
@@ -134,7 +134,7 @@ final class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        new Expect()->that($summary->skipped)->toBe(1)
+        Expect::that($summary->skipped)->toBe(1)
             ->and($results[0]->skipReason)->toBe('quarantined environment');
     }
 
@@ -186,7 +186,7 @@ final class PluginTest
         $this->runSuite('Lifecycle/Order', [$late, $early]);
 
         // Construction precedes beforeTest, so the first entry is the fixture's own.
-        new Expect()->that(\array_slice(TraceLog::drain(), 1, 2))->toBe(['early', 'late']);
+        Expect::that(\array_slice(TraceLog::drain(), 1, 2))->toBe(['early', 'late']);
     }
 
     #[Test]
@@ -197,27 +197,31 @@ final class PluginTest
 
         [$summary] = $this->runSuite('Lifecycle/Services', [new ProbeProvider()]);
 
-        new Expect()->that($summary->passed)->toBe(2)
+        Expect::that($summary->passed)->toBe(2)
             ->and(TraceLog::drain())->toContain('probe1:disposed');
     }
 
     #[Test]
     public function expectationExtensionsDispatchThroughTheChain(): void
     {
-        $expect = new Expect([new EvenNumbersExtension()]);
+        Expect::install([new EvenNumbersExtension()]);
 
-        // Dispatch is exercised through __call directly: static analysis
-        // cannot know dynamic matchers, and typed autocomplete for extensions
-        // is a GA-time concern.
-        $expect->that(4)->__call('toBeEven', []);
-        $expect->that(3)->not()->__call('toBeEven', []);
+        try {
+            // Dispatch is exercised through __call directly: static analysis
+            // cannot know dynamic matchers, and typed autocomplete for extensions
+            // is a GA-time concern.
+            Expect::that(4)->__call('toBeEven', []);
+            Expect::that(3)->not()->__call('toBeEven', []);
 
-        new Expect()->that(static function () use ($expect): void {
-            $expect->that(3)->__call('toBeEven', []);
-        })->toThrow(ExpectationFailed::class, matching: '/extension matcher toBeEven/');
+            Expect::that(static function (): void {
+                Expect::that(3)->__call('toBeEven', []);
+            })->toThrow(ExpectationFailed::class, matching: '/extension matcher toBeEven/');
 
-        new Expect()->that(static fn(): Expectation => $expect->that(3)->__call('toBeSomethingUnknown', []))
-            ->toThrow(\BadMethodCallException::class, matching: '/toBeSomethingUnknown/');
+            Expect::that(static fn(): Expectation => Expect::that(3)->__call('toBeSomethingUnknown', []))
+                ->toThrow(\BadMethodCallException::class, matching: '/toBeSomethingUnknown/');
+        } finally {
+            Expect::install([]);
+        }
     }
 
     /**

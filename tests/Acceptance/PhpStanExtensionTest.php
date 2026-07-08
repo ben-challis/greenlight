@@ -31,12 +31,10 @@ final class PhpStanExtensionTest
             declare(strict_types=1);
 
             use Greenlight\Expect\Expect;
-            use Greenlight\Tests\Fixture\PhpStanExtension\DigestExtension;
 
             function greenlightGoodProbe(): void
             {
-                new Expect([new DigestExtension()])
-                    ->that('c0ffee')->toBeHexadecimal()
+                Expect::that('c0ffee')->toBeHexadecimal()
                     ->and('c0ffee')->toHaveDigestLength(6);
             }
             PHP);
@@ -47,12 +45,10 @@ final class PhpStanExtensionTest
             declare(strict_types=1);
 
             use Greenlight\Expect\Expect;
-            use Greenlight\Tests\Fixture\PhpStanExtension\DigestExtension;
 
             function greenlightBadProbe(): void
             {
-                new Expect([new DigestExtension()])
-                    ->that('c0ffee')->toHaveDigestLength('six')
+                Expect::that('c0ffee')->toHaveDigestLength('six')
                     ->and('c0ffee')->toBeHexadecimal(123);
             }
             PHP);
@@ -73,8 +69,7 @@ final class PhpStanExtensionTest
             @\rmdir($probeDir);
         }
 
-        $expect = new Expect();
-        $expect->that(\is_array($report))->toBeTrue();
+        Expect::that(\is_array($report))->toBeTrue();
         \assert(\is_array($report) && \is_array($report['files']));
 
         $badFile = $report['files'][$bad] ?? [];
@@ -82,7 +77,7 @@ final class PhpStanExtensionTest
         $badErrors = \is_array($badFile['messages'] ?? null) ? $badFile['messages'] : [];
         $messages = \implode("\n", \array_filter(\array_column($badErrors, 'message'), \is_string(...)));
 
-        $expect->that($exitCode)->toBe(1)
+        Expect::that($exitCode)->toBe(1)
             ->and(isset($report['files'][$good]))->toBeFalse()
             ->and(\count($badErrors))->toBe(2)
             ->and($messages)->toContain('toHaveDigestLength() expects int, string given')

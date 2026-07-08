@@ -12,7 +12,6 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Expect\FailureSink;
 use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
@@ -49,14 +48,13 @@ final class HarnessIntegrationTest
 
         $failures = $container->dispose();
 
-        $expect = new Expect();
-        $expect->that($failures)->toHaveCount(1)
+        Expect::that($failures)->toHaveCount(1)
             ->and($failures[0])->toBeInstanceOf(ExpectationFailed::class);
 
         $failure = $failures[0];
 
         if ($failure instanceof ExpectationFailed) {
-            $expect->that($failure->detail()->message)->toContain('add');
+            Expect::that($failure->detail()->message)->toContain('add');
         }
     }
 
@@ -67,15 +65,13 @@ final class HarnessIntegrationTest
 
         $condition = $doubles->stub(Condition::class);
         $disposable = $doubles->stub(Disposable::class);
-        $sink = $doubles->spy(FailureSink::class);
         $extension = $doubles->stub(ExpectationExtension::class);
         $wire = $doubles->stub(WireSerializable::class);
-        $events = $doubles->stub(EventSink::class);
+        $events = $doubles->spy(EventSink::class);
 
-        new Expect()->that($condition)->toBeInstanceOf(Condition::class)
+        Expect::that($condition)->toBeInstanceOf(Condition::class)
             ->and($disposable)->toBeInstanceOf(Disposable::class)
             ->and($wire)->toBeInstanceOf(WireSerializable::class)
-            ->and($sink)->toBeInstanceOf(FailureSink::class)
             ->and($extension)->toBeInstanceOf(ExpectationExtension::class)
             ->and($events)->toBeInstanceOf(EventSink::class);
 

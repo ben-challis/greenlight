@@ -23,7 +23,7 @@ final class SpyTest
         $spy->flush();
         $spy->notify('dev', 'second');
 
-        new Expect()->that($doubles->callsTo($spy, 'notify'))->toBe([['ops', 'first'], ['dev', 'second']])
+        Expect::that($doubles->callsTo($spy, 'notify'))->toBe([['ops', 'first'], ['dev', 'second']])
             ->and($doubles->callsTo($spy, 'flush'))->toBe([[]]);
 
         $doubles->dispose();
@@ -35,7 +35,7 @@ final class SpyTest
         $doubles = new Doubles();
         $spy = $doubles->spy(Notifier::class);
 
-        new Expect()->that($doubles->callsTo($spy, 'notify'))->toBe([]);
+        Expect::that($doubles->callsTo($spy, 'notify'))->toBe([]);
 
         $doubles->dispose();
     }
@@ -48,7 +48,7 @@ final class SpyTest
 
         $spy->tag('first', 1, 2, 3);
 
-        new Expect()->that($doubles->callsTo($spy, 'tag'))->toBe([['first', 1, 2, 3]]);
+        Expect::that($doubles->callsTo($spy, 'tag'))->toBe([['first', 1, 2, 3]]);
 
         $doubles->dispose();
     }
@@ -59,7 +59,7 @@ final class SpyTest
         $doubles = new Doubles();
         $spy = $doubles->spy(Calculator::class);
 
-        new Expect()->that(static fn(): int => $spy->add(1, 2))
+        Expect::that(static fn(): int => $spy->add(1, 2))
             ->toThrow(DoublesError::class, '/Spies only record/');
 
         $doubles->dispose();
@@ -71,7 +71,7 @@ final class SpyTest
         $doubles = new Doubles();
         $foreign = new \stdClass();
 
-        new Expect()->that(static fn(): array => $doubles->callsTo($foreign, 'add'))
+        Expect::that(static fn(): array => $doubles->callsTo($foreign, 'add'))
             ->toThrow(DoublesError::class, '/not created by this Doubles factory/');
     }
 
@@ -83,7 +83,7 @@ final class SpyTest
 
         $spy->notify('ops', 'deploy finished');
 
-        new Expect()->that($doubles->callsTo($spy, 'notify'))->toHaveCount(1)
+        Expect::that($doubles->callsTo($spy, 'notify'))->toHaveCount(1)
             ->and($doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
 
         $doubles->dispose();

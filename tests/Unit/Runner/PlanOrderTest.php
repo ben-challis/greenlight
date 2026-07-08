@@ -25,7 +25,7 @@ final class PlanOrderTest
             classSeconds: ['Acme\B' => 0.5, 'Acme\E' => 2.0],
         );
 
-        new Expect()->that($this->classes($ordered))->toBe(['Acme\D', 'Acme\E', 'Acme\B', 'Acme\A', 'Acme\C']);
+        Expect::that($this->classes($ordered))->toBe(['Acme\D', 'Acme\E', 'Acme\B', 'Acme\A', 'Acme\C']);
     }
 
     #[Test]
@@ -35,7 +35,7 @@ final class PlanOrderTest
 
         $ordered = PlanOrder::schedule($plan, ['Acme\A'], ['Acme\A' => 0.1, 'Acme\B' => 9.0]);
 
-        new Expect()->that($this->classes($ordered))->toBe(['Acme\A', 'Acme\B']);
+        Expect::that($this->classes($ordered))->toBe(['Acme\A', 'Acme\B']);
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final class PlanOrderTest
     {
         $plan = $this->plan(['Acme\B', 'Acme\A']);
 
-        new Expect()->that(PlanOrder::schedule($plan, [], []))->toBe($plan);
+        Expect::that(PlanOrder::schedule($plan, [], []))->toBe($plan);
     }
 
     /**

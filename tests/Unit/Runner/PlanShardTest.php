@@ -31,7 +31,7 @@ final class PlanShardTest
             foreach ($shard->entries as $entry) {
                 $id = (string) $entry->id;
                 // Disjoint: no id may appear in two shards.
-                new Expect()->that(isset($seen[$id]))->toBeFalse();
+                Expect::that(isset($seen[$id]))->toBeFalse();
                 $seen[$id] = true;
             }
 
@@ -39,7 +39,7 @@ final class PlanShardTest
         }
 
         // Complete: the union is exactly the plan.
-        new Expect()->that($total)->toBe(\count($plan->entries));
+        Expect::that($total)->toBe(\count($plan->entries));
     }
 
     #[Test]
@@ -56,7 +56,7 @@ final class PlanShardTest
 
             foreach (\array_keys($classes) as $class) {
                 $expected = \crc32($class) % 4 === $index - 1;
-                new Expect()->that($expected)->toBeTrue();
+                Expect::that($expected)->toBeTrue();
             }
         }
     }
@@ -66,7 +66,7 @@ final class PlanShardTest
     {
         $plan = $this->plan(5);
 
-        new Expect()->that(PlanShard::select($plan, 1, 1))->toBe($plan);
+        Expect::that(PlanShard::select($plan, 1, 1))->toBe($plan);
     }
 
     private function plan(int $classes): ExecutionPlan

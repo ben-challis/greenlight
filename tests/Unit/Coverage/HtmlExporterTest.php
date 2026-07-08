@@ -23,7 +23,7 @@ final class HtmlExporterTest
 
         $pages = new HtmlExporter()->export($map);
 
-        new Expect()->that(\array_keys($pages))->toBe([
+        Expect::that(\array_keys($pages))->toBe([
             HtmlExporter::INDEX_FILE_NAME,
             HtmlExporter::pageName('/src/A.php'),
             HtmlExporter::pageName('/src/B.php'),
@@ -39,7 +39,7 @@ final class HtmlExporterTest
 
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
-        new Expect()->that($index)->toContain('/src/A.php')
+        Expect::that($index)->toContain('/src/A.php')
             ->and($index)->toContain('75.00%')
             ->and($index)->toContain(HtmlExporter::pageName('/src/A.php'))
             ->and($index)->toContain('<th>Total</th>')
@@ -57,7 +57,7 @@ final class HtmlExporterTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
 
-        new Expect()->that($page)->toContain('class="cov"')
+        Expect::that($page)->toContain('class="cov"')
             ->and($page)->toContain('class="unc"')
             ->and($page)->toContain('return $a + $b;')
             ->and($page)->not()->toContain('<script');
@@ -72,7 +72,7 @@ final class HtmlExporterTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName('/no/such/file.php')];
 
-        new Expect()->that($page)->toContain('class="cov"')
+        Expect::that($page)->toContain('class="cov"')
             ->and($page)->toContain('class="unc"')
             ->and($page)->toContain('<span class="num">5</span>');
     }

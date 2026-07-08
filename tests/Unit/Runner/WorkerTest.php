@@ -20,6 +20,7 @@ use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Tests\Fixture\LeakSuite\LeakyTest;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
+use Greenlight\Tests\Fixture\Lifecycle\Injection\InjectedProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
@@ -35,7 +36,7 @@ final class WorkerTest
         TraceLog::drain();
         [, $results] = $this->runFixture('Order');
 
-        new Expect()->that(TraceLog::drain())
+        Expect::that(TraceLog::drain())
             ->toBe(['construct', 'before1', 'before2', 'test', 'after2', 'after1'])
             ->and($results[0]->outcome)->toBe(Outcome::Passed);
     }
@@ -46,7 +47,7 @@ final class WorkerTest
         TraceLog::drain();
         [, $results] = $this->runFixture('BeforeFails');
 
-        new Expect()->that(TraceLog::drain())->toBe(['before', 'after'])
+        Expect::that(TraceLog::drain())->toBe(['before', 'after'])
             ->and($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toBe('before broke');
     }
@@ -56,7 +57,7 @@ final class WorkerTest
     {
         [, $results] = $this->runFixture('AfterFails');
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Errored)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toBe('after broke');
     }
 
@@ -66,7 +67,7 @@ final class WorkerTest
         RetriesTest::$attempts = 0;
         [, $results] = $this->runFixture('Retries');
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Passed)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Passed)
             ->and($results[0]->attempts)->toBe(3);
     }
 
@@ -76,7 +77,7 @@ final class WorkerTest
         RetryFilterTest::$attempts = 0;
         [, $results] = $this->runFixture('RetryFilter');
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Errored)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->attempts)->toBe(1)
             ->and(RetryFilterTest::$attempts)->toBe(1);
     }
@@ -86,7 +87,7 @@ final class WorkerTest
     {
         [, $results] = $this->runFixture('SlowTimeout');
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Failed)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Failed)
             ->and($results[0]->failures[0]->message)->toContain('Timed out');
     }
 
@@ -95,7 +96,7 @@ final class WorkerTest
     {
         [$summary, $results] = $this->runFixture('RuntimeSkip');
 
-        new Expect()->that($summary->skipped)->toBe(1)
+        Expect::that($summary->skipped)->toBe(1)
             ->and($results[0]->skipReason)->toBe('the fixture backend is unreachable');
     }
 
@@ -111,7 +112,7 @@ final class WorkerTest
             $byMethod[$result->id->method] = $result;
         }
 
-        new Expect()->that($summary->skipped)->toBe(2)
+        Expect::that($summary->skipped)->toBe(2)
             ->and($summary->passed)->toBe(1)
             ->and($byMethod['skippedUnconditionally']->skipReason)->toBe('not today')
             ->and($byMethod['skippedByCondition']->skipReason)->toContain('NeverCondition')
@@ -123,7 +124,7 @@ final class WorkerTest
     {
         [$summary] = $this->runFixture('Injection');
 
-        new Expect()->that($summary->passed)->toBe(1);
+        Expect::that($summary->passed)->toBe(1);
     }
 
     #[Test]
@@ -131,7 +132,7 @@ final class WorkerTest
     {
         [, $results] = $this->runFixture('UnknownDep');
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Errored)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('SplStack');
     }
 
@@ -145,7 +146,7 @@ final class WorkerTest
             static fn(TestResult $result): bool => $result->outcome === Outcome::Errored,
         ));
 
-        new Expect()->that($summary->total())->toBe(3)
+        Expect::that($summary->total())->toBe(3)
             ->and($summary->passed)->toBe(2)
             ->and(\count($failed))->toBe(1)
             ->and($failed[0]->id->dataSetKey)->toBe('broken row');
@@ -162,7 +163,7 @@ final class WorkerTest
 
         $this->runFixture('Services', $registry);
 
-        new Expect()->that(TraceLog::drain())->toBe([
+        Expect::that(TraceLog::drain())->toBe([
             'probe1:created',
             'probe1:touched',
             'probe1:touched',
@@ -181,7 +182,7 @@ final class WorkerTest
 
         $this->runFixture('Services', $registry);
 
-        new Expect()->that(TraceLog::drain())->toBe([
+        Expect::that(TraceLog::drain())->toBe([
             'probe1:created',
             'probe1:touched',
             'probe1:disposed',
@@ -199,7 +200,7 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('DisposeFails', $registry);
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Passed)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Passed)
             ->and($results[1]->outcome)->toBe(Outcome::Errored)
             ->and($results[1]->error?->message)->toBe('disposal broke');
     }
@@ -216,7 +217,7 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('VerifyOnDispose', $registry);
 
-        new Expect()->that($results[0]->outcome)->toBe(Outcome::Failed)
+        Expect::that($results[0]->outcome)->toBe(Outcome::Failed)
             ->and($results[0]->error)->toBeNull()
             ->and($results[0]->failures[0]->message)->toContain('2');
     }
@@ -226,7 +227,7 @@ final class WorkerTest
     {
         [$summary] = $this->runFixture('Bail', stopAfterFailures: 1);
 
-        new Expect()->that($summary->total())->toBe(1)
+        Expect::that($summary->total())->toBe(1)
             ->and($summary->errored)->toBe(1);
     }
 
@@ -244,7 +245,7 @@ final class WorkerTest
         $noisy = $byMethod['echoesAndFails'];
         $optedOut = $byMethod['optsOutOfCapture'];
 
-        new Expect()->that($noisy->outcome)->toBe(Outcome::Errored)
+        Expect::that($noisy->outcome)->toBe(Outcome::Errored)
             ->and($noisy->output?->stdout)->toContain('noisy diagnostic output')
             ->and($noisy->output?->diagnostics[0]->message)->toContain('old api')
             ->and($optedOut->output)->toBeNull();
@@ -263,7 +264,7 @@ final class WorkerTest
             budget: new WorkerBudget(maxTests: 1),
         );
 
-        new Expect()->that($outcome->recycleReason)->toBe(RecycleReason::TestCount)
+        Expect::that($outcome->recycleReason)->toBe(RecycleReason::TestCount)
             ->and($outcome->summary->total())->toBe(1)
             ->and(\count($outcome->remaining))->toBe(2)
             ->and((string) $outcome->remaining[0])->toContain('AaTest::wouldPass');
@@ -282,7 +283,7 @@ final class WorkerTest
             drainRequested: static fn(): bool => true,
         );
 
-        new Expect()->that($outcome->drained)->toBeTrue()
+        Expect::that($outcome->drained)->toBeTrue()
             ->and($outcome->summary->total())->toBe(1)
             ->and($outcome->recycleReason)->toBeNull();
     }
@@ -301,7 +302,7 @@ final class WorkerTest
 
         $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
 
-        new Expect()->that(\count($outcome->leaks))->toBe(1)
+        Expect::that(\count($outcome->leaks))->toBe(1)
             ->and($leakedIds[0])->toContain('LeakyTest::passesButLeaksItself');
 
         LeakyTest::$retained = [];
@@ -313,7 +314,7 @@ final class WorkerTest
         $sink = new CollectingEventSink();
         $this->runFixture('Order', sink: $sink);
 
-        new Expect()->that($sink->sequence())->toBe([
+        Expect::that($sink->sequence())->toBe([
             'TestClassStarted',
             'TestStarted',
             'TestFinished',
@@ -349,7 +350,7 @@ final class WorkerTest
     private function registry(): HarnessRegistry
     {
         return new HarnessRegistry([
-            new ServiceDefinition(Expect::class, Scope::PerTest, static fn(): Expect => new Expect()),
+            new ServiceDefinition(InjectedProbe::class, Scope::PerTest, static fn(): InjectedProbe => new InjectedProbe()),
         ]);
     }
 }

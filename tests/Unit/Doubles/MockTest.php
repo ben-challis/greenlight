@@ -21,7 +21,7 @@ final class MockTest
             $plan->expects('add')->with(1, 2)->once()->andReturns(3);
         });
 
-        new Expect()->that($calculator->add(1, 2))->toBe(3);
+        Expect::that($calculator->add(1, 2))->toBe(3);
 
         $doubles->dispose();
     }
@@ -36,14 +36,13 @@ final class MockTest
 
         $calculator->add(1, 2);
 
-        $expect = new Expect();
 
         try {
             $doubles->dispose();
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            $expect->that($detail->message)->toContain('add')
+            Expect::that($detail->message)->toContain('add')
                 ->and($detail->message)->toContain('exactly 2 times')
                 ->and($detail->message)->toContain('1 time')
                 ->and($detail->expected)->toContain('exactly 2 times')
@@ -63,7 +62,7 @@ final class MockTest
             $plan->expects('add')->andReturns(0);
         });
 
-        new Expect()->that(static fn() => $doubles->dispose())
+        Expect::that(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/at least 1 time/');
     }
 
@@ -73,14 +72,13 @@ final class MockTest
         $doubles = new Doubles();
         $calculator = $doubles->mock(Calculator::class);
 
-        $expect = new Expect();
 
         try {
             $calculator->add(4, 5);
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            $expect->that($detail->message)->toContain('Unexpected call')
+            Expect::that($detail->message)->toContain('Unexpected call')
                 ->and($detail->message)->toContain('add')
                 ->and($detail->actual)->toBe('add(4, 5)')
                 ->and($detail->expected)->toContain('no call to add() was expected');
@@ -99,14 +97,13 @@ final class MockTest
             $plan->expects('describe')->with('expected label')->once()->andReturns('ok');
         });
 
-        $expect = new Expect();
 
         try {
             $calculator->describe('other label');
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            $expect->that($detail->expected)->toContain("describe('expected label') exactly 1 time")
+            Expect::that($detail->expected)->toContain("describe('expected label') exactly 1 time")
                 ->and($detail->actual)->toBe("describe('other label')");
 
             return;
@@ -123,7 +120,7 @@ final class MockTest
             $plan->expects('describe')->with('label')->once()->andReturns('matched');
         });
 
-        new Expect()->that($calculator->describe('label'))->toBe('matched');
+        Expect::that($calculator->describe('label'))->toBe('matched');
 
         $doubles->dispose();
     }
@@ -136,7 +133,7 @@ final class MockTest
             $plan->expects('add')->with(MockPlan::any(), 7)->times(2)->andReturns(7);
         });
 
-        new Expect()->that($calculator->add(1, 7))->toBe(7)
+        Expect::that($calculator->add(1, 7))->toBe(7)
             ->and($calculator->add(999, 7))->toBe(7);
 
         $doubles->dispose();
@@ -150,19 +147,18 @@ final class MockTest
             $plan->expects('add')->never();
         });
 
-        $expect = new Expect();
 
         try {
             $calculator->add(1, 1);
 
             throw new \RuntimeException('The forbidden call did not fail.');
         } catch (ExpectationFailed $failure) {
-            $expect->that($failure->detail()->message)->toContain('Unexpected call')
+            Expect::that($failure->detail()->message)->toContain('Unexpected call')
                 ->and($failure->detail()->expected)->toContain('never');
         }
 
         // The call failure is kept, so verification reports it again.
-        new Expect()->that(static fn() => $doubles->dispose())
+        Expect::that(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/Unexpected call/');
     }
 
@@ -176,7 +172,7 @@ final class MockTest
 
         $calculator->add(1, 1);
 
-        new Expect()->that(static fn(): int => $calculator->add(1, 1))
+        Expect::that(static fn(): int => $calculator->add(1, 1))
             ->toThrow(ExpectationFailed::class, '/Unexpected call/');
     }
 
@@ -203,7 +199,7 @@ final class MockTest
             $plan->expects('add')->once()->andThrows(new \RuntimeException('gateway down'));
         });
 
-        new Expect()->that(static fn(): int => $calculator->add(1, 2))
+        Expect::that(static fn(): int => $calculator->add(1, 2))
             ->toThrow(\RuntimeException::class, '/gateway down/');
 
         $doubles->dispose();
@@ -221,7 +217,7 @@ final class MockTest
             // Swallowed on purpose: verification must still fail the test.
         }
 
-        new Expect()->that(static fn() => $doubles->dispose())
+        Expect::that(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/Unexpected call/');
     }
 

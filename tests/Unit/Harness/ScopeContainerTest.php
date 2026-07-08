@@ -18,14 +18,13 @@ final class ScopeContainerTest
     #[Test]
     public function reusesTheServiceWithinTheScope(): void
     {
-        $expect = new Expect();
         $container = new ScopeContainer();
         $definition = new ServiceDefinition(\ArrayObject::class, Scope::PerTest, static fn(): \ArrayObject => new \ArrayObject());
 
         $first = $container->get($definition);
         $second = $container->get($definition);
 
-        $expect->that($second)->toBe($first);
+        Expect::that($second)->toBe($first);
     }
 
     #[Test]
@@ -40,7 +39,7 @@ final class ScopeContainerTest
         $container->get($definition);
         $failures = $container->dispose();
 
-        new Expect()->that($failures)->toBe([])->and(TraceLog::drain())->toBe([]);
+        Expect::that($failures)->toBe([])->and(TraceLog::drain())->toBe([]);
     }
 
     #[Test]
@@ -48,7 +47,6 @@ final class ScopeContainerTest
     {
         ServiceProbe::reset();
         TraceLog::drain();
-        $expect = new Expect();
 
         $container = new ScopeContainer();
         $probeDefinition = new ServiceDefinition(ServiceProbe::class, Scope::PerTest, static fn(): ServiceProbe => new ServiceProbe());
@@ -64,7 +62,7 @@ final class ScopeContainerTest
         $probe->touch();
         $container->dispose();
 
-        $expect->that(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
+        Expect::that(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
     }
 
     #[Test]
@@ -86,7 +84,7 @@ final class ScopeContainerTest
         $probe->touch();
         $failures = $container->dispose();
 
-        new Expect()->that(\count($failures))->toBe(1)
+        Expect::that(\count($failures))->toBe(1)
             ->and($failures[0]->getMessage())->toBe('disposal broke');
     }
 }

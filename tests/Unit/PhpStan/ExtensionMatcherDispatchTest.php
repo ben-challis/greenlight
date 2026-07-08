@@ -18,10 +18,14 @@ final class ExtensionMatcherDispatchTest
     #[Test]
     public function fixtureMatchersDispatchAndAnalyse(): void
     {
-        $expect = new Expect([new DigestExtension()]);
+        Expect::install([new DigestExtension()]);
 
-        $expect->that('c0ffee')->toBeHexadecimal()
-            ->and('c0ffee')->toHaveDigestLength(6)
-            ->and('not hex!')->not()->toBeHexadecimal();
+        try {
+            Expect::that('c0ffee')->toBeHexadecimal()
+                ->and('c0ffee')->toHaveDigestLength(6)
+                ->and('not hex!')->not()->toBeHexadecimal();
+        } finally {
+            Expect::install([]);
+        }
     }
 }

@@ -22,8 +22,7 @@ final class CompositeReporterTest
 
         $expected = \count(CannedStream::events());
 
-        new Expect()
-            ->that($first->eventCount)->toBe($expected)
+        Expect::that($first->eventCount)->toBe($expected)
             ->and($second->eventCount)->toBe($expected)
             ->and($first->finished)->toBeTrue()
             ->and($second->finished)->toBeTrue();
@@ -45,8 +44,7 @@ final class CompositeReporterTest
             new GithubReporter($compositeGithub),
         ]));
 
-        new Expect()
-            ->that($compositePlain->buffer())->toBe($alonePlain->buffer())
+        Expect::that($compositePlain->buffer())->toBe($alonePlain->buffer())
             ->and($compositeGithub->buffer())->toBe($aloneGithub->buffer());
     }
 }

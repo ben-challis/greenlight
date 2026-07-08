@@ -18,10 +18,6 @@ use Greenlight\Expect\Expect;
  */
 final readonly class ChannelTest
 {
-    public function __construct(
-        private Expect $expect,
-    ) {}
-
     #[Test]
     public function twoWorkersOccupyChannelsOneAndTwo(): void
     {
@@ -31,7 +27,7 @@ final readonly class ChannelTest
             [$exit, $lines] = $this->run($project, 'run --workers=2 --reporter=jsonl');
             $channels = $this->reportedChannels($lines);
 
-            $this->expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and(\count($channels))->toBe(4)
                 ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
         } finally {
@@ -48,7 +44,7 @@ final readonly class ChannelTest
             [$exit, $lines] = $this->run($project, 'run --workers=1 --reporter=jsonl');
             $channels = $this->reportedChannels($lines);
 
-            $this->expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and(\count($channels))->toBe(4)
                 ->and(\array_values(\array_unique($channels)))->toBe([1]);
         } finally {
@@ -68,7 +64,7 @@ final readonly class ChannelTest
             [$exit, $lines] = $this->run($project, 'run --reporter=jsonl');
             $channels = $this->reportedChannels($lines);
 
-            $this->expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and(\count($this->spawnedWorkers($lines)))->toBeGreaterThan(2)
                 ->and(\count($channels))->toBe(4)
                 ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
@@ -172,7 +168,6 @@ final readonly class ChannelTest
             {
                 public function __construct(
                     private readonly TestChannel $channel,
-                    private readonly Expect $expect,
                 ) {}
 
                 #[Test]
@@ -182,7 +177,7 @@ final readonly class ChannelTest
 
                     echo 'channel=' . $this->channel->number;
 
-                    $this->expect->that((string) $this->channel->number)->toBe(\getenv('GREENLIGHT_CHANNEL'))
+                    Expect::that((string) $this->channel->number)->toBe(\getenv('GREENLIGHT_CHANNEL'))
                         ->and($this->channel->label())->toBe('gl-' . $this->channel->number);
                 }
             }

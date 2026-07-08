@@ -25,7 +25,7 @@ final class StreamOutputTest
 
         \rewind($stream);
 
-        new Expect()->that(\stream_get_contents($stream))->toBe('first second');
+        Expect::that(\stream_get_contents($stream))->toBe('first second');
 
         \fclose($stream);
     }

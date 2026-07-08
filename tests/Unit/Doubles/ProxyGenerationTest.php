@@ -25,7 +25,7 @@ final class ProxyGenerationTest
         $first = $doubles->spy(Calculator::class);
         $second = $doubles->spy(Calculator::class);
 
-        new Expect()->that($second::class)->toBe($first::class);
+        Expect::that($second::class)->toBe($first::class);
 
         $doubles->dispose();
     }
@@ -37,7 +37,7 @@ final class ProxyGenerationTest
         $alpha = $doubles->spy(CacheAlpha::class);
         $beta = $doubles->spy(CacheBeta::class);
 
-        new Expect()->that($alpha::class)->not()->toBe($beta::class);
+        Expect::that($alpha::class)->not()->toBe($beta::class);
 
         $doubles->dispose();
     }
@@ -59,7 +59,7 @@ final class ProxyGenerationTest
 
         $files = \glob($expected . '/*.php');
 
-        new Expect()->that($files === false ? [] : $files)->not()->toHaveCount(0);
+        Expect::that($files === false ? [] : $files)->not()->toHaveCount(0);
 
         $doubles->dispose();
     }
@@ -75,7 +75,7 @@ final class ProxyGenerationTest
 
         $files = \glob($directory . '/*.php');
 
-        new Expect()->that($files === false ? [] : $files)->toHaveCount(1);
+        Expect::that($files === false ? [] : $files)->toHaveCount(1);
 
         $doubles->dispose();
         $this->removeDirectory($directory);
@@ -89,7 +89,7 @@ final class ProxyGenerationTest
         $doubles = new Doubles();
         $clock = $doubles->stub(Clock::class);
 
-        new Expect()->that($clock)->toBeInstanceOf(Clock::class);
+        Expect::that($clock)->toBeInstanceOf(Clock::class);
 
         $doubles->dispose();
     }
@@ -110,7 +110,7 @@ final class ProxyGenerationTest
         $wide->byReference($items);
         $wide->returnsVoid();
 
-        new Expect()->that($wide->unionType('text'))->toBe('answered')
+        Expect::that($wide->unionType('text'))->toBe('answered')
             ->and($wide->nullable('x'))->toBeNull()
             ->and($wide->variadic('head', 1, 2))->toBe(['head']);
 
@@ -125,7 +125,7 @@ final class ProxyGenerationTest
             $plan->expects('returnsNever');
         });
 
-        new Expect()->that(static fn() => $wide->returnsNever())
+        Expect::that(static fn() => $wide->returnsNever())
             ->toThrow(DoublesError::class, '/no configured answer/');
 
         $doubles->dispose();
@@ -139,7 +139,7 @@ final class ProxyGenerationTest
             $plan->expects('returnsNever')->andThrows(new \DomainException('halt'));
         });
 
-        new Expect()->that(static fn() => $wide->returnsNever())
+        Expect::that(static fn() => $wide->returnsNever())
             ->toThrow(\DomainException::class, '/halt/');
 
         $doubles->dispose();

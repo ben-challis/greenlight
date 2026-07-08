@@ -21,7 +21,7 @@ final class BoundaryTest
     {
         $doubles = new Doubles();
 
-        new Expect()->that(static fn(): object => $doubles->mock(FinalService::class))
+        Expect::that(static fn(): object => $doubles->mock(FinalService::class))
             ->toThrow(DoublesError::class, '/final and cannot be doubled.*interface/');
     }
 
@@ -30,7 +30,7 @@ final class BoundaryTest
     {
         $doubles = new Doubles();
 
-        new Expect()->that(static fn(): object => $doubles->mock(ReadonlyService::class))
+        Expect::that(static fn(): object => $doubles->mock(ReadonlyService::class))
             ->toThrow(DoublesError::class, '/readonly class.*interface/');
     }
 
@@ -39,7 +39,7 @@ final class BoundaryTest
     {
         $doubles = new Doubles();
 
-        new Expect()->that(static fn(): object => $doubles->mock(Suit::class))
+        Expect::that(static fn(): object => $doubles->mock(Suit::class))
             ->toThrow(DoublesError::class, '/is an enum/');
     }
 
@@ -48,7 +48,7 @@ final class BoundaryTest
     {
         $doubles = new Doubles();
 
-        new Expect()->that(static fn(): object => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::that(static fn(): object => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('subtract');
         }))->toThrow(DoublesError::class, '/has no method subtract\(\)/');
     }

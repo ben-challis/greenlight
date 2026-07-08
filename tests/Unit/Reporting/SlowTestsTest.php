@@ -20,7 +20,7 @@ final class SlowTestsTest
         $slow = new SlowTests();
         $slow->record($this->finished('Acme\FastTest::quick', 0.05));
 
-        new Expect()->that($slow->render())->toBe('');
+        Expect::that($slow->render())->toBe('');
     }
 
     #[Test]
@@ -38,7 +38,7 @@ final class SlowTestsTest
             static fn(string $line): bool => $line !== '',
         ));
 
-        new Expect()->that($lines[0])->toBe('Slowest tests:')
+        Expect::that($lines[0])->toBe('Slowest tests:')
             ->and(\count($lines))->toBe(11)
             ->and($lines[1])->toBe('  0.320s Acme\SlowTest::case12')
             ->and($lines[10])->toBe('  0.230s Acme\SlowTest::case03')

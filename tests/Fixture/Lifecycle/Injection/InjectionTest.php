@@ -10,12 +10,12 @@ use Greenlight\Expect\Expect;
 final readonly class InjectionTest
 {
     public function __construct(
-        private Expect $expect,
+        private InjectedProbe $probe,
     ) {}
 
     #[Test]
-    public function usesTheInjectedExpect(): void
+    public function usesTheInjectedService(): void
     {
-        $this->expect->that(1 + 1)->toBe(2);
+        Expect::that($this->probe->ping())->toBe('pong');
     }
 }

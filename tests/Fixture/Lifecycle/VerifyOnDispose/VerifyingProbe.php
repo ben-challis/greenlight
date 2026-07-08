@@ -19,6 +19,6 @@ final class VerifyingProbe implements Disposable
     #[\Override]
     public function dispose(): void
     {
-        new Expect()->that($this->touches)->toBe(2);
+        Expect::that($this->touches)->toBe(2);
     }
 }

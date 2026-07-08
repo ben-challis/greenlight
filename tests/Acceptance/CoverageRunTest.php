@@ -20,14 +20,13 @@ final class CoverageRunTest
     #[Test]
     public function collectsAndExportsCoverageThroughTheProcessPool(): void
     {
-        $expect = new Expect();
         $outDir = $this->outDir();
         $this->removeDir($outDir);
 
         try {
             [$exit, $output] = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage');
 
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($output)->toContain('Coverage: 60.00% of 5 executable lines')
                 ->and($output)->toContain('wrote json to coverage-out/coverage.json');
 
@@ -47,13 +46,13 @@ final class CoverageRunTest
                 }
             }
 
-            $expect->that($mathFile)->not()->toBeNull()
+            Expect::that($mathFile)->not()->toBeNull()
                 ->and($mathFile['covered'] ?? [])->not()->toHaveCount(0)
                 ->and($mathFile['uncovered'] ?? [])->not()->toHaveCount(0);
 
             $lcov = \file_get_contents($outDir . '/lcov.info');
 
-            $expect->that($lcov)->toContain('SF:')
+            Expect::that($lcov)->toContain('SF:')
                 ->and($lcov)->toContain('end_of_record');
         } finally {
             $this->removeDir($outDir);
@@ -69,7 +68,7 @@ final class CoverageRunTest
         try {
             [$exit, $output] = $this->runIn(['run', '--reporter=plain'], 'off');
 
-            new Expect()->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($output)->toContain('Coverage was requested but no worker could collect it')
                 ->and(\is_dir($outDir))->toBeFalse();
         } finally {
@@ -80,13 +79,12 @@ final class CoverageRunTest
     #[Test]
     public function coverageDiffFailsOnRegressionsAndPassesWhenEqual(): void
     {
-        $expect = new Expect();
         $outDir = $this->outDir();
         $this->removeDir($outDir);
 
         try {
             [$exit] = $this->runIn(['run', '--reporter=plain'], 'coverage');
-            $expect->that($exit)->toBe(0);
+            Expect::that($exit)->toBe(0);
 
             $baseline = $outDir . '/coverage.json';
 
@@ -95,7 +93,7 @@ final class CoverageRunTest
                 'off',
             );
 
-            $expect->that($sameExit)->toBe(0)
+            Expect::that($sameExit)->toBe(0)
                 ->and($sameOutput)->toContain('(+0.00)');
 
             $json = \file_get_contents($baseline);
@@ -114,7 +112,7 @@ final class CoverageRunTest
                 'off',
             );
 
-            $expect->that($regressedExit)->toBe(1)
+            Expect::that($regressedExit)->toBe(1)
                 ->and($regressedOutput)->toContain('Coverage regressed against the baseline.')
                 ->and($regressedOutput)->toContain('newly uncovered lines: 11');
         } finally {

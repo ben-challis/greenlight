@@ -60,7 +60,6 @@ final class ProtocolTest
 
         $codec = new JsonFrameCodec();
         $buffer = new FrameBuffer();
-        $expect = new Expect();
 
         // Feed all frames as one concatenated byte stream, in 3-byte chunks,
         // to prove reassembly across arbitrary boundaries.
@@ -80,11 +79,11 @@ final class ProtocolTest
             }
         }
 
-        $expect->that(\count($received))->toBe(\count($messages));
+        Expect::that(\count($received))->toBe(\count($messages));
 
         foreach ($messages as $i => $original) {
-            $expect->that($received[$i]::class)->toBe($original::class);
-            $expect->that($received[$i]->toWire())->toEqual($original->toWire());
+            Expect::that($received[$i]::class)->toBe($original::class);
+            Expect::that($received[$i]->toWire())->toEqual($original->toWire());
         }
     }
 
@@ -98,7 +97,7 @@ final class ProtocolTest
 
         $assign = Assign::fromWire(new Assign(new ExecutionPlan([$entry], 42), 10)->toWire());
 
-        new Expect()->that($assign->slice->seed)->toBe(42)
+        Expect::that($assign->slice->seed)->toBe(42)
             ->and($assign->recycleAfterTests)->toBe(10)
             ->and($assign->recycleAboveMemoryBytes)->toBeNull()
             ->and($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one')
@@ -109,27 +108,24 @@ final class ProtocolTest
     public function oversizedFramesAreRejectedOnBothSides(): void
     {
         $codec = new JsonFrameCodec(maxFrameBytes: 64);
-        $expect = new Expect();
 
-        $expect->that(static fn(): string => $codec->encode(['pad' => \str_repeat('x', 100)]))
+        Expect::that(static fn(): string => $codec->encode(['pad' => \str_repeat('x', 100)]))
             ->toThrow(ProtocolError::class, matching: '/exceeds the 64 byte limit/');
 
         $buffer = new FrameBuffer(maxFrameBytes: 64);
         $buffer->feed(\pack('N', 1000));
 
-        $expect->that(static fn(): ?string => $buffer->next())
+        Expect::that(static fn(): ?string => $buffer->next())
             ->toThrow(ProtocolError::class, matching: '/exceeds the 64 byte limit/');
     }
 
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        $expect = new Expect();
-
-        $expect->that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
-        $expect->that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))
             ->toThrow(ProtocolError::class, matching: '/Unsupported protocol version 9/');
     }
 
@@ -145,6 +141,6 @@ final class ProtocolTest
             throw new \RuntimeException('Expected a complete frame.');
         }
 
-        new Expect()->that($codec->decode($body)['message'])->toContain('bad');
+        Expect::that($codec->decode($body)['message'])->toContain('bad');
     }
 }

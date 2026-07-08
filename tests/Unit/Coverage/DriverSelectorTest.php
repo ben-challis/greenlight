@@ -16,7 +16,7 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([])->select();
 
-        new Expect()->that($selection->driver)->toBeNull()
+        Expect::that($selection->driver)->toBeNull()
             ->and($selection->reason)->toBe('No coverage driver is available: no drivers are configured.');
     }
 
@@ -26,12 +26,12 @@ final class DriverSelectorTest
         $selection = new DriverSelector()->select();
 
         if (!$selection->driver instanceof CoverageDriver) {
-            new Expect()->that($selection->reason)->toContain('No coverage driver is available: tried PcovDriver, XdebugDriver.')
+            Expect::that($selection->reason)->toContain('No coverage driver is available: tried PcovDriver, XdebugDriver.')
                 ->and($selection->reason)->toContain('Install pcov');
 
             return;
         }
 
-        new Expect()->that($selection->reason)->toBeNull();
+        Expect::that($selection->reason)->toBeNull();
     }
 }

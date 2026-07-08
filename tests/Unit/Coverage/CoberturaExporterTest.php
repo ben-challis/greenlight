@@ -27,7 +27,7 @@ final class CoberturaExporterTest
         $firstClassLines = $xml->xpath('/coverage/packages/package/classes/class[1]/lines/line');
         \assert($firstClassLines !== null);
 
-        new Expect()->that((string) $xml['line-rate'])->toBe('0.7500')
+        Expect::that((string) $xml['line-rate'])->toBe('0.7500')
             ->and((string) $xml['lines-covered'])->toBe('3')
             ->and((string) $xml['lines-valid'])->toBe('4')
             ->and((string) $xml['timestamp'])->toBe('1234')
@@ -45,7 +45,7 @@ final class CoberturaExporterTest
     {
         $xml = new \SimpleXMLElement(new CoberturaExporter()->export(CoverageMap::empty())[CoberturaExporter::FILE_NAME]);
 
-        new Expect()->that((string) $xml['line-rate'])->toBe('1.0000')
+        Expect::that((string) $xml['line-rate'])->toBe('1.0000')
             ->and((string) $xml['lines-valid'])->toBe('0');
     }
 }

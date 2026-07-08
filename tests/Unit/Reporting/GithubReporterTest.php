@@ -27,7 +27,7 @@ final class GithubReporterTest
             ::error file=/project/tests/NetworkTest.php,line=17::Acme\NetworkTest::connects: RuntimeException: Connection refused.
             TXT;
 
-        new Expect()->that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->toBe($expected . "\n");
     }
 
     #[Test]
@@ -54,7 +54,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        new Expect()->that($output->buffer())->toBe(
+        Expect::that($output->buffer())->toBe(
             '::error file=/project/tests/a%3Ab%2Cc.php,line=3'
             . '::Acme\EscapeTest::escapes: 50%25 done%0Asecond line'
             . "\n",

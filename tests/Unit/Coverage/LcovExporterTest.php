@@ -36,14 +36,14 @@ final class LcovExporterTest
 
             LCOV;
 
-        new Expect()->that(new LcovExporter()->export($map))
+        Expect::that(new LcovExporter()->export($map))
             ->toBe([LcovExporter::FILE_NAME => $expected]);
     }
 
     #[Test]
     public function emptyMapProducesAnEmptyTracefile(): void
     {
-        new Expect()->that(new LcovExporter()->export(CoverageMap::empty()))
+        Expect::that(new LcovExporter()->export(CoverageMap::empty()))
             ->toBe([LcovExporter::FILE_NAME => '']);
     }
 }

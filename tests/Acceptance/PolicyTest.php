@@ -24,17 +24,15 @@ final class PolicyTest
         $project = $this->writeProject();
 
         try {
-            $expect = new Expect();
-
             // Without flags everything passes; deprecations are recorded, not fatal.
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest');
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($output)->toContain('Tests: 3, Passed: 3')
                 // One matcher per test crossed the worker boundary into the summary.
                 ->and($output)->toContain('Expectations: 3');
 
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
-            $expect->that($exit)->toBe(1)
+            Expect::that($exit)->toBe(1)
                 ->and($output)->toContain('Tests: 3, Passed: 2, Failed: 1')
                 ->and($output)->toContain('deprecation policy failed this passed test')
                 ->and($output)->toContain('old api is deprecated')
@@ -42,7 +40,7 @@ final class PolicyTest
                 ->and($output)->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
 
             [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
-            $expect->that($exit)->toBe(1)
+            Expect::that($exit)->toBe(1)
                 ->and($output)->toContain('notice policy failed this passed test')
                 ->and($output)->toContain('a probe notice');
         } finally {
@@ -56,11 +54,9 @@ final class PolicyTest
         $project = $this->writeProject();
 
         try {
-            $expect = new Expect();
-
             [$exit, $output] = $this->run($project, '--filter=RiskyProbeTest');
             $riskyBlock = \substr($output, (int) \strpos($output, 'Risky:'));
-            $expect->that($exit)->toBe(0)
+            Expect::that($exit)->toBe(0)
                 ->and($riskyBlock)->toContain('Risky: 1 passed without verifying any expectation')
                 ->and($riskyBlock)->toContain('RiskyProbeTest::assertsNothing')
                 ->and($riskyBlock)->not()->toContain('optedOut')
@@ -69,7 +65,7 @@ final class PolicyTest
                 ->and($output)->toContain('Expectations: 1');
 
             [$exit, $output] = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
-            $expect->that($exit)->toBe(1)
+            Expect::that($exit)->toBe(1)
                 ->and($output)->toContain('Tests: 3, Passed: 2, Failed: 1')
                 ->and($output)->toContain('fail-on-risky policy failed this passed test');
         } finally {
@@ -112,27 +108,25 @@ final class PolicyTest
 
             final class DiagnosticProbeTest
             {
-                public function __construct(private readonly Expect $expect) {}
-
                 #[Test]
                 public function triggersDeprecation(): void
                 {
                     \trigger_error('old api is deprecated', \E_USER_DEPRECATED);
-                    $this->expect->that(true)->toBeTrue();
+                    Expect::that(true)->toBeTrue();
                 }
 
                 #[Test]
                 public function ignorableDeprecation(): void
                 {
                     \trigger_error('vendor noise: legacy shim', \E_USER_DEPRECATED);
-                    $this->expect->that(true)->toBeTrue();
+                    Expect::that(true)->toBeTrue();
                 }
 
                 #[Test]
                 public function triggersNotice(): void
                 {
                     \trigger_error('a probe notice', \E_USER_NOTICE);
-                    $this->expect->that(true)->toBeTrue();
+                    Expect::that(true)->toBeTrue();
                 }
             }
             PHP);

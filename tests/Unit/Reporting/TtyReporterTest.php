@@ -35,17 +35,16 @@ final class TtyReporterTest
         $reporter->finish();
 
         $buffer = $output->buffer();
-        $expect = new Expect();
 
         // The live region is erased and redrawn: cursor-up plus clear-to-end.
-        $expect->that($buffer)->toContain("\x1b[2A\r\x1b[0J")
+        Expect::that($buffer)->toContain("\x1b[2A\r\x1b[0J")
             ->and($buffer)->toContain("\x1b[32m✓\x1b[0m App\AlphaTest (1 tests, 0.010s)")
             ->and($buffer)->toContain("\x1b[31m✗\x1b[0m App\BetaTest (1 tests, 1 failed, 0.010s)")
             ->and($buffer)->toContain('Tests: 2, Passed: 1, Failed: 1, Errored: 0, Skipped: 0')
             ->and($buffer)->toContain("Seed: 4242\n");
 
         // A live line for the still-running class carries its running count.
-        $expect->that($buffer)->toContain('App\BetaTest (1)');
+        Expect::that($buffer)->toContain('App\BetaTest (1)');
     }
 
     #[Test]
@@ -62,7 +61,7 @@ final class TtyReporterTest
 
         $buffer = $output->buffer();
 
-        new Expect()->that($buffer)->not()->toContain("\x1b[")
+        Expect::that($buffer)->not()->toContain("\x1b[")
             ->and($buffer)->toContain("✓ App\AlphaTest (1 tests, 0.010s)\n")
             ->and($buffer)->toContain('Tests: 1, Passed: 1, Failed: 0, Errored: 0, Skipped: 0');
     }
