@@ -104,6 +104,10 @@ final readonly class Application
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
           --watch            Re-run on file changes; Enter re-runs everything, q quits
           --detect-leaks     Verify every test instance is collected; leaks fail the run
+          --verbose          Print a permanent line per completed class in
+                             interactive output
+          --no-ansi          Disable colours and the live progress window;
+                             plain append-only output
           --fail-on-deprecation  Fail passed tests that captured a deprecation
           --fail-on-notice   Fail passed tests that captured a notice
           --fail-on-risky    Fail passed tests that verified no expectations
@@ -569,12 +573,16 @@ final readonly class Application
     private function buildReporter(ParsedArguments $arguments, ?int $seed, string $configFile, string $workingDirectory): Reporter
     {
         $output = new StreamOutput(\STDOUT);
-        $ansi = \function_exists('stream_isatty') && @\stream_isatty(\STDOUT);
+        $capabilities = TerminalCapabilities::detect(
+            \function_exists('stream_isatty') && @\stream_isatty(\STDOUT),
+            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+            $arguments->has('no-ansi'),
+        );
 
         $names = $arguments->values('reporter');
 
         if ($names === []) {
-            $names = [$ansi ? 'tty' : 'plain'];
+            $names = [$capabilities->interactive ? 'tty' : 'plain'];
         }
 
         $prefix = \rtrim($workingDirectory, '/') . '/';
@@ -585,7 +593,15 @@ final readonly class Application
 
         foreach ($names as $name) {
             $reporters[] = match ($name) {
-                'tty' => new TtyReporter($output, $ansi, $ansi, $header, extendedSlowTests: $profile),
+                'tty' => new TtyReporter(
+                    $output,
+                    $capabilities->colour,
+                    $capabilities->interactive,
+                    $header,
+                    extendedSlowTests: $profile,
+                    verbose: $arguments->has('verbose'),
+                    terminalRows: $this->terminalRows(),
+                ),
                 'plain' => new PlainReporter($output, $header, extendedSlowTests: $profile),
                 'junit' => new JUnitReporter($output),
                 'jsonl' => new JsonLinesReporter($output),
@@ -603,6 +619,24 @@ final readonly class Application
         }
 
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
+    }
+
+    /**
+     * LINES when the shell exports it, tput as fallback, 24 as the safe
+     * default; probed once per reporter build, no resize handling.
+     */
+    private function terminalRows(): int
+    {
+        $linesEnv = \getenv('LINES');
+        $lines = $linesEnv === false || $linesEnv === '' ? 0 : (int) $linesEnv;
+
+        if ($lines > 0) {
+            return $lines;
+        }
+
+        $probed = (int) @\exec('tput lines 2>/dev/null');
+
+        return $probed > 0 ? $probed : 24;
     }
 
     /**
@@ -887,6 +921,8 @@ final readonly class Application
             new OptionSpec('watch'),
             new OptionSpec('detect-leaks'),
             new OptionSpec('dry-run'),
+            new OptionSpec('no-ansi'),
+            new OptionSpec('verbose'),
             new OptionSpec('profile'),
             new OptionSpec('input', OptionValue::Required),
             new OptionSpec('output', OptionValue::Required),

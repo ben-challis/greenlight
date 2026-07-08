@@ -70,12 +70,28 @@ final class CliTest
 
         Check::same(0, $exit, 'passing run exit code');
         Check::true(
-            \str_contains(\implode("\n", $output), 'Tests: 7, Passed: 7, Failed: 0, Errored: 0, Skipped: 0'),
+            \str_contains(\implode("\n", $output), '7 tests, 7 passed'),
             'summary line to report all seven fixture tests passing',
         );
         Check::true(
             !\str_contains(\implode("\n", $output), 'alpha:one'),
             'escaped fixture output to be captured, never printed into the report stream',
+        );
+    }
+
+    #[Test]
+    public function noAnsiAndVerboseAreAcceptedAndOutputStaysEscapeFree(): void
+    {
+        [$exit, $output] = $this->runCli(['run', '--no-ansi', '--verbose'], 'tests/Fixture/ListTestsConfig');
+
+        Check::same(0, $exit, 'no-ansi verbose run exit code');
+        Check::true(
+            !\str_contains(\implode("\n", $output), "\x1b["),
+            'no escape sequences under --no-ansi',
+        );
+        Check::true(
+            \str_contains(\implode("\n", $output), '7 tests, 7 passed'),
+            'summary line still present',
         );
     }
 
