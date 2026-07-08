@@ -125,7 +125,7 @@ final readonly class Application
      * @param \Closure(string): void $out
      * @param \Closure(string): void $err
      */
-    public function __construct(
+    private function __construct(
         private \Closure $out,
         private \Closure $err,
     ) {}

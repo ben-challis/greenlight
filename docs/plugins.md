@@ -1,6 +1,11 @@
 # Writing plugins
 
-Plugins are plain objects passed to `GreenlightConfig::plugins()` in `greenlight.php`. Greenlight discovers what a plugin can do from the interfaces it implements; one object may implement several. Unlike most test frameworks, subscribers receive live runtime context: the actual test instance, its metadata, and access to harness services, not a sanitised copy.
+Plugins are plain objects passed to `GreenlightConfig::plugins()` in
+`greenlight.php`. Greenlight works out what a plugin can do from the interfaces
+it implements. A single plugin can implement more than one interface.
+
+Plugins receive real runtime context: the test instance, its metadata, and
+access to harness services.
 
 ```php
 return GreenlightConfig::create()
@@ -10,11 +15,19 @@ return GreenlightConfig::create()
 
 ## How plugins reach workers
 
-Tests execute in worker processes, and live objects cannot cross a process boundary. Each worker therefore loads `greenlight.php` itself and constructs the plugins on its side. Two consequences follow: plugin constructors run once per worker, and plugins cannot share in-memory state across workers. A plugin that needs cross-worker state must keep it externally (a file, a socket, a service).
+Tests run in worker processes, and live PHP objects cannot be sent across a
+process boundary. Each worker loads `greenlight.php` and creates its own plugin
+instances.
+
+That means plugin constructors run once per worker. Plugins also cannot share
+in-memory state between workers. If a plugin needs shared state, keep it outside
+the process, for example in a file, socket, or external service.
 
 ## Capability interfaces
 
-### TestLifecycleSubscriber (worker-side)
+### TestLifecycleSubscriber
+
+Worker-side.
 
 ```php
 use Greenlight\Plugin\TestContext;
@@ -35,27 +48,55 @@ final class FlakyQuarantine implements TestLifecycleSubscriber
 }
 ```
 
-`beforeTest` runs after the test instance is constructed and before the `#[Before]` hooks. Calling `$context->skip('reason')` from it abandons the attempt and reports the test as skipped; the method is typed `never`, so nothing after the call runs. It works by throwing `Greenlight\Plugin\SkipTest`, declared as `@throws` on the interface, and throwing that yourself is equivalent. Any other throwable errors the test with your plugin named.
+`beforeTest()` runs after the test instance is constructed and before any
+`#[Before]` hooks.
 
-`afterTest` receives the finished result and returns it, replaced or untouched. Outcome changes are only legal through `TestResult::withOutcome()`, which records who changed what: a replacement that flips the outcome without growing the transformation log errors the test, naming the plugin. Reports stay trustworthy because transformations are always attributable.
+Call `$context->skip('reason')` to stop the attempt and report the test as
+skipped. The method is typed `never`, so code after the call does not run. It
+throws `Greenlight\Plugin\SkipTest`, which is declared on the interface; throwing
+that exception yourself has the same effect. Any other throwable marks the test
+as errored and names the plugin.
 
-`TestContext` carries the live test `instance`, the `TestId`, the `TestMetadata`, and `service(SomeType::class)` resolving from the active harness scopes. `service()` is usable during `beforeTest` and the test itself; by `afterTest` the per-test scope has closed and it throws.
+`afterTest()` receives the finished result and must return a result, either the
+same one or a replacement.
 
-### RetryDecider (worker-side)
+Outcome changes must go through `TestResult::withOutcome()`. That records which
+plugin changed the result. If a plugin returns a result whose outcome changed
+without adding to the transformation log, the test errors and names the plugin.
+
+`TestContext` contains the live test `instance`, the `TestId`, the
+`TestMetadata`, and `service(SomeType::class)` for resolving services from the
+active harness scopes.
+
+`service()` is available during `beforeTest()` and during the test itself. By
+`afterTest()`, the per-test scope has already closed, so `service()` throws.
+
+### RetryDecider
+
+Worker-side.
 
 ```php
 public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
 
-Consulted after each unsuccessful attempt; any decider answering yes triggers a fresh attempt with a fresh instance and scope. The built-in `#[Retry]` attribute is itself implemented through this interface.
+Retry deciders are asked after each unsuccessful attempt. If any decider returns
+`true`, Greenlight runs a fresh attempt with a fresh test instance and scope.
 
-### RunLifecycleSubscriber (orchestrator-side)
+The built-in `#[Retry]` attribute is implemented through this interface.
+
+### RunLifecycleSubscriber
+
+Orchestrator-side.
 
 ```php
 public function onRunEvent(Event $event): void;
 ```
 
-Receives the whole event stream (run, worker, class, and test events) as it reaches the orchestrator process. Observation only: results cannot be altered from this side of the process boundary, and a throwing run subscriber fails the run loudly.
+Run subscribers receive the event stream in the orchestrator process. This
+includes run, worker, class, and test events.
+
+This side is observation-only. Results cannot be changed across the process
+boundary. If a run subscriber throws, the run fails.
 
 ### HarnessProvider
 
@@ -74,19 +115,47 @@ final class DatabaseProvider implements HarnessProvider
 }
 ```
 
-Contributed services become constructor-injectable in tests, scoped `PerTest`, `PerClass`, `PerSuite`, or `PerRun` (per worker lifetime). Services are lazy: an injected but untouched service is never constructed. A service implementing `Greenlight\Harness\Disposable` is disposed when its scope closes, in reverse creation order, and a disposal that throws `ExpectationFailed` fails the test with diffs, which is how auto-verifying services (the built-in doubles among them) work.
+Harness providers contribute services that tests can receive through constructor
+injection.
 
-### ServiceResolver (in Greenlight\Harness)
+Services can be scoped as `PerTest`, `PerClass`, `PerSuite`, or `PerRun`.
+`PerRun` means the worker lifetime. Services are lazy, so a service is not
+constructed unless it is actually used.
+
+If a service implements `Greenlight\Harness\Disposable`, it is disposed when its
+scope closes. Disposal happens in reverse creation order.
+
+If disposal throws `ExpectationFailed`, the test fails with diffs. This is how
+auto-verifying services work, including Greenlight's built-in doubles.
+
+### ServiceResolver
+
+In `Greenlight\Harness`.
 
 ```php
 public function resolve(string $type, array $attributes): ?object;
 ```
 
-Fallback resolution for constructor parameter types no harness service covers. Registered services always win; on a miss, resolvers are consulted in registration order with the parameter's declared type and its instantiated attributes, and the first non-null answer is injected. Returning null passes; answering with anything that is not an instance of the requested type errors the test with the resolver named. Objects supplied this way belong to the resolver's world: harness scopes never track or dispose them.
+A service resolver is fallback constructor injection for types that no harness
+service provides.
 
-This is the interface the Symfony bridge implements to inject container services (see [Testing Symfony applications](symfony.md)); any other dependency container can be bridged the same way.
+Registered harness services always win. If no service matches, resolvers are
+called in registration order with the parameter's declared type and instantiated
+attributes. The first non-null object is injected.
 
-### ExpectationExtension (in Greenlight\Expect)
+Return `null` to pass. Returning an object that is not an instance of the
+requested type errors the test and names the resolver.
+
+Objects returned by a resolver are owned by the resolver. Harness scopes do not
+track or dispose them.
+
+The Symfony bridge uses this interface to inject container services. Other
+dependency containers can be bridged the same way. See
+[Testing Symfony applications](symfony.md).
+
+### ExpectationExtension
+
+In `Greenlight\Expect`.
 
 ```php
 final class UuidMatchers implements ExpectationExtension
@@ -101,11 +170,29 @@ final class UuidMatchers implements ExpectationExtension
 }
 ```
 
-Extension matchers dispatch through the expectation chain (`Expect::that($id)->toBeValidUuid()`), honour `not()`, and cannot shadow native matchers. Declare matcher parameters with real native types: they are enforced at runtime by PHP itself and read by the PHPStan extension below.
+Extension matchers are called through the expectation chain:
+
+```php
+Expect::that($id)->toBeValidUuid();
+```
+
+They support `not()` and cannot replace native matchers.
+
+Declare matcher parameters with normal native PHP types. PHP enforces those
+types at runtime, and Greenlight's PHPStan extension reads them for static
+analysis.
 
 #### Static analysis for extension matchers
 
-Matcher calls dispatch through `__call`, which PHPStan cannot check by itself. Greenlight ships a PHPStan extension that closes the gap: it loads your config files the same way workers do, reflects each matcher closure's signature, and presents every matcher to PHPStan as a real method on the expectation chain. Name typos, wrong argument counts, and wrong argument types then fail `phpstan analyse` like any other error.
+Matcher calls are dispatched through `__call`, so PHPStan cannot check them on
+its own.
+
+Greenlight includes a PHPStan extension for matcher calls. It loads your
+Greenlight config files the same way workers do, reflects each matcher closure,
+and exposes every matcher to PHPStan as a real method on the expectation chain.
+
+That means typos, wrong argument counts, and wrong argument types fail
+`phpstan analyse` normally.
 
 ```neon
 includes:
@@ -117,14 +204,49 @@ parameters:
             - greenlight.php
 ```
 
-Static analysis is only half the tooling story: IDE completion comes from indexers, which never run PHPStan plugins. `greenlight ide-helper` covers that side by writing `_greenlight_ide_helper.php`, a never-executed duplicate declaration of the expectation chain whose docblock lists every configured matcher as an `@method` annotation; PhpStorm and Intelephense merge duplicate declarations, so your matchers autocomplete with real signatures. Gitignore the file and regenerate it after changing matchers. Both tools read the same matcher map, so completion and analysis cannot disagree.
+PHPStan covers analysis, but IDE completion needs a separate file because IDE
+indexers do not run PHPStan plugins.
 
-Relative paths resolve against the directory PHPStan runs from. Listing several config files unions their matchers; the same matcher name declared with two different signatures fails the analysis run loudly, because one analysis can only hold one signature per name. Plugin constructors run inside the PHPStan process when the map is first needed, exactly as they do inside each worker.
+Run `greenlight ide-helper` to generate `_greenlight_ide_helper.php`. The file is
+never executed. It declares a duplicate expectation chain with `@method`
+annotations for every configured matcher. PhpStorm and Intelephense merge the
+duplicate declaration, so configured matchers autocomplete with their real
+signatures.
 
-### Reporter (in Greenlight\Reporting)
+Gitignore the helper file and regenerate it after changing matchers.
 
-Implement `onEvent(Event $event): void` plus `finish(): void` to render the event stream into any format. The six built-in reporters are ordinary implementations of the same interface.
+Both PHPStan and the IDE helper use the same matcher map, so analysis and
+completion stay in sync.
+
+Relative config paths are resolved from the directory where PHPStan runs.
+Listing multiple config files unions their matchers. If the same matcher name is
+declared with different signatures, analysis fails, because a single analysis run
+can only have one signature for a matcher name.
+
+Plugin constructors run inside the PHPStan process when the matcher map is first
+loaded, just as they run inside each worker.
+
+### Reporter
+
+In `Greenlight\Reporting`.
+
+Implement `onEvent(Event $event): void` and `finish(): void` to render the event
+stream in another format.
+
+Greenlight's built-in reporters use the same interface.
 
 ## Ordering and error policy
 
-Subscribers run in registration order. A plugin additionally implementing `Greenlight\Plugin\Prioritized` (`priority(): int`, lower runs earlier, default 0) is stably sorted first. Plugin failures are never swallowed: worker-side failures error the affected test with the plugin named, orchestrator-side failures fail the run.
+Subscribers run in registration order.
+
+A plugin can also implement `Greenlight\Plugin\Prioritized`:
+
+```php
+public function priority(): int;
+```
+
+Lower numbers run earlier. The default priority is `0`. Sorting is stable, so
+plugins with the same priority keep their registration order.
+
+Plugin failures are not swallowed. Worker-side failures error the affected test
+and name the plugin. Orchestrator-side failures fail the run.

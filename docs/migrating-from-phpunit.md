@@ -1,29 +1,33 @@
 # Migrating from PHPUnit
 
-This is a conceptual guide, not an automated migration. Greenlight deliberately does some things differently, so a port is a rewrite of each test's scaffolding around a usually unchanged body. The mappings below tell you where each PHPUnit concept lands.
+This guide is about concepts, not automation.
+
+Greenlight does some things differently from PHPUnit, so migration is usually a
+rewrite of the test scaffolding rather than a line-by-line port. In many cases,
+the body of the test can stay close to what it was.
 
 ## Concept mapping
 
-| PHPUnit | Greenlight |
-| --- | --- |
-| `extends TestCase` | nothing; tests are plain final classes |
-| `testFoo()` naming | `#[Test]` on any public method |
-| `setUp()` | `#[Before]` on a public method |
-| `tearDown()` | `#[After]` on a public method |
-| `#[DataProvider('cases')]` | `#[DataSet('cases')]`, static provider on the same class |
-| `#[TestWith([1, 2])]` | `#[DataRow([1, 2])]`, optionally labelled |
-| `#[Group('slow')]` / `@group` | `#[Group('slow')]`, repeatable, method or class |
-| `$this->markTestSkipped($reason)` | `throw new SkipTest($reason)` from `Greenlight\Plugin` |
-| `#[RequiresPhpExtension]` and friends | `#[SkipUnless(SomeCondition::class)]` |
-| `$this->assert...()` | static `Expect::that(...)` chains |
-| `createMock()` / `getMockBuilder()` | injected `Doubles` service: `mock()`, `stub()`, `spy()` |
-| `setUpBeforeClass()` statics | per-class harness services |
-| `#[RunInSeparateProcess]` | `#[Isolated]` |
-| `#[Depends]` | no equivalent, on purpose |
+| PHPUnit                                          | Greenlight                                               |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| `extends TestCase`                               | nothing; tests are plain final classes                   |
+| `testFoo()` naming                               | `#[Test]` on any public method                           |
+| `setUp()`                                        | `#[Before]` on a public method                           |
+| `tearDown()`                                     | `#[After]` on a public method                            |
+| `#[DataProvider('cases')]`                       | `#[DataSet('cases')]`, static provider on the same class |
+| `#[TestWith([1, 2])]`                            | `#[DataRow([1, 2])]`, optionally labelled                |
+| `#[Group('slow')]` / `@group`                    | `#[Group('slow')]`, repeatable, method or class          |
+| `$this->markTestSkipped($reason)`                | `throw new SkipTest($reason)` from `Greenlight\Plugin`   |
+| `#[RequiresPhpExtension]` and related attributes | `#[SkipUnless(SomeCondition::class)]`                    |
+| `$this->assert...()`                             | static `Expect::that(...)` chains                        |
+| `createMock()` / `getMockBuilder()`              | injected `Doubles` service: `mock()`, `stub()`, `spy()`  |
+| `setUpBeforeClass()` statics                     | per-class harness services                               |
+| `#[RunInSeparateProcess]`                        | `#[Isolated]`                                            |
+| `#[Depends]`                                     | no equivalent                                            |
 
 ## Assertions
 
-Assertions start from the static `Expect::that()`, not from methods on the test class. Five representative pairs:
+Assertions start from `Expect::that()`, not from methods on the test class.
 
 ```php
 // PHPUnit                                          // Greenlight
@@ -34,20 +38,40 @@ $this->assertCount(3, $items);                      Expect::that($items)->toHave
 $this->expectException(DomainException::class);     Expect::that($fn)->toThrow(DomainException::class);
 ```
 
-Differences worth knowing:
+A few differences matter during migration:
 
-- `toEqual()` is deep equality with documented semantics: ints and floats compare by numeric value, other scalars strictly, arrays by keys and recursively equal values, objects by exact class and every property including private ones. There is no `assertEquals`-style loose comparison of unlike types; `'1'` does not equal `1`.
-- Negation is a chain step, `->not()->toContain($x)`, and applies to the next matcher only.
-- `toThrow()` takes a callable subject and an optional message pattern, replacing the four `expectException*` calls with one expression.
-- Every expectation fails fast: a failed matcher throws immediately. There is no soft-assertion mode.
+* `toEqual()` uses deep equality with defined rules. Integers and floats compare
+  by numeric value. Other scalars compare strictly. Arrays compare by keys and
+  recursively equal values. Objects compare by exact class and all properties,
+  including private properties. There is no loose `assertEquals()`-style
+  comparison between unlike types, so `'1'` does not equal `1`.
+* Negation is a chain step, such as `->not()->toContain($x)`, and applies only
+  to the next matcher.
+* `toThrow()` takes a callable subject and an optional message pattern. It
+  replaces the usual `expectException*` setup calls with one expression.
+* Expectations fail fast. A failed matcher throws immediately. There is no
+  soft-assertion mode.
 
 ## Test doubles
 
-Doubles come from an injected `Doubles` service. The honest difference from PHPUnit: nothing is ever guessed. PHPUnit's `createMock()` returns a tolerant dummy where every method silently returns null or an auto-stub. Greenlight has no such object.
+Doubles come from an injected `Doubles` service.
 
-- `mock(Type::class, fn (MockPlan $plan) => ...)` is strict. Every expectation you plan is verified when the test ends, and any call matching no planned expectation fails the test immediately. Every return value must be configured explicitly with `andReturns()` or `andThrows()`.
-- `stub(Type::class)` satisfies a type so a collaborator slot can be filled, and errors the test on any interaction at all. If the test needs the collaborator to answer, that is a mock with explicit expectations.
-- `spy(Type::class)` records calls, but only methods that return nothing can be spied on; a spy never invents a return value. Read recordings back with `$this->doubles->callsTo($spy, 'method')` and assert on them with Expect.
+The main difference from PHPUnit is that Greenlight does not guess behaviour.
+PHPUnit's `createMock()` can create a tolerant dummy where methods silently
+return `null` or auto-stubs. Greenlight has no equivalent object.
+
+`mock(Type::class, fn (MockPlan $plan) => ...)` is strict. Every planned
+expectation is verified when the test ends, and any call that matches no planned
+expectation fails the test immediately. Return values must be configured
+explicitly with `andReturns()` or `andThrows()`.
+
+`stub(Type::class)` fills a collaborator slot and fails the test on any
+interaction. If the collaborator needs to return something, use a mock with
+explicit expectations instead.
+
+`spy(Type::class)` records calls, but only for methods that return nothing. A
+spy never invents a return value. Read recordings with
+`$this->doubles->callsTo($spy, 'method')` and assert on them with `Expect`.
 
 ```php
 $gateway = $this->doubles->mock(PaymentGateway::class, function (MockPlan $plan) use ($amount, $ok) {
@@ -55,26 +79,54 @@ $gateway = $this->doubles->mock(PaymentGateway::class, function (MockPlan $plan)
 });
 ```
 
-Mocks verify automatically when the per-test scope closes; there is no `Mockery::close()` equivalent to forget. Interfaces and non-final classes can be doubled; final classes, readonly classes, and enums are rejected with a suggestion to double an interface. There are no partial mocks and no static method mocking. Expect migrated tests that leaned on tolerant PHPUnit mocks to fail loudly at first; each failure is an interaction the old test silently ignored.
+Mocks are verified automatically when the per-test scope closes. There is no
+`Mockery::close()` equivalent to remember.
+
+Interfaces and non-final classes can be doubled. Final classes, readonly
+classes, and enums are rejected with a suggestion to double an interface instead.
+
+There are no partial mocks and no static method mocks.
+
+Tests that relied on tolerant PHPUnit mocks may fail at first after migration.
+Those failures usually point to interactions the old test allowed implicitly.
 
 ## Class-level fixtures
 
-`setUpBeforeClass()` with static properties maps to per-class harness services: typed objects with a declared `PerClass` scope that are constructed once for the class, injected into each test's constructor, and disposed when the class finishes. Registering harness services is plugin territory (a plugin implements `HarnessProvider` and declares services with a scope), so if you maintain shared fixtures you will be writing a small plugin rather than a static property.
+`setUpBeforeClass()` and static fixture properties map to per-class harness
+services.
+
+A per-class harness service is a typed object with `PerClass` scope. It is
+constructed once for the class, injected into each test constructor, and disposed
+when the class finishes.
+
+Harness services are registered by plugins. A plugin implements
+`HarnessProvider` and returns service definitions with their scopes. If a test
+suite has shared fixtures, expect to move them into a small plugin rather than a
+static property on the test class.
 
 ## Deliberate differences
 
-These are not gaps to be filled; they are the design.
+These are intentional differences, not missing PHPUnit features.
 
-- No `TestCase` base class. Tests declare what they need in the constructor and the runner provides it. There is no inherited 300-method API and no `parent::setUp()` chain to get wrong.
-- No test method name convention. `#[Test]` is explicit and greppable.
-- No `#[Depends]`. Inter-test dependencies create hidden ordering contracts that break under parallelism. Expensive shared state belongs in a class- or suite-scoped harness service.
-- Parallel by default. Tests run across worker processes sized to your CPU count. Tests that assume they own the process need `#[Isolated]` or fixing.
-- Strict doubles. Unplanned interactions fail; nothing returns a guessed value.
+* There is no `TestCase` base class. Tests declare their dependencies in the
+  constructor, and the runner provides them. There is no inherited assertion API
+  and no `parent::setUp()` chain.
+* There is no test method naming convention. `#[Test]` marks tests explicitly.
+* There is no `#[Depends]`. Test dependencies create hidden ordering contracts
+  that do not work well with parallel execution. Expensive shared state belongs
+  in a class- or suite-scoped harness service.
+* Tests run in parallel by default, across worker processes sized to the machine.
+  Tests that assume they own the process need `#[Isolated]` or a design change.
+* Doubles are strict. Unplanned interactions fail, and no return value is guessed.
 
 ## Practical order of attack
 
-1. Add `greenlight.php` pointing at your test directories.
-2. Port one leaf test class by hand: drop the base class, add `#[Test]`, convert assertions to `Expect::that()`.
-3. Convert data providers; the provider body usually survives untouched, only the attribute changes.
-4. Convert mocks last, and budget time for them: strictness will surface real looseness in the old tests.
-5. Run with `--workers=1` first to take parallelism out of the picture, then remove the flag and fix anything that only fails in parallel.
+1. Add `greenlight.php` and point it at your test directories.
+2. Port one leaf test class by hand. Remove the base class, add `#[Test]`, and
+   convert assertions to `Expect::that()`.
+3. Convert data providers. The provider body usually stays the same; only the
+   attribute changes.
+4. Convert mocks last. Strict doubles will expose loose assumptions in the old
+   tests.
+5. Run with `--workers=1` first to remove parallelism from the migration. Then
+   remove the flag and fix anything that only fails when tests run in parallel.

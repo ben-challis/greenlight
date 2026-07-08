@@ -1,57 +1,198 @@
 # JSONL reporter schema
 
-The `jsonl` reporter is the machine interface to a Greenlight run: one JSON object per line, one line per event, streamed as events arrive. Consumers are IDEs, dashboards, and flaky-test tooling.
+The `jsonl` reporter is Greenlight's machine-readable run output.
+
+It writes one JSON object per line, streamed as events occur. Typical consumers
+include IDEs, dashboards, and flaky-test tooling.
 
 ## Envelope
 
-Every line is a single JSON object with exactly three keys:
+Each line is one JSON object with three keys:
 
-```json
+```json id="zk90n2"
 {"v": 1, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
 ```
 
-- `v` is the schema version, currently `1`.
-- `event` is a stable short tag naming the event type.
-- `data` is the event's wire payload, exactly as produced by the event's `toWire()` method.
+### v
 
-Lines are terminated by `\n`. Output is UTF-8; strings that originated as invalid UTF-8 have already been scrubbed at capture, and the encoder substitutes any remaining invalid sequences.
+Schema version.
+
+The current version is `1`.
+
+### event
+
+A stable short tag for the event type.
+
+### data
+
+The event payload.
+
+This is the payload produced by the event's `toWire()` method.
+
+Lines are terminated with `\n`.
+
+Output is UTF-8 JSON. Strings captured from invalid UTF-8 are scrubbed before
+they reach the reporter, and the encoder substitutes any remaining invalid
+sequences.
 
 ## Versioning
 
-The schema is versioned by the `v` field and changes additively only:
+The schema is versioned by the `v` field.
 
-- New event tags may appear. Consumers must skip lines whose `event` tag they do not recognise.
-- New keys may appear inside `data` payloads. Consumers must ignore keys they do not recognise.
-- Existing tags never change meaning, and existing `data` keys are never removed or retyped.
+Version `1` changes additively only:
 
-A change that cannot be made additively increments `v`. Consumers should treat an unknown `v` as unparseable rather than guessing.
+* New event tags may be added.
+* New keys may be added to `data` payloads.
+* Existing event tags do not change meaning.
+* Existing `data` keys are not removed or retyped.
+
+Consumers should skip events whose `event` tag they do not recognize.
+
+Consumers should ignore unknown keys inside `data`.
+
+A non-additive change requires a new `v` value. Consumers should treat an
+unknown version as unparseable.
 
 ## Event tags
 
-| Tag | Event | Payload keys |
-|---|---|---|
-| `run-started` | run begins | `runId`, `plannedTests`, `workers`, `occurredAt` |
-| `run-finished` | run ends | `runId`, `summary` (passed/failed/errored/skipped counts), `durationSeconds`, `occurredAt` |
-| `suite-started` | suite begins | `suite`, `occurredAt` |
-| `suite-finished` | suite ends | `suite`, `occurredAt` |
-| `class-started` | test class begins | `class`, `occurredAt` |
-| `class-finished` | test class ends | `class`, `occurredAt` |
-| `test-started` | test begins | `id` (class/method/dataSetKey), `occurredAt` |
-| `test-finished` | test ends | `result` (full test result), `occurredAt` |
-| `worker-spawned` | worker process starts | `workerId`, `pid`, `occurredAt` |
-| `worker-recycled` | worker process replaced | `workerId`, `reason` (`test-count`, `memory`, `crash`), `occurredAt` |
+| Tag               | Event                      | Payload keys                                        |
+| ----------------- | -------------------------- | --------------------------------------------------- |
+| `run-started`     | Run begins                 | `runId`, `plannedTests`, `workers`, `occurredAt`    |
+| `run-finished`    | Run ends                   | `runId`, `summary`, `durationSeconds`, `occurredAt` |
+| `suite-started`   | Suite begins               | `suite`, `occurredAt`                               |
+| `suite-finished`  | Suite ends                 | `suite`, `occurredAt`                               |
+| `class-started`   | Test class begins          | `class`, `occurredAt`                               |
+| `class-finished`  | Test class ends            | `class`, `occurredAt`                               |
+| `test-started`    | Test begins                | `id`, `occurredAt`                                  |
+| `test-finished`   | Test ends                  | `result`, `occurredAt`                              |
+| `worker-spawned`  | Worker process starts      | `workerId`, `pid`, `occurredAt`                     |
+| `worker-recycled` | Worker process is replaced | `workerId`, `reason`, `occurredAt`                  |
 
-`occurredAt` is a Unix timestamp with microsecond precision. JSON round trips may narrow floats to ints; consumers should accept both.
+`run-finished.summary` contains passed, failed, errored, and skipped counts.
+
+`test-started.id` is the test id: class, method, and data-set key when present.
+
+`worker-recycled.reason` is one of:
+
+* `test-count`
+* `memory`
+* `crash`
+
+`occurredAt` is a Unix timestamp with microsecond precision. Consumers should
+accept either a JSON number with decimals or an integer, since some JSON round
+trips may narrow whole-number floats.
 
 ## The test-finished payload
 
-`data.result` carries the full result model:
+`data.result` contains the full test result.
 
-- `id`: `{"class": ..., "method": ..., "dataSetKey": ...}` where `dataSetKey` is null unless the test came from a data set.
-- `outcome`: one of `passed`, `failed`, `errored`, `skipped`. Retries do not add an outcome; a retried test still terminates in one of these four.
-- `durationSeconds`, `memoryDeltaBytes`, `attempts` (1 unless retried).
-- `failures`: a list of `{"message", "expected", "actual", "location"}` objects; `expected` and `actual` are pre-rendered strings or null, `location` is `{"file", "line"}` or null.
-- `error`: `{"class", "message", "file", "line", "stackFrames"}` or null.
-- `skipReason`: string or null.
-- `transformations`: a list of `{"transformedBy", "from", "to"}` provenance records for plugin outcome changes.
-- `expectations`: the number of expectations verified during the final attempt. Each matcher in a chain counts once, soft-mode failures count, and each mock expectation counts at verification; stubs never count. Failed, errored, and skipped tests carry the partial count verified before the abort. Streams written before this field existed omit the key; consumers should treat a missing key as 0.
+### id
+
+The test id:
+
+```json id="ifx1kl"
+{
+    "class": "App\\Tests\\GreetingTest",
+    "method": "greetsByName",
+    "dataSetKey": null
+}
+```
+
+`dataSetKey` is `null` unless the test came from a data set.
+
+### outcome
+
+One of:
+
+* `passed`
+* `failed`
+* `errored`
+* `skipped`
+
+Retries do not add a separate outcome. A retried test still ends with one of
+these four values.
+
+### durationSeconds
+
+The test duration in seconds.
+
+### memoryDeltaBytes
+
+The memory delta for the test, in bytes.
+
+### attempts
+
+The number of attempts used.
+
+This is `1` unless the test was retried.
+
+### failures
+
+A list of expectation failures.
+
+Each item has this shape:
+
+```json id="p2eqoc"
+{
+    "message": "Expected values to be equal.",
+    "expected": "...",
+    "actual": "...",
+    "location": {
+        "file": "/project/tests/GreetingTest.php",
+        "line": 17
+    }
+}
+```
+
+`expected` and `actual` are pre-rendered strings or `null`.
+
+`location` is an object with `file` and `line`, or `null`.
+
+### error
+
+The thrown error or exception, or `null`.
+
+When present, it has this shape:
+
+```json id="sp1qrb"
+{
+    "class": "RuntimeException",
+    "message": "Something failed.",
+    "file": "/project/tests/GreetingTest.php",
+    "line": 17,
+    "stackFrames": []
+}
+```
+
+### skipReason
+
+The skip reason, or `null`.
+
+### transformations
+
+A list of outcome transformation records.
+
+Each item has this shape:
+
+```json id="u7c63g"
+{
+    "transformedBy": "PluginName",
+    "from": "failed",
+    "to": "skipped"
+}
+```
+
+These records provide provenance for plugin outcome changes.
+
+### expectations
+
+The number of expectations verified during the final attempt.
+
+Each matcher in a chain counts once. Soft-mode failures count. Each mock
+expectation counts when it is verified. Stubs do not count.
+
+Failed, errored, and skipped tests carry the partial count verified before the
+test stopped.
+
+Older streams may omit this key. Consumers should treat a missing
+`expectations` key as `0`.

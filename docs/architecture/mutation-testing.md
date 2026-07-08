@@ -1,24 +1,76 @@
-# Decision record: mutation testing via Infection
+# Decision record: Infection support
 
-Status: investigated, deliberately deferred. Revisit when per-test coverage mapping ships.
+Status: deferred until Greenlight has per-test coverage mapping.
 
-## What Infection needs from a test framework
+## Requirement
 
-Infection's custom adapter surface (`infection/abstract-testframework-adapter`) asks an adapter to do two jobs: translate Infection's execution requests into framework commands, and report test locations. Around that contract, the loop that makes mutation testing tractable is: one initial run collecting coverage with per-test attribution (which tests cover which lines), then, for each mutant, run only the covering tests and treat a failure as a kill. Existing adapters (PHPUnit, Codeception, PhpSpec) all feed Infection per-test coverage in PHPUnit's XML coverage format plus junit test locations.
+Infection needs to know which tests cover each mutated line.
 
-## What Greenlight has today
+Its adapter can then run this loop:
 
-- Test subset execution: `--filter` with exact-id selection is precisely the per-mutant invocation an adapter needs, and the discovery cache keeps repeated invocations cheap (roughly 0.15s of fixed cost per run on a medium suite).
-- junit export for test locations.
-- Coverage collection with five export formats and incremental merge.
-- A proven proof-of-concept loop: the acceptance suite contains a working mutation prototype built on exit codes and the plain report, with kills attributed to specific tests.
+1. Run the suite once and collect per-test coverage.
+2. For each mutant, find the tests that cover the changed line.
+3. Run only those tests.
+4. Treat a failing run as a killed mutant.
 
-## The blocker
+That keeps mutation testing bounded. Running the whole suite for every mutant is
+functionally possible, but not a useful integration.
 
-Greenlight's coverage map is line-to-count, with no per-test attribution. Without knowing which tests cover a mutated line, an adapter would have to run the full suite per mutant, which turns minutes of mutation testing into hours and misses the entire point of the coverage-directed loop. Per-test attribution is the one genuinely missing capability, and it is not adapter glue: it changes the collector (start/stop or delta per test), the wire format, and the merge model.
+## Current Greenlight support
+
+Greenlight already has the pieces around the edge of that loop:
+
+* `--filter` can run exact test ids, so per-mutant test selection is available.
+* Discovery is cached, keeping repeated invocations cheap.
+* JUnit output provides test locations.
+* Machine-readable reporters and exit codes provide mutant run results.
+* Coverage collection and export already exist for whole-run line coverage.
+
+The missing part is attribution.
+
+Current coverage answers:
+
+```text
+which lines were covered by the run?
+```
+
+Infection needs:
+
+```text
+which tests covered this line?
+```
+
+## Required engine work
+
+Per-test coverage mapping needs changes below the adapter layer.
+
+The collector must record coverage per test, either by starting and stopping
+coverage around each test or by taking per-test deltas.
+
+Workers must send that data back to the orchestrator.
+
+The merge model must preserve the relationship between test ids and covered
+lines, instead of collapsing everything into one file-level line set.
+
+The export layer must then write a format Infection can consume.
+
+## Adapter shape
+
+Once per-test coverage exists, Infection support can be a small external
+package: an Infection `TestFrameworkAdapter` plus factory.
+
+The adapter would:
+
+* run Greenlight once for per-test coverage and JUnit output
+* map mutated lines to Greenlight test ids
+* invoke Greenlight with `--filter` for those ids
+* use the result to classify each mutant as killed or survived
+
+No further runner changes should be required.
 
 ## Decision
 
-Defer. Per-test coverage mapping is already on the roadmap for its own reasons (watch mode's affected-test selection is designed around it), and it is the prerequisite here too. Building it for the adapter alone would invert priorities; building the adapter without it would ship something misleadingly slow.
+Defer the adapter until per-test coverage mapping exists.
 
-When per-test mapping exists, the adapter is a small external package (`TestFrameworkAdapter` plus factory): initial run exports per-test coverage in the format Infection consumes plus junit, per-mutant runs use `--filter` with the covering test ids, exit codes already distinguish kill from survive. Nothing else in the engine needs to change, which is the plugin-architecture claim doing its job.
+Shipping the adapter before then would mean full-suite execution per mutant,
+which is too slow for the integration Greenlight should provide.
