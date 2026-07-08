@@ -21,6 +21,8 @@ use Greenlight\Core\Result\TestResult;
  */
 final class SummaryFormat
 {
+    private const int MAX_IDS_PER_GROUP = 5;
+
     private function __construct() {}
 
     public static function tests(ResultSummary $summary, int $expectations, Style $style): string
@@ -89,12 +91,12 @@ final class SummaryFormat
 
             $lines[] = \sprintf('  %s:', $reason);
 
-            foreach (\array_slice($results, 0, 5) as $result) {
+            foreach (\array_slice($results, 0, self::MAX_IDS_PER_GROUP) as $result) {
                 $lines[] = '    ' . $result->id;
             }
 
-            if (\count($results) > 5) {
-                $lines[] = \sprintf('    … and %d more', \count($results) - 5);
+            if (\count($results) > self::MAX_IDS_PER_GROUP) {
+                $lines[] = \sprintf('    … and %d more', \count($results) - self::MAX_IDS_PER_GROUP);
             }
         }
 

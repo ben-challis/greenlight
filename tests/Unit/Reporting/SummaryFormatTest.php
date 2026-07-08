@@ -46,6 +46,30 @@ final class SummaryFormatTest
             ->and($block)->toContain('    … and 2 more');
     }
 
+    #[Test]
+    public function exactlyFiveListsAllWithoutOverflowAndSixOverflowsByOne(): void
+    {
+        $five = [];
+
+        for ($i = 1; $i <= 5; ++$i) {
+            $five[] = $this->skip(\sprintf('App\DeltaTest::case%d', $i), 'shared reason');
+        }
+
+        Expect::that(SummaryFormat::skipped($five, new Style(ansi: false)))->toBe(
+            "\nSkipped:\n"
+            . "  shared reason:\n"
+            . "    App\DeltaTest::case1\n"
+            . "    App\DeltaTest::case2\n"
+            . "    App\DeltaTest::case3\n"
+            . "    App\DeltaTest::case4\n"
+            . "    App\DeltaTest::case5\n",
+        );
+
+        $six = [...$five, $this->skip('App\DeltaTest::case6', 'shared reason')];
+
+        Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->toContain('… and 1 more');
+    }
+
     /**
      * @param non-empty-string $id
      */
