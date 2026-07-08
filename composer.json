@@ -49,6 +49,8 @@
         "sort-packages": true
     },
     "scripts": {
+        "post-install-cmd": "@phpstan:stubs",
+        "post-update-cmd": "@phpstan:stubs",
         "code-style:check": "php-cs-fixer fix --dry-run --diff --ansi",
         "code-style:fix": "php-cs-fixer fix --diff --ansi",
         "deptrac": "deptrac analyse --no-progress --report-uncovered --fail-on-uncovered",
@@ -57,6 +59,7 @@
         ],
         "memory-gate": "php tools/memory-gate.php",
         "phpstan": "phpstan analyse --ansi --no-progress --memory-limit=-1",
+        "phpstan:stubs": "@php tools/extract-phpstan-api.php",
         "rector:check": "rector --dry-run --ansi --no-progress-bar",
         "rector:fix": "rector --ansi --no-progress-bar",
         "static-analysis": [

@@ -37,6 +37,10 @@ chore: bump php-cs-fixer to 3.76
 
 Common types are `feat`, `fix`, `docs`, `refactor`, `test`, and `chore`. Use a scope matching the component you touched where it helps.
 
+## IDE completion for the PHPStan API
+
+The `phpstan/phpstan` dev dependency ships as a phar, so editors cannot index the PHPStan classes that `src/PhpStan/` implements. To fix that, `composer install` and `composer update` extract the PHPStan API sources from the phar into `.phpstan-api-stubs/`, which your IDE indexes like any other project directory. The directory is gitignored and never executed; PHPStan loads the real classes from the phar at analysis time. If completion for `PHPStan\` symbols is missing, run `composer phpstan:stubs` to regenerate it.
+
 ## No baselines
 
 PHPStan runs at level max with strict rules and deptrac enforces component boundaries. Neither tool may have a baseline file in this repository, ever. If your change introduces a violation, fix the violation rather than suppressing it. Pull requests that add a baseline will be rejected.

@@ -11,3 +11,6 @@
 
 # Deptrac cache
 .deptrac.cache
+
+# PHPStan API sources extracted from phpstan.phar for IDE indexing
+/.phpstan-api-stubs/
