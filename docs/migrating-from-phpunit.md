@@ -15,7 +15,7 @@ This is a conceptual guide, not an automated migration. Greenlight deliberately 
 | `#[Group('slow')]` / `@group` | `#[Group('slow')]`, repeatable, method or class |
 | `$this->markTestSkipped($reason)` | `throw new SkipTest($reason)` from `Greenlight\Plugin` |
 | `#[RequiresPhpExtension]` and friends | `#[SkipUnless(SomeCondition::class)]` |
-| `$this->assert...()` | injected `Expect` service, `$this->expect->that(...)` chains |
+| `$this->assert...()` | static `Expect::that(...)` chains |
 | `createMock()` / `getMockBuilder()` | injected `Doubles` service: `mock()`, `stub()`, `spy()` |
 | `setUpBeforeClass()` statics | per-class harness services |
 | `#[RunInSeparateProcess]` | `#[Isolated]` |
@@ -23,15 +23,15 @@ This is a conceptual guide, not an automated migration. Greenlight deliberately 
 
 ## Assertions
 
-Assertions live on an `Expect` service injected through the constructor, not on the test class. Five representative pairs:
+Assertions start from the static `Expect::that()`, not from methods on the test class. Five representative pairs:
 
 ```php
 // PHPUnit                                          // Greenlight
-$this->assertSame('a', $value);                     $this->expect->that($value)->toBe('a');
-$this->assertEquals($expected, $order);             $this->expect->that($order)->toEqual($expected);
-$this->assertInstanceOf(Response::class, $r);       $this->expect->that($r)->toBeInstanceOf(Response::class);
-$this->assertCount(3, $items);                      $this->expect->that($items)->toHaveCount(3);
-$this->expectException(DomainException::class);     $this->expect->that($fn)->toThrow(DomainException::class);
+$this->assertSame('a', $value);                     Expect::that($value)->toBe('a');
+$this->assertEquals($expected, $order);             Expect::that($order)->toEqual($expected);
+$this->assertInstanceOf(Response::class, $r);       Expect::that($r)->toBeInstanceOf(Response::class);
+$this->assertCount(3, $items);                      Expect::that($items)->toHaveCount(3);
+$this->expectException(DomainException::class);     Expect::that($fn)->toThrow(DomainException::class);
 ```
 
 Differences worth knowing:
@@ -39,7 +39,7 @@ Differences worth knowing:
 - `toEqual()` is deep equality with documented semantics: ints and floats compare by numeric value, other scalars strictly, arrays by keys and recursively equal values, objects by exact class and every property including private ones. There is no `assertEquals`-style loose comparison of unlike types; `'1'` does not equal `1`.
 - Negation is a chain step, `->not()->toContain($x)`, and applies to the next matcher only.
 - `toThrow()` takes a callable subject and an optional message pattern, replacing the four `expectException*` calls with one expression.
-- Soft assertions are explicit: `$this->expect->softly(fn (Expect $e) => ...)` collects every failure inside the callable and throws one aggregate. The default remains fail-fast per expectation.
+- Every expectation fails fast: a failed matcher throws immediately. There is no soft-assertion mode.
 
 ## Test doubles
 
@@ -74,7 +74,7 @@ These are not gaps to be filled; they are the design.
 ## Practical order of attack
 
 1. Add `greenlight.php` pointing at your test directories.
-2. Port one leaf test class by hand: drop the base class, add `#[Test]`, inject `Expect`, convert assertions.
+2. Port one leaf test class by hand: drop the base class, add `#[Test]`, convert assertions to `Expect::that()`.
 3. Convert data providers; the provider body usually survives untouched, only the attribute changes.
 4. Convert mocks last, and budget time for them: strictness will surface real looseness in the old tests.
 5. Run with `--workers=1` first to take parallelism out of the picture, then remove the flag and fix anything that only fails in parallel.

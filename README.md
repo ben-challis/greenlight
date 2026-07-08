@@ -2,7 +2,7 @@
 
 **Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
 
-Greenlight is a testing framework for PHP 8.4 and later. Tests are plain typed classes: attributes mark the tests, constructor injection delivers the services they need, and there is no base class, so PHPStan and your IDE understand your test code with no framework-specific plugins. Every run executes across a parallel worker pool by default, memory stays flat however large the suite grows, and the framework itself has zero runtime dependencies, so it never version-conflicts with the code under test.
+Greenlight is a testing framework for PHP 8.4 and later. Tests are plain typed classes: attributes mark the tests, assertions are one static call away, constructor injection delivers stateful services like fixtures and doubles, and there is no base class, so PHPStan and your IDE understand your test code with no framework-specific plugins. Every run executes across a parallel worker pool by default, memory stays flat however large the suite grows, and the framework itself has zero runtime dependencies, so it never version-conflicts with the code under test.
 
 Greenlight tests itself: this repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
 
@@ -21,10 +21,6 @@ use Greenlight\Expect\Expect;
 
 final class PriceTest
 {
-    public function __construct(
-        private readonly Expect $expect,
-    ) {}
-
     #[Test]
     #[DataRow(['9.99', 2, '19.98'], label: 'two units')]
     #[DataRow(['0.50', 3, '1.50'], label: 'three small units')]
@@ -32,20 +28,20 @@ final class PriceTest
     {
         $total = Price::fromString($unit)->times($quantity);
 
-        $this->expect->that($total->format())->toBe($expected);
+        Expect::that($total->format())->toBe($expected);
     }
 
     #[Test]
     public function rejectsNegativeQuantities(): void
     {
-        $this->expect->that(static function (): void {
+        Expect::that(static function (): void {
             Price::fromString('9.99')->times(-1);
         })->toThrow(\InvalidArgumentException::class, matching: '/quantity/');
     }
 }
 ```
 
-No `TestCase` to extend, no method-name conventions, no closure DSL. `Expect` arrives through the constructor like any other dependency, and a failed matcher throws immediately with a typed, rendered diff. Configuration is one PHP file at the project root, checked by PHPStan like the rest of your code:
+No `TestCase` to extend, no method-name conventions, no closure DSL. `Expect::that()` anchors a fully typed matcher chain, and a failed matcher throws immediately with a typed, rendered diff. When a test needs a stateful service, such as the built-in test doubles or a fixture a plugin provides, it declares a constructor parameter and the harness injects it. Configuration is one PHP file at the project root, checked by PHPStan like the rest of your code:
 
 ```php
 <?php
@@ -91,7 +87,7 @@ Writing tests:
 
 - Attributes for the full lifecycle: `#[Test]`, `#[Before]`, `#[After]`, `#[Group]`, `#[Skip]`, `#[SkipUnless]`, `#[Retry]`, `#[Timeout]`, `#[Isolated]`.
 - Data-driven tests through `#[DataSet]` provider methods and inline `#[DataRow]` rows, expanded at plan time with named keys in every report.
-- A fluent `Expect` chain with a `not()` modifier, soft expectations that collect several failures per test, and typed diff rendering.
+- A fluent `Expect::that()` chain with a `not()` modifier and typed diff rendering.
 - Scoped harness services (per test, class, suite, or run) for expensive fixtures, built lazily and disposed in reverse order.
 
 Running them:

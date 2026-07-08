@@ -15,8 +15,9 @@ The initial feature set, built and self-hosted in one development cycle:
   for suites, coverage, and watch mode.
 - Static test discovery with plan-time data-set expansion and deterministic
   seeded ordering.
-- The `Expect` assertion service: fluent matcher chain, `not()` modifier,
-  soft expectations, typed diff rendering, extension matchers.
+- The `Expect` assertion API: a static `Expect::that()` entry point opening
+  a fluent matcher chain, `not()` modifier, typed diff rendering, extension
+  matchers installed per worker from the configured plugins.
 - Parallel-first execution: an orchestrator/worker process pool over a
   framed socket protocol, deterministic distribution, worker recycling by
   test count or memory, crash containment with attribution, orchestrator-side

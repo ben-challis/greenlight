@@ -7,67 +7,40 @@ namespace Greenlight\Expect;
 /**
  * Entry point of the expectation API.
  *
- * Inject it into a test or construct it directly, then anchor a matcher chain
- * on a subject with that().
+ * Anchor a matcher chain on a subject with the static that(). A failed
+ * matcher throws ExpectationFailed immediately.
  *
- * The default failure mode is throw on first failure: a failed matcher throws
- * ExpectationFailed immediately. softly() runs a callable against an Expect
- * that collects failures instead, then throws a single aggregate at the end.
+ * Extension matchers are worker-local state: install() stores the configured
+ * ExpectationExtension list once at worker boot, and every chain created by
+ * that() dispatches through it. Workers are single-threaded and the runner
+ * owns the install point, so the static registry is never observed
+ * mid-mutation. Before install() runs, that() works with no extensions.
  */
 final class Expect
 {
-    private FailureSink $sink;
-
-    private readonly ValueRenderer $renderer;
-
     /**
-     * @param list<ExpectationExtension> $extensions matchers contributed by
-     *   plugins, dispatched by name from the expectation chain
+     * @var list<ExpectationExtension>
      */
-    public function __construct(
-        private readonly array $extensions = [],
-    ) {
-        $this->sink = new ThrowingFailureSink();
-        $this->renderer = new ValueRenderer();
-    }
+    private static array $extensions = [];
 
-    public function that(mixed $value): Expectation
+    private function __construct() {}
+
+    public static function that(mixed $value): Expectation
     {
-        return new Expectation($value, $this->sink, $this->renderer, $this->extensions);
+        return new Expectation($value, new ValueRenderer(), self::$extensions);
     }
 
     /**
-     * Runs the callable with an Expect whose failed expectations are collected
-     * instead of thrown, then throws one aggregate ExpectationFailed carrying
-     * every failure. Nothing is thrown when all expectations pass.
+     * Replaces the worker-local extension list consulted by every subsequent
+     * that() chain. Called once per worker at boot; tests that install their
+     * own extensions must restore the previous list themselves.
      *
-     * This instance itself is untouched: expectations made on it keep failing
-     * fast.
+     * @internal
      *
-     * @param callable(Expect): void $expectations
-     *
-     * @throws ExpectationFailed
+     * @param list<ExpectationExtension> $extensions
      */
-    public function softly(callable $expectations): void
+    public static function install(array $extensions): void
     {
-        $sink = new CollectingFailureSink();
-        $soft = new self($this->extensions);
-        $soft->sink = $sink;
-
-        $expectations($soft);
-
-        $details = $sink->details();
-
-        if ($details !== []) {
-            throw ExpectationFailed::fromDetails($details);
-        }
-    }
-
-    /**
-     * @return list<ExpectationExtension>
-     */
-    public function extensions(): array
-    {
-        return $this->extensions;
+        self::$extensions = $extensions;
     }
 }

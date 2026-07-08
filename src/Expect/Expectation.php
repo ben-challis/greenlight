@@ -12,9 +12,7 @@ use Greenlight\Core\Test\ExpectationCounter;
  *
  * Create instances via Expect::that().
  *
- * A failed matcher reports through the failure sink: outside of
- * Expect::softly() that throws ExpectationFailed immediately; inside softly()
- * the failure is collected and the chain continues.
+ * A failed matcher throws ExpectationFailed immediately.
  *
  * toEqual() semantics (deep equality, everything else uses identity):
  *
@@ -42,7 +40,6 @@ final class Expectation
      */
     public function __construct(
         private readonly mixed $subject,
-        private readonly FailureSink $sink,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions = [],
     ) {}
@@ -91,12 +88,12 @@ final class Expectation
     }
 
     /**
-     * Re-anchors the chain on a new subject. The failure mode (throwing or
-     * collecting) carries over; any pending not() does not.
+     * Re-anchors the chain on a new subject. Any pending not() does not carry
+     * over.
      */
     public function and(mixed $value): self
     {
-        return new self($value, $this->sink, $this->renderer, $this->extensions);
+        return new self($value, $this->renderer, $this->extensions);
     }
 
     /**
@@ -461,14 +458,12 @@ final class Expectation
 
         $actual ??= $this->renderer->render($this->subject);
 
-        $this->sink->report(new FailureDetail(
+        throw ExpectationFailed::fromDetail(new FailureDetail(
             \sprintf('Expected %s %s%s.', $actual, $negated ? 'not ' : '', $description),
             $negated && $expected !== null ? 'not ' . $expected : $expected,
             $actual,
             CallSite::capture(),
         ));
-
-        return $this;
     }
 
     /**
@@ -477,18 +472,16 @@ final class Expectation
      *
      * @param non-empty-string $message
      */
-    private function usageFailure(string $message): self
+    private function usageFailure(string $message): never
     {
         $this->negated = false;
 
-        $this->sink->report(new FailureDetail(
+        throw ExpectationFailed::fromDetail(new FailureDetail(
             $message,
             null,
             $this->renderer->render($this->subject),
             CallSite::capture(),
         ));
-
-        return $this;
     }
 
     /**

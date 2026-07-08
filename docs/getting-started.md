@@ -32,7 +32,7 @@ return GreenlightConfig::create()
 
 ## Your first test
 
-Tests are final classes. Test methods are marked with `#[Test]`; there is no `TestCase` base class and no method-name convention. Services such as the expectation API arrive by constructor injection:
+Tests are final classes. Test methods are marked with `#[Test]`; there is no `TestCase` base class and no method-name convention. Assertions start from the static `Expect::that()`; stateful services such as test doubles arrive by constructor injection when a test asks for them:
 
 ```php
 <?php
@@ -46,16 +46,12 @@ use Greenlight\Expect\Expect;
 
 final class GreetingTest
 {
-    public function __construct(
-        private readonly Expect $expect,
-    ) {}
-
     #[Test]
     public function greetsByName(): void
     {
         $greeting = \sprintf('Hello, %s!', 'Ada');
 
-        $this->expect->that($greeting)
+        Expect::that($greeting)
             ->toBe('Hello, Ada!')
             ->and(\strlen($greeting))->toBeGreaterThan(5);
     }
@@ -63,7 +59,7 @@ final class GreetingTest
     #[Test]
     public function rejectsEmptyNames(): void
     {
-        $this->expect->that(static function (): void {
+        Expect::that(static function (): void {
             throw new \InvalidArgumentException('Name cannot be empty.');
         })->toThrow(\InvalidArgumentException::class, matching: '/empty/');
     }

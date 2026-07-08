@@ -101,7 +101,7 @@ final class UuidMatchers implements ExpectationExtension
 }
 ```
 
-Extension matchers dispatch through the expectation chain (`$this->expect->that($id)->toBeValidUuid()`), honour `not()`, and cannot shadow native matchers. Declare matcher parameters with real native types: they are enforced at runtime by PHP itself and read by the PHPStan extension below.
+Extension matchers dispatch through the expectation chain (`Expect::that($id)->toBeValidUuid()`), honour `not()`, and cannot shadow native matchers. Declare matcher parameters with real native types: they are enforced at runtime by PHP itself and read by the PHPStan extension below.
 
 #### Static analysis for extension matchers
 
