@@ -19,7 +19,7 @@ final readonly class Configuration
     /**
      * @param non-empty-list<non-empty-string> $paths
      * @param list<SuiteConfiguration> $suites
-     * @param positive-int $recycleAfterTests
+     * @param positive-int|null $recycleAfterTests null means workers are never recycled by test count
      * @param positive-int $recycleAboveMemoryBytes
      * @param list<object> $plugins
      * @param positive-int|null $stopAfterFailures null means run everything regardless of failures
@@ -35,7 +35,7 @@ final readonly class Configuration
         public array $paths,
         public array $suites,
         public WorkerCount $workers,
-        public int $recycleAfterTests,
+        public ?int $recycleAfterTests,
         public int $recycleAboveMemoryBytes,
         public ?CoverageConfiguration $coverage,
         public WatchConfiguration $watch,

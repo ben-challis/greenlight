@@ -11,13 +11,12 @@ use Greenlight\Core\Result\ResultPolicy;
  *
  * build() produces the immutable Configuration.
  *
- * Defaults: paths ['tests'], workers 'auto' recycling after 500 tests or
- * above '256M', no suites, no coverage, no plugins, failFast off, declared
- * order with no seed.
+ * Defaults: paths ['tests'], workers 'auto' recycling above '256M' memory
+ * with no test-count recycling, no suites, no coverage, no plugins, failFast
+ * off, declared order with no seed.
  */
 final class GreenlightConfig
 {
-    private const int DEFAULT_RECYCLE_AFTER_TESTS = 500;
     private const string DEFAULT_RECYCLE_ABOVE_MEMORY = '256M';
 
     /**
@@ -33,9 +32,9 @@ final class GreenlightConfig
     private WorkerCount $workers;
 
     /**
-     * @var positive-int
+     * @var positive-int|null
      */
-    private int $recycleAfterTests = self::DEFAULT_RECYCLE_AFTER_TESTS;
+    private ?int $recycleAfterTests = null;
 
     private string $recycleAboveMemory = self::DEFAULT_RECYCLE_ABOVE_MEMORY;
 
@@ -130,18 +129,25 @@ final class GreenlightConfig
     }
 
     /**
+     * Recycling by test count is opt-in: every recycle costs a full worker
+     * boot while that worker's lane idles, and memory growth already has the
+     * direct guard in $recycleAboveMemory. Set $recycleAfterTests only for
+     * suites that accumulate non-memory state (connections, file handles).
+     *
      * @param int|'auto' $count
+     * @param int|null $recycleAfterTests null means workers are never
+     *   recycled by test count
      *
      * @throws InvalidConfiguration
      */
     public function workers(
         int|string $count = 'auto',
-        int $recycleAfterTests = self::DEFAULT_RECYCLE_AFTER_TESTS,
+        ?int $recycleAfterTests = null,
         string $recycleAboveMemory = self::DEFAULT_RECYCLE_ABOVE_MEMORY,
     ): self {
         $this->workers = $this->workerCount($count);
 
-        if ($recycleAfterTests < 1) {
+        if ($recycleAfterTests !== null && $recycleAfterTests < 1) {
             throw new InvalidConfiguration(\sprintf('recycleAfterTests must be at least 1, got %d.', $recycleAfterTests));
         }
 

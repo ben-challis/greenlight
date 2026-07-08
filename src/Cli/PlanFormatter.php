@@ -35,11 +35,13 @@ final class PlanFormatter
         }
 
         $lines[] = '  workers: ' . $configuration->workers->describe();
-        $lines[] = \sprintf(
-            '  recycle: after %d tests or above %s memory',
-            $configuration->recycleAfterTests,
-            MemorySize::format($configuration->recycleAboveMemoryBytes),
-        );
+        $lines[] = $configuration->recycleAfterTests === null
+            ? \sprintf('  recycle: above %s memory', MemorySize::format($configuration->recycleAboveMemoryBytes))
+            : \sprintf(
+                '  recycle: after %d tests or above %s memory',
+                $configuration->recycleAfterTests,
+                MemorySize::format($configuration->recycleAboveMemoryBytes),
+            );
 
         $lines[] = '  stop after: ' . match (true) {
             $configuration->stopAfterFailures === null => 'never',

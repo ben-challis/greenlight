@@ -1,10 +1,38 @@
 # Greenlight
 
+**A modern, parallel-first test framework for PHP 8.4+.**
+
+Greenlight is built for PHP teams that want faster feedback, stronger isolation, and reliable CI output without adding a heavy dependency stack to the application under test.
+
+It runs suites in parallel by default, keeps memory usage stable across long runs, isolates risky tests when needed, captures output per test, and produces deterministic reports for local terminals and CI systems.
+
 **Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
 
-Greenlight is a testing framework for PHP 8.4 and later. Tests are plain typed classes: attributes mark the tests, assertions are one static call away, constructor injection delivers stateful services like fixtures and doubles, and there is no base class, so PHPStan and your IDE understand your test code with no framework-specific plugins. Every run executes across a parallel worker pool by default, memory stays flat however large the suite grows, and the framework itself has zero runtime dependencies, so it never version-conflicts with the code under test.
+Greenlight already tests itself. This repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
 
-Greenlight tests itself: this repository's suite runs under `bin/greenlight run` across an auto-sized worker pool.
+## Why Greenlight?
+
+PHP test suites tend to get slower as they grow. They also get harder to trust when state leaks between tests, CI logs are noisy, worker memory creeps upward, or failures only reproduce on one machine.
+
+Greenlight is designed around those problems from the runner upward.
+
+A normal run uses a parallel worker pool. Work is distributed dynamically, so slow classes do not block idle workers. Workers can recycle by test count or memory ceiling. Tests can be isolated when they need a clean process. Output is captured per test, so stray stdout, warnings, notices, and diagnostics do not corrupt the report stream.
+
+The result is a test runner that is quick locally, predictable in CI, and comfortable on large suites.
+
+## What Greenlight gives you
+
+* **Parallel by default** with an auto-sized worker pool.
+* **Stable memory usage** over long suites through worker recycling and leak detection.
+* **Process isolation** for tests or classes that need clean state.
+* **Deterministic CI output** with plain, JUnit, JSONL, GitHub, and TeamCity reporters.
+* **Reproducible ordering** with seeded randomisation.
+* **Failed-first workflows** with `--failed` and watch mode.
+* **Coverage gates** through pcov or Xdebug.
+* **Strict test doubles** that fail on unplanned or unverified behaviour.
+* **Typed expectations** with rendered diffs.
+* **Plain PHP test code** using attributes, typed classes, constructor injection, and PHP configuration.
+* **Zero runtime dependencies**, so the framework does not version-conflict with the code under test.
 
 ## What a test looks like
 
@@ -41,7 +69,13 @@ final class PriceTest
 }
 ```
 
-No `TestCase` to extend, no method-name conventions, no closure DSL. `Expect::that()` anchors a fully typed matcher chain, and a failed matcher throws immediately with a typed, rendered diff. When a test needs a stateful service, such as the built-in test doubles or a fixture a plugin provides, it declares a constructor parameter and the harness injects it. Configuration is one PHP file at the project root, checked by PHPStan like the rest of your code:
+Greenlight tests are normal typed PHP classes. Attributes mark tests and data rows. Assertions start from `Expect::that()`. Constructor injection provides stateful services such as fixtures, test doubles, and plugin-provided harness services.
+
+That shape keeps test code explicit, analysable, and easy to refactor with standard PHP tooling.
+
+## Configuration
+
+Configuration is a PHP file at the project root. It can be reviewed, refactored, and checked by PHPStan like the rest of the codebase.
 
 ```php
 <?php
@@ -55,9 +89,9 @@ return GreenlightConfig::create()
     ->workers(count: 'auto');
 ```
 
-Then run it:
+Run the suite:
 
-```
+```bash
 $ vendor/bin/greenlight run
 
   ✓ PriceTest multipliesLineTotals [two units]
@@ -67,66 +101,178 @@ $ vendor/bin/greenlight run
   3 passed in 0.1s
 ```
 
-On an interactive terminal you get a live, parallel-aware display; in CI the plain reporter prints one line per event, and `--reporter=junit` (repeatable, so you can have both) feeds your dashboard.
+On an interactive terminal, Greenlight uses a live, parallel-aware display. In CI, the plain reporter emits deterministic append-only output. Reporters are repeatable, so a run can emit terminal output, JUnit, and JSONL from the same execution.
 
-## Parallel by default
+## Parallel execution
 
-Tests run across a pool of worker processes sized to your CPU count, with workers pulling work on demand so none of them idles behind another's slow class. Workers recycle by test count or memory ceiling, which keeps memory flat over arbitrary suite sizes: CI gates a 10,000-test single-worker run at under 1 MiB of drift, and `--detect-leaks` names any test whose instance survives collection. Sequential execution is just `--workers=1`, the same code path and the easiest mode to attach a debugger to.
+Greenlight treats parallel execution as the default path.
 
-## Fast, with the losses published
+Tests run across a worker pool sized to the machine. Workers pull work on demand, which keeps the pool busy when one class is slower than the rest. Sequential execution is available with `--workers=1`, using the same execution path, which makes debugger sessions straightforward.
 
-On [generated benchmark suites](docs/benchmarks.md), Greenlight's best configuration beats PHPUnit's best by 2.5x to 7x, and most of the margin is engine overhead per test rather than parallelism. The benchmarks document also publishes where parallelism costs more than it saves: on trivial test bodies, worker spawn outweighs the work, so one worker wins. Real suites do real work, which is where the pool pays off. The numbers are reproducible with `php tools/benchmark.php --with-phpunit`, and CI runs the harness so it cannot rot.
+Worker recycling keeps long suites healthy. A worker can be recycled after a test count threshold or a memory ceiling. CI gates a 10,000-test single-worker run at under 1 MiB of memory drift, and `--detect-leaks` names any test whose instance survives collection.
 
-## Strict where guessing hides bugs
+## Isolation
 
-Test doubles never guess: mocks answer only what you planned, stubs exist to satisfy a type and error on any interaction, spies record void-returning calls. Every double is verified when its test ends, and an unmet plan reads like an assertion failure. On the runner side, a passed test that verified nothing is flagged as risky, `--fail-on-risky` upgrades it to a failure, and `#[NoExpectations]` is the explicit opt-out for tests that legitimately assert nothing by design.
+Some tests need a clean process. Greenlight supports explicit isolation for those cases without forcing the entire suite into the slowest mode.
 
-## What you get
+Use isolation when a test mutates global state, touches process-wide configuration, exercises shutdown behaviour, or loads code that cannot be safely unloaded. The rest of the suite can continue to run in the normal worker pool.
 
-Writing tests:
+That lets large suites stay fast while still giving dangerous tests the boundary they need.
 
-- Attributes for the full lifecycle: `#[Test]`, `#[Before]`, `#[After]`, `#[Group]`, `#[Skip]`, `#[SkipUnless]`, `#[Retry]`, `#[Timeout]`, `#[Isolated]`.
-- Data-driven tests through `#[DataSet]` provider methods and inline `#[DataRow]` rows, expanded at plan time with named keys in every report.
-- A fluent `Expect::that()` chain with a `not()` modifier and typed diff rendering.
-- Scoped harness services (per test, class, suite, or run) for expensive fixtures, built lazily and disposed in reverse order.
+## Fast, with published trade-offs
 
-Running them:
+On [generated benchmark suites](docs/benchmarks.md), Greenlight's best configuration beats PHPUnit's best by 2.5x to 7x. Most of the margin comes from lower runner overhead per test, not only from parallel execution.
 
-- `--filter` patterns, `--group` tags, `--failed` to re-run the previous run's failures, and `--shard=n/m` to split a suite across CI machines with no coordination.
-- Watch mode with debounced re-runs and failed-first ordering.
-- Deterministic seeded ordering: `--seed=N` reproduces any randomized run exactly.
-- `--profile` appends worker utilisation, boot latency, and the slowest classes after the summary; `profile:report` reproduces the block offline from a saved artifact.
-- Per-test output capture, so stdout and PHP diagnostics land on the result instead of corrupting the report stream.
+The benchmark documentation also includes the cases where parallelism loses. On trivial test bodies, worker spawn can cost more than the work being performed, so one worker wins.
 
-Gating CI:
+Real suites usually do real work. Database calls, filesystem setup, container bootstrapping, HTTP clients, serializers, validators, service containers, and application code all give the worker pool useful work to overlap.
 
-- `--fail-on-deprecation` and `--fail-on-notice` fail passed tests on captured diagnostics, with a config allow-list for dependency noise.
-- Coverage via pcov or Xdebug with five export formats (json, lcov, clover, cobertura, html) and a `coverage:diff` regression gate.
-- Six reporters over one event stream: tty, plain, junit, jsonl, github, teamcity.
-- Three exit codes with honest semantics: a run that discovers zero tests fails as a misconfiguration.
+Reproduce the numbers with:
 
-Extending it:
+```bash
+php tools/benchmark.php --with-phpunit
+```
 
-- Plugins receive live runtime context: the actual test instance, its metadata, and its harness services. Lifecycle subscribers, retry deciders, harness providers, and custom reporters all hang off small capability interfaces.
-- Custom expectation matchers stay statically checked: the bundled PHPStan extension reads your config and fails analysis on name typos and wrong arguments, and the `ide-helper` command makes them autocomplete with real signatures.
-- A `completion` command prints shell completion scripts for bash, zsh, and fish.
+CI runs the benchmark harness so it stays current.
+
+## Strict test doubles
+
+Greenlight's test doubles are designed to catch accidental gaps in verification.
+
+Mocks answer only planned interactions. Stubs satisfy a type and error on unexpected interaction. Spies record void-returning calls. Every double is verified when its test ends, and an unmet plan is reported like an assertion failure.
+
+The runner also flags passed tests that verified nothing as risky. `--fail-on-risky` upgrades risky tests to failures. `#[NoExpectations]` records the deliberate cases where a test legitimately asserts nothing.
+
+## Writing tests
+
+Greenlight includes attributes for the full test lifecycle:
+
+* `#[Test]`
+* `#[Before]`
+* `#[After]`
+* `#[Group]`
+* `#[Skip]`
+* `#[SkipUnless]`
+* `#[Retry]`
+* `#[Timeout]`
+* `#[Isolated]`
+
+Data-driven tests are expanded at plan time through provider methods and inline rows:
+
+* `#[DataSet]`
+* `#[DataRow]`
+
+Named data keys appear in every report, which makes failures easier to identify.
+
+Expectations use a fluent typed chain:
+
+```php
+Expect::that($value)->toBe($expected);
+Expect::that($items)->toHaveCount(3);
+Expect::that($callback)->toThrow(RuntimeException::class);
+Expect::that($result)->not()->toBeNull();
+```
+
+Failed expectations throw immediately with a rendered diff.
+
+Harness services can be scoped per test, class, suite, or run. Expensive fixtures are built lazily and disposed in reverse order.
+
+## Running tests
+
+Greenlight includes the controls needed for local development and CI:
+
+* `--filter` for name patterns.
+* `--group` for tagged subsets.
+* `--failed` to re-run the previous run's failures.
+* `--shard=n/m` to split a suite across CI machines without coordination.
+* `--seed=N` to reproduce randomized order exactly.
+* `--workers=N` to control parallelism.
+* `--workers=1` for sequential debugging.
+* Watch mode with debounced re-runs and failed-first ordering.
+
+Per-test output capture keeps stdout and PHP diagnostics attached to the result that produced them.
+
+## Profiling
+
+`--profile` appends runner performance information after the summary, including worker utilisation, boot latency, and the slowest classes.
+
+`profile:report` can reproduce the profiling block offline from a saved artifact. That makes it easier to compare runs without keeping the original process output around.
+
+## CI and reporting
+
+Greenlight has one event stream and multiple reporters:
+
+* `tty`
+* `plain`
+* `junit`
+* `jsonl`
+* `github`
+* `teamcity`
+
+Use the TTY reporter locally. Use append-only plain output for CI logs. Emit JUnit for dashboards. Stream JSONL for custom tooling. Add GitHub or TeamCity annotations when the CI system supports them.
+
+CI gates include:
+
+* `--fail-on-deprecation`
+* `--fail-on-notice`
+* config allow-lists for dependency noise
+* coverage through pcov or Xdebug
+* `coverage:diff` for regression gating
+
+Coverage export formats:
+
+* json
+* lcov
+* clover
+* cobertura
+* html
+
+Greenlight uses distinct exit semantics. A run that discovers zero tests fails as a misconfiguration.
+
+## Extending Greenlight
+
+Plugins receive live runtime context:
+
+* the actual test instance
+* test metadata
+* harness services
+
+Extension points include lifecycle subscribers, retry deciders, harness providers, custom expectation matchers, and custom reporters.
+
+Custom expectation matchers stay statically checked. The bundled PHPStan extension reads the Greenlight config and fails analysis on matcher name typos or wrong arguments. The `ide-helper` command generates autocomplete support with real signatures.
+
+The `completion` command prints shell completion scripts for:
+
+* bash
+* zsh
+* fish
 
 ## Requirements
 
-PHP 8.4 or later, nothing else. Lazy objects, property hooks, and asymmetric visibility are load-bearing in the design, so older runtimes are not supported. The parallel runner uses core stream sockets and `proc_open` and needs no extension; `ext-pcov` or Xdebug enable coverage.
+Greenlight requires PHP 8.4 or later.
+
+Lazy objects, property hooks, and asymmetric visibility are load-bearing parts of the design, so older runtimes are not supported.
+
+The parallel runner uses core stream sockets and `proc_open`. It does not require an extension.
+
+Coverage requires one of:
+
+* `ext-pcov`
+* Xdebug
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md)
-- [Configuration reference](docs/configuration.md)
-- [Attribute reference](docs/attributes.md)
-- [Writing plugins](docs/plugins.md)
-- [Testing Symfony applications](docs/symfony.md)
-- [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
-- [Benchmarks](docs/benchmarks.md)
-- [Product Requirements Document](docs/PRD.md) describes the full design.
-- [Build plan](docs/plan/README.md) and [RFCs](docs/rfcs/) record how and why it was built this way.
-- [Contributing guide](CONTRIBUTING.md) covers the rules for changes.
+* [Getting started](docs/getting-started.md)
+* [Configuration reference](docs/configuration.md)
+* [Attribute reference](docs/attributes.md)
+* [Writing plugins](docs/plugins.md)
+* [Testing Symfony applications](docs/symfony.md)
+* [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
+* [Benchmarks](docs/benchmarks.md)
+* [Product Requirements Document](docs/PRD.md)
+* [Build plan](docs/plan/README.md)
+* [RFCs](docs/rfcs/)
+* [Contributing guide](CONTRIBUTING.md)
 
 ## License
 

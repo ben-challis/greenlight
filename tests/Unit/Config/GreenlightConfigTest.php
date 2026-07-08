@@ -22,7 +22,7 @@ final class GreenlightConfigTest
         Check::same(['tests'], $configuration->paths, 'default paths');
         Check::same([], $configuration->suites, 'default suites');
         Check::true($configuration->workers->isAuto(), 'default worker count to be auto');
-        Check::same(500, $configuration->recycleAfterTests, 'default recycleAfterTests');
+        Check::same(null, $configuration->recycleAfterTests, 'default recycleAfterTests of never');
         Check::same(268435456, $configuration->recycleAboveMemoryBytes, 'default recycle memory of 256M');
         Check::same(null, $configuration->coverage, 'default coverage');
         Check::same([], $configuration->plugins, 'default plugins');

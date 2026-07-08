@@ -98,7 +98,7 @@ Watch mode re-runs affected tests when files under your configured paths change.
 
 ## Workers
 
-Tests run in parallel worker processes by default. `--workers=auto` (the default) uses one worker per CPU core; `--workers=4` pins the count; `--workers=1` runs everything in a single in-process runner, which is the easiest mode to attach a debugger to. Workers are recycled after 500 tests or when they grow past 256M, so long runs keep flat memory. Both thresholds are configurable through `workers()` in the config file.
+Tests run in parallel worker processes by default. `--workers=auto` (the default) uses one worker per CPU core; `--workers=4` pins the count; `--workers=1` runs everything in a single in-process runner, which is the easiest mode to attach a debugger to. Workers are recycled when they grow past 256M, so long runs keep flat memory; recycling after a fixed test count is available through `workers()` for suites that accumulate non-memory state. Both thresholds are configurable through `workers()` in the config file.
 
 When parallel tests share an external resource such as a database, give each worker its own copy using the channel: a stable slot from 1 to the worker count, injectable as `Greenlight\Core\Test\TestChannel` and exported to each worker as the `GREENLIGHT_CHANNEL` environment variable.
 
