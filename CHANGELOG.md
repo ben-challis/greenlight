@@ -33,7 +33,9 @@ The initial feature set, built and self-hosted in one development cycle:
   attached to results instead of polluting the report stream.
 - Six reporters over one event stream: tty (a parallel-aware live display
   with one line per in-flight class, finalised in place as classes
-  complete), plain, junit, jsonl, github, teamcity.
+  complete), plain, junit, jsonl, github, and teamcity, which carries
+  `php_qn://` location hints and a per-class flowId so JetBrains IDEs
+  build a navigable test tree from parallel runs.
 - Coverage via pcov or xdebug with per-worker collection, incremental merge,
   five export formats, and a `coverage:diff` regression gate.
 - A plugin API with live runtime context: test and run lifecycle
