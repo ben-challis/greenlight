@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolver;
 
 /**
  * The configured plugins of one run, filtered by capability.
@@ -80,6 +81,14 @@ final readonly class PluginRegistry
         }
 
         return $definitions;
+    }
+
+    /**
+     * @return list<ServiceResolver>
+     */
+    public function serviceResolvers(): array
+    {
+        return $this->sorted($this->ofType(ServiceResolver::class));
     }
 
     /**

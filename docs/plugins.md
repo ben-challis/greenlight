@@ -76,6 +76,16 @@ final class DatabaseProvider implements HarnessProvider
 
 Contributed services become constructor-injectable in tests, scoped `PerTest`, `PerClass`, `PerSuite`, or `PerRun` (per worker lifetime). Services are lazy: an injected but untouched service is never constructed. A service implementing `Greenlight\Harness\Disposable` is disposed when its scope closes, in reverse creation order, and a disposal that throws `ExpectationFailed` fails the test with diffs, which is how auto-verifying services (the built-in doubles among them) work.
 
+### ServiceResolver (in Greenlight\Harness)
+
+```php
+public function resolve(string $type, array $attributes): ?object;
+```
+
+Fallback resolution for constructor parameter types no harness service covers. Registered services always win; on a miss, resolvers are consulted in registration order with the parameter's declared type and its instantiated attributes, and the first non-null answer is injected. Returning null passes; answering with anything that is not an instance of the requested type errors the test with the resolver named. Objects supplied this way belong to the resolver's world: harness scopes never track or dispose them.
+
+This is the interface the Symfony bridge implements to inject container services (see [Testing Symfony applications](symfony.md)); any other dependency container can be bridged the same way.
+
 ### ExpectationExtension (in Greenlight\Expect)
 
 ```php

@@ -11,6 +11,10 @@ namespace Greenlight\Harness;
  * test containers are opened and closed by the worker as execution
  * progresses.
  *
+ * resolve() answers from the registry first; a type without a registered
+ * definition is offered to the fallback resolvers in order. Fallback-supplied
+ * objects are not tracked by any scope container and are never disposed.
+ *
  * The suite scope currently shares the run container's lifetime because suite
  * boundaries are not yet part of the execution plan.
  *
@@ -26,8 +30,12 @@ final class HarnessScopes
 
     private ?ScopeContainer $test = null;
 
+    /**
+     * @param list<ServiceResolver> $resolvers
+     */
     public function __construct(
         private readonly HarnessRegistry $registry,
+        private readonly array $resolvers = [],
     ) {
         $this->run = new ScopeContainer();
         $this->suite = new ScopeContainer();
@@ -36,18 +44,33 @@ final class HarnessScopes
     /**
      * @param class-string $type
      * @param non-empty-string $consumer
+     * @param list<object> $attributes
      *
      * @throws UnresolvableService
      */
-    public function resolve(string $type, string $consumer): object
+    public function resolve(string $type, string $consumer, array $attributes = []): object
     {
         $definition = $this->registry->find($type);
 
-        if (!$definition instanceof ServiceDefinition) {
-            throw UnresolvableService::unknownType($type, $consumer);
+        if ($definition instanceof ServiceDefinition) {
+            return $this->containerFor($definition->scope)->get($definition);
         }
 
-        return $this->containerFor($definition->scope)->get($definition);
+        foreach ($this->resolvers as $resolver) {
+            $service = $resolver->resolve($type, $attributes);
+
+            if ($service === null) {
+                continue;
+            }
+
+            if (!$service instanceof $type) {
+                throw UnresolvableService::resolverTypeMismatch($type, $consumer, $resolver::class, $service::class);
+            }
+
+            return $service;
+        }
+
+        throw UnresolvableService::unknownType($type, $consumer, \count($this->resolvers));
     }
 
     public function openClass(): void

@@ -332,7 +332,11 @@ final readonly class TestExecutor
 
             /** @var class-string $serviceType */
             $serviceType = $type->getName();
-            $arguments[] = $this->scopes->resolve($serviceType, $class);
+            $attributes = \array_map(
+                static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
+                $parameter->getAttributes(),
+            );
+            $arguments[] = $this->scopes->resolve($serviceType, $class, $attributes);
         }
 
         return $this->context->reflection->newInstanceArgs($arguments);

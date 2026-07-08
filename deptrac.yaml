@@ -57,10 +57,18 @@ deptrac:
       collectors:
         - type: directory
           value: src/PhpStan/.*
+    - name: Symfony
+      collectors:
+        - type: directory
+          value: src/Symfony/.*
     - name: PhpStanFramework
       collectors:
         - type: classNameRegex
           value: /^PHPStan\\/
+    - name: SymfonyFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Symfony\\/
     - name: CpuCoreCounter
       collectors:
         - type: classNameRegex
@@ -80,5 +88,7 @@ deptrac:
     Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Config, Expect, PhpStanFramework]
+    Symfony: [Core, Harness, Plugin, SymfonyFramework]
     PhpStanFramework: []
+    SymfonyFramework: []
     CpuCoreCounter: []

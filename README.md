@@ -125,6 +125,7 @@ PHP 8.4 or later, nothing else. Lazy objects, property hooks, and asymmetric vis
 - [Configuration reference](docs/configuration.md)
 - [Attribute reference](docs/attributes.md)
 - [Writing plugins](docs/plugins.md)
+- [Testing Symfony applications](docs/symfony.md)
 - [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
 - [Benchmarks](docs/benchmarks.md)
 - [Product Requirements Document](docs/PRD.md) describes the full design.

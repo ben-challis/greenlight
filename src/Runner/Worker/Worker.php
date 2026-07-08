@@ -60,7 +60,7 @@ final readonly class Worker
         // keep worker-lifetime semantics when one worker runs several
         // assignments; the owner closes the run scope on exit.
         $ownScopes = !$scopes instanceof HarnessScopes;
-        $scopes ??= new HarnessScopes($this->registry);
+        $scopes ??= new HarnessScopes($this->registry, $this->plugins->serviceResolvers());
         $summary = new ResultSummary();
         $executed = 0;
         $recycleReason = null;

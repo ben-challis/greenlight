@@ -22,12 +22,17 @@
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "rector/rector": "^2.0"
+        "rector/rector": "^2.0",
+        "symfony/config": "^6.4 || ^7.0 || ^8.0",
+        "symfony/dependency-injection": "^6.4 || ^7.0 || ^8.0",
+        "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
+        "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
     },
     "suggest": {
         "ext-pcov": "Fast line coverage collection",
         "fidry/cpu-core-counter": "Sharper core detection for workers: auto (cgroup limits, more platforms)",
-        "phpstan/phpstan": "Type-checks extension matcher calls via the bundled extension.neon"
+        "phpstan/phpstan": "Type-checks extension matcher calls via the bundled extension.neon",
+        "symfony/framework-bundle": "Kernel-aware Symfony tests: container service injection via the SymfonyPlugin bridge"
     },
     "autoload": {
         "psr-4": {

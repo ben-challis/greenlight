@@ -108,7 +108,7 @@ final readonly class WorkerProcess
                         : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
                     $plugins = PluginRegistry::forWorker($userPlugins);
                     $registry = DefaultServices::registry($plugins);
-                    $scopes = new HarnessScopes($registry);
+                    $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
                 }
 
                 $collector?->start();

@@ -65,6 +65,11 @@ The initial feature set, built and self-hosted in one development cycle:
   for deriving per-slot external resources such as database names, ports,
   and temp dirs; recycled and crashed workers pass their slot to the
   replacement.
+- A Symfony bridge (`Greenlight\Symfony\SymfonyPlugin`): one kernel per
+  worker, container services constructor-injectable in tests with
+  `#[Service]` for explicit ids, state reset between tests through
+  `services_resetter`, and channel-keyed parallel isolation, built on a
+  new `ServiceResolver` plugin capability for bridging any container.
 - A discovery cache: per-file plan entries keyed by path, mtime, and size
   under the system temp dir, halving cold discovery on large suites and
   speeding every watch iteration; any doubt falls back to parsing.
