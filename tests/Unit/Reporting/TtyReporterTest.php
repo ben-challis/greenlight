@@ -159,6 +159,22 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function aBlankLineSeparatesPermanentLinesFromTheLiveWindow(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new RunStarted('run-1', 2, 1, 1.0));
+        $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.0));
+        $reporter->onEvent(new TestFinished($this->skipped('App\GammaTest', 'one', null), 1.1));
+        $reporter->onEvent(new TestClassStarted('App\DeltaTest', 1.2));
+        $reporter->onEvent(new TestClassFinished('App\GammaTest', 1.3));
+
+        // The permanent skip line is followed by a blank line, then the window.
+        Expect::that($output->buffer())->toContain("− App\GammaTest (1 test, skipped, 0.010s)\n\n");
+    }
+
+    #[Test]
     public function noColourKeepsTheLiveWindowWithoutColourCodes(): void
     {
         // The NO_COLOR matrix row: cursor control stays, colour goes.

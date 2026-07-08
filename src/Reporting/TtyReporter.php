@@ -22,7 +22,8 @@ use Greenlight\Core\Result\TestResult;
  * tints) and one line per in-flight class, oldest first, each with a
  * running count and an elapsed time that escalates through the slow-colour
  * thresholds. Capacity clamps to min(10, terminal rows - 5); classes past
- * capacity collapse into a single overflow line.
+ * capacity collapse into a single overflow line. A leading blank line
+ * separates the window from the permanent scrollback above it.
  *
  * The live region is redrawn on every event, which is also what advances the
  * spinner.
@@ -121,7 +122,9 @@ final class TtyReporter implements Reporter
             $this->plannedTests = $event->plannedTests;
 
             if ($this->header instanceof RunHeader) {
-                $this->output->write($this->header->render($event->workers) . "\n\n");
+                // The window's own leading blank line provides the gap in
+                // cursor mode; append-only output needs it written here.
+                $this->output->write($this->header->render($event->workers) . ($this->cursor ? "\n" : "\n\n"));
             }
 
             return;
@@ -288,7 +291,9 @@ final class TtyReporter implements Reporter
 
         $this->eraseLiveRegion();
         $this->spinnerFrame = ($this->spinnerFrame + 1) % \count(self::SPINNER);
-        $lines = [$this->counterLine(self::SPINNER[$this->spinnerFrame])];
+        // The leading blank line separates the window from the permanent
+        // scrollback (header, failed or skipped class lines) above it.
+        $lines = ['', $this->counterLine(self::SPINNER[$this->spinnerFrame])];
 
         $slots = $this->windowCapacity - 1;
         $visible = $this->live;

@@ -53,7 +53,7 @@ There is no `--no-interaction`; the runner reads no input outside `--watch`, and
 
 In bounded mode (interactive, not verbose) the `tty` reporter maintains a live region of at most `min(10, terminalRows - 5)` lines, terminal height probed once at construction (`LINES` env var, then `tput lines`, defaulting to 24). No SIGWINCH handling; a resize mid-run corrects itself on the next run.
 
-The window contains, top to bottom:
+The window contains, top to bottom (preceded by one blank line separating it from the permanent scrollback above):
 
 1. One counter line: spinner, `done/planned tests`, plus `N failed` (red) and `N skipped` (yellow) once non-zero. The planned total comes from `RunStarted`.
 2. One line per in-flight class: running-count and elapsed seconds, rendered through `Style::duration()` so a class running past 1s turns yellow and past 5s red. Ordered by start time, oldest first, so long-runners sit at the top.
