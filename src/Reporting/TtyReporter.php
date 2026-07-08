@@ -62,6 +62,8 @@ final class TtyReporter implements Reporter
 
     private int $drawnLines = 0;
 
+    private bool $scrollbackStarted = false;
+
     private int $spinnerFrame = 0;
 
     private int $workersSpawned = 0;
@@ -253,7 +255,12 @@ final class TtyReporter implements Reporter
         $this->eraseLiveRegion();
 
         if ($this->verbose || !$this->cursor || $state['failed'] > 0 || $state['skipped'] > 0) {
-            $this->output->write($this->finalLine($class, $state) . "\n");
+            // The first permanent line opens the scrollback block with a
+            // blank line so it never butts against the header; later lines
+            // stack directly under it.
+            $gap = $this->cursor && !$this->scrollbackStarted ? "\n" : '';
+            $this->scrollbackStarted = true;
+            $this->output->write($gap . $this->finalLine($class, $state) . "\n");
         }
 
         $this->redraw();

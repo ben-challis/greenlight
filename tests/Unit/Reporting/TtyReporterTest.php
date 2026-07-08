@@ -175,6 +175,29 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function theFirstPermanentLineGetsAGapAndLaterOnesStack(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', null, phpVersion: '8.4.0'));
+
+        $reporter->onEvent(new RunStarted('run-1', 4, 1, 1.0));
+        $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.0));
+        $reporter->onEvent(new TestFinished($this->skipped('App\GammaTest', 'one', null), 1.1));
+        $reporter->onEvent(new TestClassFinished('App\GammaTest', 1.2));
+        $reporter->onEvent(new TestClassStarted('App\DeltaTest', 1.3));
+        $reporter->onEvent(new TestFinished($this->skipped('App\DeltaTest', 'one', null), 1.4));
+        $reporter->onEvent(new TestClassFinished('App\DeltaTest', 1.5));
+
+        $buffer = $output->buffer();
+
+        // After erasing the window the first permanent line opens with a
+        // blank line so it never butts against the header; the second stacks
+        // directly under the first without another gap.
+        Expect::that($buffer)->toContain("\x1b[0J\n− App\GammaTest (1 test, skipped, 0.010s)")
+            ->and($buffer)->toContain("\x1b[0J− App\DeltaTest (1 test, skipped, 0.010s)");
+    }
+
+    #[Test]
     public function noColourKeepsTheLiveWindowWithoutColourCodes(): void
     {
         // The NO_COLOR matrix row: cursor control stays, colour goes.
