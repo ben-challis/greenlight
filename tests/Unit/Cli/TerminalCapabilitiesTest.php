@@ -43,7 +43,8 @@ final class TerminalCapabilitiesTest
         foreach (['true', '1', 'yes'] as $value) {
             $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['CI' => $value], noAnsiFlag: false);
 
-            Expect::that($capabilities->interactive)->toBeFalse();
+            Expect::that($capabilities->interactive)->toBeFalse()
+                ->and($capabilities->colour)->toBeFalse();
         }
     }
 

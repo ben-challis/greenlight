@@ -138,6 +138,8 @@ Options:
 - `--fail-on-deprecation`, `--fail-on-notice`, `--fail-on-risky` enable the matching config policies for this run.
 - `--profile` appends a run profile after the summary: workers requested, spawned, and recycled, average boot latency (spawn to first class), per-worker busy time and utilisation, the makespan spread between the first and last worker to finish, and the ten slowest classes. Derived entirely from the event stream, so `greenlight profile:report --input=<file>` reproduces the same block offline from a saved jsonl artifact.
 - `--dry-run` prints the resolved configuration without executing.
+- `--verbose` prints a permanent line per completed class in interactive output.
+- `--no-ansi` disables colours and the live progress window; output becomes plain and append-only. A truthy `CI` environment variable has the same effect, and `NO_COLOR` disables colours only.
 - `-h, --help` shows the help text.
 - `-V, --version` shows the version.
 
@@ -147,4 +149,4 @@ Interruption: the first Ctrl+C (SIGINT) or SIGTERM starts a graceful shutdown. N
 
 Discovery caches per-file results (keyed by path, mtime, and size) under the system temp dir, so unchanged files skip re-parsing on the next run; any doubt falls back to parsing. Watch mode benefits most, since every iteration re-discovers.
 
-The `tty` and `plain` reporters end with a "Slowest tests" block naming the ten slowest tests when any test took 200 ms or longer; fast suites print nothing extra.
+In an interactive terminal the `tty` reporter shows a bounded live window: a progress counter and the in-flight classes (at most ten lines, clamped to the terminal height), with failures and skips printed permanently the moment their class finishes. Cleanly passing classes only advance the counter; `--verbose` restores a line per class. Both human reporters start with a one-line header (version, PHP version, config file, seed when randomized, worker count) and end with a "Slowest tests" block naming the five slowest tests when any test took 500 ms or longer; fast suites print nothing extra. `--profile` extends the list to twenty-five entries.
