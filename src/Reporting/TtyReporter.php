@@ -18,10 +18,11 @@ use Greenlight\Core\Result\TestResult;
 /**
  * A parallel-aware live display for interactive terminals.
  *
- * The live region shows one line per in-flight class with a spinner and a
- * running count, finalised in place to a tick or a cross as classes complete.
- * Because workers interleave freely, the unit of progress is the class, not
- * the individual dot.
+ * The live region holds a progress counter (done/planned, failure and skip
+ * tints) and one line per in-flight class, oldest first, each with a
+ * running count and an elapsed time that escalates through the slow-colour
+ * thresholds. Capacity clamps to min(10, terminal rows - 5); classes past
+ * capacity collapse into a single overflow line.
  *
  * The live region is redrawn on every event, which is also what advances the
  * spinner.
@@ -39,7 +40,7 @@ final class TtyReporter implements Reporter
     private const array SPINNER = ['|', '/', '-', '\\'];
 
     /**
-     * @var array<string, array{done: int, failed: int, skipped: int, duration: float}>
+     * @var array<string, array{done: int, failed: int, skipped: int, duration: float, startedAt: float}>
      */
     private array $live = [];
 
@@ -77,6 +78,18 @@ final class TtyReporter implements Reporter
 
     private readonly SlowTests $slowTests;
 
+    private int $plannedTests = 0;
+
+    private int $finishedTests = 0;
+
+    private int $failedTests = 0;
+
+    private int $skippedTests = 0;
+
+    private float $lastEventAt = 0.0;
+
+    private readonly int $windowCapacity;
+
     public function __construct(
         private readonly Output\Output $output,
         bool $colour,
@@ -84,15 +97,29 @@ final class TtyReporter implements Reporter
         private readonly ?RunHeader $header = null,
         bool $extendedSlowTests = false,
         private readonly bool $verbose = false,
+        int $terminalRows = 24,
     ) {
         $this->style = new Style($colour);
         $this->slowTests = new SlowTests($extendedSlowTests);
+        $this->windowCapacity = self::windowCapacity($terminalRows);
+    }
+
+    /**
+     * At most ten lines, leaving headroom on short terminals, never fewer
+     * than three (counter, one class, overflow).
+     */
+    public static function windowCapacity(int $terminalRows): int
+    {
+        return \max(3, \min(10, $terminalRows - 5));
     }
 
     #[\Override]
     public function onEvent(Event $event): void
     {
         if ($event instanceof RunStarted) {
+            $this->lastEventAt = $event->occurredAt;
+            $this->plannedTests = $event->plannedTests;
+
             if ($this->header instanceof RunHeader) {
                 $this->output->write($this->header->render($event->workers) . "\n\n");
             }
@@ -101,7 +128,8 @@ final class TtyReporter implements Reporter
         }
 
         if ($event instanceof TestClassStarted) {
-            $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0];
+            $this->lastEventAt = $event->occurredAt;
+            $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => $event->occurredAt];
             $this->redraw();
 
             return;
@@ -112,6 +140,14 @@ final class TtyReporter implements Reporter
             $result = $event->result;
             $this->expectations += $result->expectations;
             $class = $result->id->class;
+            $this->lastEventAt = $event->occurredAt;
+            ++$this->finishedTests;
+
+            if (!$result->outcome->isSuccessful()) {
+                ++$this->failedTests;
+            } elseif ($result->outcome === Outcome::Skipped) {
+                ++$this->skippedTests;
+            }
 
             if (isset($this->live[$class])) {
                 ++$this->live[$class]['done'];
@@ -208,7 +244,7 @@ final class TtyReporter implements Reporter
 
     private function finalizeClass(string $class): void
     {
-        $state = $this->live[$class] ?? ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0];
+        $state = $this->live[$class] ?? ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => 0.0];
         unset($this->live[$class]);
 
         $this->eraseLiveRegion();
@@ -221,7 +257,7 @@ final class TtyReporter implements Reporter
     }
 
     /**
-     * @param array{done: int, failed: int, skipped: int, duration: float} $state
+     * @param array{done: int, failed: int, skipped: int, duration: float, startedAt: float} $state
      */
     private function finalLine(string $class, array $state): string
     {
@@ -252,14 +288,52 @@ final class TtyReporter implements Reporter
 
         $this->eraseLiveRegion();
         $this->spinnerFrame = ($this->spinnerFrame + 1) % \count(self::SPINNER);
-        $spinner = self::SPINNER[$this->spinnerFrame];
+        $lines = [$this->counterLine(self::SPINNER[$this->spinnerFrame])];
 
-        foreach ($this->live as $class => $state) {
-            $mark = $state['failed'] > 0 ? $this->style->fail('✗') : $this->style->dim($spinner);
-            $this->output->write(\sprintf("%s %s (%d)\n", $mark, $class, $state['done']));
+        $slots = $this->windowCapacity - 1;
+        $visible = $this->live;
+        $overflow = 0;
+
+        if (\count($this->live) > $slots) {
+            $visible = \array_slice($this->live, 0, $slots - 1, preserve_keys: true);
+            $overflow = \count($this->live) - \count($visible);
         }
 
-        $this->drawnLines = \count($this->live);
+        foreach ($visible as $class => $state) {
+            $mark = $state['failed'] > 0 ? $this->style->fail('✗') : ' ';
+            $lines[] = \sprintf(
+                '%s %s (%d) %s',
+                $mark,
+                $class,
+                $state['done'],
+                $this->style->duration(\max(0.0, $this->lastEventAt - $state['startedAt'])),
+            );
+        }
+
+        if ($overflow > 0) {
+            $lines[] = \sprintf('  … and %d more running', $overflow);
+        }
+
+        foreach ($lines as $line) {
+            $this->output->write($line . "\n");
+        }
+
+        $this->drawnLines = \count($lines);
+    }
+
+    private function counterLine(string $spinner): string
+    {
+        $line = \sprintf('%s %d/%d tests', $this->style->dim($spinner), $this->finishedTests, $this->plannedTests);
+
+        if ($this->failedTests > 0) {
+            $line .= ', ' . $this->style->fail(\sprintf('%d failed', $this->failedTests));
+        }
+
+        if ($this->skippedTests > 0) {
+            $line .= ', ' . $this->style->skip(\sprintf('%d skipped', $this->skippedTests));
+        }
+
+        return $line;
     }
 
     private function eraseLiveRegion(): void

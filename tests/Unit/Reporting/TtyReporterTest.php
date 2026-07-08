@@ -175,6 +175,53 @@ final class TtyReporterTest
             ->and($output->buffer())->not()->toContain("\x1b[");
     }
 
+    #[Test]
+    public function theWindowShowsACounterAndInFlightClassesWithElapsedTime(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: true, cursor: true);
+
+        $reporter->onEvent(new RunStarted('run-1', 4, 2, 10.0));
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 10.0));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Failed), 11.5));
+
+        $buffer = $output->buffer();
+
+        // Counter: done/planned plus a red failure count.
+        Expect::that($buffer)->toContain("1/4 tests, \x1b[31m1 failed\x1b[0m")
+            // In-flight line: failure mark, running count, elapsed since class start
+            // (1.5s crosses the slow threshold, so it renders yellow).
+            ->and($buffer)->toContain("\x1b[31m✗\x1b[0m App\AlphaTest (1) \x1b[33m1.500s\x1b[0m");
+    }
+
+    #[Test]
+    public function inFlightClassesBeyondCapacityCollapseIntoAnOverflowLine(): void
+    {
+        $output = new BufferOutput();
+        // 8 terminal rows clamp the window to 3 lines: counter + 1 class + overflow.
+        $reporter = new TtyReporter($output, colour: false, cursor: true, terminalRows: 8);
+
+        $reporter->onEvent(new RunStarted('run-1', 9, 3, 1.0));
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.1));
+        $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.2));
+
+        $tail = \substr($output->buffer(), (int) \strrpos($output->buffer(), "\x1b[0J"));
+
+        // Oldest class stays visible; the rest collapse into the overflow line.
+        Expect::that($tail)->toContain('App\AlphaTest (0)')
+            ->and($tail)->toContain('… and 2 more running')
+            ->and($tail)->not()->toContain('App\BetaTest');
+    }
+
+    #[Test]
+    public function windowCapacityClampsToTerminalHeightWithAFloor(): void
+    {
+        Expect::that(TtyReporter::windowCapacity(50))->toBe(10)
+            ->and(TtyReporter::windowCapacity(12))->toBe(7)
+            ->and(TtyReporter::windowCapacity(6))->toBe(3);
+    }
+
     /**
      * @param non-empty-string $class
      * @param non-empty-string $method
