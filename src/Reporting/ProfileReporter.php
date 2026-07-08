@@ -21,6 +21,7 @@ final readonly class ProfileReporter implements Reporter
 
     public function __construct(
         private Output $output,
+        private Style $style = new Style(ansi: false),
     ) {
         $this->aggregator = new ProfileAggregator();
     }
@@ -34,6 +35,6 @@ final readonly class ProfileReporter implements Reporter
     #[\Override]
     public function finish(): void
     {
-        $this->output->write($this->aggregator->render());
+        $this->output->write($this->aggregator->render($this->style));
     }
 }

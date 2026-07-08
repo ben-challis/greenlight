@@ -102,7 +102,7 @@ final class ProfileAggregator
     /**
      * The rendered profile block, empty when no run completed.
      */
-    public function render(): string
+    public function render(Style $style): string
     {
         if (!$this->runFinished instanceof RunFinished) {
             return '';
@@ -134,9 +134,9 @@ final class ProfileAggregator
 
         if ($bootLatencies !== []) {
             $lines[] = \sprintf(
-                '  Boot latency: %.3fs average (spawn to first class, %d workers)',
+                '  Boot latency: %.3fs average (spawn to first class, %s)',
                 \array_sum($bootLatencies) / \count($bootLatencies),
-                \count($bootLatencies),
+                Style::count(\count($bootLatencies), 'worker'),
             );
         }
 
@@ -149,12 +149,19 @@ final class ProfileAggregator
             $windowEnd = $worker['lastFinishAt'];
             $window = $windowStart !== null && $windowEnd !== null ? \max(0.0, $windowEnd - $windowStart) : 0.0;
 
+            $utilisation = '';
+
+            if ($window > 0.0) {
+                $percent = (int) \round(100 * \min(1.0, $worker['busy'] / $window));
+                $utilisation = ', utilisation ' . $this->utilisation($style, $percent);
+            }
+
             $lines[] = \sprintf(
-                '  Worker %s: %d classes, busy %.3fs%s',
+                '  Worker %s: %s, busy %.3fs%s',
                 $id,
-                $worker['classes'],
+                Style::count($worker['classes'], 'class', 'classes'),
                 $worker['busy'],
-                $window > 0.0 ? \sprintf(', utilisation %d%%', (int) \round(100 * \min(1.0, $worker['busy'] / $window))) : '',
+                $utilisation,
             );
         }
 
@@ -170,11 +177,30 @@ final class ProfileAggregator
             $lines[] = '  Slowest classes:';
 
             foreach (\array_slice($this->classDurations, 0, self::SLOWEST_LIMIT, preserve_keys: true) as $class => $duration) {
-                $lines[] = \sprintf('    %.3fs %s', $duration, $class);
+                $lines[] = \sprintf('    %s %s', $style->duration($duration), $class);
             }
         }
 
         return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * High utilisation is the healthy state, so the bands run green at 90%,
+     * yellow at 70%, red below: idle workers are the anomaly worth a glance.
+     */
+    private function utilisation(Style $style, int $percent): string
+    {
+        $text = $percent . '%';
+
+        if ($percent >= 90) {
+            return $style->pass($text);
+        }
+
+        if ($percent >= 70) {
+            return $style->skip($text);
+        }
+
+        return $style->fail($text);
     }
 
     /**

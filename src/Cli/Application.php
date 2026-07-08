@@ -43,6 +43,7 @@ use Greenlight\Reporting\ProfileAggregator;
 use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\RunHeader;
+use Greenlight\Reporting\Style;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\TtyReporter;
 use Greenlight\Runner\CoverageSettings;
@@ -615,7 +616,7 @@ final readonly class Application
         }
 
         if ($profile) {
-            $reporters[] = new ProfileReporter($output);
+            $reporters[] = new ProfileReporter($output, new Style($capabilities->colour));
         }
 
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
@@ -778,7 +779,11 @@ final readonly class Application
             }
         }
 
-        $report = $aggregator->render();
+        $report = $aggregator->render(new Style(TerminalCapabilities::detect(
+            \function_exists('stream_isatty') && @\stream_isatty(\STDOUT),
+            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+            $arguments->has('no-ansi'),
+        )->colour));
 
         if ($report === '') {
             ($this->err)("The stream contains no finished run to profile.\n");
