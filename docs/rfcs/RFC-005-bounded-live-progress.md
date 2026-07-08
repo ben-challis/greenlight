@@ -56,8 +56,8 @@ In bounded mode (interactive, not verbose) the `tty` reporter maintains a live r
 The window contains, top to bottom (preceded by one blank line separating it from the permanent scrollback above):
 
 1. One counter line: spinner, `done/planned tests`, plus `N failed` (red) and `N skipped` (yellow) once non-zero. The planned total comes from `RunStarted`.
-2. One line per in-flight class: running-count and elapsed seconds, rendered through `Style::duration()` so a class running past 1s turns yellow and past 5s red. Ordered by start time, oldest first, so long-runners sit at the top.
-3. When in-flight classes exceed the remaining capacity, the last line reads `… and N more running` instead.
+2. One line per in-flight class: name and running-count rendered dim so the line reads as pending, elapsed seconds through `Style::duration()` so a class running past 1s turns yellow and past 5s red. Ordered by start time, oldest first, so long-runners sit at the top.
+3. When in-flight classes exceed the remaining capacity, the last line reads `… and N more running` instead, also dim.
 
 Redraw stays event-driven, exactly as the current live region: every event erases and repaints the window, which is also what advances the spinner and elapsed times. No timers, no threads.
 

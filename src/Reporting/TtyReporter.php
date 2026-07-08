@@ -19,7 +19,7 @@ use Greenlight\Core\Result\TestResult;
  * A parallel-aware live display for interactive terminals.
  *
  * The live region holds a progress counter (done/planned, failure and skip
- * tints) and one line per in-flight class, oldest first, each with a
+ * tints) and one dim line per in-flight class, oldest first, each with a
  * running count and an elapsed time that escalates through the slow-colour
  * thresholds. Capacity clamps to min(10, terminal rows - 5); classes past
  * capacity collapse into a single overflow line. A leading blank line
@@ -313,17 +313,18 @@ final class TtyReporter implements Reporter
 
         foreach ($visible as $class => $state) {
             $mark = $state['failed'] > 0 ? $this->style->fail('✗') : ' ';
+            // Dim name and count read as pending; the failure mark and the
+            // duration keep their colours so trouble and slowness still pop.
             $lines[] = \sprintf(
-                '%s %s (%d) %s',
+                '%s %s %s',
                 $mark,
-                $class,
-                $state['done'],
+                $this->style->dim(\sprintf('%s (%d)', $class, $state['done'])),
                 $this->style->duration(\max(0.0, $this->lastEventAt - $state['startedAt'])),
             );
         }
 
         if ($overflow > 0) {
-            $lines[] = \sprintf('  … and %d more running', $overflow);
+            $lines[] = $this->style->dim(\sprintf('  … and %d more running', $overflow));
         }
 
         foreach ($lines as $line) {

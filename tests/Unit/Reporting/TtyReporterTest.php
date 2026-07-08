@@ -249,9 +249,10 @@ final class TtyReporterTest
 
         // Counter: done/planned plus a red failure count.
         Expect::that($buffer)->toContain("1/4 tests, \x1b[31m1 failed\x1b[0m")
-            // In-flight line: failure mark, running count, elapsed since class start
-            // (1.5s crosses the slow threshold, so it renders yellow).
-            ->and($buffer)->toContain("\x1b[31m✗\x1b[0m App\AlphaTest (1) \x1b[33m1.500s\x1b[0m");
+            // In-flight line: failure mark, dim name and running count so the
+            // line reads as pending, elapsed since class start (1.5s crosses
+            // the slow threshold, so it renders yellow).
+            ->and($buffer)->toContain("\x1b[31m✗\x1b[0m \x1b[2mApp\AlphaTest (1)\x1b[0m \x1b[33m1.500s\x1b[0m");
     }
 
     #[Test]
