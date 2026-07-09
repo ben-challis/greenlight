@@ -19,7 +19,5 @@ final readonly class Service
     /**
      * @param non-empty-string $id
      */
-    public function __construct(
-        public string $id,
-    ) {}
+    public function __construct(public string $id) {}
 }

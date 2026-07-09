@@ -17,8 +17,7 @@ mode.
 If `proc_open` is disabled, Greenlight falls back to an in-process sequential
 run.
 
-Greenlight is not published to Packagist yet, so this install command is
-forward-looking. Once released, install it as a dev dependency:
+Install it as a dev dependency:
 
 ```sh
 composer require --dev greenlight/greenlight

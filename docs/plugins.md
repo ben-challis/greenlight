@@ -4,8 +4,8 @@ Plugins are plain objects passed to `GreenlightConfig::plugins()` in
 `greenlight.php`. Greenlight works out what a plugin can do from the interfaces
 it implements. A single plugin can implement more than one interface.
 
-Plugins receive real runtime context: the test instance, its metadata, and
-access to harness services.
+Worker-side plugins get the live test instance, its metadata, and access to
+harness services.
 
 ```php
 return GreenlightConfig::create()
@@ -191,8 +191,8 @@ Greenlight includes a PHPStan extension for matcher calls. It loads your
 Greenlight config files the same way workers do, reflects each matcher closure,
 and exposes every matcher to PHPStan as a real method on the expectation chain.
 
-That means typos, wrong argument counts, and wrong argument types fail
-`phpstan analyse` normally.
+Typos, wrong argument counts, and wrong argument types then fail
+`phpstan analyse` like any other error.
 
 ```neon
 includes:

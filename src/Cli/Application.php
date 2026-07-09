@@ -52,6 +52,7 @@ use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
@@ -284,6 +285,7 @@ final readonly class Application
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
+        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks);
 
         try {
             if ($workers === 1 || $realBin === false) {
@@ -337,6 +339,19 @@ final readonly class Application
         return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
     }
 
+    private function warnWhenLeakDetectionIsUnreliable(bool $detectLeaks): void
+    {
+        if (!$detectLeaks) {
+            return;
+        }
+
+        $warning = LeakDetector::environmentWarning();
+
+        if ($warning !== null) {
+            ($this->err)($warning . "\n");
+        }
+    }
+
     private function watchCommand(
         ParsedArguments $arguments,
         string $workingDirectory,
@@ -360,6 +375,7 @@ final readonly class Application
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
+        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks);
 
         $runOnce =
             function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $realBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown): array {

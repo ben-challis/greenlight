@@ -557,7 +557,7 @@ The cache key includes the file path, mtime, and size. Unchanged files can skip
 re-parsing on the next run. If anything is uncertain, Greenlight parses the file
 again.
 
-Watch mode benefits most because every iteration rediscoveres the suite.
+Watch mode benefits most because every iteration rediscovers the suite.
 
 ## Interactive output
 

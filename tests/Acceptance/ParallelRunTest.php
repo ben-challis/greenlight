@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\SkipTest;
 
 /**
  * Drives bin/greenlight with a process pool against fixture projects and
@@ -69,6 +70,24 @@ final class ParallelRunTest
     }
 
     #[Test]
+    public function leakDetectionWarnsWhenXdebugDevelopModeIsActive(): void
+    {
+        if (!\extension_loaded('xdebug')) {
+            // The warning triggers on xdebug develop mode, an environment
+            // property the test cannot create without the extension.
+            throw new SkipTest('xdebug is not loaded');
+        }
+
+        [, $develop] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
+
+        Expect::that($develop)->toContain('xdebug develop mode');
+
+        [, $off] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
+
+        Expect::that($off)->not()->toContain('xdebug develop mode');
+    }
+
+    #[Test]
     public function hangingTestsAreHardKilledByTheOrchestrator(): void
     {
         $startedAt = \hrtime(true);
@@ -82,13 +101,21 @@ final class ParallelRunTest
 
     /**
      * @param list<string> $arguments
+     * @param array<string, string> $env
      *
      * @return array{int, string}
      */
-    private function runIn(string $fixtureConfigDir, array $arguments): array
+    private function runIn(string $fixtureConfigDir, array $arguments, array $env = []): array
     {
         $root = \dirname(__DIR__, 2);
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight')];
+        $parts = [];
+
+        foreach ($env as $name => $value) {
+            $parts[] = \sprintf('%s=%s', $name, \escapeshellarg($value));
+        }
+
+        $parts[] = \escapeshellarg(\PHP_BINARY);
+        $parts[] = \escapeshellarg($root . '/bin/greenlight');
 
         foreach ($arguments as $argument) {
             $parts[] = \escapeshellarg($argument);

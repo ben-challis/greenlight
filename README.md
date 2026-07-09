@@ -1,12 +1,13 @@
 # Greenlight
 
-**A modern, parallel-first test framework for PHP 8.4+.**
+**A parallel test framework for PHP 8.4+.**
 
-Greenlight is built for PHP teams that want faster feedback, stronger isolation, and reliable CI output without adding a heavy dependency stack to the application under test.
+Greenlight runs test suites in parallel by default and ships with zero runtime dependencies, so it never version-conflicts with the application under test.
 
-It runs suites in parallel by default, keeps memory usage stable across long runs, isolates risky tests when needed, captures output per test, and produces deterministic reports for local terminals and CI systems.
+Long runs stay healthy because workers recycle themselves before memory creeps. Tests that need a clean process get one without slowing down the rest of the suite. Output is captured per test, and reports come out the same way on a laptop as they do in CI.
 
-**Status: pre-release. Feature-complete and self-hosted; no version tag yet and not published to Packagist.**
+> [!NOTE]
+> Greenlight is not yet released.
 
 Greenlight already tests itself. This repository's suite runs under its own `bin/greenlight run` across an auto-sized worker pool.
 
@@ -14,27 +15,27 @@ Greenlight already tests itself. This repository's suite runs under its own `bin
 
 ## Why Greenlight?
 
-PHP test suites tend to get slower as they grow. They also get harder to trust when state leaks between tests, CI logs are noisy, worker memory creeps upward, or failures only reproduce on one machine.
+PHP test suites tend to get slower as they grow. They also get harder to trust: state leaks between tests, CI logs fill with noise, worker memory creeps upward, and some failures only ever reproduce on one machine.
 
-Greenlight is designed around those problems from the runner upward.
+Those failure modes shaped the runner before the assertion API existed.
 
-A normal run uses a parallel worker pool. Work is distributed dynamically, so slow classes do not block idle workers. Workers can recycle by test count or memory ceiling. Tests can be isolated when they need a clean process. Output is captured per test, so stray stdout, warnings, notices, and diagnostics do not corrupt the report stream.
+A normal run uses a parallel worker pool that distributes work dynamically, so one slow class does not leave the other workers idle. Workers recycle themselves after a test count or memory ceiling. A test that needs a clean process can ask for one. Because output is captured per test, stray stdout, warnings, notices, and diagnostics land on the test that produced them instead of corrupting the report stream.
 
-The result is a test runner that is quick locally, predictable in CI, and comfortable on large suites.
+The suite stays quick on a laptop and behaves the same way in CI, at any size.
 
-## What Greenlight gives you
+## Features
 
-* **Parallel by default** with an auto-sized worker pool.
-* **Stable memory usage** over long suites through worker recycling and leak detection.
-* **Process isolation** for tests or classes that need clean state.
-* **Deterministic CI output** with plain, JUnit, JSONL, GitHub, and TeamCity reporters.
-* **Reproducible ordering** with seeded randomisation.
-* **Failed-first workflows** with `--failed` and watch mode.
-* **Coverage gates** through pcov or Xdebug.
-* **Strict test doubles** that fail on unplanned or unverified behaviour.
-* **Typed expectations** with rendered diffs.
-* **Plain PHP test code** using attributes, typed classes, constructor injection, and PHP configuration.
-* **Zero runtime dependencies**, so the framework does not version-conflict with the code under test.
+* Parallel by default, with an auto-sized worker pool.
+* Worker recycling and leak detection keep memory flat over long suites.
+* Process isolation for tests or classes that need clean state.
+* Deterministic CI output through plain, JUnit, JSONL, GitHub, and TeamCity reporters.
+* Seeded randomisation, so any ordering can be reproduced exactly.
+* `--failed` and watch mode for failed-first workflows.
+* Coverage gates through pcov or Xdebug.
+* Strict test doubles that fail on unplanned or unverified behaviour.
+* Typed expectations with rendered diffs.
+* Test code is plain PHP: attributes, typed classes, constructor injection, and PHP configuration.
+* Zero runtime dependencies, so the framework never version-conflicts with the code under test.
 
 ## What a test looks like
 
@@ -71,9 +72,9 @@ final class PriceTest
 }
 ```
 
-Greenlight tests are normal typed PHP classes. Attributes mark tests and data rows. Assertions start from `Expect::that()`. Constructor injection provides stateful services such as fixtures, test doubles, and plugin-provided harness services.
+Greenlight tests are normal typed PHP classes. Attributes mark tests and data rows, assertions start from `Expect::that()`, and constructor injection provides stateful services such as fixtures, test doubles, and plugin-provided harness services.
 
-That shape keeps test code explicit, analysable, and easy to refactor with standard PHP tooling.
+Because a test class is ordinary PHP, standard tooling (PHPStan, Rector, an IDE's refactorings) works on it like any other code.
 
 ## Configuration
 
@@ -117,9 +118,9 @@ Reporters are repeatable, so a run can emit terminal output, JUnit, and JSONL fr
 
 ## Parallel execution
 
-Greenlight treats parallel execution as the default path.
+Parallel execution is the default path, not an opt-in mode.
 
-Tests run across a worker pool sized to the machine. Workers pull work on demand, which keeps the pool busy when one class is slower than the rest. Sequential execution is available with `--workers=1`, using the same execution path, which makes debugger sessions straightforward.
+Tests run across a worker pool sized to the machine. Workers pull work on demand, which keeps the pool busy when one class is slower than the rest. Sequential execution is available with `--workers=1` and uses the same execution path, which makes debugger sessions straightforward.
 
 Worker recycling keeps long suites healthy. A worker can be recycled after a test count threshold or a memory ceiling. CI gates a 10,000-test single-worker run at under 1 MiB of memory drift, and `--detect-leaks` names any test whose instance survives collection.
 
@@ -127,9 +128,9 @@ Worker recycling keeps long suites healthy. A worker can be recycled after a tes
 
 Some tests need a clean process. Greenlight runs tests marked `#[Isolated]` in a fresh process without forcing the entire suite into the slowest mode.
 
-Use isolation when a test mutates global state, touches process-wide configuration, exercises shutdown behaviour, or loads code that cannot be safely unloaded. The rest of the suite can continue to run in the normal worker pool.
+Use isolation when a test mutates global state, touches process-wide configuration, exercises shutdown behaviour, or loads code that cannot be safely unloaded. The rest of the suite keeps running in the normal worker pool.
 
-That lets large suites stay fast while still giving dangerous tests the boundary they need.
+A handful of isolated tests does not force a large suite to give up its speed.
 
 ## Fast, with published trade-offs
 
@@ -137,7 +138,7 @@ On [generated benchmark suites](docs/benchmarks.md), Greenlight's best configura
 
 The benchmark documentation also includes the cases where parallelism loses. On trivial test bodies, worker spawn can cost more than the work being performed, so one worker wins.
 
-Real suites usually do real work. Database calls, filesystem setup, container bootstrapping, HTTP clients, serializers, validators, service containers, and application code all give the worker pool useful work to overlap.
+That case is rarer than it sounds, because real suites spend their time on database calls, filesystem setup, container bootstrapping, HTTP clients, and application code, and that is exactly the kind of work a pool overlaps well.
 
 Reproduce the numbers with:
 
@@ -153,7 +154,7 @@ Greenlight's test doubles are designed to catch accidental gaps in verification.
 
 Tests receive a per-test `Doubles` service through constructor injection and create doubles with `mock()`, `stub()`, and `spy()`.
 
-Mocks answer only planned interactions. Stubs satisfy a type and error on unexpected interaction. Spies record void-returning calls. Every double is verified when its test ends, and an unmet plan is reported like an assertion failure.
+Mocks answer only the interactions the test planned, stubs satisfy a type and error on anything unexpected, and spies record void-returning calls. Every double is verified when its test ends, and an unmet plan is reported like an assertion failure.
 
 The runner also flags passed tests that verified nothing as risky. `--fail-on-risky` upgrades risky tests to failures. `#[NoExpectations]` records the deliberate cases where a test legitimately asserts nothing.
 
@@ -228,7 +229,7 @@ Greenlight has one event stream and multiple reporters:
 * `github`
 * `teamcity`
 
-Use the TTY reporter locally. Use append-only plain output for CI logs. Emit JUnit for dashboards. Stream JSONL for custom tooling. Add GitHub or TeamCity annotations when the CI system supports them.
+The TTY reporter is meant for local runs, and plain output suits CI logs because it is append-only. JUnit feeds dashboards, JSONL feeds custom tooling, and the GitHub and TeamCity reporters add inline annotations where the CI system supports them.
 
 CI gates include:
 
