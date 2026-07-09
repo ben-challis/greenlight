@@ -36,7 +36,7 @@ use Greenlight\Core\Result\TestResult;
  *
  * @internal
  */
-final class TtyReporter implements Reporter
+final class TtyReporter implements Reporter, Ticking
 {
     private const array SPINNER = ['|', '/', '-', '\\'];
 
@@ -203,6 +203,17 @@ final class TtyReporter implements Reporter
         if ($event instanceof RunFinished) {
             $this->runFinished = $event;
         }
+    }
+
+    #[\Override]
+    public function tick(float $now): void
+    {
+        if (!$this->cursor || $this->live === []) {
+            return;
+        }
+
+        $this->lastEventAt = $now;
+        $this->redraw();
     }
 
     #[\Override]

@@ -283,6 +283,44 @@ final class TtyReporterTest
             ->and(TtyReporter::windowCapacity(6))->toBe(3);
     }
 
+    #[Test]
+    public function tickAdvancesInFlightDurationsWithoutEvents(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new RunStarted('run-1', 1, 1, 1.0));
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->tick(3.5);
+
+        Expect::that($output->buffer())->toContain('App\AlphaTest (0)')
+            ->and($output->buffer())->toContain('2.500s');
+    }
+
+    #[Test]
+    public function tickWithoutCursorSupportWritesNothing(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: false);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->tick(2.0);
+
+        Expect::that($output->buffer())->toBe('');
+    }
+
+    #[Test]
+    public function tickWithNoClassesInFlightWritesNothing(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new RunStarted('run-1', 1, 1, 1.0));
+        $reporter->tick(2.0);
+
+        Expect::that($output->buffer())->toBe('');
+    }
+
     /**
      * @param non-empty-string $class
      * @param non-empty-string $method
