@@ -25,8 +25,9 @@ use Greenlight\Core\Result\TestResult;
  * capacity collapse into a single overflow line. A leading blank line
  * separates the window from the permanent scrollback above it.
  *
- * The live region is redrawn on every event, which is also what advances the
- * spinner.
+ * The live region is redrawn on events and on external ticks (see Ticking),
+ * throttled to one repaint per 50ms so event bursts do not flicker. The
+ * spinner advances once per actual repaint.
  *
  * In bounded mode a cleanly passing class prints nothing permanent; only
  * classes containing failures or skips append a line, the moment they
@@ -39,6 +40,8 @@ use Greenlight\Core\Result\TestResult;
 final class TtyReporter implements Reporter, Ticking
 {
     private const array SPINNER = ['|', '/', '-', '\\'];
+
+    private const float REDRAW_INTERVAL_SECONDS = 0.05;
 
     /**
      * @var array<string, array{done: int, failed: int, skipped: int, duration: float, startedAt: float}>
@@ -90,6 +93,8 @@ final class TtyReporter implements Reporter, Ticking
     private int $skippedTests = 0;
 
     private float $lastEventAt = 0.0;
+
+    private float $lastDrawAt = -\INF;
 
     private readonly int $windowCapacity;
 
@@ -183,6 +188,7 @@ final class TtyReporter implements Reporter, Ticking
         }
 
         if ($event instanceof TestClassFinished) {
+            $this->lastEventAt = $event->occurredAt;
             $this->finalizeClass($event->class);
 
             return;
@@ -303,10 +309,11 @@ final class TtyReporter implements Reporter, Ticking
 
     private function redraw(): void
     {
-        if (!$this->cursor) {
+        if (!$this->cursor || $this->lastEventAt - $this->lastDrawAt < self::REDRAW_INTERVAL_SECONDS) {
             return;
         }
 
+        $this->lastDrawAt = $this->lastEventAt;
         $this->eraseLiveRegion();
         $this->spinnerFrame = ($this->spinnerFrame + 1) % \count(self::SPINNER);
         // The leading blank line separates the window from the permanent
