@@ -113,4 +113,52 @@ final class StringMatchersTest
 
         Expect::that($detail->message)->toBe('toEndWith() requires a string subject, got null.');
     }
+
+    #[Test]
+    public function toHaveLengthPasses(): void
+    {
+        Expect::that('abc')->toHaveLength(3);
+        Expect::that('')->toHaveLength(0);
+        Expect::that([1, 2])->toHaveLength(2);
+        Expect::that(new \ArrayObject([1]))->toHaveLength(1);
+    }
+
+    #[Test]
+    public function toHaveLengthCountsCodePointsNotBytes(): void
+    {
+        Expect::that('héllo')->toHaveLength(5);
+    }
+
+    #[Test]
+    public function toHaveLengthFallsBackToBytesForInvalidUtf8(): void
+    {
+        Expect::that("\xC3\x28")->toHaveLength(2);
+    }
+
+    #[Test]
+    public function toHaveLengthFails(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that('abc')->toHaveLength(5),
+        );
+
+        Expect::that($detail->message)->toBe("Expected 'abc' (length 3) to have length 5.");
+        Expect::that($detail->expected)->toBe('length 5');
+    }
+
+    #[Test]
+    public function notToHaveLength(): void
+    {
+        Expect::that('abc')->not()->toHaveLength(5);
+    }
+
+    #[Test]
+    public function toHaveLengthGuardsTheSubjectType(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(42)->toHaveLength(2),
+        );
+
+        Expect::that($detail->message)->toBe('toHaveLength() requires a string, array or Countable subject, got int.');
+    }
 }

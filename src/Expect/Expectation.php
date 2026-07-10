@@ -125,6 +125,54 @@ final class Expectation
     }
 
     /**
+     * Deep equality like toEqual(), except that the order of list elements is
+     * irrelevant, recursively. Associative arrays keep their keys.
+     *
+     * @throws ExpectationFailed
+     */
+    public function toEqualCanonicalizing(mixed $expected): self
+    {
+        return $this->verify(
+            Equality::equalsCanonicalizing($this->subject, $expected),
+            'to equal (canonicalizing) ' . $this->renderer->render($expected),
+            $this->renderer->render($expected),
+        );
+    }
+
+    /**
+     * Passes when the subject is identical (===) to any of the options.
+     *
+     * @throws ExpectationFailed
+     */
+    public function toBeOneOf(mixed ...$options): self
+    {
+        return $this->verify(
+            \in_array($this->subject, $options, true),
+            'to be one of ' . $this->renderer->render($options),
+            'one of ' . $this->renderer->render($options),
+        );
+    }
+
+    /**
+     * Membership by identity (===) in the haystack, the mirror of
+     * toContain(). Traversable haystacks are consumed by the check.
+     *
+     * @param iterable<mixed> $haystack
+     *
+     * @throws ExpectationFailed
+     */
+    public function toBeIn(iterable $haystack): self
+    {
+        $options = \is_array($haystack) ? $haystack : \iterator_to_array($haystack, false);
+
+        return $this->verify(
+            \in_array($this->subject, $options, true),
+            'to be in ' . $this->renderer->render($options),
+            'in ' . $this->renderer->render($options),
+        );
+    }
+
+    /**
      * @param class-string $class
      *
      * @throws ExpectationFailed
@@ -160,6 +208,97 @@ final class Expectation
     public function toBeNull(): self
     {
         return $this->verify($this->subject === null, 'to be null', 'null');
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeArray(): self
+    {
+        return $this->verify(
+            \is_array($this->subject),
+            'to be an array',
+            'array',
+            \get_debug_type($this->subject),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeString(): self
+    {
+        return $this->verify(
+            \is_string($this->subject),
+            'to be a string',
+            'string',
+            \get_debug_type($this->subject),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeInt(): self
+    {
+        return $this->verify(
+            \is_int($this->subject),
+            'to be an int',
+            'int',
+            \get_debug_type($this->subject),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeFloat(): self
+    {
+        return $this->verify(
+            \is_float($this->subject),
+            'to be a float',
+            'float',
+            \get_debug_type($this->subject),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeBool(): self
+    {
+        return $this->verify(
+            \is_bool($this->subject),
+            'to be a bool',
+            'bool',
+            \get_debug_type($this->subject),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeCallable(): self
+    {
+        return $this->verify(
+            \is_callable($this->subject),
+            'to be callable',
+            'callable',
+            \get_debug_type($this->subject),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeIterable(): self
+    {
+        return $this->verify(
+            \is_iterable($this->subject),
+            'to be iterable',
+            'iterable',
+            \get_debug_type($this->subject),
+        );
     }
 
     /**
@@ -238,6 +377,60 @@ final class Expectation
     }
 
     /**
+     * Passes when the subject is the empty string or holds zero elements.
+     * The subject must be a string, array, Countable or iterable; Traversable
+     * subjects are consumed by the check.
+     *
+     * @throws ExpectationFailed
+     */
+    public function toBeEmpty(): self
+    {
+        if (\is_string($this->subject)) {
+            $empty = $this->subject === '';
+        } elseif (\is_countable($this->subject)) {
+            $empty = \count($this->subject) === 0;
+        } elseif ($this->subject instanceof \Traversable) {
+            $empty = \iterator_count($this->subject) === 0;
+        } else {
+            return $this->usageFailure(\sprintf(
+                'toBeEmpty() requires a string, array, Countable or iterable subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        return $this->verify($empty, 'to be empty', 'empty');
+    }
+
+    /**
+     * String subjects measure their UTF-8 code point count, or the byte count
+     * when the string is not valid UTF-8. Array and Countable subjects
+     * measure count().
+     *
+     * @throws ExpectationFailed
+     */
+    public function toHaveLength(int $length): self
+    {
+        if (\is_string($this->subject)) {
+            $codePoints = \preg_match_all('/./us', $this->subject);
+            $actualLength = $codePoints === false ? \strlen($this->subject) : $codePoints;
+        } elseif (\is_countable($this->subject)) {
+            $actualLength = \count($this->subject);
+        } else {
+            return $this->usageFailure(\sprintf(
+                'toHaveLength() requires a string, array or Countable subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        return $this->verify(
+            $actualLength === $length,
+            \sprintf('to have length %d', $length),
+            \sprintf('length %d', $length),
+            \sprintf('%s (length %d)', $this->renderer->render($this->subject), $actualLength),
+        );
+    }
+
+    /**
      * The subject must be an array (checked with array_key_exists) or an
      * ArrayAccess implementation (checked with offsetExists).
      *
@@ -264,6 +457,41 @@ final class Expectation
     }
 
     /**
+     * Every key in the subset must exist in the subject array with an equal
+     * value (toEqual() semantics); nested arrays match as subsets too, so
+     * they may hold extra keys. The failure names the first differing key by
+     * its dot-joined path.
+     *
+     * @param array<array-key, mixed> $subset
+     *
+     * @throws ExpectationFailed
+     */
+    public function toContainSubset(array $subset): self
+    {
+        if (!\is_array($this->subject)) {
+            return $this->usageFailure(\sprintf(
+                'toContainSubset() requires an array subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        $difference = ArraySubset::firstDifference($subset, $this->subject);
+
+        $description = 'to contain the subset ' . $this->renderer->render($subset);
+
+        if ($difference !== null) {
+            $description .= ' (' . $difference . ')';
+        }
+
+        return $this->verify(
+            $difference === null,
+            $description,
+            $this->renderer->render($subset),
+            $this->renderer->render($this->subject),
+        );
+    }
+
+    /**
      * @throws ExpectationFailed
      */
     public function toBeGreaterThan(int|float $bound): self
@@ -285,6 +513,25 @@ final class Expectation
     /**
      * @throws ExpectationFailed
      */
+    public function toBeGreaterThanOrEqual(int|float $bound): self
+    {
+        if (!\is_int($this->subject) && !\is_float($this->subject)) {
+            return $this->usageFailure(\sprintf(
+                'toBeGreaterThanOrEqual() requires an int or float subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        return $this->verify(
+            $this->subject >= $bound,
+            'to be greater than or equal to ' . $this->renderer->render($bound),
+            'greater than or equal to ' . $this->renderer->render($bound),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
     public function toBeLessThan(int|float $bound): self
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
@@ -298,6 +545,25 @@ final class Expectation
             $this->subject < $bound,
             'to be less than ' . $this->renderer->render($bound),
             'less than ' . $this->renderer->render($bound),
+        );
+    }
+
+    /**
+     * @throws ExpectationFailed
+     */
+    public function toBeLessThanOrEqual(int|float $bound): self
+    {
+        if (!\is_int($this->subject) && !\is_float($this->subject)) {
+            return $this->usageFailure(\sprintf(
+                'toBeLessThanOrEqual() requires an int or float subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        return $this->verify(
+            $this->subject <= $bound,
+            'to be less than or equal to ' . $this->renderer->render($bound),
+            'less than or equal to ' . $this->renderer->render($bound),
         );
     }
 
@@ -385,6 +651,69 @@ final class Expectation
             \str_ends_with($this->subject, $suffix),
             'to end with ' . $this->renderer->render($suffix),
             $this->renderer->render($suffix),
+        );
+    }
+
+    /**
+     * The subject must be a string; passes when it is valid JSON.
+     *
+     * @throws ExpectationFailed
+     */
+    public function toBeJson(): self
+    {
+        if (!\is_string($this->subject)) {
+            return $this->usageFailure(\sprintf(
+                'toBeJson() requires a string subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        return $this->verify(
+            \json_validate($this->subject),
+            'to be valid JSON',
+            'valid JSON',
+        );
+    }
+
+    /**
+     * The subject must be a string holding valid JSON that decodes to a
+     * structure deeply equal to the decoded expected JSON, so object key
+     * order is irrelevant. A subject that is not valid JSON fails with a
+     * message saying so; expected values that are not valid JSON are misuse.
+     *
+     * @throws ExpectationFailed
+     */
+    public function toMatchJson(string $expected): self
+    {
+        if (!\is_string($this->subject)) {
+            return $this->usageFailure(\sprintf(
+                'toMatchJson() requires a string subject, got %s.',
+                \get_debug_type($this->subject),
+            ));
+        }
+
+        if (!\json_validate($expected)) {
+            return $this->usageFailure('toMatchJson() requires valid JSON as the expected value.');
+        }
+
+        $decodedExpected = \json_decode($expected, true);
+        $renderedExpected = $this->renderer->render($decodedExpected);
+
+        if (!\json_validate($this->subject)) {
+            return $this->verify(
+                false,
+                'to be valid JSON matching ' . $renderedExpected,
+                $renderedExpected,
+            );
+        }
+
+        $decodedSubject = \json_decode($this->subject, true);
+
+        return $this->verify(
+            Equality::equals($decodedSubject, $decodedExpected),
+            'to match the JSON structure ' . $renderedExpected,
+            $renderedExpected,
+            $this->renderer->render($decodedSubject),
         );
     }
 

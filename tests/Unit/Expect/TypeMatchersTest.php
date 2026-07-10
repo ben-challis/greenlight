@@ -103,4 +103,158 @@ final class TypeMatchersTest
     {
         Expect::that(0)->not()->toBeNull();
     }
+
+    #[Test]
+    public function toBeArrayPasses(): void
+    {
+        Expect::that([])->toBeArray();
+        Expect::that(['a' => 1])->toBeArray();
+    }
+
+    #[Test]
+    public function toBeArrayFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that('a')->toBeArray());
+
+        Expect::that($detail->message)->toBe('Expected string to be an array.');
+        Expect::that($detail->expected)->toBe('array');
+    }
+
+    #[Test]
+    public function notToBeArray(): void
+    {
+        Expect::that('a')->not()->toBeArray();
+    }
+
+    #[Test]
+    public function toBeStringPasses(): void
+    {
+        Expect::that('')->toBeString();
+        Expect::that('a')->toBeString();
+    }
+
+    #[Test]
+    public function toBeStringFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that(1)->toBeString());
+
+        Expect::that($detail->message)->toBe('Expected int to be a string.');
+        Expect::that($detail->expected)->toBe('string');
+    }
+
+    #[Test]
+    public function notToBeString(): void
+    {
+        Expect::that(1)->not()->toBeString();
+    }
+
+    #[Test]
+    public function toBeIntPasses(): void
+    {
+        Expect::that(0)->toBeInt();
+        Expect::that(-5)->toBeInt();
+    }
+
+    #[Test]
+    public function toBeIntFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that('1')->toBeInt());
+
+        Expect::that($detail->message)->toBe('Expected string to be an int.');
+        Expect::that($detail->expected)->toBe('int');
+    }
+
+    #[Test]
+    public function notToBeInt(): void
+    {
+        Expect::that(1.0)->not()->toBeInt();
+    }
+
+    #[Test]
+    public function toBeFloatPasses(): void
+    {
+        Expect::that(1.5)->toBeFloat();
+        Expect::that(NAN)->toBeFloat();
+    }
+
+    #[Test]
+    public function toBeFloatFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that(1)->toBeFloat());
+
+        Expect::that($detail->message)->toBe('Expected int to be a float.');
+        Expect::that($detail->expected)->toBe('float');
+    }
+
+    #[Test]
+    public function notToBeFloat(): void
+    {
+        Expect::that(1)->not()->toBeFloat();
+    }
+
+    #[Test]
+    public function toBeBoolPasses(): void
+    {
+        Expect::that(true)->toBeBool();
+        Expect::that(false)->toBeBool();
+    }
+
+    #[Test]
+    public function toBeBoolFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that(0)->toBeBool());
+
+        Expect::that($detail->message)->toBe('Expected int to be a bool.');
+        Expect::that($detail->expected)->toBe('bool');
+    }
+
+    #[Test]
+    public function notToBeBool(): void
+    {
+        Expect::that(0)->not()->toBeBool();
+    }
+
+    #[Test]
+    public function toBeCallablePasses(): void
+    {
+        Expect::that(static fn() => null)->toBeCallable();
+        Expect::that('strlen')->toBeCallable();
+    }
+
+    #[Test]
+    public function toBeCallableFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that(42)->toBeCallable());
+
+        Expect::that($detail->message)->toBe('Expected int to be callable.');
+        Expect::that($detail->expected)->toBe('callable');
+    }
+
+    #[Test]
+    public function notToBeCallable(): void
+    {
+        Expect::that(42)->not()->toBeCallable();
+    }
+
+    #[Test]
+    public function toBeIterablePasses(): void
+    {
+        Expect::that([])->toBeIterable();
+        Expect::that(new \ArrayObject())->toBeIterable();
+    }
+
+    #[Test]
+    public function toBeIterableFails(): void
+    {
+        $detail = FailureProbe::detailOf(static fn() => Expect::that('abc')->toBeIterable());
+
+        Expect::that($detail->message)->toBe('Expected string to be iterable.');
+        Expect::that($detail->expected)->toBe('iterable');
+    }
+
+    #[Test]
+    public function notToBeIterable(): void
+    {
+        Expect::that('abc')->not()->toBeIterable();
+    }
 }
