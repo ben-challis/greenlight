@@ -15,6 +15,7 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\InvalidWirePayload;
@@ -28,6 +29,7 @@ use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\Export\LcovExporter;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\PhpStan\IdeHelper;
@@ -99,7 +101,21 @@ final readonly class Application
           --group=<name>     Only run this group; repeatable
           --filter=<pattern> Only run tests whose id matches; substring, or
                              full match with * wildcards; repeatable
+          --exclude-group=<name>     Skip tests in this group; repeatable
+          --exclude-class=<pattern>  Skip classes matching this pattern;
+                             substring or * wildcards; repeatable
+          --exclude-method=<pattern> Skip methods matching this pattern;
+                             substring or * wildcards; repeatable
+          --exclude-path=<prefix>    Skip test files under this path prefix;
+                             repeatable
           --failed           Only re-run tests that failed in the previous run
+          --list-tests       Print the selected test ids instead of running
+          --list-groups      Print each selected group and its test count
+          --list-suites      Print the configured suites
+          --repeat=<n>       Run the selected tests n times in fresh runs;
+                             any failing iteration fails the command
+          --repeat-until-failure  Repeat until an iteration fails, up to
+                             --repeat times (default at most 100)
           --shard=<n>/<m>    Run the nth of m disjoint slices of the plan; whole
                              classes, stable across machines, no coordination
           --seed=<n>         Randomize class order with this seed
@@ -217,6 +233,7 @@ final readonly class Application
     {
         try {
             [$resolved, $configFile] = $this->loadConfiguration($arguments, $workingDirectory);
+            $overrides = CliOverrides::fromArguments($arguments);
         } catch (CliError $error) {
             ($this->err)($error->getMessage() . "\n");
 
@@ -227,10 +244,32 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
+        if ($arguments->has('watch') && ($overrides->repeat !== null || $overrides->repeatUntilFailure)) {
+            ($this->err)("--watch cannot be combined with --repeat or --repeat-until-failure.\n");
+
+            return self::EXIT_USAGE;
+        }
+
         if ($arguments->has('dry-run')) {
             ($this->out)(PlanFormatter::format($resolved, $configFile));
 
             return self::EXIT_OK;
+        }
+
+        if ($arguments->has('list-suites')) {
+            return $this->printSuiteList($resolved);
+        }
+
+        if ($arguments->has('list-tests') || $arguments->has('list-groups')) {
+            try {
+                $plan = $this->discoverSelection($resolved, $workingDirectory);
+            } catch (DiscoveryError $error) {
+                ($this->err)($error->getMessage() . "\n");
+
+                return self::EXIT_FAILURE;
+            }
+
+            return $arguments->has('list-tests') ? $this->printTestList($plan) : $this->printGroupList($plan);
         }
 
         try {
@@ -280,12 +319,88 @@ final readonly class Application
         }
 
         $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
+        $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'));
+
+        // --repeat=1 is the ordinary single run; the loop, its banners, and
+        // its summary only appear when more than one iteration is possible.
+        if (($overrides->repeat === null || $overrides->repeat === 1) && !$overrides->repeatUntilFailure) {
+            return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter);
+        }
+
+        // --repeat-until-failure without an explicit --repeat cannot loop
+        // forever; 100 iterations is the safety limit.
+        $limit = $overrides->repeat ?? 100;
+        $bounded = $overrides->repeat !== null;
+        $failedIterations = [];
+
+        for ($iteration = 1; $iteration <= $limit; $iteration++) {
+            ($this->out)($bounded
+                ? \sprintf("Repeat: iteration %d of %d\n", $iteration, $limit)
+                : \sprintf("Repeat: iteration %d of at most %d\n", $iteration, $limit));
+
+            if ($iteration > 1) {
+                try {
+                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory);
+                } catch (CliError $error) {
+                    ($this->err)($error->getMessage() . "\n");
+
+                    return self::EXIT_USAGE;
+                }
+            }
+
+            $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter);
+
+            $interruptExit = $shutdown->exitCode();
+
+            if ($interruptExit !== null) {
+                return $interruptExit;
+            }
+
+            if ($exit !== self::EXIT_OK) {
+                $failedIterations[] = $iteration;
+
+                if ($overrides->repeatUntilFailure) {
+                    break;
+                }
+            }
+        }
+
+        if ($failedIterations === []) {
+            ($this->out)(\sprintf("Repeat: %d iterations, all passed\n", $limit));
+
+            return self::EXIT_OK;
+        }
+
+        ($this->out)(\sprintf("Repeat: failed on iteration(s) %s\n", \implode(', ', $failedIterations)));
+
+        return self::EXIT_FAILURE;
+    }
+
+    /**
+     * One full execution: run the plan, finish the reporter, record run
+     * state, and translate the outcome into an exit code.
+     *
+     * The reporter must be fresh; finish() is called on it exactly once.
+     *
+     * @param list<non-empty-string> $priorityClasses
+     * @param array<string, float> $classSeconds
+     */
+    private function executeRun(
+        ParsedArguments $arguments,
+        Configuration $resolved,
+        string $configFile,
+        string $workingDirectory,
+        ?string $binPath,
+        GracefulShutdown $shutdown,
+        array $priorityClasses,
+        array $classSeconds,
+        Reporter $reporter,
+    ): int {
         $failedTap = new FailedTestsTap(new ReporterSink($reporter));
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
-        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks);
 
         try {
             if ($workers === 1 || $realBin === false) {
@@ -302,7 +417,7 @@ final readonly class Application
         }
 
         $reporter->finish();
-        $state->record($failedTap->failedTests(), $failedTap->classSeconds());
+        RunState::forWorkingDirectory($workingDirectory)->record($failedTap->failedTests(), $failedTap->classSeconds());
 
         $interruptExit = $shutdown->exitCode();
 
@@ -823,26 +938,102 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        $filter = new Filter(includeGroups: $resolved->groups, includeIds: $resolved->filters, includeExactIds: $resolved->onlyTests ?? []);
-
         try {
-            $directories = $this->directories($resolved, $workingDirectory);
-            $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
-
-            if ($resolved->shard !== null) {
-                $plan = PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));
-            }
+            $plan = $this->discoverSelection($resolved, $workingDirectory);
         } catch (DiscoveryError $error) {
             ($this->err)($error->getMessage() . "\n");
 
             return self::EXIT_FAILURE;
         }
 
-        foreach ($plan->entries as $entry) {
-            ($this->out)($entry->id . "\n");
+        return $this->printTestList($plan);
+    }
+
+    /**
+     * Discovers the same selection a run would execute: the full filter set
+     * from the resolved configuration, then the shard slice when one was
+     * requested.
+     *
+     * @throws DiscoveryError
+     */
+    private function discoverSelection(Configuration $resolved, string $workingDirectory): ExecutionPlan
+    {
+        $filter = new Filter(
+            includeGroups: $resolved->groups,
+            excludeGroups: $resolved->excludeGroups,
+            excludeClasses: $resolved->excludeClasses,
+            excludeMethods: $resolved->excludeMethods,
+            excludePaths: $resolved->excludePaths,
+            includeIds: $resolved->filters,
+            includeExactIds: $resolved->onlyTests ?? [],
+        );
+
+        $directories = $this->directories($resolved, $workingDirectory);
+        $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
+
+        if ($resolved->shard !== null) {
+            $plan = PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));
         }
 
-        ($this->out)(\sprintf("\n%d tests\n", \count($plan)));
+        return $plan;
+    }
+
+    private function printTestList(ExecutionPlan $plan): int
+    {
+        $ids = [];
+
+        foreach ($plan->entries as $entry) {
+            $ids[] = (string) $entry->id;
+        }
+
+        \sort($ids);
+
+        foreach ($ids as $id) {
+            ($this->out)($id . "\n");
+        }
+
+        ($this->out)(\sprintf("\n%d tests\n", \count($ids)));
+
+        return self::EXIT_OK;
+    }
+
+    private function printGroupList(ExecutionPlan $plan): int
+    {
+        $counts = [];
+
+        foreach ($plan->entries as $entry) {
+            foreach ($entry->metadata->groups as $group) {
+                $counts[$group] = ($counts[$group] ?? 0) + 1;
+            }
+        }
+
+        \ksort($counts, \SORT_STRING);
+
+        foreach ($counts as $group => $count) {
+            ($this->out)(\sprintf("%s (%d tests)\n", $group, $count));
+        }
+
+        ($this->out)(\sprintf("\n%d groups\n", \count($counts)));
+
+        return self::EXIT_OK;
+    }
+
+    private function printSuiteList(Configuration $resolved): int
+    {
+        $suites = $resolved->suites;
+        \usort($suites, static fn(SuiteConfiguration $a, SuiteConfiguration $b): int => \strcmp($a->name, $b->name));
+
+        foreach ($suites as $suite) {
+            $line = $suite->name . ': ' . \implode(', ', $suite->paths);
+
+            if ($suite->tags !== []) {
+                $line .= ' [tags: ' . \implode(', ', $suite->tags) . ']';
+            }
+
+            ($this->out)($line . "\n");
+        }
+
+        ($this->out)(\sprintf("\n%d suites\n", \count($suites)));
 
         return self::EXIT_OK;
     }
@@ -927,6 +1118,15 @@ final readonly class Application
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
+            new OptionSpec('exclude-group', OptionValue::Required, repeatable: true),
+            new OptionSpec('exclude-class', OptionValue::Required, repeatable: true),
+            new OptionSpec('exclude-method', OptionValue::Required, repeatable: true),
+            new OptionSpec('exclude-path', OptionValue::Required, repeatable: true),
+            new OptionSpec('list-tests'),
+            new OptionSpec('list-groups'),
+            new OptionSpec('list-suites'),
+            new OptionSpec('repeat', OptionValue::Required),
+            new OptionSpec('repeat-until-failure'),
             new OptionSpec('failed'),
             new OptionSpec('shard', OptionValue::Required),
             new OptionSpec('fail-on-deprecation'),

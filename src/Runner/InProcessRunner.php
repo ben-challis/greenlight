@@ -100,7 +100,15 @@ final readonly class InProcessRunner
      */
     private function discover(Configuration $configuration, array $directories, ?int $seed): ExecutionPlan
     {
-        $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
+        $filter = new Filter(
+            includeGroups: $configuration->groups,
+            excludeGroups: $configuration->excludeGroups,
+            excludeClasses: $configuration->excludeClasses,
+            excludeMethods: $configuration->excludeMethods,
+            excludePaths: $configuration->excludePaths,
+            includeIds: $configuration->filters,
+            includeExactIds: $configuration->onlyTests ?? [],
+        );
 
         return new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories));
     }

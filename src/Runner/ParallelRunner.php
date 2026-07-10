@@ -61,7 +61,15 @@ final readonly class ParallelRunner
             $seed = $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1);
         }
 
-        $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
+        $filter = new Filter(
+            includeGroups: $configuration->groups,
+            excludeGroups: $configuration->excludeGroups,
+            excludeClasses: $configuration->excludeClasses,
+            excludeMethods: $configuration->excludeMethods,
+            excludePaths: $configuration->excludePaths,
+            includeIds: $configuration->filters,
+            includeExactIds: $configuration->onlyTests ?? [],
+        );
         $plan = PlanOrder::schedule(
             $this->sharded(new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)), $configuration),
             $priorityClasses,

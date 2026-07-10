@@ -22,6 +22,11 @@ final readonly class CliOverrides
      * @param int<0, max>|null $seed
      * @param list<non-empty-string> $filters
      * @param array{int, int}|null $shard
+     * @param list<non-empty-string> $excludeGroups
+     * @param list<non-empty-string> $excludeClasses
+     * @param list<non-empty-string> $excludeMethods
+     * @param list<non-empty-string> $excludePaths
+     * @param positive-int|null $repeat
      */
     public function __construct(
         public ?WorkerCount $workers = null,
@@ -33,6 +38,12 @@ final readonly class CliOverrides
         public bool $failOnDeprecation = false,
         public bool $failOnNotice = false,
         public bool $failOnRisky = false,
+        public array $excludeGroups = [],
+        public array $excludeClasses = [],
+        public array $excludeMethods = [],
+        public array $excludePaths = [],
+        public ?int $repeat = null,
+        public bool $repeatUntilFailure = false,
     ) {}
 
     /**
@@ -95,6 +106,19 @@ final readonly class CliOverrides
             $shard = [$index, $count];
         }
 
+        $excludeGroups = self::nonEmptyValues($arguments, 'exclude-group');
+        $excludeClasses = self::nonEmptyValues($arguments, 'exclude-class');
+        $excludeMethods = self::nonEmptyValues($arguments, 'exclude-method');
+        $excludePaths = self::nonEmptyValues($arguments, 'exclude-path');
+
+        $repeat = null;
+
+        if ($arguments->has('repeat')) {
+            $repeat = self::positiveInt($arguments->value('repeat') ?? '', '--repeat');
+        }
+
+        $repeatUntilFailure = $arguments->has('repeat-until-failure');
+
         $seed = null;
 
         if ($arguments->has('seed')) {
@@ -123,7 +147,33 @@ final readonly class CliOverrides
             $arguments->has('fail-on-deprecation'),
             $arguments->has('fail-on-notice'),
             $arguments->has('fail-on-risky'),
+            $excludeGroups,
+            $excludeClasses,
+            $excludeMethods,
+            $excludePaths,
+            $repeat,
+            $repeatUntilFailure,
         );
+    }
+
+    /**
+     * @return list<non-empty-string>
+     *
+     * @throws CliError
+     */
+    private static function nonEmptyValues(ParsedArguments $arguments, string $name): array
+    {
+        $values = [];
+
+        foreach ($arguments->values($name) as $value) {
+            if ($value === '') {
+                throw CliError::optionRequiresValue($name);
+            }
+
+            $values[] = $value;
+        }
+
+        return $values;
     }
 
     /**
