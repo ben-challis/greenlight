@@ -12,5 +12,8 @@ namespace Greenlight\Reporting;
  */
 interface Ticking
 {
+    /**
+     * @param float $now epoch seconds from microtime(true), the same clock as Event::occurredAt
+     */
     public function tick(float $now): void;
 }
