@@ -47,4 +47,16 @@ final class CompositeReporterTest
         Expect::that($compositePlain->buffer())->toBe($alonePlain->buffer())
             ->and($compositeGithub->buffer())->toBe($aloneGithub->buffer());
     }
+
+    #[Test]
+    public function ticksReachOnlyTickingReporters(): void
+    {
+        $plain = new RecordingReporter();
+        $live = new RecordingTickingReporter();
+
+        (new CompositeReporter([$plain, $live]))->tick(1.5);
+
+        Expect::that($live->ticks)->toBe([1.5])
+            ->and($plain->eventCount)->toBe(0);
+    }
 }

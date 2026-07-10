@@ -11,10 +11,11 @@ use Greenlight\Core\Event\Event;
  *
  * onEvent() and finish() invoke the reporters in construction order, so every
  * reporter sees events and the finish signal in the same order.
+ * tick() reaches only the reporters that opt into Ticking.
  *
  * @internal
  */
-final readonly class CompositeReporter implements Reporter
+final readonly class CompositeReporter implements Reporter, Ticking
 {
     /**
      * @param list<Reporter> $reporters
@@ -28,6 +29,16 @@ final readonly class CompositeReporter implements Reporter
     {
         foreach ($this->reporters as $reporter) {
             $reporter->onEvent($event);
+        }
+    }
+
+    #[\Override]
+    public function tick(float $now): void
+    {
+        foreach ($this->reporters as $reporter) {
+            if ($reporter instanceof Ticking) {
+                $reporter->tick($now);
+            }
         }
     }
 
