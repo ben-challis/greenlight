@@ -18,7 +18,7 @@ the body of the test can stay close to what it was.
 | `#[TestWith([1, 2])]`                            | `#[DataRow([1, 2])]`, optionally labelled                |
 | `#[Group('slow')]` / `@group`                    | `#[Group('slow')]`, repeatable, method or class          |
 | `$this->markTestSkipped($reason)`                | `throw new SkipTest($reason)` from `Greenlight\Plugin`   |
-| `#[RequiresPhpExtension]` and related attributes | `#[SkipUnless(SomeCondition::class)]`                    |
+| `#[RequiresPhpExtension]` and related attributes | `#[SkipUnless(ExtensionLoaded::class, 'redis')]` and the other `Greenlight\Condition` classes |
 | `$this->assert...()`                             | static `Expect::that(...)` chains                        |
 | `createMock()` / `getMockBuilder()`              | injected `Doubles` service: `mock()`, `stub()`, `spy()`  |
 | `setUpBeforeClass()` statics                     | per-class harness services                               |
@@ -36,7 +36,19 @@ $this->assertEquals($expected, $order);             Expect::that($order)->toEqua
 $this->assertInstanceOf(Response::class, $r);       Expect::that($r)->toBeInstanceOf(Response::class);
 $this->assertCount(3, $items);                      Expect::that($items)->toHaveCount(3);
 $this->expectException(DomainException::class);     Expect::that($fn)->toThrow(DomainException::class);
+$this->assertEmpty($items);                         Expect::that($items)->toBeEmpty();
+$this->assertGreaterThanOrEqual(3, $n);             Expect::that($n)->toBeGreaterThanOrEqual(3);
+$this->assertIsArray($value);                       Expect::that($value)->toBeArray();
+$this->assertContains($needle, $haystack);          Expect::that($haystack)->toContain($needle);
+$this->assertEqualsCanonicalizing($a, $b);          Expect::that($b)->toEqualCanonicalizing($a);
+$this->assertJson($payload);                        Expect::that($payload)->toBeJson();
+$this->assertJsonStringEqualsJsonString($e, $a);    Expect::that($a)->toMatchJson($e);
 ```
+
+The other type predicates (`toBeString()`, `toBeInt()`, `toBeFloat()`,
+`toBeBool()`, `toBeCallable()`, `toBeIterable()`), membership matchers
+(`toBeOneOf()`, `toBeIn()`), `toHaveLength()`, and `toContainSubset()` follow
+the same shape. The `Greenlight\Expect\Expectation` class is the full list.
 
 A few differences matter during migration:
 
@@ -63,7 +75,31 @@ return `null` or auto-stubs. Greenlight has no equivalent object.
 `mock(Type::class, fn (MockPlan $plan) => ...)` is strict. Every planned
 expectation is verified when the test ends, and any call that matches no planned
 expectation fails the test immediately. Return values must be configured
-explicitly with `andReturns()` or `andThrows()`.
+explicitly with `andReturns()`, `andReturnsSequence()`, `andReturnsUsing()`, or
+`andThrows()`.
+
+`willReturnOnConsecutiveCalls()` maps to `andReturnsSequence(...)`, which
+consumes one value per call and treats a call after the last value as an
+authoring error. `willReturnCallback()` maps to `andReturnsUsing(fn (...) => ...)`,
+which receives the call's arguments.
+
+Argument constraints map to `Greenlight\Doubles\Argument`:
+
+```php
+// PHPUnit                                          // Greenlight
+$mock->method('save')->with($this->anything());     $plan->expects('save')->with(Argument::any());
+$this->isInstanceOf(Order::class)                   Argument::type(Order::class)
+$this->callback(fn ($v) => $v > 0)                  Argument::predicate(fn ($v) => $v > 0, 'positive')
+$this->equalTo($expected)                           Argument::equals($expected)
+```
+
+Captured arguments replace the common `willReturnCallback` inspection idiom:
+
+```php
+$captor = $plan->expects('save')->once()->andReturns(true)->captureArgument(0);
+// ... exercise the subject ...
+Expect::that($captor->value())->toBeInstanceOf(Order::class);
+```
 
 `stub(Type::class)` fills a collaborator slot and fails the test on any
 interaction. If the collaborator needs to return something, use a mock with

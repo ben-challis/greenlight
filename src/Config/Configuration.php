@@ -30,6 +30,10 @@ final readonly class Configuration
      *   (the --failed selection); null means no restriction
      * @param array{int, int}|null $shard 1-based shard index and total shard
      *   count from --shard; null means the whole plan
+     * @param list<non-empty-string> $excludeGroups groups to drop from the plan
+     * @param list<non-empty-string> $excludeClasses class name patterns to drop
+     * @param list<non-empty-string> $excludeMethods method name patterns to drop
+     * @param list<non-empty-string> $excludePaths path prefixes to drop
      */
     public function __construct(
         public array $paths,
@@ -48,6 +52,10 @@ final readonly class Configuration
         public array $filters = [],
         public ?array $onlyTests = null,
         public ?array $shard = null,
+        public array $excludeGroups = [],
+        public array $excludeClasses = [],
+        public array $excludeMethods = [],
+        public array $excludePaths = [],
     ) {}
 
     /**
@@ -72,6 +80,10 @@ final readonly class Configuration
             filters: $this->filters,
             onlyTests: $ids,
             shard: $this->shard,
+            excludeGroups: $this->excludeGroups,
+            excludeClasses: $this->excludeClasses,
+            excludeMethods: $this->excludeMethods,
+            excludePaths: $this->excludePaths,
         );
     }
 }

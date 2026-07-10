@@ -44,6 +44,10 @@ final class ConfigurationResolver
             groups: $overrides->groups === [] ? $configuration->groups : $overrides->groups,
             filters: $overrides->filters,
             shard: $overrides->shard,
+            excludeGroups: $overrides->excludeGroups,
+            excludeClasses: $overrides->excludeClasses,
+            excludeMethods: $overrides->excludeMethods,
+            excludePaths: $overrides->excludePaths,
         );
     }
 }

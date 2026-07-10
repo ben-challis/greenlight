@@ -87,10 +87,43 @@ final class MetadataFactory
                 $dataSet?->provider,
                 $testAttributes[0]->newInstance()->capture,
                 $method->getAttributes(NoExpectations::class) !== [],
+                $this->skipUnlessArguments($skipUnless, $where),
             );
         }
 
         return $metadata;
+    }
+
+    /**
+     * Condition constructor arguments cross the wire to parallel workers, so
+     * only scalars and null are allowed.
+     *
+     * @return list<scalar|null>
+     *
+     * @throws DiscoveryError
+     */
+    private function skipUnlessArguments(?SkipUnless $skipUnless, string $where): array
+    {
+        if (!$skipUnless instanceof SkipUnless) {
+            return [];
+        }
+
+        $arguments = [];
+
+        foreach ($skipUnless->arguments as $index => $argument) {
+            if ($argument !== null && !\is_scalar($argument)) {
+                throw DiscoveryError::invalidAttribute($where, new \InvalidArgumentException(\sprintf(
+                    '#[SkipUnless] argument %d for condition "%s" must be a scalar or null, got %s.',
+                    $index + 1,
+                    $skipUnless->condition,
+                    \get_debug_type($argument),
+                )));
+            }
+
+            $arguments[] = $argument;
+        }
+
+        return $arguments;
     }
 
     /**

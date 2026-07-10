@@ -38,6 +38,52 @@ final class SelectionTest
     }
 
     #[Test]
+    public function excludeGroupRemovesGroupedTestsFromARun(): void
+    {
+        $project = $this->writeProject();
+
+        try {
+            // The full project is 5 tests; excluding the slow group drops one.
+            [$exit, $output] = $this->run($project, '--exclude-group=slow');
+            Expect::that($exit)->toBe(1)->and($output)->toContain('4 tests,');
+
+            [$exit, $output] = $this->run($project, '--group=fast', '--exclude-group=slow');
+            Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
+        } finally {
+            $project->remove();
+        }
+    }
+
+    #[Test]
+    public function excludeMethodWithAWildcardRemovesMatchingMethods(): void
+    {
+        $project = $this->writeProject();
+
+        try {
+            [$exit, $output] = $this->run($project, '--exclude-method=*Passes');
+            Expect::that($exit)->toBe(1)->and($output)->toContain('3 tests,');
+        } finally {
+            $project->remove();
+        }
+    }
+
+    #[Test]
+    public function excludeWinsOverAnIncludeFilter(): void
+    {
+        $project = $this->writeProject();
+
+        try {
+            [$exit, $output] = $this->run($project, '--filter=alwaysPasses', '--exclude-method=alwaysPasses');
+            Expect::that($exit)->toBe(1)->and($output)->toContain('No tests found');
+
+            [$exit, $output] = $this->run($project, '--group=fast', '--group=slow', '--exclude-group=slow');
+            Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
+        } finally {
+            $project->remove();
+        }
+    }
+
+    #[Test]
     public function failedRerunsExactlyThePreviousFailures(): void
     {
         $project = $this->writeProject();
@@ -105,6 +151,28 @@ final class SelectionTest
             }
             PHP);
 
+        $project->write('tests/GroupedProbeTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace SelectionProbe;
+
+            use Greenlight\Attribute\Group;
+            use Greenlight\Attribute\Test;
+
+            final class GroupedProbeTest
+            {
+                #[Test]
+                #[Group('fast')]
+                public function fastOne(): void {}
+
+                #[Test]
+                #[Group('slow')]
+                public function slowOne(): void {}
+            }
+            PHP);
+
         $project->write('greenlight.php', <<<'PHP'
             <?php
 
@@ -113,6 +181,7 @@ final class SelectionTest
             use Greenlight\Config\GreenlightConfig;
 
             require_once __DIR__ . '/tests/SelectionProbeTest.php';
+            require_once __DIR__ . '/tests/GroupedProbeTest.php';
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])

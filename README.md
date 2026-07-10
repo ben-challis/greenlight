@@ -75,7 +75,10 @@ Greenlight's `require` section contains one line: `php: >=8.4`. There is nothing
 * `--failed` and watch mode for failed-first workflows.
 * Coverage gates through pcov or Xdebug.
 * Strict test doubles that fail on unplanned or unverified behaviour.
-* Typed expectations with rendered diffs.
+* Typed expectations with rendered diffs and a broad built-in matcher set.
+* Built-in skip conditions for PHP version, extension, OS, env var, function, and class checks.
+* First-party fixtures: temp directories and environment sandboxing.
+* Flake hunting with `--repeat` and `--repeat-until-failure`.
 * Test code is plain PHP: attributes, typed classes, constructor injection, and PHP configuration.
 * Zero runtime dependencies, so the framework never version-conflicts with the code under test.
 
@@ -198,6 +201,8 @@ Tests receive a per-test `Doubles` service through constructor injection and cre
 
 Mocks answer only the interactions the test planned, stubs satisfy a type and error on anything unexpected, and spies record void-returning calls. Every double is verified when its test ends, and an unmet plan is reported like an assertion failure.
 
+Plans stay explicit but expressive: answers come from `andReturns()`, `andReturnsSequence()`, `andReturnsUsing()`, or `andThrows()`; argument constraints come from `Argument::any()`, `Argument::type()`, `Argument::predicate()`, and `Argument::equals()`; and `captureArgument()` hands back a captor for asserting on what the subject actually passed.
+
 The runner also flags passed tests that verified nothing as risky. `--fail-on-risky` upgrades risky tests to failures. `#[NoExpectations]` records the deliberate cases where a test legitimately asserts nothing.
 
 ## Writing tests
@@ -240,7 +245,10 @@ Greenlight includes the controls needed for local development and CI:
 
 * `--filter` for name patterns.
 * `--group` for tagged subsets.
+* `--exclude-group`, `--exclude-class`, `--exclude-method`, and `--exclude-path` to carve tests out of a run; exclusions always win.
+* `--list-tests`, `--list-groups`, and `--list-suites` to print the current selection without running it.
 * `--failed` to re-run the previous run's failures.
+* `--repeat=N` to run the plan N times, and `--repeat-until-failure` to hunt flakes until one fails.
 * `--bail[=n]` to stop after the first (or nth) failure.
 * `--shard=n/m` to split a suite across CI machines without coordination.
 * `--seed=N` to reproduce randomized order exactly.

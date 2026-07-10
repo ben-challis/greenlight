@@ -22,6 +22,11 @@ final readonly class TestMetadata implements WireSerializable
     public array $groups;
 
     /**
+     * @var list<scalar|null>
+     */
+    public array $skipUnlessArguments;
+
+    /**
      * @param non-empty-string $class
      * @param non-empty-string $method
      * @param list<string> $groups
@@ -30,6 +35,7 @@ final readonly class TestMetadata implements WireSerializable
      * @param positive-int|null $retryTimes
      * @param non-empty-string|null $retryOnlyOn
      * @param non-empty-string|null $dataSetProvider
+     * @param list<mixed> $skipUnlessArguments validated to scalars or null
      *
      * @throws \InvalidArgumentException
      */
@@ -46,6 +52,7 @@ final readonly class TestMetadata implements WireSerializable
         public ?string $dataSetProvider = null,
         public bool $capture = true,
         public bool $noExpectations = false,
+        array $skipUnlessArguments = [],
     ) {
         $validated = [];
 
@@ -58,6 +65,21 @@ final readonly class TestMetadata implements WireSerializable
         }
 
         $this->groups = $validated;
+
+        $validatedArguments = [];
+
+        foreach ($skipUnlessArguments as $argument) {
+            if ($argument !== null && !\is_scalar($argument)) {
+                throw new \InvalidArgumentException(\sprintf(
+                    'Skip-unless arguments must be scalars or null, got %s.',
+                    \get_debug_type($argument),
+                ));
+            }
+
+            $validatedArguments[] = $argument;
+        }
+
+        $this->skipUnlessArguments = $validatedArguments;
     }
 
     #[\Override]
@@ -69,6 +91,7 @@ final readonly class TestMetadata implements WireSerializable
             'groups' => $this->groups,
             'skipReason' => $this->skipReason,
             'skipUnlessCondition' => $this->skipUnlessCondition,
+            'skipUnlessArguments' => $this->skipUnlessArguments,
             'retryTimes' => $this->retryTimes,
             'retryOnlyOn' => $this->retryOnlyOn,
             'timeoutSeconds' => $this->timeoutSeconds,
@@ -96,6 +119,7 @@ final readonly class TestMetadata implements WireSerializable
         $dataSetProvider = Wire::nullableString($payload, 'dataSetProvider');
         $retryTimes = Wire::nullableInt($payload, 'retryTimes');
         $timeoutSeconds = Wire::nullableFloat($payload, 'timeoutSeconds');
+        $skipUnlessArguments = self::skipUnlessArgumentsFromWire($payload);
 
         return new self(
             Wire::nonEmptyString($payload, 'class'),
@@ -110,6 +134,39 @@ final readonly class TestMetadata implements WireSerializable
             $dataSetProvider === '' ? null : $dataSetProvider,
             Wire::bool($payload, 'capture'),
             \array_key_exists('noExpectations', $payload) && Wire::bool($payload, 'noExpectations'),
+            $skipUnlessArguments,
         );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return list<scalar|null>
+     *
+     * @throws InvalidWirePayload
+     */
+    private static function skipUnlessArgumentsFromWire(array $payload): array
+    {
+        if (!\array_key_exists('skipUnlessArguments', $payload)) {
+            return [];
+        }
+
+        $value = $payload['skipUnlessArguments'];
+
+        if (!\is_array($value) || !\array_is_list($value)) {
+            throw InvalidWirePayload::wrongType('skipUnlessArguments', 'a list of scalars or nulls', $value);
+        }
+
+        $arguments = [];
+
+        foreach ($value as $argument) {
+            if ($argument !== null && !\is_scalar($argument)) {
+                throw InvalidWirePayload::wrongType('skipUnlessArguments', 'a list of scalars or nulls', $argument);
+            }
+
+            $arguments[] = $argument;
+        }
+
+        return $arguments;
     }
 }

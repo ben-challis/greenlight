@@ -11,7 +11,6 @@ use Greenlight\Core\GracefulShutdown;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\EventSink;
@@ -100,7 +99,7 @@ final readonly class InProcessRunner
      */
     private function discover(Configuration $configuration, array $directories, ?int $seed): ExecutionPlan
     {
-        $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
+        $filter = SelectionFilter::fromConfiguration($configuration);
 
         return new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories));
     }

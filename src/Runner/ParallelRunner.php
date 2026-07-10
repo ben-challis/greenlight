@@ -11,7 +11,6 @@ use Greenlight\Core\GracefulShutdown;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Reporting\Ticking;
@@ -63,7 +62,7 @@ final readonly class ParallelRunner
             $seed = $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1);
         }
 
-        $filter = new Filter(includeGroups: $configuration->groups, includeIds: $configuration->filters, includeExactIds: $configuration->onlyTests ?? []);
+        $filter = SelectionFilter::fromConfiguration($configuration);
         $plan = PlanOrder::schedule(
             $this->sharded(new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)), $configuration),
             $priorityClasses,

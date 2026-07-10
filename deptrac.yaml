@@ -9,6 +9,10 @@ deptrac:
           value: src/Core/.*
         - type: directory
           value: src/Attribute/.*
+    - name: Condition
+      collectors:
+        - type: directory
+          value: src/Condition/.*
     - name: Config
       collectors:
         - type: directory
@@ -33,6 +37,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Doubles/.*
+    - name: Fixture
+      collectors:
+        - type: directory
+          value: src/Fixture/.*
     - name: Coverage
       collectors:
         - type: directory
@@ -76,16 +84,18 @@ deptrac:
 
   ruleset:
     Core: []
+    Condition: [Core]
     Config: [Core]
     Discovery: [Core]
     Expect: [Core]
     Capture: [Core]
     Harness: [Core]
     Doubles: [Core, Expect, Harness]
+    Fixture: [Harness]
     Coverage: [Core]
     Plugin: [Core, Harness]
     Reporting: [Core]
-    Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Coverage, Plugin, Reporting, CpuCoreCounter]
+    Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Config, Expect, PhpStanFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]

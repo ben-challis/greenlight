@@ -22,6 +22,42 @@ final class CliOverridesTest
         Check::same(null, $overrides->stopAfterFailures, 'stopAfterFailures');
         Check::same([], $overrides->groups, 'groups');
         Check::same(null, $overrides->seed, 'seed');
+        Check::same([], $overrides->excludeGroups, 'excludeGroups');
+        Check::same([], $overrides->excludeClasses, 'excludeClasses');
+        Check::same([], $overrides->excludeMethods, 'excludeMethods');
+        Check::same([], $overrides->excludePaths, 'excludePaths');
+        Check::same(null, $overrides->repeat, 'repeat');
+        Check::same(false, $overrides->repeatUntilFailure, 'repeatUntilFailure');
+    }
+
+    #[Test]
+    public function extractsExclusionLists(): void
+    {
+        $overrides = CliOverrides::fromArguments(new ParsedArguments('run', [
+            'exclude-group' => ['slow', 'io'],
+            'exclude-class' => ['Alpha*'],
+            'exclude-method' => ['two', 'craw?s'],
+            'exclude-path' => ['tests/Legacy'],
+        ]));
+
+        Check::same(['slow', 'io'], $overrides->excludeGroups, 'excludeGroups');
+        Check::same(['Alpha*'], $overrides->excludeClasses, 'excludeClasses');
+        Check::same(['two', 'craw?s'], $overrides->excludeMethods, 'excludeMethods');
+        Check::same(['tests/Legacy'], $overrides->excludePaths, 'excludePaths');
+    }
+
+    #[Test]
+    public function extractsRepeatOptions(): void
+    {
+        $overrides = CliOverrides::fromArguments(new ParsedArguments('run', ['repeat' => ['3']]));
+
+        Check::same(3, $overrides->repeat, 'repeat');
+        Check::same(false, $overrides->repeatUntilFailure, 'repeatUntilFailure');
+
+        $overrides = CliOverrides::fromArguments(new ParsedArguments('run', ['repeat-until-failure' => [null]]));
+
+        Check::same(null, $overrides->repeat, 'repeat without a count');
+        Check::same(true, $overrides->repeatUntilFailure, 'repeatUntilFailure flag');
     }
 
     #[Test]
@@ -67,6 +103,12 @@ final class CliOverridesTest
             'empty group' => ['group' => ['']],
             'seed word' => ['seed' => ['tomorrow']],
             'negative seed' => ['seed' => ['-1']],
+            'empty exclude group' => ['exclude-group' => ['']],
+            'empty exclude class' => ['exclude-class' => ['']],
+            'empty exclude method' => ['exclude-method' => ['']],
+            'empty exclude path' => ['exclude-path' => ['']],
+            'repeat zero' => ['repeat' => ['0']],
+            'repeat word' => ['repeat' => ['abc']],
         ];
 
         foreach ($unusable as $what => $options) {

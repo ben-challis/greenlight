@@ -51,8 +51,9 @@ final readonly class CallHandler
             }
 
             ++$expectation->actualCalls;
+            $expectation->recordMatchedCall($arguments);
 
-            return $this->answer($expectation, $double, $method);
+            return $this->answer($expectation, $double, $method, $arguments);
         }
 
         $detail = $this->unexpectedCallDetail($method, $arguments);
@@ -70,12 +71,25 @@ final readonly class CallHandler
         throw DoublesError::spyCannotAnswer($this->state->type, $method);
     }
 
-    private function answer(MethodExpectation $expectation, object $double, string $method): mixed
+    /**
+     * @param list<mixed> $arguments
+     */
+    private function answer(MethodExpectation $expectation, object $double, string $method, array $arguments): mixed
     {
         $throwable = $expectation->configuredThrowable();
 
         if ($throwable instanceof \Throwable) {
             throw $throwable;
+        }
+
+        if ($expectation->hasSequence()) {
+            return $expectation->consumeSequenceValue();
+        }
+
+        $callback = $expectation->configuredCallback();
+
+        if ($callback instanceof \Closure) {
+            return $callback(...$arguments);
         }
 
         if ($expectation->hasConfiguredReturnValue()) {

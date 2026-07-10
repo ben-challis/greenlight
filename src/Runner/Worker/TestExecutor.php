@@ -55,7 +55,7 @@ final readonly class TestExecutor
         }
 
         if ($metadata->skipUnlessCondition !== null) {
-            $satisfied = $this->evaluateCondition($metadata->skipUnlessCondition);
+            $satisfied = $this->evaluateCondition($metadata->skipUnlessCondition, $metadata->skipUnlessArguments);
 
             if ($satisfied instanceof \Throwable) {
                 return new TestResult(
@@ -68,7 +68,10 @@ final readonly class TestExecutor
             }
 
             if (!$satisfied) {
-                return $this->skipped($entry, \sprintf('Condition "%s" is not satisfied.', $metadata->skipUnlessCondition));
+                return $this->skipped($entry, \sprintf(
+                    'Condition %s is not satisfied.',
+                    $this->describeCondition($metadata->skipUnlessCondition, $metadata->skipUnlessArguments),
+                ));
             }
         }
 
@@ -368,15 +371,16 @@ final readonly class TestExecutor
 
     /**
      * @param non-empty-string $conditionClass
+     * @param list<scalar|null> $arguments
      */
-    private function evaluateCondition(string $conditionClass): bool|\Throwable
+    private function evaluateCondition(string $conditionClass, array $arguments): bool|\Throwable
     {
         try {
             if (!\class_exists($conditionClass)) {
                 return new \RuntimeException(\sprintf('Condition class "%s" does not exist.', $conditionClass));
             }
 
-            $condition = new $conditionClass();
+            $condition = new $conditionClass(...$arguments);
 
             if (!$condition instanceof Condition) {
                 return new \RuntimeException(\sprintf(
@@ -390,6 +394,29 @@ final readonly class TestExecutor
         } catch (\Throwable $threw) {
             return $threw;
         }
+    }
+
+    /**
+     * @param non-empty-string $conditionClass
+     * @param list<scalar|null> $arguments
+     */
+    private function describeCondition(string $conditionClass, array $arguments): string
+    {
+        $separator = \strrpos($conditionClass, '\\');
+        $shortName = $separator === false ? $conditionClass : \substr($conditionClass, $separator + 1);
+
+        if ($arguments === []) {
+            return $shortName;
+        }
+
+        // Substituting invalid UTF-8 keeps a skip a skip: a throwing encoder
+        // would escalate the reason rendering into a worker error.
+        $rendered = \array_map(
+            static fn(bool|float|int|string|null $argument): string => (string) \json_encode($argument, \JSON_INVALID_UTF8_SUBSTITUTE),
+            $arguments,
+        );
+
+        return \sprintf('%s(%s)', $shortName, \implode(', ', $rendered));
     }
 
     private function skipped(PlanEntry $entry, string $reason): TestResult

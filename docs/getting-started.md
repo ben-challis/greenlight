@@ -100,8 +100,14 @@ namespace to `tests/`, and the test will run as written.
 `Expect::that()` starts a matcher chain for a value. A failed matcher throws
 immediately and includes a rendered diff where applicable.
 
-See the expectation documentation, and the `Greenlight\Expect\Expectation` class,
-for the full matcher list.
+Matchers cover identity and equality (`toBe`, `toEqual`,
+`toEqualCanonicalizing`), numeric bounds (`toBeGreaterThan`,
+`toBeGreaterThanOrEqual`, `toBeWithin`), type predicates (`toBeArray`,
+`toBeString`, `toBeInt`, `toBeInstanceOf`), strings and patterns (`toStartWith`,
+`toMatch`), iterables (`toContain`, `toContainSubset`, `toHaveCount`,
+`toHaveLength`, `toBeEmpty`, `toBeOneOf`, `toBeIn`), JSON (`toBeJson`,
+`toMatchJson`), and exceptions (`toThrow`). The `Greenlight\Expect\Expectation`
+class is the authoritative list.
 
 ## Running tests
 
@@ -118,12 +124,31 @@ vendor/bin/greenlight
 Some useful commands:
 
 ```sh
-vendor/bin/greenlight list-tests          # print every discovered test id
-vendor/bin/greenlight run --dry-run       # print the resolved plan without executing
-vendor/bin/greenlight run --workers=1     # single worker, in-process
-vendor/bin/greenlight run --group=slow    # only tests tagged #[Group('slow')]
-vendor/bin/greenlight run --bail          # stop after the first failure
+vendor/bin/greenlight list-tests               # print every discovered test id
+vendor/bin/greenlight run --dry-run            # print the resolved plan without executing
+vendor/bin/greenlight run --workers=1          # single worker, in-process
+vendor/bin/greenlight run --group=slow         # only tests tagged #[Group('slow')]
+vendor/bin/greenlight run --exclude-group=slow # everything except that group
+vendor/bin/greenlight run --list-tests         # print the selection instead of running it
+vendor/bin/greenlight run --bail               # stop after the first failure
 ```
+
+`--exclude-class`, `--exclude-method`, and `--exclude-path` carve tests out the
+same way, and exclusions always win over includes. `--list-groups` and
+`--list-suites` print the discovered groups and the configured suites.
+
+To hunt a flaky test, repeat the same plan:
+
+```sh
+vendor/bin/greenlight run --filter=CheckoutTest --repeat=20
+vendor/bin/greenlight run --filter=CheckoutTest --repeat-until-failure
+```
+
+Each iteration reports its number, the summary names the iterations that
+failed, and the exit code is non-zero if any iteration failed.
+`--repeat-until-failure` stops at the first failing iteration; on its own it
+gives up after 100 iterations, or combine it with `--repeat=N` to set the
+limit.
 
 ## Reading the output
 
@@ -201,6 +226,44 @@ Two tests running at the same time never share a channel, so databases such as
 `app_test_1` and `app_test_2` do not race each other.
 
 See [configuration](configuration.md) for the full channel rules.
+
+## Built-in fixtures
+
+The harness ships a small set of per-test fixtures in `Greenlight\Fixture`.
+Like every harness service, they arrive by constructor injection and are
+disposed automatically after each test, so cleanup never leaks between tests
+or workers.
+
+* `TempDirectory` creates a unique temporary directory on first use and removes
+  it, recursively, when the test finishes.
+* `EnvironmentSandbox` sets and unsets environment variables (`getenv`, `$_ENV`,
+  and `$_SERVER` together) and restores the original values afterwards.
+
+```php
+use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\TempDirectory;
+
+final class ExporterTest
+{
+    public function __construct(
+        private readonly TempDirectory $tmp,
+        private readonly EnvironmentSandbox $env,
+    ) {}
+
+    #[Test]
+    public function writesTheExportFile(): void
+    {
+        $this->env->set('EXPORT_DIR', $this->tmp->path());
+
+        (new Exporter())->run();
+
+        Expect::that(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
+    }
+}
+```
+
+Each test gets its own instances, and directories are unique per instance, so
+the fixtures are safe under parallel workers.
 
 ## Exit codes
 
