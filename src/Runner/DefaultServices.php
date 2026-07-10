@@ -8,6 +8,10 @@ use Greenlight\Core\Test\TestChannel;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
+use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\FrozenClock;
+use Greenlight\Fixture\MutableClock;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -39,6 +43,10 @@ final class DefaultServices
 
         $registry = new HarnessRegistry([
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
+            new ServiceDefinition(TempDirectory::class, Scope::PerTest, static fn(): TempDirectory => new TempDirectory()),
+            new ServiceDefinition(EnvironmentSandbox::class, Scope::PerTest, static fn(): EnvironmentSandbox => new EnvironmentSandbox()),
+            new ServiceDefinition(FrozenClock::class, Scope::PerTest, static fn(): FrozenClock => new FrozenClock()),
+            new ServiceDefinition(MutableClock::class, Scope::PerTest, static fn(): MutableClock => new MutableClock()),
             new ServiceDefinition(TestChannel::class, Scope::PerRun, static function (): TestChannel {
                 $raw = \getenv('GREENLIGHT_CHANNEL');
 
