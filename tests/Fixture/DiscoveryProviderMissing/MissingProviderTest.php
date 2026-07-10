@@ -10,6 +10,7 @@ use Greenlight\Attribute\Test;
 final class MissingProviderTest
 {
     #[Test]
+    // @phpstan-ignore greenlight.dataProvider.provider (deliberately broken: drives the runtime discovery-error path)
     #[DataSet('doesNotExist')]
     public function needsData(int $value): void
     {

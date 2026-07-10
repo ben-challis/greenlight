@@ -311,6 +311,8 @@ Extension points include per-test lifecycle subscribers, run-level event subscri
 
 Custom expectation matchers stay statically checked. The bundled PHPStan extension reads the Greenlight config and fails analysis on matcher name typos or wrong arguments; enable it by including the package's `extension.neon` in your PHPStan configuration. The `ide-helper` command generates autocomplete support with real signatures.
 
+The same extension validates data providers: `#[DataSet]` providers must exist as public static methods returning iterables of argument arrays, and provider row shapes and `#[DataRow]` literals are checked against the test method's parameter types and arity.
+
 The `completion` command prints shell completion scripts for:
 
 * bash

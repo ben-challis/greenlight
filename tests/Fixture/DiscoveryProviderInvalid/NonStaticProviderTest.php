@@ -10,6 +10,7 @@ use Greenlight\Attribute\Test;
 final class NonStaticProviderTest
 {
     #[Test]
+    // @phpstan-ignore greenlight.dataProvider.provider (deliberately broken: drives the runtime discovery-error path)
     #[DataSet('instanceProvider')]
     public function needsData(int $value): void
     {

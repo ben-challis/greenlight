@@ -7,6 +7,9 @@ parameters:
     greenlight:
         configFiles: []
 
+rules:
+    - Greenlight\PhpStan\DataProviderSignatureRule
+
 services:
     -
         class: Greenlight\PhpStan\ExpectationMethodsExtension
