@@ -20,6 +20,7 @@ use Greenlight\Core\Test\TestId;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\Done;
@@ -56,6 +57,10 @@ use Greenlight\Runner\Worker\EventSink;
  * Worker placement is load-dependent by design. What stays deterministic is
  * the queue order for a given plan, within-class method order under the
  * seed, and per-class results. The seed reproduces failures, not placement.
+ *
+ * An optional Ticking collaborator is ticked once per loop iteration. The
+ * select timeout bounds the interval at 200ms, so a live display keeps
+ * advancing even when no worker sends anything.
  *
  * Every spawned worker gets a channel from a ChannelAllocator bounded by the
  * worker count, exported as GREENLIGHT_CHANNEL in its environment.
@@ -128,6 +133,7 @@ final class Orchestrator
         private readonly bool $detectLeaks = false,
         private readonly ?ResultPolicy $policy = null,
         private readonly ?GracefulShutdown $shutdown = null,
+        private readonly ?Ticking $ticker = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -196,6 +202,7 @@ final class Orchestrator
                 }
 
                 $this->tick($server, $token, $sink);
+                $this->ticker?->tick(\microtime(true));
             }
         } finally {
             foreach ($this->handles as $handle) {

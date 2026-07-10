@@ -45,6 +45,7 @@ use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Reporting\Ticking;
 use Greenlight\Reporting\TtyReporter;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
@@ -293,7 +294,7 @@ final readonly class Application
                     ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
+                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
             }
         } catch (DiscoveryError|ProtocolError $error) {
             ($this->err)($error->getMessage() . "\n");
@@ -402,7 +403,7 @@ final readonly class Application
                             ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
                     } else {
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
+                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                     }
                 } catch (DiscoveryError|ProtocolError $error) {
                     ($this->err)($error->getMessage() . "\n");

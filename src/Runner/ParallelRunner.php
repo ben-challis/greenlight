@@ -14,6 +14,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -54,6 +55,7 @@ final readonly class ParallelRunner
         array $priorityClasses = [],
         array $classSeconds = [],
         ?GracefulShutdown $shutdown = null,
+        ?Ticking $ticker = null,
     ): RunResult {
         $seed = null;
 
@@ -90,6 +92,7 @@ final readonly class ParallelRunner
             $detectLeaks,
             $configuration->policy->isNoOp() ? null : $configuration->policy,
             $shutdown,
+            $ticker,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);
