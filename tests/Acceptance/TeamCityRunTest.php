@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Drives bin/greenlight with the teamcity reporter against a fixture project
@@ -49,21 +50,6 @@ final class TeamCityRunTest
      */
     private function runIn(string $fixtureConfigDir, array $arguments): array
     {
-        $root = \dirname(__DIR__, 2);
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight')];
-
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        $command = \sprintf(
-            'cd %s && %s 2>&1',
-            \escapeshellarg($root . '/tests/Fixture/' . $fixtureConfigDir),
-            \implode(' ', $parts),
-        );
-
-        \exec($command, $output, $exit);
-
-        return [$exit, \implode("\n", $output)];
+        return AcceptanceProject::runIn(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments);
     }
 }

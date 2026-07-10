@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Inline #[DataRow] rows through the real CLI: expansion into the plan,
@@ -33,20 +34,6 @@ final class DataRowRunTest
      */
     private function run(string ...$flags): array
     {
-        $root = \dirname(__DIR__, 2);
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight'), 'run', '--reporter=plain'];
-
-        foreach ($flags as $flag) {
-            $parts[] = \escapeshellarg($flag);
-        }
-
-        $command = \sprintf(
-            'cd %s && %s 2>&1',
-            \escapeshellarg($root . '/tests/Fixture/DataRows'),
-            \implode(' ', $parts),
-        );
-        \exec($command, $output, $exit);
-
-        return [$exit, \implode("\n", $output)];
+        return AcceptanceProject::runIn(\dirname(__DIR__) . '/Fixture/DataRows', ['run', '--reporter=plain', ...\array_values($flags)]);
     }
 }

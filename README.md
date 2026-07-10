@@ -15,13 +15,55 @@ Greenlight already tests itself. This repository's suite runs under its own `bin
 
 ## Why Greenlight?
 
-PHP test suites tend to get slower as they grow. They also get harder to trust: state leaks between tests, CI logs fill with noise, worker memory creeps upward, and some failures only ever reproduce on one machine.
+PHP's test tooling has a long history, and Greenlight exists because of that history rather than in spite of it. PHPUnit defined how PHP developers write tests and has carried the ecosystem for more than twenty years. Most of the friction teams feel with it today traces back to decisions that were correct for single-core PHP in 2004, compounded by the weight of serving every PHP codebase since.
 
-Those failure modes shaped the runner before the assertion API existed.
+Greenlight starts over at the runner. These are the pitfalls it was built against, and they shaped the execution model before the assertion API existed.
 
-A normal run uses a parallel worker pool that distributes work dynamically, so one slow class does not leave the other workers idle. Workers recycle themselves after a test count or memory ceiling. A test that needs a clean process can ask for one. Because output is captured per test, stray stdout, warnings, notices, and diagnostics land on the test that produced them instead of corrupting the report stream.
+### Parallelism has always been an add-on
 
-The suite stays quick on a laptop and behaves the same way in CI, at any size.
+PHPUnit executes tests sequentially in a single process. Running a suite in parallel means wrapping it: ParaTest, and Pest's `--parallel` mode built on ParaTest, spawn several PHPUnit processes and split the suite among them. ParaTest does this about as well as an external tool can, but it sits outside the framework. Every spawned process repeats framework bootstrap and discovery, the wrapper only sees results at process granularity, and output from concurrent processes has to be reassembled afterwards.
+
+In Greenlight the parallel pool is the runner, not an accessory. The orchestrator discovers tests once, builds one plan, and streams work to workers over sockets. Workers pull the next class as they finish the previous one, so a slow class does not strand the rest of the pool, and a timing cache from the last run schedules the slowest classes first. The orchestrator is the sole stdout writer and output is captured per test, so when parallel workers all have something to say, stray echoes, warnings, and notices are attributed to the test that produced them rather than interleaved into the console output of whichever process got there first. Sequential execution is `--workers=1` on the same code path, which is why attaching a debugger never requires switching runners.
+
+### Splitting shared resources is left to convention
+
+Parallel tests compete for databases, ports, and temp directories. The ecosystem handles this with environment tokens (ParaTest's `TEST_TOKEN`, Laravel's parallel testing hooks) and per-team wiring on top. The other common answer, wrapping each test in a database transaction, breaks as soon as the code under test crosses a connection or process boundary.
+
+Greenlight makes the mechanism part of the contract and calls it a channel. Every worker occupies a numbered slot between 1 and the worker count. Two concurrently running tests never share a channel, and a replacement worker inherits the freed slot, so a database migrated for channel 3 stays valid for the whole run even as workers recycle. Tests read the number from the `GREENLIGHT_CHANNEL` environment variable or the injectable `TestChannel` service.
+
+### Discovery does too much work up front
+
+PHPUnit discovers tests by loading every test file and reflecting on the classes inside, so a large codebase pays autoload cost and side effects before the first test runs, on every run.
+
+Greenlight token-parses `*Test.php` files for class names and attributes without loading them, and caches the per-file result keyed by path, mtime, and size. A class is autoloaded only after the scan has found it, and discovery never constructs a test or runs a hook. Execution stays cheap too: on the [published benchmarks](docs/benchmarks.md), most of Greenlight's margin over PHPUnit comes from lower runner overhead per test rather than from parallelism alone.
+
+### Isolation is all or nothing
+
+Some tests genuinely need a fresh process because they mutate globals, exercise shutdown behaviour, or load code that cannot be unloaded. PHPUnit's process isolation spawns a new process per test, which is slow enough that teams either scope it with great care or switch it off and absorb the state leaks.
+
+In Greenlight, `#[Isolated]` gives one test or class a dedicated fresh worker that is discarded afterwards, while the rest of the suite keeps running in the pool. A handful of isolated tests costs a handful of process spawns instead of the suite's speed.
+
+### Doubles answer questions nobody asked
+
+The ecosystem's mocking tools default to being agreeable. A PHPUnit `createMock()` double lets any unconfigured method succeed and returns an automatic value: null, zero, an empty string, or another generated stub. That default exists to keep test setup cheap, but it means a call the test never planned succeeds silently. Rename a method, misspell an expectation, or add a new collaborator call during a refactor, and the double hands back null instead of objecting. The test stays green while asserting something the author never wrote, and the gap only surfaces later, if at all. Verification has its own version of the problem: Mockery only checks expectations if `close()` runs, so a forgotten integration detail turns every mock into a stub.
+
+Greenlight's doubles are strict by default. A mock answers only the interactions the test planned, and an unexpected call fails on the spot with the same rendering quality as an expectation failure. A stub satisfies a type and errors on any interaction at all, and a spy records void-returning calls for later inspection. Verification is not a step anyone can forget: it happens automatically when the per-test scope closes, and a planned call that never arrived fails the test there. The runner also flags passing tests that verified nothing as risky, `--fail-on-risky` turns them into failures, and `#[NoExpectations]` records the deliberate exceptions.
+
+### Sharding needs coordination
+
+Splitting a suite across CI machines usually means hand-maintained directory lists that drift out of balance, or timing-based splitters that need shared state between machines. Greenlight's `--shard=n/m` selects whole classes by a stable hash, so every machine computes the same disjoint partition independently. Nothing has to be shared or synchronised, the flag composes with `--filter` and `--group`, and `list-tests` shows exactly which tests landed in a shard.
+
+### Long runs drift
+
+When a long test run eats memory, the leak usually lives in the tests or the application: static caches, connection pools, fixtures held past their test. No runner can fix that from the outside. What a runner chooses is whether to bound the damage, whether to help find the culprit, and whether it adds drift of its own on top.
+
+Greenlight takes a position on all three. Worker recycling after a memory ceiling or a test count is an admitted backstop for leaky test code, not a cure, and `--detect-leaks` exists so the leaking test can be named and fixed rather than paid for on every run. The framework holds itself to a stricter standard than it holds your tests: results stream instead of accumulating, and CI gates a 10,000-test run at under 1 MiB of framework-owned drift, so recycling never gets to hide Greenlight's own leaks.
+
+### Framework weight
+
+PHPUnit is a large install because it has spent two decades serving every kind of PHP project, which is a fair reason to be large. The cost that remains is practical: its dependencies resolve in the same Composer graph as your application's, so version conflicts happen.
+
+Greenlight's `require` section contains one line: `php: >=8.4`. There is nothing to version-conflict with the code under test. The trade is stated rather than hidden: it does not support PHP below 8.4 or run PHPUnit suites, and concerns like browser testing belong in plugins rather than core.
 
 ## Features
 

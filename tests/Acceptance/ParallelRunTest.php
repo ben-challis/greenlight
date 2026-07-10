@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\SkipTest;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Drives bin/greenlight with a process pool against fixture projects and
@@ -108,29 +109,7 @@ final class ParallelRunTest
      */
     private function runIn(string $fixtureConfigDir, array $arguments, array $env = []): array
     {
-        $root = \dirname(__DIR__, 2);
-        $parts = [];
-
-        foreach ($env as $name => $value) {
-            $parts[] = \sprintf('%s=%s', $name, \escapeshellarg($value));
-        }
-
-        $parts[] = \escapeshellarg(\PHP_BINARY);
-        $parts[] = \escapeshellarg($root . '/bin/greenlight');
-
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        $command = \sprintf(
-            'cd %s && %s 2>&1',
-            \escapeshellarg($root . '/tests/Fixture/' . $fixtureConfigDir),
-            \implode(' ', $parts),
-        );
-
-        \exec($command, $output, $exit);
-
-        return [$exit, \implode("\n", $output)];
+        return AcceptanceProject::runIn(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments, $env);
     }
 
     private function summaryLine(string $output): string

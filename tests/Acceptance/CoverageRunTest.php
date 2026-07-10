@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Drives bin/greenlight with coverage enabled against a fixture project.
@@ -128,22 +129,8 @@ final class CoverageRunTest
     private function runIn(array $arguments, string $xdebugMode): array
     {
         $root = \dirname(__DIR__, 2);
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight')];
 
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        $command = \sprintf(
-            'cd %s && XDEBUG_MODE=%s %s 2>&1',
-            \escapeshellarg($root . '/' . self::CONFIG_DIR),
-            \escapeshellarg($xdebugMode),
-            \implode(' ', $parts),
-        );
-
-        \exec($command, $output, $exit);
-
-        return [$exit, \implode("\n", $output)];
+        return AcceptanceProject::runIn($root . '/' . self::CONFIG_DIR, $arguments, ['XDEBUG_MODE' => $xdebugMode]);
     }
 
     private function outDir(): string
@@ -153,16 +140,6 @@ final class CoverageRunTest
 
     private function removeDir(string $directory): void
     {
-        if (!\is_dir($directory)) {
-            return;
-        }
-
-        $files = \glob($directory . '/*');
-
-        foreach ($files === false ? [] : $files as $file) {
-            @\unlink($file);
-        }
-
-        @\rmdir($directory);
+        AcceptanceProject::removeTree($directory);
     }
 }

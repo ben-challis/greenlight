@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\Check;
 
 /**
@@ -180,18 +181,7 @@ final class CliTest
         $root = \dirname(__DIR__, 2);
         $cwd = $relativeCwd === '' ? $root : $root . '/' . $relativeCwd;
 
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight')];
-
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        $command = \sprintf('cd %s && %s 2>&1', \escapeshellarg($cwd), \implode(' ', $parts));
-
-        \exec($command, $output, $exit);
-        $lines = $output;
-
-        return [$exit, $lines];
+        return AcceptanceProject::runLinesIn($cwd, $arguments);
     }
 
     /**
