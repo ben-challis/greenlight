@@ -28,8 +28,10 @@ use Greenlight\Core\Result\TestResult;
  * The live region is redrawn on events and on external ticks (see Ticking),
  * throttled to one repaint per 50ms. Each repaint is a single write that
  * rewrites every line in place, so the window never passes through a blank
- * state the terminal could paint as flicker. The spinner advances once per
- * actual repaint.
+ * state the terminal could paint as flicker. Permanent class lines ride the
+ * same frame as the repaint that retires their class, and the terminal
+ * cursor stays hidden from the first frame until finish(). The spinner
+ * advances once per actual repaint.
  *
  * In bounded mode a cleanly passing class prints nothing permanent; only
  * classes containing failures or skips append a line, the moment they
@@ -97,6 +99,8 @@ final class TtyReporter implements Reporter, Ticking
     private float $lastEventAt = 0.0;
 
     private float $lastDrawAt = -\INF;
+
+    private bool $cursorHidden = false;
 
     private readonly int $windowCapacity;
 
@@ -227,6 +231,11 @@ final class TtyReporter implements Reporter, Ticking
     #[\Override]
     public function finish(): void
     {
+        if ($this->cursorHidden) {
+            $this->output->write("\x1b[?25h");
+            $this->cursorHidden = false;
+        }
+
         $this->eraseLiveRegion();
 
         foreach ($this->problems as $problem) {
@@ -271,18 +280,33 @@ final class TtyReporter implements Reporter, Ticking
         $state = $this->live[$class] ?? ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => 0.0];
         unset($this->live[$class]);
 
-        $this->eraseLiveRegion();
+        $permanent = $this->verbose || !$this->cursor || $state['failed'] > 0 || $state['skipped'] > 0;
 
-        if ($this->verbose || !$this->cursor || $state['failed'] > 0 || $state['skipped'] > 0) {
+        if (!$this->cursor) {
+            if ($permanent) {
+                $this->output->write($this->finalLine($class, $state) . "\n");
+            }
+
+            return;
+        }
+
+        $scrollback = [];
+
+        if ($permanent) {
             // The first permanent line opens the scrollback block with a
             // blank line so it never butts against the header; later lines
             // stack directly under it.
-            $gap = $this->cursor && !$this->scrollbackStarted ? "\n" : '';
+            if (!$this->scrollbackStarted) {
+                $scrollback[] = '';
+            }
+
             $this->scrollbackStarted = true;
-            $this->output->write($gap . $this->finalLine($class, $state) . "\n");
+            $scrollback[] = $this->finalLine($class, $state);
         }
 
-        $this->redraw();
+        // A permanent line has to land now, so it rides its frame past the
+        // throttle; a clean pass just waits for the next scheduled repaint.
+        $this->redraw($scrollback, force: $scrollback !== []);
     }
 
     /**
@@ -309,9 +333,12 @@ final class TtyReporter implements Reporter, Ticking
         return \sprintf('%s %s (%s, %s)', $mark, $class, $counts, $this->style->duration($state['duration']));
     }
 
-    private function redraw(): void
+    /**
+     * @param list<string> $scrollback permanent lines the frame leaves above the window
+     */
+    private function redraw(array $scrollback = [], bool $force = false): void
     {
-        if (!$this->cursor || $this->lastEventAt - $this->lastDrawAt < self::REDRAW_INTERVAL_SECONDS) {
+        if (!$this->cursor || (!$force && $this->lastEventAt - $this->lastDrawAt < self::REDRAW_INTERVAL_SECONDS)) {
             return;
         }
 
@@ -350,15 +377,22 @@ final class TtyReporter implements Reporter, Ticking
         // rewrite each line in place, clearing it just before its
         // replacement lands. Blanking the whole region first and rebuilding
         // it across separate writes lets the terminal paint the blank
-        // in-between state, which reads as flicker.
-        $frame = $this->drawnLines > 0 ? \sprintf("\x1b[%dA", $this->drawnLines) : '';
+        // in-between state, which reads as flicker. Permanent scrollback
+        // lines ride the same frame, landing where the old window began.
+        $frame = $this->cursorHidden ? '' : "\x1b[?25l";
+        $this->cursorHidden = true;
+        $frame .= $this->drawnLines > 0 ? \sprintf("\x1b[%dA", $this->drawnLines) : '';
         $frame .= "\r";
+
+        foreach ($scrollback as $line) {
+            $frame .= "\x1b[2K" . $line . "\n";
+        }
 
         foreach ($lines as $line) {
             $frame .= "\x1b[2K" . $line . "\n";
         }
 
-        if ($this->drawnLines > \count($lines)) {
+        if ($this->drawnLines > \count($scrollback) + \count($lines)) {
             $frame .= "\x1b[0J";
         }
 

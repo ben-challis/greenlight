@@ -42,10 +42,10 @@ final class TtyReporterTest
 
         $buffer = $output->buffer();
 
-        // The live region is erased and redrawn: cursor-up plus clear-to-end.
         // The last TestFinished paints a 4-line window (blank, counter, both
-        // classes), so the next erase moves up exactly four lines.
-        Expect::that($buffer)->toContain("\x1b[4A\r\x1b[0J")
+        // classes), so the next frame repositions over exactly four lines
+        // and rewrites them in place.
+        Expect::that($buffer)->toContain("\x1b[4A\r\x1b[2K")
             ->and($buffer)->toContain('Greenlight dev-main | PHP 8.4.0 | config: greenlight.php | seed: 4242 | workers: 2')
             // Only the failing class earns a permanent line; the pass just counts.
             ->and($buffer)->not()->toContain("\x1b[32m✓\x1b[0m App\AlphaTest")
@@ -174,9 +174,9 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassStarted('App\DeltaTest', 1.2));
         $reporter->onEvent(new TestClassFinished('App\GammaTest', 1.3));
 
-        // The permanent skip line is followed by a blank line (cleared and
-        // rewritten in place by the next frame), then the window.
-        Expect::that($output->buffer())->toContain("− App\GammaTest (1 test, skipped, 0.010s)\n\r\x1b[2K\n");
+        // The permanent skip line is followed by a blank line, then the
+        // window, all rewritten in place by the same frame.
+        Expect::that($output->buffer())->toContain("− App\GammaTest (1 test, skipped, 0.010s)\n\x1b[2K\n");
     }
 
     #[Test]
@@ -195,11 +195,11 @@ final class TtyReporterTest
 
         $buffer = $output->buffer();
 
-        // After erasing the window the first permanent line opens with a
-        // blank line so it never butts against the header; the second stacks
-        // directly under the first without another gap.
-        Expect::that($buffer)->toContain("\x1b[0J\n− App\GammaTest (1 test, skipped, 0.010s)")
-            ->and($buffer)->toContain("\x1b[0J− App\DeltaTest (1 test, skipped, 0.010s)");
+        // The first permanent line opens with a blank line so it never butts
+        // against the header; the second stacks directly under the first,
+        // its frame repositioning straight into the line without a gap.
+        Expect::that($buffer)->toContain("\x1b[2K\n\x1b[2K− App\GammaTest (1 test, skipped, 0.010s)")
+            ->and($buffer)->toContain("\r\x1b[2K− App\DeltaTest (1 test, skipped, 0.010s)");
     }
 
     #[Test]
@@ -362,6 +362,43 @@ final class TtyReporterTest
         // region first is what makes terminals flash mid-frame.
         Expect::that($frame)->toContain("\x1b[3A\r\x1b[2K")
             ->and($frame)->not()->toContain("\x1b[0J");
+    }
+
+    #[Test]
+    public function classFinalizationRepaintsInOneFrameWithoutBlanking(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.05));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Failed), 1.15));
+        $before = \strlen($output->buffer());
+
+        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.25));
+        $frame = \substr($output->buffer(), $before);
+
+        // The permanent line rides the same frame as the window repaint; a
+        // separate erase-then-rebuild would flash the region blank.
+        Expect::that($frame)->toContain("\x1b[4A\r\x1b[2K")
+            ->and($frame)->toContain('✗ App\AlphaTest (1 test, 1 failed')
+            ->and($frame)->not()->toContain("\x1b[0J");
+    }
+
+    #[Test]
+    public function theCursorIsHiddenWhileLiveAndRestoredAtFinish(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+
+        Expect::that($output->buffer())->toContain("\x1b[?25l")
+            ->and($output->buffer())->not()->toContain("\x1b[?25h");
+
+        $reporter->finish();
+
+        Expect::that($output->buffer())->toContain("\x1b[?25h");
     }
 
     #[Test]
