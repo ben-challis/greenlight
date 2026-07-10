@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\EnvironmentVariableEquals;
+use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Tests\Fixture\DiscoveryAttributeArguments\ArgumentsMergeTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysFalse;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\MergedTest;
@@ -71,6 +75,47 @@ final class AttributeMergeTest
         Check::same(null, $metadata->timeoutSeconds, 'no timeout');
         Check::same(false, $metadata->isolated, 'not isolated');
         Check::same(null, $metadata->dataSetProvider, 'no provider');
+    }
+
+    #[Test]
+    public function skipUnlessArgumentsInheritFromTheClassAndAreOverriddenTogether(): void
+    {
+        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryAttributeArguments';
+        $map = [];
+
+        foreach (new TestDiscoverer()->discover([$dir])->entries as $entry) {
+            $map[$entry->id->method] = $entry->metadata;
+        }
+
+        $inherited = $map['inheritsClassCondition'];
+        $overridden = $map['overridesClassCondition'];
+
+        Check::same(EnvironmentVariableEquals::class, $inherited->skipUnlessCondition, 'inherited condition');
+        Check::same(['GREENLIGHT_MERGE_PROBE', 'on'], $inherited->skipUnlessArguments, 'inherited arguments');
+        Check::same(PhpVersionAtLeast::class, $overridden->skipUnlessCondition, 'overriding condition');
+        Check::same(['8.0'], $overridden->skipUnlessArguments, 'overriding arguments replace inherited ones');
+        Check::same(ArgumentsMergeTest::class, $inherited->class, 'fixture class');
+    }
+
+    #[Test]
+    public function nonScalarSkipUnlessArgumentsAreRejectedAtDiscovery(): void
+    {
+        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryAttributeArgumentsInvalid';
+
+        try {
+            new TestDiscoverer()->discover([$dir]);
+        } catch (DiscoveryError $error) {
+            Check::true(
+                \str_contains($error->getMessage(), 'NonScalarArgumentTest')
+                && \str_contains($error->getMessage(), 'neverDiscovered')
+                && \str_contains($error->getMessage(), 'array'),
+                'error names the class, method and offending argument type: ' . $error->getMessage(),
+            );
+
+            return;
+        }
+
+        throw new \RuntimeException('Expected discovery to reject a non-scalar SkipUnless argument.');
     }
 
     #[Test]

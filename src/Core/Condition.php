@@ -7,8 +7,9 @@ namespace Greenlight\Core;
 /**
  * Execution-time condition referenced by #[SkipUnless].
  *
- * Implementations must be constructible without arguments and side-effect
- * free.
+ * Implementations may take constructor arguments supplied through
+ * #[SkipUnless]; constructors must only store them. Evaluation happens in
+ * isSatisfied() and must be side-effect free.
  */
 interface Condition
 {

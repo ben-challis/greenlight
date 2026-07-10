@@ -34,6 +34,7 @@ final class TestMetadataTest
         Check::same(['slow', 'io'], $restored->groups, 'groups');
         Check::same(null, $restored->skipReason, 'skip reason');
         Check::same('App\OnPosix', $restored->skipUnlessCondition, 'skip-unless condition');
+        Check::same([], $restored->skipUnlessArguments, 'skip-unless arguments');
         Check::same(3, $restored->retryTimes, 'retry times');
         Check::same(\RuntimeException::class, $restored->retryOnlyOn, 'retry only-on');
         Check::same(5.5, $restored->timeoutSeconds, 'timeout');
@@ -51,6 +52,41 @@ final class TestMetadataTest
         Check::same(null, $restored->retryTimes, 'retry default');
         Check::same(null, $restored->timeoutSeconds, 'timeout default');
         Check::same(false, $restored->isolated, 'isolated default');
+    }
+
+    #[Test]
+    public function skipUnlessArgumentsSurviveTheWire(): void
+    {
+        $metadata = new TestMetadata(
+            'App\FooTest',
+            'bar',
+            skipUnlessCondition: 'App\OnPosix',
+            skipUnlessArguments: ['redis', 42, 1.5, true, null],
+        );
+
+        $restored = TestMetadata::fromWire(Check::jsonRoundTrip($metadata->toWire()));
+
+        Check::same('App\OnPosix', $restored->skipUnlessCondition, 'skip-unless condition');
+        Check::same(['redis', 42, 1.5, true, null], $restored->skipUnlessArguments, 'skip-unless arguments');
+    }
+
+    #[Test]
+    public function rejectsNonScalarSkipUnlessArgumentsOnBothSides(): void
+    {
+        Check::throws(
+            static fn(): TestMetadata => new TestMetadata('App\FooTest', 'bar', skipUnlessArguments: [['nested']]),
+            \InvalidArgumentException::class,
+            'constructor with non-scalar skip-unless argument',
+        );
+
+        $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
+        $payload['skipUnlessArguments'] = [['nested']];
+
+        Check::throws(
+            static fn(): TestMetadata => TestMetadata::fromWire($payload),
+            InvalidWirePayload::class,
+            'wire payload with non-scalar skip-unless argument',
+        );
     }
 
     #[Test]
