@@ -54,7 +54,7 @@ final class CompositeReporterTest
         $plain = new RecordingReporter();
         $live = new RecordingTickingReporter();
 
-        (new CompositeReporter([$plain, $live]))->tick(1.5);
+        new CompositeReporter([$plain, $live])->tick(1.5);
 
         Expect::that($live->ticks)->toBe([1.5])
             ->and($plain->eventCount)->toBe(0);
