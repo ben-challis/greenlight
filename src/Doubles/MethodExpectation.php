@@ -35,7 +35,21 @@ final class MethodExpectation
 
     private mixed $returnValue = null;
 
+    /**
+     * @var non-empty-list<mixed>|null
+     */
+    private ?array $sequence = null;
+
+    private int $sequenceIndex = 0;
+
+    private ?\Closure $callback = null;
+
     private ?\Throwable $throwable = null;
+
+    /**
+     * @var array<int, list<ArgumentCaptor>>
+     */
+    private array $registeredCaptors = [];
 
     /**
      * @param non-empty-string $method
@@ -93,8 +107,42 @@ final class MethodExpectation
 
     public function andReturns(mixed $value): self
     {
+        $this->assertNoAnswerConfigured();
+
         $this->hasReturnValue = true;
         $this->returnValue = $value;
+
+        return $this;
+    }
+
+    /**
+     * Each matched call consumes the next value; a matched call after the
+     * last value is an authoring error.
+     */
+    public function andReturnsSequence(mixed ...$values): self
+    {
+        $this->assertNoAnswerConfigured();
+
+        $sequence = \array_values($values);
+
+        if ($sequence === []) {
+            throw DoublesError::emptySequence($this->method);
+        }
+
+        $this->sequence = $sequence;
+
+        return $this;
+    }
+
+    /**
+     * The closure receives the call's arguments and its return value is
+     * handed back to the caller.
+     */
+    public function andReturnsUsing(\Closure $answer): self
+    {
+        $this->assertNoAnswerConfigured();
+
+        $this->callback = $answer;
 
         return $this;
     }
@@ -104,6 +152,24 @@ final class MethodExpectation
         $this->throwable = $throwable;
 
         return $this;
+    }
+
+    /**
+     * Records the argument at $position on every call this expectation
+     * answers. Returns the captor rather than the expectation, so it
+     * deliberately ends the fluent chain; configure counts and answers
+     * before calling it.
+     */
+    public function captureArgument(int $position = 0): ArgumentCaptor
+    {
+        if ($position < 0) {
+            throw DoublesError::invalidCaptorPosition($position);
+        }
+
+        $captor = new ArgumentCaptor();
+        $this->registeredCaptors[$position][] = $captor;
+
+        return $captor;
     }
 
     /**
@@ -120,7 +186,11 @@ final class MethodExpectation
         }
 
         foreach ($this->arguments as $position => $expected) {
-            if ($expected instanceof Any) {
+            if ($expected instanceof ArgumentMatcher) {
+                if (!$expected->matches($arguments[$position])) {
+                    return false;
+                }
+
                 continue;
             }
 
@@ -130,6 +200,32 @@ final class MethodExpectation
         }
 
         return true;
+    }
+
+    /**
+     * Feeds every captor its argument. Called only for the expectation that
+     * won the call, never during matching probes, so losing candidates
+     * cannot pollute a captor.
+     *
+     * @param list<mixed> $arguments
+     */
+    public function recordMatchedCall(array $arguments): void
+    {
+        foreach ($this->arguments ?? [] as $position => $expected) {
+            if ($expected instanceof ArgumentCaptor) {
+                $expected->capture($arguments[$position]);
+            }
+        }
+
+        foreach ($this->registeredCaptors as $position => $captors) {
+            if (!\array_key_exists($position, $arguments)) {
+                continue;
+            }
+
+            foreach ($captors as $captor) {
+                $captor->capture($arguments[$position]);
+            }
+        }
     }
 
     public function isSaturated(): bool
@@ -153,6 +249,25 @@ final class MethodExpectation
         return $this->returnValue;
     }
 
+    public function hasSequence(): bool
+    {
+        return $this->sequence !== null;
+    }
+
+    public function consumeSequenceValue(): mixed
+    {
+        if ($this->sequence === null || !\array_key_exists($this->sequenceIndex, $this->sequence)) {
+            throw DoublesError::sequenceExhausted($this->method, \count($this->sequence ?? []));
+        }
+
+        return $this->sequence[$this->sequenceIndex++];
+    }
+
+    public function configuredCallback(): ?\Closure
+    {
+        return $this->callback;
+    }
+
     public function configuredThrowable(): ?\Throwable
     {
         return $this->throwable;
@@ -165,7 +280,9 @@ final class MethodExpectation
         }
 
         $parts = \array_map(
-            static fn(mixed $argument): string => $argument instanceof Any ? 'any()' : $renderer->render($argument),
+            static fn(mixed $argument): string => $argument instanceof ArgumentMatcher
+                ? $argument->describe()
+                : $renderer->render($argument),
             $this->arguments,
         );
 
@@ -188,5 +305,12 @@ final class MethodExpectation
     public static function timesPhrase(int $count): string
     {
         return $count === 1 ? '1 time' : $count . ' times';
+    }
+
+    private function assertNoAnswerConfigured(): void
+    {
+        if ($this->hasReturnValue || $this->sequence !== null || $this->callback instanceof \Closure) {
+            throw DoublesError::conflictingAnswers($this->method);
+        }
     }
 }

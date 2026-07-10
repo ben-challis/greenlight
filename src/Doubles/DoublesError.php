@@ -171,4 +171,37 @@ final class DoublesError extends \LogicException
     {
         return new self(\sprintf('atLeast(%d) is invalid: the count must be one or more.', $count));
     }
+
+    public static function conflictingAnswers(string $method): self
+    {
+        return new self(\sprintf(
+            'The expectation on %s() already has an answer. Configure exactly one of '
+            . 'andReturns(), andReturnsSequence(), or andReturnsUsing() per expectation.',
+            $method,
+        ));
+    }
+
+    public static function emptySequence(string $method): self
+    {
+        return new self(\sprintf('andReturnsSequence() on %s() needs at least one value.', $method));
+    }
+
+    public static function sequenceExhausted(string $method, int $count): self
+    {
+        return new self(\sprintf(
+            'The return sequence of %s() is exhausted after %s. Plan more values or a stricter call count.',
+            $method,
+            MethodExpectation::timesPhrase($count),
+        ));
+    }
+
+    public static function nothingCaptured(): self
+    {
+        return new self('The captor has not captured a value yet: no matched call has fed it.');
+    }
+
+    public static function invalidCaptorPosition(int $position): self
+    {
+        return new self(\sprintf('captureArgument(%d) is invalid: the position must be zero or more.', $position));
+    }
 }
