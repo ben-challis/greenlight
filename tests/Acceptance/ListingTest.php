@@ -14,7 +14,7 @@ use Greenlight\Tests\Support\Check;
 final class ListingTest
 {
     #[Test]
-    public function listTestsPrintsTheSortedSelectionWithoutRunning(): void
+    public function listTestsPrintsTheSelectionInPlanOrderWithoutRunning(): void
     {
         [$exit, $output] = $this->runCli(['run', '--list-tests'], 'tests/Fixture/ListTestsConfig');
 
@@ -23,10 +23,21 @@ final class ListingTest
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls');
         $this->assertContainsLine($output, '7 tests');
 
-        $ids = $this->testIdLines($output);
-        $sorted = $ids;
-        \sort($sorted);
-        Check::same($sorted, $ids, 'test ids to be printed sorted');
+        // Plan order previews the run, so a seeded listing must differ from
+        // the same listing under another seed at least once across seeds; the
+        // cheap proxy asserted here is that ids stay grouped by class, which
+        // alphabetical output would also satisfy but a scrambled one would not.
+        $classes = [];
+
+        foreach ($this->testIdLines($output) as $id) {
+            $class = \strstr($id, '::', true);
+
+            if ($class !== false && ($classes === [] || $classes[\count($classes) - 1] !== $class)) {
+                $classes[] = $class;
+            }
+        }
+
+        Check::same(\array_values(\array_unique($classes)), $classes, 'ids to be grouped by class');
     }
 
     #[Test]
@@ -73,7 +84,9 @@ final class ListingTest
 
         $union = [...$firstIds, ...$secondIds];
         \sort($union);
-        Check::same($this->testIdLines($full), $union, 'the shards to cover the full selection');
+        $fullIds = $this->testIdLines($full);
+        \sort($fullIds);
+        Check::same($fullIds, $union, 'the shards to cover the full selection');
     }
 
     #[Test]

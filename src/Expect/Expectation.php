@@ -692,22 +692,23 @@ final class Expectation
             ));
         }
 
-        if (!\json_validate($expected)) {
+        try {
+            $decodedExpected = \json_decode($expected, true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
             return $this->usageFailure('toMatchJson() requires valid JSON as the expected value.');
         }
 
-        $decodedExpected = \json_decode($expected, true);
         $renderedExpected = $this->renderer->render($decodedExpected);
 
-        if (!\json_validate($this->subject)) {
+        try {
+            $decodedSubject = \json_decode($this->subject, true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
             return $this->verify(
                 false,
                 'to be valid JSON matching ' . $renderedExpected,
                 $renderedExpected,
             );
         }
-
-        $decodedSubject = \json_decode($this->subject, true);
 
         return $this->verify(
             Equality::equals($decodedSubject, $decodedExpected),

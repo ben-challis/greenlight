@@ -30,7 +30,6 @@ use Greenlight\Coverage\Export\LcovExporter;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
@@ -54,6 +53,7 @@ use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Runner\SelectionFilter;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
@@ -324,7 +324,9 @@ final readonly class Application
         // --repeat=1 is the ordinary single run; the loop, its banners, and
         // its summary only appear when more than one iteration is possible.
         if (($overrides->repeat === null || $overrides->repeat === 1) && !$overrides->repeatUntilFailure) {
-            return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter);
+            $failedTap = new FailedTestsTap(new ReporterSink($reporter));
+
+            return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
         }
 
         // --repeat-until-failure without an explicit --repeat cannot loop
@@ -332,6 +334,8 @@ final readonly class Application
         $limit = $overrides->repeat ?? 100;
         $bounded = $overrides->repeat !== null;
         $failedIterations = [];
+        $failedTests = [];
+        $lastClassSeconds = [];
 
         for ($iteration = 1; $iteration <= $limit; $iteration++) {
             ($this->out)($bounded
@@ -348,7 +352,16 @@ final readonly class Application
                 }
             }
 
-            $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter);
+            $failedTap = new FailedTestsTap(new ReporterSink($reporter));
+            $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+
+            foreach ($failedTap->failedTests() as $id) {
+                if (!\in_array($id, $failedTests, true)) {
+                    $failedTests[] = $id;
+                }
+            }
+
+            $lastClassSeconds = $failedTap->classSeconds();
 
             $interruptExit = $shutdown->exitCode();
 
@@ -370,6 +383,10 @@ final readonly class Application
 
             return self::EXIT_OK;
         }
+
+        // Every test that failed in any iteration is recorded, so a follow-up
+        // --failed run replays the flakes even when a later iteration passed.
+        $state->record($failedTests, $lastClassSeconds);
 
         ($this->out)(\sprintf("Repeat: failed on iteration(s) %s\n", \implode(', ', $failedIterations)));
 
@@ -395,8 +412,9 @@ final readonly class Application
         array $priorityClasses,
         array $classSeconds,
         Reporter $reporter,
+        FailedTestsTap $failedTap,
+        RunState $state,
     ): int {
-        $failedTap = new FailedTestsTap(new ReporterSink($reporter));
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
@@ -417,7 +435,7 @@ final readonly class Application
         }
 
         $reporter->finish();
-        RunState::forWorkingDirectory($workingDirectory)->record($failedTap->failedTests(), $failedTap->classSeconds());
+        $state->record($failedTap->failedTests(), $failedTap->classSeconds());
 
         $interruptExit = $shutdown->exitCode();
 
@@ -958,15 +976,7 @@ final readonly class Application
      */
     private function discoverSelection(Configuration $resolved, string $workingDirectory): ExecutionPlan
     {
-        $filter = new Filter(
-            includeGroups: $resolved->groups,
-            excludeGroups: $resolved->excludeGroups,
-            excludeClasses: $resolved->excludeClasses,
-            excludeMethods: $resolved->excludeMethods,
-            excludePaths: $resolved->excludePaths,
-            includeIds: $resolved->filters,
-            includeExactIds: $resolved->onlyTests ?? [],
-        );
+        $filter = SelectionFilter::fromConfiguration($resolved);
 
         $directories = $this->directories($resolved, $workingDirectory);
         $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
@@ -980,19 +990,13 @@ final readonly class Application
 
     private function printTestList(ExecutionPlan $plan): int
     {
-        $ids = [];
-
+        // Plan order, not alphabetical: the listing previews the order a run
+        // would execute, including seeded shuffles.
         foreach ($plan->entries as $entry) {
-            $ids[] = (string) $entry->id;
+            ($this->out)($entry->id . "\n");
         }
 
-        \sort($ids);
-
-        foreach ($ids as $id) {
-            ($this->out)($id . "\n");
-        }
-
-        ($this->out)(\sprintf("\n%d tests\n", \count($ids)));
+        ($this->out)(\sprintf("\n%d tests\n", \count($plan->entries)));
 
         return self::EXIT_OK;
     }

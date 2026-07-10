@@ -41,7 +41,10 @@ final class Equality
         $canonical = \array_map(self::canonicalize(...), $value);
 
         if (\array_is_list($canonical)) {
-            \usort($canonical, static fn(mixed $x, mixed $y): int => self::sortKey($x, []) <=> self::sortKey($y, []));
+            // Keys are precomputed once per element; sorting with a comparator
+            // would re-serialize both operands on every comparison.
+            $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, []), $canonical);
+            \array_multisort($keys, \SORT_ASC, \SORT_STRING, $canonical);
         }
 
         return $canonical;
@@ -67,8 +70,17 @@ final class Equality
             return '[' . \implode(',', $parts) . ']';
         }
 
-        if (\is_int($value) || \is_float($value)) {
-            return 'number:' . (float) $value;
+        if (\is_int($value)) {
+            // Beyond 2**53 a float cannot hold the int exactly; keeping the
+            // exact digits stops distinct large ints from colliding on one
+            // key, which would freeze them in their original list positions.
+            return \abs($value) <= 2 ** 53
+                ? 'number:' . (float) $value
+                : 'number:' . $value;
+        }
+
+        if (\is_float($value)) {
+            return 'number:' . $value;
         }
 
         if ($value instanceof \Closure) {

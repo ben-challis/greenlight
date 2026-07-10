@@ -385,8 +385,10 @@ final readonly class TestExecutor
             return $shortName;
         }
 
+        // Substituting invalid UTF-8 keeps a skip a skip: a throwing encoder
+        // would escalate the reason rendering into a worker error.
         $rendered = \array_map(
-            static fn(bool|float|int|string|null $argument): string => \json_encode($argument, \JSON_THROW_ON_ERROR),
+            static fn(bool|float|int|string|null $argument): string => (string) \json_encode($argument, \JSON_INVALID_UTF8_SUBSTITUTE),
             $arguments,
         );
 

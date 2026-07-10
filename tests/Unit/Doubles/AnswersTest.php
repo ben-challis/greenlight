@@ -95,6 +95,26 @@ final class AnswersTest
     }
 
     #[Test]
+    public function aThrowableAfterAReturnValueIsRejected(): void
+    {
+        $doubles = new Doubles();
+
+        Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+            $plan->expects('add')->andReturns(1)->andThrows(new \RuntimeException('boom'));
+        }))->toThrow(DoublesError::class, '/add/');
+    }
+
+    #[Test]
+    public function aReturnValueAfterAThrowableIsRejected(): void
+    {
+        $doubles = new Doubles();
+
+        Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+            $plan->expects('add')->andThrows(new \RuntimeException('boom'))->andReturns(1);
+        }))->toThrow(DoublesError::class, '/add/');
+    }
+
+    #[Test]
     public function aSequenceWithTimesStaysConsistent(): void
     {
         $doubles = new Doubles();

@@ -149,6 +149,8 @@ final class MethodExpectation
 
     public function andThrows(\Throwable $throwable): self
     {
+        $this->assertNoAnswerConfigured();
+
         $this->throwable = $throwable;
 
         return $this;
@@ -309,7 +311,7 @@ final class MethodExpectation
 
     private function assertNoAnswerConfigured(): void
     {
-        if ($this->hasReturnValue || $this->sequence !== null || $this->callback instanceof \Closure) {
+        if ($this->hasReturnValue || $this->sequence !== null || $this->callback instanceof \Closure || $this->throwable instanceof \Throwable) {
             throw DoublesError::conflictingAnswers($this->method);
         }
     }

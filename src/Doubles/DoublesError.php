@@ -176,7 +176,7 @@ final class DoublesError extends \LogicException
     {
         return new self(\sprintf(
             'The expectation on %s() already has an answer. Configure exactly one of '
-            . 'andReturns(), andReturnsSequence(), or andReturnsUsing() per expectation.',
+            . 'andReturns(), andReturnsSequence(), andReturnsUsing(), or andThrows() per expectation.',
             $method,
         ));
     }

@@ -69,6 +69,29 @@ final class RepeatTest
     }
 
     #[Test]
+    public function failedRerunsEveryTestThatFlakedDuringRepeat(): void
+    {
+        $project = $this->writeFlakyProject();
+        $state = \sys_get_temp_dir() . '/greenlight-repeat-state-' . \bin2hex(\random_bytes(6));
+
+        try {
+            [$exit] = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
+            Expect::that($exit)->toBe(1);
+
+            // The recorded state must keep the flake even though earlier
+            // iterations passed, so --failed replays exactly that test.
+            [$exit, $output] = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--failed');
+
+            Expect::that($exit)->toBe(1)
+                ->and($output)->toContain('failsOnTheThirdRun')
+                ->and($output)->toContain('1 test');
+        } finally {
+            @\unlink($state);
+            $this->removeTree($project);
+        }
+    }
+
+    #[Test]
     public function repeatComposesWithFilter(): void
     {
         $project = $this->writeProject(passing: true);

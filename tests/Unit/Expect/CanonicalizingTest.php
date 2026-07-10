@@ -29,6 +29,16 @@ final class CanonicalizingTest
     }
 
     #[Test]
+    public function toEqualCanonicalizingReordersIntsBeyondFloatPrecision(): void
+    {
+        $a = 9_007_199_254_740_993;
+        $b = 9_007_199_254_740_992;
+
+        Expect::that([$a, $b])->toEqualCanonicalizing([$b, $a]);
+        Expect::that([$a, $a])->not()->toEqualCanonicalizing([$b, $a]);
+    }
+
+    #[Test]
     public function toEqualCanonicalizingKeepsAssociativeKeys(): void
     {
         Expect::that(['x' => 1, 'y' => 2])->toEqualCanonicalizing(['y' => 2, 'x' => 1]);
