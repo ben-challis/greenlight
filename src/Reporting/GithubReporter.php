@@ -14,8 +14,8 @@ use Greenlight\Reporting\Output\Output;
 /**
  * Emits GitHub Actions workflow commands for test failures and errors.
  *
- * Only failures and errors produce output, nothing else, so annotations land
- * on the PR diff without drowning the log.
+ * Only failures and errors produce output, so annotations land on the PR
+ * diff and passing tests add no log noise.
  *
  * Messages and properties are escaped per the workflow-command encoding rules.
  *

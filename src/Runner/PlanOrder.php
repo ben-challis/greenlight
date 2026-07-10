@@ -10,15 +10,15 @@ use Greenlight\Discovery\PlanEntry;
 /**
  * Orders a plan's classes for scheduling.
  *
- * schedule() places previously failed classes first, because fast feedback
- * beats optimal packing. Classes with recorded durations follow, longest
- * first, so the big rocks are placed while every worker is still hungry.
- * Classes the cache does not know come last, in their discovered order.
+ * schedule() places previously failed classes first for fast feedback.
+ * Classes with recorded durations follow, longest first, so the longest
+ * classes are assigned while workers are still free. Classes without a
+ * recorded duration come last, in their discovered order.
  *
  * Entry order within a class never changes.
  *
- * Seeded runs must not pass durations: a randomized order silently rewritten
- * by a hidden cache is a debugging trap.
+ * Seeded runs must not pass durations; reordering by cached durations would
+ * change the order a seed reproduces.
  *
  * @internal
  */

@@ -46,7 +46,7 @@ final class TtyReporterTest
         // classes), so the next frame repositions over exactly four lines
         // and rewrites them in place.
         Expect::that($buffer)->toContain("\x1b[4A\r\x1b[2K")
-            ->and($buffer)->toContain('Greenlight dev-main | PHP 8.4.0 | config: greenlight.php | seed: 4242 | workers: 2')
+            ->and($buffer)->toContain("\x1b[32mGreenlight\x1b[0m dev-main\nPHP 8.4.0 | config: greenlight.php | workers: 2 | \x1b[2mseed: 4242\x1b[0m")
             // Only the failing class earns a permanent line; the pass just counts.
             ->and($buffer)->not()->toContain("\x1b[32m✓\x1b[0m App\AlphaTest")
             ->and($buffer)->toContain("\x1b[31m✗\x1b[0m App\BetaTest (1 test, 1 failed, 0.010s)")

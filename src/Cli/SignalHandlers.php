@@ -10,8 +10,8 @@ use Greenlight\Core\GracefulShutdown;
  * Installs SIGINT and SIGTERM handlers that turn the first signal into a
  * graceful shutdown request.
  *
- * install() is a no-op without ext-pcntl, keeping PHP's default hard-exit
- * behaviour as the portable baseline. With pcntl, async signals are enabled
+ * install() is a no-op without ext-pcntl; PHP's default hard-exit behaviour
+ * is the portable baseline. With pcntl, async signals are enabled
  * and the handler only records the signal on the shared GracefulShutdown
  * flag; the run loops poll that flag and drain through their normal control
  * flow, so worker teardown, socket cleanup, run-state recording, and the

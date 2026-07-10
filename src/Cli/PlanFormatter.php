@@ -10,7 +10,7 @@ use Greenlight\Config\MemorySize;
 
 /**
  * Renders a resolved configuration as the human-readable plan the run
- * command prints before execution exists.
+ * command prints under --dry-run.
  *
  * @internal
  */

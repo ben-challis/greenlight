@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Worker channels through the real CLI.
@@ -24,14 +25,14 @@ final readonly class ChannelTest
         $project = $this->writeProject();
 
         try {
-            [$exit, $lines] = $this->run($project, 'run --workers=2 --reporter=jsonl');
+            [$exit, $lines] = $project->runLines('run', '--workers=2', '--reporter=jsonl');
             $channels = $this->reportedChannels($lines);
 
             Expect::that($exit)->toBe(0)
                 ->and(\count($channels))->toBe(4)
                 ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
@@ -41,14 +42,14 @@ final readonly class ChannelTest
         $project = $this->writeProject();
 
         try {
-            [$exit, $lines] = $this->run($project, 'run --workers=1 --reporter=jsonl');
+            [$exit, $lines] = $project->runLines('run', '--workers=1', '--reporter=jsonl');
             $channels = $this->reportedChannels($lines);
 
             Expect::that($exit)->toBe(0)
                 ->and(\count($channels))->toBe(4)
                 ->and(\array_values(\array_unique($channels)))->toBe([1]);
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
@@ -61,7 +62,7 @@ final readonly class ChannelTest
         $project = $this->writeProject(recycleAfterTests: 1);
 
         try {
-            [$exit, $lines] = $this->run($project, 'run --reporter=jsonl');
+            [$exit, $lines] = $project->runLines('run', '--reporter=jsonl');
             $channels = $this->reportedChannels($lines);
 
             Expect::that($exit)->toBe(0)
@@ -69,26 +70,8 @@ final readonly class ChannelTest
                 ->and(\count($channels))->toBe(4)
                 ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
-    }
-
-    /**
-     * @return array{int, list<string>}
-     */
-    private function run(string $project, string $arguments): array
-    {
-        $root = \dirname(__DIR__, 2);
-        $command = \sprintf(
-            'cd %s && %s %s %s 2>&1',
-            \escapeshellarg($project),
-            \escapeshellarg(\PHP_BINARY),
-            \escapeshellarg($root . '/bin/greenlight'),
-            $arguments,
-        );
-        \exec($command, $output, $exit);
-
-        return [$exit, $output];
     }
 
     /**
@@ -146,10 +129,9 @@ final readonly class ChannelTest
         return $workers;
     }
 
-    private function writeProject(?int $recycleAfterTests = null): string
+    private function writeProject(?int $recycleAfterTests = null): AcceptanceProject
     {
-        $project = \sys_get_temp_dir() . '/greenlight-channel-' . \bin2hex(\random_bytes(6));
-        \mkdir($project . '/tests', 0o777, true);
+        $project = AcceptanceProject::create('channel');
 
         // The sleep keeps every class in flight long enough that both
         // workers take at least one class before the queue drains.
@@ -184,14 +166,14 @@ final readonly class ChannelTest
             PHP;
 
         foreach (['Alpha', 'Bravo', 'Charlie', 'Delta'] as $name) {
-            \file_put_contents($project . \sprintf('/tests/%sTest.php', $name), \sprintf($template, $name));
+            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf($template, $name));
         }
 
         $workers = $recycleAfterTests === null
             ? "->workers(2)"
             : \sprintf("->workers(2, recycleAfterTests: %d)", $recycleAfterTests);
 
-        \file_put_contents($project . '/greenlight.php', <<<PHP
+        $project->write('greenlight.php', <<<PHP
             <?php
 
             declare(strict_types=1);
@@ -206,18 +188,5 @@ final readonly class ChannelTest
             PHP);
 
         return $project;
-    }
-
-    private function removeTree(string $directory): void
-    {
-        $files = \glob($directory . '/tests/*');
-
-        foreach (\is_array($files) ? $files : [] as $file) {
-            @\unlink($file);
-        }
-
-        @\unlink($directory . '/greenlight.php');
-        @\rmdir($directory . '/tests');
-        @\rmdir($directory);
     }
 }

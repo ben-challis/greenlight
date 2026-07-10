@@ -323,9 +323,6 @@ final class WorkerTest
     }
 
     /**
-     * @return array{ResultSummary, list<TestResult>}
-     */
-    /**
      * @param list<object> $plugins
      *
      * @return array{ResultSummary, list<TestResult>}

@@ -44,6 +44,7 @@ use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
+use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Reporting\TtyReporter;
@@ -234,8 +235,11 @@ final readonly class Application
             return self::EXIT_OK;
         }
 
+        $workers = $resolved->workers->fixed ?? CpuCores::count();
+        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
+
         try {
-            $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory);
+            $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $realBin === false);
         } catch (CliError $error) {
             ($this->err)($error->getMessage() . "\n");
 
@@ -282,11 +286,9 @@ final readonly class Application
 
         $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
         $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-        $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
-        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks);
+        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks, $arguments->has('no-ansi'));
 
         try {
             if ($workers === 1 || $realBin === false) {
@@ -330,9 +332,7 @@ final readonly class Application
         }
 
         if ($run->leaks !== []) {
-            foreach ($run->leaks as $leak) {
-                ($this->err)(\sprintf("LEAK %s: the test instance survived its test.\n", $leak));
-            }
+            ($this->err)(SummaryFormat::leaks($run->leaks, $this->stderrStyle($arguments->has('no-ansi'))));
 
             return self::EXIT_FAILURE;
         }
@@ -340,7 +340,7 @@ final readonly class Application
         return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
     }
 
-    private function warnWhenLeakDetectionIsUnreliable(bool $detectLeaks): void
+    private function warnWhenLeakDetectionIsUnreliable(bool $detectLeaks, bool $noAnsiFlag): void
     {
         if (!$detectLeaks) {
             return;
@@ -349,8 +349,22 @@ final readonly class Application
         $warning = LeakDetector::environmentWarning();
 
         if ($warning !== null) {
-            ($this->err)($warning . "\n");
+            ($this->err)($this->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
         }
+    }
+
+    /**
+     * Colour for stderr messages, from stderr's own terminal capabilities.
+     */
+    private function stderrStyle(bool $noAnsiFlag): Style
+    {
+        $capabilities = TerminalCapabilities::detect(
+            \function_exists('stream_isatty') && @\stream_isatty(\STDERR),
+            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+            $noAnsiFlag,
+        );
+
+        return new Style($capabilities->colour);
     }
 
     private function watchCommand(
@@ -376,7 +390,7 @@ final readonly class Application
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
-        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks);
+        $this->warnWhenLeakDetectionIsUnreliable($detectLeaks, $arguments->has('no-ansi'));
 
         $runOnce =
             function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $realBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown): array {
@@ -386,7 +400,7 @@ final readonly class Application
                 ));
 
                 try {
-                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory);
+                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $realBin === false);
                 } catch (CliError $error) {
                     ($this->err)($error->getMessage() . "\n");
 
@@ -588,7 +602,7 @@ final readonly class Application
     /**
      * @throws CliError
      */
-    private function buildReporter(ParsedArguments $arguments, ?int $seed, string $configFile, string $workingDirectory): Reporter
+    private function buildReporter(ParsedArguments $arguments, ?int $seed, string $configFile, string $workingDirectory, bool $workerFallback = false): Reporter
     {
         $output = new StreamOutput(\STDOUT);
         $capabilities = TerminalCapabilities::detect(
@@ -605,7 +619,7 @@ final readonly class Application
 
         $prefix = \rtrim($workingDirectory, '/') . '/';
         $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
-        $header = new RunHeader(self::VERSION, $displayedConfig, $seed);
+        $header = new RunHeader(self::VERSION, $displayedConfig, $seed, workerFallback: $workerFallback);
         $profile = $arguments->has('profile');
         $reporters = [];
 

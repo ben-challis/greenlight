@@ -8,7 +8,7 @@ namespace Greenlight\Coverage\Driver;
  * Picks the first available coverage driver from an ordered candidate list.
  *
  * The default order prefers pcov over Xdebug because pcov collects line
- * coverage dramatically faster.
+ * coverage much faster.
  *
  * When nothing is available, select() returns a selection carrying a reason
  * string suitable for direct display to the user.

@@ -29,9 +29,11 @@ final class StyleTest
         Expect::that($ansi->pass('ok'))->toBe("\x1b[32mok\x1b[0m")
             ->and($ansi->fail('bad'))->toBe("\x1b[31mbad\x1b[0m")
             ->and($ansi->skip('meh'))->toBe("\x1b[33mmeh\x1b[0m")
+            ->and($ansi->warn('uh oh'))->toBe("\x1b[33muh oh\x1b[0m")
             ->and($plain->pass('ok'))->toBe('ok')
             ->and($plain->fail('bad'))->toBe('bad')
-            ->and($plain->skip('meh'))->toBe('meh');
+            ->and($plain->skip('meh'))->toBe('meh')
+            ->and($plain->warn('uh oh'))->toBe('uh oh');
     }
 
     #[Test]

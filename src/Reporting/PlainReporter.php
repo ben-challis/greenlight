@@ -77,7 +77,7 @@ final class PlainReporter implements Reporter
     {
         if ($event instanceof RunStarted) {
             if ($this->header instanceof RunHeader) {
-                $this->output->write($this->header->render($event->workers) . "\n");
+                $this->output->write($this->header->render($event->workers, $this->style) . "\n");
             }
 
             $this->output->write(\sprintf(

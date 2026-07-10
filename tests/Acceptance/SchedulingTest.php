@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Demand-driven scheduling through the real CLI.
@@ -37,25 +38,16 @@ final class SchedulingTest
                 ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
                 ->and(\array_slice($started, 0, 2))->toContain('SchedulingProbe\SlowTest');
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
     /**
      * @return array{int, list<string>}
      */
-    private function run(string $project): array
+    private function run(AcceptanceProject $project): array
     {
-        $root = \dirname(__DIR__, 2);
-        $command = \sprintf(
-            'cd %s && %s %s run --workers=2 --reporter=jsonl 2>&1',
-            \escapeshellarg($project),
-            \escapeshellarg(\PHP_BINARY),
-            \escapeshellarg($root . '/bin/greenlight'),
-        );
-        \exec($command, $output, $exit);
-
-        return [$exit, $output];
+        return $project->runLines('run', '--workers=2', '--reporter=jsonl');
     }
 
     /**
@@ -100,10 +92,9 @@ final class SchedulingTest
         return $workers;
     }
 
-    private function writeProject(): string
+    private function writeProject(): AcceptanceProject
     {
-        $project = \sys_get_temp_dir() . '/greenlight-scheduling-' . \bin2hex(\random_bytes(6));
-        \mkdir($project . '/tests', 0o777, true);
+        $project = AcceptanceProject::create('scheduling');
 
         $fast = <<<'PHP'
             <?php
@@ -122,10 +113,10 @@ final class SchedulingTest
             PHP;
 
         foreach (['Alpha', 'Bravo', 'Charlie'] as $name) {
-            \file_put_contents($project . \sprintf('/tests/%sTest.php', $name), \sprintf($fast, $name));
+            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf($fast, $name));
         }
 
-        \file_put_contents($project . '/tests/SlowTest.php', <<<'PHP'
+        $project->write('tests/SlowTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -144,7 +135,7 @@ final class SchedulingTest
             }
             PHP);
 
-        \file_put_contents($project . '/greenlight.php', <<<'PHP'
+        $project->write('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -159,18 +150,5 @@ final class SchedulingTest
             PHP);
 
         return $project;
-    }
-
-    private function removeTree(string $directory): void
-    {
-        $files = \glob($directory . '/tests/*');
-
-        foreach (\is_array($files) ? $files : [] as $file) {
-            @\unlink($file);
-        }
-
-        @\unlink($directory . '/greenlight.php');
-        @\rmdir($directory . '/tests');
-        @\rmdir($directory);
     }
 }

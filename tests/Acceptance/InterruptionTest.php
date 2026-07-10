@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\SkipTest;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
- * Interrupts a real bin/greenlight run with SIGINT and asserts the graceful
+ * Interrupts a real bin/greenlight run with SIGINT and asserts the clean
  * shutdown contract: exit code 130, the interrupted marker, no orphaned
  * worker processes, and no leaked orchestrator socket directory. The run
  * gets a private TMPDIR so temp-dir assertions cannot race other tests.
@@ -26,7 +27,7 @@ final class InterruptionTest
         }
 
         $project = $this->writeProject();
-        $tmp = $project . '/tmp';
+        $tmp = $project->path('tmp');
         \mkdir($tmp, 0o700);
 
         try {
@@ -38,7 +39,7 @@ final class InterruptionTest
                 [\PHP_BINARY, $root . '/bin/greenlight', 'run', '--workers=2', '--reporter=jsonl'],
                 [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
                 $pipes,
-                $project,
+                $project->directory,
                 $env,
             );
 
@@ -95,7 +96,7 @@ final class InterruptionTest
             $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
             Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
@@ -127,10 +128,9 @@ final class InterruptionTest
         return $pids;
     }
 
-    private function writeProject(): string
+    private function writeProject(): AcceptanceProject
     {
-        $project = \sys_get_temp_dir() . '/greenlight-interrupt-' . \bin2hex(\random_bytes(6));
-        \mkdir($project . '/tests', 0o777, true);
+        $project = AcceptanceProject::create('interrupt');
 
         $template = <<<'PHP'
             <?php
@@ -161,10 +161,10 @@ final class InterruptionTest
             PHP;
 
         foreach (['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'] as $name) {
-            \file_put_contents($project . \sprintf('/tests/%sTest.php', $name), \sprintf($template, $name));
+            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf($template, $name));
         }
 
-        \file_put_contents($project . '/greenlight.php', <<<'PHP'
+        $project->write('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -179,27 +179,5 @@ final class InterruptionTest
             PHP);
 
         return $project;
-    }
-
-    private function removeTree(string $directory): void
-    {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($iterator as $entry) {
-            if (!$entry instanceof \SplFileInfo) {
-                continue;
-            }
-
-            if ($entry->isDir() && !$entry->isLink()) {
-                @\rmdir($entry->getPathname());
-            } else {
-                @\unlink($entry->getPathname());
-            }
-        }
-
-        @\rmdir($directory);
     }
 }

@@ -22,9 +22,8 @@ use Greenlight\Harness\Disposable;
  *         $plan->expects('charge')->with($amount)->once()->andReturns($ok);
  *     });
  *
- * Nothing is ever guessed. Mocks are strict: a call that matches no planned
- * expectation fails the test immediately, and every returned value must be
- * configured explicitly. Stubs satisfy a type and error on any interaction.
+ * Mocks are strict: a call that matches no planned expectation fails the
+ * test immediately, and every returned value must be configured explicitly. Stubs satisfy a type and error on any interaction.
  * Spies record every call to methods that return nothing; read them back
  * with callsTo() and assert with Expect.
  *
@@ -118,9 +117,9 @@ final class Doubles implements Disposable
 
     /**
      * A recording double: every call is recorded with its arguments. Only
-     * methods that return nothing can be spied on; a spy never invents a
-     * return value. Read the recording back with callsTo() and assert on it
-     * with Expect.
+     * methods that return nothing can be spied on; a call to a
+     * value-returning method errors the test. Read the recording back with
+     * callsTo() and assert on it with Expect.
      *
      * @template T of object
      *

@@ -6,6 +6,7 @@ namespace Greenlight\Reporting;
 
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
 
 /**
  * The end-of-run summary fragments shared by the human-facing reporters.
@@ -15,7 +16,8 @@ use Greenlight\Core\Result\TestResult;
  * workers() renders the worker line, dropping a zero recycled count and
  * returning null when no workers were spawned at all. skipped() lists every
  * skipped test with its reason, grouping tests that share a reason and
- * capping each group at five ids, so a skip is never just a number.
+ * capping each group at five ids.
+ * leaks() lists every leaked test under one red header.
  *
  * @internal
  */
@@ -98,6 +100,24 @@ final class SummaryFormat
             if (\count($results) > self::MAX_IDS_PER_GROUP) {
                 $lines[] = \sprintf('    … and %d more', \count($results) - self::MAX_IDS_PER_GROUP);
             }
+        }
+
+        return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * @param list<TestId> $leaks
+     */
+    public static function leaks(array $leaks, Style $style): string
+    {
+        if ($leaks === []) {
+            return '';
+        }
+
+        $lines = ["\n" . $style->fail('Leaks (the test instance survived its test):')];
+
+        foreach ($leaks as $leak) {
+            $lines[] = '  ' . $leak;
         }
 
         return \implode("\n", $lines) . "\n";

@@ -70,6 +70,30 @@ final class SummaryFormatTest
         Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->toContain('… and 1 more');
     }
 
+    #[Test]
+    public function leaksListEveryTestUnderOneHeader(): void
+    {
+        $block = SummaryFormat::leaks([
+            new TestId('App\AlphaTest', 'one'),
+            new TestId('App\BetaTest', 'two'),
+        ], new Style(ansi: false));
+
+        Expect::that($block)->toBe(
+            "\nLeaks (the test instance survived its test):\n"
+            . "  App\AlphaTest::one\n"
+            . "  App\BetaTest::two\n",
+        );
+    }
+
+    #[Test]
+    public function leaksColourTheHeaderRedAndNothingWithoutLeaks(): void
+    {
+        $block = SummaryFormat::leaks([new TestId('App\AlphaTest', 'one')], new Style(ansi: true));
+
+        Expect::that($block)->toContain("\x1b[31mLeaks (the test instance survived its test):\x1b[0m")
+            ->and(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
+    }
+
     /**
      * @param non-empty-string $id
      */

@@ -137,7 +137,7 @@ final class TtyReporter implements Reporter, Ticking
             if ($this->header instanceof RunHeader) {
                 // The window's own leading blank line provides the gap in
                 // cursor mode; append-only output needs it written here.
-                $this->output->write($this->header->render($event->workers) . ($this->cursor ? "\n" : "\n\n"));
+                $this->output->write($this->header->render($event->workers, $this->style) . ($this->cursor ? "\n" : "\n\n"));
             }
 
             return;
@@ -360,7 +360,8 @@ final class TtyReporter implements Reporter, Ticking
         foreach ($visible as $class => $state) {
             $mark = $state['failed'] > 0 ? $this->style->fail('✗') : ' ';
             // Dim name and count read as pending; the failure mark and the
-            // duration keep their colours so trouble and slowness still pop.
+            // duration keep their colours so failures and slow classes stay
+            // visible.
             $lines[] = \sprintf(
                 '%s %s %s',
                 $mark,

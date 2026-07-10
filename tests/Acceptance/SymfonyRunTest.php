@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * The Symfony bridge through the real CLI.
@@ -25,40 +26,20 @@ final readonly class SymfonyRunTest
         $project = $this->writeProject();
 
         try {
-            [$exit, $lines] = $this->run($project, 'run --reporter=plain');
-            $output = \implode("\n", $lines);
+            [$exit, $output] = $project->run('run', '--reporter=plain');
 
             Expect::that($exit)->toBe(0)
                 ->and($output)->toContain('4 tests, 4 passed');
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
-    /**
-     * @return array{int, list<string>}
-     */
-    private function run(string $project, string $arguments): array
+    private function writeProject(): AcceptanceProject
     {
-        $root = \dirname(__DIR__, 2);
-        $command = \sprintf(
-            'cd %s && %s %s %s 2>&1',
-            \escapeshellarg($project),
-            \escapeshellarg(\PHP_BINARY),
-            \escapeshellarg($root . '/bin/greenlight'),
-            $arguments,
-        );
-        \exec($command, $output, $exit);
+        $project = AcceptanceProject::create('symfony');
 
-        return [$exit, $output];
-    }
-
-    private function writeProject(): string
-    {
-        $project = \sys_get_temp_dir() . '/greenlight-symfony-' . \bin2hex(\random_bytes(6));
-        \mkdir($project . '/tests', 0o777, true);
-
-        \file_put_contents($project . '/probe.php', <<<'PHP'
+        $project->write('probe.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -192,10 +173,10 @@ final readonly class SymfonyRunTest
             PHP;
 
         foreach (['Alpha', 'Bravo'] as $name) {
-            \file_put_contents($project . \sprintf('/tests/%sTest.php', $name), \sprintf($template, $name));
+            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf($template, $name));
         }
 
-        \file_put_contents($project . '/greenlight.php', <<<'PHP'
+        $project->write('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -216,23 +197,5 @@ final readonly class SymfonyRunTest
             PHP);
 
         return $project;
-    }
-
-    private function removeTree(string $directory): void
-    {
-        $entries = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($entries as $entry) {
-            if (!$entry instanceof \SplFileInfo) {
-                continue;
-            }
-
-            $entry->isDir() ? @\rmdir($entry->getPathname()) : @\unlink($entry->getPathname());
-        }
-
-        @\rmdir($directory);
     }
 }

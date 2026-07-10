@@ -186,7 +186,7 @@ final class ProfileAggregator
 
     /**
      * High utilisation is the healthy state, so the bands run green at 90%,
-     * yellow at 70%, red below: idle workers are the anomaly worth a glance.
+     * yellow at 70%, and red below, making idle workers stand out.
      */
     private function utilisation(Style $style, int $percent): string
     {

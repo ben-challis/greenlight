@@ -21,7 +21,7 @@ use Greenlight\Expect\Expectation;
  * The generated file is never executed or autoloaded; it exists only to be
  * indexed. It should be gitignored and regenerated whenever matchers change.
  * Signatures come from the same MatcherMap the PHPStan extension reads, so
- * completion and analysis can never disagree.
+ * completion and analysis agree.
  *
  * @internal
  */

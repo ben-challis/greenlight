@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * The CI gates through the real CLI.
@@ -44,7 +45,7 @@ final class PolicyTest
                 ->and($output)->toContain('notice policy failed this passed test')
                 ->and($output)->toContain('a probe notice');
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
@@ -69,34 +70,23 @@ final class PolicyTest
                 ->and($output)->toContain('3 tests, 2 passed, 1 failed')
                 ->and($output)->toContain('fail-on-risky policy failed this passed test');
         } finally {
-            $this->removeTree($project);
+            $project->remove();
         }
     }
 
     /**
      * @return array{int, string}
      */
-    private function run(string $project, string ...$flags): array
+    private function run(AcceptanceProject $project, string ...$flags): array
     {
-        $root = \dirname(__DIR__, 2);
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight'), 'run', '--reporter=plain'];
-
-        foreach ($flags as $flag) {
-            $parts[] = \escapeshellarg($flag);
-        }
-
-        $command = \sprintf('cd %s && %s 2>&1', \escapeshellarg($project), \implode(' ', $parts));
-        \exec($command, $output, $exit);
-
-        return [$exit, \implode("\n", $output)];
+        return $project->run('run', '--reporter=plain', ...$flags);
     }
 
-    private function writeProject(): string
+    private function writeProject(): AcceptanceProject
     {
-        $project = \sys_get_temp_dir() . '/greenlight-policy-' . \bin2hex(\random_bytes(6));
-        \mkdir($project . '/tests', 0o777, true);
+        $project = AcceptanceProject::create('policy');
 
-        \file_put_contents($project . '/tests/DiagnosticProbeTest.php', <<<'PHP'
+        $project->write('tests/DiagnosticProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -131,7 +121,7 @@ final class PolicyTest
             }
             PHP);
 
-        \file_put_contents($project . '/tests/RiskyProbeTest.php', <<<'PHP'
+        $project->write('tests/RiskyProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -170,7 +160,7 @@ final class PolicyTest
             }
             PHP);
 
-        \file_put_contents($project . '/greenlight.php', <<<'PHP'
+        $project->write('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -187,18 +177,5 @@ final class PolicyTest
             PHP);
 
         return $project;
-    }
-
-    private function removeTree(string $directory): void
-    {
-        $files = \glob($directory . '/tests/*');
-
-        foreach (\is_array($files) ? $files : [] as $file) {
-            @\unlink($file);
-        }
-
-        @\unlink($directory . '/greenlight.php');
-        @\rmdir($directory . '/tests');
-        @\rmdir($directory);
     }
 }

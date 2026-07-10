@@ -8,8 +8,9 @@ namespace Greenlight\Reporting;
  * Text decoration shared by the human-facing reporters.
  *
  * pass(), fail() and skip() colour status fragments green, red and yellow.
- * duration() formats seconds and escalates the colour past the slow (1s) and
- * very slow (5s) thresholds. count() pluralises a noun for its count.
+ * warn() colours advisory messages yellow. duration() formats seconds and
+ * escalates the colour past the slow (1s) and very slow (5s) thresholds.
+ * count() pluralises a noun for its count.
  *
  * Constructed without ANSI support every method returns its text unchanged,
  * so plain and non-TTY output stays byte-clean.
@@ -37,6 +38,11 @@ final readonly class Style
     }
 
     public function skip(string $text): string
+    {
+        return $this->paint($text, '33');
+    }
+
+    public function warn(string $text): string
     {
         return $this->paint($text, '33');
     }

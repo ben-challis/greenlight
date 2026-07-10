@@ -56,7 +56,7 @@ final class PlainReporterTest
         CannedStream::feed(new PlainReporter($output, new RunHeader('0.4.0', 'greenlight.php', 7, phpVersion: '8.3.1')));
 
         Expect::that($output->buffer())
-            ->toStartWith("Greenlight 0.4.0 | PHP 8.3.1 | config: greenlight.php | seed: 7 | workers: 2\nRun run-1: 6 tests, 2 workers\n");
+            ->toStartWith("Greenlight 0.4.0\nPHP 8.3.1 | config: greenlight.php | workers: 2 | seed: 7\nRun run-1: 6 tests, 2 workers\n");
     }
 
     #[Test]

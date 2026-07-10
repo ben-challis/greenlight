@@ -10,10 +10,9 @@ use Greenlight\Discovery\PlanEntry;
 /**
  * Selects one of m equal slices of a plan by stable class hash.
  *
- * select() lets CI machines split a suite with zero coordination: the union
- * of all shards is exactly the full plan and shards are disjoint, whatever
- * the seed or filters, because selection happens on the already-filtered
- * plan.
+ * select() lets each CI machine pick its shard independently: the union of
+ * all shards is exactly the full plan and shards are disjoint, whatever the
+ * seed or filters, because selection happens on the already-filtered plan.
  *
  * Whole classes relocate, never single methods, since class-level hooks and
  * fixtures make the class the smallest unit that moves between machines

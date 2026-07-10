@@ -93,6 +93,42 @@ final class PluginTest
     }
 
     #[Test]
+    public function throwingAfterTestKeepsTheOutcomeAndRecordsThePluginFailure(): void
+    {
+        $broken = new class implements TestLifecycleSubscriber {
+            #[\Override]
+            public function beforeTest(TestContext $context): void {}
+
+            #[\Override]
+            public function afterTest(TestContext $context, TestResult $result): TestResult
+            {
+                throw new \RuntimeException('plugin exploded');
+            }
+        };
+
+        [, $results] = $this->runSuite('RunFailingSuite', [$broken]);
+
+        $byMethod = [];
+
+        foreach ($results as $result) {
+            $byMethod[$result->id->method] = $result;
+        }
+
+        // The passing test errors, naming the plugin.
+        Expect::that($byMethod['passes']->outcome)->toBe(Outcome::Errored)
+            ->and($byMethod['passes']->error?->message)->toContain('failed in afterTest')
+            ->and($byMethod['passes']->error?->message)->toContain('plugin exploded');
+
+        // The already-errored test keeps its original error; the plugin
+        // failure is recorded as a failure detail instead of vanishing.
+        $errored = $byMethod['explodes'];
+        Expect::that($errored->outcome)->toBe(Outcome::Errored)
+            ->and($errored->error?->message)->toContain('intentional boom')
+            ->and($errored->failures[0]->message ?? '')->toContain('failed in afterTest')
+            ->and($errored->failures[0]->message ?? '')->toContain('plugin exploded');
+    }
+
+    #[Test]
     public function contextSkipFromBeforeTestSkipsTheTest(): void
     {
         $skipper = new class implements TestLifecycleSubscriber {

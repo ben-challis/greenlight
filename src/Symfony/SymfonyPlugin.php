@@ -27,8 +27,8 @@ use Symfony\Contracts\Service\ResetInterface;
  * lifetime; KernelInterface itself is injectable as a per-run harness
  * service through services().
  *
- * The isolation strategy is validated once at boot, and a kernel that
- * cannot honour it is a configuration error, never a silent degradation:
+ * The isolation strategy is validated once at boot; a kernel that cannot
+ * honour it is a configuration error rather than a silent degradation:
  * the container must expose Symfony's test container (framework.test
  * enabled), and unless resets are explicitly waived it must expose
  * services_resetter. Passing resetBetweenTests: false waives the reset

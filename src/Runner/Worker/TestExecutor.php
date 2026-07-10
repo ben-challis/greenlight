@@ -246,6 +246,11 @@ final readonly class TestExecutor
      * Runs afterTest subscribers with the provenance guard: an outcome change
      * that did not grow the transformation log is unattributable and errors
      * the test naming the plugin.
+     *
+     * A throwing subscriber errors a passing test naming the plugin. On a
+     * test that already failed or errored, the original outcome and error are
+     * kept so the plugin failure cannot mask them, and the plugin failure is
+     * appended as a failure detail so it still surfaces in reports.
      */
     private function applyAfterSubscribers(TestContext $context, TestResult $result): TestResult
     {
@@ -266,6 +271,25 @@ final readonly class TestExecutor
                             $subscriber::class,
                             $threw->getMessage(),
                         ), 0, $threw)),
+                        $result->skipReason,
+                        $result->transformations,
+                        $result->output,
+                        $result->risky,
+                        $result->expectations,
+                    );
+                } else {
+                    $result = new TestResult(
+                        $result->id,
+                        $result->outcome,
+                        $result->durationSeconds,
+                        $result->memoryDeltaBytes,
+                        $result->attempts,
+                        [...$result->failures, new FailureDetail(\sprintf(
+                            'Plugin "%s" failed in afterTest: %s',
+                            $subscriber::class,
+                            $threw->getMessage(),
+                        ))],
+                        $result->error,
                         $result->skipReason,
                         $result->transformations,
                         $result->output,

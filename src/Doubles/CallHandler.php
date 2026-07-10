@@ -13,9 +13,9 @@ use Greenlight\Expect\ValueRenderer;
  *
  * invoke() records the call, then answers it according to the double's kind.
  *
- * Nothing is ever guessed: a mock answers only what was explicitly
- * configured, a stub exists purely to satisfy a type and errors on any call,
- * and a spy records interactions but cannot invent return values.
+ * A mock answers only what was explicitly configured, a stub errors on any
+ * call, and a spy records interactions and errors on calls to value-returning
+ * methods.
  *
  * @internal
  */

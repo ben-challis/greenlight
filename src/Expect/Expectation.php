@@ -45,7 +45,7 @@ final class Expectation
     ) {}
 
     /**
-     * Dispatches extension matchers: an ExpectationExtension providing a
+     * Dispatches extension matchers: an ExpectationExtension that provides a
      * matcher named like the called method is evaluated against the subject
      * with the given arguments.
      *
@@ -53,6 +53,8 @@ final class Expectation
      * as real methods.
      *
      * @param array<int, mixed> $arguments
+     *
+     * @throws ExpectationFailed
      */
     public function __call(string $name, array $arguments): self
     {
@@ -173,7 +175,7 @@ final class Expectation
     {
         if (\is_string($this->subject)) {
             if (!\is_string($needle)) {
-                return $this->usageFailure(\sprintf(
+                $this->usageFailure(\sprintf(
                     'toContain() on a string subject requires a string needle, got %s.',
                     \get_debug_type($needle),
                 ));
@@ -204,7 +206,7 @@ final class Expectation
             );
         }
 
-        return $this->usageFailure(\sprintf(
+        $this->usageFailure(\sprintf(
             'toContain() requires a string or iterable subject, got %s.',
             \get_debug_type($this->subject),
         ));
@@ -223,7 +225,7 @@ final class Expectation
         } elseif ($this->subject instanceof \Traversable) {
             $actualCount = \iterator_count($this->subject);
         } else {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toHaveCount() requires a countable or traversable subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -250,7 +252,7 @@ final class Expectation
         } elseif ($this->subject instanceof \ArrayAccess) {
             $hasKey = $this->subject->offsetExists($key);
         } else {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toHaveKey() requires an array or ArrayAccess subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -269,7 +271,7 @@ final class Expectation
     public function toBeGreaterThan(int|float $bound): self
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toBeGreaterThan() requires an int or float subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -288,7 +290,7 @@ final class Expectation
     public function toBeLessThan(int|float $bound): self
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toBeLessThan() requires an int or float subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -309,7 +311,7 @@ final class Expectation
     public function toBeWithin(float $delta, float $of): self
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toBeWithin() requires an int or float subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -337,7 +339,7 @@ final class Expectation
         $this->requireValidPattern($pattern, 'toMatch');
 
         if (!\is_string($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toMatch() requires a string subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -356,7 +358,7 @@ final class Expectation
     public function toStartWith(string $prefix): self
     {
         if (!\is_string($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toStartWith() requires a string subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -375,7 +377,7 @@ final class Expectation
     public function toEndWith(string $suffix): self
     {
         if (!\is_string($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toEndWith() requires a string subject, got %s.',
                 \get_debug_type($this->subject),
             ));
@@ -408,7 +410,7 @@ final class Expectation
         }
 
         if (!\is_callable($this->subject)) {
-            return $this->usageFailure(\sprintf(
+            $this->usageFailure(\sprintf(
                 'toThrow() requires a callable subject, got %s.',
                 \get_debug_type($this->subject),
             ));

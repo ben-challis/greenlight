@@ -21,8 +21,8 @@ use Greenlight\Runner\Worker\Worker;
 /**
  * Runs discovery plus one in-process worker and returns a summary.
  *
- * This is the whole runner until the process pool exists; after that it
- * remains the workers=1 fallback for hosts without process support.
+ * This is the workers=1 runner, used when a single worker is requested or
+ * the host lacks process support.
  *
  * @internal
  */

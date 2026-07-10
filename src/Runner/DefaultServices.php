@@ -21,8 +21,8 @@ use Greenlight\Plugin\PluginRegistry;
  * the static Expect entry point, since both runners pass through here exactly
  * once per worker. The TestChannel service reads GREENLIGHT_CHANNEL from the
  * environment, which the orchestrator sets at spawn and the in-process
- * runner sets to 1, keeping the environment variable the single source of
- * truth for the slot.
+ * runner sets to 1; the environment variable is the single source of truth
+ * for the slot.
  *
  * A provider registering a type that already exists is a configuration error
  * and fails loudly.
