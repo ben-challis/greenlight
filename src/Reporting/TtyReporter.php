@@ -26,8 +26,10 @@ use Greenlight\Core\Result\TestResult;
  * separates the window from the permanent scrollback above it.
  *
  * The live region is redrawn on events and on external ticks (see Ticking),
- * throttled to one repaint per 50ms so event bursts do not flicker. The
- * spinner advances once per actual repaint.
+ * throttled to one repaint per 50ms. Each repaint is a single write that
+ * rewrites every line in place, so the window never passes through a blank
+ * state the terminal could paint as flicker. The spinner advances once per
+ * actual repaint.
  *
  * In bounded mode a cleanly passing class prints nothing permanent; only
  * classes containing failures or skips append a line, the moment they
@@ -314,7 +316,6 @@ final class TtyReporter implements Reporter, Ticking
         }
 
         $this->lastDrawAt = $this->lastEventAt;
-        $this->eraseLiveRegion();
         $this->spinnerFrame = ($this->spinnerFrame + 1) % \count(self::SPINNER);
         // The leading blank line separates the window from the permanent
         // scrollback (header, failed or skipped class lines) above it.
@@ -345,10 +346,23 @@ final class TtyReporter implements Reporter, Ticking
             $lines[] = $this->style->dim(\sprintf('  … and %d more running', $overflow));
         }
 
+        // One frame, one write: reposition over the previous window and
+        // rewrite each line in place, clearing it just before its
+        // replacement lands. Blanking the whole region first and rebuilding
+        // it across separate writes lets the terminal paint the blank
+        // in-between state, which reads as flicker.
+        $frame = $this->drawnLines > 0 ? \sprintf("\x1b[%dA", $this->drawnLines) : '';
+        $frame .= "\r";
+
         foreach ($lines as $line) {
-            $this->output->write($line . "\n");
+            $frame .= "\x1b[2K" . $line . "\n";
         }
 
+        if ($this->drawnLines > \count($lines)) {
+            $frame .= "\x1b[0J";
+        }
+
+        $this->output->write($frame);
         $this->drawnLines = \count($lines);
     }
 

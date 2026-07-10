@@ -174,8 +174,9 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassStarted('App\DeltaTest', 1.2));
         $reporter->onEvent(new TestClassFinished('App\GammaTest', 1.3));
 
-        // The permanent skip line is followed by a blank line, then the window.
-        Expect::that($output->buffer())->toContain("− App\GammaTest (1 test, skipped, 0.010s)\n\n");
+        // The permanent skip line is followed by a blank line (cleared and
+        // rewritten in place by the next frame), then the window.
+        Expect::that($output->buffer())->toContain("− App\GammaTest (1 test, skipped, 0.010s)\n\r\x1b[2K\n");
     }
 
     #[Test]
@@ -271,7 +272,8 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.1));
         $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.2));
 
-        $tail = \substr($output->buffer(), (int) \strrpos($output->buffer(), "\x1b[0J"));
+        // The final frame is the only one repositioning over four lines.
+        $tail = \substr($output->buffer(), (int) \strrpos($output->buffer(), "\x1b[4A"));
 
         // Oldest class stays visible; the rest collapse into the overflow line.
         Expect::that($tail)->toContain('App\AlphaTest (0)')
@@ -341,6 +343,25 @@ final class TtyReporterTest
         $reporter->tick(1.2);
 
         Expect::that($output->buffer())->not()->toBe($before);
+    }
+
+    #[Test]
+    public function repaintsRewriteLinesInPlaceWithoutBlankingTheWindow(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $before = \strlen($output->buffer());
+
+        $reporter->tick(1.2);
+        $frame = \substr($output->buffer(), $before);
+
+        // The repaint repositions over the previous three-line window and
+        // clears each line right before rewriting it; blanking the whole
+        // region first is what makes terminals flash mid-frame.
+        Expect::that($frame)->toContain("\x1b[3A\r\x1b[2K")
+            ->and($frame)->not()->toContain("\x1b[0J");
     }
 
     #[Test]
