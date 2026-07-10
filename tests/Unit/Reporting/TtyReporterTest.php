@@ -28,20 +28,25 @@ final class TtyReporterTest
         $reporter = new TtyReporter($output, colour: true, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', 4242, phpVersion: '8.4.0'));
 
         // Two classes in flight at once, exactly what multiple workers produce.
+        // Timestamps stay at least 0.05s apart so the redraw throttle never
+        // swallows one of these events.
         $reporter->onEvent(new RunStarted('run-1', 2, 2, 1.0));
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
-        $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.0));
-        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
-        $reporter->onEvent(new TestFinished($this->result('App\BetaTest', 'one', Outcome::Failed), 1.2));
-        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.3));
-        $reporter->onEvent(new TestClassFinished('App\BetaTest', 1.4));
-        $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1, failed: 1), 0.4, 1.5));
+        $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.05));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.15));
+        $reporter->onEvent(new TestFinished($this->result('App\BetaTest', 'one', Outcome::Failed), 1.25));
+        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.35));
+        $reporter->onEvent(new TestClassFinished('App\BetaTest', 1.45));
+        $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1, failed: 1), 0.4, 1.55));
         $reporter->finish();
 
         $buffer = $output->buffer();
 
         // The live region is erased and redrawn: cursor-up plus clear-to-end.
-        Expect::that($buffer)->toContain("\x1b[2A\r\x1b[0J")
+        // Both classes finalize on the same tick as the last TestFinished, so
+        // the throttle keeps the window showing both classes (4 lines) until
+        // a later event or tick would flush it; this run ends before either.
+        Expect::that($buffer)->toContain("\x1b[4A\r\x1b[0J")
             ->and($buffer)->toContain('Greenlight dev-main | PHP 8.4.0 | config: greenlight.php | seed: 4242 | workers: 2')
             // Only the failing class earns a permanent line; the pass just counts.
             ->and($buffer)->not()->toContain("\x1b[32m✓\x1b[0m App\AlphaTest")
@@ -169,6 +174,9 @@ final class TtyReporterTest
         $reporter->onEvent(new TestFinished($this->skipped('App\GammaTest', 'one', null), 1.1));
         $reporter->onEvent(new TestClassStarted('App\DeltaTest', 1.2));
         $reporter->onEvent(new TestClassFinished('App\GammaTest', 1.3));
+        // The class-finalize redraw lands on the same tick as DeltaTest's
+        // start and is throttled; a later tick flushes the deferred repaint.
+        $reporter->tick(1.26);
 
         // The permanent skip line is followed by a blank line, then the window.
         Expect::that($output->buffer())->toContain("− App\GammaTest (1 test, skipped, 0.010s)\n\n");
@@ -319,6 +327,37 @@ final class TtyReporterTest
         $reporter->tick(2.0);
 
         Expect::that($output->buffer())->toBe('');
+    }
+
+    #[Test]
+    public function redrawsInsideTheThrottleWindowAreSkipped(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $before = $output->buffer();
+
+        $reporter->tick(1.01);
+
+        Expect::that($output->buffer())->toBe($before);
+
+        $reporter->tick(1.2);
+
+        Expect::that($output->buffer())->not()->toBe($before);
+    }
+
+    #[Test]
+    public function classFinalizationBypassesTheThrottle(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: true);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
+        $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Failed), 1.01));
+        $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.02));
+
+        Expect::that($output->buffer())->toContain('✗ App\AlphaTest (1 test, 1 failed');
     }
 
     /**
