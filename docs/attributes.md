@@ -189,14 +189,17 @@ Parameters:
 
 ```php
 string $condition
+mixed ...$arguments
 ```
 
 `$condition` must be a class-string for `Greenlight\Core\Condition`.
 
 Skips the test unless the condition is satisfied.
 
-The condition class must be constructible without arguments and should have no
-side effects:
+Any further attribute arguments are passed to the condition's constructor.
+Arguments must be scalars or null, because they travel to parallel workers;
+anything else is a discovery error. The constructor must only store them, and
+evaluation happens in `isSatisfied()` without side effects:
 
 ```php
 interface Condition
@@ -215,7 +218,31 @@ If the condition throws, the test errors instead of being skipped.
 #[Test]
 #[SkipUnless(RedisIsRunning::class)]
 public function storesSessionsInRedis(): void { ... }
+
+#[Test]
+#[SkipUnless(ExtensionLoaded::class, 'redis')]
+public function usesTheRedisExtension(): void { ... }
 ```
+
+### Built-in conditions
+
+The `Greenlight\Condition` namespace ships conditions for the common
+environment checks, so most `#[SkipUnless]` uses need no hand-written class:
+
+| Condition | Satisfied when |
+| --------- | -------------- |
+| `ExtensionLoaded('redis')` | the extension is loaded |
+| `ExtensionMissing('xdebug')` | the extension is not loaded |
+| `EnvironmentVariableSet('CI')` | `getenv()` returns a value |
+| `EnvironmentVariableEquals('APP_ENV', 'test')` | the variable equals the value exactly |
+| `OperatingSystemFamily('Linux')` | `PHP_OS_FAMILY` matches, case-insensitively |
+| `PhpVersionAtLeast('8.5')` | `PHP_VERSION` is at least the given version |
+| `PhpVersionLessThan('9.0')` | `PHP_VERSION` is below the given version |
+| `FunctionAvailable('pcntl_fork')` | the function exists |
+| `ClassAvailable(Redis::class)` | the class exists |
+
+The skip reason names the condition and its arguments, for example
+`Condition ExtensionLoaded("redis") is not satisfied.`
 
 ## Retry
 
