@@ -33,7 +33,7 @@
 10. **Doubles matching:** new `ArgumentMatcher` interface (`matches(mixed): bool`, `describe(): string`); `Any` implements it. `Argument` provides `any()`, `type()`, `predicate()`, `equals()`, `captor()`. `MethodExpectation::captureArgument(int $position = 0): ArgumentCaptor` records the argument of every matched call.
 11. **Sequences:** `andReturnsSequence(...)` consumes one value per matched call; exhaustion is a `DoublesError` (authoring error, loud). Conflicting answer configuration (`andReturns` after `andReturnsSequence`, etc.) is a `DoublesError`.
 12. **Repeat:** `--repeat=N` runs the plan N times; `--repeat-until-failure` stops at first failing iteration, bounded by `--repeat` if given, else a 100-iteration safety limit. Fresh reporter and tap per iteration; iteration banner printed between runs; exit code fails if any iteration failed. Incompatible with `--watch` (CLI error).
-13. **Clocks:** no PSR-20 dependency added; `FrozenClock`/`MutableClock` expose `now(): \DateTimeImmutable` directly. `FrozenClock` freezes at construction; `MutableClock` supports `set()` and `advance()`.
+13. **Clocks:** dropped after review. Clock fixtures are out of scope; projects bring their own PSR-20 implementation. The fixture pack ships `TempDirectory` and `EnvironmentSandbox` only.
 
 ---
 

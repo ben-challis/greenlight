@@ -35,7 +35,7 @@ The suite stays quick on a laptop and behaves the same way in CI, at any size.
 * Strict test doubles that fail on unplanned or unverified behaviour.
 * Typed expectations with rendered diffs and a broad built-in matcher set.
 * Built-in skip conditions for PHP version, extension, OS, env var, function, and class checks.
-* First-party fixtures: temp directories, environment sandboxing, and test clocks.
+* First-party fixtures: temp directories and environment sandboxing.
 * Flake hunting with `--repeat` and `--repeat-until-failure`.
 * Test code is plain PHP: attributes, typed classes, constructor injection, and PHP configuration.
 * Zero runtime dependencies, so the framework never version-conflicts with the code under test.

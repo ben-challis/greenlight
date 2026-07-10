@@ -238,9 +238,6 @@ or workers.
   it, recursively, when the test finishes.
 * `EnvironmentSandbox` sets and unsets environment variables (`getenv`, `$_ENV`,
   and `$_SERVER` together) and restores the original values afterwards.
-* `FrozenClock` returns one fixed `DateTimeImmutable` instant.
-* `MutableClock` starts at a chosen instant and moves only when the test calls
-  `set()` or `advance()`.
 
 ```php
 use Greenlight\Fixture\EnvironmentSandbox;
