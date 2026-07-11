@@ -97,9 +97,9 @@ public static function currencies(): iterable
 
 The bundled PHPStan extension validates providers statically: the provider
 must exist, be public and static, and return an iterable of argument arrays,
-and every row shape PHPStan can see (such as the `array{...}` return type
-above) is checked positionally against the test method's parameters, arity
-included. `#[DataRow]` literals get the same check.
+and row shapes PHPStan can see (such as the `array{...}` return type above)
+are checked against the test method's parameters. `#[DataRow]` literals get
+the same check. See [static analysis with PHPStan](phpstan.md).
 
 ## DataRow
 
