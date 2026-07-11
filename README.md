@@ -29,7 +29,9 @@ In Greenlight the parallel pool is the runner, not an accessory. The orchestrato
 
 Parallel tests compete for databases, ports, and temp directories. The ecosystem handles this with environment tokens (ParaTest's `TEST_TOKEN`, Laravel's parallel testing hooks) and per-team wiring on top. The other common answer, wrapping each test in a database transaction, breaks as soon as the code under test crosses a connection or process boundary.
 
-Greenlight makes the mechanism part of the contract and calls it a channel. Every worker occupies a numbered slot between 1 and the worker count. Two concurrently running tests never share a channel, and a replacement worker inherits the freed slot, so a database migrated for channel 3 stays valid for the whole run even as workers recycle. Tests read the number from the `GREENLIGHT_CHANNEL` environment variable or the injectable `TestChannel` service.
+Greenlight's answer is a channel: a stable number, and nothing else. Every worker occupies a slot between 1 and the worker count, two tests running at the same time never share one, and a replacement worker inherits the freed slot, so a database migrated for channel 3 stays valid for the whole run even as workers recycle. Tests read the number from the `GREENLIGHT_CHANNEL` environment variable or the injectable `TestChannel` service.
+
+That number is where Greenlight's responsibility ends. It never creates a database or picks a port on your behalf; the channel tells you which copy of a resource is yours, and the resource stays yours to manage.
 
 ### Discovery does too much work up front
 
