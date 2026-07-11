@@ -120,7 +120,8 @@ final class BareKernel implements KernelInterface
         return \sys_get_temp_dir();
     }
 
-    #[\Override]
+    // No Override attribute: the parent declaration only exists on
+    // Symfony >= 8, and the attribute is a compile error without one.
     public function getShareDir(): ?string
     {
         return null;
