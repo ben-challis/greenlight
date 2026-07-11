@@ -32,8 +32,8 @@ jobs:
         uses: "shivammathur/setup-php@v2"
         with:
           php-version: "${{ matrix.php-version }}"
-          extensions: "pcov, pcntl, sockets"
-          coverage: "none"
+          extensions: "pcntl, sockets"
+          coverage: "pcov"
           ini-values: "memory_limit=-1"
 
       - name: "Match Composer platform to runtime"

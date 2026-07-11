@@ -41,7 +41,7 @@ for ($classIndex = 0; $classIndex < CLASS_COUNT; ++$classIndex) {
             public function t{$testIndex}(int \$row): void
             {
                 \$payload = str_repeat('x', 1024 + \$row);
-                \$this->expect->that(strlen(\$payload))->toBe(1024 + \$row);
+                Expect::that(strlen(\$payload))->toBe(1024 + \$row);
             }
 
         PHP;
@@ -62,10 +62,6 @@ for ($classIndex = 0; $classIndex < CLASS_COUNT; ++$classIndex) {
 
     final readonly class {$class}
     {
-        public function __construct(
-            private Expect \$expect,
-        ) {}
-
         /**
          * @return iterable<string, array{int}>
          */

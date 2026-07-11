@@ -127,9 +127,11 @@ final class BareKernel implements KernelInterface
     }
 
     #[\Override]
-    public function getLogDir(): ?string
+    public function getLogDir(): string
     {
-        return null;
+        // Non-nullable string satisfies every supported KernelInterface:
+        // Symfony 6.4 declares string, newer majors widen to ?string.
+        return \sys_get_temp_dir();
     }
 
     #[\Override]
