@@ -14,6 +14,10 @@ concurrency:
 jobs:
   ci:
     runs-on: "ubuntu-latest"
+    # Xdebug stays off for the suite itself; the coverage acceptance tests
+    # opt in per spawned process with XDEBUG_MODE=coverage.
+    env:
+      XDEBUG_MODE: "off"
     strategy:
       fail-fast: false
       matrix:
@@ -33,7 +37,7 @@ jobs:
         with:
           php-version: "${{ matrix.php-version }}"
           extensions: "pcntl, sockets"
-          coverage: "pcov"
+          coverage: "xdebug"
           ini-values: "memory_limit=-1"
 
       - name: "Match Composer platform to runtime"
