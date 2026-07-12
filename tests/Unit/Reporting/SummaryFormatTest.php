@@ -94,6 +94,38 @@ final class SummaryFormatTest
             ->and(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
     }
 
+    #[Test]
+    public function coverageShowsCoveredOfExecutableLines(): void
+    {
+        $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: false));
+
+        Expect::that($line)->toBe('Coverage: 88.30% (5283 of 5983 lines)');
+    }
+
+    #[Test]
+    public function coverageSingularisesASingleExecutableLine(): void
+    {
+        $line = SummaryFormat::coverage(100.0, 1, 1, new Style(ansi: false));
+
+        Expect::that($line)->toBe('Coverage: 100.00% (1 of 1 line)');
+    }
+
+    #[Test]
+    public function coverageColoursThePercentageGreen(): void
+    {
+        $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: true));
+
+        Expect::that($line)->toContain("\x1b[32m88.30%\x1b[0m");
+    }
+
+    #[Test]
+    public function coverageExportRendersAnIndentedFormatAndTargetLine(): void
+    {
+        $line = SummaryFormat::coverageExport('json', 'build/coverage/coverage.json');
+
+        Expect::that($line)->toBe('  json → build/coverage/coverage.json');
+    }
+
     /**
      * @param non-empty-string $id
      */

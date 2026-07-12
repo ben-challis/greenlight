@@ -528,7 +528,7 @@ final readonly class Application
         if ($coverageConfig instanceof CoverageConfiguration) {
             if (!$coverage instanceof CoverageMap) {
                 ($this->err)("Coverage was requested but no worker could collect it. Is pcov or xdebug (mode=coverage) available?\n");
-            } elseif (!$this->writeCoverage($coverageConfig, $coverage, $workingDirectory)) {
+            } elseif (!$this->writeCoverage($coverageConfig, $coverage, $workingDirectory, $this->stdoutStyle($arguments->has('no-ansi')))) {
                 return self::EXIT_FAILURE;
             }
         }
@@ -578,6 +578,21 @@ final readonly class Application
     private function printError(string $message, bool $noAnsiFlag): void
     {
         ($this->err)($this->stderrStyle($noAnsiFlag)->error('greenlight:') . ' ' . $message . "\n");
+    }
+
+    /**
+     * Colour for stdout messages written outside the reporters, from stdout's
+     * own terminal capabilities.
+     */
+    private function stdoutStyle(bool $noAnsiFlag): Style
+    {
+        $capabilities = TerminalCapabilities::detect(
+            Terminal::isTty(\STDOUT),
+            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+            $noAnsiFlag,
+        );
+
+        return new Style($capabilities->colour);
     }
 
     /**
@@ -698,13 +713,14 @@ final readonly class Application
         return new CoverageSettings($include, $configuration->driver);
     }
 
-    private function writeCoverage(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory): bool
+    private function writeCoverage(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory, Style $style): bool
     {
-        ($this->out)(\sprintf(
-            "Coverage: %.2f%% of %d executable lines\n",
+        ($this->out)("\n" . SummaryFormat::coverage(
             $coverage->totalPercentage(),
+            $coverage->coveredLineTotal(),
             $coverage->executableLineTotal(),
-        ));
+            $style,
+        ) . "\n");
 
         foreach ($configuration->exports as $export) {
             $exporter = $this->exporterFor($export->format);
@@ -742,7 +758,7 @@ final readonly class Application
                 }
             }
 
-            ($this->out)(\sprintf("  wrote %s to %s\n", $export->format, $export->target));
+            ($this->out)(SummaryFormat::coverageExport($export->format, $export->target) . "\n");
         }
 
         return true;

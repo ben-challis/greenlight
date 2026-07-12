@@ -29,8 +29,8 @@ final class CoverageRunTest
             [$exit, $output] = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage');
 
             Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('Coverage: 60.00% of 5 executable lines')
-                ->and($output)->toContain('wrote json to coverage-out/coverage.json');
+                ->and($output)->toContain('Coverage: 60.00% (3 of 5 lines)')
+                ->and($output)->toContain('  json → coverage-out/coverage.json');
 
             $json = \file_get_contents($outDir . '/coverage.json');
 
@@ -95,7 +95,7 @@ final class CoverageRunTest
             ]);
 
             Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('wrote json to coverage-out/coverage.json');
+                ->and($output)->toContain('  json → coverage-out/coverage.json');
 
             $json = \file_get_contents($outDir . '/coverage.json');
 

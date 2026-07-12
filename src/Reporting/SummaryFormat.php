@@ -18,6 +18,9 @@ use Greenlight\Core\Test\TestId;
  * skipped test with its reason, grouping tests that share a reason and
  * capping each group at five ids.
  * leaks() lists every leaked test under one red header.
+ * coverage() renders the line-coverage percentage in green with the covered
+ * and executable line counts. coverageExport() renders one written export as
+ * an indented format-and-target line.
  *
  * @internal
  */
@@ -103,6 +106,21 @@ final class SummaryFormat
         }
 
         return \implode("\n", $lines) . "\n";
+    }
+
+    public static function coverage(float $percentage, int $coveredLines, int $executableLines, Style $style): string
+    {
+        return \sprintf(
+            'Coverage: %s (%d of %s)',
+            $style->ok(\sprintf('%.2f%%', $percentage)),
+            $coveredLines,
+            Plural::count($executableLines, 'line'),
+        );
+    }
+
+    public static function coverageExport(string $format, string $target): string
+    {
+        return \sprintf('  %s → %s', $format, $target);
     }
 
     /**
