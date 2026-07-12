@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\SkipTest;
 
 /**
  * Worker-side interception around each test attempt.

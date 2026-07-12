@@ -8,22 +8,22 @@ the body of the test can stay close to what it was.
 
 ## Concept mapping
 
-| PHPUnit                                          | Greenlight                                               |
-| ------------------------------------------------ | -------------------------------------------------------- |
-| `extends TestCase`                               | nothing; tests are plain final classes                   |
-| `testFoo()` naming                               | `#[Test]` on any public method                           |
-| `setUp()`                                        | `#[Before]` on a public method                           |
-| `tearDown()`                                     | `#[After]` on a public method                            |
-| `#[DataProvider('cases')]`                       | `#[DataSet('cases')]`, static provider on the same class |
-| `#[TestWith([1, 2])]`                            | `#[DataRow([1, 2])]`, optionally labelled                |
-| `#[Group('slow')]` / `@group`                    | `#[Group('slow')]`, repeatable, method or class          |
-| `$this->markTestSkipped($reason)`                | `throw new SkipTest($reason)` from `Greenlight\Plugin`   |
+| PHPUnit                                          | Greenlight                                                                                    |
+|--------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| `extends TestCase`                               | nothing; tests are plain final classes                                                        |
+| `testFoo()` naming                               | `#[Test]` on any public method                                                                |
+| `setUp()`                                        | `#[Before]` on a public method                                                                |
+| `tearDown()`                                     | `#[After]` on a public method                                                                 |
+| `#[DataProvider('cases')]`                       | `#[DataSet('cases')]`, static provider on the same class                                      |
+| `#[TestWith([1, 2])]`                            | `#[DataRow([1, 2])]`, optionally labelled                                                     |
+| `#[Group('slow')]` / `@group`                    | `#[Group('slow')]`, repeatable, method or class                                               |
+| `$this->markTestSkipped($reason)`                | `throw new SkipTest($reason)`                                                                 |
 | `#[RequiresPhpExtension]` and related attributes | `#[SkipUnless(ExtensionLoaded::class, 'redis')]` and the other `Greenlight\Condition` classes |
-| `$this->assert...()`                             | static `Expect::that(...)` chains                        |
-| `createMock()` / `getMockBuilder()`              | injected `Doubles` service: `mock()`, `stub()`, `spy()`  |
-| `setUpBeforeClass()` statics                     | per-class harness services                               |
-| `#[RunInSeparateProcess]`                        | `#[Isolated]`                                            |
-| `#[Depends]`                                     | no equivalent                                            |
+| `$this->assert...()`                             | static `Expect::that(...)` chains                                                             |
+| `createMock()` / `getMockBuilder()`              | injected `Doubles` service: `mock()`, `stub()`, `spy()`                                       |
+| `setUpBeforeClass()` statics                     | per-class harness services                                                                    |
+| `#[RunInSeparateProcess]`                        | `#[Isolated]`                                                                                 |
+| `#[Depends]`                                     | no equivalent                                                                                 |
 
 ## Assertions
 

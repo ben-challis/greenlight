@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
+use Greenlight\Core\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Harness\HarnessScopes;

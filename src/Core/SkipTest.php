@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Plugin;
+namespace Greenlight\Core;
 
 /**
  * Control signal: throw from a test method, a before-hook, or a beforeTest

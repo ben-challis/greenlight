@@ -11,13 +11,13 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\SkipTest;
 use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\PluginRegistry;
-use Greenlight\Plugin\SkipTest;
 use Greenlight\Plugin\TestContext;
 
 /**

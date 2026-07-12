@@ -314,29 +314,3 @@ That worker is discarded afterwards.
 
 Use this for tests that modify process-global state, such as ini settings,
 environment variables, or static caches.
-
-## The SkipTest signal
-
-`Greenlight\Plugin\SkipTest` is not an attribute. It is a control-flow exception
-for skips that can only be decided while the test is running.
-
-Throw it from a test method, a before-hook, or a plugin's `beforeTest`
-subscriber to report the test as skipped with the given reason.
-
-```php
-use Greenlight\Plugin\SkipTest;
-
-#[Test]
-public function talksToSandbox(): void
-{
-    if (!$this->sandbox->isReachable()) {
-        throw new SkipTest('The payment sandbox is unreachable.');
-    }
-
-    // ...
-}
-```
-
-Use `#[Skip]` or `#[SkipUnless]` when the skip decision is static or can be
-expressed as a condition class. Those forms skip before construction and avoid
-creating test instances or harness services.

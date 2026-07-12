@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\SkipTest;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Coverage\PathFilter;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\SkipTest;
 use Greenlight\Tests\Fixture\Coverage\Adder;
 
 final class XdebugDriverTest
