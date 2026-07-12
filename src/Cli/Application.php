@@ -723,7 +723,7 @@ final readonly class Application
         ) . "\n");
 
         foreach ($configuration->exports as $export) {
-            $exporter = $this->exporterFor($export->format);
+            $exporter = $this->exporterFor($export->format, $workingDirectory);
 
             if (!$exporter instanceof CoverageExporter) {
                 ($this->err)(\sprintf("Unknown coverage export format \"%s\".\n", $export->format));
@@ -764,13 +764,13 @@ final readonly class Application
         return true;
     }
 
-    private function exporterFor(string $format): ?CoverageExporter
+    private function exporterFor(string $format, string $workingDirectory): ?CoverageExporter
     {
         return match ($format) {
             'lcov' => new LcovExporter(),
             'clover' => new CloverExporter(),
             'cobertura' => new CoberturaExporter(),
-            'html' => new HtmlExporter(),
+            'html' => new HtmlExporter($workingDirectory),
             'json' => new JsonExporter(),
             default => null,
         };
