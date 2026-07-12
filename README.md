@@ -25,7 +25,7 @@ Greenlight already runs its own test suite using `bin/greenlight run` across an 
 - Seeded randomisation for reproducible ordering.
 - Failed-first workflows with `--failed` and watch mode.
 - Flake hunting with `--repeat` and `--repeat-until-failure`.
-- Coverage gates through pcov or Xdebug.
+- Coverage gates through pcov or Xdebug, with JSON, LCOV, Clover, Cobertura, and HTML exports.
 - Typed expectations with rendered diffs.
 - Plain PHP test classes, attributes, constructor injection, and PHP configuration.
 - First-party Symfony integration.
@@ -306,7 +306,7 @@ CI controls include:
 - coverage through pcov or Xdebug
 - `coverage:diff` for regression gating
 
-Coverage can be exported as JSON, LCOV, Clover, Cobertura, or HTML.
+Coverage can be exported as JSON, LCOV, Clover, Cobertura, or HTML. The HTML report is a self-contained, dark-themed dashboard with per-file coverage bars and syntax-highlighted, line-annotated source, and it needs no network access or JavaScript.
 
 Exit codes are deterministic: `0` for success, `1` for a failed or empty run, and `64` for usage errors.
 
