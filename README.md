@@ -306,7 +306,7 @@ CI controls include:
 - coverage through pcov or Xdebug
 - `coverage:diff` for regression gating
 
-Coverage can be exported as JSON, LCOV, Clover, Cobertura, or HTML. The HTML report is a self-contained, dark-themed dashboard with per-file coverage bars and syntax-highlighted, line-annotated source, and it needs no network access or JavaScript.
+Coverage can be exported as JSON, LCOV, Clover, Cobertura, or HTML.
 
 Exit codes are deterministic: `0` for success, `1` for a failed or empty run, and `64` for usage errors.
 
