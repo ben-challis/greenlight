@@ -1,0 +1,96 @@
+{
+    "name": "greenlight/greenlight",
+    "description": "An opinionated testing framework for PHP 8.4+: typed attribute-driven tests, parallel-first execution with flat memory, lifecycle-safe test doubles.",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "testing",
+        "test-framework",
+        "parallel",
+        "mocking",
+        "coverage"
+    ],
+    "require": {
+        "php": ">=8.4"
+    },
+    "require-dev": {
+        "deptrac/deptrac": "^4.0",
+        "ergebnis/composer-normalize": "^2.47",
+        "fidry/cpu-core-counter": "^1.3",
+        "php-cs-fixer/shim": "^3.75",
+        "php-parallel-lint/php-parallel-lint": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
+        "rector/rector": "^2.0",
+        "symfony/config": "^6.4 || ^7.0 || ^8.0",
+        "symfony/dependency-injection": "^6.4 || ^7.0 || ^8.0",
+        "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
+        "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
+    },
+    "suggest": {
+        "ext-pcov": "Fast line coverage collection",
+        "fidry/cpu-core-counter": "Sharper core detection for workers: auto (cgroup limits, more platforms)",
+        "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
+        "phpstan/phpstan": "Type-checks extension matcher calls and data providers via the bundled extension.neon",
+        "symfony/framework-bundle": "Kernel-aware Symfony tests: container service injection via the SymfonyPlugin bridge"
+    },
+    "autoload": {
+        "psr-4": {
+            "Greenlight\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Greenlight\\Tests\\": "tests/"
+        }
+    },
+    "bin": [
+        "bin/greenlight"
+    ],
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        }
+    },
+    "scripts": {
+        "post-install-cmd": "@phpstan:stubs",
+        "post-update-cmd": "@phpstan:stubs",
+        "check": [
+            "@static-analysis",
+            "@tests",
+            "@memory-gate"
+        ],
+        "code-style:check": "php-cs-fixer fix --dry-run --diff --ansi",
+        "code-style:fix": "php-cs-fixer fix --diff --ansi",
+        "coverage-gate": "@php tools/coverage-gate.php",
+        "deptrac": "deptrac analyse --no-progress --report-uncovered --fail-on-uncovered",
+        "lint": [
+            "parallel-lint src tests tools bin"
+        ],
+        "memory-gate": "php tools/memory-gate.php",
+        "phpstan": "phpstan analyse --ansi --no-progress --memory-limit=-1",
+        "phpstan:stubs": "@php tools/extract-phpstan-api.php",
+        "rector:check": "rector --dry-run --ansi --no-progress-bar",
+        "rector:fix": "rector --ansi --no-progress-bar",
+        "static-analysis": [
+            "@composer validate --strict",
+            "@composer normalize --dry-run",
+            "@lint",
+            "@code-style:check",
+            "@phpstan",
+            "@rector:check",
+            "@deptrac"
+        ],
+        "tests": "@php bin/greenlight run",
+        "tests:coverage": "XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.coverage.php"
+    }
+}

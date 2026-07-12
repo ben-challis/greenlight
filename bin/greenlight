@@ -1,0 +1,54 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+if (\PHP_VERSION_ID < 80400) {
+    \fwrite(\STDERR, \sprintf(
+        "Greenlight requires PHP 8.4 or later; running under %s.\n",
+        \PHP_VERSION,
+    ));
+
+    exit(1);
+}
+
+$autoloaders = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloaderFound = false;
+
+foreach ($autoloaders as $autoloader) {
+    if (\is_file($autoloader)) {
+        require $autoloader;
+        $autoloaderFound = true;
+
+        break;
+    }
+}
+
+if (!$autoloaderFound) {
+    \fwrite(\STDERR, "Could not locate the Composer autoloader. Run \"composer install\" first.\n");
+
+    exit(1);
+}
+
+$workingDirectory = \getcwd();
+
+if ($workingDirectory === false) {
+    \fwrite(\STDERR, "Could not determine the current working directory.\n");
+
+    exit(1);
+}
+
+/** @var list<string> $arguments */
+$arguments = [];
+
+foreach (\array_slice($_SERVER['argv'] ?? [], 1) as $argument) {
+    if (\is_string($argument)) {
+        $arguments[] = $argument;
+    }
+}
+
+exit(\Greenlight\Cli\Application::forStreams()->run($arguments, $workingDirectory, __FILE__));

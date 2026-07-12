@@ -1,0 +1,162 @@
+name: "CI"
+
+on:
+  pull_request: ~
+  merge_group: ~
+  push:
+    branches:
+      - "main"
+
+concurrency:
+  group: "ci-${{ github.head_ref || github.run_id }}"
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }}${{ matrix.operating-system && format(', {0}', matrix.operating-system) || '' }})"
+    runs-on: "${{ matrix.operating-system || 'ubuntu-latest' }}"
+    # Xdebug stays off for the suite itself; the coverage acceptance tests
+    # opt in per spawned process with XDEBUG_MODE=coverage.
+    env:
+      XDEBUG_MODE: "off"
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - "8.4"
+          - "8.5"
+        dependencies:
+          - "lowest"
+          - "locked"
+        # Symfony fan-out only makes sense on "highest": "lowest" always
+        # resolves 6.4 and "locked" ignores SYMFONY_REQUIRE entirely.
+        include:
+          - php-version: "8.4"
+            dependencies: "highest"
+            symfony-version: "6.4.*"
+          - php-version: "8.4"
+            dependencies: "highest"
+            symfony-version: "7.4.*"
+          - php-version: "8.4"
+            dependencies: "highest"
+            symfony-version: "8.1.*"
+          - php-version: "8.5"
+            dependencies: "highest"
+            symfony-version: "8.1.*"
+          - php-version: "8.4"
+            dependencies: "locked"
+            operating-system: "macos-latest"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "${{ matrix.php-version }}"
+          extensions: "pcntl, sockets"
+          coverage: "xdebug"
+          ini-values: "memory_limit=-1"
+
+      - name: "Match Composer platform to runtime"
+        if: "matrix.dependencies != 'locked' && matrix.php-version == '8.5'"
+        run: "composer config platform.php 8.5.0"
+
+      # Flex filters every symfony/* package to SYMFONY_REQUIRE during
+      # resolution. Installed globally so composer.json stays untouched.
+      - name: "Set up Symfony Flex"
+        if: "matrix.symfony-version"
+        run: |
+          composer global config --no-plugins allow-plugins.symfony/flex true
+          composer global require --no-progress --no-scripts --no-plugins symfony/flex
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "${{ matrix.dependencies }}"
+        env:
+          SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
+
+      - name: "Static analysis"
+        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4' && !matrix.operating-system"
+        run: "composer static-analysis"
+
+      # No phpstan on the lowest leg: the lowest allowed phpstan lacks the
+      # type inference the codebase relies on (proc_open narrowing,
+      # ReflectionClass variance), so every finding is tool-age noise.
+      - name: "Tests"
+        run: "composer tests"
+
+  memory:
+    name: "Flat-memory gate (10,000 tests, one worker)"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "8.4"
+          extensions: "pcntl, sockets"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the flat-memory gate"
+        run: "composer memory-gate"
+
+  coverage:
+    name: "Self-coverage gate"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "8.4"
+          extensions: "pcntl, sockets"
+          coverage: "xdebug"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the suite with coverage"
+        run: "composer tests:coverage"
+
+      - name: "Run the self-coverage gate"
+        run: "composer coverage-gate"
+
+  benchmark-harness:
+    name: "Benchmark harness smoke (numbers not published)"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@v2"
+        with:
+          php-version: "8.4"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@v3"
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the harness on a small parameter set"
+        run: "php tools/benchmark.php --shape=many-fast --scale=1 --runs=1"

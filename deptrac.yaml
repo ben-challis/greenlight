@@ -1,0 +1,109 @@
+deptrac:
+  paths:
+    - src
+
+  layers:
+    - name: Core
+      collectors:
+        - type: directory
+          value: src/Core/.*
+        - type: directory
+          value: src/Attribute/.*
+    - name: Condition
+      collectors:
+        - type: directory
+          value: src/Condition/.*
+    - name: Config
+      collectors:
+        - type: directory
+          value: src/Config/.*
+    - name: Discovery
+      collectors:
+        - type: directory
+          value: src/Discovery/.*
+    - name: Expect
+      collectors:
+        - type: directory
+          value: src/Expect/.*
+    - name: Capture
+      collectors:
+        - type: directory
+          value: src/Capture/.*
+    - name: Harness
+      collectors:
+        - type: directory
+          value: src/Harness/.*
+    - name: Doubles
+      collectors:
+        - type: directory
+          value: src/Doubles/.*
+    - name: Fixture
+      collectors:
+        - type: directory
+          value: src/Fixture/.*
+    - name: Coverage
+      collectors:
+        - type: directory
+          value: src/Coverage/.*
+    - name: Plugin
+      collectors:
+        - type: directory
+          value: src/Plugin/.*
+    - name: Reporting
+      collectors:
+        - type: directory
+          value: src/Reporting/.*
+    - name: Runner
+      collectors:
+        - type: directory
+          value: src/Runner/.*
+    - name: Cli
+      collectors:
+        - type: directory
+          value: src/Cli/.*
+    - name: PhpStan
+      collectors:
+        - type: directory
+          value: src/PhpStan/.*
+    - name: Symfony
+      collectors:
+        - type: directory
+          value: src/Symfony/.*
+    - name: PhpStanFramework
+      collectors:
+        - type: classNameRegex
+          value: /^PHPStan\\/
+    - name: SymfonyFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Symfony\\/
+    - name: CpuCoreCounter
+      collectors:
+        - type: classNameRegex
+          value: /^Fidry\\CpuCoreCounter\\/
+    - name: PhpParserFramework
+      collectors:
+        - type: classNameRegex
+          value: /^PhpParser\\/
+
+  ruleset:
+    Core: []
+    Condition: [Core]
+    Config: [Core]
+    Discovery: [Core]
+    Expect: [Core]
+    Capture: [Core]
+    Harness: [Core]
+    Doubles: [Core, Expect, Harness]
+    Fixture: [Core, Harness]
+    Coverage: [Core]
+    Plugin: [Core, Harness]
+    Reporting: [Core]
+    Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
+    Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
+    PhpStan: [Core, Config, Expect, PhpStanFramework, PhpParserFramework]
+    Symfony: [Core, Harness, Plugin, SymfonyFramework]
+    PhpStanFramework: []
+    SymfonyFramework: []
+    CpuCoreCounter: []
+    PhpParserFramework: []

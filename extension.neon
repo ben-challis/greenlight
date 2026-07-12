@@ -1,0 +1,19 @@
+parametersSchema:
+    greenlight: structure([
+        configFiles: listOf(string())
+    ])
+
+parameters:
+    greenlight:
+        configFiles: []
+
+rules:
+    - Greenlight\PhpStan\DataProviderSignatureRule
+
+services:
+    -
+        class: Greenlight\PhpStan\ExpectationMethodsExtension
+        arguments:
+            configFiles: %greenlight.configFiles%
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension
