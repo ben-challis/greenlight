@@ -18,7 +18,7 @@ Greenlight already runs its own test suite using `bin/greenlight run` across an 
 - Parallel execution by default with an automatically sized worker pool.
 - Dynamic scheduling that keeps workers busy and prioritises historically slow classes.
 - Worker recycling and leak detection for stable long-running suites.
-- Per-test or per-class process isolation with `#[Isolated]`.
+- Per-test or per-class process isolation.
 - Strict mocks, stubs, and spies with automatic verification.
 - Deterministic terminal and CI reporting.
 - Stable, coordination-free CI sharding with `--shard=n/m`.
