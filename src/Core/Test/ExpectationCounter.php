@@ -22,6 +22,7 @@ final class ExpectationCounter
 {
     private static int $count = 0;
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function reset(): void

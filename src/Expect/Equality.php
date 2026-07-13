@@ -14,6 +14,7 @@ namespace Greenlight\Expect;
  */
 final class Equality
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function equals(mixed $a, mixed $b): bool

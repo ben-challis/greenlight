@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Wire\Wire;
@@ -15,6 +16,7 @@ use Greenlight\Core\Wire\Wire;
  */
 final class EventRegistry
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     /**

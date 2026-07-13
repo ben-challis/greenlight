@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\ErrorTrap;
 
 /**
@@ -15,6 +16,7 @@ use Greenlight\Core\ErrorTrap;
  */
 final class ClassFileParser
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     /**

@@ -20,6 +20,7 @@ use Greenlight\Core\Result\ThrowableDetail;
  */
 final class ProblemDetails
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function render(TestResult $result): string

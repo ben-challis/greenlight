@@ -6,6 +6,7 @@ namespace Greenlight\Runner;
 
 use Fidry\CpuCoreCounter\CpuCoreCounter;
 use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\ErrorTrap;
 
 /**
@@ -23,6 +24,7 @@ final class CpuCores
 {
     private const int FALLBACK = 4;
 
+    #[CoverageIgnore]
     private function __construct() {}
 
     /**

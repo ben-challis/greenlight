@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Attribute\CoverageIgnore;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\CallableType;
@@ -30,6 +31,7 @@ use PHPStan\Type\TypeCombinator;
  */
 final class NativeType
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     public static function fromReflection(?\ReflectionType $type): Type

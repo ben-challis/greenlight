@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\Done;
@@ -38,6 +39,7 @@ final class MessageRegistry
         'fatal' => Fatal::class,
     ];
 
+    #[CoverageIgnore]
     private function __construct() {}
 
     /**

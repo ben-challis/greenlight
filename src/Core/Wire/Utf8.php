@@ -16,6 +16,7 @@ namespace Greenlight\Core\Wire;
  */
 final class Utf8
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function scrub(string $value): string

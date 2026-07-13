@@ -14,6 +14,7 @@ use Greenlight\Core\ErrorTrap;
  */
 final class Terminal
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

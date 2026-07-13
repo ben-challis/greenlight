@@ -14,6 +14,7 @@ namespace Greenlight\Core;
  */
 final class Wildcard
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function matches(string $subject, string $pattern, bool $caseInsensitive): bool

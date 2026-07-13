@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
@@ -33,6 +34,7 @@ use Greenlight\Plugin\PluginRegistry;
  */
 final class DefaultServices
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     public static function registry(PluginRegistry $plugins = new PluginRegistry()): HarnessRegistry

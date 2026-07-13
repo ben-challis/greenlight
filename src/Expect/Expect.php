@@ -23,6 +23,7 @@ final class Expect
      */
     private static array $extensions = [];
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function that(mixed $value): Expectation

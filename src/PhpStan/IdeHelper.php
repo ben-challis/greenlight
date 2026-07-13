@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Expect\Expectation;
 
 /**
@@ -27,6 +28,7 @@ use Greenlight\Expect\Expectation;
  */
 final readonly class IdeHelper
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     public static function render(MatcherMap $map): string

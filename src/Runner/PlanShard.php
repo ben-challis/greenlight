@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 
@@ -22,6 +23,7 @@ use Greenlight\Discovery\PlanEntry;
  */
 final class PlanShard
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     /**

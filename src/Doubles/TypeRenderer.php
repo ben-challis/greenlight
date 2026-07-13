@@ -19,6 +19,7 @@ namespace Greenlight\Doubles;
  */
 final class TypeRenderer
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

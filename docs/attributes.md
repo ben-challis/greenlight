@@ -314,3 +314,35 @@ That worker is discarded afterwards.
 
 Use this for tests that modify process-global state, such as ini settings,
 environment variables, or static caches.
+
+## CoverageIgnore
+
+Target: class, method, or function.
+
+No parameters.
+
+Excludes the declaration from coverage. Ignored lines are removed from both the
+covered and executable totals, so they never move a percentage, an export, or a
+baseline diff.
+
+```php
+final class Config
+{
+    #[CoverageIgnore]
+    private function __construct() { ... }
+}
+```
+
+```php
+#[CoverageIgnore]
+function dumpDebugState(): void { ... }
+```
+
+The attribute is matched by name without loading the code it's applied to, so
+an aliased import (`use Greenlight\Attribute\CoverageIgnore as Ignore`) is not
+recognised.
+
+The PHPUnit comment annotations work unchanged: `@codeCoverageIgnore` in a
+docblock before a declaration, `@codeCoverageIgnoreStart` and
+`@codeCoverageIgnoreEnd` around a block, and a trailing `// @codeCoverageIgnore`
+on a single line.

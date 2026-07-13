@@ -17,6 +17,7 @@ namespace Greenlight\Core\Wire;
  */
 final class Wire
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

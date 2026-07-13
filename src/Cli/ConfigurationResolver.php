@@ -23,6 +23,7 @@ use Greenlight\Core\Result\ResultPolicy;
  */
 final class ConfigurationResolver
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function resolve(Configuration $configuration, CliOverrides $overrides): Configuration

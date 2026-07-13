@@ -30,6 +30,7 @@ use Greenlight\Coverage\Export\CoverageExporter;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\Export\LcovExporter;
+use Greenlight\Coverage\Ignore\IgnoreFilter;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
@@ -504,6 +505,12 @@ final readonly class Application
             if ($dumped instanceof CoverageMap) {
                 $coverage = $coverage instanceof CoverageMap ? $coverage->merge($dumped) : $dumped;
             }
+        }
+
+        // Filtered only after every source is merged, so ignore markers apply
+        // to worker, orchestrator, and relayed coverage alike.
+        if ($coverage instanceof CoverageMap) {
+            $coverage = new IgnoreFilter()->apply($coverage);
         }
 
         $reporter->finish();

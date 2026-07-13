@@ -16,6 +16,7 @@ final class CallSite
 {
     private const int MAX_FRAMES = 40;
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function capture(): ?SourceLocation

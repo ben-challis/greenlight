@@ -33,6 +33,7 @@ final class EventTags
         'worker-recycled' => WorkerRecycled::class,
     ];
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

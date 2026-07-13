@@ -21,6 +21,7 @@ namespace Greenlight\Core;
  */
 final class ErrorTrap
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

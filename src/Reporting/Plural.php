@@ -13,6 +13,7 @@ namespace Greenlight\Reporting;
  */
 final class Plural
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function count(int $count, string $noun, ?string $plural = null): string

@@ -19,6 +19,7 @@ use Random\RandomException;
  */
 final class AtomicFile
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

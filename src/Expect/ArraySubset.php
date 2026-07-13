@@ -15,6 +15,7 @@ namespace Greenlight\Expect;
  */
 final class ArraySubset
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

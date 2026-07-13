@@ -15,6 +15,7 @@ namespace Greenlight\Config;
  */
 final class MemorySize
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

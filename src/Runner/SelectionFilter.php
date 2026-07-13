@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Config\Configuration;
 use Greenlight\Discovery\Filter;
 
@@ -17,6 +18,7 @@ use Greenlight\Discovery\Filter;
  */
 final class SelectionFilter
 {
+    #[CoverageIgnore]
     private function __construct() {}
 
     public static function fromConfiguration(Configuration $configuration): Filter

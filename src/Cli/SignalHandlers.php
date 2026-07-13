@@ -33,6 +33,7 @@ use Greenlight\Core\GracefulShutdown;
  */
 final class SignalHandlers
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function install(GracefulShutdown $shutdown): void

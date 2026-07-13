@@ -28,6 +28,7 @@ final class SummaryFormat
 {
     private const int MAX_IDS_PER_GROUP = 5;
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function tests(ResultSummary $summary, int $expectations, Style $style): string

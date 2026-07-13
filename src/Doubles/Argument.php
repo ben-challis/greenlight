@@ -14,6 +14,7 @@ namespace Greenlight\Doubles;
  */
 final class Argument
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

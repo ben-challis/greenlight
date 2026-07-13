@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Attribute;
 
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
@@ -39,6 +40,13 @@ final class AttributeContractTest
     {
         Expect::that($this->flags(Group::class))
             ->toBe(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE);
+    }
+
+    #[Test]
+    public function coverageIgnoreTargetsClassesMethodsAndFunctions(): void
+    {
+        Expect::that($this->flags(CoverageIgnore::class))
+            ->toBe(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::TARGET_FUNCTION);
     }
 
     #[Test]

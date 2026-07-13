@@ -16,6 +16,7 @@ use Greenlight\Config\MemorySize;
  */
 final class PlanFormatter
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function format(Configuration $configuration, string $configFile): string

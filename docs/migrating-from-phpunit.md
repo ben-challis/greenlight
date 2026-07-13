@@ -24,6 +24,7 @@ the body of the test can stay close to what it was.
 | `setUpBeforeClass()` statics                     | per-class harness services                                                                    |
 | `#[RunInSeparateProcess]`                        | `#[Isolated]`                                                                                 |
 | `#[Depends]`                                     | no equivalent                                                                                 |
+| `@codeCoverageIgnore` and related annotations    | work unchanged; `#[CoverageIgnore]` is the native equivalent                                  |
 
 ## Assertions
 
