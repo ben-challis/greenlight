@@ -55,16 +55,16 @@ final readonly class IgnoreScanner
                     $rangeStart ??= $token->line;
                 } elseif (\str_contains($token->text, self::END)) {
                     if ($rangeStart !== null) {
-                        self::addRange($ignored, $rangeStart, self::lastLine($token));
+                        $this->addRange($ignored, $rangeStart, $this->lastLine($token));
                         $rangeStart = null;
                     }
                 } elseif (\str_contains($token->text, self::IGNORE)) {
-                    $declaration = self::declarationRange($tokens, $i + 1);
+                    $declaration = $this->declarationRange($tokens, $i + 1);
 
                     if ($declaration === null) {
                         $ignored[$token->line] = true;
                     } else {
-                        self::addRange($ignored, $declaration[0], $declaration[1]);
+                        $this->addRange($ignored, $declaration[0], $declaration[1]);
                     }
                 }
 
@@ -72,13 +72,13 @@ final readonly class IgnoreScanner
             }
 
             if ($token->is(\T_ATTRIBUTE)) {
-                [$matched, $after] = self::attributeGroup($tokens, $i);
+                [$matched, $after] = $this->attributeGroup($tokens, $i);
 
                 if ($matched) {
-                    $declaration = self::declarationRange($tokens, $after);
+                    $declaration = $this->declarationRange($tokens, $after);
 
                     if ($declaration !== null) {
-                        self::addRange($ignored, $declaration[0], $declaration[1]);
+                        $this->addRange($ignored, $declaration[0], $declaration[1]);
                     }
                 }
 
@@ -87,7 +87,7 @@ final readonly class IgnoreScanner
         }
 
         if ($rangeStart !== null) {
-            self::addRange($ignored, $rangeStart, \substr_count($source, "\n") + 1);
+            $this->addRange($ignored, $rangeStart, \substr_count($source, "\n") + 1);
         }
 
         return $ignored;
@@ -103,7 +103,7 @@ final readonly class IgnoreScanner
      *
      * @return array{int, int}|null
      */
-    private static function declarationRange(array $tokens, int $from): ?array
+    private function declarationRange(array $tokens, int $from): ?array
     {
         $count = \count($tokens);
         $i = $from;
@@ -118,7 +118,7 @@ final readonly class IgnoreScanner
             }
 
             if ($token->is(\T_ATTRIBUTE)) {
-                [, $i] = self::attributeGroup($tokens, $i);
+                [, $i] = $this->attributeGroup($tokens, $i);
 
                 continue;
             }
@@ -130,11 +130,11 @@ final readonly class IgnoreScanner
             }
 
             if ($token->is([\T_CLASS, \T_TRAIT, \T_INTERFACE, \T_ENUM])) {
-                return self::bodyRange($tokens, $i);
+                return $this->bodyRange($tokens, $i);
             }
 
             if ($token->is(\T_FUNCTION)) {
-                return self::isNamedFunction($tokens, $i) ? self::bodyRange($tokens, $i) : null;
+                return $this->isNamedFunction($tokens, $i) ? $this->bodyRange($tokens, $i) : null;
             }
 
             return null;
@@ -146,7 +146,7 @@ final readonly class IgnoreScanner
     /**
      * @param list<\PhpToken> $tokens
      */
-    private static function isNamedFunction(array $tokens, int $functionIndex): bool
+    private function isNamedFunction(array $tokens, int $functionIndex): bool
     {
         $count = \count($tokens);
 
@@ -172,7 +172,7 @@ final readonly class IgnoreScanner
      *
      * @return array{int, int}
      */
-    private static function bodyRange(array $tokens, int $declarationIndex): array
+    private function bodyRange(array $tokens, int $declarationIndex): array
     {
         $count = \count($tokens);
         $first = $tokens[$declarationIndex]->line;
@@ -192,7 +192,7 @@ final readonly class IgnoreScanner
             }
         }
 
-        return [$first, self::lastLine($tokens[$count - 1])];
+        return [$first, $this->lastLine($tokens[$count - 1])];
     }
 
     /**
@@ -205,7 +205,7 @@ final readonly class IgnoreScanner
      *
      * @return array{bool, int}
      */
-    private static function attributeGroup(array $tokens, int $attributeIndex): array
+    private function attributeGroup(array $tokens, int $attributeIndex): array
     {
         $count = \count($tokens);
         $depth = 1;
@@ -274,14 +274,14 @@ final readonly class IgnoreScanner
     /**
      * @param array<int, true> $ignored
      */
-    private static function addRange(array &$ignored, int $first, int $last): void
+    private function addRange(array &$ignored, int $first, int $last): void
     {
         for ($line = $first; $line <= $last; $line++) {
             $ignored[$line] = true;
         }
     }
 
-    private static function lastLine(\PhpToken $token): int
+    private function lastLine(\PhpToken $token): int
     {
         return $token->line + \substr_count($token->text, "\n");
     }
