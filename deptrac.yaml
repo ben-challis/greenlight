@@ -2,11 +2,23 @@ deptrac:
   paths:
     - src
 
+  analyser:
+    types:
+      - class
+      - class_superglobal
+      - use
+      - file
+      - function
+      - function_call
+      - function_superglobal
+
   layers:
     - name: Core
       collectors:
         - type: directory
           value: src/Core/.*
+    - name: Attribute
+      collectors:
         - type: directory
           value: src/Attribute/.*
     - name: Condition
@@ -76,7 +88,7 @@ deptrac:
     - name: SymfonyFramework
       collectors:
         - type: classNameRegex
-          value: /^Symfony\\/
+          value: /^Symfony\\(Component\\(DependencyInjection|HttpKernel)|Contracts\\Service)\\/
     - name: CpuCoreCounter
       collectors:
         - type: classNameRegex
@@ -88,9 +100,10 @@ deptrac:
 
   ruleset:
     Core: []
+    Attribute: [Core]
     Condition: [Core]
     Config: [Core]
-    Discovery: [Core]
+    Discovery: [Core, Attribute]
     Expect: [Core]
     Capture: [Core]
     Harness: [Core]
@@ -99,9 +112,9 @@ deptrac:
     Coverage: [Core]
     Plugin: [Core, Harness]
     Reporting: [Core]
-    Runner: [Core, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
+    Runner: [Core, Attribute, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
-    PhpStan: [Core, Config, Expect, PhpStanFramework, PhpParserFramework]
+    PhpStan: [Core, Attribute, Config, Expect, PhpStanFramework, PhpParserFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
     PhpStanFramework: []
     SymfonyFramework: []
