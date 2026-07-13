@@ -132,21 +132,22 @@ final class ProfileAggregator
             );
         }
 
+        $rows = [];
+
         foreach ($this->workers as $id => $worker) {
             if ($worker->classes === 0) {
                 continue;
             }
 
-            $percent = $worker->utilisationPercent();
-            $utilisation = $percent === null ? '' : ', utilisation ' . $this->utilisation($style, $percent);
+            $rows[] = [$id, (string) $worker->classes, \sprintf('%.3fs', $worker->busy), $worker->utilisationPercent()];
+        }
 
-            $lines[] = \sprintf(
-                '  Worker %s: %s, busy %.3fs%s',
-                $id,
-                Plural::count($worker->classes, 'class', 'classes'),
-                $worker->busy,
-                $utilisation,
-            );
+        if ($rows !== []) {
+            $lines[] = '';
+
+            foreach ($this->workerTable($style, $rows) as $line) {
+                $lines[] = $line;
+            }
         }
 
         if (\count($finishTimes) > 1) {
@@ -158,14 +159,63 @@ final class ProfileAggregator
 
         if ($this->classDurations !== []) {
             \arsort($this->classDurations);
+            $lines[] = '';
             $lines[] = '  Slowest classes:';
+            $slowest = \array_slice($this->classDurations, 0, self::SLOWEST_LIMIT, preserve_keys: true);
+            // 6 is the floor a %.3fs render can occupy (0.000s).
+            $width = \max(6, ...\array_map(static fn(float $duration): int => \strlen(\sprintf('%.3fs', $duration)), \array_values($slowest)));
 
-            foreach (\array_slice($this->classDurations, 0, self::SLOWEST_LIMIT, preserve_keys: true) as $class => $duration) {
-                $lines[] = \sprintf('    %s %s', $style->duration($duration), $class);
+            foreach ($slowest as $class => $duration) {
+                // Pad outside the colour codes so escape sequences cannot
+                // break the alignment.
+                $pad = \str_repeat(' ', $width - \strlen(\sprintf('%.3fs', $duration)));
+                $lines[] = \sprintf('    %s%s  %s', $pad, $style->duration($duration), $class);
             }
         }
 
         return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * The aligned worker stats table: left-aligned ids, right-aligned
+     * numeric columns, widths computed from the data.
+     *
+     * @param list<array{string, string, string, ?int}> $rows
+     *
+     * @return list<string>
+     */
+    private function workerTable(Style $style, array $rows): array
+    {
+        $workerWidth = \max(\strlen('Worker'), ...\array_map(static fn(array $row): int => \strlen($row[0]), $rows));
+        $classesWidth = \max(\strlen('Classes'), ...\array_map(static fn(array $row): int => \strlen($row[1]), $rows));
+        $busyWidth = \max(\strlen('Busy'), ...\array_map(static fn(array $row): int => \strlen($row[2]), $rows));
+        $utilWidth = \max(\strlen('Util'), ...\array_map(static fn(array $row): int => \strlen($row[3] . '%'), $rows));
+
+        $lines = [\rtrim(\sprintf(
+            '  %s  %s  %s  %s',
+            \str_pad('Worker', $workerWidth),
+            \str_pad('Classes', $classesWidth, ' ', \STR_PAD_LEFT),
+            \str_pad('Busy', $busyWidth, ' ', \STR_PAD_LEFT),
+            \str_pad('Util', $utilWidth, ' ', \STR_PAD_LEFT),
+        ))];
+
+        foreach ($rows as [$id, $classes, $busy, $percent]) {
+            // Pad outside the colour codes so escape sequences cannot break
+            // the alignment.
+            $util = $percent === null
+                ? ''
+                : \str_repeat(' ', $utilWidth - \strlen($percent . '%')) . $this->utilisation($style, $percent);
+
+            $lines[] = \rtrim(\sprintf(
+                '  %s  %s  %s  %s',
+                \str_pad($id, $workerWidth),
+                \str_pad($classes, $classesWidth, ' ', \STR_PAD_LEFT),
+                \str_pad($busy, $busyWidth, ' ', \STR_PAD_LEFT),
+                $util,
+            ));
+        }
+
+        return $lines;
     }
 
     /**

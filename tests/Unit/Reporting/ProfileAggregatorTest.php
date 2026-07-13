@@ -29,15 +29,50 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
+        $expected = <<<'TEXT'
+
+            Profile:
+              Workers: 2 requested, 2 spawned, 1 recycled
+              Boot latency: 0.750s average (spawn to first class, 2 workers)
+
+              Worker  Classes    Busy  Util
+              w-1           2  3.500s   78%
+              w-2           1  1.000s   50%
+              Makespan spread: 2.500s between first and last worker finish
+
+              Slowest classes:
+                2.500s  Acme\AlphaTest
+                1.000s  Acme\GammaTest
+                1.000s  Acme\BetaTest
+
+            TEXT;
+
+        Expect::that($aggregator->render(new Style(ansi: false)))->toBe($expected);
+    }
+
+    #[Test]
+    public function slowestDurationsRightAlignAcrossWidths(): void
+    {
+        $aggregator = new ProfileAggregator();
+
+        $events = [
+            new RunStarted('run-1', 2, 1, 100.0),
+            new WorkerSpawned('w-1', 11, 100.0),
+            new TestClassStarted('Acme\SlowTest', 100.0, 'w-1'),
+            new TestClassFinished('Acme\SlowTest', 112.0, 'w-1'),
+            new TestClassStarted('Acme\QuickTest', 112.0, 'w-1'),
+            new TestClassFinished('Acme\QuickTest', 113.0, 'w-1'),
+            new RunFinished('run-1', new ResultSummary(passed: 2), 13.0, 113.0),
+        ];
+
+        foreach ($events as $event) {
+            $aggregator->onEvent($event);
+        }
+
         $rendered = $aggregator->render(new Style(ansi: false));
 
-        Expect::that($rendered)->toContain('Workers: 2 requested, 2 spawned, 1 recycled')
-            ->and($rendered)->toContain('Boot latency: 0.750s average (spawn to first class, 2 workers)')
-            ->and($rendered)->toContain('Worker w-1: 2 classes, busy 3.500s, utilisation 78%')
-            ->and($rendered)->toContain('Worker w-2: 1 class, busy 1.000s, utilisation 50%')
-            ->and($rendered)->toContain('Makespan spread: 2.500s between first and last worker finish')
-            ->and($rendered)->toContain('Slowest classes:')
-            ->and($rendered)->toContain('2.500s Acme\AlphaTest');
+        Expect::that($rendered)->toContain("    12.000s  Acme\\SlowTest\n")
+            ->and($rendered)->toContain("     1.000s  Acme\\QuickTest\n");
     }
 
     #[Test]
@@ -52,10 +87,11 @@ final class ProfileAggregatorTest
         $rendered = $aggregator->render(new Style(ansi: true));
 
         // 78% sits in the mid band (yellow), 50% below it (red); the 2.5s
-        // class crosses the slow threshold (yellow).
-        Expect::that($rendered)->toContain("utilisation \x1b[33m78%\x1b[0m")
-            ->and($rendered)->toContain("utilisation \x1b[31m50%\x1b[0m")
-            ->and($rendered)->toContain("\x1b[33m2.500s\x1b[0m Acme\AlphaTest");
+        // class crosses the slow threshold (yellow). Cells pad outside the
+        // colour codes so escape sequences cannot break column alignment.
+        Expect::that($rendered)->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
+            ->and($rendered)->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
+            ->and($rendered)->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
     }
 
     #[Test]
@@ -76,7 +112,7 @@ final class ProfileAggregatorTest
         }
 
         Expect::that($aggregator->render(new Style(ansi: true)))
-            ->toContain("utilisation \x1b[32m100%\x1b[0m");
+            ->toContain("0.500s  \x1b[32m100%\x1b[0m\n");
     }
 
     #[Test]
