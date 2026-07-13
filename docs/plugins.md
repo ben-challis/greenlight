@@ -53,7 +53,7 @@ final class FlakyQuarantine implements TestLifecycleSubscriber
 
 Call `$context->skip('reason')` to stop the attempt and report the test as
 skipped. The method is typed `never`, so code after the call does not run. It
-throws `Greenlight\Core\SkipTest`, which is declared on the interface; throwing
+throws `Greenlight\Core\Test\SkipTest`, which is declared on the interface; throwing
 that exception yourself has the same effect. Any other throwable marks the test
 as errored and names the plugin.
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Lifecycle\RuntimeSkip;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\SkipTest;
+use Greenlight\Core\Test\SkipTest;
 
 final class RuntimeSkipTest
 {

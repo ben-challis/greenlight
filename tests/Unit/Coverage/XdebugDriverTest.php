@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\SkipTest;
+use Greenlight\Core\Test\SkipTest;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Coverage\PathFilter;

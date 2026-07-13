@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\SkipTest;
+use Greenlight\Core\Test\SkipTest;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
