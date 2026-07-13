@@ -1,32 +1,34 @@
 # Contributing to Greenlight
 
-Thanks for your interest in contributing. This document covers the rules that apply to every change.
+Thank you for your interest in contributing. These rules apply to every change.
 
 ## Requirements
 
-Greenlight requires PHP 8.4 or later. Development happens on the same version range the framework targets, so make sure your local PHP is at least 8.4.
+Greenlight requires PHP 8.4 or later.
 
 ## Before you push
 
-Run both composer scripts and make sure they are green:
+Run:
 
 ```bash
 composer static-analysis && composer tests
 ```
 
-CI runs exactly the same scripts, so if they pass locally they should pass in CI.
+CI runs the same scripts, so both must pass locally.
 
-## Commits and branching
+## Commits and pull requests
 
-Development is trunk-based on `main`. Pull requests are squash merged, so the pull request title becomes the commit message and must follow the conventional commit format:
+Submit changes through pull requests targeting `main`.
 
-```
+Pull requests are squash merged, so the pull request title becomes the commit message and must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format:
+
+```text
 type(scope): short description
 ```
 
 Examples:
 
-```
+```text
 feat(expect): add toContain matcher for iterables
 fix(runner): close worker sockets on orchestrator shutdown
 docs: clarify the channel contract in the README
@@ -35,20 +37,26 @@ test(discovery): cover nested fixture directories
 chore: bump php-cs-fixer to 3.76
 ```
 
-Common types are `feat`, `fix`, `docs`, `refactor`, `test`, and `chore`. Use a scope matching the component you touched where it helps.
+Common types include `feat`, `fix`, `docs`, `refactor`, `test`, and `chore`. Add a scope when it provides useful context.
 
 ## IDE completion for the PHPStan API
 
-The `phpstan/phpstan` dev dependency ships as a phar, so editors cannot index the PHPStan classes that `src/PhpStan/` implements. To fix that, `composer install` and `composer update` extract the PHPStan API sources from the phar into `.phpstan-api-stubs/`, which your IDE indexes like any other project directory. The directory is gitignored and never executed; PHPStan loads the real classes from the phar at analysis time. If completion for `PHPStan\` symbols is missing, run `composer phpstan:stubs` to regenerate it.
+The `phpstan/phpstan` development dependency is distributed as a PHAR, so editors cannot index the PHPStan classes implemented by `src/PhpStan/`.
 
-## No baselines
+`composer install` and `composer update` extract the API sources into `.phpstan-api-stubs/` for IDE indexing. This directory is ignored by Git and is never executed.
 
-PHPStan runs at level max with strict rules and deptrac enforces component boundaries. Neither tool may have a baseline file in this repository, ever. If your change introduces a violation, fix the violation rather than suppressing it. Pull requests that add a baseline will be rejected.
+If completion for `PHPStan\` symbols is missing, run:
+
+```bash
+composer phpstan:stubs
+```
 
 ## Zero runtime dependencies
 
-The `require` section of `composer.json` contains only `php`. Greenlight is installed into the dev dependencies of every project that uses it, so any runtime dependency it carries becomes a potential version conflict with the code under test. If your change needs a capability, we own the code. Dev dependencies for tooling are fine; runtime dependencies are not.
+Greenlight is installed as a development dependency, so runtime dependencies could conflict with the project under test. If a capability is needed, implement it within Greenlight.
+
+Development dependencies for tooling are allowed. Runtime dependencies are not.
 
 ## Questions
 
-Open an issue. For feature ideas, the feature issue template asks for a proposed API sketch.
+Open an issue. For feature proposals, use the feature issue template and include a proposed API sketch.
