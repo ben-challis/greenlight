@@ -13,8 +13,8 @@ use Greenlight\Tests\Support\AcceptanceProject;
  *
  * --exclude-class matches by substring or wildcard against the class name;
  * --exclude-path matches by prefix against the discovered file's absolute
- * path, so the excluded path must be the project's absolute tests directory,
- * not a path relative to the working directory.
+ * path. Relative prefixes are resolved against the working directory (and
+ * canonicalized when they exist on disk) before matching.
  */
 final class ExcludeSelectionTest
 {
@@ -87,11 +87,8 @@ final class ExcludeSelectionTest
     }
 
     #[Test]
-    public function excludePathWithARelativePrefixExcludesNothing(): void
+    public function excludePathResolvesARelativePrefixAgainstTheWorkingDirectory(): void
     {
-        // Filter matches the discovered file's absolute path, so a
-        // working-directory-relative prefix never matches and every test
-        // still runs.
         $project = $this->writeProject();
 
         try {
@@ -101,8 +98,51 @@ final class ExcludeSelectionTest
             $this->assertIds($lines, present: [
                 'ExcludeProbe\AExcludeProbeTest::one',
                 'ExcludeProbe\BExcludeProbeTest::one',
+            ], absent: [
                 'ExcludeProbe\CExcludeProbeTest::one',
-            ], absent: []);
+            ]);
+        } finally {
+            $project->remove();
+        }
+    }
+
+    #[Test]
+    public function excludePathResolvesARelativeDirectoryPrefix(): void
+    {
+        $project = $this->writeProject();
+        $project->write('tests/nested/DExcludeProbeTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace ExcludeProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class DExcludeProbeTest
+            {
+                #[Test]
+                public function one(): void {}
+            }
+            PHP);
+        $project->writeConfig([
+            'tests/AExcludeProbeTest.php',
+            'tests/BExcludeProbeTest.php',
+            'tests/CExcludeProbeTest.php',
+            'tests/nested/DExcludeProbeTest.php',
+        ]);
+
+        try {
+            [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=tests/nested');
+
+            Expect::that($exit)->toBe(0);
+            $this->assertIds($lines, present: [
+                'ExcludeProbe\AExcludeProbeTest::one',
+                'ExcludeProbe\BExcludeProbeTest::one',
+                'ExcludeProbe\CExcludeProbeTest::one',
+            ], absent: [
+                'ExcludeProbe\DExcludeProbeTest::one',
+            ]);
         } finally {
             $project->remove();
         }

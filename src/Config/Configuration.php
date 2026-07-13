@@ -86,4 +86,33 @@ final readonly class Configuration
             excludePaths: $this->excludePaths,
         );
     }
+
+    /**
+     * @param list<non-empty-string> $paths
+     */
+    public function withExcludePaths(array $paths): self
+    {
+        return new self(
+            paths: $this->paths,
+            suites: $this->suites,
+            workers: $this->workers,
+            recycleAfterTests: $this->recycleAfterTests,
+            recycleAboveMemoryBytes: $this->recycleAboveMemoryBytes,
+            coverage: $this->coverage,
+            watch: $this->watch,
+            plugins: $this->plugins,
+            policy: $this->policy,
+            stopAfterFailures: $this->stopAfterFailures,
+            randomizeOrder: $this->randomizeOrder,
+            randomSeed: $this->randomSeed,
+            groups: $this->groups,
+            filters: $this->filters,
+            onlyTests: $this->onlyTests,
+            shard: $this->shard,
+            excludeGroups: $this->excludeGroups,
+            excludeClasses: $this->excludeClasses,
+            excludeMethods: $this->excludeMethods,
+            excludePaths: $paths,
+        );
+    }
 }

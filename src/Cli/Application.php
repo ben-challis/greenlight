@@ -116,7 +116,8 @@ final readonly class Application
           --exclude-method=<pattern> Skip methods matching this pattern;
                              substring or * wildcards; repeatable
           --exclude-path=<prefix>    Skip test files under this path prefix;
-                             repeatable
+                             relative prefixes are resolved against the
+                             working directory; repeatable
           --failed           Only re-run tests that failed in the previous run
           --list-tests       Print the selected test ids instead of running
           --list-groups      Print each selected group and its test count
@@ -1201,7 +1202,41 @@ final readonly class Application
             $builder = $loader->loadFromDirectory($workingDirectory);
         }
 
-        return [ConfigurationResolver::resolve($builder->build(), $overrides), $configFile];
+        $resolved = ConfigurationResolver::resolve($builder->build(), $overrides);
+
+        if ($resolved->excludePaths !== []) {
+            $resolved = $resolved->withExcludePaths($this->resolvedPathPrefixes($resolved->excludePaths, $workingDirectory));
+        }
+
+        return [$resolved, $configFile];
+    }
+
+    /**
+     * Discovery reports symlink-resolved absolute file paths, so prefixes are
+     * resolved against the working directory and canonicalized before the
+     * prefix match; a prefix that does not exist on disk keeps its
+     * uncanonicalized absolute form.
+     *
+     * @param list<non-empty-string> $prefixes
+     *
+     * @return list<non-empty-string>
+     */
+    private function resolvedPathPrefixes(array $prefixes, string $workingDirectory): array
+    {
+        $resolved = [];
+
+        foreach ($prefixes as $prefix) {
+            $absolute = $this->absolutePath($prefix, $workingDirectory);
+            $real = \realpath($absolute);
+
+            if ($real !== false) {
+                $resolved[] = $real;
+            } elseif ($absolute !== '') {
+                $resolved[] = $absolute;
+            }
+        }
+
+        return $resolved;
     }
 
     /**
