@@ -10,6 +10,9 @@ namespace Greenlight\Core\Event;
  *
  * Additive only: a tag, once shipped, never changes meaning.
  *
+ * suite-started and suite-finished are reserved: registered so the tags stay
+ * stable, but no run emits them until execution gains suite boundaries.
+ *
  * @internal
  */
 final class EventTags

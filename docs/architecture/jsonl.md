@@ -76,6 +76,14 @@ unknown version as unparseable.
 
 `run-finished.summary` contains passed, failed, errored, and skipped counts.
 
+`suite-started` and `suite-finished` are reserved event types.
+Greenlight does not emit them today because suites only group configuration paths into a single discovery set,
+so execution has no suite boundary.
+
+They are defined in the event list and schema now to preserve their meaning if suite-scoped execution is added later.
+Consumers must not wait for these events and, under the versioning policy, must tolerate them appearing in a future
+release.
+
 `test-started.id` is the test id: class, method, and data-set key when present.
 
 `class-started.workerId` and `class-finished.workerId` name the worker that
