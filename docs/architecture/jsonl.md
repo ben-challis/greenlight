@@ -5,6 +5,12 @@ The `jsonl` reporter is Greenlight's machine-readable run output.
 It writes one JSON object per line, streamed as events occur. Typical consumers
 include IDEs, dashboards, and flaky-test tooling.
 
+A machine-readable JSON Schema for version 1 ships at
+[resources/schema/jsonl-v1.schema.json](../../resources/schema/jsonl-v1.schema.json).
+Every line the reporter emits validates against it, enforced by tests. The
+schema states the floor of the contract: required keys and their types.
+Payloads may carry additional keys, per the versioning policy below.
+
 ## Envelope
 
 Each line is one JSON object with three keys:
@@ -61,8 +67,8 @@ unknown version as unparseable.
 | `run-finished`    | Run ends                   | `runId`, `summary`, `durationSeconds`, `occurredAt` |
 | `suite-started`   | Suite begins               | `suite`, `occurredAt`                               |
 | `suite-finished`  | Suite ends                 | `suite`, `occurredAt`                               |
-| `class-started`   | Test class begins          | `class`, `occurredAt`                               |
-| `class-finished`  | Test class ends            | `class`, `occurredAt`                               |
+| `class-started`   | Test class begins          | `class`, `occurredAt`, `workerId`                   |
+| `class-finished`  | Test class ends            | `class`, `occurredAt`, `workerId`                   |
 | `test-started`    | Test begins                | `id`, `occurredAt`                                  |
 | `test-finished`   | Test ends                  | `result`, `occurredAt`                              |
 | `worker-spawned`  | Worker process starts      | `workerId`, `pid`, `occurredAt`                     |
@@ -71,6 +77,9 @@ unknown version as unparseable.
 `run-finished.summary` contains passed, failed, errored, and skipped counts.
 
 `test-started.id` is the test id: class, method, and data-set key when present.
+
+`class-started.workerId` and `class-finished.workerId` name the worker that
+ran the class. Older streams may omit the key.
 
 `worker-recycled.reason` is one of:
 
@@ -183,6 +192,36 @@ Each item has this shape:
 ```
 
 These records provide provenance for plugin outcome changes.
+
+### output
+
+The output captured during the test, or `null` when nothing was captured.
+
+When present, it has this shape:
+
+```json id="w4mt8a"
+{
+    "stdout": "...",
+    "diagnostics": [
+        {
+            "severity": "warning",
+            "message": "Undefined array key 0",
+            "file": "/project/tests/GreetingTest.php",
+            "line": 21
+        }
+    ],
+    "stdoutTruncated": false,
+    "diagnosticsTruncated": false
+}
+```
+
+`severity` is one of `notice`, `warning`, or `deprecation`.
+
+The truncation flags record that capture hit its size limit.
+
+### risky
+
+Whether the test was flagged as risky.
 
 ### expectations
 

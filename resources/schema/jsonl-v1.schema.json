@@ -1,0 +1,298 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/jsonl-v1.schema.json",
+    "title": "Greenlight jsonl reporter line (v1)",
+    "description": "One line of the jsonl reporter stream. Version 1 changes additively only: payloads may gain new keys and new event tags may appear in newer streams, so consumers should skip lines whose event tag this schema does not define before validating. Prose reference: docs/architecture/jsonl.md.",
+    "type": "object",
+    "required": ["v", "event", "data"],
+    "properties": {
+        "v": {
+            "enum": [1]
+        },
+        "event": {
+            "type": "string",
+            "minLength": 1
+        },
+        "data": {
+            "type": "object"
+        }
+    },
+    "oneOf": [
+        {
+            "properties": {
+                "event": {"enum": ["run-started"]},
+                "data": {"$ref": "#/definitions/runStarted"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["run-finished"]},
+                "data": {"$ref": "#/definitions/runFinished"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["suite-started"]},
+                "data": {"$ref": "#/definitions/suite"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["suite-finished"]},
+                "data": {"$ref": "#/definitions/suite"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["class-started"]},
+                "data": {"$ref": "#/definitions/testClass"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["class-finished"]},
+                "data": {"$ref": "#/definitions/testClass"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["test-started"]},
+                "data": {"$ref": "#/definitions/testStarted"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["test-finished"]},
+                "data": {"$ref": "#/definitions/testFinished"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["worker-spawned"]},
+                "data": {"$ref": "#/definitions/workerSpawned"}
+            }
+        },
+        {
+            "properties": {
+                "event": {"enum": ["worker-recycled"]},
+                "data": {"$ref": "#/definitions/workerRecycled"}
+            }
+        }
+    ],
+    "definitions": {
+        "occurredAt": {
+            "description": "Unix timestamp with microsecond precision. JSON round trips may narrow whole-number floats to integers.",
+            "type": "number"
+        },
+        "runStarted": {
+            "type": "object",
+            "required": ["runId", "plannedTests", "workers", "occurredAt"],
+            "properties": {
+                "runId": {"type": "string", "minLength": 1},
+                "plannedTests": {"type": "integer", "minimum": 0},
+                "workers": {"type": "integer", "minimum": 1},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "runFinished": {
+            "type": "object",
+            "required": ["runId", "summary", "durationSeconds", "occurredAt"],
+            "properties": {
+                "runId": {"type": "string", "minLength": 1},
+                "summary": {"$ref": "#/definitions/summary"},
+                "durationSeconds": {"type": "number", "minimum": 0},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "summary": {
+            "type": "object",
+            "required": ["passed", "failed", "errored", "skipped"],
+            "properties": {
+                "passed": {"type": "integer", "minimum": 0},
+                "failed": {"type": "integer", "minimum": 0},
+                "errored": {"type": "integer", "minimum": 0},
+                "skipped": {"type": "integer", "minimum": 0}
+            }
+        },
+        "suite": {
+            "type": "object",
+            "required": ["suite", "occurredAt"],
+            "properties": {
+                "suite": {"type": "string", "minLength": 1},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "testClass": {
+            "type": "object",
+            "required": ["class", "occurredAt"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"},
+                "workerId": {"type": "string"}
+            }
+        },
+        "testStarted": {
+            "type": "object",
+            "required": ["id", "occurredAt"],
+            "properties": {
+                "id": {"$ref": "#/definitions/testId"},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "testFinished": {
+            "type": "object",
+            "required": ["result", "occurredAt"],
+            "properties": {
+                "result": {"$ref": "#/definitions/testResult"},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "workerSpawned": {
+            "type": "object",
+            "required": ["workerId", "pid", "occurredAt"],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "pid": {"type": "integer", "minimum": 1},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "workerRecycled": {
+            "type": "object",
+            "required": ["workerId", "reason", "occurredAt"],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "reason": {"enum": ["test-count", "memory", "crash"]},
+                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "testId": {
+            "type": "object",
+            "required": ["class", "method", "dataSetKey"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "method": {"type": "string", "minLength": 1},
+                "dataSetKey": {"type": ["string", "null"]}
+            }
+        },
+        "testResult": {
+            "type": "object",
+            "required": [
+                "id",
+                "outcome",
+                "durationSeconds",
+                "memoryDeltaBytes",
+                "attempts",
+                "failures",
+                "error",
+                "skipReason",
+                "transformations"
+            ],
+            "properties": {
+                "id": {"$ref": "#/definitions/testId"},
+                "outcome": {"$ref": "#/definitions/outcome"},
+                "durationSeconds": {"type": "number", "minimum": 0},
+                "memoryDeltaBytes": {"type": "integer"},
+                "attempts": {"type": "integer", "minimum": 1},
+                "failures": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/failureDetail"}
+                },
+                "error": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/throwableDetail"}
+                    ]
+                },
+                "skipReason": {"type": ["string", "null"]},
+                "transformations": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/transformation"}
+                },
+                "output": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/capturedOutput"}
+                    ]
+                },
+                "risky": {"type": "boolean"},
+                "expectations": {
+                    "description": "Expectations verified during the final attempt. Older streams omit this key; treat a missing value as 0.",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "outcome": {
+            "enum": ["passed", "failed", "errored", "skipped"]
+        },
+        "failureDetail": {
+            "type": "object",
+            "required": ["message", "expected", "actual", "location"],
+            "properties": {
+                "message": {"type": "string", "minLength": 1},
+                "expected": {"type": ["string", "null"]},
+                "actual": {"type": ["string", "null"]},
+                "location": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/sourceLocation"}
+                    ]
+                }
+            }
+        },
+        "sourceLocation": {
+            "type": "object",
+            "required": ["file", "line"],
+            "properties": {
+                "file": {"type": "string", "minLength": 1},
+                "line": {"type": "integer", "minimum": 1}
+            }
+        },
+        "throwableDetail": {
+            "type": "object",
+            "required": ["class", "message", "file", "line", "stackFrames"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "message": {"type": "string"},
+                "file": {"type": "string", "minLength": 1},
+                "line": {"type": "integer", "minimum": 1},
+                "stackFrames": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            }
+        },
+        "transformation": {
+            "type": "object",
+            "required": ["transformedBy", "from", "to"],
+            "properties": {
+                "transformedBy": {"type": "string", "minLength": 1},
+                "from": {"$ref": "#/definitions/outcome"},
+                "to": {"$ref": "#/definitions/outcome"}
+            }
+        },
+        "capturedOutput": {
+            "type": "object",
+            "required": ["stdout", "diagnostics", "stdoutTruncated", "diagnosticsTruncated"],
+            "properties": {
+                "stdout": {"type": "string"},
+                "diagnostics": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/diagnostic"}
+                },
+                "stdoutTruncated": {"type": "boolean"},
+                "diagnosticsTruncated": {"type": "boolean"}
+            }
+        },
+        "diagnostic": {
+            "type": "object",
+            "required": ["severity", "message", "file", "line"],
+            "properties": {
+                "severity": {"enum": ["notice", "warning", "deprecation"]},
+                "message": {"type": "string"},
+                "file": {"type": "string"},
+                "line": {"type": "integer", "minimum": 0}
+            }
+        }
+    }
+}
