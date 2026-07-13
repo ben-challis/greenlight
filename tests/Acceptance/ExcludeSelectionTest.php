@@ -15,6 +15,10 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * --exclude-path matches by prefix against the discovered file's absolute
  * path. Relative prefixes are resolved against the working directory (and
  * canonicalized when they exist on disk) before matching.
+ *
+ * An --exclude-path prefix that matches no discovered test file warns on
+ * stderr, for listings and runs alike, so a typo'd or stale prefix is
+ * visible instead of silently excluding nothing.
  */
 final class ExcludeSelectionTest
 {
@@ -143,6 +147,44 @@ final class ExcludeSelectionTest
             ], absent: [
                 'ExcludeProbe\DExcludeProbeTest::one',
             ]);
+        } finally {
+            $project->remove();
+        }
+    }
+
+    #[Test]
+    public function excludePathWarnsWhenThePrefixMatchesNoTestFile(): void
+    {
+        $project = $this->writeProject();
+
+        try {
+            [$exit, $output] = $project->run('list-tests', '--exclude-path=tests/MissingProbeTest.php');
+
+            Expect::that($exit)->toBe(0)
+                ->and($output)->toContain('matched no discovered test file')
+                ->and($output)->toContain('MissingProbeTest.php')
+                ->and($output)->toContain('3 tests');
+
+            [$exit, $output] = $project->run('run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php');
+
+            Expect::that($exit)->toBe(0)
+                ->and($output)->toContain('matched no discovered test file')
+                ->and($output)->toContain('3 tests, 3 passed');
+        } finally {
+            $project->remove();
+        }
+    }
+
+    #[Test]
+    public function excludePathDoesNotWarnWhenThePrefixMatchesATestFile(): void
+    {
+        $project = $this->writeProject();
+
+        try {
+            [$exit, $output] = $project->run('list-tests', '--exclude-path=tests/CExcludeProbeTest.php');
+
+            Expect::that($exit)->toBe(0)
+                ->and($output)->not()->toContain('matched no discovered test file');
         } finally {
             $project->remove();
         }

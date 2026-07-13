@@ -289,6 +289,8 @@ final readonly class Application
             return $this->printSuiteList($resolved);
         }
 
+        $this->warnWhenExcludePathsMatchNothing($resolved, $workingDirectory, $arguments->has('no-ansi'));
+
         if ($arguments->has('list-tests') || $arguments->has('list-groups')) {
             try {
                 $plan = $this->discoverSelection($resolved, $workingDirectory);
@@ -563,6 +565,31 @@ final readonly class Application
     {
         if (!$state->record($failedTests, $classSeconds)) {
             ($this->err)("Run state was not saved; --failed and longest-first scheduling start cold next run.\n");
+        }
+    }
+
+    /**
+     * Warns on stderr for each exclude-path prefix that matches none of the
+     * test files the scan would discover, so an ineffective prefix is visible
+     * instead of silently excluding nothing. Enumeration problems are left to
+     * the discovery that follows, which reports them as errors.
+     */
+    private function warnWhenExcludePathsMatchNothing(Configuration $resolved, string $workingDirectory, bool $noAnsiFlag): void
+    {
+        if ($resolved->excludePaths === []) {
+            return;
+        }
+
+        try {
+            $files = new TestDiscoverer()->testFiles($this->directories($resolved, $workingDirectory));
+        } catch (DiscoveryError) {
+            return;
+        }
+
+        foreach ($resolved->excludePaths as $prefix) {
+            if (!\array_any($files, static fn(string $file): bool => \str_starts_with($file, $prefix))) {
+                ($this->err)($this->stderrStyle($noAnsiFlag)->warn(\sprintf('Warning: --exclude-path "%s" matched no discovered test file.', $prefix)) . "\n");
+            }
         }
     }
 
@@ -1094,6 +1121,8 @@ final readonly class Application
 
             return self::EXIT_FAILURE;
         }
+
+        $this->warnWhenExcludePathsMatchNothing($resolved, $workingDirectory, $arguments->has('no-ansi'));
 
         try {
             $plan = $this->discoverSelection($resolved, $workingDirectory);

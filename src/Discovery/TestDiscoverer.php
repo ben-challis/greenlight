@@ -226,11 +226,16 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * @param list<non-empty-string> $directories
+     * The file set a discover() call would scan, so callers can check path
+     * filters against the paths the filter actually matches.
+     *
+     * @param list<non-empty-string> $directories absolute paths to scan
      *
      * @return list<non-empty-string> sorted for a deterministic default order
+     *
+     * @throws DiscoveryError
      */
-    private function testFiles(array $directories): array
+    public function testFiles(array $directories): array
     {
         $files = [];
 
