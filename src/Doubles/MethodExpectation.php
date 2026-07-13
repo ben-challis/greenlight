@@ -11,15 +11,17 @@ use Greenlight\Expect\ValueRenderer;
  * One planned call pattern on a doubled method: which arguments it accepts,
  * how often it may run, and what it does when it runs.
  *
- * Built fluently from MockPlan::expects() and consumed by the call handler
- * and the verifier.
+ * Built fluently from MockPlan::expects(). The fluent planning methods are
+ * the public surface; the members the call handler and the verifier consume
+ * are marked @internal individually.
  *
  * Argument values compare with the same deep equality as Expect's toEqual().
- *
- * @internal
  */
 final class MethodExpectation
 {
+    /**
+     * @internal written by the call handler, read by the verifier
+     */
     public int $actualCalls = 0;
 
     /**
@@ -52,6 +54,8 @@ final class MethodExpectation
     private array $registeredCaptors = [];
 
     /**
+     * @internal constructed by MockPlan::expects() only
+     *
      * @param non-empty-string $method
      */
     public function __construct(public readonly string $method) {}
@@ -173,6 +177,8 @@ final class MethodExpectation
     }
 
     /**
+     * @internal called by the call handler only
+     *
      * @param list<mixed> $arguments
      */
     public function matchesArguments(array $arguments): bool
@@ -207,6 +213,8 @@ final class MethodExpectation
      * won the call, never during matching probes, so losing candidates
      * cannot pollute a captor.
      *
+     * @internal called by the call handler only
+     *
      * @param list<mixed> $arguments
      */
     public function recordMatchedCall(array $arguments): void
@@ -228,32 +236,50 @@ final class MethodExpectation
         }
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function isSaturated(): bool
     {
         return $this->maximumCalls !== null && $this->actualCalls >= $this->maximumCalls;
     }
 
+    /**
+     * @internal called by the verifier only
+     */
     public function isSatisfied(): bool
     {
         return $this->actualCalls >= $this->minimumCalls
             && ($this->maximumCalls === null || $this->actualCalls <= $this->maximumCalls);
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function hasConfiguredReturnValue(): bool
     {
         return $this->hasReturnValue;
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function configuredReturnValue(): mixed
     {
         return $this->returnValue;
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function hasSequence(): bool
     {
         return $this->sequence !== null;
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function consumeSequenceValue(): mixed
     {
         if ($this->sequence === null || !\array_key_exists($this->sequenceIndex, $this->sequence)) {
@@ -263,16 +289,25 @@ final class MethodExpectation
         return $this->sequence[$this->sequenceIndex++];
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function configuredCallback(): ?\Closure
     {
         return $this->callback;
     }
 
+    /**
+     * @internal called by the call handler only
+     */
     public function configuredThrowable(): ?\Throwable
     {
         return $this->throwable;
     }
 
+    /**
+     * @internal used in failure messages only
+     */
     public function describeCall(ValueRenderer $renderer): string
     {
         if ($this->arguments === null) {
@@ -292,6 +327,8 @@ final class MethodExpectation
     /**
      * The planned call pattern and its cardinality as one phrase, the way
      * every failure message names an expectation.
+     *
+     * @internal used in failure messages only
      */
     public function describePlan(ValueRenderer $renderer): string
     {
@@ -302,6 +339,8 @@ final class MethodExpectation
      * Renders a concrete recorded call the way describeCall() renders a
      * planned one.
      *
+     * @internal used in failure messages only
+     *
      * @param list<mixed> $arguments
      */
     public static function renderCall(ValueRenderer $renderer, string $method, array $arguments): string
@@ -309,6 +348,9 @@ final class MethodExpectation
         return $method . '(' . \implode(', ', \array_map($renderer->render(...), $arguments)) . ')';
     }
 
+    /**
+     * @internal used in failure messages only
+     */
     public function describeExpectedCount(): string
     {
         if ($this->maximumCalls === null) {
@@ -322,6 +364,9 @@ final class MethodExpectation
         return \sprintf('exactly %s', self::timesPhrase($this->maximumCalls));
     }
 
+    /**
+     * @internal used in failure messages only
+     */
     public static function timesPhrase(int $count): string
     {
         return $count === 1 ? '1 time' : $count . ' times';
