@@ -657,8 +657,8 @@ final class Expectation
 
     /**
      * The subject must be a callable; it is invoked with no arguments. Passes
-     * when it throws an instance of the given class whose message matches the
-     * optional regular expression.
+     * when it throws an instance of the given class whose message satisfies
+     * the optional regular expression or exact-message constraint.
      *
      * Under not(), any throwable that does not satisfy both conditions is
      * swallowed and counts as a pass.
@@ -668,8 +668,12 @@ final class Expectation
      * @throws \InvalidArgumentException when the matching pattern is not a valid regular expression
      * @throws ExpectationFailed
      */
-    public function toThrow(string $throwable, ?string $matching = null): self
+    public function toThrow(string $throwable, ?string $matching = null, ?string $message = null): self
     {
+        if ($matching !== null && $message !== null) {
+            $this->usageFailure('toThrow() accepts either matching: or message:, not both.');
+        }
+
         if ($matching !== null) {
             $this->requireValidPattern($matching, 'toThrow');
         }
@@ -690,12 +694,15 @@ final class Expectation
         }
 
         $matched = $thrown instanceof $throwable
-            && ($matching === null || \preg_match($matching, $thrown->getMessage()) === 1);
+            && ($matching === null || \preg_match($matching, $thrown->getMessage()) === 1)
+            && ($message === null || $thrown->getMessage() === $message);
 
         $description = 'to throw ' . $throwable;
 
         if ($matching !== null) {
             $description .= ' with message matching ' . $matching;
+        } elseif ($message !== null) {
+            $description .= ' with message ' . $this->renderer->render($message);
         }
 
         $actual = $thrown instanceof \Throwable

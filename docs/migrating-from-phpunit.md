@@ -60,8 +60,10 @@ A few differences matter during migration:
   comparison between unlike types, so `'1'` does not equal `1`.
 * Negation is a chain step, such as `->not()->toContain($x)`, and applies only
   to the next matcher.
-* `toThrow()` takes a callable subject and an optional message pattern. It
-  replaces the usual `expectException*` setup calls with one expression.
+* `toThrow()` takes a callable subject and an optional message constraint. Use
+  `message:` for exact equality or `matching:` for a regular expression; the
+  two are mutually exclusive. It replaces the usual `expectException*` setup
+  calls with one expression.
 * Expectations fail fast. A failed matcher throws immediately. There is no
   soft-assertion mode.
 

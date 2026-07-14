@@ -24,6 +24,13 @@ final class ToThrowTest
     }
 
     #[Test]
+    public function toThrowPassesOnAnExactMessage(): void
+    {
+        Expect::that(static fn() => throw new \DomainException('insufficient funds'))
+            ->toThrow(\LogicException::class, message: 'insufficient funds');
+    }
+
+    #[Test]
     public function toThrowFailsWhenNothingIsThrown(): void
     {
         $detail = FailureProbe::detailOf(
@@ -59,6 +66,20 @@ final class ToThrowTest
         Expect::that($detail->message)->toBe(
             "Expected a callable that threw DomainException with message 'boom' "
             . 'to throw DomainException with message matching /insufficient funds/.',
+        );
+    }
+
+    #[Test]
+    public function toThrowFailsWhenTheMessageIsNotExactlyEqual(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(static fn() => throw new \DomainException('insufficient funds now'))
+                ->toThrow(\DomainException::class, message: 'insufficient funds'),
+        );
+
+        Expect::that($detail->message)->toBe(
+            "Expected a callable that threw DomainException with message 'insufficient funds now' "
+            . "to throw DomainException with message 'insufficient funds'.",
         );
     }
 
@@ -111,6 +132,32 @@ final class ToThrowTest
         })
             ->toThrow(\InvalidArgumentException::class, matching: '/invalid regular expression/');
 
+        Expect::that($invoked)->toBeFalse();
+    }
+
+    #[Test]
+    public function toThrowRejectsPatternAndExactMessageBeforeInvokingTheSubject(): void
+    {
+        $invoked = false;
+
+        $detail = FailureProbe::detailOf(
+            static function () use (&$invoked): void {
+                $expectation = Expect::that(static function () use (&$invoked): void {
+                    $invoked = true;
+                });
+
+                $method = new \ReflectionMethod($expectation, 'toThrow');
+                $method->invokeArgs($expectation, [
+                    'throwable' => \DomainException::class,
+                    'matching' => '/insufficient funds/',
+                    'message' => 'insufficient funds',
+                ]);
+            },
+        );
+
+        Expect::that($detail->message)->toBe(
+            'toThrow() accepts either matching: or message:, not both.',
+        );
         Expect::that($invoked)->toBeFalse();
     }
 }

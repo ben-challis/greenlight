@@ -1,8 +1,9 @@
 # Static analysis with PHPStan
 
-Greenlight ships a PHPStan extension. It teaches PHPStan two things: the
-custom expectation matchers your config registers, and the shape rules for
-`#[DataSet]` and `#[DataRow]` data providers.
+Greenlight ships a PHPStan extension. It teaches PHPStan about the custom
+expectation matchers your config registers, the shape rules for `#[DataSet]`
+and `#[DataRow]` data providers, and native matcher constraints that PHP's
+type system cannot express.
 
 ## Setup
 
@@ -20,11 +21,25 @@ parameters:
 ```
 
 `configFiles` is only needed for custom matcher checking. The data provider
-rule works without it.
+and native matcher rules work without it.
 
 If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
 it registers the include for you; you only set the `greenlight.configFiles`
 parameter.
+
+## Native matcher constraints
+
+`toThrow()` can constrain the exception message with either an exact string or
+a regular expression:
+
+```php
+Expect::that($callback)->toThrow(DomainException::class, message: 'Exact message');
+Expect::that($callback)->toThrow(DomainException::class, matching: '/message/i');
+```
+
+Supplying both `message:` and `matching:` is reported as
+`greenlight.toThrow.messageConstraint`. The same call is rejected at run time
+so the constraint is also enforced without PHPStan.
 
 ## Custom matcher checking
 

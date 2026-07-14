@@ -9,6 +9,7 @@ parameters:
 
 rules:
     - Greenlight\PhpStan\DataProviderSignatureRule
+    - Greenlight\PhpStan\ToThrowMessageRule
 
 services:
     -
