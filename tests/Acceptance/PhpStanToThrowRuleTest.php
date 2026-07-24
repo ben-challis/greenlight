@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\PhpStanProbe;
 
 /**
  * Runs the real PHPStan binary with the shipped extension against probe code
@@ -21,13 +22,9 @@ final readonly class PhpStanToThrowRuleTest
     #[Test]
     public function patternAndExactMessageConstraintsAreMutuallyExclusive(): void
     {
-        $root = \dirname(__DIR__, 2);
-        $probeDir = $this->tempDirectory->subdirectory('phpstan-to-throw-probe');
-
-        $good = $probeDir . '/GoodToThrowProbe.php';
-        $bad = $probeDir . '/BadToThrowProbe.php';
-
-        \file_put_contents($good, <<<'PHP'
+        $probe = PhpStanProbe::analyse(
+            $this->tempDirectory,
+            <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -47,9 +44,8 @@ final readonly class PhpStanToThrowRuleTest
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[DomainException::class, null, 'boom']);
             }
-            PHP);
-
-        \file_put_contents($bad, <<<'PHP'
+            PHP,
+            <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -71,29 +67,12 @@ final readonly class PhpStanToThrowRuleTest
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[DomainException::class, '/boom/', 'boom']);
             }
-            PHP);
-
-        $command = \sprintf(
-            'cd %s && php vendor/bin/phpstan analyse --no-progress --error-format=json -c tests/Fixture/PhpStanExtension/probe.neon %s %s 2>/dev/null',
-            \escapeshellarg($root),
-            \escapeshellarg($good),
-            \escapeshellarg($bad),
+            PHP,
         );
 
-        \exec($command, $output, $exitCode);
-        $report = \json_decode(\implode('', $output), true);
-
-        Expect::that(\is_array($report))->toBeTrue();
-        \assert(\is_array($report) && \is_array($report['files']));
-
-        $badFile = $report['files'][$bad] ?? [];
-        \assert(\is_array($badFile));
-        $badErrors = \is_array($badFile['messages'] ?? null) ? $badFile['messages'] : [];
-        $messages = \implode("\n", \array_filter(\array_column($badErrors, 'message'), \is_string(...)));
-
-        Expect::that($exitCode)->toBe(1)
-            ->and(isset($report['files'][$good]))->toBeFalse()
-            ->and(\count($badErrors))->toBe(4)
-            ->and($messages)->toContain('toThrow() accepts either matching: or message:, not both');
+        Expect::that($probe->exitCode)->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and(\count($probe->errors))->toBe(4)
+            ->and($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
     }
 }

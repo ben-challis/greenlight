@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\PhpStanProbe;
 
 /**
  * Runs the real PHPStan binary with the shipped extension against probe test
@@ -21,13 +22,9 @@ final readonly class PhpStanDataProviderRuleTest
     #[Test]
     public function providerAndRowShapesAreCheckedAgainstTheSignature(): void
     {
-        $root = \dirname(__DIR__, 2);
-        $probeDir = $this->tempDirectory->subdirectory('phpstan-provider-probe');
-
-        $good = $probeDir . '/GoodProviderProbe.php';
-        $bad = $probeDir . '/BadProviderProbe.php';
-
-        \file_put_contents($good, <<<'PHP'
+        $probe = PhpStanProbe::analyse(
+            $this->tempDirectory,
+            <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -64,9 +61,8 @@ final readonly class PhpStanDataProviderRuleTest
                     yield 'ones' => [1, 1, 2];
                 }
             }
-            PHP);
-
-        \file_put_contents($bad, <<<'PHP'
+            PHP,
+            <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -157,35 +153,18 @@ final readonly class PhpStanDataProviderRuleTest
                     yield 'wrong' => ['text'];
                 }
             }
-            PHP);
-
-        $command = \sprintf(
-            'cd %s && php vendor/bin/phpstan analyse --no-progress --error-format=json -c tests/Fixture/PhpStanExtension/probe.neon %s %s 2>/dev/null',
-            \escapeshellarg($root),
-            \escapeshellarg($good),
-            \escapeshellarg($bad),
+            PHP,
         );
 
-        \exec($command, $output, $exitCode);
-        $report = \json_decode(\implode('', $output), true);
-
-        Expect::that(\is_array($report))->toBeTrue();
-        \assert(\is_array($report) && \is_array($report['files']));
-
-        $badFile = $report['files'][$bad] ?? [];
-        \assert(\is_array($badFile));
-        $badErrors = \is_array($badFile['messages'] ?? null) ? $badFile['messages'] : [];
-        $messages = \implode("\n", \array_filter(\array_column($badErrors, 'message'), \is_string(...)));
-
-        Expect::that($exitCode)->toBe(1)
-            ->and(isset($report['files'][$good]))->toBeFalse()
-            ->and(\count($badErrors))->toBe(7)
-            ->and($messages)->toContain('Data provider doesNotExist() for missingProvider() does not exist')
-            ->and($messages)->toContain('notStatic() must be public and static')
-            ->and($messages)->toContain('notIterable() must return an iterable of argument arrays, returns string')
-            ->and($messages)->toContain('scalarRows() must yield arrays of arguments, yields int')
-            ->and($messages)->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
-            ->and($messages)->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
-            ->and($messages)->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
+        Expect::that($probe->exitCode)->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and(\count($probe->errors))->toBe(7)
+            ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
+            ->and($probe->messages())->toContain('notStatic() must be public and static')
+            ->and($probe->messages())->toContain('notIterable() must return an iterable of argument arrays, returns string')
+            ->and($probe->messages())->toContain('scalarRows() must yield arrays of arguments, yields int')
+            ->and($probe->messages())->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
+            ->and($probe->messages())->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
+            ->and($probe->messages())->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
     }
 }
