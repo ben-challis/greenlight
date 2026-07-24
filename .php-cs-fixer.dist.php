@@ -20,7 +20,12 @@ return (new Config())
         'declare_strict_types' => true,
         'fully_qualified_strict_types' => ['import_symbols' => true],
         'global_namespace_import' => ['import_classes' => false, 'import_constants' => false, 'import_functions' => false],
-        'native_constant_invocation' => ['fix_built_in' => true, 'scope' => 'all', 'strict' => true],
+        'native_constant_invocation' => [
+            'fix_built_in' => true,
+            'include' => ['XDEBUG_CC_DEAD_CODE', 'XDEBUG_CC_UNUSED'],
+            'scope' => 'all',
+            'strict' => true,
+        ],
         'native_function_invocation' => ['include' => ['@all'], 'scope' => 'all', 'strict' => true],
         'no_unused_imports' => true,
         'ordered_imports' => ['imports_order' => ['class', 'function', 'const'], 'sort_algorithm' => 'alpha'],

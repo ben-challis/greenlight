@@ -42,7 +42,7 @@ final class XdebugDriver implements CoverageDriver
             throw new \LogicException('Xdebug collection window is already open; stop() must be called first.');
         }
 
-        \xdebug_start_code_coverage(XDEBUG_CC_UNUSED | XDEBUG_CC_DEAD_CODE);
+        \xdebug_start_code_coverage(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
         $this->collecting = true;
     }
 
