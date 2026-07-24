@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Worker channels through the real CLI.
@@ -26,9 +27,10 @@ final readonly class ChannelTest
     public function twoWorkersOccupyChannelsOneAndTwo(): void
     {
         $project = $this->writeProject();
-        [$exit, $lines] = $project->runLines('run', '--workers=2', '--reporter=jsonl');
+        $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
+        $lines = $result->outputLines();
         $channels = $this->reportedChannels($lines);
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
@@ -37,9 +39,10 @@ final readonly class ChannelTest
     public function theInProcessRunnerIsChannelOne(): void
     {
         $project = $this->writeProject(expectedChannels: 1);
-        [$exit, $lines] = $project->runLines('run', '--workers=1', '--reporter=jsonl');
+        $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
+        $lines = $result->outputLines();
         $channels = $this->reportedChannels($lines);
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1]);
     }
@@ -51,9 +54,10 @@ final readonly class ChannelTest
         // workers are spawned than channels exist, yet the occupied set
         // never leaves {1, 2}.
         $project = $this->writeProject(recycleAfterTests: 1);
-        [$exit, $lines] = $project->runLines('run', '--reporter=jsonl');
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
+        $lines = $result->outputLines();
         $channels = $this->reportedChannels($lines);
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and(\count($this->spawnedWorkers($lines)))->toBeGreaterThan(2)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);

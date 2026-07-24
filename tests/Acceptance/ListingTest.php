@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Drives --list-tests, --list-groups, and --list-suites through the real CLI
@@ -21,8 +22,9 @@ final readonly class ListingTest
     public function listTestsPrintsTheSelectionInPlanOrderWithoutRunning(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
-        [$exit, $output] = $this->runCli($project->directory, ['run', '--list-tests']);
-        Expect::that($exit)->toBe(0);
+        $result = GreenlightCli::run($project->directory, ['run', '--list-tests']);
+        $output = $result->stdoutLines();
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls');
         $this->assertContainsLine($output, '7 tests');
@@ -44,8 +46,8 @@ final readonly class ListingTest
     public function listTestsIsDeterministicAcrossRuns(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
-        [, $first] = $this->runCli($project->directory, ['run', '--list-tests']);
-        [, $second] = $this->runCli($project->directory, ['run', '--list-tests']);
+        $first = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
+        $second = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
         Expect::that($second)->toBe($first);
     }
 
@@ -53,8 +55,9 @@ final readonly class ListingTest
     public function listTestsComposesWithExcludeGroup(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
-        [$exit, $output] = $this->runCli($project->directory, ['run', '--list-tests', '--exclude-group=slow']);
-        Expect::that($exit)->toBe(0);
+        $result = GreenlightCli::run($project->directory, ['run', '--list-tests', '--exclude-group=slow']);
+        $output = $result->stdoutLines();
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
         $this->assertContainsLine($output, '5 tests');
         Expect::that(
@@ -69,11 +72,13 @@ final readonly class ListingTest
     public function listTestsComposesWithShardingIntoDisjointSlices(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
-        [, $full] = $this->runCli($project->directory, ['run', '--list-tests']);
-        [$firstExit, $first] = $this->runCli($project->directory, ['run', '--list-tests', '--shard=1/2']);
-        [$secondExit, $second] = $this->runCli($project->directory, ['run', '--list-tests', '--shard=2/2']);
-        Expect::that($firstExit)->toBe(0);
-        Expect::that($secondExit)->toBe(0);
+        $full = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
+        $firstResult = GreenlightCli::run($project->directory, ['run', '--list-tests', '--shard=1/2']);
+        $secondResult = GreenlightCli::run($project->directory, ['run', '--list-tests', '--shard=2/2']);
+        Expect::that($firstResult->exitCode)->toBe(0);
+        Expect::that($secondResult->exitCode)->toBe(0);
+        $first = $firstResult->stdoutLines();
+        $second = $secondResult->stdoutLines();
         $firstIds = $this->testIdLines($first);
         $secondIds = $this->testIdLines($second);
         Expect::that(\array_values(\array_intersect($firstIds, $secondIds)))->toBe([]);
@@ -88,24 +93,26 @@ final readonly class ListingTest
     public function listGroupsPrintsEachGroupWithItsTestCount(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
-        [$exit, $output] = $this->runCli($project->directory, ['run', '--list-groups']);
-        Expect::that($exit)->toBe(0);
+        $result = GreenlightCli::run($project->directory, ['run', '--list-groups']);
+        $output = $result->stdoutLines();
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, 'basic (2 tests)');
         $this->assertContainsLine($output, 'slow (2 tests)');
         $this->assertContainsLine($output, '2 groups');
-        [, $second] = $this->runCli($project->directory, ['run', '--list-groups']);
+        $second = GreenlightCli::run($project->directory, ['run', '--list-groups'])->stdoutLines();
         Expect::that($second)->toBe($output);
     }
 
     #[Test]
     public function listSuitesPrintsTheConfiguredSuites(): void
     {
-        [$exit, $output] = $this->runCli(
+        $result = GreenlightCli::run(
             \dirname(__DIR__, 2),
             ['run', '--list-suites', '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php'],
         );
+        $output = $result->stdoutLines();
 
-        Expect::that($exit)->toBe(0);
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, 'unit: tests/Unit');
         $this->assertContainsLine($output, 'integration: tests/Integration [tags: io]');
         $this->assertContainsLine($output, '2 suites');
@@ -115,8 +122,9 @@ final readonly class ListingTest
     public function listSuitesWithNoSuitesConfiguredPrintsZero(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
-        [$exit, $output] = $this->runCli($project->directory, ['run', '--list-suites']);
-        Expect::that($exit)->toBe(0);
+        $result = GreenlightCli::run($project->directory, ['run', '--list-suites']);
+        $output = $result->stdoutLines();
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, '0 suites');
     }
 
@@ -133,30 +141,6 @@ final readonly class ListingTest
             $output,
             static fn(string $line): bool => \str_contains($line, '::'),
         ));
-    }
-
-    /**
-     * @param list<string> $arguments
-     *
-     * @return array{int, list<string>}
-     */
-    private function runCli(string $cwd, array $arguments): array
-    {
-        $root = \dirname(__DIR__, 2);
-
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight')];
-
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        // Listing output is stdout only; discarding stderr keeps the exact
-        // determinism assertions immune to extension noise (Xdebug, ddtrace).
-        $command = \sprintf('cd %s && %s 2>/dev/null', \escapeshellarg($cwd), \implode(' ', $parts));
-
-        \exec($command, $output, $exit);
-
-        return [$exit, $output];
     }
 
     /**

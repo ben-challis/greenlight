@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * The profile through the real CLI.
@@ -29,16 +30,14 @@ final readonly class ProfileRunTest
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'profile');
         $artifact = $project->path('profile.jsonl');
 
-        $command = \sprintf(
-            'cd %s && %s %s run --workers=2 --reporter=plain --reporter=jsonl --profile 2>/dev/null',
-            \escapeshellarg($project->directory),
-            \escapeshellarg(\PHP_BINARY),
-            \escapeshellarg($root . '/bin/greenlight'),
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['run', '--workers=2', '--reporter=plain', '--reporter=jsonl', '--profile'],
         );
-        \exec($command, $output, $exit);
-        $live = \implode("\n", $output);
+        $output = $result->stdoutLines();
+        $live = $result->stdout;
 
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and($live)->toContain('Profile:')
             ->and($live)->toContain('spawned, 0 recycled')
             ->and($live)->toContain('Boot latency:')
@@ -51,20 +50,14 @@ final readonly class ProfileRunTest
 
         // stdout only: extensions like ddtrace write noise to stderr on
         // spawn, and this comparison is exact.
-        \exec(\sprintf(
-            'cd %s && %s %s profile:report --input=%s 2>/dev/null',
-            \escapeshellarg($root),
-            \escapeshellarg(\PHP_BINARY),
-            \escapeshellarg($root . '/bin/greenlight'),
-            \escapeshellarg($artifact),
-        ), $reportOutput, $reportExit);
-        $offline = \implode("\n", $reportOutput);
+        $report = GreenlightCli::run($root, ['profile:report', '--input=' . $artifact]);
+        $offline = $report->stdout;
 
         // The live block, minus its leading blank line, must reproduce
         // verbatim from the artifact.
         $liveBlock = \substr($live, (int) \strpos($live, 'Profile:'));
 
-        Expect::that($reportExit)->toBe(0)
+        Expect::that($report->exitCode)->toBe(0)
             ->and($offline . "\n")->toBe($liveBlock . "\n");
     }
 }

@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * The Symfony bridge through the real CLI.
@@ -27,9 +28,9 @@ final readonly class SymfonyRunTest
     public function injectsContainerServicesAndResetsStateBetweenTests(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $project->run('run', '--reporter=plain');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('4 tests, 4 passed');
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject

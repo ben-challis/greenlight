@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 use JsonSchema\Validator;
 
 /**
@@ -42,8 +43,9 @@ final readonly class JsonlSchemaTest
     public function everyEmittedLineValidatesAgainstTheShippedSchema(): void
     {
         $project = $this->writeProject();
-        [$exit, $lines] = $project->runLinesStdout('run', '--reporter=jsonl');
-        Expect::that($exit)->toBe(1);
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
+        Expect::that($result->exitCode)->toBe(1);
+        $lines = $result->stdoutLines();
         $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
         $seenTags = [];
         $violations = [];

@@ -8,6 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Drives --filter and --failed through the real CLI against a throwaway
@@ -22,14 +24,14 @@ final readonly class SelectionTest
     public function filterSelectsByMethodClassAndWildcard(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project, '--filter=alwaysPasses');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
-        [$exit, $output] = $this->run($project, '--filter=SelectionProbeTest');
-        Expect::that($output)->toContain('3 tests,');
-        [$exit, $output] = $this->run($project, '--filter=*::breaks?ometimes');
-        Expect::that($exit)->toBe(1)->and($output)->toContain('1 test, 0 passed, 1 errored');
-        [$exit, $output] = $this->run($project, '--filter=nothingMatchesThis');
-        Expect::that($exit)->toBe(1)->and($output)->toContain('No tests found');
+        $result = $this->run($project, '--filter=alwaysPasses');
+        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
+        $result = $this->run($project, '--filter=SelectionProbeTest');
+        Expect::that($result->output())->toContain('3 tests,');
+        $result = $this->run($project, '--filter=*::breaks?ometimes');
+        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('1 test, 0 passed, 1 errored');
+        $result = $this->run($project, '--filter=nothingMatchesThis');
+        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('No tests found');
     }
 
     #[Test]
@@ -37,28 +39,28 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         // The full project is 5 tests; excluding the slow group drops one.
-        [$exit, $output] = $this->run($project, '--exclude-group=slow');
-        Expect::that($exit)->toBe(1)->and($output)->toContain('4 tests,');
-        [$exit, $output] = $this->run($project, '--group=fast', '--exclude-group=slow');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
+        $result = $this->run($project, '--exclude-group=slow');
+        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('4 tests,');
+        $result = $this->run($project, '--group=fast', '--exclude-group=slow');
+        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
 
     #[Test]
     public function excludeMethodWithAWildcardRemovesMatchingMethods(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project, '--exclude-method=*Passes');
-        Expect::that($exit)->toBe(1)->and($output)->toContain('3 tests,');
+        $result = $this->run($project, '--exclude-method=*Passes');
+        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('3 tests,');
     }
 
     #[Test]
     public function excludeWinsOverAnIncludeFilter(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project, '--filter=alwaysPasses', '--exclude-method=alwaysPasses');
-        Expect::that($exit)->toBe(1)->and($output)->toContain('No tests found');
-        [$exit, $output] = $this->run($project, '--group=fast', '--group=slow', '--exclude-group=slow');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
+        $result = $this->run($project, '--filter=alwaysPasses', '--exclude-method=alwaysPasses');
+        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('No tests found');
+        $result = $this->run($project, '--group=fast', '--group=slow', '--exclude-group=slow');
+        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
 
     #[Test]
@@ -66,21 +68,21 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         // --failed before any run is a usage error.
-        [$exit, $output] = $this->run($project, '--failed');
-        Expect::that($exit)->toBe(64)->and($output)->toContain('previous run');
+        $result = $this->run($project, '--failed');
+        Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('previous run');
         // A full run records one failure.
-        [$exit] = $this->run($project);
-        Expect::that($exit)->toBe(1);
+        $result = $this->run($project);
+        Expect::that($result->exitCode)->toBe(1);
         // --failed re-runs exactly that one test.
-        [$exit, $output] = $this->run($project, '--failed');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('1 test, 0 passed, 1 errored')
-            ->and($output)->toContain('breaksSometimes');
+        $result = $this->run($project, '--failed');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('1 test, 0 passed, 1 errored')
+            ->and($result->output())->toContain('breaksSometimes');
         // A run where everything passes empties the state.
-        [$exit] = $this->run($project, '--filter=alwaysPasses');
-        Expect::that($exit)->toBe(0);
-        [$exit, $output] = $this->run($project, '--failed');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('Nothing failed');
+        $result = $this->run($project, '--filter=alwaysPasses');
+        Expect::that($result->exitCode)->toBe(0);
+        $result = $this->run($project, '--failed');
+        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('Nothing failed');
     }
 
     #[Test]
@@ -93,22 +95,19 @@ final readonly class SelectionTest
         // sockets, but nothing can create entries under a file, so the state
         // write fails on every platform.
         $project->write('not-a-directory', '');
-        [$exit, $output] = AcceptanceProject::runIn(
+        $result = GreenlightCli::run(
             $project->directory,
             ['run', '--reporter=plain', '--filter=alwaysPasses'],
             ['TMPDIR' => $project->directory . '/not-a-directory'],
         );
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('1 test, 1 passed')
-            ->and($output)->toContain('Run state was not saved');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('1 test, 1 passed')
+            ->and($result->output())->toContain('Run state was not saved');
     }
 
-    /**
-     * @return array{int, string}
-     */
-    private function run(AcceptanceProject $project, string ...$flags): array
+    private function run(AcceptanceProject $project, string ...$flags): ProcessResult
     {
-        return $project->run('run', '--reporter=plain', ...$flags);
+        return GreenlightCli::run($project->directory, \array_values(['run', '--reporter=plain', ...$flags]));
     }
 
     private function writeProject(): AcceptanceProject

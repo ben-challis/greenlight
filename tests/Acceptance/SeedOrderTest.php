@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Drives --seed through the real CLI against a project with six classes,
@@ -58,10 +59,10 @@ final readonly class SeedOrderTest
         $project = $this->writeProject();
         // Stdout only: extension noise on stderr could contain "seed:"
         // and break the negative assertion below.
-        [$exit, $output] = $project->runStdout('run', '--reporter=plain', '--seed=7');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('seed: 7');
-        [$exit, $output] = $project->runStdout('run', '--reporter=plain');
-        Expect::that($exit)->toBe(0)->and($output)->not()->toContain('seed:');
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=7']);
+        Expect::that($result->exitCode)->toBe(0)->and($result->stdout)->toContain('seed: 7');
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+        Expect::that($result->exitCode)->toBe(0)->and($result->stdout)->not()->toContain('seed:');
     }
 
     /**
@@ -85,7 +86,7 @@ final readonly class SeedOrderTest
      */
     private function order(AcceptanceProject $project, string ...$flags): array
     {
-        [, $lines] = $project->runLinesStdout('list-tests', ...$flags);
+        $lines = GreenlightCli::run($project->directory, \array_values(['list-tests', ...$flags]))->stdoutLines();
 
         return \array_values(\array_filter($lines, static fn(string $line): bool => \str_contains($line, '::')));
     }

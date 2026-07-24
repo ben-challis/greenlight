@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Drives bin/greenlight with the teamcity reporter against a fixture project
@@ -29,10 +30,11 @@ final readonly class TeamCityRunTest
         // AcceptanceProject::copyOfListTestsConfig), so the location hints
         // still resolve to that fixture's real file.
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'teamcity');
-        [$exit, $output] = $project->run('run', '--workers=2', '--reporter=teamcity');
+        $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=teamcity']);
+        $output = $result->output();
         $class = AlphaTest::class;
         $file = (string) \realpath(\dirname(__DIR__) . '/Fixture/DiscoveryBasic/AlphaTest.php');
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and($output)->toContain(
                 "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']",
             )

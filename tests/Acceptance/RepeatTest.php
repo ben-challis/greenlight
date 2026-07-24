@@ -8,6 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Drives --repeat and --repeat-until-failure through the real CLI against a
@@ -23,22 +25,22 @@ final readonly class RepeatTest
     public function repeatRunsThePlanTheRequestedNumberOfTimes(): void
     {
         $project = $this->writeProject(passing: true);
-        [$exit, $output] = $this->run($project, [], '--repeat=3');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('Repeat: iteration 1 of 3')
-            ->and($output)->toContain('Repeat: iteration 2 of 3')
-            ->and($output)->toContain('Repeat: iteration 3 of 3')
-            ->and($output)->toContain('Repeat: 3 iterations, all passed');
+        $result = $this->run($project, [], '--repeat=3');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('Repeat: iteration 1 of 3')
+            ->and($result->output())->toContain('Repeat: iteration 2 of 3')
+            ->and($result->output())->toContain('Repeat: iteration 3 of 3')
+            ->and($result->output())->toContain('Repeat: 3 iterations, all passed');
     }
 
     #[Test]
     public function repeatReportsEveryFailingIteration(): void
     {
         $project = $this->writeProject(passing: false);
-        [$exit, $output] = $this->run($project, [], '--repeat=2');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('Repeat: iteration 2 of 2')
-            ->and($output)->toContain('Repeat: failed on iteration(s) 1, 2');
+        $result = $this->run($project, [], '--repeat=2');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('Repeat: iteration 2 of 2')
+            ->and($result->output())->toContain('Repeat: failed on iteration(s) 1, 2');
     }
 
     #[Test]
@@ -46,11 +48,11 @@ final readonly class RepeatTest
     {
         $project = $this->writeFlakyProject();
         $state = $project->path('repeat-state');
-        [$exit, $output] = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('Repeat: iteration 3 of at most 100')
-            ->and($output)->toContain('Repeat: failed on iteration(s) 3')
-            ->and($output)->not()->toContain('Repeat: iteration 4');
+        $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('Repeat: iteration 3 of at most 100')
+            ->and($result->output())->toContain('Repeat: failed on iteration(s) 3')
+            ->and($result->output())->not()->toContain('Repeat: iteration 4');
     }
 
     #[Test]
@@ -58,60 +60,46 @@ final readonly class RepeatTest
     {
         $project = $this->writeFlakyProject();
         $state = $project->path('repeat-state');
-        [$exit] = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
-        Expect::that($exit)->toBe(1);
+        $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
+        Expect::that($result->exitCode)->toBe(1);
         // The recorded state must keep the flake even though earlier
         // iterations passed, so --failed replays exactly that test.
-        [$exit, $output] = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--failed');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('failsOnTheThirdRun')
-            ->and($output)->toContain('1 test');
+        $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--failed');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('failsOnTheThirdRun')
+            ->and($result->output())->toContain('1 test');
     }
 
     #[Test]
     public function repeatComposesWithFilter(): void
     {
         $project = $this->writeProject(passing: true);
-        [$exit, $output] = $this->run($project, [], '--repeat=2', '--filter=firstProbe');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('Repeat: 2 iterations, all passed')
-            ->and(\substr_count($output, '1 test, 1 passed'))->toBe(2);
+        $result = $this->run($project, [], '--repeat=2', '--filter=firstProbe');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('Repeat: 2 iterations, all passed')
+            ->and(\substr_count($result->output(), '1 test, 1 passed'))->toBe(2);
     }
 
     #[Test]
     public function watchCannotBeCombinedWithRepeat(): void
     {
         $project = $this->writeProject(passing: true);
-        [$exit, $output] = $this->run($project, [], '--watch', '--repeat=2');
-        Expect::that($exit)->toBe(64)->and($output)->toContain('cannot be combined');
-        [$exit, $output] = $this->run($project, [], '--watch', '--repeat-until-failure');
-        Expect::that($exit)->toBe(64)->and($output)->toContain('cannot be combined');
+        $result = $this->run($project, [], '--watch', '--repeat=2');
+        Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('cannot be combined');
+        $result = $this->run($project, [], '--watch', '--repeat-until-failure');
+        Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('cannot be combined');
     }
 
     /**
      * @param array<string, string> $environment
-     *
-     * @return array{int, string}
      */
-    private function run(AcceptanceProject $project, array $environment, string ...$flags): array
+    private function run(AcceptanceProject $project, array $environment, string ...$flags): ProcessResult
     {
-        $root = \dirname(__DIR__, 2);
-        $parts = [];
-
-        foreach ($environment as $name => $value) {
-            $parts[] = $name . '=' . \escapeshellarg($value);
-        }
-
-        $parts = [...$parts, \escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight'), 'run', '--reporter=plain'];
-
-        foreach ($flags as $flag) {
-            $parts[] = \escapeshellarg($flag);
-        }
-
-        $command = \sprintf('cd %s && %s 2>&1', \escapeshellarg($project->directory), \implode(' ', $parts));
-        \exec($command, $output, $exit);
-
-        return [$exit, \implode("\n", $output)];
+        return GreenlightCli::run(
+            $project->directory,
+            \array_values(['run', '--reporter=plain', ...$flags]),
+            $environment,
+        );
     }
 
     private function writeProject(bool $passing): AcceptanceProject

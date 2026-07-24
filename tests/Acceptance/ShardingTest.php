@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Sharding through the real CLI: the shards of list-tests reconstitute the
@@ -41,11 +42,11 @@ final readonly class ShardingTest
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'sharding');
         foreach (['--shard=4/3', '--shard=0/3', '--shard=banana'] as $flag) {
-            [$exit, $output] = $project->run('list-tests', $flag);
-            Expect::that($exit)->toBe(64)->and($output)->toContain('greenlight: --shard');
+            $result = GreenlightCli::run($project->directory, ['list-tests', $flag]);
+            Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('greenlight: --shard');
         }
-        [, $output] = $project->run('list-tests', '--shard=4/3');
-        Expect::that($output)->toContain('n must be between 1 and 3');
+        $result = GreenlightCli::run($project->directory, ['list-tests', '--shard=4/3']);
+        Expect::that($result->output())->toContain('n must be between 1 and 3');
     }
 
     /**
@@ -53,8 +54,7 @@ final readonly class ShardingTest
      */
     private function listTests(AcceptanceProject $project, string ...$flags): array
     {
-        [, $output] = $project->run('list-tests', ...$flags);
-        $lines = \explode("\n", $output);
+        $lines = GreenlightCli::run($project->directory, \array_values(['list-tests', ...$flags]))->outputLines();
 
         return \array_values(\array_filter(
             $lines,

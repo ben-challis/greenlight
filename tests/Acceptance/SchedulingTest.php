@@ -8,6 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Demand-driven scheduling through the real CLI.
@@ -25,8 +27,9 @@ final readonly class SchedulingTest
         $project = $this->writeProject();
         // Cold run: no cache yet. Records durations and proves reuse:
         // two workers cover four classes.
-        [$exit, $lines] = $this->run($project);
-        Expect::that($exit)->toBe(0)
+        $result = $this->run($project);
+        $lines = $result->outputLines();
+        Expect::that($result->exitCode)->toBe(0)
             ->and(\count($this->spawnedWorkers($lines)))->toBe(2);
         // Warm run: the slow class heads the queue, so whichever worker
         // takes it receives it as its first assignment. Assert per
@@ -34,19 +37,17 @@ final readonly class SchedulingTest
         // workers is arrival order, and a worker that boots slowly on a
         // loaded machine reports its first start only after the other
         // worker has already started several classes.
-        [$exit, $lines] = $this->run($project);
+        $result = $this->run($project);
+        $lines = $result->outputLines();
         $firstStarts = $this->firstClassStartedByWorker($lines);
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
             ->and(\array_values($firstStarts))->toContain('SchedulingProbe\SlowTest');
     }
 
-    /**
-     * @return array{int, list<string>}
-     */
-    private function run(AcceptanceProject $project): array
+    private function run(AcceptanceProject $project): ProcessResult
     {
-        return $project->runLines('run', '--workers=2', '--reporter=jsonl');
+        return GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
     }
 
     /**

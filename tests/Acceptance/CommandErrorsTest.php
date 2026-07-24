@@ -9,6 +9,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Error paths through the real CLI: an unknown command, missing required
@@ -22,30 +23,30 @@ final readonly class CommandErrorsTest
     #[Test]
     public function unknownCommandExitsWithAUsageError(): void
     {
-        [$exit, $output] = AcceptanceProject::runIn(\dirname(__DIR__, 2), ['bogus-command']);
+        $result = GreenlightCli::run(\dirname(__DIR__, 2), ['bogus-command']);
 
-        Expect::that($exit)->toBe(64)
-            ->and($output)->toContain("Unknown command 'bogus-command'")
-            ->and($output)->toContain('greenlight --help');
+        Expect::that($result->exitCode)->toBe(64)
+            ->and($result->output())->toContain("Unknown command 'bogus-command'")
+            ->and($result->output())->toContain('greenlight --help');
     }
 
     #[Test]
     public function coverageDiffWithoutBaselineOrCurrentIsAUsageError(): void
     {
-        [$exit, $output] = AcceptanceProject::runIn(\dirname(__DIR__, 2), ['coverage:diff']);
+        $result = GreenlightCli::run(\dirname(__DIR__, 2), ['coverage:diff']);
 
-        Expect::that($exit)->toBe(64)
-            ->and($output)->toContain('coverage:diff requires --baseline=<path> and --current=<path>');
+        Expect::that($result->exitCode)->toBe(64)
+            ->and($result->output())->toContain('coverage:diff requires --baseline=<path> and --current=<path>');
     }
 
     #[Test]
     public function profileReportWithAMissingInputFileFailsCleanly(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'command-errors');
-        [$exit, $output] = $project->run('profile:report', '--input=nowhere.jsonl');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('Could not read')
-            ->and($output)->toContain('nowhere.jsonl');
+        $result = GreenlightCli::run($project->directory, ['profile:report', '--input=nowhere.jsonl']);
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('Could not read')
+            ->and($result->output())->toContain('nowhere.jsonl');
     }
 
     #[Test]
@@ -65,12 +66,12 @@ final readonly class CommandErrorsTest
         \chmod($readOnlyDirectory, 0o555);
 
         try {
-            [$exit, $output] = AcceptanceProject::runIn($fixture, [
+            $result = GreenlightCli::run($fixture, [
                 'ide-helper',
                 '--output=' . $readOnlyDirectory . '/helper.php',
             ]);
 
-            Expect::that($exit)->toBe(1)->and($output)->toContain('Could not write');
+            Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('Could not write');
         } finally {
             \chmod($readOnlyDirectory, 0o755);
         }

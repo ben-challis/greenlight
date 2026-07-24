@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Drives --reporter=junit and --reporter=github end to end against a project
@@ -26,10 +27,10 @@ final readonly class ReporterSmokeTest
         $project = $this->writeProject();
         // Stdout only: extension noise on stderr would corrupt the
         // document the parse below must accept whole.
-        [$exit, $output] = $project->runStdout('run', '--reporter=junit');
-        Expect::that($exit)->toBe(1);
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit']);
+        Expect::that($result->exitCode)->toBe(1);
         $document = new \DOMDocument();
-        Expect::that($document->loadXML($output))->toBeTrue();
+        Expect::that($document->loadXML($result->stdout))->toBeTrue();
         $testcases = $document->getElementsByTagName('testcase');
         Expect::that($testcases->length)->toBe(2);
         $errors = $document->getElementsByTagName('error');
@@ -50,17 +51,17 @@ final readonly class ReporterSmokeTest
     public function githubEmitsAWorkflowErrorCommandForTheFailingTest(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $project->run('run', '--reporter=github');
-        Expect::that($exit)->toBe(1);
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=github']);
+        Expect::that($result->exitCode)->toBe(1);
         // realpath(), not project->path(): the annotation carries the
         // symlink-resolved absolute path discovery reported (macOS temp
         // dirs alias /var/folders/... to /private/var/folders/...).
         $failingFile = (string) \realpath($project->path('tests/BadReporterProbeTest.php'));
-        Expect::that($output)->toContain('::error file=' . $failingFile)
-            ->and($output)->toContain('ReporterProbe\BadReporterProbeTest::fails')
-            ->and($output)->toContain('intentional reporter probe failure')
+        Expect::that($result->output())->toContain('::error file=' . $failingFile)
+            ->and($result->output())->toContain('ReporterProbe\BadReporterProbeTest::fails')
+            ->and($result->output())->toContain('intentional reporter probe failure')
             // Passing tests add no annotation.
-            ->and($output)->not()->toContain('GoodReporterProbeTest');
+            ->and($result->output())->not()->toContain('GoodReporterProbeTest');
     }
 
     private function writeProject(): AcceptanceProject

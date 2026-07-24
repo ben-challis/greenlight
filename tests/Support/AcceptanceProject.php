@@ -27,14 +27,6 @@ use Greenlight\Fixture\TempDirectory;
  * given test files, scans the project's tests directory, and pins the worker
  * count.
  *
- * run() and runLines() invoke bin/greenlight from inside the project and
- * return the exit code with the merged stdout/stderr, joined or as raw lines.
- * runStdout() and runLinesStdout() discard stderr instead, for exact
- * assertions that must not see extension noise (Xdebug, ddtrace).
- * runIn() and runLinesIn() do the same from an arbitrary working directory,
- * such as a fixture project inside the repository, with optional environment
- * variable overrides.
- *
  * removeTree() remains available for generated directories outside a managed
  * test workspace, such as coverage output written beside a committed fixture.
  */
@@ -149,84 +141,6 @@ final readonly class AcceptanceProject
             \implode("\n", $requires),
             $workers,
         ));
-    }
-
-    /**
-     * @return array{int, string} exit code and merged output
-     */
-    public function run(string ...$arguments): array
-    {
-        return self::runIn($this->directory, \array_values($arguments));
-    }
-
-    /**
-     * @return array{int, list<string>} exit code and merged output lines
-     */
-    public function runLines(string ...$arguments): array
-    {
-        return self::runLinesIn($this->directory, \array_values($arguments));
-    }
-
-    /**
-     * @return array{int, string} exit code and stdout, stderr discarded
-     */
-    public function runStdout(string ...$arguments): array
-    {
-        return self::runIn($this->directory, \array_values($arguments), discardStderr: true);
-    }
-
-    /**
-     * @return array{int, list<string>} exit code and stdout lines, stderr discarded
-     */
-    public function runLinesStdout(string ...$arguments): array
-    {
-        return self::runLinesIn($this->directory, \array_values($arguments), discardStderr: true);
-    }
-
-    /**
-     * @param list<string> $arguments
-     * @param array<string, string> $env
-     *
-     * @return array{int, string} exit code and output
-     */
-    public static function runIn(string $cwd, array $arguments, array $env = [], bool $discardStderr = false): array
-    {
-        [$exit, $lines] = self::runLinesIn($cwd, $arguments, $env, $discardStderr);
-
-        return [$exit, \implode("\n", $lines)];
-    }
-
-    /**
-     * @param list<string> $arguments
-     * @param array<string, string> $env
-     *
-     * @return array{int, list<string>} exit code and output lines
-     */
-    public static function runLinesIn(string $cwd, array $arguments, array $env = [], bool $discardStderr = false): array
-    {
-        $root = \dirname(__DIR__, 2);
-        $parts = [];
-
-        foreach ($env as $name => $value) {
-            $parts[] = \sprintf('%s=%s', $name, \escapeshellarg($value));
-        }
-
-        $parts[] = \escapeshellarg(\PHP_BINARY);
-        $parts[] = \escapeshellarg($root . '/bin/greenlight');
-
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        $command = \sprintf(
-            'cd %s && %s %s',
-            \escapeshellarg($cwd),
-            \implode(' ', $parts),
-            $discardStderr ? '2>/dev/null' : '2>&1',
-        );
-        \exec($command, $output, $exit);
-
-        return [$exit, $output];
     }
 
     public static function removeTree(string $directory): void

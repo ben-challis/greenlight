@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Inline #[DataRow] rows through the real CLI: expansion into the plan,
@@ -17,23 +18,20 @@ final class DataRowRunTest
     #[Test]
     public function inlineRowsRunAndFilterByLabel(): void
     {
-        [$exit, $output] = $this->run('--workers=2');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('4 tests, 4 passed')
-            ->and($output)->toContain('addsUp[small]')
-            ->and($output)->toContain('addsUp[#1]')
-            ->and($output)->toContain('acceptsWord[from attribute]')
-            ->and($output)->toContain('acceptsWord[from provider]');
+        $result = $this->run('--workers=2');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('4 tests, 4 passed')
+            ->and($result->output())->toContain('addsUp[small]')
+            ->and($result->output())->toContain('addsUp[#1]')
+            ->and($result->output())->toContain('acceptsWord[from attribute]')
+            ->and($result->output())->toContain('acceptsWord[from provider]');
 
-        [$exit, $output] = $this->run('--filter=*[from attribute]');
-        Expect::that($exit)->toBe(0)->and($output)->toContain('1 test, 1 passed');
+        $result = $this->run('--filter=*[from attribute]');
+        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
 
-    /**
-     * @return array{int, string}
-     */
-    private function run(string ...$flags): array
+    private function run(string ...$flags): ProcessResult
     {
-        return AcceptanceProject::runIn(\dirname(__DIR__) . '/Fixture/DataRows', ['run', '--reporter=plain', ...\array_values($flags)]);
+        return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/DataRows', ['run', '--reporter=plain', ...\array_values($flags)]);
     }
 }

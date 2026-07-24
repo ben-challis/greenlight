@@ -8,6 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * The CI gates through the real CLI.
@@ -27,51 +29,49 @@ final readonly class PolicyTest
     {
         $project = $this->writeProject();
         // Without flags everything passes; deprecations are recorded, not fatal.
-        [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('3 tests, 3 passed')
+        $result = $this->run($project, '--filter=DiagnosticProbeTest');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('3 tests, 3 passed')
             // One matcher per test crossed the worker boundary into the summary.
-            ->and($output)->toContain('3 expectations');
-        [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('3 tests, 2 passed, 1 failed')
-            ->and($output)->toContain('deprecation policy failed this passed test')
-            ->and($output)->toContain('old api is deprecated')
+            ->and($result->output())->toContain('3 expectations');
+        $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
+            ->and($result->output())->toContain('deprecation policy failed this passed test')
+            ->and($result->output())->toContain('old api is deprecated')
             // The flip must not drop the flipped test's verified expectations.
-            ->and($output)->toContain('3 expectations')
+            ->and($result->output())->toContain('3 expectations')
             // The allow-listed deprecation stays green.
-            ->and($output)->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
-        [$exit, $output] = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('notice policy failed this passed test')
-            ->and($output)->toContain('a probe notice');
+            ->and($result->output())->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
+        $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('notice policy failed this passed test')
+            ->and($result->output())->toContain('a probe notice');
     }
 
     #[Test]
     public function riskyTestsWarnByDefaultAndFailUnderTheFlag(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project, '--filter=RiskyProbeTest');
+        $result = $this->run($project, '--filter=RiskyProbeTest');
+        $output = $result->output();
         $riskyBlock = \substr($output, (int) \strpos($output, 'Risky:'));
-        Expect::that($exit)->toBe(0)
+        Expect::that($result->exitCode)->toBe(0)
             ->and($riskyBlock)->toContain('Risky: 1 passed without verifying any expectation')
             ->and($riskyBlock)->toContain('RiskyProbeTest::assertsNothing')
             ->and($riskyBlock)->not()->toContain('optedOut')
             ->and($riskyBlock)->not()->toContain('mocksOnly')
             // Only the mock verification counts; the empty tests add nothing.
             ->and($output)->toContain('1 expectation');
-        [$exit, $output] = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('3 tests, 2 passed, 1 failed')
-            ->and($output)->toContain('fail-on-risky policy failed this passed test');
+        $result = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
+            ->and($result->output())->toContain('fail-on-risky policy failed this passed test');
     }
 
-    /**
-     * @return array{int, string}
-     */
-    private function run(AcceptanceProject $project, string ...$flags): array
+    private function run(AcceptanceProject $project, string ...$flags): ProcessResult
     {
-        return $project->run('run', '--reporter=plain', ...$flags);
+        return GreenlightCli::run($project->directory, \array_values(['run', '--reporter=plain', ...$flags]));
     }
 
     private function writeProject(): AcceptanceProject

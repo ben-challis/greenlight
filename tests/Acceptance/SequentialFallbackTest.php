@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Worker spawning needs proc_open, which restricted hosts disable. The run
@@ -21,20 +22,16 @@ final readonly class SequentialFallbackTest
     #[Test]
     public function disabledProcOpenFallsBackToInProcess(): void
     {
-        $root = \dirname(__DIR__, 2);
         // A private copy of ListTestsConfig, so this run cannot race another
         // acceptance test's use of the same working directory.
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'sequential-fallback');
-        $command = \sprintf(
-            'cd %s && %s -d disable_functions=proc_open %s run --workers=4 --reporter=plain 2>&1',
-            \escapeshellarg($project->directory),
-            \escapeshellarg(\PHP_BINARY),
-            \escapeshellarg($root . '/bin/greenlight'),
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['run', '--workers=4', '--reporter=plain'],
+            phpArguments: ['-d', 'disable_functions=proc_open'],
         );
-        \exec($command, $output, $exit);
-        $text = \implode("\n", $output);
-        Expect::that($exit)->toBe(0)
-            ->and($text)->toContain('7 tests, 7 passed')
-            ->and($text)->not()->toContain('proc_open');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('7 tests, 7 passed')
+            ->and($result->output())->not()->toContain('proc_open');
     }
 }

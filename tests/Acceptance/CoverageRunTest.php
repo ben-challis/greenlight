@@ -9,6 +9,8 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Drives bin/greenlight with coverage enabled against a fixture project.
@@ -29,11 +31,11 @@ final readonly class CoverageRunTest
         $this->removeDir($outDir);
 
         try {
-            [$exit, $output] = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage');
+            $result = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage');
 
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('Coverage: 60.00% (3 of 5 lines)')
-                ->and($output)->toContain('  json → coverage-out/coverage.json');
+            Expect::that($result->exitCode)->toBe(0)
+                ->and($result->output())->toContain('Coverage: 60.00% (3 of 5 lines)')
+                ->and($result->output())->toContain('  json → coverage-out/coverage.json');
 
             $json = \file_get_contents($outDir . '/coverage.json');
 
@@ -71,10 +73,10 @@ final readonly class CoverageRunTest
         $this->removeDir($outDir);
 
         try {
-            [$exit, $output] = $this->runIn(['run', '--reporter=plain'], 'off');
+            $result = $this->runIn(['run', '--reporter=plain'], 'off');
 
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('Coverage was requested but no worker could collect it')
+            Expect::that($result->exitCode)->toBe(0)
+                ->and($result->output())->toContain('Coverage was requested but no worker could collect it')
                 ->and(\is_dir($outDir))->toBeFalse();
         } finally {
             $this->removeDir($outDir);
@@ -92,13 +94,13 @@ final readonly class CoverageRunTest
             // A relay environment inherited from an outer coverage-enabled
             // suite run would suppress this run's own orchestrator collection
             // window; clear it so the run behaves as a standalone one.
-            [$exit, $output] = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage', $configDir, [
+            $result = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage', $configDir, [
                 SubprocessCoverage::DIRECTORY_ENV => '',
                 SubprocessCoverage::INCLUDE_ENV => '',
             ]);
 
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('  json → coverage-out/coverage.json');
+            Expect::that($result->exitCode)->toBe(0)
+                ->and($result->output())->toContain('  json → coverage-out/coverage.json');
 
             $json = \file_get_contents($outDir . '/coverage.json');
 
@@ -134,12 +136,12 @@ final readonly class CoverageRunTest
         $this->removeDir($outDir);
 
         try {
-            [$exit] = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage', extraEnv: [
+            $result = $this->runIn(['run', '--workers=2', '--reporter=plain'], 'coverage', extraEnv: [
                 SubprocessCoverage::DIRECTORY_ENV => $shared,
                 SubprocessCoverage::INCLUDE_ENV => $root . '/src/Cli',
             ]);
 
-            Expect::that($exit)->toBe(0);
+            Expect::that($result->exitCode)->toBe(0);
 
             $dumps = \glob($shared . '/*.json');
             $dumps = $dumps === false ? [] : $dumps;
@@ -161,18 +163,18 @@ final readonly class CoverageRunTest
         $this->removeDir($outDir);
 
         try {
-            [$exit] = $this->runIn(['run', '--reporter=plain'], 'coverage');
-            Expect::that($exit)->toBe(0);
+            $result = $this->runIn(['run', '--reporter=plain'], 'coverage');
+            Expect::that($result->exitCode)->toBe(0);
 
             $baseline = $outDir . '/coverage.json';
 
-            [$sameExit, $sameOutput] = $this->runIn(
+            $sameResult = $this->runIn(
                 ['coverage:diff', '--baseline=coverage-out/coverage.json', '--current=coverage-out/coverage.json'],
                 'off',
             );
 
-            Expect::that($sameExit)->toBe(0)
-                ->and($sameOutput)->toContain('(+0.00)');
+            Expect::that($sameResult->exitCode)->toBe(0)
+                ->and($sameResult->output())->toContain('(+0.00)');
 
             $json = \file_get_contents($baseline);
 
@@ -207,14 +209,14 @@ final readonly class CoverageRunTest
             $regressedPath = $outDir . '/regressed.json';
             \file_put_contents($regressedPath, $regressed);
 
-            [$regressedExit, $regressedOutput] = $this->runIn(
+            $regressedResult = $this->runIn(
                 ['coverage:diff', '--baseline=coverage-out/coverage.json', '--current=coverage-out/regressed.json'],
                 'off',
             );
 
-            Expect::that($regressedExit)->toBe(1)
-                ->and($regressedOutput)->toContain('Coverage regressed against the baseline.')
-                ->and($regressedOutput)->toContain('newly uncovered lines: ' . $movedLine);
+            Expect::that($regressedResult->exitCode)->toBe(1)
+                ->and($regressedResult->output())->toContain('Coverage regressed against the baseline.')
+                ->and($regressedResult->output())->toContain('newly uncovered lines: ' . $movedLine);
         } finally {
             $this->removeDir($outDir);
         }
@@ -224,13 +226,16 @@ final readonly class CoverageRunTest
      * @param list<string> $arguments
      * @param array<string, string> $extraEnv
      *
-     * @return array{int, string}
      */
-    private function runIn(array $arguments, string $xdebugMode, string $configDir = self::CONFIG_DIR, array $extraEnv = []): array
+    private function runIn(array $arguments, string $xdebugMode, string $configDir = self::CONFIG_DIR, array $extraEnv = []): ProcessResult
     {
         $root = \dirname(__DIR__, 2);
 
-        return AcceptanceProject::runIn($root . '/' . $configDir, $arguments, ['XDEBUG_MODE' => $xdebugMode, ...$extraEnv]);
+        return GreenlightCli::run(
+            $root . '/' . $configDir,
+            $arguments,
+            ['XDEBUG_MODE' => $xdebugMode, ...$extraEnv],
+        );
     }
 
     private function outDir(): string

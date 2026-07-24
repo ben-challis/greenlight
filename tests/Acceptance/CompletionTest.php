@@ -7,6 +7,8 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * The completion command through the real CLI: each supported shell gets a
@@ -20,34 +22,34 @@ final readonly class CompletionTest
     #[Test]
     public function printsAScriptPerShellAndRejectsUnknownShells(): void
     {
-        [$exit, $output] = $this->run('bash');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('_greenlight_completions')
-            ->and($output)->toContain('coverage:diff')
-            ->and($output)->toContain('--detect-leaks')
-            ->and($output)->toContain('teamcity');
+        $result = $this->run('bash');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->stdout)->toContain('_greenlight_completions')
+            ->and($result->stdout)->toContain('coverage:diff')
+            ->and($result->stdout)->toContain('--detect-leaks')
+            ->and($result->stdout)->toContain('teamcity');
 
-        $bashScript = $output;
+        $bashScript = $result->stdout;
 
-        [$exit, $output] = $this->run('zsh');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('compdef _greenlight greenlight')
-            ->and($output)->toContain('--detect-leaks')
-            ->and($output)->toContain('teamcity');
+        $result = $this->run('zsh');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->stdout)->toContain('compdef _greenlight greenlight')
+            ->and($result->stdout)->toContain('--detect-leaks')
+            ->and($result->stdout)->toContain('teamcity');
 
-        [$exit, $output] = $this->run('fish');
-        Expect::that($exit)->toBe(0)
-            ->and($output)->toContain('complete -c greenlight')
-            ->and($output)->toContain('-l detect-leaks')
-            ->and($output)->toContain('teamcity');
+        $result = $this->run('fish');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->stdout)->toContain('complete -c greenlight')
+            ->and($result->stdout)->toContain('-l detect-leaks')
+            ->and($result->stdout)->toContain('teamcity');
 
-        [$exit, , $stderr] = $this->run('powershell');
-        Expect::that($exit)->toBe(64)
-            ->and($stderr)->toContain('Unknown shell');
+        $result = $this->run('powershell');
+        Expect::that($result->exitCode)->toBe(64)
+            ->and($result->stderr)->toContain('Unknown shell');
 
-        [$exit, , $stderr] = $this->run();
-        Expect::that($exit)->toBe(64)
-            ->and($stderr)->toContain('requires a shell argument');
+        $result = $this->run();
+        Expect::that($result->exitCode)->toBe(64)
+            ->and($result->stderr)->toContain('requires a shell argument');
 
         $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }
@@ -70,25 +72,8 @@ final readonly class CompletionTest
         Expect::that($lintExit)->toBe(0);
     }
 
-    /**
-     * Runs the completion command and captures stdout and stderr separately,
-     * so stray stderr lines cannot leak into the script that bash -n checks.
-     *
-     * @return array{int, string, string}
-     */
-    private function run(string ...$arguments): array
+    private function run(string ...$arguments): ProcessResult
     {
-        $root = \dirname(__DIR__, 2);
-        $parts = [\escapeshellarg(\PHP_BINARY), \escapeshellarg($root . '/bin/greenlight'), 'completion'];
-
-        foreach ($arguments as $argument) {
-            $parts[] = \escapeshellarg($argument);
-        }
-
-        $errFile = $this->tempDirectory->path() . '/completion-error.txt';
-        \exec(\implode(' ', $parts) . ' 2>' . \escapeshellarg($errFile), $output, $exit);
-        $stderr = (string) @\file_get_contents($errFile);
-
-        return [$exit, \implode("\n", $output), $stderr];
+        return GreenlightCli::run(\dirname(__DIR__, 2), \array_values(['completion', ...$arguments]));
     }
 }

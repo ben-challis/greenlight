@@ -9,6 +9,8 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Drives bin/greenlight with a process pool against fixture projects and
@@ -26,54 +28,54 @@ final readonly class ParallelRunTest
         // A private copy of ListTestsConfig, so this comparison run cannot
         // race another acceptance test's use of the same working directory.
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'parallel');
-        [$sequentialExit, $sequential] = $project->run('run', '--workers=1');
-        [$parallelExit, $parallel] = $project->run('run', '--workers=3');
-        Expect::that($sequentialExit)->toBe(0)
-            ->and($parallelExit)->toBe(0)
-            ->and($this->summaryLine($sequential))->toBe('7 tests, 7 passed, 0 expectations')
-            ->and($this->summaryLine($parallel))->toBe('7 tests, 7 passed, 0 expectations');
+        $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
+        $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
+        Expect::that($sequential->exitCode)->toBe(0)
+            ->and($parallel->exitCode)->toBe(0)
+            ->and($this->summaryLine($sequential->output()))->toBe('7 tests, 7 passed, 0 expectations')
+            ->and($this->summaryLine($parallel->output()))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     #[Test]
     public function crashedWorkersAreContainedAndTheRunCompletes(): void
     {
-        [$exit, $output] = $this->runIn('CrashConfig', ['run', '--workers=2']);
+        $result = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
-        Expect::that($exit)->toBe(1)
-            ->and($this->summaryLine($output))->toBe('3 tests, 2 passed, 1 errored, 0 expectations')
-            ->and($output)->toContain('crashed while running');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations')
+            ->and($result->output())->toContain('crashed while running');
     }
 
     #[Test]
     public function configuredPluginsReachWorkersAcrossTheProcessBoundary(): void
     {
-        [$exit, $output] = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
+        $result = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
-        Expect::that($exit)->toBe(0)
-            ->and($this->summaryLine($output))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
     }
 
     #[Test]
     public function workerRecyclingKeepsResultsIntact(): void
     {
-        [$exit, $output] = $this->runIn('RecycleConfig', ['run']);
+        $result = $this->runIn('RecycleConfig', ['run']);
 
-        Expect::that($exit)->toBe(0)
-            ->and($this->summaryLine($output))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     #[Test]
     public function leakDetectionNamesTheLeakAndFailsTheRun(): void
     {
-        [$withFlagExit, $withFlag] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2']);
+        $withFlag = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2']);
 
-        Expect::that($withFlagExit)->toBe(1)
-            ->and($withFlag)->toContain('Leaks (the test instance survived its test):')
-            ->and($withFlag)->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
+        Expect::that($withFlag->exitCode)->toBe(1)
+            ->and($withFlag->output())->toContain('Leaks (the test instance survived its test):')
+            ->and($withFlag->output())->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
-        [$withoutFlagExit] = $this->runIn('LeakConfig', ['run', '--workers=2']);
+        $withoutFlag = $this->runIn('LeakConfig', ['run', '--workers=2']);
 
-        Expect::that($withoutFlagExit)->toBe(0);
+        Expect::that($withoutFlag->exitCode)->toBe(0);
     }
 
     #[Test]
@@ -85,24 +87,24 @@ final readonly class ParallelRunTest
             throw new SkipTest('xdebug is not loaded');
         }
 
-        [, $develop] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
+        $develop = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
 
-        Expect::that($develop)->toContain('xdebug develop mode');
+        Expect::that($develop->output())->toContain('xdebug develop mode');
 
-        [, $off] = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
+        $off = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
 
-        Expect::that($off)->not()->toContain('xdebug develop mode');
+        Expect::that($off->output())->not()->toContain('xdebug develop mode');
     }
 
     #[Test]
     public function hangingTestsAreHardKilledByTheOrchestrator(): void
     {
         $startedAt = \hrtime(true);
-        [$exit, $output] = $this->runIn('HangConfig', ['run', '--workers=2']);
+        $result = $this->runIn('HangConfig', ['run', '--workers=2']);
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
 
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('timeout budget')
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('timeout budget')
             ->and($durationSeconds)->toBeLessThan(20.0);
     }
 
@@ -110,11 +112,10 @@ final readonly class ParallelRunTest
      * @param list<string> $arguments
      * @param array<string, string> $env
      *
-     * @return array{int, string}
      */
-    private function runIn(string $fixtureConfigDir, array $arguments, array $env = []): array
+    private function runIn(string $fixtureConfigDir, array $arguments, array $env = []): ProcessResult
     {
-        return AcceptanceProject::runIn(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments, $env);
+        return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments, $env);
     }
 
     private function summaryLine(string $output): string

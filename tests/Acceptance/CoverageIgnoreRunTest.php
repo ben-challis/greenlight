@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Drives bin/greenlight against a fixture project whose only unexecuted
@@ -25,14 +26,14 @@ final class CoverageIgnoreRunTest
 
         try {
             $root = \dirname(__DIR__, 2);
-            [$exit, $output] = AcceptanceProject::runIn(
+            $result = GreenlightCli::run(
                 $root . '/' . self::CONFIG_DIR,
                 ['run', '--reporter=plain'],
                 ['XDEBUG_MODE' => 'coverage'],
             );
 
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('Coverage: 100.00%');
+            Expect::that($result->exitCode)->toBe(0)
+                ->and($result->output())->toContain('Coverage: 100.00%');
 
             $json = \file_get_contents($outDir . '/coverage.json');
 

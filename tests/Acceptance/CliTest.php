@@ -8,6 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Runs bin/greenlight as a subprocess and asserts on observable behaviour
@@ -20,9 +22,10 @@ final readonly class CliTest
     #[Test]
     public function printsTheResolvedPlanForAFixtureConfig(): void
     {
-        [$exit, $output] = $this->runCli(['--dry-run', '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php']);
+        $result = $this->runCli(['--dry-run', '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php']);
+        $output = $result->outputLines();
 
-        Expect::that($exit)->toBe(0);
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, '  test paths: tests/Unit, tests/Acceptance');
         $this->assertContainsLine($output, '  suite unit: tests/Unit');
         $this->assertContainsLine($output, '  suite integration: tests/Integration [tags: io]');
@@ -36,7 +39,7 @@ final readonly class CliTest
     #[Test]
     public function commandLineFlagsOverrideTheConfigFile(): void
     {
-        [$exit, $output] = $this->runCli([
+        $result = $this->runCli([
             '--dry-run',
             '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php',
             '--workers=2',
@@ -44,8 +47,9 @@ final readonly class CliTest
             '--seed=9',
             '--group=slow',
         ]);
+        $output = $result->outputLines();
 
-        Expect::that($exit)->toBe(0);
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, '  workers: 2');
         $this->assertContainsLine($output, '  stop after: 7 failures');
         $this->assertContainsLine($output, '  order: random (seed 9)');
@@ -55,23 +59,23 @@ final readonly class CliTest
     #[Test]
     public function helpAndVersionExitZero(): void
     {
-        [$helpExit, $helpOutput] = $this->runCli(['--help']);
-        Expect::that($helpExit)->toBe(0);
-        Expect::that(\implode("\n", $helpOutput))->toContain('Usage:');
+        $result = $this->runCli(['--help']);
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->output())->toContain('Usage:');
 
-        [$versionExit, $versionOutput] = $this->runCli(['--version']);
-        Expect::that($versionExit)->toBe(0);
-        $this->assertContainsLine($versionOutput, 'Greenlight dev-main');
+        $result = $this->runCli(['--version']);
+        Expect::that($result->exitCode)->toBe(0);
+        $this->assertContainsLine($result->outputLines(), 'Greenlight dev-main');
     }
 
     #[Test]
     public function runExecutesAPassingSuiteAndExitsZero(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
-        [$exit, $output] = $project->runLines('run');
-        Expect::that($exit)->toBe(0);
-        Expect::that(\implode("\n", $output))->toContain('7 tests, 7 passed');
-        Expect::that(\implode("\n", $output))->not()->toContain('alpha:one');
+        $result = GreenlightCli::run($project->directory, ['run']);
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->output())->toContain('7 tests, 7 passed');
+        Expect::that($result->output())->not()->toContain('alpha:one');
     }
 
     #[Test]
@@ -82,36 +86,37 @@ final readonly class CliTest
         // escape-free contract, while the TTY behaviour matrix lives in
         // TerminalCapabilitiesTest and TtyReporterTest.
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
-        [$exit, $output] = $project->runLines('run', '--no-ansi', '--verbose');
-        Expect::that($exit)->toBe(0);
-        Expect::that(\implode("\n", $output))->not()->toContain("\x1b[");
-        Expect::that(\implode("\n", $output))->toContain('7 tests, 7 passed');
+        $result = GreenlightCli::run($project->directory, ['run', '--no-ansi', '--verbose']);
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->output())->not()->toContain("\x1b[");
+        Expect::that($result->output())->toContain('7 tests, 7 passed');
     }
 
     #[Test]
     public function runExecutesAFailingSuiteAndExitsOne(): void
     {
-        [$exit, $output] = $this->runCli(['run'], 'tests/Fixture/RunFailingConfig');
+        $result = $this->runCli(['run'], 'tests/Fixture/RunFailingConfig');
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\implode("\n", $output))->toContain('intentional boom');
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('intentional boom');
     }
 
     #[Test]
     public function runWithNoTestsExitsOne(): void
     {
-        [$exit, $output] = $this->runCli(['run'], 'tests/Fixture/RunEmptyConfig');
+        $result = $this->runCli(['run'], 'tests/Fixture/RunEmptyConfig');
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\implode("\n", $output))->toContain('No tests found');
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('No tests found');
     }
 
     #[Test]
     public function listTestsPrintsDiscoveredTestIds(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
-        [$exit, $output] = $project->runLines('list-tests');
-        Expect::that($exit)->toBe(0);
+        $result = GreenlightCli::run($project->directory, ['list-tests']);
+        $output = $result->outputLines();
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
     }
@@ -120,8 +125,9 @@ final readonly class CliTest
     public function listTestsHonoursGroupFilters(): void
     {
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
-        [$exit, $output] = $project->runLines('list-tests', '--group=slow');
-        Expect::that($exit)->toBe(0);
+        $result = GreenlightCli::run($project->directory, ['list-tests', '--group=slow']);
+        $output = $result->outputLines();
+        Expect::that($result->exitCode)->toBe(0);
         $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
         Expect::that(
             !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one', $output, true),
@@ -131,33 +137,32 @@ final readonly class CliTest
     #[Test]
     public function missingConfigFileFailsWithAnActionableMessage(): void
     {
-        [$exit, $output] = $this->runCli([], 'tests/Fixture/ConfigFiles/Empty');
+        $result = $this->runCli([], 'tests/Fixture/ConfigFiles/Empty');
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\implode("\n", $output))->toContain('greenlight: No greenlight.php found in');
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('greenlight: No greenlight.php found in');
     }
 
     #[Test]
     public function unknownOptionsAreUsageErrors(): void
     {
-        [$exit, $output] = $this->runCli(['--frobnicate']);
+        $result = $this->runCli(['--frobnicate']);
 
-        Expect::that($exit)->toBe(64);
-        Expect::that(\implode("\n", $output))->toContain('greenlight: Unknown option "--frobnicate"');
-        Expect::that(\implode("\n", $output))->not()->toContain("\x1b[");
+        Expect::that($result->exitCode)->toBe(64);
+        Expect::that($result->output())->toContain('greenlight: Unknown option "--frobnicate"');
+        Expect::that($result->output())->not()->toContain("\x1b[");
     }
 
     /**
      * @param list<string> $arguments
      *
-     * @return array{int, list<string>}
      */
-    private function runCli(array $arguments, string $relativeCwd = ''): array
+    private function runCli(array $arguments, string $relativeCwd = ''): ProcessResult
     {
         $root = \dirname(__DIR__, 2);
         $cwd = $relativeCwd === '' ? $root : $root . '/' . $relativeCwd;
 
-        return AcceptanceProject::runLinesIn($cwd, $arguments);
+        return GreenlightCli::run($cwd, $arguments);
     }
 
     /**

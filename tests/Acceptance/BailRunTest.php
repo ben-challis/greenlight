@@ -8,6 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\ProcessResult;
 
 /**
  * Drives --bail through the real CLI against a project whose first class
@@ -25,43 +27,40 @@ final readonly class BailRunTest
     public function bailWithNoValueStopsAfterOneFailure(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project, '--bail');
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('6 tests, 1 worker')
-            ->and($output)->toContain('1 test, 0 passed, 1 errored')
-            ->and($output)->not()->toContain('BProbe')
-            ->and($output)->not()->toContain('CProbe');
+        $result = $this->run($project, '--bail');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('6 tests, 1 worker')
+            ->and($result->output())->toContain('1 test, 0 passed, 1 errored')
+            ->and($result->output())->not()->toContain('BProbe')
+            ->and($result->output())->not()->toContain('CProbe');
     }
 
     #[Test]
     public function bailWithAnExplicitCountStopsAfterThatManyFailures(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project, '--bail=2');
+        $result = $this->run($project, '--bail=2');
         // Both counted failures come from class A, so neither later
         // class starts.
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('6 tests, 1 worker')
-            ->and($output)->toContain('2 tests, 0 passed, 2 errored')
-            ->and($output)->not()->toContain('BProbe')
-            ->and($output)->not()->toContain('CProbe');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('6 tests, 1 worker')
+            ->and($result->output())->toContain('2 tests, 0 passed, 2 errored')
+            ->and($result->output())->not()->toContain('BProbe')
+            ->and($result->output())->not()->toContain('CProbe');
     }
 
     #[Test]
     public function withoutBailTheWholePlanRuns(): void
     {
         $project = $this->writeProject();
-        [$exit, $output] = $this->run($project);
-        Expect::that($exit)->toBe(1)
-            ->and($output)->toContain('6 tests, 3 passed, 3 errored');
+        $result = $this->run($project);
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('6 tests, 3 passed, 3 errored');
     }
 
-    /**
-     * @return array{int, string}
-     */
-    private function run(AcceptanceProject $project, string ...$flags): array
+    private function run(AcceptanceProject $project, string ...$flags): ProcessResult
     {
-        return $project->run('run', '--reporter=plain', ...$flags);
+        return GreenlightCli::run($project->directory, \array_values(['run', '--reporter=plain', ...$flags]));
     }
 
     private function writeProject(): AcceptanceProject
