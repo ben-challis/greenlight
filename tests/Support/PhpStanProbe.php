@@ -37,7 +37,7 @@ final readonly class PhpStanProbe
         \file_put_contents($goodFile, $goodSource);
         \file_put_contents($badFile, $badSource);
 
-        $result = ProcessRunner::run(
+        $result = Subprocess::run(
             $root,
             [
                 \PHP_BINARY,

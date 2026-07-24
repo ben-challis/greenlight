@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+use Greenlight\Tests\Support\Subprocess;
 
 /**
  * The completion command through the real CLI: each supported shell gets a
@@ -60,16 +61,27 @@ final readonly class CompletionTest
      */
     private function syntaxCheckWhenBashIsAvailable(string $script): void
     {
-        \exec('command -v bash 2>/dev/null', $paths, $missing);
+        $path = \getenv('PATH');
+        $bash = null;
 
-        if ($missing !== 0) {
+        foreach (\explode(\PATH_SEPARATOR, \is_string($path) ? $path : '') as $directory) {
+            $candidate = $directory . \DIRECTORY_SEPARATOR . 'bash';
+
+            if (\is_file($candidate) && \is_executable($candidate)) {
+                $bash = $candidate;
+
+                break;
+            }
+        }
+
+        if ($bash === null) {
             return;
         }
 
         $file = $this->tempDirectory->path() . '/completion.bash';
         \file_put_contents($file, $script . "\n");
-        \exec(\sprintf('bash -n %s 2>&1', \escapeshellarg($file)), $lint, $lintExit);
-        Expect::that($lintExit)->toBe(0);
+        $result = Subprocess::run(\dirname(__DIR__, 2), [$bash, '-n', $file]);
+        Expect::that($result->exitCode)->toBe(0);
     }
 
     private function run(string ...$arguments): ProcessResult

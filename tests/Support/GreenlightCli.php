@@ -24,8 +24,25 @@ final class GreenlightCli
         array $environment = [],
         array $phpArguments = [],
     ): ProcessResult {
+        return self::start($workingDirectory, $arguments, $environment, $phpArguments)->complete();
+    }
+
+    /**
+     * @param list<string> $arguments
+     * @param array<string, string> $environment
+     * @param list<string> $phpArguments arguments inserted after PHP_BINARY, such as -d settings
+     *
+     * @throws \RuntimeException when the process cannot be started
+     */
+    public static function start(
+        string $workingDirectory,
+        array $arguments,
+        array $environment = [],
+        array $phpArguments = [],
+    ): Subprocess {
         $root = \dirname(__DIR__, 2);
-        return ProcessRunner::run(
+
+        return Subprocess::start(
             $workingDirectory,
             [
                 \PHP_BINARY,

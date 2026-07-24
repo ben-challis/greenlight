@@ -6,116 +6,84 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
 
 /**
  * Drives bin/greenlight run --watch as an interactive subprocess: the initial
  * run completes, a synthetic file touch triggers a debounced re-run, and q
  * quits cleanly.
  */
-final class WatchModeTest
+final readonly class WatchModeTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function reRunsOnFileChangesAndQuitsOnQ(): void
     {
-        $root = \dirname(__DIR__, 2);
-        $cwd = $root . '/tests/Fixture/WatchConfig';
-        $watchedFile = $root . '/tests/Fixture/WatchSuite/WatchDemoTest.php';
+        $project = $this->writeProject();
+        $watchedFile = $project->path('tests/WatchProbeTest.php');
         $original = \file_get_contents($watchedFile);
 
         if ($original === false) {
             throw new \RuntimeException('Could not read the watched fixture.');
         }
 
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
-
-        $process = \proc_open(
-            [\PHP_BINARY, $root . '/bin/greenlight', 'run', '--watch', '--reporter=plain'],
-            $descriptors,
-            $pipes,
-            $cwd,
-        );
-
-        if (!\is_resource($process)) {
-            throw new \RuntimeException('Could not start the watch subprocess.');
-        }
-
-        \stream_set_blocking($pipes[1], false);
+        $process = GreenlightCli::start($project->directory, ['run', '--watch', '--reporter=plain']);
 
         try {
-            $output = $this->readUntil($pipes[1], 'Watching for changes', 20.0);
+            $output = $process->readStdoutUntil('Watching for changes', 20.0);
             Expect::that($output)->toContain('1 test, 1 passed');
 
             // A synthetic change: append a comment, size changes, mtime may not.
-            \file_put_contents($watchedFile, $original . "// touched\n");
+            $project->write('tests/WatchProbeTest.php', $original . "// touched\n");
 
-            $output = $this->readUntil($pipes[1], 'Watching for changes', 20.0);
+            $output = $process->readStdoutUntil('Watching for changes', 20.0);
             Expect::that($output)->toContain('Change detected')
                 ->and($output)->toContain('1 test, 1 passed');
 
-            \fwrite($pipes[0], 'q');
-            \fflush($pipes[0]);
-
-            $deadline = \microtime(true) + 10.0;
-            $running = true;
-
-            while (\microtime(true) < $deadline) {
-                $status = \proc_get_status($process);
-
-                if (!$status['running']) {
-                    $running = false;
-                    Expect::that($status['exitcode'])->toBe(0);
-
-                    break;
-                }
-
-                \usleep(50_000);
-            }
-
-            Expect::that($running)->toBeFalse();
+            $process->write('q');
+            $result = $process->wait(10.0);
+            Expect::that($result->exitCode)->toBe(0);
         } finally {
-            \file_put_contents($watchedFile, $original);
-            @\fclose($pipes[0]);
-            @\fclose($pipes[1]);
-            @\fclose($pipes[2]);
-
-            if (\proc_get_status($process)['running']) {
-                \proc_terminate($process, 9);
-            }
-
-            \proc_close($process);
+            $process->terminate();
         }
     }
 
-    /**
-     * @param resource $stream
-     */
-    private function readUntil($stream, string $needle, float $timeoutSeconds): string
+    private function writeProject(): AcceptanceProject
     {
-        $deadline = \microtime(true) + $timeoutSeconds;
-        $buffer = '';
+        $project = AcceptanceProject::create($this->tempDirectory, 'watch');
+        $project->write('tests/WatchProbeTest.php', <<<'PHP'
+            <?php
 
-        while (\microtime(true) < $deadline) {
-            $bytes = \fread($stream, 8192);
+            declare(strict_types=1);
 
-            if (\is_string($bytes) && $bytes !== '') {
-                $buffer .= $bytes;
+            namespace WatchProbe;
 
-                if (\str_contains($buffer, $needle)) {
-                    return $buffer;
-                }
+            use Greenlight\Attribute\Test;
+
+            final class WatchProbeTest
+            {
+                #[Test]
+                public function passes(): void {}
             }
+            PHP);
+        $project->write('greenlight.php', <<<'PHP'
+            <?php
 
-            \usleep(50_000);
-        }
+            declare(strict_types=1);
 
-        throw new \RuntimeException(\sprintf(
-            "Timed out waiting for '%s'. Output so far:\n%s",
-            $needle,
-            $buffer,
-        ));
+            use Greenlight\Config\GreenlightConfig;
+
+            require_once __DIR__ . '/tests/WatchProbeTest.php';
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers(1)
+                ->watch(fn($watch) => $watch->debounceMilliseconds(50));
+            PHP);
+
+        return $project;
     }
 }

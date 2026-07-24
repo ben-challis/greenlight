@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
@@ -14,53 +15,68 @@ use Greenlight\Tests\Support\GreenlightCli;
  * lines sit inside coverage ignore markers, so the run reports full
  * coverage exactly when the markers are honoured.
  */
-final class CoverageIgnoreRunTest
+final readonly class CoverageIgnoreRunTest
 {
-    private const string CONFIG_DIR = 'tests/Fixture/CoverageIgnoreConfig';
+    public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
     public function ignoredLinesAreExcludedFromTotalsAndExports(): void
     {
-        $outDir = $this->outDir();
-        AcceptanceProject::removeTree($outDir);
+        $project = $this->writeProject();
+        $outDir = $project->path('coverage-out');
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['run', '--reporter=plain'],
+            ['XDEBUG_MODE' => 'coverage'],
+        );
 
-        try {
-            $root = \dirname(__DIR__, 2);
-            $result = GreenlightCli::run(
-                $root . '/' . self::CONFIG_DIR,
-                ['run', '--reporter=plain'],
-                ['XDEBUG_MODE' => 'coverage'],
-            );
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('Coverage: 100.00%');
 
-            Expect::that($result->exitCode)->toBe(0)
-                ->and($result->output())->toContain('Coverage: 100.00%');
+        $json = \file_get_contents($outDir . '/coverage.json');
 
-            $json = \file_get_contents($outDir . '/coverage.json');
-
-            if ($json === false) {
-                throw new \RuntimeException('The JSON export was not written.');
-            }
-
-            /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
-            $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
-            $gadget = null;
-
-            foreach ($decoded['files'] as $file => $lines) {
-                if (\str_ends_with($file, 'CoverageIgnoreLib/Gadget.php')) {
-                    $gadget = $lines;
-                }
-            }
-
-            Expect::that($gadget)->not()->toBeNull()
-                ->and($gadget['uncovered'] ?? null)->toBe([])
-                ->and($gadget['covered'] ?? [])->not()->toHaveCount(0);
-        } finally {
-            AcceptanceProject::removeTree($outDir);
+        if ($json === false) {
+            throw new \RuntimeException('The JSON export was not written.');
         }
+
+        /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
+        $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
+        $gadget = null;
+
+        foreach ($decoded['files'] as $file => $lines) {
+            if (\str_ends_with($file, 'CoverageIgnoreLib/Gadget.php')) {
+                $gadget = $lines;
+            }
+        }
+
+        Expect::that($gadget)->not()->toBeNull()
+            ->and($gadget['uncovered'] ?? null)->toBe([])
+            ->and($gadget['covered'] ?? [])->not()->toHaveCount(0);
     }
 
-    private function outDir(): string
+    private function writeProject(): AcceptanceProject
     {
-        return \dirname(__DIR__, 2) . '/' . self::CONFIG_DIR . '/coverage-out';
+        $root = \dirname(__DIR__, 2);
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-ignore');
+        $project->write('greenlight.php', \sprintf(
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+
+            return GreenlightConfig::create()
+                ->paths([%s])
+                ->coverage(fn($coverage) => $coverage
+                    ->include(%s)
+                    ->export('json', 'coverage-out/coverage.json'));
+
+            PHP,
+            \var_export($root . '/tests/Fixture/CoverageIgnoreSuite', true),
+            \var_export($root . '/tests/Fixture/CoverageIgnoreLib', true),
+        ));
+
+        return $project;
     }
 }

@@ -9,6 +9,8 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\Subprocess;
 
 /**
  * Interrupts a real bin/greenlight run with SIGINT and asserts the clean
@@ -34,82 +36,54 @@ final readonly class InterruptionTest
         // Windows.
 
         $project = $this->writeProject();
-        $tmp = $project->path('tmp');
-        \mkdir($tmp, 0o700);
+        $tmp = $this->tempDirectory->subdirectory('interrupt/tmp');
         $markerDir = $project->path('markers');
         $root = \dirname(__DIR__, 2);
-        $env = \getenv();
-        $env['TMPDIR'] = $tmp;
-        $process = \proc_open(
-            [\PHP_BINARY, $root . '/bin/greenlight', 'run', '--workers=2', '--reporter=jsonl'],
-            [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-            $pipes,
+        $process = GreenlightCli::start(
             $project->directory,
-            $env,
+            ['run', '--workers=2', '--reporter=jsonl'],
+            ['TMPDIR' => $tmp],
         );
-        if (!\is_resource($process)) {
-            throw new \RuntimeException('Could not start bin/greenlight.');
-        }
-        \fclose($pipes[0]);
-        \stream_set_blocking($pipes[1], false);
-        \stream_set_blocking($pipes[2], false);
-        $stdout = '';
-        $stderr = '';
-        $deadline = \microtime(true) + self::DEADLINE_SECONDS;
-        // A marker file written straight to disk at the top of the
-        // first test method fires as soon as any test has started,
-        // with none of the block-buffering delay a "test-finished"
-        // line in the piped stdout would carry: under CPU pressure the
-        // whole run could otherwise finish before that line is ever
-        // observed, sending SIGINT after there is nothing left to
-        // interrupt.
-        while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
-            $this->pump($pipes, $stdout, $stderr);
-            \usleep(5_000);
-        }
-        if (\glob($markerDir . '/*.started') === []) {
-            throw new \RuntimeException(\sprintf(
-                'Timed out after %.1fs waiting for a fixture test to start.',
-                self::DEADLINE_SECONDS,
-            ));
-        }
-        $status = \proc_get_status($process);
-        \exec('kill -INT ' . $status['pid']);
-        $exit = null;
-        while (\microtime(true) < $deadline) {
-            $this->pump($pipes, $stdout, $stderr);
-            $status = \proc_get_status($process);
 
-            if (!$status['running']) {
-                $exit = $status['exitcode'];
+        try {
+            $deadline = \microtime(true) + self::DEADLINE_SECONDS;
 
-                break;
+            // A marker file written straight to disk at the top of the
+            // first test method fires as soon as any test has started,
+            // with none of the block-buffering delay a "test-finished"
+            // line in the piped stdout would carry: under CPU pressure the
+            // whole run could otherwise finish before that line is ever
+            // observed, sending SIGINT after there is nothing left to
+            // interrupt.
+            while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
+                $process->pump();
+                \usleep(5_000);
             }
 
-            \usleep(20_000);
-        }
-        $this->pump($pipes, $stdout, $stderr);
-        \fclose($pipes[1]);
-        \fclose($pipes[2]);
-        \proc_close($process);
-        Expect::that($stdout)->toContain('"test-finished"')
-            ->and($exit)->toBe(130)
-            ->and($stderr)->toContain('Interrupted');
-        foreach ($this->spawnedWorkerPids($stdout) as $pid) {
-            \exec(\sprintf('ps -p %d -o pid=', $pid), $alive);
-            Expect::that(\trim(\implode('', $alive)))->toBe('');
-        }
-        $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
-        Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
-    }
+            if (\glob($markerDir . '/*.started') === []) {
+                throw new \RuntimeException(\sprintf(
+                    'Timed out after %.1fs waiting for a fixture test to start.',
+                    self::DEADLINE_SECONDS,
+                ));
+            }
 
-    /**
-     * @param array<int, resource> $pipes
-     */
-    private function pump(array $pipes, string &$stdout, string &$stderr): void
-    {
-        $stdout .= (string) @\fread($pipes[1], 65536);
-        $stderr .= (string) @\fread($pipes[2], 65536);
+            $process->signal(\SIGINT);
+            $result = $process->wait(self::DEADLINE_SECONDS);
+
+            Expect::that($result->stdout)->toContain('"test-finished"')
+                ->and($result->exitCode)->toBe(130)
+                ->and($result->stderr)->toContain('Interrupted');
+
+            foreach ($this->spawnedWorkerPids($result->stdout) as $pid) {
+                $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
+                Expect::that(\trim($alive->stdout))->toBe('');
+            }
+
+            $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
+            Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
+        } finally {
+            $process->terminate();
+        }
     }
 
     /**
@@ -185,28 +159,20 @@ final readonly class InterruptionTest
             }
             PHP;
 
+        $files = [];
+
         foreach (['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'] as $name) {
-            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf(
+            $file = \sprintf('tests/%sTest.php', $name);
+            $project->write($file, \sprintf(
                 $template,
                 $name,
                 \var_export($markerDir, true),
                 $name,
             ));
+            $files[] = $file;
         }
 
-        $project->write('greenlight.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Config\GreenlightConfig;
-
-            foreach (\glob(__DIR__ . '/tests/*Test.php') ?: [] as $file) {
-                require_once $file;
-            }
-
-            return GreenlightConfig::create()->paths([__DIR__ . '/tests']);
-            PHP);
+        $project->writeConfig($files);
 
         return $project;
     }

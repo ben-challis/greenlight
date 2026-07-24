@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\Subprocess;
 
 /**
  * The ide-helper command through the real CLI: a config with extension
@@ -31,8 +32,8 @@ final readonly class IdeHelperTest
         $helper = (string) \file_get_contents($target);
         Expect::that($helper)->toContain('@method self toHaveDigestLength(int $length)');
 
-        \exec(\sprintf('%s -l %s 2>&1', \escapeshellarg(\PHP_BINARY), \escapeshellarg($target)), $lint, $lintExit);
-        Expect::that($lintExit)->toBe(0);
+        $lint = Subprocess::run($root, [\PHP_BINARY, '-l', $target]);
+        Expect::that($lint->exitCode)->toBe(0);
 
         $result = GreenlightCli::run($root . '/tests/Fixture/ListTestsConfig', ['ide-helper', '--output=' . $target . '.none']);
         Expect::that($result->exitCode)->toBe(0)

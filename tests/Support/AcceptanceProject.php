@@ -26,9 +26,6 @@ use Greenlight\Fixture\TempDirectory;
  * writeConfig() writes the common minimal greenlight.php: it requires the
  * given test files, scans the project's tests directory, and pins the worker
  * count.
- *
- * removeTree() remains available for generated directories outside a managed
- * test workspace, such as coverage output written beside a committed fixture.
  */
 final readonly class AcceptanceProject
 {
@@ -143,27 +140,4 @@ final readonly class AcceptanceProject
         ));
     }
 
-    public static function removeTree(string $directory): void
-    {
-        if (!\is_dir($directory)) {
-            return;
-        }
-
-        $entries = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($entries as $entry) {
-            \assert($entry instanceof \SplFileInfo);
-
-            if ($entry->isDir() && !$entry->isLink()) {
-                @\rmdir($entry->getPathname());
-            } else {
-                @\unlink($entry->getPathname());
-            }
-        }
-
-        @\rmdir($directory);
-    }
 }
