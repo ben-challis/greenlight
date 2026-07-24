@@ -6,52 +6,42 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Drives --seed through the real CLI against a project with six classes,
  * using --list-tests to read back the plan order without executing anything.
  */
-final class SeedOrderTest
+final readonly class SeedOrderTest
 {
     private const array CLASSES = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+    public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
     public function theSameSeedProducesTheSameOrderAcrossRuns(): void
     {
         $project = $this->writeProject();
-
-        try {
-            $first = $this->order($project, '--seed=3');
-            $second = $this->order($project, '--seed=3');
-
-            Expect::that($first)->toBe($second);
-        } finally {
-            $project->remove();
-        }
+        $first = $this->order($project, '--seed=3');
+        $second = $this->order($project, '--seed=3');
+        Expect::that($first)->toBe($second);
     }
 
     #[Test]
     public function someSeedReordersTheClassesAwayFromDeclarationOrder(): void
     {
         $project = $this->writeProject();
+        $declared = $this->order($project);
+        $reordered = false;
+        for ($seed = 1; $seed <= 10; $seed++) {
+            if ($this->order($project, '--seed=' . $seed) !== $declared) {
+                $reordered = true;
 
-        try {
-            $declared = $this->order($project);
-            $reordered = false;
-
-            for ($seed = 1; $seed <= 10; $seed++) {
-                if ($this->order($project, '--seed=' . $seed) !== $declared) {
-                    $reordered = true;
-
-                    break;
-                }
+                break;
             }
-
-            Expect::that($reordered)->toBeTrue();
-        } finally {
-            $project->remove();
         }
+        Expect::that($reordered)->toBeTrue();
     }
 
     #[Test]
@@ -59,31 +49,19 @@ final class SeedOrderTest
     {
         $project = $this->writeProject();
 
-        try {
-            Expect::that($this->order($project))->toBe($this->declaredOrder());
-        } finally {
-            $project->remove();
-        }
+        Expect::that($this->order($project))->toBe($this->declaredOrder());
     }
 
     #[Test]
     public function anActiveSeedIsAnnouncedInTheRunHeader(): void
     {
         $project = $this->writeProject();
-
-        try {
-            // Stdout only: extension noise on stderr could contain "seed:"
-            // and break the negative assertion below.
-            [$exit, $output] = $project->runStdout('run', '--reporter=plain', '--seed=7');
-
-            Expect::that($exit)->toBe(0)->and($output)->toContain('seed: 7');
-
-            [$exit, $output] = $project->runStdout('run', '--reporter=plain');
-
-            Expect::that($exit)->toBe(0)->and($output)->not()->toContain('seed:');
-        } finally {
-            $project->remove();
-        }
+        // Stdout only: extension noise on stderr could contain "seed:"
+        // and break the negative assertion below.
+        [$exit, $output] = $project->runStdout('run', '--reporter=plain', '--seed=7');
+        Expect::that($exit)->toBe(0)->and($output)->toContain('seed: 7');
+        [$exit, $output] = $project->runStdout('run', '--reporter=plain');
+        Expect::that($exit)->toBe(0)->and($output)->not()->toContain('seed:');
     }
 
     /**
@@ -114,7 +92,7 @@ final class SeedOrderTest
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('seed-order');
+        $project = AcceptanceProject::create($this->tempDirectory, 'seed-order');
         $files = [];
 
         foreach (self::CLASSES as $letter) {

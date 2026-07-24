@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
+use Greenlight\Fixture\TempDirectory;
+
 /**
- * A throwaway project directory for acceptance tests that drive the real CLI.
+ * A project directory inside a test-owned temporary workspace.
  *
- * create() scaffolds a uniquely named directory under the system temp dir and
- * copyOf() clones a committed fixture project into one; write() fills the
- * directory, creating parent directories as needed.
+ * create() scaffolds a directory inside the injected per-test TempDirectory,
+ * so the harness owns cleanup even when a test fails or throws. copyOf()
+ * clones a committed fixture project into one; write() fills the directory,
+ * creating parent directories as needed.
  *
  * copyOfListTestsConfig() gives acceptance tests that only need the
  * ListTestsConfig fixture's seven-test suite a private working directory, so
@@ -32,25 +35,21 @@ namespace Greenlight\Tests\Support;
  * such as a fixture project inside the repository, with optional environment
  * variable overrides.
  *
- * remove() deletes the project tree recursively, so nested artefacts like
- * caches, sockets, and var directories cannot leak; removeTree() offers the
- * same for directories not owned by an instance and tolerates missing ones.
+ * removeTree() remains available for generated directories outside a managed
+ * test workspace, such as coverage output written beside a committed fixture.
  */
 final readonly class AcceptanceProject
 {
     private function __construct(public string $directory) {}
 
-    public static function create(string $prefix): self
+    public static function create(TempDirectory $workspace, string $name): self
     {
-        $directory = \sys_get_temp_dir() . '/greenlight-' . $prefix . '-' . \bin2hex(\random_bytes(6));
-        \mkdir($directory, 0o777, true);
-
-        return new self($directory);
+        return new self($workspace->subdirectory($name));
     }
 
-    public static function copyOf(string $source, string $prefix): self
+    public static function copyOf(TempDirectory $workspace, string $source, string $name): self
     {
-        $project = self::create($prefix);
+        $project = self::create($workspace, $name);
 
         $entries = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS),
@@ -77,9 +76,9 @@ final readonly class AcceptanceProject
      * scanned by absolute path rather than the original's "../DiscoveryBasic"
      * hop, so the copy needs no sibling directory of its own.
      */
-    public static function copyOfListTestsConfig(string $prefix): self
+    public static function copyOfListTestsConfig(TempDirectory $workspace, string $name): self
     {
-        $project = self::create($prefix);
+        $project = self::create($workspace, $name);
         $discoveryBasic = \dirname(__DIR__) . '/Fixture/DiscoveryBasic';
 
         $project->write('greenlight.php', \sprintf(
@@ -228,11 +227,6 @@ final readonly class AcceptanceProject
         \exec($command, $output, $exit);
 
         return [$exit, $output];
-    }
-
-    public function remove(): void
-    {
-        self::removeTree($this->directory);
     }
 
     public static function removeTree(string $directory): void

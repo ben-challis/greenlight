@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -14,35 +15,30 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * Workers are reused across classes instead of spawning per unit, and once
  * the timing cache knows a slow class it is assigned first on the next run.
  */
-final class SchedulingTest
+final readonly class SchedulingTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function workersAreReusedAndTheSlowClassLeadsOnceKnown(): void
     {
         $project = $this->writeProject();
-
-        try {
-            // Cold run: no cache yet. Records durations and proves reuse:
-            // two workers cover four classes.
-            [$exit, $lines] = $this->run($project);
-            Expect::that($exit)->toBe(0)
-                ->and(\count($this->spawnedWorkers($lines)))->toBe(2);
-
-            // Warm run: the slow class heads the queue, so whichever worker
-            // takes it receives it as its first assignment. Assert per
-            // worker rather than on the merged stream: event order between
-            // workers is arrival order, and a worker that boots slowly on a
-            // loaded machine reports its first start only after the other
-            // worker has already started several classes.
-            [$exit, $lines] = $this->run($project);
-            $firstStarts = $this->firstClassStartedByWorker($lines);
-
-            Expect::that($exit)->toBe(0)
-                ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
-                ->and(\array_values($firstStarts))->toContain('SchedulingProbe\SlowTest');
-        } finally {
-            $project->remove();
-        }
+        // Cold run: no cache yet. Records durations and proves reuse:
+        // two workers cover four classes.
+        [$exit, $lines] = $this->run($project);
+        Expect::that($exit)->toBe(0)
+            ->and(\count($this->spawnedWorkers($lines)))->toBe(2);
+        // Warm run: the slow class heads the queue, so whichever worker
+        // takes it receives it as its first assignment. Assert per
+        // worker rather than on the merged stream: event order between
+        // workers is arrival order, and a worker that boots slowly on a
+        // loaded machine reports its first start only after the other
+        // worker has already started several classes.
+        [$exit, $lines] = $this->run($project);
+        $firstStarts = $this->firstClassStartedByWorker($lines);
+        Expect::that($exit)->toBe(0)
+            ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
+            ->and(\array_values($firstStarts))->toContain('SchedulingProbe\SlowTest');
     }
 
     /**
@@ -102,7 +98,7 @@ final class SchedulingTest
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('scheduling');
+        $project = AcceptanceProject::create($this->tempDirectory, 'scheduling');
 
         $fast = <<<'PHP'
             <?php

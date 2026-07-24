@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -15,26 +16,22 @@ use Greenlight\Tests\Support\AcceptanceProject;
  *
  * Crash and hang fixtures must only ever run through here, never in-process.
  */
-final class ParallelRunTest
+final readonly class ParallelRunTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function parallelResultsMatchSequentialResults(): void
     {
         // A private copy of ListTestsConfig, so this comparison run cannot
         // race another acceptance test's use of the same working directory.
-        $project = AcceptanceProject::copyOfListTestsConfig('parallel');
-
-        try {
-            [$sequentialExit, $sequential] = $project->run('run', '--workers=1');
-            [$parallelExit, $parallel] = $project->run('run', '--workers=3');
-
-            Expect::that($sequentialExit)->toBe(0)
-                ->and($parallelExit)->toBe(0)
-                ->and($this->summaryLine($sequential))->toBe('7 tests, 7 passed, 0 expectations')
-                ->and($this->summaryLine($parallel))->toBe('7 tests, 7 passed, 0 expectations');
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'parallel');
+        [$sequentialExit, $sequential] = $project->run('run', '--workers=1');
+        [$parallelExit, $parallel] = $project->run('run', '--workers=3');
+        Expect::that($sequentialExit)->toBe(0)
+            ->and($parallelExit)->toBe(0)
+            ->and($this->summaryLine($sequential))->toBe('7 tests, 7 passed, 0 expectations')
+            ->and($this->summaryLine($parallel))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     #[Test]

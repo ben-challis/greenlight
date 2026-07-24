@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 
 /**
  * Runs the real PHPStan binary with the shipped extension against probe code
@@ -13,14 +14,15 @@ use Greenlight\Expect\Expect;
  * argument type must be flagged, proving the reflected signatures are
  * enforced rather than swallowed by the __call fallback.
  */
-final class PhpStanExtensionTest
+final readonly class PhpStanExtensionTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function reflectedMatcherSignaturesAreEnforced(): void
     {
         $root = \dirname(__DIR__, 2);
-        $probeDir = \sys_get_temp_dir() . '/greenlight-phpstan-probe-' . \bin2hex(\random_bytes(4));
-        \mkdir($probeDir, 0o777, true);
+        $probeDir = $this->tempDirectory->subdirectory('phpstan-probe');
 
         $good = $probeDir . '/GoodProbe.php';
         $bad = $probeDir . '/BadProbe.php';
@@ -53,21 +55,15 @@ final class PhpStanExtensionTest
             }
             PHP);
 
-        try {
-            $command = \sprintf(
-                'cd %s && php vendor/bin/phpstan analyse --no-progress --error-format=json -c tests/Fixture/PhpStanExtension/probe.neon %s %s 2>/dev/null',
-                \escapeshellarg($root),
-                \escapeshellarg($good),
-                \escapeshellarg($bad),
-            );
+        $command = \sprintf(
+            'cd %s && php vendor/bin/phpstan analyse --no-progress --error-format=json -c tests/Fixture/PhpStanExtension/probe.neon %s %s 2>/dev/null',
+            \escapeshellarg($root),
+            \escapeshellarg($good),
+            \escapeshellarg($bad),
+        );
 
-            \exec($command, $output, $exitCode);
-            $report = \json_decode(\implode('', $output), true);
-        } finally {
-            @\unlink($good);
-            @\unlink($bad);
-            @\rmdir($probeDir);
-        }
+        \exec($command, $output, $exitCode);
+        $report = \json_decode(\implode('', $output), true);
 
         Expect::that(\is_array($report))->toBeTrue();
         \assert(\is_array($report) && \is_array($report['files']));

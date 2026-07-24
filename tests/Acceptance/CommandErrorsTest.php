@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -14,8 +15,10 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * options on coverage:diff, an unreadable profile:report input, and an
  * unwritable ide-helper output path.
  */
-final class CommandErrorsTest
+final readonly class CommandErrorsTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function unknownCommandExitsWithAUsageError(): void
     {
@@ -38,17 +41,11 @@ final class CommandErrorsTest
     #[Test]
     public function profileReportWithAMissingInputFileFailsCleanly(): void
     {
-        $project = AcceptanceProject::create('command-errors');
-
-        try {
-            [$exit, $output] = $project->run('profile:report', '--input=nowhere.jsonl');
-
-            Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('Could not read')
-                ->and($output)->toContain('nowhere.jsonl');
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::create($this->tempDirectory, 'command-errors');
+        [$exit, $output] = $project->run('profile:report', '--input=nowhere.jsonl');
+        Expect::that($exit)->toBe(1)
+            ->and($output)->toContain('Could not read')
+            ->and($output)->toContain('nowhere.jsonl');
     }
 
     #[Test]
@@ -64,8 +61,8 @@ final class CommandErrorsTest
         // (IdeHelperTest covers that path), so this needs the shipped
         // PhpStanExtension fixture, whose config has matchers to render.
         $fixture = \dirname(__DIR__) . '/Fixture/PhpStanExtension';
-        $readOnlyDirectory = \sys_get_temp_dir() . '/greenlight-ide-helper-ro-' . \bin2hex(\random_bytes(6));
-        \mkdir($readOnlyDirectory, 0o555);
+        $readOnlyDirectory = $this->tempDirectory->subdirectory('ide-helper-read-only');
+        \chmod($readOnlyDirectory, 0o555);
 
         try {
             [$exit, $output] = AcceptanceProject::runIn($fixture, [
@@ -76,7 +73,6 @@ final class CommandErrorsTest
             Expect::that($exit)->toBe(1)->and($output)->toContain('Could not write');
         } finally {
             \chmod($readOnlyDirectory, 0o755);
-            AcceptanceProject::removeTree($readOnlyDirectory);
         }
     }
 }

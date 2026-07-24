@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -19,38 +20,28 @@ use Greenlight\Tests\Support\AcceptanceProject;
  */
 final readonly class ChannelTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function twoWorkersOccupyChannelsOneAndTwo(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $lines] = $project->runLines('run', '--workers=2', '--reporter=jsonl');
-            $channels = $this->reportedChannels($lines);
-
-            Expect::that($exit)->toBe(0)
-                ->and(\count($channels))->toBe(4)
-                ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('run', '--workers=2', '--reporter=jsonl');
+        $channels = $this->reportedChannels($lines);
+        Expect::that($exit)->toBe(0)
+            ->and(\count($channels))->toBe(4)
+            ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
 
     #[Test]
     public function theInProcessRunnerIsChannelOne(): void
     {
         $project = $this->writeProject(expectedChannels: 1);
-
-        try {
-            [$exit, $lines] = $project->runLines('run', '--workers=1', '--reporter=jsonl');
-            $channels = $this->reportedChannels($lines);
-
-            Expect::that($exit)->toBe(0)
-                ->and(\count($channels))->toBe(4)
-                ->and(\array_values(\array_unique($channels)))->toBe([1]);
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('run', '--workers=1', '--reporter=jsonl');
+        $channels = $this->reportedChannels($lines);
+        Expect::that($exit)->toBe(0)
+            ->and(\count($channels))->toBe(4)
+            ->and(\array_values(\array_unique($channels)))->toBe([1]);
     }
 
     #[Test]
@@ -60,18 +51,12 @@ final readonly class ChannelTest
         // workers are spawned than channels exist, yet the occupied set
         // never leaves {1, 2}.
         $project = $this->writeProject(recycleAfterTests: 1);
-
-        try {
-            [$exit, $lines] = $project->runLines('run', '--reporter=jsonl');
-            $channels = $this->reportedChannels($lines);
-
-            Expect::that($exit)->toBe(0)
-                ->and(\count($this->spawnedWorkers($lines)))->toBeGreaterThan(2)
-                ->and(\count($channels))->toBe(4)
-                ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('run', '--reporter=jsonl');
+        $channels = $this->reportedChannels($lines);
+        Expect::that($exit)->toBe(0)
+            ->and(\count($this->spawnedWorkers($lines)))->toBeGreaterThan(2)
+            ->and(\count($channels))->toBe(4)
+            ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
 
     /**
@@ -131,7 +116,7 @@ final readonly class ChannelTest
 
     private function writeProject(?int $recycleAfterTests = null, int $expectedChannels = 2): AcceptanceProject
     {
-        $project = AcceptanceProject::create('channel');
+        $project = AcceptanceProject::create($this->tempDirectory, 'channel');
         $project->write('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 

@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -20,24 +21,20 @@ use Greenlight\Tests\Support\AcceptanceProject;
  */
 final readonly class SymfonyRunTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function injectsContainerServicesAndResetsStateBetweenTests(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $output] = $project->run('run', '--reporter=plain');
-
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('4 tests, 4 passed');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $output] = $project->run('run', '--reporter=plain');
+        Expect::that($exit)->toBe(0)
+            ->and($output)->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('symfony');
+        $project = AcceptanceProject::create($this->tempDirectory, 'symfony');
 
         $project->write('probe.php', <<<'PHP'
             <?php

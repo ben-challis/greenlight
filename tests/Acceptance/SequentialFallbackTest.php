@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -13,32 +14,27 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * must then complete in-process instead of fataling, even when workers were
  * requested explicitly.
  */
-final class SequentialFallbackTest
+final readonly class SequentialFallbackTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function disabledProcOpenFallsBackToInProcess(): void
     {
         $root = \dirname(__DIR__, 2);
         // A private copy of ListTestsConfig, so this run cannot race another
         // acceptance test's use of the same working directory.
-        $project = AcceptanceProject::copyOfListTestsConfig('sequential-fallback');
-
-        try {
-            $command = \sprintf(
-                'cd %s && %s -d disable_functions=proc_open %s run --workers=4 --reporter=plain 2>&1',
-                \escapeshellarg($project->directory),
-                \escapeshellarg(\PHP_BINARY),
-                \escapeshellarg($root . '/bin/greenlight'),
-            );
-
-            \exec($command, $output, $exit);
-            $text = \implode("\n", $output);
-
-            Expect::that($exit)->toBe(0)
-                ->and($text)->toContain('7 tests, 7 passed')
-                ->and($text)->not()->toContain('proc_open');
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'sequential-fallback');
+        $command = \sprintf(
+            'cd %s && %s -d disable_functions=proc_open %s run --workers=4 --reporter=plain 2>&1',
+            \escapeshellarg($project->directory),
+            \escapeshellarg(\PHP_BINARY),
+            \escapeshellarg($root . '/bin/greenlight'),
+        );
+        \exec($command, $output, $exit);
+        $text = \implode("\n", $output);
+        Expect::that($exit)->toBe(0)
+            ->and($text)->toContain('7 tests, 7 passed')
+            ->and($text)->not()->toContain('proc_open');
     }
 }

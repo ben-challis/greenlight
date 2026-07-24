@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -20,94 +21,71 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * stderr, for listings and runs alike, so a typo'd or stale prefix is
  * visible instead of silently excluding nothing.
  */
-final class ExcludeSelectionTest
+final readonly class ExcludeSelectionTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function excludeClassRemovesOnlyTheMatchingClass(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $lines] = $project->runLines('list-tests', '--exclude-class=BExcludeProbeTest');
-
-            Expect::that($exit)->toBe(0);
-            $this->assertIds($lines, present: [
-                'ExcludeProbe\AExcludeProbeTest::one',
-                'ExcludeProbe\CExcludeProbeTest::one',
-            ], absent: [
-                'ExcludeProbe\BExcludeProbeTest::one',
-            ]);
-
-            [$exit, $output] = $project->run('run', '--reporter=plain', '--exclude-class=BExcludeProbeTest');
-            Expect::that($exit)->toBe(0)->and($output)->toContain('2 tests, 2 passed');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('list-tests', '--exclude-class=BExcludeProbeTest');
+        Expect::that($exit)->toBe(0);
+        $this->assertIds($lines, present: [
+            'ExcludeProbe\AExcludeProbeTest::one',
+            'ExcludeProbe\CExcludeProbeTest::one',
+        ], absent: [
+            'ExcludeProbe\BExcludeProbeTest::one',
+        ]);
+        [$exit, $output] = $project->run('run', '--reporter=plain', '--exclude-class=BExcludeProbeTest');
+        Expect::that($exit)->toBe(0)->and($output)->toContain('2 tests, 2 passed');
     }
 
     #[Test]
     public function excludeClassAcceptsAWildcard(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $lines] = $project->runLines('list-tests', '--exclude-class=*BExcludeProbeTest');
-
-            Expect::that($exit)->toBe(0);
-            $this->assertIds($lines, present: [
-                'ExcludeProbe\AExcludeProbeTest::one',
-                'ExcludeProbe\CExcludeProbeTest::one',
-            ], absent: [
-                'ExcludeProbe\BExcludeProbeTest::one',
-            ]);
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('list-tests', '--exclude-class=*BExcludeProbeTest');
+        Expect::that($exit)->toBe(0);
+        $this->assertIds($lines, present: [
+            'ExcludeProbe\AExcludeProbeTest::one',
+            'ExcludeProbe\CExcludeProbeTest::one',
+        ], absent: [
+            'ExcludeProbe\BExcludeProbeTest::one',
+        ]);
     }
 
     #[Test]
     public function excludePathRemovesTestsUnderThatPrefix(): void
     {
         $project = $this->writeProject();
-
-        try {
-            // realpath(), not project->path(): discovery reports the
-            // symlink-resolved absolute path (macOS temp dirs alias
-            // /var/folders/... to /private/var/folders/...), and the
-            // prefix match is exact.
-            $excludedFile = (string) \realpath($project->path('tests/CExcludeProbeTest.php'));
-            [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=' . $excludedFile);
-
-            Expect::that($exit)->toBe(0);
-            $this->assertIds($lines, present: [
-                'ExcludeProbe\AExcludeProbeTest::one',
-                'ExcludeProbe\BExcludeProbeTest::one',
-            ], absent: [
-                'ExcludeProbe\CExcludeProbeTest::one',
-            ]);
-        } finally {
-            $project->remove();
-        }
+        // realpath(), not project->path(): discovery reports the
+        // symlink-resolved absolute path (macOS temp dirs alias
+        // /var/folders/... to /private/var/folders/...), and the
+        // prefix match is exact.
+        $excludedFile = (string) \realpath($project->path('tests/CExcludeProbeTest.php'));
+        [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=' . $excludedFile);
+        Expect::that($exit)->toBe(0);
+        $this->assertIds($lines, present: [
+            'ExcludeProbe\AExcludeProbeTest::one',
+            'ExcludeProbe\BExcludeProbeTest::one',
+        ], absent: [
+            'ExcludeProbe\CExcludeProbeTest::one',
+        ]);
     }
 
     #[Test]
     public function excludePathResolvesARelativePrefixAgainstTheWorkingDirectory(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=tests/CExcludeProbeTest.php');
-
-            Expect::that($exit)->toBe(0);
-            $this->assertIds($lines, present: [
-                'ExcludeProbe\AExcludeProbeTest::one',
-                'ExcludeProbe\BExcludeProbeTest::one',
-            ], absent: [
-                'ExcludeProbe\CExcludeProbeTest::one',
-            ]);
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=tests/CExcludeProbeTest.php');
+        Expect::that($exit)->toBe(0);
+        $this->assertIds($lines, present: [
+            'ExcludeProbe\AExcludeProbeTest::one',
+            'ExcludeProbe\BExcludeProbeTest::one',
+        ], absent: [
+            'ExcludeProbe\CExcludeProbeTest::one',
+        ]);
     }
 
     #[Test]
@@ -135,59 +113,39 @@ final class ExcludeSelectionTest
             'tests/CExcludeProbeTest.php',
             'tests/nested/DExcludeProbeTest.php',
         ]);
-
-        try {
-            [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=tests/nested');
-
-            Expect::that($exit)->toBe(0);
-            $this->assertIds($lines, present: [
-                'ExcludeProbe\AExcludeProbeTest::one',
-                'ExcludeProbe\BExcludeProbeTest::one',
-                'ExcludeProbe\CExcludeProbeTest::one',
-            ], absent: [
-                'ExcludeProbe\DExcludeProbeTest::one',
-            ]);
-        } finally {
-            $project->remove();
-        }
+        [$exit, $lines] = $project->runLines('list-tests', '--exclude-path=tests/nested');
+        Expect::that($exit)->toBe(0);
+        $this->assertIds($lines, present: [
+            'ExcludeProbe\AExcludeProbeTest::one',
+            'ExcludeProbe\BExcludeProbeTest::one',
+            'ExcludeProbe\CExcludeProbeTest::one',
+        ], absent: [
+            'ExcludeProbe\DExcludeProbeTest::one',
+        ]);
     }
 
     #[Test]
     public function excludePathWarnsWhenThePrefixMatchesNoTestFile(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $output] = $project->run('list-tests', '--exclude-path=tests/MissingProbeTest.php');
-
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('matched no discovered test file')
-                ->and($output)->toContain('MissingProbeTest.php')
-                ->and($output)->toContain('3 tests');
-
-            [$exit, $output] = $project->run('run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php');
-
-            Expect::that($exit)->toBe(0)
-                ->and($output)->toContain('matched no discovered test file')
-                ->and($output)->toContain('3 tests, 3 passed');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $output] = $project->run('list-tests', '--exclude-path=tests/MissingProbeTest.php');
+        Expect::that($exit)->toBe(0)
+            ->and($output)->toContain('matched no discovered test file')
+            ->and($output)->toContain('MissingProbeTest.php')
+            ->and($output)->toContain('3 tests');
+        [$exit, $output] = $project->run('run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php');
+        Expect::that($exit)->toBe(0)
+            ->and($output)->toContain('matched no discovered test file')
+            ->and($output)->toContain('3 tests, 3 passed');
     }
 
     #[Test]
     public function excludePathDoesNotWarnWhenThePrefixMatchesATestFile(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $output] = $project->run('list-tests', '--exclude-path=tests/CExcludeProbeTest.php');
-
-            Expect::that($exit)->toBe(0)
-                ->and($output)->not()->toContain('matched no discovered test file');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $output] = $project->run('list-tests', '--exclude-path=tests/CExcludeProbeTest.php');
+        Expect::that($exit)->toBe(0)
+            ->and($output)->not()->toContain('matched no discovered test file');
     }
 
     /**
@@ -208,7 +166,7 @@ final class ExcludeSelectionTest
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('exclude-selection');
+        $project = AcceptanceProject::create($this->tempDirectory, 'exclude-selection');
 
         foreach (['A', 'B', 'C'] as $letter) {
             $project->write(\sprintf('tests/%sExcludeProbeTest.php', $letter), <<<PHP

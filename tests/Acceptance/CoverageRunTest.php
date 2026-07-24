@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Support\AcceptanceProject;
 
@@ -15,9 +16,11 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * Collection needs a driver, so runs are spawned with XDEBUG_MODE=coverage;
  * the no-driver branch is exercised with XDEBUG_MODE=off.
  */
-final class CoverageRunTest
+final readonly class CoverageRunTest
 {
     private const string CONFIG_DIR = 'tests/Fixture/CoverageRunConfig';
+
+    public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
     public function collectsAndExportsCoverageThroughTheProcessPool(): void
@@ -126,8 +129,7 @@ final class CoverageRunTest
     public function spawnedCliProcessesDumpCoverageIntoTheSharedDirectory(): void
     {
         $root = \dirname(__DIR__, 2);
-        $shared = \sys_get_temp_dir() . '/greenlight-relay-' . \bin2hex(\random_bytes(6));
-        \mkdir($shared, 0o700, true);
+        $shared = $this->tempDirectory->subdirectory('coverage-relay');
         $outDir = $this->outDir();
         $this->removeDir($outDir);
 
@@ -148,7 +150,6 @@ final class CoverageRunTest
 
             Expect::that($contents)->toContain('src/Cli/Application.php');
         } finally {
-            AcceptanceProject::removeTree($shared);
             $this->removeDir($outDir);
         }
     }

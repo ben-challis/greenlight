@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -16,59 +17,43 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * signs of an early stop are the exit code and a final summary that covers
  * fewer tests than the six-test plan the run header announces.
  */
-final class BailRunTest
+final readonly class BailRunTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function bailWithNoValueStopsAfterOneFailure(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $output] = $this->run($project, '--bail');
-
-            Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('6 tests, 1 worker')
-                ->and($output)->toContain('1 test, 0 passed, 1 errored')
-                ->and($output)->not()->toContain('BProbe')
-                ->and($output)->not()->toContain('CProbe');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $output] = $this->run($project, '--bail');
+        Expect::that($exit)->toBe(1)
+            ->and($output)->toContain('6 tests, 1 worker')
+            ->and($output)->toContain('1 test, 0 passed, 1 errored')
+            ->and($output)->not()->toContain('BProbe')
+            ->and($output)->not()->toContain('CProbe');
     }
 
     #[Test]
     public function bailWithAnExplicitCountStopsAfterThatManyFailures(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $output] = $this->run($project, '--bail=2');
-
-            // Both counted failures come from class A, so neither later
-            // class starts.
-            Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('6 tests, 1 worker')
-                ->and($output)->toContain('2 tests, 0 passed, 2 errored')
-                ->and($output)->not()->toContain('BProbe')
-                ->and($output)->not()->toContain('CProbe');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $output] = $this->run($project, '--bail=2');
+        // Both counted failures come from class A, so neither later
+        // class starts.
+        Expect::that($exit)->toBe(1)
+            ->and($output)->toContain('6 tests, 1 worker')
+            ->and($output)->toContain('2 tests, 0 passed, 2 errored')
+            ->and($output)->not()->toContain('BProbe')
+            ->and($output)->not()->toContain('CProbe');
     }
 
     #[Test]
     public function withoutBailTheWholePlanRuns(): void
     {
         $project = $this->writeProject();
-
-        try {
-            [$exit, $output] = $this->run($project);
-
-            Expect::that($exit)->toBe(1)
-                ->and($output)->toContain('6 tests, 3 passed, 3 errored');
-        } finally {
-            $project->remove();
-        }
+        [$exit, $output] = $this->run($project);
+        Expect::that($exit)->toBe(1)
+            ->and($output)->toContain('6 tests, 3 passed, 3 errored');
     }
 
     /**
@@ -81,7 +66,7 @@ final class BailRunTest
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('bail');
+        $project = AcceptanceProject::create($this->tempDirectory, 'bail');
 
         $project->write('tests/BailAProbeTest.php', <<<'PHP'
             <?php

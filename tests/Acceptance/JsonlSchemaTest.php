@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use JsonSchema\Validator;
 
@@ -22,8 +23,10 @@ use JsonSchema\Validator;
  * Stdout only: extension noise on stderr (Xdebug, ddtrace) would interleave
  * non-JSON lines into the stream.
  */
-final class JsonlSchemaTest
+final readonly class JsonlSchemaTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     private const array PRODUCIBLE_TAGS = [
         'run-started',
         'run-finished',
@@ -39,63 +42,53 @@ final class JsonlSchemaTest
     public function everyEmittedLineValidatesAgainstTheShippedSchema(): void
     {
         $project = $this->writeProject();
+        [$exit, $lines] = $project->runLinesStdout('run', '--reporter=jsonl');
+        Expect::that($exit)->toBe(1);
+        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
+        $seenTags = [];
+        $violations = [];
+        Expect::that($lines)->not()->toBeEmpty();
+        foreach ($lines as $line) {
+            $decoded = \json_decode($line, flags: \JSON_THROW_ON_ERROR);
+            $validator = new Validator();
+            $validator->validate($decoded, $schema);
 
-        try {
-            [$exit, $lines] = $project->runLinesStdout('run', '--reporter=jsonl');
-            Expect::that($exit)->toBe(1);
+            if (!$validator->isValid()) {
+                $errors = [];
 
-            $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
-            $seenTags = [];
-            $violations = [];
-
-            Expect::that($lines)->not()->toBeEmpty();
-
-            foreach ($lines as $line) {
-                $decoded = \json_decode($line, flags: \JSON_THROW_ON_ERROR);
-                $validator = new Validator();
-                $validator->validate($decoded, $schema);
-
-                if (!$validator->isValid()) {
-                    $errors = [];
-
-                    foreach ($validator->getErrors() as $error) {
-                        if (!\is_array($error)) {
-                            continue;
-                        }
-
-                        $property = $error['property'] ?? null;
-                        $message = $error['message'] ?? null;
-
-                        $errors[] = \sprintf(
-                            '[%s] %s',
-                            \is_string($property) ? $property : '',
-                            \is_string($message) ? $message : '',
-                        );
+                foreach ($validator->getErrors() as $error) {
+                    if (!\is_array($error)) {
+                        continue;
                     }
 
-                    $violations[] = \sprintf('%s: %s', $line, \implode('; ', $errors));
+                    $property = $error['property'] ?? null;
+                    $message = $error['message'] ?? null;
+
+                    $errors[] = \sprintf(
+                        '[%s] %s',
+                        \is_string($property) ? $property : '',
+                        \is_string($message) ? $message : '',
+                    );
                 }
 
-                $assoc = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
-
-                if (\is_array($assoc) && \is_string($assoc['event'] ?? null)) {
-                    $seenTags[$assoc['event']] = true;
-                }
+                $violations[] = \sprintf('%s: %s', $line, \implode('; ', $errors));
             }
 
-            Expect::that($violations)->toBe([]);
+            $assoc = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
 
-            foreach (self::PRODUCIBLE_TAGS as $tag) {
-                Expect::that($seenTags)->toHaveKey($tag);
+            if (\is_array($assoc) && \is_string($assoc['event'] ?? null)) {
+                $seenTags[$assoc['event']] = true;
             }
-        } finally {
-            $project->remove();
+        }
+        Expect::that($violations)->toBe([]);
+        foreach (self::PRODUCIBLE_TAGS as $tag) {
+            Expect::that($seenTags)->toHaveKey($tag);
         }
     }
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('jsonl-schema');
+        $project = AcceptanceProject::create($this->tempDirectory, 'jsonl-schema');
 
         $project->write('tests/MixedOutcomesProbeTest.php', <<<'PHP'
             <?php

@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
@@ -15,9 +16,11 @@ use Greenlight\Tests\Support\AcceptanceProject;
  * worker processes, and no leaked orchestrator socket directory. The run
  * gets a private TMPDIR so temp-dir assertions cannot race other tests.
  */
-final class InterruptionTest
+final readonly class InterruptionTest
 {
     private const float DEADLINE_SECONDS = 30.0;
+
+    public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
     public function sigintDrainsWorkersAndExitsWith130(): void
@@ -34,89 +37,70 @@ final class InterruptionTest
         $tmp = $project->path('tmp');
         \mkdir($tmp, 0o700);
         $markerDir = $project->path('markers');
-
-        try {
-            $root = \dirname(__DIR__, 2);
-            $env = \getenv();
-            $env['TMPDIR'] = $tmp;
-
-            $process = \proc_open(
-                [\PHP_BINARY, $root . '/bin/greenlight', 'run', '--workers=2', '--reporter=jsonl'],
-                [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
-                $pipes,
-                $project->directory,
-                $env,
-            );
-
-            if (!\is_resource($process)) {
-                throw new \RuntimeException('Could not start bin/greenlight.');
-            }
-
-            \fclose($pipes[0]);
-            \stream_set_blocking($pipes[1], false);
-            \stream_set_blocking($pipes[2], false);
-
-            $stdout = '';
-            $stderr = '';
-            $deadline = \microtime(true) + self::DEADLINE_SECONDS;
-
-            // A marker file written straight to disk at the top of the
-            // first test method fires as soon as any test has started,
-            // with none of the block-buffering delay a "test-finished"
-            // line in the piped stdout would carry: under CPU pressure the
-            // whole run could otherwise finish before that line is ever
-            // observed, sending SIGINT after there is nothing left to
-            // interrupt.
-            while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
-                $this->pump($pipes, $stdout, $stderr);
-                \usleep(5_000);
-            }
-
-            if (\glob($markerDir . '/*.started') === []) {
-                throw new \RuntimeException(\sprintf(
-                    'Timed out after %.1fs waiting for a fixture test to start.',
-                    self::DEADLINE_SECONDS,
-                ));
-            }
-
-            $status = \proc_get_status($process);
-            \exec('kill -INT ' . $status['pid']);
-
-            $exit = null;
-
-            while (\microtime(true) < $deadline) {
-                $this->pump($pipes, $stdout, $stderr);
-                $status = \proc_get_status($process);
-
-                if (!$status['running']) {
-                    $exit = $status['exitcode'];
-
-                    break;
-                }
-
-                \usleep(20_000);
-            }
-
-            $this->pump($pipes, $stdout, $stderr);
-            \fclose($pipes[1]);
-            \fclose($pipes[2]);
-            \proc_close($process);
-
-
-            Expect::that($stdout)->toContain('"test-finished"')
-                ->and($exit)->toBe(130)
-                ->and($stderr)->toContain('Interrupted');
-
-            foreach ($this->spawnedWorkerPids($stdout) as $pid) {
-                \exec(\sprintf('ps -p %d -o pid=', $pid), $alive);
-                Expect::that(\trim(\implode('', $alive)))->toBe('');
-            }
-
-            $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
-            Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
-        } finally {
-            $project->remove();
+        $root = \dirname(__DIR__, 2);
+        $env = \getenv();
+        $env['TMPDIR'] = $tmp;
+        $process = \proc_open(
+            [\PHP_BINARY, $root . '/bin/greenlight', 'run', '--workers=2', '--reporter=jsonl'],
+            [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            $project->directory,
+            $env,
+        );
+        if (!\is_resource($process)) {
+            throw new \RuntimeException('Could not start bin/greenlight.');
         }
+        \fclose($pipes[0]);
+        \stream_set_blocking($pipes[1], false);
+        \stream_set_blocking($pipes[2], false);
+        $stdout = '';
+        $stderr = '';
+        $deadline = \microtime(true) + self::DEADLINE_SECONDS;
+        // A marker file written straight to disk at the top of the
+        // first test method fires as soon as any test has started,
+        // with none of the block-buffering delay a "test-finished"
+        // line in the piped stdout would carry: under CPU pressure the
+        // whole run could otherwise finish before that line is ever
+        // observed, sending SIGINT after there is nothing left to
+        // interrupt.
+        while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
+            $this->pump($pipes, $stdout, $stderr);
+            \usleep(5_000);
+        }
+        if (\glob($markerDir . '/*.started') === []) {
+            throw new \RuntimeException(\sprintf(
+                'Timed out after %.1fs waiting for a fixture test to start.',
+                self::DEADLINE_SECONDS,
+            ));
+        }
+        $status = \proc_get_status($process);
+        \exec('kill -INT ' . $status['pid']);
+        $exit = null;
+        while (\microtime(true) < $deadline) {
+            $this->pump($pipes, $stdout, $stderr);
+            $status = \proc_get_status($process);
+
+            if (!$status['running']) {
+                $exit = $status['exitcode'];
+
+                break;
+            }
+
+            \usleep(20_000);
+        }
+        $this->pump($pipes, $stdout, $stderr);
+        \fclose($pipes[1]);
+        \fclose($pipes[2]);
+        \proc_close($process);
+        Expect::that($stdout)->toContain('"test-finished"')
+            ->and($exit)->toBe(130)
+            ->and($stderr)->toContain('Interrupted');
+        foreach ($this->spawnedWorkerPids($stdout) as $pid) {
+            \exec(\sprintf('ps -p %d -o pid=', $pid), $alive);
+            Expect::that(\trim(\implode('', $alive)))->toBe('');
+        }
+        $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
+        Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
     }
 
     /**
@@ -149,7 +133,7 @@ final class InterruptionTest
 
     private function writeProject(): AcceptanceProject
     {
-        $project = AcceptanceProject::create('interrupt');
+        $project = AcceptanceProject::create($this->tempDirectory, 'interrupt');
         $project->write('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 

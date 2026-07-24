@@ -6,14 +6,17 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 /**
  * Runs bin/greenlight as a subprocess and asserts on observable behaviour
  * only: exit codes and output lines.
  */
-final class CliTest
+final readonly class CliTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function printsTheResolvedPlanForAFixtureConfig(): void
     {
@@ -64,17 +67,11 @@ final class CliTest
     #[Test]
     public function runExecutesAPassingSuiteAndExitsZero(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig('cli');
-
-        try {
-            [$exit, $output] = $project->runLines('run');
-
-            Expect::that($exit)->toBe(0);
-            Expect::that(\implode("\n", $output))->toContain('7 tests, 7 passed');
-            Expect::that(\implode("\n", $output))->not()->toContain('alpha:one');
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        [$exit, $output] = $project->runLines('run');
+        Expect::that($exit)->toBe(0);
+        Expect::that(\implode("\n", $output))->toContain('7 tests, 7 passed');
+        Expect::that(\implode("\n", $output))->not()->toContain('alpha:one');
     }
 
     #[Test]
@@ -84,17 +81,11 @@ final class CliTest
         // output with or without the flag; this pins flag parsing and the
         // escape-free contract, while the TTY behaviour matrix lives in
         // TerminalCapabilitiesTest and TtyReporterTest.
-        $project = AcceptanceProject::copyOfListTestsConfig('cli');
-
-        try {
-            [$exit, $output] = $project->runLines('run', '--no-ansi', '--verbose');
-
-            Expect::that($exit)->toBe(0);
-            Expect::that(\implode("\n", $output))->not()->toContain("\x1b[");
-            Expect::that(\implode("\n", $output))->toContain('7 tests, 7 passed');
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        [$exit, $output] = $project->runLines('run', '--no-ansi', '--verbose');
+        Expect::that($exit)->toBe(0);
+        Expect::that(\implode("\n", $output))->not()->toContain("\x1b[");
+        Expect::that(\implode("\n", $output))->toContain('7 tests, 7 passed');
     }
 
     #[Test]
@@ -118,35 +109,23 @@ final class CliTest
     #[Test]
     public function listTestsPrintsDiscoveredTestIds(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig('cli');
-
-        try {
-            [$exit, $output] = $project->runLines('list-tests');
-
-            Expect::that($exit)->toBe(0);
-            $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
-            $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        [$exit, $output] = $project->runLines('list-tests');
+        Expect::that($exit)->toBe(0);
+        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
+        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
     }
 
     #[Test]
     public function listTestsHonoursGroupFilters(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig('cli');
-
-        try {
-            [$exit, $output] = $project->runLines('list-tests', '--group=slow');
-
-            Expect::that($exit)->toBe(0);
-            $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
-            Expect::that(
-                !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one', $output, true),
-            )->toBeTrue();
-        } finally {
-            $project->remove();
-        }
+        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        [$exit, $output] = $project->runLines('list-tests', '--group=slow');
+        Expect::that($exit)->toBe(0);
+        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
+        Expect::that(
+            !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one', $output, true),
+        )->toBeTrue();
     }
 
     #[Test]

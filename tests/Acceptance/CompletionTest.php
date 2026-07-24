@@ -6,14 +6,17 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 
 /**
  * The completion command through the real CLI: each supported shell gets a
  * script on stdout with exit 0, a missing or unknown shell is a usage
  * error, and the bash script passes bash -n when bash is installed.
  */
-final class CompletionTest
+final readonly class CompletionTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function printsAScriptPerShellAndRejectsUnknownShells(): void
     {
@@ -61,15 +64,10 @@ final class CompletionTest
             return;
         }
 
-        $file = \sys_get_temp_dir() . '/greenlight-completion-' . \bin2hex(\random_bytes(6)) . '.bash';
-
-        try {
-            \file_put_contents($file, $script . "\n");
-            \exec(\sprintf('bash -n %s 2>&1', \escapeshellarg($file)), $lint, $lintExit);
-            Expect::that($lintExit)->toBe(0);
-        } finally {
-            @\unlink($file);
-        }
+        $file = $this->tempDirectory->path() . '/completion.bash';
+        \file_put_contents($file, $script . "\n");
+        \exec(\sprintf('bash -n %s 2>&1', \escapeshellarg($file)), $lint, $lintExit);
+        Expect::that($lintExit)->toBe(0);
     }
 
     /**
@@ -87,14 +85,9 @@ final class CompletionTest
             $parts[] = \escapeshellarg($argument);
         }
 
-        $errFile = \sys_get_temp_dir() . '/greenlight-completion-err-' . \bin2hex(\random_bytes(6)) . '.txt';
-
-        try {
-            \exec(\implode(' ', $parts) . ' 2>' . \escapeshellarg($errFile), $output, $exit);
-            $stderr = (string) @\file_get_contents($errFile);
-        } finally {
-            @\unlink($errFile);
-        }
+        $errFile = $this->tempDirectory->path() . '/completion-error.txt';
+        \exec(\implode(' ', $parts) . ' 2>' . \escapeshellarg($errFile), $output, $exit);
+        $stderr = (string) @\file_get_contents($errFile);
 
         return [$exit, \implode("\n", $output), $stderr];
     }
