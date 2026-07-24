@@ -171,19 +171,7 @@ final readonly class RepeatTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'repeat');
         $project->write('tests/RepeatProbeTest.php', $code);
-        $project->write('greenlight.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Config\GreenlightConfig;
-
-            require_once __DIR__ . '/tests/RepeatProbeTest.php';
-
-            return GreenlightConfig::create()
-                ->paths([__DIR__ . '/tests'])
-                ->workers(1);
-            PHP);
+        $project->writeConfig(['tests/RepeatProbeTest.php']);
 
         return $project;
     }
