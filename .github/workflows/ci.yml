@@ -12,6 +12,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  renovate-config:
+    name: "Renovate configuration"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
+
+      - name: "Set up Node"
+        uses: "actions/setup-node@v6"
+        with:
+          node-version: "24"
+
+      - name: "Validate Renovate configuration"
+        run: "npx --yes --package renovate@43.280.3 -- renovate-config-validator --strict"
+
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }}${{ matrix.operating-system && format(', {0}', matrix.operating-system) || '' }})"
     runs-on: "${{ matrix.operating-system || 'ubuntu-latest' }}"

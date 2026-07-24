@@ -1,0 +1,46 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        "helpers:pinGitHubActionDigests",
+        ":configMigration",
+        "abandonments:recommended",
+        ":maintainLockFilesWeekly",
+        ":enableVulnerabilityAlerts",
+        ":semanticCommits",
+        ":semanticCommitScope(deps)"
+    ],
+    "timezone": "Europe/London",
+    "prConcurrentLimit": 5,
+    "customManagers": [
+        {
+            "customType": "regex",
+            "description": "Update the Renovate config validator used by CI",
+            "managerFilePatterns": [
+                "/^\\.github/workflows/ci\\.yml$/"
+            ],
+            "matchStrings": [
+                "npx --yes --package renovate@(?<currentValue>\\d+\\.\\d+\\.\\d+) -- renovate-config-validator --strict"
+            ],
+            "depNameTemplate": "renovate",
+            "datasourceTemplate": "npm",
+            "versioningTemplate": "npm"
+        }
+    ],
+    "packageRules": [
+        {
+            "description": "Group non-major Composer development dependency updates",
+            "matchManagers": [
+                "composer"
+            ],
+            "matchDepTypes": [
+                "require-dev"
+            ],
+            "matchUpdateTypes": [
+                "minor",
+                "patch"
+            ],
+            "groupName": "Composer development dependencies (non-major)"
+        }
+    ]
+}
