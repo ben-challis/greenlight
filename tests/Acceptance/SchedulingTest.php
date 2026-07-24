@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\Event;
+use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 
 /**
@@ -28,9 +32,9 @@ final readonly class SchedulingTest
         // Cold run: no cache yet. Records durations and proves reuse:
         // two workers cover four classes.
         $result = $this->run($project);
-        $lines = $result->outputLines();
+        $events = JsonlEvents::from($result);
         Expect::that($result->exitCode)->toBe(0)
-            ->and(\count($this->spawnedWorkers($lines)))->toBe(2);
+            ->and(\count($this->spawnedWorkers($events)))->toBe(2);
         // Warm run: the slow class heads the queue, so whichever worker
         // takes it receives it as its first assignment. Assert per
         // worker rather than on the merged stream: event order between
@@ -38,10 +42,10 @@ final readonly class SchedulingTest
         // loaded machine reports its first start only after the other
         // worker has already started several classes.
         $result = $this->run($project);
-        $lines = $result->outputLines();
-        $firstStarts = $this->firstClassStartedByWorker($lines);
+        $events = JsonlEvents::from($result);
+        $firstStarts = $this->firstClassStartedByWorker($events);
         Expect::that($result->exitCode)->toBe(0)
-            ->and(\count($this->spawnedWorkers($lines)))->toBe(2)
+            ->and(\count($this->spawnedWorkers($events)))->toBe(2)
             ->and(\array_values($firstStarts))->toContain('SchedulingProbe\SlowTest');
     }
 
@@ -53,23 +57,17 @@ final readonly class SchedulingTest
     /**
      * The first class each worker started, keyed by worker id.
      *
-     * @param list<string> $lines
+     * @param list<Event> $events
      *
      * @return array<string, string>
      */
-    private function firstClassStartedByWorker(array $lines): array
+    private function firstClassStartedByWorker(array $events): array
     {
         $firsts = [];
 
-        foreach ($lines as $line) {
-            $decoded = \json_decode($line, true);
-
-            if (\is_array($decoded) && ($decoded['event'] ?? null) === 'class-started'
-                && \is_array($decoded['data'] ?? null)
-                && \is_string($decoded['data']['class'] ?? null)
-                && \is_string($decoded['data']['workerId'] ?? null)
-                && !isset($firsts[$decoded['data']['workerId']])) {
-                $firsts[$decoded['data']['workerId']] = $decoded['data']['class'];
+        foreach ($events as $event) {
+            if ($event instanceof TestClassStarted && !isset($firsts[$event->workerId])) {
+                $firsts[$event->workerId] = $event->class;
             }
         }
 
@@ -77,20 +75,17 @@ final readonly class SchedulingTest
     }
 
     /**
-     * @param list<string> $lines
+     * @param list<Event> $events
      *
      * @return list<string>
      */
-    private function spawnedWorkers(array $lines): array
+    private function spawnedWorkers(array $events): array
     {
         $workers = [];
 
-        foreach ($lines as $line) {
-            $decoded = \json_decode($line, true);
-
-            if (\is_array($decoded) && ($decoded['event'] ?? null) === 'worker-spawned'
-                && \is_array($decoded['data'] ?? null) && \is_string($decoded['data']['workerId'] ?? null)) {
-                $workers[] = $decoded['data']['workerId'];
+        foreach ($events as $event) {
+            if ($event instanceof WorkerSpawned) {
+                $workers[] = $event->workerId;
             }
         }
 

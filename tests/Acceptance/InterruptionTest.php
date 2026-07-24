@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\Event;
+use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\Subprocess;
 
 /**
@@ -74,7 +77,7 @@ final readonly class InterruptionTest
                 ->and($result->exitCode)->toBe(130)
                 ->and($result->stderr)->toContain('Interrupted');
 
-            foreach ($this->spawnedWorkerPids($result->stdout) as $pid) {
+            foreach ($this->spawnedWorkerPids(JsonlEvents::from($result)) as $pid) {
                 $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
                 Expect::that(\trim($alive->stdout))->toBe('');
             }
@@ -87,18 +90,17 @@ final readonly class InterruptionTest
     }
 
     /**
+     * @param list<Event> $events
+     *
      * @return list<int>
      */
-    private function spawnedWorkerPids(string $stdout): array
+    private function spawnedWorkerPids(array $events): array
     {
         $pids = [];
 
-        foreach (\explode("\n", $stdout) as $line) {
-            $decoded = \json_decode($line, true);
-
-            if (\is_array($decoded) && ($decoded['event'] ?? null) === 'worker-spawned'
-                && \is_array($decoded['data'] ?? null) && \is_int($decoded['data']['pid'] ?? null)) {
-                $pids[] = $decoded['data']['pid'];
+        foreach ($events as $event) {
+            if ($event instanceof WorkerSpawned) {
+                $pids[] = $event->pid;
             }
         }
 

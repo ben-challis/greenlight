@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\Event;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\JsonlEvents;
 
 /**
  * Worker channels through the real CLI.
@@ -28,8 +32,8 @@ final readonly class ChannelTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
-        $lines = $result->outputLines();
-        $channels = $this->reportedChannels($lines);
+        $events = JsonlEvents::from($result);
+        $channels = $this->reportedChannels($events);
         Expect::that($result->exitCode)->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
@@ -40,8 +44,8 @@ final readonly class ChannelTest
     {
         $project = $this->writeProject(expectedChannels: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
-        $lines = $result->outputLines();
-        $channels = $this->reportedChannels($lines);
+        $events = JsonlEvents::from($result);
+        $channels = $this->reportedChannels($events);
         Expect::that($result->exitCode)->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1]);
@@ -55,10 +59,10 @@ final readonly class ChannelTest
         // never leaves {1, 2}.
         $project = $this->writeProject(recycleAfterTests: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        $lines = $result->outputLines();
-        $channels = $this->reportedChannels($lines);
+        $events = JsonlEvents::from($result);
+        $channels = $this->reportedChannels($events);
         Expect::that($result->exitCode)->toBe(0)
-            ->and(\count($this->spawnedWorkers($lines)))->toBeGreaterThan(2)
+            ->and(\count($this->spawnedWorkers($events)))->toBeGreaterThan(2)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
@@ -67,25 +71,20 @@ final readonly class ChannelTest
      * Channel numbers echoed by the generated tests, sorted ascending, read
      * from the captured stdout on test-finished events.
      *
-     * @param list<string> $lines
+     * @param list<Event> $events
      *
      * @return list<int>
      */
-    private function reportedChannels(array $lines): array
+    private function reportedChannels(array $events): array
     {
         $channels = [];
 
-        foreach ($lines as $line) {
-            $decoded = \json_decode($line, true);
-
-            if (!\is_array($decoded) || ($decoded['event'] ?? null) !== 'test-finished') {
+        foreach ($events as $event) {
+            if (!$event instanceof TestFinished) {
                 continue;
             }
 
-            $data = $decoded['data'] ?? null;
-            $result = \is_array($data) && \is_array($data['result'] ?? null) ? $data['result'] : [];
-            $output = \is_array($result['output'] ?? null) ? $result['output'] : [];
-            $stdout = $output['stdout'] ?? null;
+            $stdout = $event->result->output?->stdout;
 
             if (\is_string($stdout) && \preg_match('/channel=(\d+)/', $stdout, $matches) === 1) {
                 $channels[] = (int) $matches[1];
@@ -98,20 +97,17 @@ final readonly class ChannelTest
     }
 
     /**
-     * @param list<string> $lines
+     * @param list<Event> $events
      *
      * @return list<string>
      */
-    private function spawnedWorkers(array $lines): array
+    private function spawnedWorkers(array $events): array
     {
         $workers = [];
 
-        foreach ($lines as $line) {
-            $decoded = \json_decode($line, true);
-
-            if (\is_array($decoded) && ($decoded['event'] ?? null) === 'worker-spawned'
-                && \is_array($decoded['data'] ?? null) && \is_string($decoded['data']['workerId'] ?? null)) {
-                $workers[] = $decoded['data']['workerId'];
+        foreach ($events as $event) {
+            if ($event instanceof WorkerSpawned) {
+                $workers[] = $event->workerId;
             }
         }
 
