@@ -82,13 +82,28 @@ final readonly class SubprocessTest
         try {
             $ready = $process->readStdoutUntil('ready', 2.0);
             $process->write("payload\n");
-            $process->closeInput();
             $result = $process->wait(2.0);
 
             Expect::that($ready)->toBe("ready\n")
                 ->and($result->exitCode)->toBe(3)
                 ->and($result->stdout)->toBe("ready\nreceived:payload")
                 ->and($result->stderr)->toBe('note');
+        } finally {
+            $process->terminate();
+        }
+    }
+
+    #[Test]
+    public function readStdoutUntilStopsWaitingWhenTheProcessExits(): void
+    {
+        $process = Subprocess::start(
+            $this->workspace->path(),
+            [\PHP_BINARY, '-r', 'fwrite(STDERR, "failed\n"); exit(9);'],
+        );
+
+        try {
+            Expect::that(static fn(): string => $process->readStdoutUntil('ready', 2.0))
+                ->toThrow(\RuntimeException::class, '/Process exited before stdout contained/');
         } finally {
             $process->terminate();
         }

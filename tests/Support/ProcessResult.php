@@ -9,8 +9,8 @@ namespace Greenlight\Tests\Support;
  *
  * stdout and stderr are captured separately. output() and outputLines()
  * combine them, stdout first, for assertions that only care about the full
- * diagnostic text; the stream-specific accessors support exact assertions
- * that must ignore extension noise on stderr.
+ * diagnostic text; stdoutLines() supports exact assertions that must ignore
+ * extension noise on stderr.
  */
 final readonly class ProcessResult
 {
@@ -44,17 +44,9 @@ final readonly class ProcessResult
     /**
      * @return list<string>
      */
-    public function stderrLines(): array
-    {
-        return $this->lines($this->stderr);
-    }
-
-    /**
-     * @return list<string>
-     */
     public function outputLines(): array
     {
-        return [...$this->stdoutLines(), ...$this->stderrLines()];
+        return [...$this->stdoutLines(), ...$this->lines($this->stderr)];
     }
 
     /**

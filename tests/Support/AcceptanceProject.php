@@ -10,9 +10,8 @@ use Greenlight\Fixture\TempDirectory;
  * A project directory inside a test-owned temporary workspace.
  *
  * create() scaffolds a directory inside the injected per-test TempDirectory,
- * so the harness owns cleanup even when a test fails or throws. copyOf()
- * clones a committed fixture project into one; write() fills the directory,
- * creating parent directories as needed.
+ * so the harness owns cleanup even when a test fails or throws. write() fills
+ * the directory, creating parent directories as needed.
  *
  * copyOfListTestsConfig() gives acceptance tests that only need the
  * ListTestsConfig fixture's seven-test suite a private working directory, so
@@ -34,29 +33,6 @@ final readonly class AcceptanceProject
     public static function create(TempDirectory $workspace, string $name): self
     {
         return new self($workspace->subdirectory($name));
-    }
-
-    public static function copyOf(TempDirectory $workspace, string $source, string $name): self
-    {
-        $project = self::create($workspace, $name);
-
-        $entries = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::SELF_FIRST,
-        );
-
-        foreach ($entries as $entry) {
-            \assert($entry instanceof \SplFileInfo);
-            $destination = $project->directory . '/' . \substr($entry->getPathname(), \strlen($source) + 1);
-
-            if ($entry->isDir()) {
-                \mkdir($destination, 0o777, true);
-            } else {
-                \copy($entry->getPathname(), $destination);
-            }
-        }
-
-        return $project;
     }
 
     /**

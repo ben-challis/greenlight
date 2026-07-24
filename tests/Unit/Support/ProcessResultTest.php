@@ -21,7 +21,6 @@ final class ProcessResultTest
 
         Expect::that($result->exitCode)->toBe(17)
             ->and($result->stdoutLines())->toBe(['first', 'second'])
-            ->and($result->stderrLines())->toBe(['warning', 'error'])
             ->and($result->output())->toBe("first\nsecond\nwarning\nerror")
             ->and($result->outputLines())->toBe(['first', 'second', 'warning', 'error']);
     }

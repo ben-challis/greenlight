@@ -26,20 +26,6 @@ final readonly class AcceptanceProjectTest
     }
 
     #[Test]
-    public function copiesAProjectTreeIntoTheWorkspace(): void
-    {
-        $source = $this->workspace->subdirectory('source');
-        $nested = $this->workspace->subdirectory('source/nested');
-        \file_put_contents($source . '/root.txt', 'root');
-        \file_put_contents($nested . '/leaf.txt', 'leaf');
-
-        $project = AcceptanceProject::copyOf($this->workspace, $source, 'copy');
-
-        Expect::that(\file_get_contents($project->path('root.txt')))->toBe('root')
-            ->and(\file_get_contents($project->path('nested/leaf.txt')))->toBe('leaf');
-    }
-
-    #[Test]
     public function generatedConfigRequiresFilesAndBuildsTheRequestedRun(): void
     {
         $project = AcceptanceProject::create($this->workspace, 'configured');

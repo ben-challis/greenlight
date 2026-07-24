@@ -200,7 +200,6 @@ final readonly class CoverageRunTest
     /**
      * @param list<string> $arguments
      * @param array<string, string> $extraEnv
-     *
      */
     private function runIn(AcceptanceProject $project, array $arguments, string $xdebugMode, array $extraEnv = []): ProcessResult
     {

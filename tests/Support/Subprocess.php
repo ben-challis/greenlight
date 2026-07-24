@@ -12,7 +12,9 @@ use Greenlight\Core\ErrorTrap;
  * run() hides the full lifecycle behind a ProcessResult. start() exposes the
  * interactive operations acceptance tests need: writing stdin, waiting for
  * stdout, sending a signal, pumping output while observing another condition,
- * and collecting the final result.
+ * and collecting the final result. A start() caller owns the live handle and
+ * must call terminate() in a finally block; terminate() is a no-op after
+ * wait() has already collected the result.
  */
 final class Subprocess
 {
@@ -101,7 +103,7 @@ final class Subprocess
         }
     }
 
-    public function closeInput(): void
+    private function closeInput(): void
     {
         $this->closePipe(0);
     }
@@ -144,6 +146,15 @@ final class Subprocess
                 return $output;
             }
 
+            if ($this->outputPipes() === [] && !\proc_get_status($this->process)['running']) {
+                throw new \RuntimeException(\sprintf(
+                    "Process exited before stdout contained '%s'. Stdout:\n%s\nStderr:\n%s",
+                    $needle,
+                    $this->stdout,
+                    $this->stderr,
+                ));
+            }
+
             \usleep(50_000);
         }
 
@@ -162,11 +173,6 @@ final class Subprocess
         if (!\proc_terminate($this->process, $signal)) {
             throw new \RuntimeException(\sprintf('Could not send signal %d to process.', $signal));
         }
-    }
-
-    public function stdout(): string
-    {
-        return $this->stdout;
     }
 
     /**

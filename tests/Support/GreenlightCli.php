@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 /**
- * Runs bin/greenlight synchronously with arguments passed directly to PHP.
+ * Runs bin/greenlight synchronously or starts an interactive run, passing
+ * arguments directly to PHP without shell parsing.
  */
 final class GreenlightCli
 {
