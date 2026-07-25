@@ -104,7 +104,7 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $id = 'SelectionProbe\SelectionProbeTest::alwaysPasses';
-        $project->write('exact-tests.txt', "\n{$id}\n{$id}\n");
+        $project->writeFile('exact-tests.txt', "\n{$id}\n{$id}\n");
 
         $result = $this->run($project, '--test-id-file=exact-tests.txt');
         Expect::that($result->exitCode)->toBe(0)
