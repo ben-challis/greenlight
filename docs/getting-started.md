@@ -151,6 +151,8 @@ vendor/bin/greenlight list-tests               # print every discovered test id
 vendor/bin/greenlight run --dry-run            # print the resolved plan without executing
 vendor/bin/greenlight run --workers=1          # single worker, in-process
 vendor/bin/greenlight run --group=slow         # only tests tagged #[Group('slow')]
+vendor/bin/greenlight run --test-id='App\Tests\GreetingTest::greetsByName'
+vendor/bin/greenlight run --test-id-file=/tmp/greenlight-tests.txt
 vendor/bin/greenlight run --exclude-group=slow # everything except that group
 vendor/bin/greenlight run --list-tests         # print the selection instead of running it
 vendor/bin/greenlight run --bail               # stop after the first failure
@@ -200,13 +202,35 @@ vendor/bin/greenlight run --reporter=tty --reporter=junit
 vendor/bin/greenlight run --watch
 ```
 
-Watch mode reruns affected tests when files under the configured paths change.
-Classes that failed in the previous run are prioritised.
+Watch mode reruns the configured selection when files under the configured
+paths change. Classes that failed in the previous run are prioritised.
 
 While watching, Enter reruns everything and `q` quits.
 
 Save bursts are debounced. The default debounce is 200 ms and can be changed
 with the `watch()` config builder.
+
+Watch mode is a local feedback loop. Keep a normal full-suite CI run, and do not
+use a watched or impact-selected run as its replacement.
+
+## Mutation testing with Infection
+
+Install Infection and Greenlight's external adapter:
+
+```sh
+composer require --dev infection/infection greenlight/infection-adapter
+vendor/bin/infection --test-framework=greenlight
+```
+
+The adapter runs the full selected suite once with opt-in per-test coverage,
+then runs only the exact Greenlight tests that covered each mutated line.
+Greenlight must have pcov or Xdebug coverage mode available for the initial
+mapping run. Infection's source directories become Greenlight coverage include
+paths automatically.
+
+This selection makes mutation testing practical; it is not a substitute for
+running the full Greenlight suite in CI. Details and limitations are in
+[the Infection integration record](architecture/mutation-testing.md).
 
 ## Workers
 

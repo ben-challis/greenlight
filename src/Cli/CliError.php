@@ -96,4 +96,14 @@ final class CliError extends \RuntimeException
             $name,
         ));
     }
+
+    public static function exactTestFileUnreadable(string $path): self
+    {
+        return new self(\sprintf('Exact test id file "%s" could not be read.', $path));
+    }
+
+    public static function exactTestFileEmpty(string $path): self
+    {
+        return new self(\sprintf('Exact test id file "%s" contains no test ids.', $path));
+    }
 }

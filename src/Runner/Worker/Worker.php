@@ -20,6 +20,8 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Runner\CoverageCollector;
+use Greenlight\Runner\TestCoverageSink;
 
 /**
  * Executes a plan slice sequentially in the current process.
@@ -55,6 +57,8 @@ final readonly class Worker
         ?WorkerBudget $budget = null,
         ?\Closure $drainRequested = null,
         ?HarnessScopes $scopes = null,
+        ?CoverageCollector $perTestCoverage = null,
+        ?TestCoverageSink $testCoverageSink = null,
     ): WorkerRunOutcome {
         // Externally owned scopes survive this call, so per-run services
         // keep worker-lifetime semantics when one worker runs several
@@ -85,6 +89,7 @@ final readonly class Worker
 
             foreach ($entries as $index => $entry) {
                 $sink->emit(new TestStarted($entry->id, \microtime(true)));
+                $perTestCoverage?->start();
 
                 try {
                     $context ??= ClassContext::for($class);
@@ -102,6 +107,10 @@ final readonly class Worker
 
                 if ($index === $lastIndex) {
                     $result = $this->applyScopeTeardown($result, $scopes->closeClass());
+                }
+
+                if ($perTestCoverage instanceof CoverageCollector) {
+                    $testCoverageSink?->record($entry->id, $perTestCoverage->stop());
                 }
 
                 $summary = $summary->add($result->outcome);

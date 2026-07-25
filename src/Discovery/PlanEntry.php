@@ -24,6 +24,7 @@ final readonly class PlanEntry implements WireSerializable
     public function __construct(
         public TestId $id,
         public TestMetadata $metadata,
+        public string $sourceFile = '',
     ) {
         if ($id->class !== $metadata->class || $id->method !== $metadata->method) {
             throw new \InvalidArgumentException(\sprintf(
@@ -42,6 +43,7 @@ final readonly class PlanEntry implements WireSerializable
         return [
             'id' => $this->id->toWire(),
             'metadata' => $this->metadata->toWire(),
+            'sourceFile' => $this->sourceFile,
         ];
     }
 
@@ -55,6 +57,7 @@ final readonly class PlanEntry implements WireSerializable
         return new self(
             TestId::fromWire(Wire::map($payload, 'id')),
             TestMetadata::fromWire(Wire::map($payload, 'metadata')),
+            \array_key_exists('sourceFile', $payload) ? Wire::string($payload, 'sourceFile') : '',
         );
     }
 }

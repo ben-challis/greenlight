@@ -32,6 +32,7 @@ final readonly class Assign implements Message
         public ?string $configFile = null,
         public bool $detectLeaks = false,
         public ?ResultPolicy $policy = null,
+        public bool $coveragePerTest = false,
     ) {}
 
     #[\Override]
@@ -52,6 +53,7 @@ final readonly class Assign implements Message
             'configFile' => $this->configFile,
             'detectLeaks' => $this->detectLeaks,
             'policy' => $this->policy?->toWire(),
+            'coveragePerTest' => $this->coveragePerTest,
         ];
     }
 
@@ -78,6 +80,7 @@ final readonly class Assign implements Message
             $configFile === '' ? null : $configFile,
             Wire::bool($payload, 'detectLeaks'),
             ($policy = Wire::nullableMap($payload, 'policy')) === null ? null : ResultPolicy::fromWire($policy),
+            \array_key_exists('coveragePerTest', $payload) && Wire::bool($payload, 'coveragePerTest'),
         );
     }
 }

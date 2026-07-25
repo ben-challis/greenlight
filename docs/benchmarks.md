@@ -23,6 +23,11 @@ throwaway project, and reports median wall-clock time over three runs.
 Wall-clock time includes process start, autoloading, discovery, execution, and
 reporting. This matches the time a developer waits for during a normal test run.
 
+These results do not enable per-test coverage. That opt-in mode starts and stops
+pcov or Xdebug for every test and streams the resulting relation to disk, so it
+has a different overhead profile. Measure it separately on the real suite that
+will feed Infection; do not infer its cost from this table.
+
 ## Results
 
 | Shape                                         | Tests | Greenlight w=4 | Greenlight w=1 | PHPUnit | ParaTest p=4 |

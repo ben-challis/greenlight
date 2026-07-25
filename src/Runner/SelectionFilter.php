@@ -6,6 +6,8 @@ namespace Greenlight\Runner;
 
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Config\Configuration;
+use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
 
 /**
@@ -32,5 +34,30 @@ final class SelectionFilter
             includeIds: $configuration->filters,
             includeExactIds: $configuration->onlyTests ?? [],
         );
+    }
+
+    /**
+     * @throws DiscoveryError
+     */
+    public static function assertExactIdsMatched(Configuration $configuration, ExecutionPlan $plan): void
+    {
+        if ($configuration->onlyTests === null || $configuration->onlyTests === []) {
+            return;
+        }
+
+        $found = [];
+
+        foreach ($plan->entries as $entry) {
+            $found[(string) $entry->id] = true;
+        }
+
+        $missing = \array_values(\array_filter(
+            $configuration->onlyTests,
+            static fn(string $id): bool => !isset($found[$id]),
+        ));
+
+        if ($missing !== []) {
+            throw DiscoveryError::exactTestsNotFound($missing);
+        }
     }
 }

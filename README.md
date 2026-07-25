@@ -20,7 +20,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 * Deterministic terminal and CI output with repeatable reporters.
 * Stable CI sharding with `--shard=n/m`.
 * Failed-first runs, seeded randomisation, watch mode, and repeat modes.
-* Coverage through pcov or Xdebug, including diff coverage gates.
+* Coverage through pcov or Xdebug, including diff gates and opt-in per-test maps.
 * Plain PHP test classes, attributes, constructor injection, and PHP configuration.
 * First-party Symfony integration and a bundled PHPStan extension.
 
@@ -214,6 +214,7 @@ Selection and inspection:
 
 * `--config=<path>`
 * `--filter` and `--group`
+* `--test-id` and `--test-id-file` for strict, exact selection
 * Exclusions by group, class, method, and path
 * `list-tests`
 * `--list-tests`, `--list-groups`, and `--list-suites`
@@ -264,12 +265,19 @@ CI controls include:
 * `coverage:diff`
 
 Coverage uses pcov or Xdebug and can be exported as JSON, LCOV, Clover, Cobertura, or HTML.
+An opt-in, versioned per-test coverage artifact powers the external Infection
+adapter without changing ordinary coverage or full-suite CI.
 
 Exit codes are `0` for success, `1` for a failed or empty run, and `64` for usage errors.
 
 ## Integrations and extensions
 
 Greenlight includes a first-party Symfony plugin and a `#[Service]` attribute for resolving services from Symfony's container. See [testing Symfony applications](docs/symfony.md).
+
+The separate `greenlight/infection-adapter` package runs mutation tests through
+Greenlight. It uses per-test coverage to select exact covering tests for each
+mutant; it never silently falls back to running the full suite per mutant. See
+[mutation testing with Infection](docs/architecture/mutation-testing.md).
 
 Plugin extension points include:
 
@@ -306,6 +314,8 @@ Greenlight does not run PHPUnit suites directly. See [migrating from PHPUnit](do
 * [Benchmarks](docs/benchmarks.md)
 * [JSONL reporter schema](docs/architecture/jsonl.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)
+* [Per-test coverage artifact](docs/architecture/test-coverage-jsonl.md)
+* [Mutation testing with Infection](docs/architecture/mutation-testing.md)
 * [Code conventions](docs/architecture/conventions.md)
 * [Contributing guide](CONTRIBUTING.md)
 

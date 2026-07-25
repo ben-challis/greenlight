@@ -6,6 +6,8 @@ includes:
 
 parameters:
     level: max
+    scanFiles:
+        - packages/infection-adapter/src/CoverageXmlWriter.php
     paths:
         - src
         - tests

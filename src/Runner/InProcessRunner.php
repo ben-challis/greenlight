@@ -8,6 +8,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\GracefulShutdown;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
@@ -43,6 +44,7 @@ final readonly class InProcessRunner
         array $priorityClasses = [],
         array $classSeconds = [],
         ?GracefulShutdown $shutdown = null,
+        ?TestCoverageStore $testCoverageStore = null,
     ): RunResult {
         $seed = null;
 
@@ -50,8 +52,10 @@ final readonly class InProcessRunner
             $seed = $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1);
         }
 
+        $discovered = $this->discover($configuration, $directories, $seed);
+        SelectionFilter::assertExactIdsMatched($configuration, $discovered);
         $plan = PlanOrder::schedule(
-            $this->sharded($this->discover($configuration, $directories, $seed), $configuration),
+            $this->sharded($discovered, $configuration),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );
@@ -68,8 +72,23 @@ final readonly class InProcessRunner
 
         $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
 
-        $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
-        $collector?->start();
+        $coverageUnavailable = null;
+        $collector = $coverageSettings instanceof CoverageSettings
+            ? CoverageCollector::create($coverageSettings, static function (string $reason) use (&$coverageUnavailable): void {
+                $coverageUnavailable = $reason;
+            })
+            : null;
+
+        if ($coverageSettings?->perTest === true && !$collector instanceof CoverageCollector) {
+            throw CoverageError::requiredDriverUnavailable($coverageUnavailable ?? 'no coverage driver is available');
+        }
+
+        $testCoverageStore?->registerPlan($plan);
+        $testCoverage = $coverageSettings?->perTest === true ? new CollectingTestCoverageSink($testCoverageStore) : null;
+
+        if ($coverageSettings?->perTest !== true) {
+            $collector?->start();
+        }
 
         // A single in-process worker is always channel 1. Setting the
         // variable, rather than relying on its absence, overrides any value
@@ -83,15 +102,17 @@ final readonly class InProcessRunner
                 $configuration->stopAfterFailures,
                 null,
                 $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
+                perTestCoverage: $coverageSettings?->perTest === true ? $collector : null,
+                testCoverageSink: $testCoverage,
             );
         $summary = $outcome->summary;
 
-        $coverage = $collector?->stop();
+        $coverage = $coverageSettings?->perTest === true ? $testCoverage?->coverage() : $collector?->stop();
 
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
+        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks, $runId);
     }
 
     /**

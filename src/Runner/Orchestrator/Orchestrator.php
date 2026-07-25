@@ -19,11 +19,13 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\CoverageChunk;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -32,6 +34,7 @@ use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Runner\TestCoverageStore;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
@@ -156,6 +159,7 @@ final class Orchestrator
         private readonly ?Ticking $ticker = null,
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
+        private readonly ?TestCoverageStore $testCoverageStore = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -193,6 +197,8 @@ final class Orchestrator
      */
     public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount): ResultSummary
     {
+        $this->testCoverageStore?->registerPlan($plan);
+
         foreach ($plan->entries as $entry) {
             $this->entriesById[(string) $entry->id] = $entry;
         }
@@ -505,6 +511,7 @@ final class Orchestrator
                 $this->configFile === '' ? null : $this->configFile,
                 $this->detectLeaks,
                 $this->policy,
+                $this->coverageSettings?->perTest === true,
             ));
         } catch (ProtocolError) {
             // The worker died before the assignment arrived; containment
@@ -529,6 +536,11 @@ final class Orchestrator
 
                 if ($message instanceof EventEnvelope) {
                     $this->onEvent($handle, $message->event, $sink);
+                } elseif ($message instanceof CoverageChunk) {
+                    $this->testCoverageStore?->record(
+                        $message->test,
+                        new CoverageMap([new FileCoverage($message->file, $message->lines, [])]),
+                    );
                 } elseif ($message instanceof Recycling) {
                     $this->mergeCoverage($message->coverage);
                     $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));

@@ -123,11 +123,15 @@ accumulate.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
   `html`. Repeatable.
+* `perTest(string $target): self` writes a versioned JSONL map from exact test
+  ids to covered source lines. This mode is opt-in because it starts and stops
+  the coverage driver around every test.
 
 ```php
 ->coverage(fn ($c) => $c
     ->include('src')
     ->driver('pcov')
+    ->perTest('coverage/test-map.jsonl')
     ->export('lcov', 'coverage/lcov.info')
     ->export('html', 'coverage/html'))
 ```
@@ -148,6 +152,18 @@ acceptance test launches to drive the real CLI, writes its own coverage into
 the shared directory, and the run folds those dumps into the result before
 exporting. Like worker collection this fails soft, and the include paths you
 configured filter all of it.
+
+Per-test collection is stricter than aggregate coverage: it fails the run when
+the requested driver is unavailable, because a missing map must not make an
+impact-analysis consumer run the wrong tests. At least one `include()` path is
+required. Each data row has its own test id; retries are unioned into that
+test's mapping; failed, errored, and skipped tests still receive a test record.
+The artifact is published only after a complete successful run. See the
+[per-test coverage schema](architecture/test-coverage-jsonl.md).
+
+Per-test collection increases driver calls, protocol traffic, disk I/O, and
+runtime. Keep it off normal runs and enable it for consumers such as Infection.
+It is not supported in watch mode.
 
 ### watch(callable $configurator): self
 
@@ -392,6 +408,23 @@ Matching is case-insensitive substring matching by default. A pattern containing
 
 Repeatable. Multiple filters are unioned.
 
+### --test-id=<id>
+
+Runs one exact rendered test id. Unlike `--filter`, matching is case-sensitive
+and has no substring or wildcard semantics.
+
+Repeatable. Unknown or stale ids fail discovery instead of producing an empty
+successful selection.
+
+### --test-id-file=<path>
+
+Reads exact rendered test ids from a text file, one per line. Blank lines
+are ignored and duplicate ids are collapsed. An unreadable or empty file is a
+usage error; an id that discovery cannot find fails the run.
+
+This is intended for tools that already have Greenlight ids, including the
+Infection adapter, and avoids command-line length limits.
+
 ### --shard=<n>/<m>
 
 Runs the nth of m disjoint slices of the plan.
@@ -457,6 +490,25 @@ While watching:
 
 * Enter reruns everything.
 * `q` quits.
+
+Per-test coverage mapping cannot be combined with watch mode. Watch remains a
+local feedback tool and does not replace a complete CI suite.
+
+### --coverage-map=<path>
+
+Enables per-test coverage for this run and writes the versioned JSONL artifact
+to the path. Supply at least one `--coverage-include=<path>` unless the loaded
+configuration already has coverage include paths.
+
+### --coverage-include=<path>
+
+Adds a source path to coverage collection. Repeatable. CLI paths are combined
+with configured `CoverageBuilder::include()` paths.
+
+### --no-coverage
+
+Disables configured aggregate and per-test coverage for this run. It cannot be
+combined with `--coverage-map` or `--coverage-include`.
 
 ### --detect-leaks
 

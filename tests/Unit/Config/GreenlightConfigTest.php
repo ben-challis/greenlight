@@ -43,7 +43,11 @@ final class GreenlightConfigTest
             ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit'))
             ->suite('integration', static fn(SuiteBuilder $suite) => $suite->in('tests/Integration')->tag('io', 'slow'))
             ->workers(count: 8, recycleAfterTests: 250, recycleAboveMemory: '1G')
-            ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
+            ->coverage(static fn(CoverageBuilder $coverage) => $coverage
+                ->include('src')
+                ->driver('pcov')
+                ->perTest('coverage/test-map.jsonl')
+                ->export('lcov', 'coverage/lcov.info'))
             ->plugins($plugin)
             ->failFast()
             ->randomizeOrder(seed: 99)
@@ -68,6 +72,7 @@ final class GreenlightConfigTest
 
         Expect::that($coverage->includePaths)->toBe(['src']);
         Expect::that($coverage->driver)->toBe('pcov');
+        Expect::that($coverage->perTestTarget)->toBe('coverage/test-map.jsonl');
         Expect::that($coverage->exports[0]->format)->toBe('lcov');
         Expect::that($coverage->exports[0]->target)->toBe('coverage/lcov.info');
         Expect::that($configuration->plugins)->toBe([$plugin]);

@@ -5,6 +5,10 @@ The `jsonl` reporter is Greenlight's machine-readable run output.
 It writes one JSON object per line, streamed as events occur. Typical consumers
 include IDEs, dashboards, and flaky-test tooling.
 
+This reporter stream describes execution events. It is not the per-test
+coverage artifact, which has a separate lifecycle and schema documented in
+[test-coverage-jsonl.md](test-coverage-jsonl.md).
+
 A machine-readable JSON Schema for version 1 ships at
 [resources/schema/jsonl-v1.schema.json](../../resources/schema/jsonl-v1.schema.json).
 Every line the reporter emits validates against it, enforced by tests. The

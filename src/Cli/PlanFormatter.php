@@ -77,6 +77,10 @@ final class PlanFormatter
                 $exports[] = $export->format . ' -> ' . $export->target;
             }
 
+            if ($configuration->coverage->perTestTarget !== null) {
+                $exports[] = 'per-test -> ' . $configuration->coverage->perTestTarget;
+            }
+
             $lines[] = \sprintf(
                 '  coverage: include %s; driver %s; exports %s',
                 $configuration->coverage->includePaths === [] ? '(nothing)' : \implode(', ', $configuration->coverage->includePaths),
