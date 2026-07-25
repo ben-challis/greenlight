@@ -1,41 +1,30 @@
-# Worker lifecycle and worker protocol
+# Worker lifecycle and wire protocol
 
-This document describes how the orchestrator creates workers and communicates
-with them. It also describes all worker exit paths. Contributors can use this
-information to analyze a parallel run. The worker protocol is an internal
-implementation detail. It is not public API and can change between releases.
+Greenlight's orchestrator and workers exchange framed JSON messages over a
+local socket. The protocol is internal and may change between releases. Its
+details are useful when debugging parallel runs.
 
-## Transport
+## The transport
 
-The orchestrator listens on a Unix domain socket in a private temporary
-directory. If the Unix socket is unavailable, the orchestrator uses TCP on
-`127.0.0.1` with an ephemeral port. The orchestrator starts each worker with
-`proc_open`. Each worker connects to the address as a client.
+The orchestrator first tries to listen on a Unix domain socket in a private
+temporary directory. If that fails, it opens an ephemeral TCP port on
+`127.0.0.1`. Greenlight starts each worker with `proc_open`, and the worker
+connects back as a client.
 
-Each message has a four-byte length prefix and a JSON body. The prefix contains
-the JSON byte count in big-endian order. The protocol limits each frame to
-8 MiB. It treats an oversized or malformed frame as a protocol error.
+Each message is a length-prefixed JSON frame: a 4-byte big-endian length
+followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
+oversized or malformed frames as protocol errors. The JSON envelope contains a
+protocol version (`v`, currently `2`), a type tag, and the payload. Greenlight
+also rejects unknown versions and tags.
 
-The JSON body is an envelope with three fields:
+The socket carries all protocol data. Greenlight closes the worker's stdin after
+spawn and drains stdout and stderr into a small bounded buffer. The orchestrator
+attaches the buffered output to a crash report when something goes wrong. Test
+results never travel over stdio, so test output cannot corrupt the protocol.
 
-- The protocol version in `v`, currently `2`
-- A message tag
-- The payload
+## The messages
 
-A receiver rejects an unknown protocol version or message tag.
-
-The socket is the only protocol channel. Attachment content uses the shared
-run-scoped staging directory that this document describes later. The
-orchestrator closes the worker's stdin immediately after process creation. It
-continuously reads the worker's stdout and stderr into a small, bounded
-diagnostics buffer. The orchestrator reports this buffer only when it helps to
-explain a worker failure.
-
-Test results do not use stdio. Thus, test output cannot corrupt the protocol.
-
-## Messages
-
-Eleven message types cross the socket:
+Ten message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
@@ -50,14 +39,11 @@ Eleven message types cross the socket:
 | `drain` | orchestrator to worker | no payload (request for a clean worker exit) |
 | `fatal` | worker to orchestrator | details of a throwable that the worker could not contain |
 
-The orchestrator generates a 16-byte random token for each run. It passes the
-token to each worker on the command line. The orchestrator rejects a connection
-that presents the wrong token. Thus, an unrelated process cannot join the
-worker pool or submit results.
+The orchestrator generates a 16-byte random token for each run and passes it to
+workers on the command line. A connection with the wrong token cannot join the
+pool or submit results.
 
-## Worker protocol sequence
-
-The normal sequence is:
+## Worker startup and assignment
 
 ```mermaid
 sequenceDiagram
@@ -90,44 +76,42 @@ sequenceDiagram
     W-->>O: exits, channel slot released
 ```
 
-There is no separate work-request message. The `hello` and `done` messages are
-work requests. After each request, the orchestrator assigns the next queued
-class when one is available. Thus, each worker requests more work after it
-completes an assignment.
+### Assignment rules
 
-The `ready` and `done` messages request work. The initial readiness barrier
-prevents tests from starting while an initial worker is still bootstrapping.
-A replacement worker only has to complete its own bootstrap.
+`ready` and `done` act as work requests. The orchestrator assigns work when a
+worker becomes ready and whenever it finishes an assignment.
 
-The worker builds its plugin and harness registries during `bootstrap`. It
-reuses those registries for all subsequent assignments. Consequently, per-run
-harness services have worker-lifetime semantics. The worker recreates
-reflection data, hooks, and data sets for each test class.
+The initial ready barrier prevents tests from starting while another initial
+worker is still bootstrapping. A replacement worker created after a crash or
+recycle needs to complete only its own bootstrap.
 
-Integration resource catalogs are limited to 1 MiB for each channel. They use
-the authenticated local socket. They do not use environment variables or
-command arguments.
+Workers build their plugins and harness registries during `bootstrap` and reuse
+them for later assignments. Per-run harness services therefore live for the
+physical worker's lifetime. Workers rebuild per-class reflection, hooks, and
+data sets for each class.
 
-The worker sends one frame immediately for each event. The orchestrator sends
-each event to the reporters and updates the run summary. This sequence permits
-live per-worker output. It also keeps orchestrator memory use flat. The
-worker does not accumulate events.
+Each channel's integration resource catalog is capped at 1 MiB, below the
+general frame limit. Greenlight sends it through the authenticated local socket,
+not through environment variables or command arguments.
+
+Workers send one frame as each event occurs. The orchestrator forwards events
+to reporters and updates its running summary as frames arrive. This keeps live
+worker output responsive without accumulating results in workers.
+
+Attachment content uses the shared run-scoped filesystem rather than the
+socket. Workers send only metadata in `TestFinished`. The orchestrator
+publishes staged files before forwarding the event, keeping binary content
+outside the 8 MiB frame limit. Atomic sidecars let it recover completed
+attachments if a worker crashes; see [artifact storage](artifacts.md).
+
+`done` carries the worker's tally for the assignment. The orchestrator compares
+it with the events it counted and fails the run on a mismatch. A lost or
+duplicated frame cannot silently pass a suite.
 
 A retried test still produces one `test-started` event and one `test-finished`
 event. Attempts are not separate public events. The internal `attempt-started`
 frame lets the orchestrator report the correct attempt count after a worker
 crash. It uses this frame when a worker dies before `test-finished`.
-
-Attachment content uses the shared run-scoped file system, not the socket.
-Workers send only metadata in `TestFinished`. The orchestrator publishes staged
-files before it sends the event to reporters. This keeps binary content outside
-the 8 MiB frame limit. Atomic sidecars let the orchestrator recover complete
-attachments after a worker crash. See [artifact storage](artifacts.md).
-
-The `done` and `recycling` messages contain the worker's result counts. The
-orchestrator compares these counts with the events for the assignment. A mismatch
-fails the run. Thus, a lost or duplicate result frame cannot cause an incorrect
-suite success.
 
 ## Resource assignment
 
@@ -166,9 +150,7 @@ The orchestrator controls capacity, not resource identity. A limit of two
 permits two assignments that require the resource at the same time. It does not
 tell either assignment which database, account, or sandbox to use.
 
-## Worker exit
-
-A worker can exit the worker pool in these ways:
+## Leaving the pool
 
 ```mermaid
 stateDiagram-v2
@@ -195,92 +177,83 @@ stateDiagram-v2
     Drained --> [*]: channel slot released
 ```
 
-**Recycle.** An `assign` message contains a test-count limit, a memory limit, or
-both. The worker checks these limits after each test. If the worker reaches a
-limit during an assignment, it sends `recycling`. This message
-identifies the tests that did not run. The worker then exits.
+### Recycling
 
-If the worker reaches a limit exactly at an assignment boundary, it
-sets a recycle flag on `done`. In both cases, the orchestrator returns the
-remainder to the queue and starts a replacement. It also emits a
-`WorkerRecycled` event for reporters. The default memory limit is 256M.
-Greenlight does not apply a test-count limit by default.
+Recycle budgets travel inside `assign`, and the worker checks them after every
+test. A budget may limit the test count, memory use, or both. When a budget runs
+out mid-assignment, the worker sends `recycling` with the tests it did not reach
+and then exits. At an assignment boundary, it sets a recycle flag on `done`
+instead.
 
-**Crash.** If a test is active when its worker dies, the orchestrator reports
-the test as errored. It attaches the tail of the worker's captured stderr to
-the failure. The orchestrator returns the rest of the assignment to the queue
-for a replacement.
+The orchestrator re-queues unfinished tests, spawns a replacement, and emits a
+`WorkerRecycled` event. The default memory limit is 256M. Greenlight does not
+apply a test-count limit by default.
 
-The orchestrator does not return the crashed test to the queue. Otherwise, the
-same test can terminate each replacement process. The
-orchestrator releases the assignment's resource slots before it returns
-untouched entries to the queue.
+### Crashes
 
-**Hang.** The orchestrator enforces each test timeout with a grace limit. This
-limit is twice the test budget plus two seconds. A blocked worker cannot
-reliably enforce its own timeout. At the grace limit, the orchestrator kills
-the process with SIGKILL.
+If a worker dies mid-assignment, the orchestrator reports its in-flight test as
+errored and attaches the tail of the worker's stderr. It returns the rest of the
+assignment to the queue. It does not re-queue the crashed test because a test
+that kills its process would kill each replacement in turn.
 
-The orchestrator reports the test as failed. It includes the elapsed duration
-and a timeout failure detail. It recovers staged attachments and returns
-untouched tests to the queue. The replacement has the reason value `crash`.
-The public recycle-reason enum uses this value for all abnormal worker
-terminations.
+### Timeouts
 
-The worker gives `eventually()` and `consistently()` the monotonic deadline for
-the current attempt. These methods stop their polls at that deadline. A probe
-can still block. The orchestrator grace limit remains the hard limit.
+The orchestrator enforces each test timeout with a grace window of twice the
+budget plus two seconds. The worker may be too stuck to enforce the timeout
+itself. When the grace window expires, the orchestrator kills the process with
+SIGKILL and handles it as a crash, except that it reports the test as timed out.
 
-**Fatal error.** If a worker catches an unrecoverable error, it sends `fatal`
-with the throwable details before it exits. This gives the orchestrator an
-error message instead of only a dead process.
+The worker also gives `eventually()` and `consistently()` the current attempt's
+monotonic deadline. Their polling stops at that deadline, but a probe can still
+block. The orchestrator's grace window remains the hard limit.
 
-The orchestrator fails the complete run for either of these conditions:
+### Fatal errors
 
-- A new worker does not send `hello` within 30 seconds.
-- A connected worker sends no message for 60 seconds when no test is active.
+A worker sends `fatal` with the throwable's details when it catches an error it
+cannot recover from. The orchestrator can then report the error instead of a
+bare process exit.
 
-Both conditions indicate a fault outside the suite, such as an invalid
-bootstrap or a blocked socket. Each replacement worker repeats the fault. A
-run-wide spawn limit also controls the total number of workers. If replacements
-repeatedly die, the orchestrator fails the run with a diagnosis.
+### Run failures
 
-Workers ignore SIGINT. Ctrl+C sends the signal to the orchestrator. The
-orchestrator performs an orderly drain and reports completed results. It
-permits the active test to finish. This rule also applies to a test that polls.
-The orchestrator tears down integration fixtures after it emits the partial
-result.
+The orchestrator fails the run if a worker does not send `hello` within 30
+seconds. It also fails the run when a connected worker goes silent for 60
+seconds with no test in flight. These failures usually indicate a broken
+bootstrap or blocked socket, so the orchestrator does not start another worker
+that is likely to fail in the same way.
+
+A run-wide spawn budget prevents an endless replacement loop. If the pool
+exceeds that budget, the orchestrator fails the run with a diagnostic.
+
+### Signals
+
+When the orchestrator receives its first SIGINT or SIGTERM, it drains workers,
+emits the partial result, and then tears down integration fixtures. Workers
+ignore terminal SIGINT so the orchestrator controls that sequence. A test that
+is polling can finish like any other test in flight. A second signal restores
+the operating system's default immediate termination behavior.
 
 ## Isolated tests
 
-The orchestrator puts `#[Isolated]` entries in a separate queue. It assigns an
-isolated entry only to a fresh worker after the pooled queue is empty. A fresh
-worker has not run a prior test.
-
-After the worker sends `done` for the isolated assignment, the orchestrator
-sends `drain`. The worker then exits and does not return to the pool. Global
-state changes from the test end with the worker process. An isolated entry still
-waits for its required resources before the assignment.
+The orchestrator queues `#[Isolated]` entries separately. Only a fresh worker
+may take an isolated entry, and only after the pooled queue is empty. After
+`done`, the orchestrator sends `drain` and lets the process exit instead of
+returning it to the pool. Any global state changed by the test dies with the
+worker. An isolated entry still waits for its required resources.
 
 ## Channel numbers
 
-Each worker receives a channel number in the `GREENLIGHT_CHANNEL` environment
-variable. The orchestrator uses a fixed pool from `1` through the configured
-worker count. It supplies the lowest free number and reclaims the number when a
-worker retires. A replacement can receive the released channel number.
+Every worker receives a channel number in the `GREENLIGHT_CHANNEL` environment
+variable. The channel pool runs from `1` to the configured worker count. The
+allocator gives out the lowest free number and returns it to the pool when a
+worker retires, so a replacement inherits a released slot.
 
-The number of live channels never exceeds `workerCount`, independent of the
-total worker processes in a run. Two concurrent tests never have the same
-channel number.
+At most `workerCount` channels are live at once, and concurrent tests never
+share one. Per-channel databases, port ranges, and temporary directories can
+therefore use the number safely. The [README](../../README.md) describes the
+user-facing contract.
 
-A channel identifies a stable resource slot for one worker. The resource
-scheduler controls shared capacity but does not assign resource identity. A
-test can use both functions. For example, it can use a channel-specific
-database and a concurrency limit for a shared sandbox. For user guidance, see
-[channels and resource limits](../configuration.md#channels-and-resource-limits).
-
-Orchestrator-owned integration fixtures use the same channel pool. Shared
-fixture values are merged with the allocated channel overlay before bootstrap,
-so a worker never receives another channel's resource catalog. Recycling,
-crashes, and isolated tests reuse the released channel and therefore receive the
-same channel resource.
+Integration fixtures use the same channel pool. Greenlight merges shared values
+with the allocated channel overlay before bootstrap, so a worker never receives
+another channel's resource catalog. Replacement workers reuse released
+channels. Fresh workers running isolated tests draw from the same pool and
+receive the resources for their assigned channel.
