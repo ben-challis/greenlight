@@ -108,6 +108,66 @@ Matchers cover identity and equality (`toBe`, `toEqual`,
 `toMatchJson`), and exceptions (`toThrow`). The `Greenlight\Expect\Expectation`
 class is the authoritative list.
 
+### Eventually consistent state
+
+`Expect::eventually()` repeatedly calls a probe until one matcher passes. The
+first observation is immediate, and `within()` is required so the wait is
+always bounded:
+
+```php
+Expect::eventually(fn() => $repository->find($id))
+    ->within(2.0)
+    ->toEqual($expected);
+```
+
+Observations are sequential and use a fixed 25ms delay by default. Override it
+when an adapter is expensive or has a known cadence:
+
+```php
+Expect::eventually(fn() => $search->document($id))
+    ->pollEvery(0.100)
+    ->within(5.0)
+    ->toEqual($expected);
+```
+
+Probe exceptions normally propagate immediately with their original stack.
+Explicitly list transient exception types that should instead count as failed
+observations:
+
+```php
+Expect::eventually(fn() => $client->fetch($id))
+    ->retryOnException(NotFoundYet::class)
+    ->within(2.0)
+    ->toBeInstanceOf(Response::class);
+```
+
+PHP `Error` instances, matcher exceptions, and invalid matcher arguments are
+never retried.
+
+Use `Expect::consistently()` when a condition must remain true throughout a
+period:
+
+```php
+Expect::consistently(fn() => $outbox->messagesFor($id))
+    ->pollEvery(0.050)
+    ->for(0.5)
+    ->toHaveCount(1);
+```
+
+It observes immediately, starts the requested period after that first
+successful observation, and fails on the first violation. Both temporal forms
+make a final observation at their boundary.
+
+A temporal matcher counts as one expectation. After it passes, the returned
+ordinary `Expectation` is anchored to the final sample, so another chained
+matcher checks that snapshot immediately rather than opening a second polling
+window. Start a new temporal expectation when another matcher needs its own
+wait.
+
+Temporal waits are cooperative. A blocking probe cannot be interrupted by the
+expectation itself, and an enclosing `#[Timeout]` always takes precedence over
+a longer `within()` or `for()` duration.
+
 ### Failing explicitly
 
 Use `Fail::because()` when a test reaches an invalid state that does not fit a

@@ -15,6 +15,7 @@ use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\PluginRegistry;
@@ -112,6 +113,11 @@ final readonly class TestExecutor
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $capture?->start();
+        ExpectationRuntime::enterAttempt(
+            $metadata->timeoutSeconds === null
+                ? null
+                : $startedAt / 1_000_000_000 + $metadata->timeoutSeconds,
+        );
 
         try {
             $instance = $this->instantiate($metadata->class);
@@ -194,6 +200,8 @@ final readonly class TestExecutor
                     $error = ThrowableDetail::fromThrowable($cause);
                 }
             }
+
+            ExpectationRuntime::leaveAttempt();
         }
 
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;

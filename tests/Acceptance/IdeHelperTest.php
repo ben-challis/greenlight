@@ -25,7 +25,8 @@ final readonly class IdeHelperTest
             ->and($result->output())->toContain('2 matchers');
 
         $helper = (string) \file_get_contents($target);
-        Expect::that($helper)->toContain('@method self toHaveDigestLength(int $length)');
+        Expect::that($helper)->toContain('@method self toHaveDigestLength(int $length)')
+            ->toContain('abstract class TemporalExpectation');
 
         $lint = Subprocess::run($root, [\PHP_BINARY, '-l', $target]);
         Expect::that($lint->exitCode)->toBe(0);

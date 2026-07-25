@@ -32,6 +32,48 @@ final class Expect
     }
 
     /**
+     * Repeatedly samples the probe until one matcher passes within an explicit
+     * deadline.
+     *
+     * @template T
+     *
+     * @param callable(): T $probe
+     *
+     * @return PendingEventually<T>
+     */
+    public static function eventually(callable $probe): PendingEventually
+    {
+        return new PendingEventually(
+            \Closure::fromCallable($probe),
+            ExpectationRuntime::clock(),
+            ExpectationRuntime::deadline(),
+            new ValueRenderer(),
+            self::$extensions,
+        );
+    }
+
+    /**
+     * Repeatedly samples the probe and requires one matcher to keep passing
+     * throughout an explicit observation period.
+     *
+     * @template T
+     *
+     * @param callable(): T $probe
+     *
+     * @return PendingConsistently<T>
+     */
+    public static function consistently(callable $probe): PendingConsistently
+    {
+        return new PendingConsistently(
+            \Closure::fromCallable($probe),
+            ExpectationRuntime::clock(),
+            ExpectationRuntime::deadline(),
+            new ValueRenderer(),
+            self::$extensions,
+        );
+    }
+
+    /**
      * Replaces the worker-local extension list consulted by every subsequent
      * that() chain. Called once per worker at boot; tests that install their
      * own extensions must restore the previous list themselves.

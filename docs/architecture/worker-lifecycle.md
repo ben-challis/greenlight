@@ -91,11 +91,19 @@ stateDiagram-v2
 
 **Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL and treats it like a crash, except the test is reported as a timeout failure.
 
+The worker also exposes the current attempt's monotonic timeout deadline to
+temporal expectations. Their `within()` and `for()` deadlines are clipped to
+it, so a cooperative probe fails before deliberately sleeping beyond the test
+budget. This does not replace hard enforcement: arbitrary probe code may block,
+so the orchestrator grace remains necessary.
+
 **Fatal errors.** A worker that catches an error it cannot recover from sends `fatal` with the throwable's details before exiting, which gives the orchestrator a real message to report instead of a bare dead process.
 
 Two situations fail the whole run rather than triggering containment, on the theory that a broken environment should be loud: a spawned worker that never says `hello` within 30 seconds, and a connected worker that goes silent for 60 seconds with no test in flight. Both point at something outside the suite (a broken bootstrap, a blocked socket), and re-spawning would loop forever. There is also a spawn budget across the whole run; if replacements keep dying, the run fails with a diagnosis instead of respawning indefinitely.
 
 Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the signal and drives an orderly drain, so results already earned are still reported.
+An in-flight temporal expectation follows the same rule as any other in-flight
+test and is not cancelled by the first signal.
 
 ## Isolated tests
 

@@ -5,6 +5,11 @@ expectation matchers your config registers, the shape rules for `#[DataSet]`
 and `#[DataRow]` data providers, and native matcher constraints that PHP's
 type system cannot express.
 
+`Expect::eventually()` and `Expect::consistently()` carry the probe's return
+type through their generic PHPDoc. Their native matcher methods are ordinary
+typed methods, and configured custom matcher signatures are exposed on their
+bounded chains as well.
+
 ## Setup
 
 Include the extension in your PHPStan configuration and point it at your
@@ -76,6 +81,14 @@ calls are checked against those closure signatures:
 Expect::that($id)->toBeValidUuid();     // checked: name, arguments, types
 Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
 Expect::that($hash)->toHaveDigestLength('six'); // fails analysis: expects int
+```
+
+The same checks apply after `within()` and `for()`:
+
+```php
+Expect::eventually(fn(): string => $hash)
+    ->within(1.0)
+    ->toHaveDigestLength(6);
 ```
 
 The same matcher name registered with two different signatures across config

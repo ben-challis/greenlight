@@ -192,6 +192,24 @@ Expect::that($result)->not()->toBeNull();
 
 Failed expectations throw immediately with a rendered diff.
 
+Real asynchronous and eventually consistent state can be sampled until it
+matches, or checked for stability throughout a period:
+
+```php
+Expect::eventually(fn() => $orders->status($id))
+    ->within(2.0)
+    ->toBe(OrderStatus::Ready);
+
+Expect::consistently(fn() => $orders->countFor($id))
+    ->pollEvery(0.050)
+    ->for(0.5)
+    ->toBe(1);
+```
+
+Temporal expectations use a 25ms polling interval by default, require an
+explicit duration, and count as one expectation regardless of how many times
+they sample.
+
 Harness services can be scoped per test, class, suite, or run. Services are created lazily and disposed in reverse order. Greenlight includes injectable `TempDirectory` and `EnvironmentSandbox` fixtures.
 
 ### Strict doubles
@@ -306,6 +324,7 @@ Greenlight does not run PHPUnit suites directly. See [migrating from PHPUnit](do
 * [Benchmarks](docs/benchmarks.md)
 * [JSONL reporter schema](docs/architecture/jsonl.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)
+* [Temporal expectation architecture](docs/architecture/temporal-expectations.md)
 * [Code conventions](docs/architecture/conventions.md)
 * [Contributing guide](CONTRIBUTING.md)
 

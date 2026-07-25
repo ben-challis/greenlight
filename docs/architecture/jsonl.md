@@ -238,6 +238,9 @@ The number of expectations verified during the final attempt.
 Each matcher in a chain counts once. Soft-mode failures count. Each mock
 expectation counts when it is verified. Stubs do not count.
 
+An eventual or consistent matcher counts once for the complete temporal
+operation; its internal observations are not separate expectations.
+
 Failed, errored, and skipped tests carry the partial count verified before the
 test stopped.
 

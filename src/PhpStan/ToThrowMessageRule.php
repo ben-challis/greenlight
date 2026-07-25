@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Expect\ConsistentlyExpectation;
+use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -37,7 +39,13 @@ final class ToThrowMessageRule implements Rule
             return [];
         }
 
-        if (!new ObjectType(Expectation::class)->isSuperTypeOf($scope->getType($node->var))->yes()) {
+        $receiver = $scope->getType($node->var);
+        $supported = \array_any(
+            [Expectation::class, EventuallyExpectation::class, ConsistentlyExpectation::class],
+            static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
+        );
+
+        if (!$supported) {
             return [];
         }
 

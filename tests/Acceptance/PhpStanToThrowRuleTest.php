@@ -37,6 +37,9 @@ final readonly class PhpStanToThrowRuleTest
                     ->toThrow(DomainException::class, null, 'boom');
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[DomainException::class, null, 'boom']);
+                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->within(1.0)
+                    ->toThrow(DomainException::class, message: 'boom');
             }
             PHP,
             <<<'PHP'
@@ -60,13 +63,16 @@ final readonly class PhpStanToThrowRuleTest
                     ]);
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[DomainException::class, '/boom/', 'boom']);
+                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->within(1.0)
+                    ->toThrow(DomainException::class, matching: '/boom/', message: 'boom');
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(4)
+            ->and(\count($probe->errors))->toBe(5)
             ->and($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
     }
 }

@@ -6,6 +6,7 @@ namespace Greenlight\PhpStan;
 
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Expect\Expectation;
+use Greenlight\Expect\TemporalExpectation;
 
 /**
  * Renders the IDE helper file that gives editors autocomplete for extension
@@ -45,6 +46,7 @@ final readonly class IdeHelper
         }
 
         $expectation = new \ReflectionClass(Expectation::class);
+        $temporal = new \ReflectionClass(TemporalExpectation::class);
 
         return \sprintf(
             <<<'PHP'
@@ -65,10 +67,17 @@ final readonly class IdeHelper
                  */
                 final class %s {}
 
+                /**
+                %s
+                 */
+                abstract class %s {}
+
                 PHP,
             $expectation->getNamespaceName(),
             \implode("\n", $annotations),
             $expectation->getShortName(),
+            \implode("\n", $annotations),
+            $temporal->getShortName(),
         );
     }
 }

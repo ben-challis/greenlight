@@ -71,6 +71,19 @@ A few differences matter during migration:
 * Expectations fail fast. A failed matcher throws immediately. There is no
   soft-assertion mode.
 
+Replace hand-written `sleep()` or retry loops around asynchronous adapters with
+a bounded temporal expectation:
+
+```php
+Expect::eventually(fn() => $repository->find($id))
+    ->within(2.0)
+    ->toEqual($expected);
+```
+
+Use `consistently()->for()` when the old test repeatedly checked that a value
+did not change. Probe exceptions propagate unless their types are explicitly
+listed with `retryOnException()`.
+
 ## Test doubles
 
 Doubles come from an injected `Doubles` service.
