@@ -230,8 +230,7 @@ Watch mode combines rapid save events. The default delay is 200 ms.
 
 Use the `watch()` configuration builder to change this delay.
 
-Watch mode is a local feedback loop. Keep a normal full-suite CI run, and do not
-use a watched or impact-selected run as its replacement.
+Watch mode is for local feedback. CI should still run the full suite.
 
 ## Mutation testing with Infection
 
@@ -242,14 +241,12 @@ composer require --dev infection/infection greenlight/infection-adapter
 vendor/bin/infection --test-framework=greenlight
 ```
 
-The adapter runs the full selected suite once with opt-in per-test coverage,
-then runs only the exact Greenlight tests that covered each mutated line.
-Greenlight must have pcov or Xdebug coverage mode available for the initial
-mapping run. Infection's source directories become Greenlight coverage include
-paths automatically.
+Before generating mutants, the adapter runs the selected suite once and records
+per-test coverage. Each mutant then runs only the tests that covered its changed
+line. The initial run needs pcov or Xdebug coverage mode. The adapter uses
+Infection's source directories as Greenlight coverage include paths.
 
-This selection makes mutation testing practical; it is not a substitute for
-running the full Greenlight suite in CI. Details and limitations are in
+Run the full Greenlight suite separately in CI. Details and limitations are in
 [the Infection integration record](architecture/mutation-testing.md).
 
 ## Configure workers

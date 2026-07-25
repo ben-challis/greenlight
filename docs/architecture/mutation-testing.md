@@ -1,141 +1,129 @@
 # Decision record: Infection support
 
-Status: implemented in core; adapter shipped as the separate
+Status: implemented in core, with the adapter in the separate
 `greenlight/infection-adapter` package.
 
 ## Decision
 
-Greenlight exposes opt-in per-test line coverage and strict exact-test
-selection. The Infection-specific bridge stays outside the core package.
+Greenlight provides per-test line coverage and exact test selection. The
+Infection adapter stays outside the core package.
 
-The integration does not run the full suite for every mutant:
+An Infection run works like this:
 
-1. Infection invokes `greenlight-infection` for one complete initial run.
-2. The wrapper enables `--coverage-map` and uses Infection's configured source
+1. Infection invokes `greenlight-infection` for the initial test run.
+2. The wrapper enables `--coverage-map` and passes Infection's source
    directories as `--coverage-include` paths.
-3. Greenlight records which exact test ids covered each source line.
-4. The adapter converts that streaming artifact to the PHPUnit coverage XML
-   shape Infection 0.34 currently reads.
-5. For each covered mutant, the adapter writes the covering ids to an exact-test
-   file and invokes Greenlight with `--test-id-file`.
-6. Infection's include interceptor replaces the original source with the mutant
-   in the wrapper and every spawned Greenlight worker.
+3. Greenlight records the source lines covered by each test.
+4. The adapter converts that map to the PHPUnit coverage XML read by Infection
+   0.34.
+5. For each mutant, the adapter writes the covering test ids to a file and
+   invokes Greenlight with `--test-id-file`.
+6. Infection's include interceptor replaces the original source with the
+   mutant in the wrapper and its Greenlight workers.
 
-There is no full-suite-per-mutant fallback. A mutation with no covering tests
-uses the adapter's no-tests path.
+If no test covers a mutant, the adapter uses Infection's no-tests path. It does
+not run the full suite for that mutant.
 
-This is mutation-test selection, not a general CI strategy. Projects should
-continue to run their complete Greenlight suite in CI.
+This selection applies only to mutation runs. Projects should continue to run
+their full Greenlight suite in CI.
 
 ## Package boundary
 
-Core owns the capabilities that have value beyond Infection:
+Core owns:
 
-* coverage-driver windows around individual tests
-* the test-to-line domain model and versioned JSONL artifact
-* bounded worker-to-orchestrator transport and merge storage
-* strict `--test-id` and `--test-id-file` selection
+* coverage windows around individual tests
+* the test-to-line map and its JSONL format
+* worker transport and orchestrator storage
+* `--test-id` and `--test-id-file`
 
-`packages/infection-adapter` owns Infection's
-`TestFrameworkAdapterFactory`, command construction, mutation include
-interception, and conversion to Infection's current XML input. Infection is not
-a runtime dependency of `greenlight/greenlight`.
+`packages/infection-adapter` contains the Infection factory, adapter,
+include-interceptor wrapper, and JSONL-to-XML converter. Infection is not a
+dependency of `greenlight/greenlight`.
 
-Install and run it with:
+Install the adapter alongside Infection:
 
 ```sh
 composer require --dev infection/infection greenlight/infection-adapter
 vendor/bin/infection --test-framework=greenlight
 ```
 
-Infection locates `greenlight.php` through the adapter name and locates the
-package's `greenlight-infection` executable through Composer.
+Infection finds `greenlight.php` through the adapter name and
+`greenlight-infection` through Composer.
 
 ## Coverage semantics
 
-Greenlight starts and stops the selected driver for every test. Both pcov and
-Xdebug produce a fresh window, so mappings are observations for that test, not
-deltas from an ever-growing process map.
+The coverage driver starts before each test is constructed and stops after the
+test has finished. The window includes hooks, the method body, retries, and
+class teardown when the test is last in its class. Each result is a fresh
+observation rather than a delta from process-wide coverage.
 
-The window includes test construction, hooks, the method body, retries, and
-last-test class teardown. Consequences:
+Data rows have separate test ids. Coverage from every retry attempt is combined
+under the same id. A failed or errored test keeps the coverage collected before
+its result. A skipped test remains in the test table and usually has no coverage
+record.
 
-* Each data row is a distinct rendered test id.
-* All retry attempts are unioned into that id's mapping.
-* A failed or errored test still contributes the coverage collected before its
-  outcome.
-* A skipped test remains in the test table and normally has no coverage rows.
-* Class teardown coverage is attributed to the final test in that class,
-  matching Greenlight's existing teardown-failure attribution.
-* A worker crash during a test produces no completed mapping for that test.
+Class teardown coverage belongs to the final test in the class, matching
+Greenlight's existing teardown-failure attribution. If a worker crashes during
+a test, that test has no completed coverage record.
 
-The artifact is published only for a successful, uninterrupted run and marks
-itself `complete`. Infection's initial suite must pass before mutation testing
-continues.
+Greenlight publishes the map only after a successful, uninterrupted run.
+Infection stops if its initial test run fails.
 
-`#[CoverageIgnore]` and the supported PHPUnit ignore comments are applied to
-both aggregate and per-test data. Dead code is omitted. Absolute source paths
-are preserved in the Greenlight artifact; the adapter requires Infection's
-source directories to resolve inside the project root when it builds relative
-XML paths.
+`#[CoverageIgnore]` and the supported PHPUnit ignore comments apply to aggregate
+and per-test coverage. Dead code is omitted. The Greenlight map stores absolute
+source paths. When the adapter writes Infection's XML, those paths must sit
+inside the project root.
 
-## Cost and memory
+## Exact test selection
 
-Per-test mapping is off by default. It adds one driver start/stop pair per test,
-normalisation work, socket traffic, and spool I/O. Aggregate-only coverage keeps
-its existing slice-sized windows and sends no per-test protocol messages.
+`--filter` remains the substring and wildcard selector intended for people.
+The adapter uses `--test-id` and `--test-id-file`, which match rendered test ids
+exactly and case-sensitively.
 
-Workers send at most 50,000 covered lines in a `coverage` frame. The
-orchestrator writes the many-to-many relation to an append-only temporary spool.
-Memory is bounded primarily by the execution plan, source-file table, and the
-union of attributed lines rather than every test-line pair. The adapter
-similarly spools XML fragments per source file instead of retaining the whole
-relation.
+Greenlight checks every requested id after discovery. An unknown or stale id
+fails the run instead of producing an empty selection. The file form ignores
+blank lines and duplicate ids, and avoids command-line length limits.
 
-## Exact-test contract
+The adapter creates a different id file for each mutation hash. Version 1 of the
+file format cannot represent an id containing a line break, so the adapter
+rejects one rather than writing an ambiguous file.
 
-`--filter` remains the user-friendly substring/wildcard selector. It is not the
-adapter API.
+## Cost and storage
 
-`--test-id` and `--test-id-file` are case-sensitive exact selectors using the
-same rendered id stored in the artifact. Unknown or stale ids fail loudly after
-discovery. The file form trims blank lines, removes duplicates, and avoids
-command-line length limits.
+Per-test coverage is off by default. It adds one coverage-driver start and stop
+per test, plus protocol traffic and spool writes. Aggregate coverage keeps its
+existing slice-sized windows and sends no per-test messages.
 
-The adapter creates a different exact-test file for each mutation hash. Rendered
-ids containing line breaks cannot be represented by the v1 line-oriented file
-and are rejected explicitly.
+A worker sends at most 50,000 line numbers in one `coverage` message. The
+orchestrator writes test-to-line records to a temporary spool. In memory it
+keeps the execution plan, ignored lines, and the union of attributed lines. The
+adapter also spools its XML fragments by source file.
 
 ## Compatibility
 
-Ordinary runs, aggregate coverage exports, reporters, and configuration remain
-unchanged unless per-test coverage is enabled. The worker protocol moved to
-version 2 because it gained the `coverage` message, but that protocol is
-internal and orchestrator and workers always come from the same installation.
+Per-test coverage does not change ordinary runs, reporters, or aggregate
+coverage exports. Existing configuration behaves as before unless
+`CoverageBuilder::perTest()` or `--coverage-map` enables the feature.
 
-The Greenlight artifact has its own version and schema. The adapter consumes
-version 1 and converts it at its package boundary, insulating core from
-Infection's current PHPUnit XML implementation.
+The worker protocol is now version 2 because it includes the `coverage`
+message. This protocol is internal, and workers always use the same Greenlight
+installation as the orchestrator.
 
-## Conservative local use
+The per-test map has its own schema version. The adapter reads version 1 and
+converts it to Infection's PHPUnit XML format.
 
-The artifact can support other impact-aware local tools, but Greenlight does not
-enable changed-file selection by default. Any future watch integration should
-fall back to the configured selection whenever attribution is missing, stale,
-or ambiguous. It must remain optional and must not be presented as a
-replacement for full-suite CI.
+## Watch mode
 
-## Remaining product decisions
+Per-test coverage is not available in watch mode. A future local test selector
+could use the map, but it would need to fall back to the configured selection
+when the map is missing, stale, or ambiguous. Such a selector would remain
+optional. CI should still run the full suite.
 
-The implemented contract intentionally leaves these future choices open:
+## Open questions
 
-* whether a later exact-test file version should support JSON-encoded ids,
-  including line breaks
-* whether to retain and validate artifact fingerprints across separate runs
-* whether a conservative impact-aware watch mode is worth its state and
-  invalidation complexity
-* whether measured real-suite overhead justifies configurable line-chunk sizes
-* how the external adapter's pre-release-compatible Greenlight constraint
-  should move through the first stable release
-
-None is required for the current Infection workflow.
+* whether a later id-file version should support JSON-encoded ids
+* whether maps reused across runs should carry source fingerprints
+* whether watch mode should gain conservative test selection
+* whether the 50,000-line message limit should be configurable
+* which Greenlight version constraint the adapter should use after the first
+  stable release

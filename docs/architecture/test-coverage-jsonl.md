@@ -1,125 +1,127 @@
 # Per-test coverage JSONL schema
 
-Greenlight's opt-in per-test coverage artifact maps exact test identities to
-covered source lines. It is enabled with
-`CoverageBuilder::perTest()` or `--coverage-map`.
+`CoverageBuilder::perTest()` and `--coverage-map` write the source lines covered
+by each test as JSONL.
 
-The machine-readable JSON Schema for version 1 is
+The JSON Schema for version 1 is
 [resources/schema/test-coverage-jsonl-v1.schema.json](../../resources/schema/test-coverage-jsonl-v1.schema.json).
 
-This is not the `jsonl` reporter stream and not the aggregate coverage JSON
-export. The three formats have separate schemas and compatibility contracts.
+Per-test coverage has a separate format from the `jsonl` reporter and the
+aggregate coverage JSON export.
 
 ## Lifecycle
 
-Greenlight writes observations to a temporary append-only spool during the run,
-then publishes the target atomically after the suite succeeds. Interrupted,
-empty, leaking, or unsuccessful runs do not publish a new artifact. If a target
-already exists, that older complete file remains until a later successful run
-replaces it; consumers coordinating separate processes should use a unique
-target or verify `runId`.
+During a run, Greenlight appends coverage records to a temporary file. It moves
+the completed artifact to the target path after the suite passes. A failed,
+empty, leaking, or interrupted run leaves the target alone, including any
+complete artifact already there.
 
-Per-test mode requires a coverage driver and at least one include path. Missing
-pcov or Xdebug coverage mode is a run failure rather than the soft warning used
-by aggregate-only coverage.
+A consumer that starts Greenlight in another process should use a different
+target for each run or check the `runId` before reading an existing file.
+
+Per-test coverage requires a coverage driver and at least one include path. If
+pcov or Xdebug coverage mode is unavailable, the run fails. Aggregate coverage
+only warns in the same situation.
 
 ## Record envelope
 
-Every line is a UTF-8 JSON object with:
+Every line is a UTF-8 JSON object with two common fields:
 
-* `v`: schema version, currently `1`
-* `type`: record type
+* `v` is the schema version, currently `1`
+* `type` identifies the record
 
-Lines end in `\n`. Version 1 may gain keys and record types additively.
-Consumers must ignore unknown keys and skip unknown record types. Changing or
-removing an existing field requires a new version.
+Lines end in `\n`. Version 1 may add fields and record types. Readers must
+ignore unknown fields and skip unknown record types. A change to an existing
+field requires a new version.
 
 ## `meta`
 
-The first record:
+The first line describes the artifact:
 
 ```json
 {"v":1,"type":"meta","root":"/project","runId":"a17f...","complete":true}
 ```
 
-`root` is the absolute project working directory. `runId` ties the artifact to
-the Greenlight run. Version 1 only publishes complete artifacts, so `complete`
-is always `true`.
+`root` is the absolute working directory. `runId` identifies the Greenlight
+run. Version 1 only publishes finished artifacts, so `complete` is always
+`true`.
 
 ## `test`
 
-One record for every planned test, in execution-plan order:
+There is one `test` record for each planned test, in plan order:
 
 ```json
 {"v":1,"type":"test","test":0,"id":{"class":"App\\Tests\\PriceTest","method":"totals","dataSetKey":"two units"},"renderedId":"App\\Tests\\PriceTest::totals[two units]","file":"/project/tests/PriceTest.php"}
 ```
 
-`test` is a zero-based artifact-local ordinal used by coverage records. `id` is
-the structured stable identity. `renderedId` is the exact string accepted by
-`--test-id` and `--test-id-file`. `file` is the discovered test source path.
+`test` is a zero-based ordinal used by other records in the same artifact. `id`
+is the structured test id. `renderedId` is the exact value accepted by
+`--test-id` and `--test-id-file`. `file` is the test source path found during
+discovery.
 
-An ordinal is local to one artifact and must not be persisted as a test
-identity.
+Ordinals are local to an artifact. Consumers should persist the structured or
+rendered id instead.
 
 ## `coverage`
 
-A chunk of covered source lines attributed to one test:
+A `coverage` record assigns covered lines to a test:
 
 ```json
 {"v":1,"type":"coverage","test":0,"file":"/project/src/Price.php","lines":[12,13,17]}
 ```
 
-Records contain covered lines only. Lists are non-empty positive line numbers
-and contain at most 50,000 entries. A test and file may have multiple chunks.
-Consumers take the union.
+`lines` contains unique positive line numbers and no more than 50,000 entries.
+A test and source file may have more than one record. Readers must combine their
+line lists.
 
-Data rows have separate test ordinals. Retries are already unioned. Empty
-mappings have no `coverage` record.
+Each data row has its own test ordinal. Coverage from retries is already
+combined. A test with no mapped lines has no `coverage` record.
 
 ## `source`
 
-Aggregate executable-line information:
+A `source` record lists executable lines from the aggregate coverage result:
 
 ```json
 {"v":1,"type":"source","file":"/project/src/Price.php","covered":false,"lines":[21,22]}
 ```
 
-`covered` says whether the listed executable lines ran anywhere in the suite.
-Covered and uncovered chunks together reconstruct the aggregate line map
-without requiring the separate coverage JSON export.
+`covered` states whether the listed lines ran during the suite. The covered and
+uncovered records reconstruct the aggregate line map without a separate
+coverage JSON export.
 
 ## `unattributed`
 
-Aggregate covered lines that no completed test window attributed:
+An `unattributed` record lists aggregate covered lines that belong to no
+completed test window:
 
 ```json
 {"v":1,"type":"unattributed","file":"/project/src/Bootstrap.php","lines":[7,8]}
 ```
 
-Typical causes are orchestrator code, relay coverage from spawned Greenlight
-processes, bootstrap work outside a test window, or a worker that did not
-complete its current test. These lines must not be assigned to every test.
+This includes coverage from the orchestrator, bootstrap code, child Greenlight
+processes, and a worker that failed before completing its current test. Readers
+must not assign these lines to every test.
 
 ## Paths and ignored lines
 
-Source paths are absolute driver paths. Test source paths are the paths recorded
-by discovery. `#[CoverageIgnore]` and supported ignore comments are applied
-before publication, so ignored lines occur in none of `coverage`, `source`, or
-`unattributed`. Dead-code driver statuses are omitted as they are in aggregate
-coverage.
+Source paths are the absolute paths returned by the coverage driver. Test paths
+come from discovery.
+
+`#[CoverageIgnore]` and the supported ignore comments apply before Greenlight
+writes the artifact. Ignored lines do not appear in `coverage`, `source`, or
+`unattributed` records. Dead code is omitted as it is from aggregate coverage.
 
 ## Ordering and storage
 
-The stable order is:
+Version 1 writes records in this order:
 
 1. `meta`
-2. all `test` records
-3. zero or more `coverage` records in arrival order
-4. `source` and `unattributed` records in aggregate file-path order
+2. every `test` record
+3. `coverage` records in arrival order
+4. `source` and `unattributed` records in aggregate file order
 
-Consumers should use the semantic keys rather than depend on ordering beyond
-`meta` and the test table preceding coverage in version 1.
+Readers should use record fields rather than rely on this order, apart from the
+metadata and test table appearing before coverage records.
 
-The relation can be much larger than aggregate coverage. Consumers should parse
-line by line; Greenlight and its Infection adapter both spool it rather than
-loading all test-line pairs into memory.
+A per-test map can be much larger than aggregate coverage. Greenlight and the
+Infection adapter read and write it one line at a time.
