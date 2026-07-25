@@ -20,7 +20,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 * Deterministic terminal and CI output with repeatable reporters.
 * Stable CI sharding with `--shard=n/m`.
 * Failed-first runs, seeded randomisation, watch mode, and repeat modes.
-* Coverage through pcov or Xdebug, including diff gates and opt-in per-test maps.
+* Coverage through pcov or Xdebug, including diff gates and per-test maps.
 * Plain PHP test classes, attributes, constructor injection, and PHP configuration.
 * First-party Symfony integration and a bundled PHPStan extension.
 
@@ -265,8 +265,8 @@ CI controls include:
 * `coverage:diff`
 
 Coverage uses pcov or Xdebug and can be exported as JSON, LCOV, Clover, Cobertura, or HTML.
-An opt-in, versioned per-test coverage artifact powers the external Infection
-adapter without changing ordinary coverage or full-suite CI.
+Use `--coverage-map` or `CoverageBuilder::perTest()` to write a versioned map of
+the source lines covered by each test.
 
 Exit codes are `0` for success, `1` for a failed or empty run, and `64` for usage errors.
 
@@ -274,9 +274,8 @@ Exit codes are `0` for success, `1` for a failed or empty run, and `64` for usag
 
 Greenlight includes a first-party Symfony plugin and a `#[Service]` attribute for resolving services from Symfony's container. See [testing Symfony applications](docs/symfony.md).
 
-The separate `greenlight/infection-adapter` package runs mutation tests through
-Greenlight. It uses per-test coverage to select exact covering tests for each
-mutant; it never silently falls back to running the full suite per mutant. See
+Install `greenlight/infection-adapter` to run Infection with Greenlight. The
+adapter uses per-test coverage to select the tests for each mutant. See
 [mutation testing with Infection](docs/architecture/mutation-testing.md).
 
 Plugin extension points include:

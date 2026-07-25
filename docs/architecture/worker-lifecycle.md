@@ -63,11 +63,10 @@ Some notes on that exchange:
 
 - The worker bootstraps once, on its first `assign`. Plugins and harness registries are built then and reused for every later assignment, which is why per-run harness services keep worker-lifetime semantics. Per-class state (reflection, hooks, data sets) is rebuilt for each class.
 - Events stream one frame per event, the moment they happen. The orchestrator forwards each event to the reporters and updates its running summary as frames arrive, which is what makes live per-worker output and flat orchestrator memory possible. Nothing accumulates worker-side.
-- Per-test coverage is also streamed before that test's `TestFinished` event.
-  Covered line lists are split into chunks of at most 50,000 lines so no
-  worker builds one unbounded protocol payload. The orchestrator appends the
-  relation to a temporary spool and keeps only the execution plan and the union
-  of attributed lines in memory. Ordinary aggregate coverage sends no
+- With per-test coverage enabled, the worker sends coverage before the test's
+  `TestFinished` event. Each message holds at most 50,000 line numbers. The
+  orchestrator appends them to a temporary spool and keeps the execution plan
+  and union of attributed lines in memory. Aggregate coverage does not send
   `coverage` messages.
 - `done` carries the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated frame cannot silently pass a suite.
 

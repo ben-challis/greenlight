@@ -131,7 +131,5 @@ Readers must ignore unknown keys.
 
 Any change to the meaning or shape of existing fields requires a new `v` value.
 
-Per-test attribution is deliberately a separate streaming artifact rather than
-an additive key here. Keeping this aggregate format small preserves existing
-coverage-diff and import consumers. See
-[the per-test coverage JSONL schema](test-coverage-jsonl.md).
+Per-test coverage uses the separate JSONL format documented in
+[the per-test coverage schema](test-coverage-jsonl.md).

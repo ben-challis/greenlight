@@ -123,9 +123,9 @@ accumulate.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
   `html`. Repeatable.
-* `perTest(string $target): self` writes a versioned JSONL map from exact test
-  ids to covered source lines. This mode is opt-in because it starts and stops
-  the coverage driver around every test.
+* `perTest(string $target): self` writes a versioned JSONL map from test ids to
+  covered source lines. It starts and stops the coverage driver around each
+  test.
 
 ```php
 ->coverage(fn ($c) => $c
@@ -153,17 +153,16 @@ the shared directory, and the run folds those dumps into the result before
 exporting. Like worker collection this fails soft, and the include paths you
 configured filter all of it.
 
-Per-test collection is stricter than aggregate coverage: it fails the run when
-the requested driver is unavailable, because a missing map must not make an
-impact-analysis consumer run the wrong tests. At least one `include()` path is
-required. Each data row has its own test id; retries are unioned into that
-test's mapping; failed, errored, and skipped tests still receive a test record.
-The artifact is published only after a complete successful run. See the
+Unlike aggregate coverage, per-test coverage fails the run if the requested
+driver is unavailable. At least one `include()` path is required.
+
+Each data row has its own test id. Coverage from retries is combined under that
+id. Failed, errored, and skipped tests still have a test record. Greenlight
+writes the artifact only after a successful run. See the
 [per-test coverage schema](architecture/test-coverage-jsonl.md).
 
-Per-test collection increases driver calls, protocol traffic, disk I/O, and
-runtime. Keep it off normal runs and enable it for consumers such as Infection.
-It is not supported in watch mode.
+Per-test coverage adds driver calls, protocol traffic, and disk I/O. It is off
+by default and is not available in watch mode.
 
 ### watch(callable $configurator): self
 
@@ -422,8 +421,8 @@ Reads exact rendered test ids from a text file, one per line. Blank lines
 are ignored and duplicate ids are collapsed. An unreadable or empty file is a
 usage error; an id that discovery cannot find fails the run.
 
-This is intended for tools that already have Greenlight ids, including the
-Infection adapter, and avoids command-line length limits.
+Tools such as the Infection adapter use the file form to avoid command-line
+length limits.
 
 ### --shard=<n>/<m>
 
@@ -491,14 +490,13 @@ While watching:
 * Enter reruns everything.
 * `q` quits.
 
-Per-test coverage mapping cannot be combined with watch mode. Watch remains a
-local feedback tool and does not replace a complete CI suite.
+Per-test coverage cannot be combined with watch mode.
 
 ### --coverage-map=<path>
 
-Enables per-test coverage for this run and writes the versioned JSONL artifact
-to the path. Supply at least one `--coverage-include=<path>` unless the loaded
-configuration already has coverage include paths.
+Writes per-test coverage to the given path as versioned JSONL. Supply at least
+one `--coverage-include=<path>` unless the configuration already has an include
+path.
 
 ### --coverage-include=<path>
 

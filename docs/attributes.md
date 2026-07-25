@@ -321,9 +321,8 @@ Target: class, method, or function.
 
 No parameters.
 
-Excludes the declaration from coverage. Ignored lines are removed from both the
-covered and executable totals, so they never move a percentage, an aggregate
-export, a per-test mapping, or a baseline diff.
+Excludes the declaration from aggregate coverage, per-test maps, and baseline
+diffs. Ignored lines are removed from both the covered and executable totals.
 
 ```php
 final class Config
