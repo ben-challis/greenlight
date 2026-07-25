@@ -34,6 +34,7 @@ final readonly class Configuration
      * @param list<non-empty-string> $excludeClasses class name patterns to drop
      * @param list<non-empty-string> $excludeMethods method name patterns to drop
      * @param list<non-empty-string> $excludePaths path prefixes to drop
+     * @param array<non-empty-string, positive-int> $resourceLimits explicitly configured local concurrency limits
      */
     public function __construct(
         public array $paths,
@@ -56,6 +57,7 @@ final readonly class Configuration
         public array $excludeClasses = [],
         public array $excludeMethods = [],
         public array $excludePaths = [],
+        public array $resourceLimits = [],
     ) {}
 
     /**
@@ -84,6 +86,7 @@ final readonly class Configuration
             excludeClasses: $this->excludeClasses,
             excludeMethods: $this->excludeMethods,
             excludePaths: $this->excludePaths,
+            resourceLimits: $this->resourceLimits,
         );
     }
 
@@ -113,6 +116,7 @@ final readonly class Configuration
             excludeClasses: $this->excludeClasses,
             excludeMethods: $this->excludeMethods,
             excludePaths: $paths,
+            resourceLimits: $this->resourceLimits,
         );
     }
 }

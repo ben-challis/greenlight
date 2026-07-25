@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Fixture\DiscoveryAttributes;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Retry;
+use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
@@ -27,6 +28,7 @@ final class PlainTest
     #[Retry(3, onlyOn: \LogicException::class)]
     #[Timeout(2.5)]
     #[Isolated]
+    #[RequiresResource('method-only')]
     public function fullyDecorated(): void
     {
         echo "plain:decorated\n";

@@ -26,6 +26,7 @@ final class TestMetadataTest
             5.5,
             true,
             'currencies',
+            resources: ['postgres', 'redis', 'postgres'],
         );
 
         $restored = TestMetadata::fromWire(JsonWire::roundTrip($metadata->toWire()));
@@ -41,6 +42,7 @@ final class TestMetadataTest
         Expect::that($restored->timeoutSeconds)->toBe(5.5);
         Expect::that($restored->isolated)->toBe(true);
         Expect::that($restored->dataSetProvider)->toBe('currencies');
+        Expect::that($restored->resources)->toBe(['postgres', 'redis']);
     }
 
     #[Test]
@@ -53,6 +55,7 @@ final class TestMetadataTest
         Expect::that($restored->retryTimes)->toBe(null);
         Expect::that($restored->timeoutSeconds)->toBe(null);
         Expect::that($restored->isolated)->toBe(false);
+        Expect::that($restored->resources)->toBe([]);
     }
 
     #[Test]
@@ -99,6 +102,29 @@ final class TestMetadataTest
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
         )->toThrow(InvalidWirePayload::class);
+    }
+
+    #[Test]
+    public function missingResourceWireKeyUsesTheBackwardCompatibleDefault(): void
+    {
+        $payload = new TestMetadata('App\FooTest', 'bar', resources: ['postgres'])->toWire();
+        unset($payload['resources']);
+
+        Expect::that(TestMetadata::fromWire($payload)->resources)->toBe([]);
+    }
+
+    #[Test]
+    public function rejectsInvalidResourceNamesOnBothSides(): void
+    {
+        Expect::that(
+            static fn(): TestMetadata => new TestMetadata('App\FooTest', 'bar', resources: ['Postgres']),
+        )->toThrow(\InvalidArgumentException::class);
+
+        $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
+        $payload['resources'] = ['Postgres'];
+
+        Expect::that(static fn(): TestMetadata => TestMetadata::fromWire($payload))
+            ->toThrow(InvalidWirePayload::class);
     }
 
     #[Test]

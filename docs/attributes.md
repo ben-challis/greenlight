@@ -303,6 +303,39 @@ A killed worker is replaced and the run continues.
 public function convergesQuickly(): void { ... }
 ```
 
+## RequiresResource
+
+Target: method or class. Repeatable.
+
+Parameters:
+
+```php
+string $name
+```
+
+Declares that the test consumes one slot of a named resource. Names must use
+lowercase letters, digits, dots, underscores, or hyphens, and must start with a
+letter or digit.
+
+```php
+#[RequiresResource('postgres')]
+#[RequiresResource('payments-sandbox')]
+final class OrderRepositoryTest { ... }
+```
+
+Class declarations apply to every method. Method declarations add to the class
+requirements, and duplicates are removed.
+
+Greenlight schedules whole classes to preserve class lifecycle. It therefore
+leases the union of every method's requirements for the whole class assignment.
+A method declaration is safe but may conservatively limit otherwise unrelated
+methods in the same class.
+
+Each unconfigured resource has a concurrency limit of one. Configure larger
+limits with `resourceLimit()` in `greenlight.php` or `--resource-limit` for one
+run. Limits are local to one Greenlight invocation and do not coordinate
+separate shards or processes.
+
 ## Isolated
 
 Target: method or class.

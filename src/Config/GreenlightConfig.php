@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Core\Test\ResourceName;
 
 /**
  * The mutable fluent builder that greenlight.php files return.
@@ -63,6 +64,11 @@ final class GreenlightConfig
     private bool $randomizeOrder = false;
 
     private ?int $randomSeed = null;
+
+    /**
+     * @var array<non-empty-string, positive-int>
+     */
+    private array $resourceLimits = [];
 
     private function __construct()
     {
@@ -153,6 +159,38 @@ final class GreenlightConfig
 
         $this->recycleAfterTests = $recycleAfterTests;
         $this->recycleAboveMemory = $recycleAboveMemory;
+
+        return $this;
+    }
+
+    /**
+     * Limits simultaneous class assignments that require the named resource.
+     *
+     * A required resource with no configured limit defaults to one.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function resourceLimit(string $name, int $limit = 1): self
+    {
+        try {
+            ResourceName::assertValid($name);
+        } catch (\InvalidArgumentException $error) {
+            throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+        }
+
+        if ($limit < 1) {
+            throw new InvalidConfiguration(\sprintf(
+                'Resource "%s" must have a limit of at least 1, got %d.',
+                $name,
+                $limit,
+            ));
+        }
+
+        if (\array_key_exists($name, $this->resourceLimits)) {
+            throw new InvalidConfiguration(\sprintf('Resource limit "%s" is declared twice.', $name));
+        }
+
+        $this->resourceLimits[$name] = $limit;
 
         return $this;
     }
@@ -309,6 +347,7 @@ final class GreenlightConfig
             stopAfterFailures: $this->failFast ? 1 : null,
             randomizeOrder: $this->randomizeOrder,
             randomSeed: $this->randomSeed,
+            resourceLimits: $this->resourceLimits,
         );
     }
 }

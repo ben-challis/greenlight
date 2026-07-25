@@ -31,6 +31,7 @@ final class GreenlightConfigTest
         Expect::that($configuration->randomizeOrder)->toBe(false);
         Expect::that($configuration->randomSeed)->toBe(null);
         Expect::that($configuration->groups)->toBe([]);
+        Expect::that($configuration->resourceLimits)->toBe([]);
     }
 
     #[Test]
@@ -43,6 +44,8 @@ final class GreenlightConfigTest
             ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit'))
             ->suite('integration', static fn(SuiteBuilder $suite) => $suite->in('tests/Integration')->tag('io', 'slow'))
             ->workers(count: 8, recycleAfterTests: 250, recycleAboveMemory: '1G')
+            ->resourceLimit('postgres', 3)
+            ->resourceLimit('payments-sandbox')
             ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
             ->plugins($plugin)
             ->failFast()
@@ -74,6 +77,7 @@ final class GreenlightConfigTest
         Expect::that($configuration->stopAfterFailures)->toBe(1);
         Expect::that($configuration->randomizeOrder)->toBe(true);
         Expect::that($configuration->randomSeed)->toBe(99);
+        Expect::that($configuration->resourceLimits)->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
     }
 
     #[Test]
@@ -121,6 +125,15 @@ final class GreenlightConfigTest
             },
             'bad memory string surfaces at build' => static function (): void {
                 GreenlightConfig::create()->workers(recycleAboveMemory: 'lots')->build();
+            },
+            'invalid resource name' => static function (): void {
+                GreenlightConfig::create()->resourceLimit('Postgres');
+            },
+            'zero resource limit' => static function (): void {
+                GreenlightConfig::create()->resourceLimit('postgres', 0);
+            },
+            'duplicate resource limit' => static function (): void {
+                GreenlightConfig::create()->resourceLimit('postgres')->resourceLimit('postgres', 2);
             },
         ];
 

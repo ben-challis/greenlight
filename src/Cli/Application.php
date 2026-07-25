@@ -106,6 +106,9 @@ final readonly class Application
         Options:
           --config=<path>    Use this config file instead of ./greenlight.php
           --workers=<n|auto> Worker process count
+          --resource-limit=<name>=<n>
+                             Override a named resource concurrency limit;
+                             repeatable
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Only run this group; repeatable
           --filter=<pattern> Only run tests whose id matches; substring, or
@@ -1321,6 +1324,7 @@ final readonly class Application
         return [
             new OptionSpec('config', OptionValue::Required),
             new OptionSpec('workers', OptionValue::Required),
+            new OptionSpec('resource-limit', OptionValue::Required, repeatable: true),
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),

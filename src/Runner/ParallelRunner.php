@@ -92,6 +92,7 @@ final readonly class ParallelRunner
             $configuration->policy->isNoOp() ? null : $configuration->policy,
             $shutdown,
             $ticker,
+            resourceLimits: $configuration->resourceLimits,
         );
 
         $summary = $orchestrator->run($plan, $sink, $workerCount);

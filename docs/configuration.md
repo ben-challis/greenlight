@@ -103,6 +103,27 @@ boot, and that worker's lane is idle during the boot. Use it for suites that
 accumulate per-process state that memory checks cannot see, such as connections
 or file handles.
 
+### resourceLimit(string $name, int $limit = 1): self
+
+Sets the number of class assignments that may simultaneously hold a named
+resource in this Greenlight invocation.
+
+```php
+return GreenlightConfig::create()
+    ->resourceLimit('postgres', 3)
+    ->resourceLimit('payments-sandbox');
+```
+
+A `#[RequiresResource]` name without an explicit setting defaults to one, which
+makes it exclusive. Limits must be positive. Names must match
+`[a-z0-9][a-z0-9._-]*`, and declaring the same limit twice is an error.
+
+Every requirement consumes one slot. A class requiring several resources starts
+only when all slots can be leased atomically.
+
+Limits are local to one run. Separate Greenlight processes and CI shards enforce
+their own copies and do not coordinate.
+
 ### coverage(callable $configurator): self
 
 Default: coverage off.
@@ -261,6 +282,13 @@ worker count.
 Use the channel to derive external resources that parallel tests must not share,
 such as database names, ports, virtual hosts, or temp directories.
 
+Channels and resource limits solve different problems:
+
+* use a channel when every worker can receive its own database, port range, or
+  directory
+* use `#[RequiresResource]` when a finite dependency must be shared by fewer
+  tests than the worker count
+
 Two tests running at the same time never share a channel. Channel numbers always
 stay within 1 and the worker count, regardless of how many worker processes are
 spawned during the run. When a worker is recycled or crashes, its replacement
@@ -369,6 +397,18 @@ Uses this config file instead of `./greenlight.php`.
 
 Overrides the worker process count.
 
+### --resource-limit=<name>=<n>
+
+Overrides one configured resource limit for this invocation.
+
+```sh
+vendor/bin/greenlight run \
+    --resource-limit=postgres=2 \
+    --resource-limit=payments-sandbox=1
+```
+
+The flag is repeatable. A resource may be overridden only once.
+
 ### --bail[=<n>]
 
 Stops after `<n>` failures.
@@ -402,6 +442,9 @@ without coordination. The union of all shards is exactly the full suite.
 Only whole classes move between shards. Individual methods are not split.
 
 Combines with `--group` and `--filter` by sharding the filtered plan.
+
+Resource limits apply independently inside each shard. If four shards each use
+`postgres=2`, up to eight tests may consume PostgreSQL across the CI job.
 
 ### --failed
 

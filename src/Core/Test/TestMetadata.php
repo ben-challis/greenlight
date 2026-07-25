@@ -27,6 +27,11 @@ final readonly class TestMetadata implements WireSerializable
     public array $skipUnlessArguments;
 
     /**
+     * @var list<non-empty-string>
+     */
+    public array $resources;
+
+    /**
      * @param non-empty-string $class
      * @param non-empty-string $method
      * @param list<string> $groups
@@ -36,6 +41,7 @@ final readonly class TestMetadata implements WireSerializable
      * @param non-empty-string|null $retryOnlyOn
      * @param non-empty-string|null $dataSetProvider
      * @param list<mixed> $skipUnlessArguments validated to scalars or null
+     * @param list<string> $resources named resources consumed by the class scheduling unit
      *
      * @throws \InvalidArgumentException
      */
@@ -53,6 +59,7 @@ final readonly class TestMetadata implements WireSerializable
         public bool $capture = true,
         public bool $noExpectations = false,
         array $skipUnlessArguments = [],
+        array $resources = [],
     ) {
         $validated = [];
 
@@ -80,6 +87,15 @@ final readonly class TestMetadata implements WireSerializable
         }
 
         $this->skipUnlessArguments = $validatedArguments;
+
+        $validatedResources = [];
+
+        foreach ($resources as $resource) {
+            ResourceName::assertValid($resource);
+            $validatedResources[$resource] = $resource;
+        }
+
+        $this->resources = \array_values($validatedResources);
     }
 
     #[\Override]
@@ -99,6 +115,7 @@ final readonly class TestMetadata implements WireSerializable
             'dataSetProvider' => $this->dataSetProvider,
             'capture' => $this->capture,
             'noExpectations' => $this->noExpectations,
+            'resources' => $this->resources,
         ];
     }
 
@@ -120,6 +137,13 @@ final readonly class TestMetadata implements WireSerializable
         $retryTimes = Wire::nullableInt($payload, 'retryTimes');
         $timeoutSeconds = Wire::nullableFloat($payload, 'timeoutSeconds');
         $skipUnlessArguments = self::skipUnlessArgumentsFromWire($payload);
+        $resources = \array_key_exists('resources', $payload) ? Wire::listOfStrings($payload, 'resources') : [];
+
+        foreach ($resources as $resource) {
+            if (!ResourceName::isValid($resource)) {
+                throw InvalidWirePayload::wrongType('resources', 'a list of canonical resource names', $resource);
+            }
+        }
 
         return new self(
             Wire::nonEmptyString($payload, 'class'),
@@ -135,6 +159,7 @@ final readonly class TestMetadata implements WireSerializable
             Wire::bool($payload, 'capture'),
             \array_key_exists('noExpectations', $payload) && Wire::bool($payload, 'noExpectations'),
             $skipUnlessArguments,
+            $resources,
         );
     }
 

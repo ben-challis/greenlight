@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Runner\Orchestrator;
+
+/**
+ * The resource slots held by one assigned scheduling unit.
+ *
+ * @internal
+ */
+final readonly class ResourceLease
+{
+    public function __construct(
+        public int $id,
+        public SchedulingUnit $unit,
+    ) {}
+}

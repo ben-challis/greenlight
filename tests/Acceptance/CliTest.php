@@ -27,6 +27,7 @@ final readonly class CliTest
             ->toContain('  suite unit: tests/Unit')
             ->toContain('  suite integration: tests/Integration [tags: io]')
             ->toContain('  workers: 4')
+            ->toContain('  resource limits: postgres=3')
             ->toContain('  recycle: after 100 tests or above 128M memory')
             ->toContain('  stop after: 1 failure')
             ->toContain('  order: random (seed 4242)')
@@ -43,6 +44,7 @@ final readonly class CliTest
             '--bail=7',
             '--seed=9',
             '--group=slow',
+            '--resource-limit=postgres=2',
         ]);
         $output = $result->outputLines();
 
@@ -52,6 +54,7 @@ final readonly class CliTest
             ->toContain('  stop after: 7 failures')
             ->toContain('  order: random (seed 9)')
             ->toContain('  groups: slow');
+        Expect::that($output)->toContain('  resource limits: postgres=2');
     }
 
     #[Test]

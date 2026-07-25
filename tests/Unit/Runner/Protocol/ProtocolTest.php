@@ -93,7 +93,7 @@ final class ProtocolTest
     {
         $entry = new PlanEntry(
             new TestId('App\FooTest', 'bar', 'data set one'),
-            new TestMetadata('App\FooTest', 'bar', isolated: true, dataSetProvider: 'rows'),
+            new TestMetadata('App\FooTest', 'bar', isolated: true, dataSetProvider: 'rows', resources: ['postgres']),
         );
 
         $assign = Assign::fromWire(new Assign(new ExecutionPlan([$entry], 42), 10)->toWire());
@@ -102,7 +102,8 @@ final class ProtocolTest
             ->and($assign->recycleAfterTests)->toBe(10)
             ->and($assign->recycleAboveMemoryBytes)->toBeNull()
             ->and($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one')
-            ->and($assign->slice->entries[0]->metadata->isolated)->toBeTrue();
+            ->and($assign->slice->entries[0]->metadata->isolated)->toBeTrue()
+            ->and($assign->slice->entries[0]->metadata->resources)->toBe(['postgres']);
     }
 
     #[Test]

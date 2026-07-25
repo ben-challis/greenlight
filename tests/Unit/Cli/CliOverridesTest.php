@@ -29,6 +29,7 @@ final class CliOverridesTest
         Expect::that($overrides->excludePaths)->toBe([]);
         Expect::that($overrides->repeat)->toBe(null);
         Expect::that($overrides->repeatUntilFailure)->toBe(false);
+        Expect::that($overrides->resourceLimits)->toBe([]);
     }
 
     #[Test]
@@ -69,12 +70,14 @@ final class CliOverridesTest
             'bail' => ['3'],
             'group' => ['slow', 'io'],
             'seed' => ['0'],
+            'resource-limit' => ['postgres=3', 'payments-sandbox=1'],
         ]));
 
         Expect::that($overrides->workers?->fixed)->toBe(4);
         Expect::that($overrides->stopAfterFailures)->toBe(3);
         Expect::that($overrides->groups)->toBe(['slow', 'io']);
         Expect::that($overrides->seed)->toBe(0);
+        Expect::that($overrides->resourceLimits)->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
     }
 
     #[Test]
@@ -142,6 +145,10 @@ final class CliOverridesTest
             'empty exclude path' => ['exclude-path' => ['']],
             'repeat zero' => ['repeat' => ['0']],
             'repeat word' => ['repeat' => ['abc']],
+            'malformed resource limit' => ['resource-limit' => ['postgres']],
+            'zero resource limit' => ['resource-limit' => ['postgres=0']],
+            'invalid resource name' => ['resource-limit' => ['Postgres=2']],
+            'duplicate resource limit' => ['resource-limit' => ['postgres=1', 'postgres=2']],
         ];
 
         foreach ($unusable as $options) {

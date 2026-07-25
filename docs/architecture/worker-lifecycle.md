@@ -63,6 +63,31 @@ Some notes on that exchange:
 - Events stream one frame per event, the moment they happen. The orchestrator forwards each event to the reporters and updates its running summary as frames arrive, which is what makes live per-worker output and flat orchestrator memory possible. Nothing accumulates worker-side.
 - `done` carries the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated frame cannot silently pass a suite.
 
+## Resource-aware assignment
+
+Discovery carries `#[RequiresResource]` names in test metadata. The distributor
+keeps the class as the scheduling unit and takes the union of every entry's
+requirements. Isolated entries remain single-entry scheduling units.
+
+Before sending `assign`, the orchestrator atomically leases one slot from every
+required resource. Unconfigured resources have capacity one. The lease stays
+with the assignment until `done`, recycling, crash, hard timeout, or assignment
+delivery failure; retries therefore keep the same lease.
+
+If the oldest unit is blocked, it reserves one future slot from each resource
+it needs. Later units may pass it only with disjoint resources or capacity above
+that reservation. This remains work-conserving without allowing a multi-resource
+unit to starve.
+
+A connected worker may intentionally receive no message while capacity is
+unavailable. The orchestrator records that wait separately from a delivered
+assignment, so the normal no-progress deadline does not mistake resource
+contention for a stalled worker. Releasing a lease immediately retries every
+waiting worker.
+
+No new wire message is needed: limits and leases are orchestrator-owned, and the
+existing `assign` already carries the plan metadata.
+
 ## Leaving the pool
 
 A worker can leave the pool in several ways, and the orchestrator handles each one differently.
@@ -89,6 +114,8 @@ stateDiagram-v2
 
 **Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn.
 
+Any resource lease is released before the unfinished entries are re-queued.
+
 **Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL and treats it like a crash, except the test is reported as a timeout failure.
 
 **Fatal errors.** A worker that catches an error it cannot recover from sends `fatal` with the throwable's details before exiting, which gives the orchestrator a real message to report instead of a bare dead process.
@@ -100,6 +127,9 @@ Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the sign
 ## Isolated tests
 
 `#[Isolated]` entries are queued separately and follow a stricter rule: only a fresh worker, one that has not yet run anything, may take one, and only once the pooled queue is empty. After the isolated assignment's `done`, the orchestrator sends `drain` and lets the process exit rather than returning it to the pool. Whatever global state the test mutated dies with the worker.
+
+Isolation and resource requirements compose: an isolated unit still waits for
+all its named resources before assignment.
 
 ## Channel numbers
 

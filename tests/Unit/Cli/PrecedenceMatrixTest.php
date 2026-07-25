@@ -89,6 +89,17 @@ final class PrecedenceMatrixTest
     }
 
     #[Test]
+    public function resourceLimitPrecedenceMergesByName(): void
+    {
+        $resolved = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c->resourceLimit('postgres', 4)->resourceLimit('redis', 2),
+            cli: new CliOverrides(resourceLimits: ['postgres' => 1]),
+        );
+
+        Expect::that($resolved->resourceLimits)->toBe(['postgres' => 1, 'redis' => 2]);
+    }
+
+    #[Test]
     public function settingsWithoutFlagsAlwaysComeFromTheConfigFile(): void
     {
         $resolved = $this->resolve(config: static fn(GreenlightConfig $c) => $c
