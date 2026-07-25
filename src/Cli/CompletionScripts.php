@@ -5,19 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * Renders the static shell completion scripts behind the completion command.
- *
- * The render() method returns the script for bash, zsh, or fish, and null
- * for any other shell name; SHELLS lists the accepted names for usage
- * messages. Scripts go to stdout and the user wires them into their shell,
- * so nothing here touches the filesystem.
- *
- * Flag candidates are generated from the OptionSpec list the argument
- * parser is built from: options that take a value complete as --flag= and
- * boolean options as --flag, so a new OptionSpec becomes completable in
- * every shell without touching this class. Command names and the value
- * lists for enum-like flags (--reporter, --workers, the completion shell
- * argument) are small explicit tables here.
+ * Flag candidates come from OptionSpec. Command names and enum-like values
+ * remain explicit tables.
  *
  * @internal
  */

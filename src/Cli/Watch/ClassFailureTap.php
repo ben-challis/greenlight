@@ -8,12 +8,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
-/**
- * Records the classes of failed and errored tests while forwarding the
- * stream, so the next watch iteration can run them first.
- *
- * @internal
- */
+/** @internal */
 final class ClassFailureTap implements EventSink
 {
     /**

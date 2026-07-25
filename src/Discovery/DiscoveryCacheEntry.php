@@ -5,14 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 /**
- * One file's record in the discovery cache: the mtime and size fingerprint
- * the file was cached under, plus the wire payloads of every plan entry it
- * declared.
- *
- * fromDecoded() rebuilds a record from untrusted decoded JSON and returns
+ * fromDecoded() validates untrusted JSON and returns
  * null when any part of the shape is malformed, so a corrupt cache degrades
- * to a re-parse instead of an error. jsonSerialize() emits the same shape
- * fromDecoded() accepts.
+ * to a re-parse. jsonSerialize() emits the same shape.
  *
  * @internal
  */

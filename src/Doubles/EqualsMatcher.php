@@ -7,11 +7,7 @@ namespace Greenlight\Doubles;
 use Greenlight\Expect\Equality;
 use Greenlight\Expect\ValueRenderer;
 
-/**
- * Matches values by the same deep equality bare with() arguments use.
- *
- * @internal obtain via Argument::equals()
- */
+/** @internal */
 final readonly class EqualsMatcher implements ArgumentMatcher
 {
     public function __construct(private mixed $value) {}

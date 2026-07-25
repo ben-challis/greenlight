@@ -8,23 +8,12 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
 /**
- * Static HTML coverage report with a dark, terminal-style theme.
+ * Uses the PHP tokenizer so multiline constructs remain valid when split
+ * into highlighted lines. The report is self-contained and works offline.
  *
- * The index page shows summary cards (total coverage, file count, line
- * totals) and a per-file table with a coverage bar per row; each file gets
- * a page with line-by-line colouring: covered lines green, uncovered lines
- * red, non-executable lines plain, behind a sticky line-number gutter.
- * Percentages are tinted by the percentClass() thresholds. No JavaScript,
- * one inline stylesheet.
- *
- * Source is syntax highlighted by highlightedLines() using the PHP
- * tokenizer, so multi-line constructs like doc blocks and heredocs colour
- * correctly and the report works offline.
- *
- * Paths are displayed relative to the project root passed to the
- * constructor; paths outside it stay absolute. Per-file page names are
- * derived by pageName() from a hash of the absolute file path so they are
- * deterministic and filesystem safe.
+ * Paths are relative to the project root; paths outside it stay absolute.
+ * Per-file page names hash the absolute path for deterministic,
+ * filesystem-safe names.
  *
  * When a source file is unreadable the page falls back to line numbers and
  * statuses only.

@@ -9,21 +9,12 @@ use Greenlight\Expect\Expectation;
 use Greenlight\Expect\TemporalExpectation;
 
 /**
- * Renders the IDE helper file that gives editors autocomplete for extension
- * matchers.
- *
- * The PHPStan extension checks matcher calls during analysis, but IDE
- * completion comes from indexers, which never execute PHPStan plugins. This
- * renders the established workaround: a file containing a duplicate
- * declaration of Expectation whose docblock lists every configured matcher
- * as an @method annotation. PhpStorm and Intelephense merge members from
- * duplicate class declarations, so the matchers complete with real
- * signatures.
+ * IDE indexers do not run PHPStan plugins, so the helper duplicates the
+ * Expectation declaration with configured matchers as @method annotations.
  *
  * The generated file is never executed or autoloaded; it exists only to be
- * indexed. It should be gitignored and regenerated whenever matchers change.
- * Signatures come from the same MatcherMap the PHPStan extension reads, so
- * completion and analysis agree.
+ * indexed. Regenerate it when matchers change. Signatures share MatcherMap
+ * with the PHPStan extension.
  *
  * @internal
  */

@@ -9,8 +9,6 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * The mergeable coverage model: per-file line coverage keyed by file path.
- *
  * Files are kept sorted by path so identical coverage always serialises
  * identically.
  *

@@ -8,22 +8,7 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 
-/**
- * The end-of-run summary fragments shared by the human-facing reporters.
- *
- * tests() renders the one-line result totals, omitting zero-value categories
- * and colouring passed, failed, errored and skipped through the style.
- * workers() renders the worker line, dropping a zero recycled count and
- * returning null when no workers were spawned at all. skipped() lists every
- * skipped test with its reason, grouping tests that share a reason and
- * capping each group at five ids.
- * leaks() lists every leaked test under one red header.
- * coverage() renders the line-coverage percentage in green with the covered
- * and executable line counts. coverageExport() renders one written export as
- * an indented format-and-target line.
- *
- * @internal
- */
+/** @internal */
 final class SummaryFormat
 {
     private const int MAX_IDS_PER_GROUP = 5;

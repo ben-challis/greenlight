@@ -9,14 +9,8 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 
 /**
- * Discovers tests statically and produces a deterministic execution plan.
- *
- * discover() scans directories for *Test.php files, resolves each file's
- * class by token parsing before autoloading it, reflects the attributes into
- * metadata, expands data-set providers, and applies filters.
- *
- * No test code runs during discovery; data-set providers are the single,
- * budgeted exception.
+ * Discovery does not invoke test methods. Data-set providers are the only
+ * user callables it invokes.
  *
  * @internal
  */

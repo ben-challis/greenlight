@@ -27,11 +27,6 @@ use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 /**
- * Runs one plan entry.
- *
- * execute() checks attribute skips before construction, then runs attempts
- * under the decider-driven retry loop.
- *
  * Each attempt covers constructor injection, beforeTest subscribers,
  * before-hooks in declaration order, the test method, after-hooks in reverse
  * declaration order, which always run, per-test scope teardown, and timeout

@@ -10,21 +10,12 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Wire\InvalidWirePayload;
 
 /**
- * Per-file cache of derived plan entries, keyed by path, mtime, and size.
+ * Per-file cache keyed by path, mtime, and size. Entries are unfiltered, so
+ * changing filters does not require parsing again.
  *
- * A hit lets an unchanged file skip parsing, class loading, and attribute
- * reflection on the next discovery. Watch mode benefits most: its iterations
- * re-discover constantly. Entries are cached unfiltered; filters apply after
- * load, so a changed filter never needs a re-parse.
- *
- * Correctness rule: any doubt (missing file, mtime or size mismatch, corrupt
- * cache, version bump) falls back to parsing. One soft spot is inherent: a
- * data-set provider whose output changes without its file changing (against
- * the purity contract) yields stale keys, which the worker-side revalidation
- * turns into a loud per-test error rather than wrong data.
- *
- * The cache lives under the system temp dir keyed by a hash of the scanned
- * directories, the same convention as the proxy cache and run state.
+ * A missing or stale file, corrupt cache, or version mismatch falls back to
+ * parsing. If a data-set provider changes output without a file change, the
+ * stale keys fail worker-side revalidation.
  *
  * @internal
  */
@@ -137,11 +128,8 @@ final class DiscoveryCache
     }
 
     /**
-     * Persists every file this discovery saw (hit or stored), pruning files
-     * that no longer exist in the scan, so the cache tracks the suite.
-     *
-     * Returns false when the cache could not be written; the cache is
-     * advisory, so callers may ignore it, but the loss is observable.
+     * Writes files touched during this discovery and prunes older entries.
+     * Returns false on write failure.
      */
     public function persist(): bool
     {

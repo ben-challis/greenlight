@@ -10,12 +10,7 @@ use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
-/**
- * One runnable unit in an execution plan: the stable identity of the test
- * plus everything discovery learned about the method it belongs to.
- *
- * @internal
- */
+/** @internal */
 final readonly class PlanEntry implements WireSerializable
 {
     /**

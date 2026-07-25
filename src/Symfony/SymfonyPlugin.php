@@ -16,34 +16,14 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
- * Boots a Symfony kernel per worker and injects its services into tests.
+ * The kernel boots lazily and lives for the worker lifetime.
  *
- * Register it in greenlight.php with the kernel class and environment, or
- * with a closure producing a ready kernel:
+ * The container must expose Symfony's test container and, unless resets are
+ * disabled, services_resetter. Disabling resets is unsafe when any service
+ * carries state between tests.
  *
- *     ->plugins(new SymfonyPlugin(App\Kernel::class, env: 'test', debug: false))
- *
- * The kernel boots lazily on first use and lives for the worker process
- * lifetime; KernelInterface itself is injectable as a per-run harness
- * service through services().
- *
- * The isolation strategy is validated once at boot; a kernel that cannot
- * honour it is a configuration error rather than a silent degradation:
- * the container must expose Symfony's test container (framework.test
- * enabled), and unless resets are explicitly waived it must expose
- * services_resetter. Passing resetBetweenTests: false waives the reset
- * requirement for containers with no stateful services; it is unsafe with
- * any service that carries state across tests.
- *
- * resolve() serves constructor parameters no harness service covers: the
- * declared type is looked up in the test container, and a #[Service]
- * attribute on the parameter overrides the lookup with an explicit id.
- *
- * afterTest() resets every kernel.reset tagged service through the
- * services_resetter captured at boot, so stateful services reset between
- * tests without rebooting the kernel. Tests on one worker share the kernel,
- * and isolation of external resources (databases, caches) belongs to the
- * container build, keyed off the GREENLIGHT_CHANNEL environment variable.
+ * #[Service] overrides type-based lookup with an explicit id. External
+ * resources must be isolated by GREENLIGHT_CHANNEL.
  */
 final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
 {
@@ -135,19 +115,13 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {
-        // Set exactly when the kernel booted with the reset strategy; boot
-        // validation guarantees it, so a null here means either no kernel
-        // was used yet or resets were explicitly waived.
+        // Assigned only after a successful boot with resets enabled.
         $this->resetter?->reset();
 
         return $result;
     }
 
-    /**
-     * Boots the kernel on first use and validates the isolation strategy
-     * before memoizing anything, so a kernel that cannot honour it fails
-     * every test loudly instead of running unisolated.
-     */
+    /** An invalid kernel is not cached, so each use fails instead of running unisolated. */
     private function kernel(): KernelInterface
     {
         if ($this->kernel instanceof KernelInterface) {

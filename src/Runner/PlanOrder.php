@@ -9,12 +9,8 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 
 /**
- * Orders a plan's classes for scheduling.
- *
- * schedule() places previously failed classes first for fast feedback.
- * Classes with recorded durations follow, longest first, so the longest
- * classes are assigned while workers are still free. Classes without a
- * recorded duration come last, in their discovered order.
+ * Places priority classes first, then known classes longest first, followed
+ * by classes without timings.
  *
  * Entry order within a class never changes.
  *

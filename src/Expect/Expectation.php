@@ -15,7 +15,7 @@ use Greenlight\Core\Test\ExpectationCounter;
  *
  * A failed matcher throws ExpectationFailed immediately.
  *
- * toEqual() semantics (deep equality, everything else uses identity):
+ * toEqual() deep-equality semantics:
  *
  * - ints and floats compare by numeric value, so 1 equals 1.0; NAN equals
  *   nothing, including itself

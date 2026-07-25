@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-/**
- * Declares one long option the parser accepts, with an optional single-letter
- * alias.
- *
- * @internal
- */
+/** @internal */
 final readonly class OptionSpec
 {
     /**

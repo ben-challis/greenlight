@@ -4,15 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-/**
- * Fluent builder handed to coverage configurators.
- *
- * include() stores what to cover, driver() records which driver to prefer,
- * and export() adds a report to write.
- *
- * Config files type-hint this class, so it is part of the public
- * configuration surface.
- */
+/** Configures coverage collection and exports. */
 final class CoverageBuilder
 {
     /**

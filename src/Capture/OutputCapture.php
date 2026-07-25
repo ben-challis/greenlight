@@ -10,28 +10,8 @@ use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Wire\Utf8;
 
 /**
- * Captures stdout and PHP diagnostics between start() and stop().
- *
- * Stdout is captured through an output buffer callback, so echo, print, and
- * printf output from user code is stored here instead of being written to the
- * real stream. PHP diagnostics such as notices, warnings, and deprecations are
- * recorded by an error handler installed for the capture window. See start()
- * for the exact behaviour.
- *
- * start() adds one output buffer level and remembers it. User code can still
- * open and close its own buffers inside the capture window; ob_get_clean() and
- * similar functions keep working on those user-created levels as normal.
- *
- * stop() flushes any user buffers that are still open into the capture, then
- * removes only the buffer level installed by start(). If user code has already
- * closed that buffer, stop() keeps whatever was captured before it was closed
- * and does not fail. This keeps stop() safe to call from a finally block
- * without hiding the original exception.
- *
- * Only output that goes through PHP output buffering can be captured. Direct
- * writes to stream resources, such as fwrite(STDERR, ...) or fwrite(STDOUT, ...),
- * bypass userland output buffering and are handled separately by the
- * orchestrator.
+ * Direct writes to stream resources, such as fwrite(STDERR, ...) or
+ * fwrite(STDOUT, ...), bypass userland output buffering.
  *
  * When output is truncated, the start of the output is kept because it usually
  * contains the useful error context; the end is often repeated noise. A cut may
@@ -72,13 +52,8 @@ final class OutputCapture
     }
 
     /**
-     * Installs the capture. The error handler records notices, warnings, and
-     * deprecations and reports them handled, so they do not leak into the
-     * captured stdout or the real streams. Severities outside those levels,
-     * and diagnostics masked by error_reporting() or the @ operator, are
-     * passed back to PHP's default handling by returning false, so nothing
-     * the engine would escalate or fatal on is suppressed. Exceptions never
-     * pass through an error handler and are never swallowed here.
+     * Captures notices, warnings, and deprecations. Masked or unsupported
+     * diagnostics return to PHP's default handling.
      *
      * @throws CaptureError when a capture window is already active
      */
@@ -113,12 +88,8 @@ final class OutputCapture
     }
 
     /**
-     * Removes the capture and returns what it collected. Safe to call from a
-     * finally block: it restores buffers and the error handler regardless of
-     * how the window ended, and never throws for buffer-stack drift caused
-     * by user code. If user code installed its own error handler during the
-     * window and left it active, that handler is deliberately left in place;
-     * only the capture's own handler is removed when it is still on top.
+     * Safe to call from a finally block despite buffer-stack drift. A handler
+     * installed by user code during capture is left in place.
      *
      * @throws CaptureError when no capture window is active
      */
@@ -162,10 +133,8 @@ final class OutputCapture
     }
 
     /**
-     * Output buffer callback. Appends up to the configured bound and
-     * discards the rest, keeping the head. Returns an empty string so
-     * nothing propagates to the next buffer or the real stream. Must never
-     * throw: an exception inside an output handler is fatal.
+     * Keeps the bounded head and returns an empty string to stop propagation.
+     * This callback must not throw because output-handler exceptions are fatal.
      */
     private function appendChunk(string $chunk, int $phase): string
     {

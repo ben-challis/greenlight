@@ -8,13 +8,8 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Disposable;
 
 /**
- * A per-test scratch directory that cleans up after itself.
- *
- * Nothing touches the disk until path() is first called; it then creates and
- * memoizes a unique directory under the system temp dir, so parallel workers
- * never collide. subdirectory() creates nested directories under it and
- * rejects names that would escape the root. dispose() removes everything
- * recursively without following symlinks and fails loudly if removal fails.
+ * Creates its unique root lazily. Nested paths cannot escape that root, and
+ * disposal removes symlinks without following them.
  */
 final class TempDirectory implements Disposable
 {

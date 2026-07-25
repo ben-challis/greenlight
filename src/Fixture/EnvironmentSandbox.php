@@ -7,13 +7,8 @@ namespace Greenlight\Fixture;
 use Greenlight\Harness\Disposable;
 
 /**
- * Scoped environment variable changes that undo themselves.
- *
- * set() and unset() apply to getenv(), $_ENV, and $_SERVER together, so all
- * three views stay in sync. The original state of each variable is recorded
- * exactly once, before its first modification, and dispose() restores every
- * touched variable to that recorded state, removing variables that did not
- * exist before.
+ * Updates getenv(), $_ENV, and $_SERVER together. Each original value is
+ * recorded once and restored on disposal.
  */
 final class EnvironmentSandbox implements Disposable
 {

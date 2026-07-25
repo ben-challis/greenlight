@@ -10,17 +10,8 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 
 /**
- * The spawning side of subprocess coverage aggregation.
- *
- * open() creates a unique directory under the system temp dir and exports it,
- * together with the run's include paths, through the SubprocessCoverage
- * environment variables, so every CLI process spawned during the run,
- * including ones started by tests running inside workers, can dump its own
- * coverage there.
- *
- * drain() restores the previous values of both variables, merges every
- * readable dump into one CoverageMap, and removes the directory. Dumps that
- * cannot be parsed, such as one truncated by a killed process, are skipped.
+ * Exports a temporary dump directory and restores the previous environment
+ * when drained. Corrupt or truncated dumps are skipped.
  *
  * @internal
  */

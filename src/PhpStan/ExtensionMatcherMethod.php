@@ -14,12 +14,7 @@ use PHPStan\Type\Generic\TemplateTypeMap;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
-/**
- * An extension matcher presented to PHPStan as a method on Expectation:
- * the matcher closure's parameters minus the subject, returning the chain.
- *
- * @internal
- */
+/** @internal */
 final readonly class ExtensionMatcherMethod implements MethodReflection
 {
     /**

@@ -7,9 +7,6 @@ namespace Greenlight\Expect;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Test\ExpectationCounter;
 
-/**
- * Fails a test immediately with a user-provided reason.
- */
 final class Fail
 {
     /** @codeCoverageIgnore */

@@ -5,15 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 /**
- * Hands out worker channel numbers from a fixed pool of 1 to the bound.
- *
- * allocate() returns the lowest free number, so a run with N workers only
- * ever occupies channels 1 to N no matter how many workers are spawned over
- * its lifetime. release() returns a number to the pool when a worker's
- * handle finishes, letting the replacement worker reuse it.
- *
- * Exhaustion or a double release is a bookkeeping bug in the caller and
- * fails loudly.
+ * Allocates the lowest free slot and reuses released slots. Exhaustion or an
+ * invalid release throws.
  *
  * @internal
  */

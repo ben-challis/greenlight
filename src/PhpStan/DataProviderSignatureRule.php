@@ -19,9 +19,6 @@ use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * Checks #[DataSet] providers and #[DataRow] rows against the test method
- * they feed, so a bad data set fails analysis instead of the run.
- *
  * A provider must exist on the same class as a public static method
  * returning an iterable of argument arrays. Where PHPStan knows a row's
  * exact shape (an array{...} return type or an inline #[DataRow] literal),

@@ -4,19 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Symfony;
 
-/**
- * Raised when the Symfony bridge cannot honour its configuration.
- *
- * testContainerUnavailable() and resetterUnavailable() cover boot-time
- * capability validation: a container without the test container or, unless
- * resets were waived, without services_resetter. unknownServiceId() covers
- * a #[Service] id the container does not expose. serviceTypeMismatch()
- * covers a container service that is not an instance of the declared
- * parameter type. notAKernel() covers a plugin configured with a class that
- * does not implement KernelInterface.
- *
- * @internal
- */
+/** @internal */
 final class SymfonyBridgeError extends \RuntimeException
 {
     private function __construct(string $message)

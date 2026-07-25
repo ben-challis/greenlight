@@ -5,16 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 /**
- * Text decoration shared by the human-facing reporters.
+ * Duration colours escalate at one and five seconds.
  *
- * ok(), warn() and error() colour text green, yellow and red by severity;
- * callers map their domain onto a severity, so a passed count renders ok
- * and a skipped count renders warn. dim() de-emphasises secondary text.
- * duration() formats seconds and escalates from plain through warn (1s) to
- * error (5s).
- *
- * Constructed without ANSI support every method returns its text unchanged,
- * so plain and non-TTY output stays byte-clean.
+ * Without ANSI support, every method returns its text unchanged.
  *
  * @internal
  */

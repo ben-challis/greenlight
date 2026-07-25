@@ -10,7 +10,7 @@ use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Resolves the 'auto' worker count to the number of logical cores.
+ * Resolves the 'auto' worker count to the available CPU count.
  *
  * When the consuming project has fidry/cpu-core-counter installed, count()
  * uses its detection because it understands cgroup limits and more platforms.

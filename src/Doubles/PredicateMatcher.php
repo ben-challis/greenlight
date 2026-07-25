@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-/**
- * Matches values a caller-supplied closure accepts.
- *
- * @internal obtain via Argument::predicate()
- */
+/** @internal */
 final readonly class PredicateMatcher implements ArgumentMatcher
 {
     public function __construct(

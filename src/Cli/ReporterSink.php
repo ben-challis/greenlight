@@ -8,11 +8,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Runner\Worker\EventSink;
 
-/**
- * Adapts the runner's event sink to a reporter.
- *
- * @internal
- */
+/** @internal */
 final readonly class ReporterSink implements EventSink
 {
     public function __construct(private Reporter $reporter) {}

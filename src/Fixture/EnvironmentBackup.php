@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Fixture;
 
 /**
- * The original state of one environment variable across all three views:
- * getenv(), $_ENV, and $_SERVER.
- *
- * capture() records the state before the first modification; restore() puts
- * every view back, removing the variable from views it was absent from.
+ * Restores getenv(), $_ENV, and $_SERVER independently to their original
+ * state.
  *
  * @internal
  */

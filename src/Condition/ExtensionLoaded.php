@@ -6,9 +6,6 @@ namespace Greenlight\Condition;
 
 use Greenlight\Core\Condition;
 
-/**
- * Satisfied when the named PHP extension is loaded.
- */
 final readonly class ExtensionLoaded implements Condition
 {
     public function __construct(private string $extension) {}

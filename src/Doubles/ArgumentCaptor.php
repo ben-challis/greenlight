@@ -11,10 +11,6 @@ namespace Greenlight\Doubles;
  * matches() always accepts and never records; capturing happens only for
  * the expectation that won the call, so probing candidate expectations
  * cannot pollute a captor.
- *
- * Read back with values() (all captured values in call order) or value()
- * (the most recent). Obtain via Argument::captor() or
- * MethodExpectation::captureArgument().
  */
 final class ArgumentCaptor implements ArgumentMatcher
 {
@@ -33,9 +29,7 @@ final class ArgumentCaptor implements ArgumentMatcher
         return 'captor()';
     }
 
-    /**
-     * @internal called by the matched expectation only
-     */
+    /** @internal */
     public function capture(mixed $value): void
     {
         $this->captured[] = $value;

@@ -9,20 +9,11 @@ use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Generates, caches, and loads proxy classes for doubled types.
+ * Proxy class names hash method signatures, so unchanged types reuse cached
+ * code. Parent constructors never run.
  *
- * Interfaces get generated implementations; non-final classes get generated
- * subclasses whose parent constructor never runs. Every overridable instance
- * method delegates to the attached CallHandler.
- *
- * Generated code is written under the configured directory (by default a
- * per-project directory under the system temp dir) so it is opcache friendly
- * and debuggable. The class name embeds a hash of the doubled type's method
- * signatures, so a signature change generates a new class and file while
- * unchanged types reuse the cached one, within a process and across runs.
- *
- * Boundaries, by design: no final classes, no readonly classes, no enums, no
- * partial mocks, no static method interception. Final methods on otherwise
+ * Final classes, readonly classes, enums, partial mocks, and static
+ * interception are unsupported. Final methods on otherwise
  * doubleable classes are not intercepted and keep their real implementation,
  * which runs against an object whose constructor never ran; prefer doubling
  * an interface.

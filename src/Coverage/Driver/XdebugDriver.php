@@ -8,8 +8,6 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\RawCoverage;
 
 /**
- * Line coverage via the Xdebug extension.
- *
  * Xdebug must be running with a mode that includes "coverage".
  *
  * Collection asks Xdebug for unused and dead code analysis so uncovered lines

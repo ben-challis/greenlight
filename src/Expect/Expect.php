@@ -5,11 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Entry point of the expectation API.
- *
- * Anchor a matcher chain on a subject with the static that(). A failed
- * matcher throws ExpectationFailed immediately.
- *
  * Extension matchers are worker-local state: install() stores the configured
  * ExpectationExtension list once at worker boot, and every chain created by
  * that() dispatches through it. Workers are single-threaded and the runner

@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-/**
- * Pluralises nouns for counted report fragments: "1 test", "2 tests".
- *
- * count() appends "s" unless an irregular plural is given.
- *
- * @internal
- */
+/** @internal */
 final class Plural
 {
     /** @codeCoverageIgnore */

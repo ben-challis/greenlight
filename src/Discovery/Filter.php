@@ -92,12 +92,6 @@ final readonly class Filter
         return !$this->anyPrefixMatches($path, $this->excludePaths);
     }
 
-    /**
-     * Applied to each expanded entry, after accepts() passed for the method.
-     * With no id filters configured every id is accepted; otherwise the id
-     * must match one pattern (case-insensitive substring, or full wildcard
-     * match when the pattern contains "*" or "?") or one exact id.
-     */
     public function acceptsId(string $renderedId): bool
     {
         if ($this->includeIds === [] && $this->includeExactIds === []) {

@@ -8,11 +8,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\SocketChannel;
 
-/**
- * Streams every event straight to the orchestrator as it happens.
- *
- * @internal
- */
+/** @internal */
 final readonly class SocketEventSink implements EventSink
 {
     public function __construct(private SocketChannel $channel) {}

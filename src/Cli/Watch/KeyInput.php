@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
-/**
- * Non-blocking keyboard input for the watch loop.
- *
- * Injectable for tests.
- *
- * @internal
- */
+/** @internal */
 interface KeyInput
 {
     /**

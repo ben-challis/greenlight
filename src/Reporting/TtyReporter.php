@@ -16,28 +16,13 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 
 /**
- * A parallel-aware live display for interactive terminals.
- *
- * The live region holds a progress counter (done/planned, failure and skip
- * tints) and one dim line per in-flight class, oldest first, each with a
- * running count and an elapsed time that escalates through the slow-colour
- * thresholds. Capacity clamps to min(10, terminal rows - 5); classes past
- * capacity collapse into a single overflow line. A leading blank line
- * separates the window from the permanent scrollback above it.
- *
- * The live region is redrawn on events and on external ticks (see Ticking),
- * throttled to one repaint per 50ms. Each repaint is a single write that
- * rewrites every line in place, so the window never passes through a blank
- * state the terminal could paint as flicker. Permanent class lines ride the
- * same frame as the repaint that retires their class, and the terminal
- * cursor stays hidden from the first frame until finish(). The spinner
- * advances once per actual repaint.
+ * Shows a bounded live region for in-flight classes and throttles repaints to
+ * one every 50ms.
  *
  * In bounded mode a cleanly passing class prints nothing permanent; only
  * classes containing failures or skips append a line, the moment they
- * finish. verbose restores a permanent line per class. Without cursor
- * support the live region is skipped and every class appends its line, so
- * output degrades to append-only rather than losing information.
+ * finish. --verbose restores a permanent line per class. Without cursor
+ * support, every class is appended instead.
  *
  * @internal
  */

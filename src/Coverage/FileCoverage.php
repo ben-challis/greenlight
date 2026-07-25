@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Coverage;
 
 /**
- * Line coverage for a single file: the set of executable lines split into
- * covered and uncovered.
- *
  * Both sets are stored as sorted unique lists and are disjoint; when a line
  * appears in both inputs, covered wins. That rule makes merge() commutative,
  * associative, and idempotent.

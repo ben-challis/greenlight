@@ -11,8 +11,6 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Immutable result of one test.
- *
  * Plugins never mutate a result; they produce a replacement via
  * withOutcome(), which records provenance.
  *
@@ -75,8 +73,7 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
-     * The same result failed with extra details, the flip recorded as a
-     * provenance transformation.
+     * Appends failure details and records the outcome transformation.
      *
      * @param non-empty-string $transformedBy
      * @param non-empty-list<FailureDetail> $details
@@ -90,10 +87,6 @@ final readonly class TestResult implements WireSerializable
         );
     }
 
-    /**
-     * The same result marked risky: it passed without verifying a single
-     * expectation.
-     */
     public function asRisky(): self
     {
         return $this->with(risky: true);

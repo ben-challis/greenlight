@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-/**
- * Registration seam for expectation plugins.
- *
- * A plugin implements this interface to contribute matchers; unmatched calls
- * on the expectation chain dispatch to them through Expectation::__call.
- */
+/** Contributes matchers dispatched through Expectation::__call. */
 interface ExpectationExtension
 {
     /**
