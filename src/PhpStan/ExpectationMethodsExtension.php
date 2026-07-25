@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Expect\ConsistentlyExpectation;
+use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
+use Greenlight\Expect\TemporalExpectation;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
@@ -46,7 +49,12 @@ final class ExpectationMethodsExtension implements MethodsClassReflectionExtensi
     #[\Override]
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
     {
-        return $classReflection->getName() === Expectation::class
+        return \in_array($classReflection->getName(), [
+            Expectation::class,
+            TemporalExpectation::class,
+            EventuallyExpectation::class,
+            ConsistentlyExpectation::class,
+        ], true)
             && $this->map()->has($methodName);
     }
 

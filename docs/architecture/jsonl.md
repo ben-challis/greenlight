@@ -238,6 +238,9 @@ The number of expectations verified during the final attempt.
 Each matcher in a chain counts once. Soft-mode failures count. Each mock
 expectation counts when it is verified. Stubs do not count.
 
+An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
+not count separately.
+
 Failed, errored, and skipped tests carry the partial count verified before the
 test stopped.
 

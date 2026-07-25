@@ -108,6 +108,58 @@ Matchers cover identity and equality (`toBe`, `toEqual`,
 `toMatchJson`), and exceptions (`toThrow`). The `Greenlight\Expect\Expectation`
 class is the authoritative list.
 
+### Waiting for asynchronous state
+
+`Expect::eventually()` calls a probe until its matcher passes. It calls the
+probe immediately, then every 25ms until `within()` expires:
+
+```php
+Expect::eventually(fn() => $repository->find($id))
+    ->within(2.0)
+    ->toEqual($expected);
+```
+
+Set a different interval with `pollEvery()`:
+
+```php
+Expect::eventually(fn() => $search->document($id))
+    ->pollEvery(0.100)
+    ->within(5.0)
+    ->toEqual($expected);
+```
+
+Probe exceptions stop polling by default. List any transient exception types
+that Greenlight should retry:
+
+```php
+Expect::eventually(fn() => $client->fetch($id))
+    ->retryOnException(NotFoundYet::class)
+    ->within(2.0)
+    ->toBeInstanceOf(Response::class);
+```
+
+PHP errors and exceptions from matcher code always stop polling.
+
+Use `Expect::consistently()` when the matcher must keep passing:
+
+```php
+Expect::consistently(fn() => $outbox->messagesFor($id))
+    ->pollEvery(0.050)
+    ->for(0.5)
+    ->toHaveCount(1);
+```
+
+The first call must match. Greenlight then checks it for the full duration and
+fails on the first mismatch.
+
+Each polling matcher counts as one expectation and returns an ordinary
+`Expectation` for its final value. Another matcher in the same chain checks
+that value once. Start a new `eventually()` or `consistently()` chain to poll
+again.
+
+The current test timeout always limits polling. Greenlight cannot interrupt a
+probe that blocks, so the worker's hard timeout still applies.
+
 ### Failing explicitly
 
 Use `Fail::because()` when a test reaches an invalid state that does not fit a

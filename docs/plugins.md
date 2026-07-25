@@ -178,6 +178,11 @@ Expect::that($id)->toBeValidUuid();
 
 They support `not()` and cannot replace native matchers.
 
+Extension matchers also work with `eventually()` and `consistently()`.
+Greenlight calls the predicate for each value returned by the probe, but the
+matcher counts as one expectation. An exception from the predicate stops
+polling.
+
 Declare matcher parameters with normal native PHP types. PHP enforces those
 types at runtime, and Greenlight's PHPStan extension reads them for static
 analysis.
@@ -190,6 +195,7 @@ its own.
 Greenlight includes a PHPStan extension for matcher calls. It loads your
 Greenlight config files the same way workers do, reflects each matcher closure,
 and exposes every matcher to PHPStan as a real method on the expectation chain.
+This includes `eventually()` and `consistently()` chains.
 
 Typos, wrong argument counts, and wrong argument types then fail
 `phpstan analyse` like any other error.

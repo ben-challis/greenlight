@@ -91,11 +91,15 @@ stateDiagram-v2
 
 **Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL and treats it like a crash, except the test is reported as a timeout failure.
 
+The worker also gives `eventually()` and `consistently()` the current attempt's
+monotonic deadline. Their polling stops at that deadline, but a probe can still
+block. The orchestrator's grace window remains the hard limit.
+
 **Fatal errors.** A worker that catches an error it cannot recover from sends `fatal` with the throwable's details before exiting, which gives the orchestrator a real message to report instead of a bare dead process.
 
 Two situations fail the whole run rather than triggering containment, on the theory that a broken environment should be loud: a spawned worker that never says `hello` within 30 seconds, and a connected worker that goes silent for 60 seconds with no test in flight. Both point at something outside the suite (a broken bootstrap, a blocked socket), and re-spawning would loop forever. There is also a spawn budget across the whole run; if replacements keep dying, the run fails with a diagnosis instead of respawning indefinitely.
 
-Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the signal and drives an orderly drain, so results already earned are still reported.
+Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the signal and drives an orderly drain, so results already earned are still reported. A test that is polling is allowed to finish like any other test in flight.
 
 ## Isolated tests
 

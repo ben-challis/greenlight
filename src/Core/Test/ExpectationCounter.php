@@ -22,17 +22,44 @@ final class ExpectationCounter
 {
     private static int $count = 0;
 
+    private static int $suppressionDepth = 0;
+
     /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function reset(): void
     {
         self::$count = 0;
+        self::$suppressionDepth = 0;
     }
 
     public static function increment(): void
     {
-        ++self::$count;
+        if (self::$suppressionDepth === 0) {
+            ++self::$count;
+        }
+    }
+
+    /**
+     * Runs an operation without adding to the expectation count.
+     *
+     * @internal
+     *
+     * @template T
+     *
+     * @param \Closure(): T $operation
+     *
+     * @return T
+     */
+    public static function withoutCounting(\Closure $operation): mixed
+    {
+        ++self::$suppressionDepth;
+
+        try {
+            return $operation();
+        } finally {
+            --self::$suppressionDepth;
+        }
     }
 
     /**

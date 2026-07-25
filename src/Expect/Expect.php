@@ -32,6 +32,46 @@ final class Expect
     }
 
     /**
+     * Polls the probe until its matcher passes or the deadline expires.
+     *
+     * @template T
+     *
+     * @param callable(): T $probe
+     *
+     * @return PendingEventually<T>
+     */
+    public static function eventually(callable $probe): PendingEventually
+    {
+        return new PendingEventually(
+            \Closure::fromCallable($probe),
+            ExpectationRuntime::clock(),
+            ExpectationRuntime::deadline(),
+            new ValueRenderer(),
+            self::$extensions,
+        );
+    }
+
+    /**
+     * Polls the probe for a fixed period and fails on the first mismatch.
+     *
+     * @template T
+     *
+     * @param callable(): T $probe
+     *
+     * @return PendingConsistently<T>
+     */
+    public static function consistently(callable $probe): PendingConsistently
+    {
+        return new PendingConsistently(
+            \Closure::fromCallable($probe),
+            ExpectationRuntime::clock(),
+            ExpectationRuntime::deadline(),
+            new ValueRenderer(),
+            self::$extensions,
+        );
+    }
+
+    /**
      * Replaces the worker-local extension list consulted by every subsequent
      * that() chain. Called once per worker at boot; tests that install their
      * own extensions must restore the previous list themselves.

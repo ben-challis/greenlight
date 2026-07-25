@@ -52,4 +52,52 @@ final readonly class PhpStanExtensionTest
             ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
             ->toContain('invoked with 1 parameter, 0 required');
     }
+
+    #[Test]
+    public function temporalMatcherSignaturesAreEnforced(): void
+    {
+        $probe = PhpStanProbe::analyse(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightGoodTemporalProbe(): void
+            {
+                Expect::eventually(static fn(): string => 'c0ffee')
+                    ->within(1.0)
+                    ->toHaveDigestLength(6);
+                Expect::consistently(static fn(): string => 'c0ffee')
+                    ->for(0.1)
+                    ->toBeHexadecimal();
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightBadTemporalProbe(): void
+            {
+                Expect::eventually(static fn(): string => 'c0ffee')
+                    ->within(1.0)
+                    ->toHaveDigestLength('six');
+                Expect::consistently(static fn(): string => 'c0ffee')
+                    ->for(0.1)
+                    ->toBeHexadecimal(123);
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and(\count($probe->errors))->toBe(2)
+            ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
+            ->toContain('invoked with 1 parameter, 0 required');
+    }
 }

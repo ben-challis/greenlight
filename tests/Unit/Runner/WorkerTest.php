@@ -24,6 +24,7 @@ use Greenlight\Tests\Fixture\Lifecycle\Injection\InjectedProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
+use Greenlight\Tests\Fixture\Lifecycle\TemporalRetry\TemporalRetryTest;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -80,6 +81,17 @@ final class WorkerTest
         Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->attempts)->toBe(1)
             ->and(RetryFilterTest::$attempts)->toBe(1);
+    }
+
+    #[Test]
+    public function temporalExpectationsReceiveAFreshDeadlineOnRetry(): void
+    {
+        TemporalRetryTest::$attempts = 0;
+        [, $results] = $this->runFixture('TemporalRetry');
+
+        Expect::that($results[0]->outcome)->toBe(Outcome::Passed)
+            ->and($results[0]->attempts)->toBe(2)
+            ->and($results[0]->expectations)->toBe(1);
     }
 
     #[Test]

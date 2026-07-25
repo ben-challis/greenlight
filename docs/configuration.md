@@ -219,6 +219,8 @@ this setting. Enabling `failOnRisky()` upgrades risky tests to failures.
 A test that intentionally has no expectations can opt out with
 `#[NoExpectations]`.
 
+Each `eventually()` or `consistently()` matcher counts once.
+
 Also available as `--fail-on-risky`.
 
 ### plugins(object ...$plugins): self
