@@ -18,7 +18,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 * Strict mocks, stubs, and spies with automatic verification.
 * Typed expectations with rendered diffs.
 * Deterministic terminal and CI output with repeatable reporters.
-* Per-test structured, text, binary, and file attachments with retry-aware retention.
+* Per-test attachments for structured values, text, bytes, and files.
 * Stable CI sharding with `--shard=n/m`.
 * Failed-first runs, seeded randomisation, watch mode, and repeat modes.
 * Coverage through pcov or Xdebug, including diff coverage gates.
@@ -259,9 +259,9 @@ Iteration and debugging:
 
 Per-test output capture keeps stdout and PHP diagnostics attached to the test that produced them. The `profile:report` command can replay a saved JSONL stream into a profile report.
 
-Tests and plugins can also attach structured values, logs, binary data, and
-files to an individual result. Evidence is copied immediately, retained on
-failure by default, and stored outside the event stream. See
+Tests and plugins can attach diagnostic data to an individual result. Greenlight
+copies the content immediately, retains it on failure by default, and keeps it
+outside the event stream. See
 [test attachments](docs/attachments.md).
 
 ## CI, sharding, and coverage
@@ -290,8 +290,8 @@ CI controls include:
 * `ignoreDeprecationsMatching()`
 * `coverage:diff`
 
-Retained test evidence is written below `build/greenlight-artifacts` by default.
-Upload that directory from an always-running CI step, or use
+Retained attachments are written below `build/greenlight-artifacts` by default.
+Upload that directory from a CI step that always runs, or use
 `--artifacts-dir=<path>` to place it alongside other job outputs.
 
 Coverage uses pcov or Xdebug and can be exported as JSON, LCOV, Clover, Cobertura, or HTML.

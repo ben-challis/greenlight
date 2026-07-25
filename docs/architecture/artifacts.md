@@ -1,83 +1,76 @@
 # Artifact storage architecture
 
-This record defines how per-test attachments cross Greenlight's worker boundary
-without placing arbitrary binary data in events or stdout.
+Attachment content stays on disk. Workers send attachment metadata to the
+orchestrator, which keeps binary data out of stdout, events, and worker protocol
+frames.
 
-## Decision
+## Run directories
 
-Attachment content is copied immediately into a private, run-scoped staging
-directory shared by the orchestrator and workers. A `TestResult` carries only
-immutable metadata and an internal opaque storage key. Before a
-`TestFinished` event reaches reporters, the owning process atomically moves
-retained content into the public run directory and removes the storage key from
-the public result.
+Each run has a public output directory and a private `.staging` directory
+beneath it. The orchestrator creates both directories and passes their paths to
+workers as part of the assignment.
 
-This makes the test attempt the owner of attachment lifetime while keeping the
-orchestrator the authority for publication. It also keeps protocol frames small:
-the worker protocol carries metadata rather than base64 payloads, and JSONL
-version two makes the published attachment metadata part of the result contract.
+An attachment is copied into staging when the test or plugin adds it. Structured
+values are serialized at that point. Later changes to the source value or file
+cannot change the attachment.
 
-Each completed staged file has an atomic JSON sidecar. If a worker dies, the
-orchestrator reads only sidecars whose storage keys resolve inside the staging
-root, publishes evidence for the in-flight test, and then synthesizes the crash
-result. Incomplete copies have no completed sidecar and are discarded.
+The staged file has an opaque storage key. Its public metadata contains the
+logical name, kind, media type, size, SHA-256 digest, attempt number, retention
+policy, and eventual published path.
 
-## Consequences
+## Publication
 
-* Structured values are serialized at attachment time, and files are copied at
-  attachment time. Later mutation of either input cannot alter evidence.
-* Binary content never passes through JSON. Metadata does, including byte size
-  and SHA-256 for integrity checks.
-* Failed retry attempts retain evidence. A passing final attempt retains only
-  evidence explicitly marked `always`.
-* Passing results can carry attachments; this is necessary for `always`
-  retention and is represented by JSONL version two.
-* Run-wide byte and count limits require a small locked quota file shared by
-  workers. Per-test limits remain attempt-local.
-* Completed output is intentionally not cleaned by Greenlight. CI or the user
-  owns retention after the run.
+Before a `TestFinished` event reaches reporters, the process handling the event
+moves each retained file from staging to its published path. The move is atomic.
+The public `TestResult` contains the published metadata without the storage key.
 
-## Safety boundaries
+Attachments from failed attempts are retained across retries. A passing attempt
+retains only attachments marked `always`. Discarding an attachment removes its
+staged content and releases its run quota.
 
-Logical names are validated and converted to slug-and-hash filenames. Source
-paths and storage keys are private implementation data and are not serialized
-to reporters. File sources must be regular non-symlink files and are checked
-for mutation while copied. Destination and recovery paths are resolved beneath
-known roots.
+Greenlight leaves completed output in place. Cleanup and retention belong to
+the user or CI system.
 
-Greenlight provides path containment and private filesystem permissions, not
-content redaction. The caller is responsible for removing secrets and regulated
-data before attachment.
+## Crash recovery
 
-## Protocol schemas
+Each completed staged file has a JSON sidecar written through a temporary file
+and atomic rename. If a worker exits unexpectedly, the orchestrator reads
+completed sidecars for the active test and publishes those attachments before
+it emits the synthetic crash result. Partial copies have no completed sidecar
+and are removed during cleanup.
 
-JSONL version two requires `attachments` on `TestResult` and
-`artifactsDirectory` on `RunStarted`. The worker protocol remains an internal,
-independently versioned implementation detail.
+Recovery accepts only storage keys that resolve within the staging directory.
 
-The public API consists of `Attachments`, `Attachment`,
-`AttachmentKind`, and `AttachmentRetention`. Storage keys, staging layout,
-publication, and recovery classes remain internal and may change.
+## Limits
 
-## Alternatives rejected
+A locked `.quota` file coordinates the attachment count and byte total across
+workers. Per-test count and byte limits are tracked across every attempt for the
+test.
 
-Embedding base64 content in results would multiply memory use, exceed the
-8 MiB worker frame limit, and force every reporter to handle large values.
-Writing only after a failure would lose evidence whose source resource has
-already been disposed. Writing directly to final paths would expose incomplete
-files and make crash recovery ambiguous.
+The worker protocol carries metadata rather than base64 content. This keeps
+attachments outside its 8 MiB frame limit and avoids loading large files into
+reporters.
 
-## Open product questions
+## Path safety
 
-The first version deliberately leaves three policies to callers and CI:
+Logical names are validated before they become filenames. Test identifiers,
+worker identifiers, and names are slugged and hashed to prevent collisions.
+Source files must be regular files and cannot be symlinks. Greenlight also
+checks that a source file does not change while it is copied.
 
-* whether completed local runs should gain an age- or count-based cleanup
-  command;
-* whether a future remote artifact-store plugin should replace filesystem
-  publication or consume the published event stream;
-* whether suites need a global mode that retains every default attachment,
-  rather than marking selected attachments `always`.
+Destination and recovery paths must remain under their configured roots.
+Attachment files and internal metadata use private permissions on supported
+platforms.
 
-None changes the version-two metadata contract. Compression, content-addressed
-deduplication, and inline previews can likewise be added behind the storage and
-reporter seams if real-world artifact volume justifies them.
+The storage layer does not redact content. Tests and plugins must remove secrets
+before attaching data.
+
+## Public and wire formats
+
+The public API is `Attachments`, `Attachment`, `AttachmentKind`, and
+`AttachmentRetention`. Storage keys and the classes used for staging,
+publication, and recovery are internal.
+
+JSONL version 2 requires `attachments` on `TestResult` and
+`artifactsDirectory` on `RunStarted`. The worker protocol is internal and
+versioned separately.

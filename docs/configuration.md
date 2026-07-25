@@ -250,8 +250,8 @@ builder.
 
 Defaults are 32 attachments and 100 MiB per test, 25 MiB per attachment,
 10,000 attachments and 1 GiB per run. Per-test limits cover all retry attempts,
-including evidence later discarded by retention policy. Run-wide quota is
-released when passing evidence is discarded.
+including attachments later discarded by retention policy. Run-wide quota is
+released when passing attachments are discarded.
 
 See [test attachments](attachments.md) for the runtime API and security model.
 

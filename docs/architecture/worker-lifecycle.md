@@ -64,7 +64,7 @@ Some notes on that exchange:
 - Attachment content uses the shared run-scoped filesystem, not the socket.
   Workers send only metadata in `TestFinished`. The orchestrator publishes
   staged files before forwarding the event, keeping binary content outside the
-  8 MiB frame limit. Atomic sidecars let it recover completed evidence if a
+  8 MiB frame limit. Atomic sidecars let it recover completed attachments if a
   worker crashes; see [artifact storage](artifacts.md).
 - `done` carries the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated frame cannot silently pass a suite.
 

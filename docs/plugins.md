@@ -70,9 +70,9 @@ services from the active harness scopes.
 
 `$context->attachments` is the same attempt-owned
 `Greenlight\Core\Artifact\Attachments` object a test can receive through
-constructor injection. Plugins may attach evidence in both hooks, including
-after seeing a failure in `afterTest()`. Content is copied immediately and the
-normal retention and size rules apply. See [test attachments](attachments.md).
+constructor injection. Plugins can add attachments in either hook, including
+after inspecting a failure in `afterTest()`. The usual retention and size
+limits apply. See [test attachments](attachments.md).
 
 `service()` is available during `beforeTest()` and during the test itself. By
 `afterTest()`, the per-test scope has already closed, so `service()` throws.
@@ -88,9 +88,9 @@ public function shouldRetry(TestMetadata $metadata, TestResult $result, int $att
 Retry deciders are asked after each unsuccessful attempt. If any decider returns
 `true`, Greenlight runs a fresh attempt with a fresh test instance and scope.
 
-The result already contains metadata for evidence attached during that attempt,
-so a decider can use names, kinds, sizes, or media types when deciding. It
-cannot read attachment content through the result.
+The result contains metadata for attachments added during that attempt. A
+decider can inspect names, kinds, sizes, and media types, but cannot read the
+attachment content.
 
 The built-in `#[Retry]` attribute is implemented through this interface.
 
