@@ -14,7 +14,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 ## Highlights
 
 * Parallel execution by default with dynamic, timing-aware scheduling.
-* Orchestrator-owned integration fixtures with per-channel resources and guaranteed cleanup.
+* Run-scoped integration fixtures with per-channel resources.
 * Worker recycling, leak detection, crash recovery, timeouts, and process isolation.
 * Strict mocks, stubs, and spies with automatic verification.
 * Typed expectations with rendered diffs.
