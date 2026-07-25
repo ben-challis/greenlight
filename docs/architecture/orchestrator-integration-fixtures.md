@@ -1,75 +1,75 @@
 # Orchestrator-owned integration fixtures
 
-This document describes how Greenlight provisions external test infrastructure,
-passes connection data to workers, and tears the infrastructure down.
+Greenlight provisions external test infrastructure in the orchestrator. It
+sends each worker only the connection data for that worker's channel and tears
+the infrastructure down when the run ends.
 
 ## Ownership and lifetime
 
-Integration fixtures belong to the orchestrator. A plugin declares them through
-`IntegrationFixtureProvider`, and Greenlight provisions them after discovery,
-selection, and sharding. Provisioning finishes before `RunStarted` and before
-workers are spawned.
+Plugins declare integration fixtures through `IntegrationFixtureProvider`.
+Greenlight provisions them in the orchestrator after discovery, selection, and
+sharding. Provisioning finishes before `RunStarted` and before Greenlight spawns
+workers.
 
-One fixture graph belongs to one selected run. Each repeat iteration and watch
-rerun gets a fresh graph. CI shards provision independently because Greenlight
-does not coordinate shards across machines.
+Greenlight provisions one fixture graph per selected run. Each repeat iteration
+and watch rerun gets a fresh graph. CI shards provision independently because
+Greenlight does not coordinate them across machines.
 
-The graph outlives individual worker processes. Retries, recycled workers,
-isolated tests, and crash replacements continue to use the same fixture
-resources for their channel.
+Recycling or replacing a worker does not re-provision the graph. Retries,
+isolated tests, and replacement workers reuse the resources assigned to their
+channel.
 
 ## Provisioning
 
-Each `IntegrationFixtureDefinition` has an ID, a provisioning closure, and an
-optional list of dependencies. Greenlight validates the whole graph before
-provisioning and runs dependencies first.
+An `IntegrationFixtureDefinition` names the fixture, provides its provisioning
+closure, and lists any dependencies. Greenlight validates the whole graph
+before it provisions anything, then provisions dependencies first.
 
-Provisioners register cleanup with `IntegrationFixtureContext::defer()`. A
-callback should be registered as soon as its resource is acquired, so it still
-runs if the rest of the provisioner fails. Callbacks run in reverse registration
-order.
+Call `IntegrationFixtureContext::defer()` as soon as the provisioner acquires a
+resource. The callback will then run even if the rest of the provisioner fails.
+Greenlight runs cleanup callbacks in reverse registration order.
 
-A provisioner publishes a shared `FixtureResource` and may add one overlay per
-channel. Shared values and the current channel overlay are merged before the
-worker receives them.
+`IntegrationFixtureContext::expose()` publishes a shared `FixtureResource` and
+optional channel overlays. Greenlight merges the shared values with the current
+channel's overlay before sending them to a worker.
 
 ## Resource transport
 
-Fixture resources support JSON-safe nulls, booleans, finite numbers, UTF-8
-strings, lists, and maps. A complete channel resource payload is limited to
-1 MiB.
+`FixtureResource` accepts JSON-safe nulls, booleans, finite numbers, UTF-8
+strings, lists, and maps. Greenlight rejects a complete channel payload larger
+than 1 MiB.
 
-Secrets use a separate map. Worker code receives them as `SensitiveValue`
-objects and must call `reveal()` to read the string. Object dumps and exports
-redact the value.
+Store credentials in the separate secrets map. Worker code receives each secret
+as a `SensitiveValue` and must call `reveal()` to read it. Object dumps and
+exports redact the value.
 
-Resources travel in the authenticated local worker protocol. Greenlight does
-not put them in environment variables, command arguments, stdout, or stderr.
-Each worker receives only its own channel overlay.
+Greenlight sends resources through the authenticated local worker protocol. It
+does not put them in environment variables, command arguments, stdout, or
+stderr. A worker receives only its own channel overlay.
 
 ## Worker bootstrap
 
-Protocol version 2 adds `bootstrap` and `ready` messages. After `hello`, the
-orchestrator sends the worker its channel, config path, and resources. The
-worker then loads plugins, calls `WorkerBootstrapSubscriber`, builds the harness
-registry, and replies with `ready`.
+After a worker sends `hello`, the orchestrator replies with a `bootstrap`
+message containing the channel, config path, and resources. The worker loads
+its plugins, calls `WorkerBootstrapSubscriber`, builds the harness registry, and
+then replies with `ready`.
 
-The initial workers must all report ready before any test starts. A replacement
-worker only waits for its own bootstrap because the rest of the pool may still
-be running tests.
+The orchestrator waits for every initial worker to report `ready` before it
+assigns a test. A replacement worker waits only for its own bootstrap because
+the rest of the pool may still be running tests.
 
-Tests can inject `IntegrationResources` directly. A plugin can instead read the
+Tests may inject `IntegrationResources` directly. A plugin may instead read the
 resources in `WorkerBootstrapSubscriber` and expose an application-specific
 client through `HarnessProvider` or `ServiceResolver`.
 
 ## Teardown
 
-On a successful run, teardown starts after `RunFinished`. The same cleanup path
-runs after provisioning, bootstrap, worker, protocol, reporter, or test
-failures. Greenlight attempts every registered callback even if one throws.
-Cleanup failures fail the run without replacing an earlier failure.
+Greenlight starts teardown after `RunFinished` on a successful run.
+Provisioning, bootstrap, worker, protocol, reporter, and test failures also
+trigger teardown. Greenlight runs every registered callback even if one throws.
+A teardown failure fails the run but does not replace an earlier failure.
 
-The first SIGINT or SIGTERM drains workers before teardown. SIGKILL, a second
-signal, process loss, and machine loss cannot run process-local callbacks.
-Resources that need protection from those cases should also use leases, expiry
-times, or an external reaper.
+When the orchestrator receives its first SIGINT or SIGTERM, it drains workers
+before teardown. SIGKILL, a second signal, process loss, and machine loss cannot
+run process-local callbacks. Protect resources from those cases with leases,
+expiry times, or an external reaper.
