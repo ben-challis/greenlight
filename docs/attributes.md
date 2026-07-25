@@ -334,9 +334,9 @@ Parameters:
 string $name
 ```
 
-Declares that the test consumes one slot of a named resource. Names must use
-lowercase letters, digits, dots, underscores, or hyphens, and must start with a
-letter or digit.
+Marks a test as requiring one slot of a named resource. A name must start with a
+lowercase letter or digit. The rest may also contain dots, underscores, and
+hyphens.
 
 ```php
 #[RequiresResource('postgres')]
@@ -344,18 +344,16 @@ letter or digit.
 final class OrderRepositoryTest { ... }
 ```
 
-Class declarations apply to every method. Method declarations add to the class
-requirements, and duplicates are removed.
+Class-level requirements apply to every method. Method-level requirements are
+combined with them. Repeating the same name has no effect.
 
-Greenlight schedules whole classes to preserve class lifecycle. It therefore
-leases the union of every method's requirements for the whole class assignment.
-A method declaration is safe but may conservatively limit otherwise unrelated
-methods in the same class.
+Greenlight assigns work by class, so it combines the requirements from every
+method and holds those resources until the class finishes. A requirement on one
+method can therefore reduce concurrency for other methods in the same class.
 
-Each unconfigured resource has a concurrency limit of one. Configure larger
-limits with `resourceLimit()` in `greenlight.php` or `--resource-limit` for one
-run. Limits are local to one Greenlight invocation and do not coordinate
-separate shards or processes.
+Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
+or `--resource-limit` to set a larger limit. Other Greenlight processes and
+shards have their own limits.
 
 ## Isolated
 

@@ -70,28 +70,15 @@ Some notes on that exchange:
 
 ## Resource-aware assignment
 
-Discovery carries `#[RequiresResource]` names in test metadata. The distributor
-keeps the class as the scheduling unit and takes the union of every entry's
-requirements. Isolated entries remain single-entry scheduling units.
+Discovery stores `#[RequiresResource]` names in test metadata. The distributor still groups entries by class, but combines the requirements from every entry in that class. An isolated entry remains its own scheduling unit.
 
-Before sending `assign`, the orchestrator atomically leases one slot from every
-required resource. Unconfigured resources have capacity one. The lease stays
-with the assignment until `done`, recycling, crash, hard timeout, or assignment
-delivery failure; retries therefore keep the same lease.
+Before sending `assign`, the orchestrator claims one slot from every required resource as a single operation. An unconfigured resource has one slot. The assignment keeps its slots until it finishes or until the worker recycles, crashes, times out, or fails to receive the assignment. Retries run within the same assignment and keep the slots.
 
-If the oldest unit is blocked, it reserves one future slot from each resource
-it needs. Later units may pass it only with disjoint resources or capacity above
-that reservation. This remains work-conserving without allowing a multi-resource
-unit to starve.
+When the oldest unit is waiting, the scheduler reserves one slot from each resource it needs. A later unit may pass it only if it uses other resources or there is capacity beyond the reservation. Unrelated work can continue, but it cannot keep the waiting unit blocked indefinitely.
 
-A connected worker may intentionally receive no message while capacity is
-unavailable. The orchestrator records that wait separately from a delivered
-assignment, so the normal no-progress deadline does not mistake resource
-contention for a stalled worker. Releasing a lease immediately retries every
-waiting worker.
+A connected worker may receive no message while it waits for resource capacity. The orchestrator records this separately from an active assignment, so the normal progress deadline does not treat the worker as stalled. Whenever capacity is released, the orchestrator checks the waiting workers again.
 
-No new wire message is needed: limits and leases are orchestrator-owned, and the
-existing `assign` already carries the plan metadata.
+The wire protocol does not need another message. The orchestrator owns the limits and tracks the slots, while the existing `assign` message already carries the test metadata.
 
 ## Leaving the pool
 
@@ -117,9 +104,7 @@ stateDiagram-v2
 
 **Recycling.** Recycle budgets (a test count, a memory ceiling, or both) travel inside `assign`, and the worker checks them after every test. When a budget runs out mid-assignment, the worker sends `recycling` with the list of tests it never reached, then exits. When the budget runs out exactly at an assignment boundary, it sets a recycle flag on `done` instead. Either way the orchestrator re-queues the remainder, spawns a replacement, and emits a `WorkerRecycled` event so reporters can show it. Memory-based recycling defaults to 256M. Test-count recycling is opt-in.
 
-**Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn.
-
-Any resource lease is released before the unfinished entries are re-queued.
+**Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn. The orchestrator releases the assignment's resource slots before re-queuing unfinished entries.
 
 **Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL and treats it like a crash, except the test is reported as a timeout failure.
 
@@ -135,10 +120,7 @@ Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the sign
 
 ## Isolated tests
 
-`#[Isolated]` entries are queued separately and follow a stricter rule: only a fresh worker, one that has not yet run anything, may take one, and only once the pooled queue is empty. After the isolated assignment's `done`, the orchestrator sends `drain` and lets the process exit rather than returning it to the pool. Whatever global state the test mutated dies with the worker.
-
-Isolation and resource requirements compose: an isolated unit still waits for
-all its named resources before assignment.
+`#[Isolated]` entries are queued separately and follow a stricter rule: only a fresh worker, one that has not yet run anything, may take one, and only once the pooled queue is empty. After the isolated assignment's `done`, the orchestrator sends `drain` and lets the process exit rather than returning it to the pool. Whatever global state the test mutated dies with the worker. An isolated entry still waits for its required resources before assignment.
 
 ## Channel numbers
 
