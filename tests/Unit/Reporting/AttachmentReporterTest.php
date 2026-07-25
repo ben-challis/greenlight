@@ -9,6 +9,7 @@ use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
@@ -40,6 +41,34 @@ final class AttachmentReporterTest
                 ->toContain('build/greenlight-artifacts/run-1/response.json')
                 ->not()->toContain('secret response body');
         }
+    }
+
+    #[Test]
+    public function ttyReporterDoesNotRetainSuccessfulResultsUntilFinish(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $failed = $this->result();
+        $result = new TestResult(
+            $failed->id,
+            Outcome::Passed,
+            0.1,
+            0,
+            output: new CapturedOutput(\str_repeat('captured output', 10_000)),
+            attachments: $failed->attachments,
+        );
+        $reference = \WeakReference::create($result);
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        unset($result);
+        \gc_collect_cycles();
+
+        Expect::that($reference->get())->toBeNull();
+
+        $reporter->finish();
+
+        Expect::that($output->buffer())->toContain('Retained attachments from successful tests:')
+            ->toContain('response.json');
     }
 
     #[Test]

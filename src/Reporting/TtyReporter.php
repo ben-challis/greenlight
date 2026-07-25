@@ -68,7 +68,7 @@ final class TtyReporter implements Reporter, Ticking
     private array $risky = [];
 
     /**
-     * @var list<TestResult>
+     * @var list<string>
      */
     private array $successfulAttachments = [];
 
@@ -194,7 +194,8 @@ final class TtyReporter implements Reporter, Ticking
             }
 
             if ($result->outcome->isSuccessful() && $result->attachments !== []) {
-                $this->successfulAttachments[] = $result;
+                $this->successfulAttachments[] = '  ' . $result->id . "\n"
+                    . AttachmentFormat::render($result, '    ');
             }
 
             $this->redraw();
@@ -278,9 +279,8 @@ final class TtyReporter implements Reporter, Ticking
         if ($this->successfulAttachments !== []) {
             $this->output->write("\nRetained attachments from successful tests:\n");
 
-            foreach ($this->successfulAttachments as $result) {
-                $this->output->write('  ' . $result->id . "\n");
-                $this->output->write(AttachmentFormat::render($result, '    '));
+            foreach ($this->successfulAttachments as $rendered) {
+                $this->output->write($rendered);
             }
         }
 

@@ -61,8 +61,9 @@ are discarded unless their retention is `always`.
 
 ## Output directory
 
-Every run gets a unique directory below `build/greenlight-artifacts` by default.
-Change the parent directory in `greenlight.php`:
+Retained attachments from each run go into a unique directory below
+`build/greenlight-artifacts` by default. Runs with no retained attachments do
+not create an empty directory. Change the parent directory in `greenlight.php`:
 
 ```php
 use Greenlight\Config\ArtifactBuilder;
@@ -92,8 +93,7 @@ separators, control characters, `.` or `..`. Repeated names within one attempt
 receive `-2`, `-3`, and later suffixes in their published filenames. Their
 logical names remain unchanged in the result metadata.
 
-Test and worker identifiers are slugged and hashed before Greenlight uses them
-in paths, which prevents collisions between workers.
+Test identifiers are slugged and hashed before Greenlight uses them in paths.
 
 ## File safety
 
@@ -124,7 +124,7 @@ Configure them with `maxAttachmentsPerTest()`, `maxAttachmentSize()`,
 a limit fails the active test with an attachment error. Greenlight does not
 truncate attachment content.
 
-Run-wide limits are coordinated through the shared artifact directory, so they
+Run-wide limits are coordinated through private shared staging, so they
 apply across parallel workers. Per-test limits include all attempts, even when
 some attachments are later discarded. Run quota is released when an attachment
 is discarded.

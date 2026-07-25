@@ -477,7 +477,7 @@ final readonly class Application
 
         try {
             if ($workers === 1 || $realBin === false) {
-                $run = new InProcessRunner()
+                $run = new InProcessRunner($workingDirectory)
                     ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
             } else {
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
@@ -692,7 +692,7 @@ final readonly class Application
 
                 try {
                     if ($workers === 1 || $realBin === false) {
-                        new InProcessRunner()
+                        new InProcessRunner($workingDirectory)
                             ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
                     } else {
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)

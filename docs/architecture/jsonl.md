@@ -64,8 +64,9 @@ named by `v` and treat an unsupported version as unparseable.
 
 `run-finished.summary` contains passed, failed, errored, and skipped counts.
 
-`run-started.artifactsDirectory` is the absolute directory for retained
-evidence from this run, or `null` when no artifact directory is available.
+`run-started.artifactsDirectory` is the absolute target directory for retained
+evidence from this run, or `null` when no artifact directory is available. The
+directory may not exist if the run retains no attachments.
 
 `suite-started` and `suite-finished` are reserved event types.
 Greenlight does not emit them today because suites only group configuration paths into a single discovery set,

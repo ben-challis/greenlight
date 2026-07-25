@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Artifact;
 
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\Attachments;
+use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Test\TestId;
 
 /**
@@ -20,7 +20,7 @@ use Greenlight\Core\Test\TestId;
 final class StagedAttachments implements Attachments
 {
     /**
-     * @var list<Attachment>
+     * @var list<StagedAttachment>
      */
     private array $attachments = [];
 
@@ -37,6 +37,7 @@ final class StagedAttachments implements Attachments
         private readonly TestId $testId,
         private readonly int $attempt,
         private readonly TestArtifactBudget $budget,
+        private bool $attemptRecorded = false,
     ) {}
 
     #[\Override]
@@ -86,6 +87,7 @@ final class StagedAttachments implements Attachments
         AttachmentRetention $retention = AttachmentRetention::OnFailure,
     ): void {
         $this->guard($name, $mediaType ?? 'application/octet-stream');
+        $this->recordAttempt();
         $sequence = \count($this->attachments) + 1;
         $storageKey = $this->storageKey($name, $sequence);
         $attachment = $this->store->stageFile(
@@ -103,7 +105,7 @@ final class StagedAttachments implements Attachments
     /**
      * Metadata visible to retry deciders before retention is applied.
      *
-     * @return list<Attachment>
+     * @return list<StagedAttachment>
      */
     public function collected(): array
     {
@@ -111,26 +113,16 @@ final class StagedAttachments implements Attachments
     }
 
     /**
-     * Seals the attempt and removes attachments not selected for retention.
+     * Seals the attempt. Retention is decided when the terminal result is
+     * published, after retries and scope teardown have finished.
      *
-     * @return list<Attachment>
+     * @return list<StagedAttachment>
      */
-    public function finalize(bool $problematic): array
+    public function seal(): array
     {
         $this->sealed = true;
-        $retained = [];
 
-        foreach ($this->attachments as $attachment) {
-            if ($problematic || $attachment->retention === AttachmentRetention::Always) {
-                $retained[] = $attachment;
-
-                continue;
-            }
-
-            $this->store->discard($attachment);
-        }
-
-        return $retained;
+        return $this->attachments;
     }
 
     private function stage(
@@ -141,6 +133,7 @@ final class StagedAttachments implements Attachments
         AttachmentRetention $retention,
     ): void {
         $this->guard($name, $mediaType);
+        $this->recordAttempt();
         $sequence = \count($this->attachments) + 1;
         $attachment = $this->store->stageBytes(
             $bytes,
@@ -155,7 +148,17 @@ final class StagedAttachments implements Attachments
         $this->record($attachment);
     }
 
-    private function record(Attachment $attachment): void
+    private function recordAttempt(): void
+    {
+        if ($this->attemptRecorded) {
+            return;
+        }
+
+        $this->store->recordAttempt($this->testId, $this->attempt);
+        $this->attemptRecorded = true;
+    }
+
+    private function record(StagedAttachment $attachment): void
     {
         if ($this->budget->bytes + $attachment->sizeBytes > $this->configuration->maxTestBytes) {
             $this->store->discard($attachment);

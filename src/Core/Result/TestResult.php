@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Result;
 
 use Greenlight\Core\Artifact\Attachment;
+use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
@@ -107,6 +108,16 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
+     * The same result with a recovered attempt count.
+     *
+     * @internal
+     */
+    public function withAttempts(int $attempts): self
+    {
+        return $this->with(attempts: $attempts);
+    }
+
+    /**
      * The same result errored with the supplied detail.
      */
     public function erroredBy(ThrowableDetail $error): self
@@ -137,13 +148,14 @@ final readonly class TestResult implements WireSerializable
         ?bool $risky = null,
         ?ThrowableDetail $error = null,
         ?array $attachments = null,
+        ?int $attempts = null,
     ): self {
         return new self(
             $this->id,
             $outcome ?? $this->outcome,
             $this->durationSeconds,
             $this->memoryDeltaBytes,
-            $this->attempts,
+            $attempts ?? $this->attempts,
             $failures ?? $this->failures,
             $error ?? $this->error,
             $this->skipReason,
@@ -207,7 +219,9 @@ final readonly class TestResult implements WireSerializable
             \array_key_exists('risky', $payload) && Wire::bool($payload, 'risky'),
             \array_key_exists('expectations', $payload) ? \max(0, Wire::int($payload, 'expectations')) : 0,
             \array_map(
-                Attachment::fromWire(...),
+                static fn(array $attachment): Attachment => \array_key_exists('storageKey', $attachment)
+                    ? StagedAttachment::fromWire($attachment)
+                    : Attachment::fromWire($attachment),
                 \array_key_exists('attachments', $payload) ? Wire::listOfMaps($payload, 'attachments') : [],
             ),
         );

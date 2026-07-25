@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Artifact;
 
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Artifact\AttachmentRetention;
+use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
@@ -58,36 +58,10 @@ final class ArtifactStore
         $output = \str_starts_with($configured, '/')
             ? $public
             : \rtrim($workingDirectory, '/') . '/' . $public;
-        $staging = $output . '/.staging';
-        $store = new self(new ArtifactSession($staging, $output), $configuration, $output, true);
-        $stagingCreated = false;
-
-        try {
-            $store->createDirectorySafely($output);
-            $warning = null;
-
-            if (\file_exists($staging) || \is_link($staging)
-                || !ErrorTrap::run(static fn(): bool => \mkdir($staging, 0o700), $warning)
-            ) {
-                throw AttachmentError::storage('Failed to create attachment staging directory' . ($warning === null ? '' : ': ' . $warning));
-            }
-
-            $stagingCreated = true;
-
-            if (\file_put_contents($staging . '/.quota', "0 0\n", \LOCK_EX) === false) {
-                throw AttachmentError::storage('Failed to initialize the attachment quota');
-            }
-
-            \chmod($staging . '/.quota', 0o600);
-        } catch (\Throwable $error) {
-            if ($stagingCreated) {
-                $store->cleanup();
-            }
-
-            throw $error;
-        }
-
-        return $store;
+        $staging = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-artifacts-'
+            . \substr(\hash('sha256', $runId), 0, 16)
+            . '-' . \bin2hex(\random_bytes(6));
+        return new self(new ArtifactSession($staging, $output), $configuration, $output, true);
     }
 
     public static function fromSession(
@@ -109,7 +83,22 @@ final class ArtifactStore
 
     public function forAttempt(TestId $id, int $attempt, TestArtifactBudget $budget): StagedAttachments
     {
-        return new StagedAttachments($this, $this->configuration, $id, $attempt, $budget);
+        $attemptRecorded = \is_dir(
+            $this->session->stagingDirectory . '/' . self::testDirectory($id),
+        );
+
+        if ($attemptRecorded) {
+            $this->recordAttempt($id, $attempt);
+        }
+
+        return new StagedAttachments(
+            $this,
+            $this->configuration,
+            $id,
+            $attempt,
+            $budget,
+            $attemptRecorded,
+        );
     }
 
     public static function testDirectory(TestId $id): string
@@ -130,10 +119,12 @@ final class ArtifactStore
         int $attempt,
         AttachmentRetention $retention,
         ArtifactConfiguration $configuration,
-    ): Attachment {
+    ): StagedAttachment {
         $size = \strlen($bytes);
         $this->validateSize($size, $configuration);
         $this->reserve($size);
+        $path = null;
+        $part = null;
 
         try {
             $path = $this->preparePath($storageKey);
@@ -156,7 +147,7 @@ final class ArtifactStore
                 throw AttachmentError::storage('Failed to finalize attachment staging file');
             }
 
-            $attachment = new Attachment(
+            $attachment = new StagedAttachment(
                 $name,
                 $kind,
                 $mediaType,
@@ -171,6 +162,7 @@ final class ArtifactStore
 
             return $attachment;
         } catch (\Throwable $error) {
+            $this->rollbackStagedAttachment($storageKey, $path, $part);
             $this->release($size);
 
             throw $error;
@@ -185,7 +177,7 @@ final class ArtifactStore
         int $attempt,
         AttachmentRetention $retention,
         ArtifactConfiguration $configuration,
-    ): Attachment {
+    ): StagedAttachment {
         if (\is_link($sourcePath)) {
             throw AttachmentError::source($sourcePath, 'must not be a symbolic link');
         }
@@ -206,6 +198,8 @@ final class ArtifactStore
             $size = $before['size'];
             $this->validateSize($size, $configuration);
             $this->reserve($size);
+            $path = null;
+            $part = null;
 
             try {
                 $path = $this->preparePath($storageKey);
@@ -257,7 +251,7 @@ final class ArtifactStore
                     throw AttachmentError::storage('Failed to finalize attachment staging file');
                 }
 
-                $attachment = new Attachment(
+                $attachment = new StagedAttachment(
                     $name,
                     AttachmentKind::File,
                     $mediaType ?? $this->detectMediaType($path),
@@ -272,6 +266,7 @@ final class ArtifactStore
 
                 return $attachment;
             } catch (\Throwable $error) {
+                $this->rollbackStagedAttachment($storageKey, $path, $part);
                 $this->release($size);
 
                 throw $error;
@@ -281,16 +276,11 @@ final class ArtifactStore
         }
     }
 
-    public function discard(Attachment $attachment): void
+    public function discard(StagedAttachment $attachment): void
     {
-        $storageKey = $attachment->storageKey();
-
-        if ($storageKey === null) {
-            return;
-        }
-
-        @\unlink($this->session->stagingDirectory . '/' . $storageKey);
-        @\unlink($this->metadataPath($storageKey));
+        $storageKey = $attachment->storageKey;
+        $this->removeFile($this->metadataPath($storageKey), 'attachment recovery metadata');
+        $this->removeFile($this->session->stagingDirectory . '/' . $storageKey, 'attachment staging file');
         $this->release($attachment->sizeBytes);
     }
 
@@ -305,21 +295,41 @@ final class ArtifactStore
         }
 
         $published = [];
+        $problematic = !$result->outcome->isSuccessful() || \array_any(
+            $result->transformations,
+            static fn($transformation): bool => !$transformation->from->isSuccessful(),
+        );
 
         foreach ($result->attachments as $attachment) {
-            $storageKey = $attachment->storageKey();
+            if (!$attachment instanceof StagedAttachment) {
+                throw AttachmentError::storage('Attachment metadata does not contain a staging coordinate');
+            }
 
-            if ($storageKey === null || !$this->safeStorageKey($storageKey)) {
+            if (!$problematic
+                && $attachment->attempt >= $result->attempts
+                && $attachment->retention === AttachmentRetention::OnFailure
+            ) {
+                $this->discard($attachment);
+
+                continue;
+            }
+
+            $storageKey = $attachment->storageKey;
+
+            if (!$this->safeStorageKey($storageKey)) {
                 throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
             }
 
             $source = $this->session->stagingDirectory . '/' . $storageKey;
             $destination = $this->outputDirectory . '/' . $storageKey;
             $parent = \dirname($destination);
+            $part = $destination . '.part-' . \bin2hex(\random_bytes(4));
 
             $this->createDirectorySafely($parent);
 
-            if (\file_exists($destination) || \is_link($destination)) {
+            if (\file_exists($destination) || \is_link($destination)
+                || \file_exists($part) || \is_link($part)
+            ) {
                 throw AttachmentError::storage('Attachment output would overwrite an existing file');
             }
 
@@ -327,11 +337,25 @@ final class ArtifactStore
                 throw AttachmentError::storage('Attachment staging content does not match its metadata');
             }
 
-            if (!\rename($source, $destination) && (!\copy($source, $destination) || !\unlink($source))) {
-                throw AttachmentError::storage('Failed to publish attachment');
+            try {
+                $this->copyFile($source, $part);
+
+                if (\filesize($part) !== $attachment->sizeBytes || \hash_file('sha256', $part) !== $attachment->sha256) {
+                    throw AttachmentError::storage('Published attachment content does not match its metadata');
+                }
+
+                \chmod($part, 0o600);
+
+                if (!\rename($part, $destination)) {
+                    throw AttachmentError::storage('Failed to publish attachment');
+                }
+            } catch (\Throwable $error) {
+                @\unlink($part);
+
+                throw $error;
             }
 
-            \chmod($destination, 0o600);
+            @\unlink($source);
             @\unlink($this->metadataPath($storageKey));
             $published[] = $attachment->published();
         }
@@ -351,6 +375,9 @@ final class ArtifactStore
             return $result;
         }
 
+        $attempt = (int) \trim((string) @\file_get_contents($directory . '/.attempt'));
+        $result = $result->withAttempts(\max($result->attempts, $attempt));
+        /** @var list<StagedAttachment> $attachments */
         $attachments = [];
         $entries = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
@@ -379,7 +406,7 @@ final class ArtifactStore
                         $map[(string) $key] = $value;
                     }
 
-                    $attachments[] = Attachment::fromWire($map);
+                    $attachments[] = StagedAttachment::fromWire($map);
                 }
             } catch (\Throwable) {
                 // A partial or corrupt sidecar is not completed evidence.
@@ -388,8 +415,8 @@ final class ArtifactStore
 
         \usort(
             $attachments,
-            static fn(Attachment $a, Attachment $b): int =>
-                [$a->attempt, $a->storageKey()] <=> [$b->attempt, $b->storageKey()],
+            static fn(StagedAttachment $a, StagedAttachment $b): int =>
+                [$a->attempt, $a->storageKey] <=> [$b->attempt, $b->storageKey],
         );
 
         return $attachments === [] ? $result : $this->publish($result->withAttachments($attachments));
@@ -461,6 +488,7 @@ final class ArtifactStore
 
     private function preparePath(string $storageKey): string
     {
+        $this->ensureStaging();
         $path = $this->session->stagingDirectory . '/' . $storageKey;
         $parent = \dirname($path);
 
@@ -509,22 +537,47 @@ final class ArtifactStore
      */
     private function updateQuota(\Closure $update): void
     {
+        $this->ensureStaging();
         $path = $this->session->stagingDirectory . '/.quota';
+
+        if (\is_link($path) || (\file_exists($path) && !\is_file($path))) {
+            throw AttachmentError::storage('Attachment quota path is unsafe');
+        }
+
         $stream = \fopen($path, 'c+');
 
-        if ($stream === false || !\flock($stream, \LOCK_EX)) {
+        if ($stream === false) {
+            throw AttachmentError::storage('Failed to lock the attachment quota');
+        }
+
+        if (!\flock($stream, \LOCK_EX)) {
+            \fclose($stream);
+
             throw AttachmentError::storage('Failed to lock the attachment quota');
         }
 
         try {
             \rewind($stream);
             $raw = \stream_get_contents($stream);
-            $parts = \preg_split('/\s+/', \trim(\is_string($raw) ? $raw : '0 0'));
+            $raw = \is_string($raw) ? \trim($raw) : '';
+
+            if ($raw !== '' && \preg_match('/^\d+\s+\d+$/', $raw) !== 1) {
+                throw AttachmentError::storage('Attachment quota metadata is corrupt');
+            }
+
+            $parts = \preg_split('/\s+/', $raw === '' ? '0 0' : $raw);
             [$count, $bytes] = $update((int) ($parts[0] ?? 0), (int) ($parts[1] ?? 0));
-            \ftruncate($stream, 0);
             \rewind($stream);
-            \fwrite($stream, $count . ' ' . $bytes . "\n");
-            \fflush($stream);
+            $encoded = \sprintf('%020d %020d' . "\n", $count, $bytes);
+
+            if (\fwrite($stream, $encoded) !== \strlen($encoded)
+                || !\ftruncate($stream, \strlen($encoded))
+                || !\fflush($stream)
+            ) {
+                throw AttachmentError::storage('Failed to update the attachment quota');
+            }
+
+            \chmod($path, 0o600);
         } finally {
             \flock($stream, \LOCK_UN);
             \fclose($stream);
@@ -552,14 +605,9 @@ final class ArtifactStore
         }
     }
 
-    private function writeMetadata(Attachment $attachment): void
+    private function writeMetadata(StagedAttachment $attachment): void
     {
-        $storageKey = $attachment->storageKey();
-
-        if ($storageKey === null) {
-            return;
-        }
-
+        $storageKey = $attachment->storageKey;
         $path = $this->metadataPath($storageKey);
         $part = $path . '.part';
         $encoded = \json_encode(
@@ -568,13 +616,132 @@ final class ArtifactStore
         );
 
         if (\file_put_contents($part, $encoded . "\n", \LOCK_EX) === false) {
+            @\unlink($part);
+
             throw AttachmentError::storage('Failed to write attachment recovery metadata');
         }
 
         \chmod($part, 0o600);
 
         if (!\rename($part, $path)) {
+            @\unlink($part);
+
             throw AttachmentError::storage('Failed to finalize attachment recovery metadata');
+        }
+    }
+
+    public function recordAttempt(TestId $id, int $attempt): void
+    {
+        $this->ensureStaging();
+        $directory = $this->session->stagingDirectory . '/' . self::testDirectory($id);
+
+        if (!\is_dir($directory)
+            && !ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700, true), $warning)
+            && !\is_dir($directory)
+        ) {
+            throw AttachmentError::storage('Failed to create attachment staging subdirectory' . ($warning === null ? '' : ': ' . $warning));
+        }
+
+        $path = $directory . '/.attempt';
+        $part = $path . '.part-' . \bin2hex(\random_bytes(4));
+
+        if (\file_put_contents($part, $attempt . "\n", \LOCK_EX) === false) {
+            @\unlink($part);
+
+            throw AttachmentError::storage('Failed to record the current test attempt');
+        }
+
+        \chmod($part, 0o600);
+
+        if (!\rename($part, $path)) {
+            @\unlink($part);
+
+            throw AttachmentError::storage('Failed to record the current test attempt');
+        }
+    }
+
+    private function ensureStaging(): void
+    {
+        $directory = $this->session->stagingDirectory;
+
+        if (\is_link($directory)) {
+            throw AttachmentError::storage('Attachment staging directory is unsafe');
+        }
+
+        if (!\is_dir($directory)
+            && !ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700), $warning)
+            && !\is_dir($directory)
+        ) {
+            throw AttachmentError::storage('Failed to create attachment staging directory' . ($warning === null ? '' : ': ' . $warning));
+        }
+
+        \chmod($directory, 0o700);
+    }
+
+    private function rollbackStagedAttachment(
+        string $storageKey,
+        ?string $path,
+        ?string $part,
+    ): void {
+        foreach ([
+            $part,
+            $path,
+            $this->metadataPath($storageKey) . '.part',
+            $this->metadataPath($storageKey),
+        ] as $candidate) {
+            if ($candidate !== null) {
+                $this->removeFile($candidate, 'incomplete attachment staging data');
+            }
+        }
+    }
+
+    private function removeFile(string $path, string $description): void
+    {
+        if (!\file_exists($path) && !\is_link($path)) {
+            return;
+        }
+
+        if (!\unlink($path)) {
+            throw AttachmentError::storage('Failed to remove ' . $description);
+        }
+    }
+
+    private function copyFile(string $sourcePath, string $destinationPath): void
+    {
+        $source = \fopen($sourcePath, 'rb');
+        $destination = \fopen($destinationPath, 'xb');
+
+        if ($source === false || $destination === false) {
+            if (\is_resource($source)) {
+                \fclose($source);
+            }
+
+            if (\is_resource($destination)) {
+                \fclose($destination);
+            }
+
+            throw AttachmentError::storage('Failed to copy attachment into its output directory');
+        }
+
+        try {
+            while (!\feof($source)) {
+                $chunk = \fread($source, self::COPY_CHUNK_BYTES);
+
+                if ($chunk === false) {
+                    throw AttachmentError::storage('Failed to read attachment staging content');
+                }
+
+                if ($chunk !== '') {
+                    $this->writeFully($destination, $chunk);
+                }
+            }
+
+            if (!\fflush($destination)) {
+                throw AttachmentError::storage('Failed to flush the published attachment');
+            }
+        } finally {
+            \fclose($destination);
+            \fclose($source);
         }
     }
 

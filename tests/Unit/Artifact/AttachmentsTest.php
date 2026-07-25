@@ -37,7 +37,7 @@ final readonly class AttachmentsTest
         $attachments->file('copy.bin', $source);
         \unlink($source);
 
-        $retained = $attachments->finalize(problematic: true);
+        $retained = $attachments->seal();
         $published = $store->publish(new TestResult(
             new TestId('Example\EvidenceTest', 'fails'),
             Outcome::Failed,
@@ -54,8 +54,7 @@ final readonly class AttachmentsTest
         foreach ($published->attachments as $attachment) {
             $path = $this->absolute($root, $attachment->path);
             Expect::that(\is_file($path))->toBeTrue()
-                ->and(\hash_file('sha256', $path))->toBe($attachment->sha256)
-                ->and($attachment->storageKey())->toBeNull();
+                ->and(\hash_file('sha256', $path))->toBe($attachment->sha256);
         }
 
         Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[0]->path)))
@@ -75,10 +74,45 @@ final readonly class AttachmentsTest
         $attachments->text('discarded.txt', 'discard me');
         $attachments->text('kept.txt', 'keep me', retention: AttachmentRetention::Always);
 
-        $retained = $attachments->finalize(problematic: false);
+        $published = $store->publish(new TestResult(
+            new TestId('Example\EvidenceTest', 'passes'),
+            Outcome::Passed,
+            0.1,
+            0,
+            attachments: $attachments->seal(),
+        ));
 
-        Expect::that($retained)->toHaveCount(1)
-            ->and($retained[0]->name)->toBe('kept.txt');
+        Expect::that($published->attachments)->toHaveCount(1)
+            ->and($published->attachments[0]->name)->toBe('kept.txt');
+
+        $store->cleanup();
+    }
+
+    #[Test]
+    public function outputDirectoryIsCreatedOnlyWhenEvidenceIsPublished(): void
+    {
+        $root = $this->tempDirectory->subdirectory('lazy-output');
+        $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-lazy');
+        $output = $store->publicDirectory();
+
+        Expect::that(\file_exists($output))->toBeFalse();
+
+        $id = new TestId('Example\EvidenceTest', 'passes');
+        $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
+
+        Expect::that(\file_exists($output))->toBeFalse();
+
+        $attachments->text('discarded.txt', 'discard me');
+        $published = $store->publish(new TestResult(
+            $id,
+            Outcome::Passed,
+            0.1,
+            0,
+            attachments: $attachments->seal(),
+        ));
+
+        Expect::that($published->attachments)->toBe([])
+            ->and(\file_exists($output))->toBeFalse();
 
         $store->cleanup();
     }
@@ -142,6 +176,27 @@ final readonly class AttachmentsTest
         Expect::that($recovered->attachments)->toHaveCount(1)
             ->and($recovered->attachments[0]->name)->toBe('last-response.txt')
             ->and(\is_file($recovered->attachments[0]->path))->toBeTrue();
+
+        $store->cleanup();
+    }
+
+    #[Test]
+    public function crashRecoveryRestoresTheLatestAttemptWithoutAnAttachment(): void
+    {
+        $root = $this->tempDirectory->subdirectory('attempt-recovery');
+        $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-5');
+        $id = new TestId('Example\EvidenceTest', 'crashesOnRetry');
+        $budget = new TestArtifactBudget();
+        $first = $store->forAttempt($id, 1, $budget);
+        $first->text('first-attempt.txt', 'failed before retry');
+        $first->seal();
+        $store->forAttempt($id, 2, $budget);
+
+        $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
+
+        Expect::that($recovered->attempts)->toBe(2)
+            ->and($recovered->attachments)->toHaveCount(1)
+            ->and($recovered->attachments[0]->attempt)->toBe(1);
 
         $store->cleanup();
     }

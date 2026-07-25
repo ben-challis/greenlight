@@ -88,7 +88,7 @@ final readonly class TestExecutor
 
         do {
             ++$attempt;
-            [$result, $cause, $attachments, $problematic] = $this->attempt($entry, $attempt, $artifactBudget);
+            [$result, $cause, $attachments] = $this->attempt($entry, $attempt, $artifactBudget);
 
             if ($attachments instanceof StagedAttachments) {
                 $result = $result->withAttachments($attachments->collected());
@@ -96,33 +96,37 @@ final readonly class TestExecutor
 
             if ($result->outcome->isSuccessful()) {
                 $result = $this->policy?->apply($result) ?? $result;
+                $sealed = $attachments?->seal() ?? [];
 
-                if ($attachments instanceof StagedAttachments) {
-                    $retainedAttachments = [
-                        ...$retainedAttachments,
-                        ...$attachments->finalize($problematic || !$result->outcome->isSuccessful()),
-                    ];
-                }
-
-                return $result->withAttachments($retainedAttachments);
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
 
-            $retry = \array_any($this->plugins->retryDeciders(), fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause));
+            try {
+                $retry = \array_any(
+                    $this->plugins->retryDeciders(),
+                    fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause),
+                );
+            } catch (\Throwable $threw) {
+                $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
+                $sealed = $attachments?->seal() ?? [];
 
-            if ($attachments instanceof StagedAttachments) {
-                $retainedAttachments = [...$retainedAttachments, ...$attachments->finalize(true)];
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
+
+            $sealed = $attachments?->seal() ?? [];
 
             if (!$retry) {
                 $result = $this->policy?->apply($result) ?? $result;
 
-                return $result->withAttachments($retainedAttachments);
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
+
+            $retainedAttachments = [...$retainedAttachments, ...$sealed];
         } while (true);
     }
 
     /**
-     * @return array{TestResult, ?\Throwable, ?StagedAttachments, bool}
+     * @return array{TestResult, ?\Throwable, ?StagedAttachments}
      */
     private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
     {
@@ -255,8 +259,6 @@ final readonly class TestExecutor
             ))];
         }
 
-        $problematic = !$outcome->isSuccessful();
-
         $result = new TestResult(
             $entry->id,
             $outcome,
@@ -282,7 +284,7 @@ final readonly class TestExecutor
             $this->leakDetector?->watch($entry->id, $context->instance);
         }
 
-        return [$result, $cause, $stagedAttachments, $problematic];
+        return [$result, $cause, $stagedAttachments];
     }
 
     /**

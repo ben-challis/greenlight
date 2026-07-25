@@ -66,19 +66,24 @@ final readonly class AttachmentRunTest
             ->and($results)->toHaveKey('failsWithEvidence')
             ->toHaveKey('passesWithAlwaysEvidence')
             ->toHaveKey('passesWithoutRetainingDefaultEvidence')
-            ->toHaveKey('retainsTheFailedRetryAttempt');
+            ->toHaveKey('retainsTheFailedRetryAttempt')
+            ->toHaveKey('becomesErroredDuringClassTeardown')
+            ->toHaveKey('retryDeciderThrows');
 
         Expect::that($results['failsWithEvidence']->attachments)->toHaveCount(3)
             ->and($results['passesWithAlwaysEvidence']->attachments)->toHaveCount(1)
             ->and($results['passesWithoutRetainingDefaultEvidence']->attachments)->toBe([])
             ->and($results['retainsTheFailedRetryAttempt']->attempts)->toBe(2)
             ->and($results['retainsTheFailedRetryAttempt']->attachments)->toHaveCount(2)
-            ->and($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1);
+            ->and($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1)
+            ->and($results['becomesErroredDuringClassTeardown']->outcome->isSuccessful())->toBeFalse()
+            ->and($results['becomesErroredDuringClassTeardown']->attachments)->toHaveCount(1)
+            ->and($results['retryDeciderThrows']->outcome->isSuccessful())->toBeFalse()
+            ->and($results['retryDeciderThrows']->attachments)->toHaveCount(2);
 
         foreach ($results as $testResult) {
             foreach ($testResult->attachments as $attachment) {
-                Expect::that($attachment->storageKey())->toBeNull()
-                    ->and(\is_file($attachment->path))->toBeTrue()
+                Expect::that(\is_file($attachment->path))->toBeTrue()
                     ->and(\hash_file('sha256', $attachment->path))->toBe($attachment->sha256);
             }
         }
@@ -87,7 +92,7 @@ final readonly class AttachmentRunTest
     private function project(string $name): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, $name);
-        $project->write('tests/AttachmentProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/AttachmentProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -148,9 +153,55 @@ final readonly class AttachmentRunTest
 
                     Expect::that(true)->toBeTrue();
                 }
+
+                #[Test]
+                public function retryDeciderThrows(): never
+                {
+                    $this->attachments->text('before-decider.txt', 'keep this');
+
+                    throw new \RuntimeException('failure presented to decider');
+                }
             }
             PHP);
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('tests/TeardownAttachmentTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace AttachmentProbe;
+
+            use Greenlight\Attribute\Test;
+            use Greenlight\Core\Artifact\Attachments;
+            use Greenlight\Expect\Expect;
+            use Greenlight\Harness\Disposable;
+
+            final class FailingClassResource implements Disposable
+            {
+                public function use(): void {}
+
+                public function dispose(): never
+                {
+                    throw new \RuntimeException('class teardown failed');
+                }
+            }
+
+            final readonly class TeardownAttachmentTest
+            {
+                public function __construct(
+                    private Attachments $attachments,
+                    private FailingClassResource $resource,
+                ) {}
+
+                #[Test]
+                public function becomesErroredDuringClassTeardown(): void
+                {
+                    $this->attachments->text('before-teardown.txt', 'keep this');
+                    $this->resource->use();
+                    Expect::that(true)->toBeTrue();
+                }
+            }
+            PHP);
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -158,10 +209,17 @@ final readonly class AttachmentRunTest
             use Greenlight\Config\ArtifactBuilder;
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Core\Result\TestResult;
+            use Greenlight\Core\Test\TestMetadata;
+            use Greenlight\Harness\Scope;
+            use Greenlight\Harness\ServiceDefinition;
+            use Greenlight\Plugin\HarnessProvider;
+            use Greenlight\Plugin\RetryDecider;
             use Greenlight\Plugin\TestContext;
             use Greenlight\Plugin\TestLifecycleSubscriber;
+            use AttachmentProbe\FailingClassResource;
 
             require_once __DIR__ . '/tests/AttachmentProbeTest.php';
+            require_once __DIR__ . '/tests/TeardownAttachmentTest.php';
 
             $plugin = new class implements TestLifecycleSubscriber {
                 public function beforeTest(TestContext $context): void {}
@@ -176,9 +234,37 @@ final readonly class AttachmentRunTest
                 }
             };
 
+            $retryDecider = new class implements RetryDecider {
+                public function shouldRetry(
+                    TestMetadata $metadata,
+                    TestResult $result,
+                    int $attempt,
+                    ?\Throwable $cause,
+                ): bool {
+                    if ($metadata->method === 'retryDeciderThrows') {
+                        throw new \RuntimeException('retry decider failed');
+                    }
+
+                    return false;
+                }
+            };
+
+            $harness = new class implements HarnessProvider {
+                public function services(): array
+                {
+                    return [
+                        new ServiceDefinition(
+                            FailingClassResource::class,
+                            Scope::PerClass,
+                            static fn(): FailingClassResource => new FailingClassResource(),
+                        ),
+                    ];
+                }
+            };
+
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->plugins($plugin)
+                ->plugins($plugin, $retryDecider, $harness)
                 ->artifacts(fn(ArtifactBuilder $artifacts) => $artifacts
                     ->directory(__DIR__ . '/artifacts'));
             PHP);

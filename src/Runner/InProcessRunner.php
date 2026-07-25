@@ -29,6 +29,10 @@ use Greenlight\Runner\Worker\Worker;
  */
 final readonly class InProcessRunner
 {
+    public function __construct(
+        private string $workingDirectory,
+    ) {}
+
     /**
      * @param list<non-empty-string> $directories
      * @param list<non-empty-string> $priorityClasses classes to run first, in the given order
@@ -61,10 +65,9 @@ final readonly class InProcessRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
-        $currentDirectory = \getcwd();
         $artifactStore = ArtifactStore::open(
             $artifactConfiguration,
-            $currentDirectory === false ? '.' : $currentDirectory,
+            $this->workingDirectory,
             $runId,
         );
 

@@ -10,10 +10,9 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Immutable metadata for one retained test attachment.
  *
- * storageKey is internal worker-to-orchestrator state and is removed before
- * reporters receive the result.
+ * @phpstan-consistent-constructor
  */
-final readonly class Attachment implements WireSerializable
+readonly class Attachment implements WireSerializable
 {
     public function __construct(
         public string $name,
@@ -24,7 +23,6 @@ final readonly class Attachment implements WireSerializable
         public int $attempt,
         public string $path,
         public AttachmentRetention $retention = AttachmentRetention::OnFailure,
-        private ?string $storageKey = null,
     ) {
         if ($name === ''
             || $mediaType === ''
@@ -38,32 +36,10 @@ final readonly class Attachment implements WireSerializable
         }
     }
 
-    public function published(): self
-    {
-        return new self(
-            $this->name,
-            $this->kind,
-            $this->mediaType,
-            $this->sizeBytes,
-            $this->sha256,
-            $this->attempt,
-            $this->path,
-            $this->retention,
-        );
-    }
-
-    /**
-     * @internal worker-to-orchestrator storage coordinate
-     */
-    public function storageKey(): ?string
-    {
-        return $this->storageKey;
-    }
-
     #[\Override]
     public function toWire(): array
     {
-        $payload = [
+        return [
             'name' => $this->name,
             'kind' => $this->kind->value,
             'mediaType' => $this->mediaType,
@@ -73,18 +49,12 @@ final readonly class Attachment implements WireSerializable
             'path' => $this->path,
             'retention' => $this->retention->value,
         ];
-
-        if ($this->storageKey !== null) {
-            $payload['storageKey'] = $this->storageKey;
-        }
-
-        return $payload;
     }
 
     #[\Override]
     public static function fromWire(array $payload): static
     {
-        return new self(
+        return new static(
             Wire::nonEmptyString($payload, 'name'),
             Wire::enum($payload, 'kind', AttachmentKind::class),
             Wire::nonEmptyString($payload, 'mediaType'),
@@ -95,7 +65,6 @@ final readonly class Attachment implements WireSerializable
             \array_key_exists('retention', $payload)
                 ? Wire::enum($payload, 'retention', AttachmentRetention::class)
                 : AttachmentRetention::OnFailure,
-            \array_key_exists('storageKey', $payload) ? Wire::nullableString($payload, 'storageKey') : null,
         );
     }
 }
