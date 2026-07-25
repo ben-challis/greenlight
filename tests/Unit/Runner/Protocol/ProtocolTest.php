@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\FailureDetail;
@@ -18,6 +19,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\FrameBuffer;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\Message;
@@ -96,11 +98,19 @@ final class ProtocolTest
             new TestMetadata('App\FooTest', 'bar', isolated: true, dataSetProvider: 'rows'),
         );
 
-        $assign = Assign::fromWire(new Assign(new ExecutionPlan([$entry], 42), 10)->toWire());
+        $assign = Assign::fromWire(new Assign(
+            new ExecutionPlan([$entry], 42),
+            10,
+            artifactSession: new ArtifactSession('/tmp/staging', 'build/artifacts/run-1'),
+            artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
+        )->toWire());
 
         Expect::that($assign->slice->seed)->toBe(42)
             ->and($assign->recycleAfterTests)->toBe(10)
             ->and($assign->recycleAboveMemoryBytes)->toBeNull()
+            ->and($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging')
+            ->and($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1')
+            ->and($assign->artifactConfiguration?->maxRunAttachments)->toBe(123)
             ->and($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one')
             ->and($assign->slice->entries[0]->metadata->isolated)->toBeTrue();
     }

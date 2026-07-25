@@ -91,7 +91,8 @@
                 "runId": {"type": "string", "minLength": 1},
                 "plannedTests": {"type": "integer", "minimum": 0},
                 "workers": {"type": "integer", "minimum": 1},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+                "occurredAt": {"$ref": "#/definitions/occurredAt"},
+                "artifactsDirectory": {"type": ["string", "null"]}
             }
         },
         "runFinished": {
@@ -219,7 +220,26 @@
                     "description": "Expectations verified during the final attempt. Older streams omit this key; treat a missing value as 0.",
                     "type": "integer",
                     "minimum": 0
+                },
+                "attachments": {
+                    "description": "Retained attachment metadata. Content is stored out of band at path.",
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/attachment"}
                 }
+            }
+        },
+        "attachment": {
+            "type": "object",
+            "required": ["name", "kind", "mediaType", "sizeBytes", "sha256", "attempt", "path", "retention"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "kind": {"enum": ["value", "text", "binary", "file"]},
+                "mediaType": {"type": "string", "minLength": 1},
+                "sizeBytes": {"type": "integer", "minimum": 0},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "attempt": {"type": "integer", "minimum": 1},
+                "path": {"type": "string", "minLength": 1},
+                "retention": {"enum": ["on-failure", "always"]}
             }
         },
         "outcome": {

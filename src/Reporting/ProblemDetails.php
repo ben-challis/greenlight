@@ -94,6 +94,24 @@ final class ProblemDetails
             }
         }
 
+        if ($result->attachments !== []) {
+            $lines[] = '  attachments:';
+
+            foreach (\array_slice($result->attachments, 0, 10) as $attachment) {
+                $lines[] = \sprintf(
+                    '    %s (%s, %d bytes): %s',
+                    $attachment->name,
+                    $attachment->mediaType,
+                    $attachment->sizeBytes,
+                    $attachment->path,
+                );
+            }
+
+            if (\count($result->attachments) > 10) {
+                $lines[] = \sprintf('    and %d more', \count($result->attachments) - 10);
+            }
+        }
+
         if ($lines === []) {
             return '';
         }

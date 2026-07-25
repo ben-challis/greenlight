@@ -29,6 +29,7 @@ final class CliOverridesTest
         Expect::that($overrides->excludePaths)->toBe([]);
         Expect::that($overrides->repeat)->toBe(null);
         Expect::that($overrides->repeatUntilFailure)->toBe(false);
+        Expect::that($overrides->artifactsDirectory)->toBe(null);
     }
 
     #[Test]
@@ -69,12 +70,14 @@ final class CliOverridesTest
             'bail' => ['3'],
             'group' => ['slow', 'io'],
             'seed' => ['0'],
+            'artifacts-dir' => ['build/evidence'],
         ]));
 
         Expect::that($overrides->workers?->fixed)->toBe(4);
         Expect::that($overrides->stopAfterFailures)->toBe(3);
         Expect::that($overrides->groups)->toBe(['slow', 'io']);
         Expect::that($overrides->seed)->toBe(0);
+        Expect::that($overrides->artifactsDirectory)->toBe('build/evidence');
     }
 
     #[Test]
@@ -142,6 +145,7 @@ final class CliOverridesTest
             'empty exclude path' => ['exclude-path' => ['']],
             'repeat zero' => ['repeat' => ['0']],
             'repeat word' => ['repeat' => ['abc']],
+            'empty artifacts directory' => ['artifacts-dir' => ['']],
         ];
 
         foreach ($unusable as $options) {

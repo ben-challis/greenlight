@@ -14,6 +14,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Reporting\Ticking;
+use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -71,35 +72,49 @@ final readonly class ParallelRunner
 
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
+        $artifactConfiguration = $configuration->artifacts;
+        $artifactStore = ArtifactStore::open($artifactConfiguration, $this->workingDirectory, $runId);
 
-        $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
+        try {
+            $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
 
-        if ($orchestratorSide->runSubscribers() !== []) {
-            $sink = new PluginEventSink($orchestratorSide, $sink);
+            if ($orchestratorSide->runSubscribers() !== []) {
+                $sink = new PluginEventSink($orchestratorSide, $sink);
+            }
+
+            $sink->emit(new RunStarted(
+                $runId,
+                \count($plan),
+                $workerCount,
+                \microtime(true),
+                $artifactStore->publicDirectory(),
+            ));
+
+            $orchestrator = new Orchestrator(
+                $this->workerCommand,
+                $this->workingDirectory,
+                $configuration->recycleAfterTests,
+                $configuration->recycleAboveMemoryBytes,
+                $configuration->stopAfterFailures,
+                $coverageSettings,
+                $configFile,
+                $detectLeaks,
+                $configuration->policy->isNoOp() ? null : $configuration->policy,
+                $shutdown,
+                $ticker,
+                $artifactStore,
+                $artifactConfiguration,
+            );
+
+            $summary = $orchestrator->run($plan, $sink, $workerCount);
+
+            $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
+            $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+
+            return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
+        } finally {
+            $artifactStore->cleanup();
         }
-
-        $sink->emit(new RunStarted($runId, \count($plan), $workerCount, \microtime(true)));
-
-        $orchestrator = new Orchestrator(
-            $this->workerCommand,
-            $this->workingDirectory,
-            $configuration->recycleAfterTests,
-            $configuration->recycleAboveMemoryBytes,
-            $configuration->stopAfterFailures,
-            $coverageSettings,
-            $configFile,
-            $detectLeaks,
-            $configuration->policy->isNoOp() ? null : $configuration->policy,
-            $shutdown,
-            $ticker,
-        );
-
-        $summary = $orchestrator->run($plan, $sink, $workerCount);
-
-        $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
-        $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
-
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
     }
 
     private function sharded(ExecutionPlan $plan, Configuration $configuration): ExecutionPlan

@@ -65,8 +65,14 @@ plugin changed the result. If a plugin returns a result whose outcome changed
 without adding to the transformation log, the test errors and names the plugin.
 
 `TestContext` contains the live test `instance`, the `TestId`, the
-`TestMetadata`, and `service(SomeType::class)` for resolving services from the
-active harness scopes.
+`TestMetadata`, `attachments`, and `service(SomeType::class)` for resolving
+services from the active harness scopes.
+
+`$context->attachments` is the same attempt-owned
+`Greenlight\Core\Artifact\Attachments` object a test can receive through
+constructor injection. Plugins may attach evidence in both hooks, including
+after seeing a failure in `afterTest()`. Content is copied immediately and the
+normal retention and size rules apply. See [test attachments](attachments.md).
 
 `service()` is available during `beforeTest()` and during the test itself. By
 `afterTest()`, the per-test scope has already closed, so `service()` throws.
@@ -81,6 +87,10 @@ public function shouldRetry(TestMetadata $metadata, TestResult $result, int $att
 
 Retry deciders are asked after each unsuccessful attempt. If any decider returns
 `true`, Greenlight runs a fresh attempt with a fresh test instance and scope.
+
+The result already contains metadata for evidence attached during that attempt,
+so a decider can use names, kinds, sizes, or media types when deciding. It
+cannot read attachment content through the result.
 
 The built-in `#[Retry]` attribute is implemented through this interface.
 

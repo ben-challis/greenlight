@@ -56,6 +56,7 @@ final readonly class Configuration
         public array $excludeClasses = [],
         public array $excludeMethods = [],
         public array $excludePaths = [],
+        public ArtifactConfiguration $artifacts = new ArtifactConfiguration(),
     ) {}
 
     /**
@@ -84,6 +85,7 @@ final readonly class Configuration
             excludeClasses: $this->excludeClasses,
             excludeMethods: $this->excludeMethods,
             excludePaths: $this->excludePaths,
+            artifacts: $this->artifacts,
         );
     }
 
@@ -113,6 +115,7 @@ final readonly class Configuration
             excludeClasses: $this->excludeClasses,
             excludeMethods: $this->excludeMethods,
             excludePaths: $paths,
+            artifacts: $this->artifacts,
         );
     }
 }

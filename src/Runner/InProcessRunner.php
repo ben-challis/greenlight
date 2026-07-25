@@ -13,6 +13,8 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Runner\Artifact\PublishingEventSink;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
@@ -58,40 +60,64 @@ final readonly class InProcessRunner
 
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
+        $artifactConfiguration = $configuration->artifacts;
+        $currentDirectory = \getcwd();
+        $artifactStore = ArtifactStore::open(
+            $artifactConfiguration,
+            $currentDirectory === false ? '.' : $currentDirectory,
+            $runId,
+        );
 
-        $plugins = PluginRegistry::forWorker($configuration->plugins);
-        $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
+        try {
+            $plugins = PluginRegistry::forWorker($configuration->plugins);
+            $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
 
-        if ($orchestratorSide->runSubscribers() !== []) {
-            $sink = new PluginEventSink($orchestratorSide, $sink);
-        }
+            if ($orchestratorSide->runSubscribers() !== []) {
+                $sink = new PluginEventSink($orchestratorSide, $sink);
+            }
 
-        $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
+            $sink = new PublishingEventSink($artifactStore, $sink);
+            $sink->emit(new RunStarted(
+                $runId,
+                \count($plan),
+                1,
+                \microtime(true),
+                $artifactStore->publicDirectory(),
+            ));
 
-        $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
-        $collector?->start();
+            $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
+            $collector?->start();
 
-        // A single in-process worker is always channel 1. Setting the
-        // variable, rather than relying on its absence, overrides any value
-        // inherited from an outer Greenlight run spawning this one.
-        \putenv('GREENLIGHT_CHANNEL=1');
+            // A single in-process worker is always channel 1. Setting the
+            // variable, rather than relying on its absence, overrides any value
+            // inherited from an outer Greenlight run spawning this one.
+            \putenv('GREENLIGHT_CHANNEL=1');
 
-        $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null, 'in-process', $configuration->policy->isNoOp() ? null : $configuration->policy)
-            ->run(
+            $outcome = new Worker(
+                DefaultServices::registry($plugins),
+                $plugins,
+                $detectLeaks ? new LeakDetector() : null,
+                'in-process',
+                $configuration->policy->isNoOp() ? null : $configuration->policy,
+                $artifactStore,
+            )->run(
                 $plan,
                 $sink,
                 $configuration->stopAfterFailures,
                 null,
                 $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
             );
-        $summary = $outcome->summary;
+            $summary = $outcome->summary;
 
-        $coverage = $collector?->stop();
+            $coverage = $collector?->stop();
 
-        $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
-        $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+            $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
+            $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
+            return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
+        } finally {
+            $artifactStore->cleanup();
+        }
     }
 
     /**

@@ -207,6 +207,15 @@ final class JUnitReporter implements Reporter
             $writer->endElement();
         }
 
+        if ($result->attachments !== []) {
+            $writer->startElement('system-out');
+            $writer->text(\implode("\n", \array_map(
+                static fn($attachment): string => '[[ATTACHMENT|' . $attachment->path . ']]',
+                $result->attachments,
+            )));
+            $writer->endElement();
+        }
+
         $writer->endElement();
         $writer->endElement();
         $writer->endElement();

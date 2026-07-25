@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
+use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\RecycleReason;
@@ -11,6 +12,8 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Runner\Artifact\ArtifactSession;
+use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
@@ -75,6 +78,7 @@ final readonly class WorkerProcess
         $registry = null;
         $scopes = null;
         $executedTotal = 0;
+        $artifactStore = null;
 
         try {
             while (true) {
@@ -114,11 +118,28 @@ final readonly class WorkerProcess
                     $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
                 }
 
+                if (!$artifactStore instanceof ArtifactStore
+                    && $message->artifactSession instanceof ArtifactSession
+                    && $message->artifactConfiguration instanceof ArtifactConfiguration
+                ) {
+                    $artifactStore = ArtifactStore::fromSession(
+                        $message->artifactSession,
+                        $message->artifactConfiguration,
+                    );
+                }
+
                 $collector?->start();
 
                 $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
-                $outcome = new Worker($registry, $plugins, $leakDetector, $workerId, $message->policy)->run(
+                $outcome = new Worker(
+                    $registry,
+                    $plugins,
+                    $leakDetector,
+                    $workerId,
+                    $message->policy,
+                    $artifactStore,
+                )->run(
                     $message->slice,
                     new SocketEventSink($channel),
                     null,

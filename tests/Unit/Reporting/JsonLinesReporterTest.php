@@ -83,7 +83,7 @@ final class JsonLinesReporterTest
         $lines = \explode("\n", $output->buffer());
 
         Expect::that($lines[0])->toBe(
-            '{"v":1,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5}}',
+            '{"v":1,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
         );
     }
 

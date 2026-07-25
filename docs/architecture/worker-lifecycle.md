@@ -17,7 +17,7 @@ Seven message types cross the socket:
 | Tag | Direction | Payload |
 | --- | --- | --- |
 | `hello` | worker to orchestrator | worker id, shared token, pid |
-| `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, coverage settings, config file path, leak detection flag, result policy |
+| `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, coverage settings, config file path, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
 | `recycling` | worker to orchestrator | recycle reason, the tests it did not run, partial coverage |
@@ -61,6 +61,11 @@ Some notes on that exchange:
 
 - The worker bootstraps once, on its first `assign`. Plugins and harness registries are built then and reused for every later assignment, which is why per-run harness services keep worker-lifetime semantics. Per-class state (reflection, hooks, data sets) is rebuilt for each class.
 - Events stream one frame per event, the moment they happen. The orchestrator forwards each event to the reporters and updates its running summary as frames arrive, which is what makes live per-worker output and flat orchestrator memory possible. Nothing accumulates worker-side.
+- Attachment content uses the shared run-scoped filesystem, not the socket.
+  Workers send only metadata in `TestFinished`. The orchestrator publishes
+  staged files before forwarding the event, keeping binary content outside the
+  8 MiB frame limit. Atomic sidecars let it recover completed evidence if a
+  worker crashes; see [artifact storage](artifacts.md).
 - `done` carries the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated frame cannot silently pass a suite.
 
 ## Leaving the pool

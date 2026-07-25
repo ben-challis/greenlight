@@ -16,6 +16,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteConfiguration;
+use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\AtomicFile;
 use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
@@ -130,6 +131,7 @@ final readonly class Application
                              classes, stable across machines, no coordination
           --seed=<n>         Randomize class order with this seed
           --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
+          --artifacts-dir=<path> Persistent directory for retained test attachments
           --watch            Re-run on file changes; Enter re-runs everything, q quits
           --detect-leaks     Verify every test instance is collected; leaks fail the run
           --verbose          Print a permanent line per completed class in
@@ -481,7 +483,7 @@ final readonly class Application
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
                     ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
             }
-        } catch (DiscoveryError|ProtocolError $error) {
+        } catch (AttachmentError|DiscoveryError|ProtocolError $error) {
             $orchestratorCollector?->stop();
             $shared?->drain();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
@@ -696,7 +698,7 @@ final readonly class Application
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
                             ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                     }
-                } catch (DiscoveryError|ProtocolError $error) {
+                } catch (AttachmentError|DiscoveryError|ProtocolError $error) {
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                     return $priorityClasses;
@@ -1340,6 +1342,7 @@ final readonly class Application
             new OptionSpec('fail-on-risky'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
+            new OptionSpec('artifacts-dir', OptionValue::Required),
             new OptionSpec('baseline', OptionValue::Required),
             new OptionSpec('current', OptionValue::Required),
             new OptionSpec('watch'),

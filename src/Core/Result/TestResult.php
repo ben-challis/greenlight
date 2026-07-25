@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Core\Result;
 
+use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
@@ -31,6 +32,7 @@ final readonly class TestResult implements WireSerializable
      * @param list<FailureDetail> $failures
      * @param list<OutcomeTransformation> $transformations
      * @param non-negative-int $expectations
+     * @param list<Attachment> $attachments
      *
      * @throws \InvalidArgumentException
      */
@@ -47,6 +49,7 @@ final readonly class TestResult implements WireSerializable
         public ?CapturedOutput $output = null,
         public bool $risky = false,
         public int $expectations = 0,
+        public array $attachments = [],
     ) {
         if ($durationSeconds < 0.0) {
             throw new \InvalidArgumentException('Duration cannot be negative.');
@@ -96,17 +99,44 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
+     * @param list<Attachment> $attachments
+     */
+    public function withAttachments(array $attachments): self
+    {
+        return $this->with(attachments: $attachments);
+    }
+
+    /**
+     * The same result errored with the supplied detail.
+     */
+    public function erroredBy(ThrowableDetail $error): self
+    {
+        return $this->with(outcome: Outcome::Errored, error: $error);
+    }
+
+    /**
+     * @param list<FailureDetail> $failures
+     */
+    public function withFailures(array $failures): self
+    {
+        return $this->with(failures: $failures);
+    }
+
+    /**
      * Every field a derived result does not override carries over, so new
      * fields only need threading through here.
      *
      * @param list<FailureDetail>|null $failures
      * @param list<OutcomeTransformation>|null $transformations
+     * @param list<Attachment>|null $attachments
      */
     private function with(
         ?Outcome $outcome = null,
         ?array $failures = null,
         ?array $transformations = null,
         ?bool $risky = null,
+        ?ThrowableDetail $error = null,
+        ?array $attachments = null,
     ): self {
         return new self(
             $this->id,
@@ -115,12 +145,13 @@ final readonly class TestResult implements WireSerializable
             $this->memoryDeltaBytes,
             $this->attempts,
             $failures ?? $this->failures,
-            $this->error,
+            $error ?? $this->error,
             $this->skipReason,
             $transformations ?? $this->transformations,
             $this->output,
             $risky ?? $this->risky,
             $this->expectations,
+            $attachments ?? $this->attachments,
         );
     }
 
@@ -143,6 +174,10 @@ final readonly class TestResult implements WireSerializable
             'output' => $this->output?->toWire(),
             'risky' => $this->risky,
             'expectations' => $this->expectations,
+            'attachments' => \array_map(
+                static fn(Attachment $attachment): array => $attachment->toWire(),
+                $this->attachments,
+            ),
         ];
     }
 
@@ -171,6 +206,10 @@ final readonly class TestResult implements WireSerializable
             $output === null ? null : CapturedOutput::fromWire($output),
             \array_key_exists('risky', $payload) && Wire::bool($payload, 'risky'),
             \array_key_exists('expectations', $payload) ? \max(0, Wire::int($payload, 'expectations')) : 0,
+            \array_map(
+                Attachment::fromWire(...),
+                \array_key_exists('attachments', $payload) ? Wire::listOfMaps($payload, 'attachments') : [],
+            ),
         );
     }
 }

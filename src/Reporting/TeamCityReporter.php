@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Core\Event\Event;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -42,11 +43,20 @@ final class TeamCityReporter implements Reporter
      */
     private array $classFiles = [];
 
+    private ?string $artifactsDirectory = null;
+    private bool $hasAttachments = false;
+
     public function __construct(private readonly Output $output) {}
 
     #[\Override]
     public function onEvent(Event $event): void
     {
+        if ($event instanceof RunStarted) {
+            $this->artifactsDirectory = $event->artifactsDirectory;
+
+            return;
+        }
+
         if ($event instanceof TestClassStarted) {
             $attributes = ['name' => $event->class];
 
@@ -94,12 +104,20 @@ final class TeamCityReporter implements Reporter
     }
 
     #[\Override]
-    public function finish(): void {}
+    public function finish(): void
+    {
+        if ($this->hasAttachments && $this->artifactsDirectory !== null) {
+            $this->output->write(
+                "##teamcity[publishArtifacts '" . $this->escape($this->artifactsDirectory) . "']\n",
+            );
+        }
+    }
 
     private function onTestFinished(TestResult $result): void
     {
         $name = (string) $result->id;
         $flowId = $result->id->class;
+        $this->hasAttachments = $this->hasAttachments || $result->attachments !== [];
 
         if ($result->outcome === Outcome::Failed) {
             $this->writeFailed($result, $name, $flowId);
@@ -113,6 +131,16 @@ final class TeamCityReporter implements Reporter
             $this->message('testIgnored', [
                 'name' => $name,
                 'message' => $result->skipReason ?? 'skipped',
+                'flowId' => $flowId,
+            ]);
+        }
+
+        foreach ($result->attachments as $attachment) {
+            $this->message('testMetadata', [
+                'testName' => $name,
+                'name' => 'attachment: ' . $attachment->name,
+                'type' => 'artifact',
+                'value' => $attachment->path,
                 'flowId' => $flowId,
             ]);
         }

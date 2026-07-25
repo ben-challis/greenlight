@@ -42,6 +42,8 @@ final class GreenlightConfig
 
     private ?WatchBuilder $watch = null;
 
+    private ?ArtifactBuilder $artifacts = null;
+
     /**
      * @var list<object>
      */
@@ -182,6 +184,18 @@ final class GreenlightConfig
     }
 
     /**
+     * @param callable(ArtifactBuilder): mixed $configurator
+     */
+    public function artifacts(callable $configurator): self
+    {
+        $builder = $this->artifacts ?? new ArtifactBuilder();
+        $configurator($builder);
+        $this->artifacts = $builder;
+
+        return $this;
+    }
+
+    /**
      * Fails a passed test whose captured output contains a deprecation, with
      * the diagnostic as the failure detail. Exempt known dependency noise
      * with ignoreDeprecationsMatching().
@@ -309,6 +323,7 @@ final class GreenlightConfig
             stopAfterFailures: $this->failFast ? 1 : null,
             randomizeOrder: $this->randomizeOrder,
             randomSeed: $this->randomSeed,
+            artifacts: $this->artifacts?->toConfiguration() ?? new ArtifactConfiguration(),
         );
     }
 }

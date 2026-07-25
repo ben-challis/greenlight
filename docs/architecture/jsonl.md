@@ -63,7 +63,7 @@ unknown version as unparseable.
 
 | Tag               | Event                      | Payload keys                                        |
 | ----------------- | -------------------------- | --------------------------------------------------- |
-| `run-started`     | Run begins                 | `runId`, `plannedTests`, `workers`, `occurredAt`    |
+| `run-started`     | Run begins                 | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
 | `run-finished`    | Run ends                   | `runId`, `summary`, `durationSeconds`, `occurredAt` |
 | `suite-started`   | Suite begins               | `suite`, `occurredAt`                               |
 | `suite-finished`  | Suite ends                 | `suite`, `occurredAt`                               |
@@ -75,6 +75,9 @@ unknown version as unparseable.
 | `worker-recycled` | Worker process is replaced | `workerId`, `reason`, `occurredAt`                  |
 
 `run-finished.summary` contains passed, failed, errored, and skipped counts.
+
+`run-started.artifactsDirectory` is the absolute directory for retained
+evidence from this run, or `null` for an older/attachment-disabled producer.
 
 `suite-started` and `suite-finished` are reserved event types.
 Greenlight does not emit them today because suites only group configuration paths into a single discovery set,
@@ -240,6 +243,33 @@ expectation counts when it is verified. Stubs do not count.
 
 An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
 not count separately.
+
+### attachments
+
+A list of retained attachment metadata. Older streams may omit the key; treat a
+missing value as an empty list.
+
+```json
+{
+    "name": "response.json",
+    "kind": "value",
+    "mediaType": "application/json",
+    "sizeBytes": 147,
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "attempt": 1,
+    "path": "/project/build/greenlight-artifacts/run-id/Test-response.json",
+    "retention": "on-failure"
+}
+```
+
+`kind` is `value`, `text`, `binary`, or `file`. `retention` is `on-failure` or
+`always`. Content is stored out of band at `path`; it is never embedded or
+base64-encoded in JSONL. `path` is a published path, not the caller's source
+path. Internal storage keys never appear in reporter output.
+
+Attachments from failed retry attempts remain on the final result with their
+original `attempt` number. A passing test can have attachments when their
+retention is `always`.
 
 Failed, errored, and skipped tests carry the partial count verified before the
 test stopped.

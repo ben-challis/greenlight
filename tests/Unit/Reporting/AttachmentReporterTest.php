@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Reporting;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\Attachment;
+use Greenlight\Core\Artifact\AttachmentKind;
+use Greenlight\Core\Event\RunStarted;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
+use Greenlight\Expect\Expect;
+use Greenlight\Reporting\GithubReporter;
+use Greenlight\Reporting\JsonLinesReporter;
+use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Reporting\PlainReporter;
+use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Reporting\TtyReporter;
+
+final class AttachmentReporterTest
+{
+    #[Test]
+    public function humanReportersListMetadataWithoutInliningContent(): void
+    {
+        foreach ([
+            static fn(BufferOutput $output) => new PlainReporter($output),
+            static fn(BufferOutput $output) => new TtyReporter($output, colour: false, cursor: false),
+        ] as $factory) {
+            $output = new BufferOutput();
+            $reporter = $factory($output);
+            $reporter->onEvent(new TestFinished($this->result(), 1.0));
+            $reporter->finish();
+
+            Expect::that($output->buffer())->toContain('response.json')
+                ->toContain('application/json')
+                ->toContain('build/greenlight-artifacts/run-1/response.json')
+                ->not()->toContain('secret response body');
+        }
+    }
+
+    #[Test]
+    public function machineReportersExposePathsWithoutEmbeddingStorageState(): void
+    {
+        $json = new BufferOutput();
+        $jsonl = new JsonLinesReporter($json);
+        $jsonl->onEvent(new TestFinished($this->result(), 1.0));
+
+        Expect::that($json->buffer())->toContain('"path":"build/greenlight-artifacts/run-1/response.json"')
+            ->not()->toContain('"storageKey"');
+
+        $xml = new BufferOutput();
+        $junit = new JUnitReporter($xml);
+        $junit->onEvent(new TestFinished($this->result(), 1.0));
+        $junit->finish();
+
+        Expect::that($xml->buffer())->toContain('[[ATTACHMENT|build/greenlight-artifacts/run-1/response.json]]');
+    }
+
+    #[Test]
+    public function ciReportersLinkAndPublishTheArtifactDirectory(): void
+    {
+        $githubOutput = new BufferOutput();
+        $github = new GithubReporter($githubOutput);
+        $github->onEvent(new RunStarted('run-1', 1, 1, 0.0, 'build/greenlight-artifacts/run-1'));
+        $github->onEvent(new TestFinished($this->result(), 1.0));
+        $github->finish();
+
+        Expect::that($githubOutput->buffer())->toContain('response.json')
+            ->toContain('::notice::Greenlight attachments');
+
+        $teamCityOutput = new BufferOutput();
+        $teamCity = new TeamCityReporter($teamCityOutput);
+        $teamCity->onEvent(new RunStarted('run-1', 1, 1, 0.0, 'build/greenlight-artifacts/run-1'));
+        $teamCity->onEvent(new TestFinished($this->result(), 1.0));
+        $teamCity->finish();
+
+        Expect::that($teamCityOutput->buffer())->toContain("##teamcity[testMetadata")
+            ->toContain("type='artifact'")
+            ->toContain("##teamcity[publishArtifacts 'build/greenlight-artifacts/run-1']");
+    }
+
+    private function result(): TestResult
+    {
+        return new TestResult(
+            new TestId('Example\AttachmentTest', 'fails'),
+            Outcome::Failed,
+            0.1,
+            0,
+            failures: [new FailureDetail('failed')],
+            attachments: [
+                new Attachment(
+                    'response.json',
+                    AttachmentKind::Value,
+                    'application/json',
+                    20,
+                    \str_repeat('a', 64),
+                    1,
+                    'build/greenlight-artifacts/run-1/response.json',
+                ),
+            ],
+        );
+    }
+}

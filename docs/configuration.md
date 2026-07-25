@@ -231,6 +231,30 @@ Registers plugin instances.
 
 The method is repeatable and instances accumulate.
 
+### artifacts(callable $configurator): self
+
+Default: output below `build/greenlight-artifacts`, with failure-only retention.
+
+The configurator receives an `ArtifactBuilder`. Repeated calls reuse the same
+builder.
+
+```php
+->artifacts(fn ($artifacts) => $artifacts
+    ->directory('build/test-evidence')
+    ->maxAttachmentsPerTest(20)
+    ->maxAttachmentSize('10M')
+    ->maxTestSize('50M')
+    ->maxRunAttachments(2_000)
+    ->maxRunSize('500M'))
+```
+
+Defaults are 32 attachments and 100 MiB per test, 25 MiB per attachment,
+10,000 attachments and 1 GiB per run. Per-test limits cover all retry attempts,
+including evidence later discarded by retention policy. Run-wide quota is
+released when passing evidence is discarded.
+
+See [test attachments](attachments.md) for the runtime API and security model.
+
 ### failFast(bool $enabled = true): self
 
 Default: off.
@@ -450,6 +474,12 @@ finishes. Multi-worker output does not interleave randomly.
 The `teamcity` reporter includes IDE navigation metadata: `php_qn://` location
 hints for click-to-source, plus a per-class `flowId` to keep parallel output
 separated in JetBrains tools.
+
+### --artifacts-dir=<path>
+
+Overrides the configured artifact parent directory for this run. Greenlight
+creates a unique run directory below it and reports that path in human and
+machine-readable output.
 
 ### --watch
 

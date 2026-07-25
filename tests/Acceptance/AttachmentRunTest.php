@@ -1,0 +1,188 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Acceptance;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\RunStarted;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\JsonlEvents;
+
+final readonly class AttachmentRunTest
+{
+    public function __construct(private TempDirectory $tempDirectory) {}
+
+    #[Test]
+    public function attachmentsSurviveASequentialRunWithRetryAndPluginEvidence(): void
+    {
+        $this->assertRun(1);
+    }
+
+    #[Test]
+    public function attachmentsCrossTheParallelWorkerBoundary(): void
+    {
+        $this->assertRun(2);
+    }
+
+    private function assertRun(int $workers): void
+    {
+        $project = $this->project('attachments-' . $workers);
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['run', '--reporter=jsonl', '--workers=' . $workers],
+        );
+
+        Expect::that($result->exitCode)->toBe(1);
+
+        /** @var array<string, TestResult> $results */
+        $results = [];
+        $artifactsDirectory = null;
+
+        foreach (JsonlEvents::from($result) as $event) {
+            if ($event instanceof RunStarted) {
+                $artifactsDirectory = $event->artifactsDirectory;
+            }
+
+            if (!$event instanceof TestFinished) {
+                continue;
+            }
+
+            $results[$event->result->id->method] = $event->result;
+        }
+
+        if ($artifactsDirectory === null) {
+            throw new \RuntimeException('The run did not report an artifacts directory.');
+        }
+
+        $projectDirectory = (string) \realpath($project->directory);
+
+        Expect::that($artifactsDirectory)->toBe($projectDirectory . '/artifacts/' . \basename($artifactsDirectory))
+            ->and($results)->toHaveKey('failsWithEvidence')
+            ->toHaveKey('passesWithAlwaysEvidence')
+            ->toHaveKey('passesWithoutRetainingDefaultEvidence')
+            ->toHaveKey('retainsTheFailedRetryAttempt');
+
+        Expect::that($results['failsWithEvidence']->attachments)->toHaveCount(3)
+            ->and($results['passesWithAlwaysEvidence']->attachments)->toHaveCount(1)
+            ->and($results['passesWithoutRetainingDefaultEvidence']->attachments)->toBe([])
+            ->and($results['retainsTheFailedRetryAttempt']->attempts)->toBe(2)
+            ->and($results['retainsTheFailedRetryAttempt']->attachments)->toHaveCount(2)
+            ->and($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1);
+
+        foreach ($results as $testResult) {
+            foreach ($testResult->attachments as $attachment) {
+                Expect::that($attachment->storageKey())->toBeNull()
+                    ->and(\is_file($attachment->path))->toBeTrue()
+                    ->and(\hash_file('sha256', $attachment->path))->toBe($attachment->sha256);
+            }
+        }
+    }
+
+    private function project(string $name): AcceptanceProject
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, $name);
+        $project->write('tests/AttachmentProbeTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace AttachmentProbe;
+
+            use Greenlight\Attribute\Retry;
+            use Greenlight\Attribute\Test;
+            use Greenlight\Core\Artifact\AttachmentRetention;
+            use Greenlight\Core\Artifact\Attachments;
+            use Greenlight\Expect\Expect;
+
+            final readonly class AttachmentProbeTest
+            {
+                public function __construct(private Attachments $attachments) {}
+
+                #[Test]
+                public function failsWithEvidence(): never
+                {
+                    $source = tempnam(sys_get_temp_dir(), 'greenlight-attachment-');
+                    file_put_contents($source, "\x00source");
+                    $this->attachments->file('snapshot.bin', $source);
+                    unlink($source);
+                    $this->attachments->value('response.json', ['status' => 500]);
+
+                    throw new \RuntimeException('intentional attachment failure');
+                }
+
+                #[Test]
+                public function passesWithAlwaysEvidence(): void
+                {
+                    $this->attachments->text(
+                        'always.txt',
+                        'kept',
+                        retention: AttachmentRetention::Always,
+                    );
+                    Expect::that(true)->toBeTrue();
+                }
+
+                #[Test]
+                public function passesWithoutRetainingDefaultEvidence(): void
+                {
+                    $this->attachments->text('discarded.txt', 'discarded');
+                    Expect::that(true)->toBeTrue();
+                }
+
+                #[Test]
+                #[Retry(1)]
+                public function retainsTheFailedRetryAttempt(): void
+                {
+                    static $attempt = 0;
+                    ++$attempt;
+                    $this->attachments->text('attempt.txt', 'attempt ' . $attempt);
+
+                    if ($attempt === 1) {
+                        throw new \RuntimeException('retry me');
+                    }
+
+                    Expect::that(true)->toBeTrue();
+                }
+            }
+            PHP);
+        $project->write('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\ArtifactBuilder;
+            use Greenlight\Config\GreenlightConfig;
+            use Greenlight\Core\Result\TestResult;
+            use Greenlight\Plugin\TestContext;
+            use Greenlight\Plugin\TestLifecycleSubscriber;
+
+            require_once __DIR__ . '/tests/AttachmentProbeTest.php';
+
+            $plugin = new class implements TestLifecycleSubscriber {
+                public function beforeTest(TestContext $context): void {}
+
+                public function afterTest(TestContext $context, TestResult $result): TestResult
+                {
+                    if (!$result->outcome->isSuccessful()) {
+                        $context->attachments->text('plugin.txt', 'plugin evidence');
+                    }
+
+                    return $result;
+                }
+            };
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->plugins($plugin)
+                ->artifacts(fn(ArtifactBuilder $artifacts) => $artifacts
+                    ->directory(__DIR__ . '/artifacts'));
+            PHP);
+
+        return $project;
+    }
+}
