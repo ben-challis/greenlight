@@ -8,6 +8,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\GracefulShutdown;
+use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
@@ -20,6 +21,7 @@ use Greenlight\Runner\Artifact\PublishingEventSink;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\Integration\IntegrationFixtureManager;
 use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
+use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
@@ -81,6 +83,8 @@ final readonly class InProcessRunner
             $fixtures = \count($plan) === 0
                 ? new ProvisionedIntegrationFixtures()
                 : IntegrationFixtureManager::provision($orchestratorSide, $runId, 1, 1, $configuration->shard);
+            $collector = null;
+            $collectingCoverage = false;
 
             try {
                 $sink->emit(new RunStarted(
@@ -91,20 +95,34 @@ final readonly class InProcessRunner
                     $artifactStore->publicDirectory(),
                 ));
 
-                $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
-                $collector?->start();
-
                 // A single in-process worker always uses channel 1. Set the
                 // variable to replace a value inherited from an outer Greenlight
                 // run.
                 \putenv('GREENLIGHT_CHANNEL=1');
 
                 $resources = $fixtures->forChannel(1);
-                $plugins->bootstrapWorker(new WorkerBootstrapContext(
-                    'in-process',
-                    new TestChannel(1),
-                    $resources,
-                ));
+
+                try {
+                    $plugins->bootstrapWorker(new WorkerBootstrapContext(
+                        'in-process',
+                        new TestChannel(1),
+                        $resources,
+                    ));
+                } catch (\Throwable $failure) {
+                    $detail = ThrowableDetail::fromThrowable($failure);
+
+                    throw ProtocolError::workerFatal(
+                        'in-process',
+                        $detail->message,
+                        $detail->file,
+                        $detail->line,
+                        $failure,
+                    );
+                }
+
+                $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
+                $collectingCoverage = $collector instanceof CoverageCollector;
+                $collector?->start();
 
                 $outcome = new Worker(
                     DefaultServices::registry($plugins, $resources),
@@ -113,8 +131,7 @@ final readonly class InProcessRunner
                     'in-process',
                     $configuration->policy->isNoOp() ? null : $configuration->policy,
                     $artifactStore,
-                )
-                ->run(
+                )->run(
                     $plan,
                     $sink,
                     $configuration->stopAfterFailures,
@@ -123,6 +140,7 @@ final readonly class InProcessRunner
                 );
                 $summary = $outcome->summary;
 
+                $collectingCoverage = false;
                 $coverage = $collector?->stop();
 
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
@@ -130,6 +148,14 @@ final readonly class InProcessRunner
 
                 $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
             } catch (\Throwable $failure) {
+                if ($collectingCoverage) {
+                    try {
+                        $collector?->stop();
+                    } catch (\Throwable) {
+                        // Preserve the failure that aborted the run.
+                    }
+                }
+
                 $cleanupFailures = $fixtures->close();
 
                 if ($cleanupFailures !== []) {

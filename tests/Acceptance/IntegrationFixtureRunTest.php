@@ -123,6 +123,20 @@ final readonly class IntegrationFixtureRunTest
             ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
+    #[Test]
+    public function inProcessWorkerBootstrapFailureIsReportedAndTearsDown(): void
+    {
+        $project = $this->writeProject('in-process-bootstrap-failure', workers: 1, failBootstrapChannel: 1);
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('intentional worker bootstrap failure')
+            ->and($result->output())->toContain('fatal framework error')
+            ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
+            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
+            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+    }
+
     /**
      * @return list<string>
      */

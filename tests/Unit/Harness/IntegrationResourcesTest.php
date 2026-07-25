@@ -76,6 +76,14 @@ final class IntegrationResourcesTest
     }
 
     #[Test]
+    public function resourcesRejectInvalidFixtureMaps(): void
+    {
+        Expect::that(static fn(): IntegrationResources => new IntegrationResources([
+            "\xB1\x31" => FixtureResource::empty(),
+        ]))->toThrow(\InvalidArgumentException::class, matching: '/non-empty UTF-8 fixture IDs/');
+    }
+
+    #[Test]
     public function nonJsonValuesAreRejectedBeforeTransport(): void
     {
         Expect::that(static fn(): FixtureResource => FixtureResource::from(['stream' => \fopen('php://memory', 'rb')]))
