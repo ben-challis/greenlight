@@ -21,8 +21,21 @@ final readonly class IntegrationResources implements WireSerializable
      */
     public function __construct(private array $fixtures = [])
     {
-        // The constructor's PHPDoc is the public static contract. Untrusted
-        // wire data is validated by fromWire() before it reaches here.
+        $this->validate($fixtures);
+    }
+
+    /**
+     * @param array<mixed, mixed> $fixtures
+     */
+    private function validate(array $fixtures): void
+    {
+        foreach ($fixtures as $id => $resource) {
+            if (!\is_string($id) || $id === '' || \preg_match('//u', $id) !== 1 || !$resource instanceof FixtureResource) {
+                throw new \InvalidArgumentException(
+                    'Integration resources must be a map of non-empty UTF-8 fixture IDs to FixtureResource instances.',
+                );
+            }
+        }
     }
 
     public static function empty(): self

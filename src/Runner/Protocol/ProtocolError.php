@@ -14,9 +14,9 @@ namespace Greenlight\Runner\Protocol;
  */
 final class ProtocolError extends \RuntimeException
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
     public static function frameTooLarge(int $length, int $limit): self
@@ -122,14 +122,19 @@ final class ProtocolError extends \RuntimeException
         return new self($message);
     }
 
-    public static function workerFatal(string $workerId, string $message, string $file, int $line): self
-    {
+    public static function workerFatal(
+        string $workerId,
+        string $message,
+        string $file,
+        int $line,
+        ?\Throwable $previous = null,
+    ): self {
         return new self(\sprintf(
             'Worker "%s" reported a fatal Greenlight error: %s (%s:%d)',
             $workerId,
             $message,
             $file,
             $line,
-        ));
+        ), $previous);
     }
 }
