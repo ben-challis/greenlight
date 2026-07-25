@@ -90,6 +90,14 @@ final readonly class InterruptionTest
             Expect::that(\is_array($sockets) ? $sockets : [])
                 ->because('The interrupted run MUST remove its orchestrator socket.')
                 ->toBe([]);
+            $cleaned = \file($markerDir . '/cleaned.log', \FILE_IGNORE_NEW_LINES);
+            Expect::that(\is_array($cleaned) ? $cleaned : [])
+                ->because('The interrupted run MUST clean its integration fixtures.')
+                ->toBe(['cleaned']);
+            $resources = \glob($markerDir . '/resource-*');
+            Expect::that(\is_array($resources) ? $resources : [])
+                ->because('The interrupted run MUST remove its integration fixture resources.')
+                ->toBe([]);
         } finally {
             $process->terminate();
         }
@@ -176,7 +184,27 @@ final readonly class InterruptionTest
             $files[] = $file;
         }
 
-        $project->configureWithTestFiles($files);
+        $requires = \implode("\n", \array_map(
+            static fn(string $file): string => "require_once __DIR__ . '/{$file}';",
+            $files,
+        ));
+        $markerDirectory = \var_export($markerDir, true);
+
+        $project->writeFile('greenlight.php', <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\\Config\\GreenlightConfig;
+            use Greenlight\\Tests\\Fixture\\Plugins\\IntegrationProbePlugin;
+
+            {$requires}
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers(2)
+                ->plugins(new IntegrationProbePlugin({$markerDirectory}));
+            PHP);
 
         return $project;
     }

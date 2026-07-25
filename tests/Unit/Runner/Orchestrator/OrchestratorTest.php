@@ -153,14 +153,14 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aConnectedWorkerThatGoesSilentBeforeStartingItsAssignmentFailsTheRun(): void
     {
-        // This worker completes the hello handshake and receives an assignment.
-        // It then stops communication before it reports TestStarted. No test is
-        // active, so a test timeout does not occur. The open channel also
-        // prevents crash detection.
+        // A worker that completes the hello handshake, receives bootstrap,
+        // then goes silent without ever reporting Ready.
+        // No test is in flight, so per-test timeouts never fire, and the channel
+        // stays open, so crash detection never fires either.
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
-            $json = json_encode(['v' => 1, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
+            $json = json_encode(['v' => 2, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
             fwrite($socket, pack('N', strlen($json)) . $json);
             fflush($socket);
             sleep(60);

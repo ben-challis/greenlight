@@ -23,7 +23,6 @@ final readonly class Assign implements Message
      * @param positive-int|null $recycleAboveMemoryBytes
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
-     * @param non-empty-string|null $configFile The worker loads this file to instantiate plugins. Null disables plugins.
      */
     public function __construct(
         public ExecutionPlan $slice,
@@ -31,7 +30,6 @@ final readonly class Assign implements Message
         public ?int $recycleAboveMemoryBytes = null,
         public ?array $coverageInclude = null,
         public ?string $coverageDriver = null,
-        public ?string $configFile = null,
         public bool $detectLeaks = false,
         public ?ResultPolicy $policy = null,
         public ?ArtifactSession $artifactSession = null,
@@ -53,7 +51,6 @@ final readonly class Assign implements Message
             'recycleAboveMemoryBytes' => $this->recycleAboveMemoryBytes,
             'coverageInclude' => $this->coverageInclude,
             'coverageDriver' => $this->coverageDriver,
-            'configFile' => $this->configFile,
             'detectLeaks' => $this->detectLeaks,
             'policy' => $this->policy?->toWire(),
             'artifactSession' => $this->artifactSession?->toWire(),
@@ -73,15 +70,12 @@ final readonly class Assign implements Message
             $coverageInclude = \array_values(\array_filter($coverageInclude, static fn(string $path): bool => $path !== ''));
         }
 
-        $configFile = Wire::nullableString($payload, 'configFile');
-
         return new self(
             ExecutionPlan::fromWire(Wire::map($payload, 'slice')),
             $recycleAfterTests === null ? null : \max(1, $recycleAfterTests),
             $recycleAboveMemory === null ? null : \max(1, $recycleAboveMemory),
             $coverageInclude,
             $coverageDriver === '' ? null : $coverageDriver,
-            $configFile === '' ? null : $configFile,
             Wire::bool($payload, 'detectLeaks'),
             ($policy = Wire::nullableMap($payload, 'policy')) === null ? null : ResultPolicy::fromWire($policy),
             ($artifacts = \array_key_exists('artifactSession', $payload) ? Wire::nullableMap($payload, 'artifactSession') : null) === null

@@ -250,6 +250,11 @@ number is from 1 through the worker count.
 Each worker receives its channel through `Greenlight\Core\Test\TestChannel` and
 the `GREENLIGHT_CHANNEL` environment variable.
 
+A plugin can also provision real infrastructure in the orchestrator and expose
+typed connection data through `Greenlight\Harness\IntegrationResources`.
+That keeps setup and teardown alive even when a worker crashes or is recycled.
+See [Writing plugins](plugins.md#integrationfixtureprovider).
+
 ```php
 final class OrderRepositoryTest
 {

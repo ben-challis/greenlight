@@ -248,6 +248,12 @@ harness services.
 A per-class harness service is a typed object with `PerClass` scope. Greenlight
 creates one instance for each test class.
 
+External infrastructure such as database servers, message brokers, or
+containers belongs in an `IntegrationFixtureProvider`. It provisions in the
+orchestrator, can allocate one resource per worker channel, and tears down after
+the run even if workers fail. Worker-side tests consume its serializable
+connection data through `IntegrationResources` or a `HarnessProvider` bridge.
+
 Greenlight injects this instance into each test constructor. It disposes the
 instance after the class completes.
 

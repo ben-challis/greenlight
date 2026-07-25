@@ -15,6 +15,10 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Runner\Integration\IntegrationFixtureError;
+use Greenlight\Runner\Integration\IntegrationFixtureManager;
+use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
+use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -75,37 +79,70 @@ final readonly class ParallelRunner
                 $sink = new PluginEventSink($orchestratorSide, $sink);
             }
 
-            $sink->emit(new RunStarted(
-                $runId,
-                \count($plan),
-                $workerCount,
-                \microtime(true),
-                $artifactStore->publicDirectory(),
-            ));
+            $fixtures = new ProvisionedIntegrationFixtures();
 
-            $orchestrator = new Orchestrator(
-                $this->workerCommand,
-                $this->workingDirectory,
-                $configuration->recycleAfterTests,
-                $configuration->recycleAboveMemoryBytes,
-                $configuration->stopAfterFailures,
-                $coverageSettings,
-                $configFile,
-                $detectLeaks,
-                $configuration->policy->isNoOp() ? null : $configuration->policy,
-                $shutdown,
-                $ticker,
-                $artifactStore,
-                $artifactConfiguration,
-                resourceLimits: $configuration->resourceLimits,
-            );
+            if (\count($plan) > 0) {
+                [$pooled, $isolated] = new Distributor()->units($plan);
+                $channelCount = \min($workerCount, \count($pooled) + \count($isolated));
+                $fixtures = IntegrationFixtureManager::provision(
+                    $orchestratorSide,
+                    $runId,
+                    $workerCount,
+                    \max(1, $channelCount),
+                    $configuration->shard,
+                );
+            }
 
-            $summary = $orchestrator->run($plan, $sink, $workerCount);
+            try {
+                $sink->emit(new RunStarted(
+                    $runId,
+                    \count($plan),
+                    $workerCount,
+                    \microtime(true),
+                    $artifactStore->publicDirectory(),
+                ));
 
-            $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
-            $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+                $orchestrator = new Orchestrator(
+                    $this->workerCommand,
+                    $this->workingDirectory,
+                    $configuration->recycleAfterTests,
+                    $configuration->recycleAboveMemoryBytes,
+                    $configuration->stopAfterFailures,
+                    $coverageSettings,
+                    $configFile,
+                    $detectLeaks,
+                    $configuration->policy->isNoOp() ? null : $configuration->policy,
+                    $shutdown,
+                    $ticker,
+                    $artifactStore,
+                    $artifactConfiguration,
+                    $fixtures,
+                    resourceLimits: $configuration->resourceLimits,
+                );
 
-            return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
+                $summary = $orchestrator->run($plan, $sink, $workerCount);
+
+                $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
+                $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+
+                $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
+            } catch (\Throwable $failure) {
+                $cleanupFailures = $fixtures->close();
+
+                if ($cleanupFailures !== []) {
+                    throw IntegrationFixtureError::afterFailure($failure, $cleanupFailures);
+                }
+
+                throw $failure;
+            }
+
+            $cleanupFailures = $fixtures->close();
+
+            if ($cleanupFailures !== []) {
+                throw IntegrationFixtureError::cleanup($cleanupFailures);
+            }
+
+            return $result;
         } finally {
             $artifactStore->cleanup();
         }
