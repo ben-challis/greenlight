@@ -39,7 +39,7 @@ final readonly class TestMetadata implements WireSerializable
      * @param non-empty-string|null $retryOnlyOn
      * @param non-empty-string|null $dataSetProvider
      * @param list<mixed> $skipUnlessArguments validated to scalars or null
-     * @param list<string> $resources named resources consumed by the class scheduling unit
+     * @param list<string> $resources named resources required by this test entry
      *
      * @throws \InvalidArgumentException
      */

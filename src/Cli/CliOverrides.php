@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\WorkerCount;
+use Greenlight\Core\Test\ResourceName;
 
 /**
  * The settings the command line can override, already validated and typed.
@@ -134,12 +135,21 @@ final readonly class CliOverrides
         $resourceLimits = [];
 
         foreach ($arguments->values('resource-limit') as $raw) {
-            if (\preg_match('/^([a-z0-9][a-z0-9._-]*)=(\d+)$/D', $raw, $matches) !== 1) {
+            $parts = \explode('=', $raw);
+
+            if (\count($parts) !== 2) {
                 throw CliError::malformedResourceLimit($raw);
             }
 
-            $name = $matches[1];
-            $limit = self::positiveInt($matches[2], '--resource-limit');
+            [$name, $rawLimit] = $parts;
+
+            try {
+                ResourceName::assertValid($name);
+            } catch (\InvalidArgumentException) {
+                throw CliError::malformedResourceLimit($raw);
+            }
+
+            $limit = self::positiveInt($rawLimit, '--resource-limit');
 
             if (\array_key_exists($name, $resourceLimits)) {
                 throw CliError::duplicateResourceLimit($name);

@@ -19,7 +19,10 @@ final readonly class ResourceSchedulingTest
     {
         $project = $this->concurrencyProject();
         $state = $project->path('state.json');
-        $environment = ['RESOURCE_PROBE_STATE' => $state];
+        $environment = [
+            'RESOURCE_PROBE_STATE' => $state,
+            'RESOURCE_PROBE_TARGET' => '3',
+        ];
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain'], $environment);
         $counters = $this->counters($state);
@@ -29,6 +32,7 @@ final readonly class ResourceSchedulingTest
         Expect::that($counters['global'])->toBeGreaterThanOrEqual(3);
 
         \file_put_contents($state, '{}');
+        $environment['RESOURCE_PROBE_TARGET'] = '2';
 
         $overridden = GreenlightCli::run(
             $project->directory,
@@ -137,8 +141,12 @@ final readonly class ResourceSchedulingTest
                 public static function hold(string $resource): void
                 {
                     self::change($resource, 1);
-                    \usleep(400_000);
-                    self::change($resource, -1);
+
+                    try {
+                        self::awaitGate();
+                    } finally {
+                        self::change($resource, -1);
+                    }
                 }
 
                 private static function change(string $resource, int $delta): void
@@ -166,7 +174,55 @@ final readonly class ResourceSchedulingTest
                             $max[$name] = \max((int) ($max[$name] ?? 0), $current[$name]);
                         }
 
-                        \file_put_contents($path, \json_encode(['current' => $current, 'max' => $max], \JSON_THROW_ON_ERROR));
+                        $target = \getenv('RESOURCE_PROBE_TARGET');
+
+                        if (!\is_string($target) || \preg_match('/^[1-9]\d*$/D', $target) !== 1) {
+                            throw new \RuntimeException('Missing resource probe target.');
+                        }
+
+                        $gateOpen = ($state['gateOpen'] ?? false) === true || $current['global'] >= (int) $target;
+                        \file_put_contents($path, \json_encode([
+                            'current' => $current,
+                            'max' => $max,
+                            'gateOpen' => $gateOpen,
+                        ], \JSON_THROW_ON_ERROR));
+                    } finally {
+                        \flock($lock, \LOCK_UN);
+                        \fclose($lock);
+                    }
+                }
+
+                private static function awaitGate(): void
+                {
+                    $deadline = \microtime(true) + 5.0;
+
+                    while (!self::gateIsOpen()) {
+                        if (\microtime(true) >= $deadline) {
+                            throw new \RuntimeException('Timed out waiting for concurrent resource probes.');
+                        }
+
+                        \usleep(10_000);
+                    }
+                }
+
+                private static function gateIsOpen(): bool
+                {
+                    $path = \getenv('RESOURCE_PROBE_STATE');
+
+                    if (!\is_string($path) || $path === '') {
+                        throw new \RuntimeException('Missing resource probe state path.');
+                    }
+
+                    $lock = \fopen($path . '.lock', 'c+');
+
+                    if (!\is_resource($lock) || !\flock($lock, \LOCK_SH)) {
+                        throw new \RuntimeException('Could not lock resource probe state.');
+                    }
+
+                    try {
+                        $decoded = \is_file($path) ? \json_decode((string) \file_get_contents($path), true) : [];
+
+                        return \is_array($decoded) && ($decoded['gateOpen'] ?? false) === true;
                     } finally {
                         \flock($lock, \LOCK_UN);
                         \fclose($lock);

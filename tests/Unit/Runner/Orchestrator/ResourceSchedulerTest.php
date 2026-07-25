@@ -71,6 +71,22 @@ final class ResourceSchedulerTest
     }
 
     #[Test]
+    public function workCanUseCapacityBeyondTheOldestBlockedUnitReservation(): void
+    {
+        $scheduler = new ResourceScheduler([
+            $this->unit('BHoldingTest', ['b']),
+            $this->unit('NeedsBothTest', ['a', 'b']),
+            $this->unit('FirstNeedsATest', ['a']),
+            $this->unit('SecondNeedsATest', ['a']),
+        ], [], ['a' => 2]);
+
+        $this->assigned($scheduler);
+
+        Expect::that($this->assigned($scheduler)->unit->plan->classes())->toBe(['FirstNeedsATest']);
+        Expect::that($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Wait);
+    }
+
+    #[Test]
     public function isolatedUnitsNeedAFreshWorkerAndRunAfterThePooledQueue(): void
     {
         $isolated = $this->unit('IsolatedTest', ['database'], isolated: true);

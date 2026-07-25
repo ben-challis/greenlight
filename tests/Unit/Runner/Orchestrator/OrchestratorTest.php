@@ -14,6 +14,8 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
+use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final class OrchestratorTest
@@ -61,12 +63,42 @@ final class OrchestratorTest
             ->toThrow(ProtocolError::class, '/sent nothing for 0\.5s/');
     }
 
+    #[Test]
+    #[Timeout(30.0)]
+    public function resourceWaitStartsANewProgressWindowBeforeAssignment(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+            recycleAfterTests: 1,
+            progressDeadlineSeconds: 0.5,
+            resourceLimits: ['database' => 1],
+        );
+
+        $summary = $orchestrator->run($this->resourcePlan(), new CollectingEventSink(), 2);
+
+        Expect::that($summary->passed)->toBe(2);
+        Expect::that($summary->isSuccessful())->toBeTrue();
+    }
+
     private function plan(): ExecutionPlan
     {
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
 
         return new ExecutionPlan([
             new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+    }
+
+    private function resourcePlan(): ExecutionPlan
+    {
+        $slow = new TestId(SlowResourceTest::class, 'holdsTheResource');
+        $waiting = new TestId(WaitingResourceTest::class, 'runsAfterTheWait');
+
+        return new ExecutionPlan([
+            new PlanEntry($slow, new TestMetadata($slow->class, $slow->method, resources: ['database'])),
+            new PlanEntry($waiting, new TestMetadata($waiting->class, $waiting->method, resources: ['database'])),
         ]);
     }
 }

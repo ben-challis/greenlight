@@ -91,6 +91,8 @@ final class Orchestrator
 
     private bool $draining = false;
 
+    private bool $retryWaitingWorkers = false;
+
     private int $spawnedCount = 0;
 
     private int $spawnBudget = 0;
@@ -383,6 +385,7 @@ final class Orchestrator
         $this->pumpChannels($sink);
         $this->detectCrashes($sink);
         $this->enforceTimeouts($sink);
+        $this->assignWaiting($sink);
     }
 
     /**
@@ -441,8 +444,6 @@ final class Orchestrator
             : $this->resourceScheduler()->dispatch($handle->isFresh());
 
         if ($decision->kind === DispatchKind::Wait) {
-            $handle->waitForWork();
-
             return;
         }
 
@@ -479,6 +480,7 @@ final class Orchestrator
                 $this->artifactStore?->session(),
                 $this->artifactConfiguration,
             ));
+            $handle->lastProgressAt = \microtime(true);
         } catch (ProtocolError) {
             // The worker died before the assignment arrived; containment
             // re-enqueues the whole unit for a replacement.
@@ -554,7 +556,6 @@ final class Orchestrator
             }
         }
 
-        $this->assignWaiting($sink);
     }
 
     private function onEvent(WorkerHandle $handle, Event $event, EventSink $sink): void
@@ -793,10 +794,17 @@ final class Orchestrator
 
         $this->resourceScheduler()->release($lease);
         $handle->finishAssignment();
+        $this->retryWaitingWorkers = true;
     }
 
     private function assignWaiting(EventSink $sink): void
     {
+        if (!$this->retryWaitingWorkers) {
+            return;
+        }
+
+        $this->retryWaitingWorkers = false;
+
         foreach ($this->handles as $handle) {
             if ($handle->done || $handle->channel === null || $handle->assigned !== null) {
                 continue;

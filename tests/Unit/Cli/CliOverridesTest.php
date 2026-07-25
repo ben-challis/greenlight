@@ -72,7 +72,7 @@ final class CliOverridesTest
             'group' => ['slow', 'io'],
             'seed' => ['0'],
             'artifacts-dir' => ['build/evidence'],
-            'resource-limit' => ['postgres=3', 'payments-sandbox=1'],
+            'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
         ]));
 
         Expect::that($overrides->workers?->fixed)->toBe(4);
@@ -80,7 +80,11 @@ final class CliOverridesTest
         Expect::that($overrides->groups)->toBe(['slow', 'io']);
         Expect::that($overrides->seed)->toBe(0);
         Expect::that($overrides->artifactsDirectory)->toBe('build/evidence');
-        Expect::that($overrides->resourceLimits)->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
+        Expect::that($overrides->resourceLimits)->toBe([
+            'postgres' => 3,
+            'payments-sandbox' => 1,
+            'cache.primary_1' => 2,
+        ]);
     }
 
     #[Test]
