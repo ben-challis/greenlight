@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Monotonic time and sleeping used by temporal expectations.
+ * Provides monotonic time and sleeping for polling expectations.
  *
  * @internal
  */

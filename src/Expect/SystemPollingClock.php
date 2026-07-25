@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * System monotonic clock for production polling.
+ * Reads monotonic time with hrtime() and sleeps with usleep().
  *
  * @internal
  */
