@@ -1,114 +1,75 @@
 # Orchestrator-owned integration fixtures
 
-Status: accepted
+This document describes how Greenlight provisions external test infrastructure,
+passes connection data to workers, and tears the infrastructure down.
 
-## Decision
+## Ownership and lifetime
 
-Greenlight models external test infrastructure as an orchestrator-owned
-integration fixture graph.
+Integration fixtures belong to the orchestrator. A plugin declares them through
+`IntegrationFixtureProvider`, and Greenlight provisions them after discovery,
+selection, and sharding. Provisioning finishes before `RunStarted` and before
+workers are spawned.
 
-Plugins declare fixtures through `IntegrationFixtureProvider`. Each
-`IntegrationFixtureDefinition` has a globally unique ID, a provisioning closure,
-and explicit dependencies. The orchestrator validates and topologically orders
-the graph, provisions it after discovery and sharding, and owns a reverse-order
-cleanup stack.
+One fixture graph belongs to one selected run. Each repeat iteration and watch
+rerun gets a fresh graph. CI shards provision independently because Greenlight
+does not coordinate shards across machines.
 
-A fixture exposes a shared `FixtureResource` and optional overlays keyed by
-Greenlight channel. The orchestrator merges the shared data with one overlay and
-sends only that result to the matching worker. Data crosses the existing
-authenticated local protocol as JSON-safe values. Secrets occupy a separate
-map, are redacted from object debug views, and require an explicit `reveal()`
-call.
+The graph outlives individual worker processes. Retries, recycled workers,
+isolated tests, and crash replacements continue to use the same fixture
+resources for their channel.
 
-Workers acknowledge a new bootstrap phase before they can receive assignments.
-During bootstrap they load their configured plugin instances, invoke
-`WorkerBootstrapSubscriber`, and build the harness registry. The initial pool
-uses an all-ready barrier; replacements need only complete their own bootstrap.
+## Provisioning
 
-Fixtures live for one selected run iteration. Their resources survive retries,
-worker recycling, isolated workers, and worker crashes because workers do not
-own them. Repeat iterations, watch reruns, and independent shards each provision
-a new graph.
+Each `IntegrationFixtureDefinition` has an ID, a provisioning closure, and an
+optional list of dependencies. Greenlight validates the whole graph before
+provisioning and runs dependencies first.
 
-Cleanup runs after `RunFinished` on success and from the same runner failure
-boundary for provisioning failures, worker startup failures, test failures,
-protocol failures, reporter failures, and graceful signal shutdown. Every
-registered callback is attempted. Cleanup failures are reported without hiding
-the original failure.
+Provisioners register cleanup with `IntegrationFixtureContext::defer()`. A
+callback should be registered as soon as its resource is acquired, so it still
+runs if the rest of the provisioner fails. Callbacks run in reverse registration
+order.
 
-## Context
+A provisioner publishes a shared `FixtureResource` and may add one overlay per
+channel. Shared values and the current channel overlay are merged before the
+worker receives them.
 
-`GREENLIGHT_CHANNEL` and `TestChannel` already provide stable concurrency slots,
-but applications have had to create resources outside Greenlight or lazily
-inside workers. Worker ownership cannot reliably clean up after a crash and can
-duplicate expensive infrastructure during recycling. Environment variables are
-also a poor transport for structured values and credentials.
+## Resource transport
 
-The existing `HarnessProvider` and `ServiceResolver` APIs solve worker-local
-object construction. They cannot own a resource whose lifetime must span
-multiple physical workers. `RunLifecycleSubscriber` runs in the right process
-but is an observation API and has no dependency graph, resource transport, or
-cleanup contract.
+Fixture resources support JSON-safe nulls, booleans, finite numbers, UTF-8
+strings, lists, and maps. A complete channel resource payload is limited to
+1 MiB.
 
-## Consequences
+Secrets use a separate map. Worker code receives them as `SensitiveValue`
+objects and must call `reveal()` to read the string. Object dumps and exports
+redact the value.
 
-The public terminology distinguishes the two lifetimes:
+Resources travel in the authenticated local worker protocol. Greenlight does
+not put them in environment variables, command arguments, stdout, or stderr.
+Each worker receives only its own channel overlay.
 
-* an **integration fixture** is orchestrator-owned external infrastructure
-* a **fixture resource** is serializable connection or addressing data
-* an **integration resource catalog** is one worker channel's view
-* a **harness service** is a worker-local injectable object
+## Worker bootstrap
 
-Plugins can combine capabilities. An integration fixture provider creates the
-external resource, a worker bootstrap subscriber reads the channel catalog, and
-a harness provider adapts it to application-specific injectable services.
+Protocol version 2 adds `bootstrap` and `ready` messages. After `hello`, the
+orchestrator sends the worker its channel, config path, and resources. The
+worker then loads plugins, calls `WorkerBootstrapSubscriber`, builds the harness
+registry, and replies with `ready`.
 
-The wire protocol advances to version 2 and adds `bootstrap` and `ready`.
-Configuration moves from the first `assign` frame into `bootstrap`. This is an
-internal compatibility break only; public plugin and configuration APIs remain
-additive.
+The initial workers must all report ready before any test starts. A replacement
+worker only waits for its own bootstrap because the rest of the pool may still
+be running tests.
 
-The initial barrier trades some startup latency for deterministic safety: no
-test can mutate shared infrastructure while another initial worker is still
-running its bootstrap hook. Replacements do not stop already-running workers.
+Tests can inject `IntegrationResources` directly. A plugin can instead read the
+resources in `WorkerBootstrapSubscriber` and expose an application-specific
+client through `HarnessProvider` or `ServiceResolver`.
 
-Each channel catalog is limited to 1 MiB. This keeps bootstrap bounded and
-encourages plugins to send addresses and short-lived credentials instead of
-large datasets.
+## Teardown
 
-## Rejected alternatives
+On a successful run, teardown starts after `RunFinished`. The same cleanup path
+runs after provisioning, bootstrap, worker, protocol, reporter, or test
+failures. Greenlight attempts every registered callback even if one throws.
+Cleanup failures fail the run without replacing an earlier failure.
 
-**Provision inside each worker.** This couples infrastructure lifetime to a
-crash-prone process, repeats work during recycling, and cannot coordinate shared
-resources.
-
-**Use run lifecycle events for setup and teardown.** Event subscribers are
-observers. Adding mutable setup state and teardown conventions there would make
-event delivery order an implicit resource API and still would not transport
-typed channel data.
-
-**Put resource values in environment variables.** Environment variables flatten
-types, are inherited by child processes, are commonly captured in diagnostics,
-and expose every channel's values unless the orchestrator constructs a separate
-environment for each one.
-
-**Send arbitrary PHP objects.** Serialization would couple orchestrator and
-worker memory models, expand the attack surface, and make compatibility and
-redaction difficult. Workers construct live clients through harness services
-instead.
-
-**Share one fixture graph across CI shards.** Shards are deliberately
-coordination-free and may run on unrelated hosts. Plugins that want shared
-remote infrastructure must coordinate it externally and make cleanup
-idempotent.
-
-## Limits and future decisions
-
-Greenlight cannot execute process-local teardown after SIGKILL, a second signal,
-machine loss, or forcible orchestrator termination. External resources that
-must survive those conditions need leases, TTLs, or an out-of-process reaper.
-
-The first API has run-wide and per-channel resources only. Per-suite graphs,
-on-demand fixture activation, cross-shard leases, secret-store references, and
-bounded parallel provisioning remain possible extensions, but are not implied
-by this decision.
+The first SIGINT or SIGTERM drains workers before teardown. SIGKILL, a second
+signal, process loss, and machine loss cannot run process-local callbacks.
+Resources that need protection from those cases should also use leases, expiry
+times, or an external reaper.
