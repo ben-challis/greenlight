@@ -151,11 +151,15 @@ accumulate.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
   `html`. Repeatable.
+* `perTest(string $target): self` writes a versioned JSONL map from exact test
+  ids to covered source lines. This mode is opt-in because it starts and stops
+  the coverage driver around every test.
 
 ```php
 ->coverage(fn ($c) => $c
     ->include('src')
     ->driver('pcov')
+    ->perTest('coverage/test-map.jsonl')
     ->export('lcov', 'coverage/lcov.info')
     ->export('html', 'coverage/html'))
 ```
@@ -178,6 +182,18 @@ process to operate the real CLI.
 Before export, the run adds these coverage files to the
 result. This collection operation does not fail the run. The configured include
 paths filter coverage from all processes.
+
+Per-test collection is stricter than aggregate coverage. It fails the run when
+the requested driver is unavailable, because a missing map must not make an
+impact-analysis consumer run the wrong tests. At least one `include()` path is
+required. Each data row has its own test ID. Retries are unioned into that
+test's mapping. Failed, errored, and skipped tests still receive a test record.
+The artifact is published only after a complete successful run. See the
+[per-test coverage schema](architecture/test-coverage-jsonl.md).
+
+Per-test collection increases driver calls, protocol traffic, disk I/O, and
+runtime. Keep it off normal runs and enable it for consumers such as Infection.
+It is not supported in watch mode.
 
 ### `watch(callable $configurator): self`
 
@@ -489,6 +505,15 @@ greenlight run \
 Repeatable. Multiple exact test IDs and `--filter` patterns form a union.
 Exclusions have precedence.
 
+### `--test-id-file=<path>`
+
+Reads exact rendered test IDs from a text file, one per line. Blank lines are
+ignored and duplicate IDs are collapsed. An unreadable or empty file is a
+usage error. An ID that discovery cannot find fails the run.
+
+Use this option for tools that already have Greenlight IDs, including the
+Infection adapter. It avoids command-line length limits.
+
 ### `--exclude-group=<name>`
 
 Excludes tests in the given group.
@@ -630,6 +655,25 @@ In watch mode:
 
 * Enter reruns everything.
 * `q` quits.
+
+Per-test coverage mapping cannot be combined with watch mode. Watch remains a
+local feedback tool and does not replace a complete CI suite.
+
+### `--coverage-map=<path>`
+
+Enables per-test coverage for this run and writes the versioned JSONL artifact
+to the path. Supply at least one `--coverage-include=<path>` unless the loaded
+configuration already has coverage include paths.
+
+### `--coverage-include=<path>`
+
+Adds a source path to coverage collection. Repeatable. CLI paths are combined
+with configured `CoverageBuilder::include()` paths.
+
+### `--no-coverage`
+
+Disables configured aggregate and per-test coverage for this run. It cannot be
+combined with `--coverage-map` or `--coverage-include`.
 
 ### `--detect-leaks`
 

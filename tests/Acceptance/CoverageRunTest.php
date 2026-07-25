@@ -143,6 +143,79 @@ final readonly class CoverageRunTest
     }
 
     #[Test]
+    public function missingDriverFailsWhenAPerTestArtifactWasRequested(): void
+    {
+        $project = $this->writeProject();
+        $root = \dirname(__DIR__, 2);
+        $result = $this->runIn($project, [
+            'run',
+            '--workers=1',
+            '--reporter=plain',
+            '--coverage-map=coverage-out/test-map.jsonl',
+            '--coverage-include=' . $root . '/tests/Fixture/CoverageLib',
+        ], 'off');
+
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('Per-test coverage was requested but cannot be collected')
+            ->and(\is_file($project->path('coverage-out/test-map.jsonl')))->toBeFalse();
+    }
+
+    #[Test]
+    public function exportsPerTestCoverageThroughTheProcessPool(): void
+    {
+        $project = $this->writeProject();
+        $root = \dirname(__DIR__, 2);
+        $result = $this->runIn($project, [
+            'run',
+            '--workers=2',
+            '--reporter=plain',
+            '--coverage-map=coverage-out/test-map.jsonl',
+            '--coverage-include=' . $root . '/tests/Fixture/CoverageLib',
+        ], 'coverage');
+
+        Expect::that($result->exitCode)->toBe(0);
+
+        $lines = \file(
+            $project->path('coverage-out/test-map.jsonl'),
+            \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES,
+        );
+
+        if (!\is_array($lines)) {
+            Fail::because('Expected a readable per-test coverage artifact.');
+        }
+
+        $records = [];
+
+        foreach ($lines as $line) {
+            $record = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
+
+            if (!\is_array($record)) {
+                Fail::because('Expected every per-test coverage line to decode to an object.');
+            }
+
+            $records[] = $record;
+        }
+        $tests = \array_values(\array_filter(
+            $records,
+            static fn(array $record): bool => ($record['type'] ?? null) === 'test',
+        ));
+        $mapping = \array_values(\array_filter(
+            $records,
+            static function (array $record): bool {
+                $file = $record['file'] ?? null;
+
+                return ($record['type'] ?? null) === 'coverage'
+                    && \is_string($file)
+                    && \str_ends_with($file, 'CoverageLib/Math.php');
+            },
+        ));
+
+        Expect::that($tests)->toHaveCount(1)
+            ->and($tests[0]['renderedId'])->toBe('Greenlight\Tests\Fixture\CoverageSuite\MathTest::addsTwoIntegers')
+            ->and($mapping)->not()->toBeEmpty();
+    }
+
+    #[Test]
     public function orchestratorProcessCoverageIsMergedIntoTheExport(): void
     {
         $project = $this->writeProject(includeOrchestrator: true);

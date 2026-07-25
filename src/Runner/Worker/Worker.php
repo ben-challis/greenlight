@@ -21,6 +21,8 @@ use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Runner\CoverageCollector;
+use Greenlight\Runner\TestCoverageSink;
 
 /**
  * Greenlight assigns a class-scope teardown failure to the last test in that
@@ -60,6 +62,8 @@ final readonly class Worker
         ?\Closure $drainRequested = null,
         ?HarnessScopes $scopes = null,
         ?\Closure $attemptStarted = null,
+        ?CoverageCollector $perTestCoverage = null,
+        ?TestCoverageSink $testCoverageSink = null,
     ): WorkerRunOutcome {
         // This call does not close externally owned scopes. Thus, run services
         // remain available when one worker runs multiple assignments. The
@@ -90,6 +94,7 @@ final readonly class Worker
 
             foreach ($entries as $index => $entry) {
                 $sink->emit(new TestStarted($entry->id, \microtime(true)));
+                $perTestCoverage?->start();
 
                 try {
                     $context ??= ClassContext::for($class);
@@ -115,6 +120,10 @@ final readonly class Worker
 
                 if ($index === $lastIndex) {
                     $result = $this->applyScopeTeardown($result, $scopes->closeClass());
+                }
+
+                if ($perTestCoverage instanceof CoverageCollector) {
+                    $testCoverageSink?->record($entry->id, $perTestCoverage->stop());
                 }
 
                 $summary = $summary->add($result->outcome);

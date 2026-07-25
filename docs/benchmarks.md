@@ -26,6 +26,11 @@ Wall-clock time includes process start, autoload, discovery, and execution.
 Greenlight uses plain output, PHPUnit disables output, and ParaTest uses its
 default output. The measurements include these output-mode differences.
 
+These results do not enable per-test coverage. That opt-in mode starts and stops
+pcov or Xdebug for every test and streams the resulting relation to disk, so it
+has a different overhead profile. Measure it separately on the real suite that
+will feed Infection; do not infer its cost from this table.
+
 ## Results
 
 ### `many-fast`

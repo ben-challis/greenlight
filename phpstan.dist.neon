@@ -7,6 +7,8 @@ includes:
 parameters:
     level: max
     tmpDir: build/cache/phpstan
+    scanFiles:
+        - packages/infection-adapter/src/CoverageXmlWriter.php
     paths:
         - src
         - tests

@@ -100,6 +100,22 @@ final readonly class SelectionTest
     }
 
     #[Test]
+    public function exactIdsSelectOnlyTheNamedTestAndRejectStaleIds(): void
+    {
+        $project = $this->writeProject();
+        $id = 'SelectionProbe\SelectionProbeTest::alwaysPasses';
+        $project->write('exact-tests.txt', "\n{$id}\n{$id}\n");
+
+        $result = $this->run($project, '--test-id-file=exact-tests.txt');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('1 test, 1 passed');
+
+        $result = $this->run($project, '--test-id=SelectionProbe\SelectionProbeTest::missing');
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('Exact test selection did not find');
+    }
+
+    #[Test]
     public function unpersistableRunStateWarnsWithoutFailingTheRun(): void
     {
         $project = $this->writeProject();

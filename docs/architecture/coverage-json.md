@@ -140,5 +140,7 @@ Readers **MUST** ignore unknown keys.
 If version 1 defines a field, a change to its definition or shape **MUST** use a
 new `v` value.
 
-Greenlight **MAY** add per-test coverage maps later as an optional extension.
-This extension **MUST** use an additive key and separate documentation.
+Per-test attribution is deliberately a separate streaming artifact rather than
+an additive key here. Keeping this aggregate format small preserves existing
+coverage-diff and import consumers. See
+[the per-test coverage JSONL schema](test-coverage-jsonl.md).

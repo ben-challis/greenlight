@@ -26,6 +26,7 @@ use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\MessageRegistry;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
+use Greenlight\Runner\Protocol\Messages\CoverageChunk;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -55,6 +56,7 @@ final class ProtocolTest
         $messages = [
             new Hello('w-1', 'token-abc', 4242),
             new Assign(new ExecutionPlan([$entry], 7), 500, 256 * 1024 * 1024),
+            new CoverageChunk(new TestId('App\FooTest', 'bar'), '/app/src/Foo.php', [10, 11]),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             new AttemptStarted(new TestId('App\FooTest', 'bar'), 2),
@@ -202,7 +204,7 @@ final class ProtocolTest
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 2, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
         Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')
