@@ -59,7 +59,7 @@ final readonly class BailRunTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'bail');
 
-        $project->write('tests/BailAProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/BailAProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -84,7 +84,7 @@ final readonly class BailRunTest
             }
             PHP);
 
-        $project->write('tests/BailBProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/BailBProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -106,7 +106,7 @@ final readonly class BailRunTest
             }
             PHP);
 
-        $project->write('tests/BailCProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/BailCProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -125,7 +125,7 @@ final readonly class BailRunTest
             }
             PHP);
 
-        $project->writeConfig([
+        $project->configureWithTestFiles([
             'tests/BailAProbeTest.php',
             'tests/BailBProbeTest.php',
             'tests/BailCProbeTest.php',

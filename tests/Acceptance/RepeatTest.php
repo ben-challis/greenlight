@@ -164,8 +164,8 @@ final readonly class RepeatTest
     private function writeProjectWithTestClass(string $code): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'repeat');
-        $project->write('tests/RepeatProbeTest.php', $code);
-        $project->writeConfig(['tests/RepeatProbeTest.php']);
+        $project->writeFile('tests/RepeatProbeTest.php', $code);
+        $project->configureWithTestFiles(['tests/RepeatProbeTest.php']);
 
         return $project;
     }

@@ -69,7 +69,7 @@ final readonly class CliTest
     #[Test]
     public function runExecutesAPassingSuiteAndExitsZero(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['run']);
         Expect::that($result->exitCode)->toBe(0);
         Expect::that($result->output())->toContain('7 tests, 7 passed');
@@ -83,7 +83,7 @@ final readonly class CliTest
         // output with or without the flag; this pins flag parsing and the
         // escape-free contract, while the TTY behaviour matrix lives in
         // TerminalCapabilitiesTest and TtyReporterTest.
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi', '--verbose']);
         Expect::that($result->exitCode)->toBe(0);
         Expect::that($result->output())->not()->toContain("\x1b[");
@@ -111,7 +111,7 @@ final readonly class CliTest
     #[Test]
     public function listTestsPrintsDiscoveredTestIds(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['list-tests']);
         $output = $result->outputLines();
         Expect::that($result->exitCode)->toBe(0);
@@ -123,7 +123,7 @@ final readonly class CliTest
     #[Test]
     public function listTestsHonoursGroupFilters(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'cli');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['list-tests', '--group=slow']);
         $output = $result->outputLines();
         Expect::that($result->exitCode)->toBe(0);

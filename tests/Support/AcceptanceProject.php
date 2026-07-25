@@ -19,12 +19,12 @@ final readonly class AcceptanceProject
      * Uses the shared DiscoveryBasic directory because copying its PSR-4
      * classes would make them autoload from the original path.
      */
-    public static function copyOfListTestsConfig(TempDirectory $workspace, string $name): self
+    public static function createWithDiscoveryBasicTests(TempDirectory $workspace, string $name): self
     {
         $project = self::create($workspace, $name);
         $discoveryBasic = \dirname(__DIR__) . '/Fixture/DiscoveryBasic';
 
-        $project->write('greenlight.php', \sprintf(
+        $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
 
@@ -47,7 +47,7 @@ final readonly class AcceptanceProject
         return $this->directory . '/' . $relative;
     }
 
-    public function write(string $relativePath, string $contents): void
+    public function writeFile(string $relativePath, string $contents): void
     {
         $path = $this->path($relativePath);
         $parent = \dirname($path);
@@ -62,17 +62,17 @@ final readonly class AcceptanceProject
     /**
      * Keep randomizeOrder disabled. Some callers assert declaration order.
      *
-     * @param list<string> $requireRelative test files to require, relative to the project root
+     * @param list<string> $testFiles test files to require, relative to the project root
      */
-    public function writeConfig(array $requireRelative, int $workers = 1): void
+    public function configureWithTestFiles(array $testFiles, int $workers = 1): void
     {
         $requires = [];
 
-        foreach ($requireRelative as $relative) {
+        foreach ($testFiles as $relative) {
             $requires[] = \sprintf("require_once __DIR__ . '/%s';", $relative);
         }
 
-        $this->write('greenlight.php', \sprintf(
+        $this->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
 

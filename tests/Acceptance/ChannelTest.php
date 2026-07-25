@@ -105,7 +105,7 @@ final readonly class ChannelTest
     private function writeProject(?int $recycleAfterTests = null, int $expectedChannels = 2): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'channel');
-        $project->write('markers/.gitkeep', '');
+        $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
         // Each class records its channel and waits for every expected marker.
@@ -162,7 +162,7 @@ final readonly class ChannelTest
             PHP;
 
         foreach (['Alpha', 'Bravo', 'Charlie', 'Delta'] as $name) {
-            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf(
+            $project->writeFile(\sprintf('tests/%sTest.php', $name), \sprintf(
                 $template,
                 $name,
                 \var_export($markerDir, true),
@@ -175,7 +175,7 @@ final readonly class ChannelTest
             ? "->workers(2)"
             : \sprintf("->workers(2, recycleAfterTests: %d)", $recycleAfterTests);
 
-        $project->write('greenlight.php', <<<PHP
+        $project->writeFile('greenlight.php', <<<PHP
             <?php
 
             declare(strict_types=1);

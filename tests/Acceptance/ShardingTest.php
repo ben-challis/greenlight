@@ -17,9 +17,9 @@ final readonly class ShardingTest
     #[Test]
     public function shardsReconstituteTheFullListExactlyOnce(): void
     {
-        // A private copy of ListTestsConfig, so these listings cannot race
+        // An isolated project, so these listings cannot race
         // another acceptance test's use of the same working directory.
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'sharding');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sharding');
         $all = $this->listTests($project);
         $union = [];
         foreach ([1, 2, 3] as $index) {
@@ -36,7 +36,7 @@ final readonly class ShardingTest
     #[Test]
     public function malformedShardSpecsAreUsageErrors(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'sharding');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sharding');
         foreach (['--shard=4/3', '--shard=0/3', '--shard=banana'] as $flag) {
             $result = GreenlightCli::run($project->directory, ['list-tests', $flag]);
             Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('greenlight: --shard');

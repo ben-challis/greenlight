@@ -32,7 +32,7 @@ final readonly class WatchModeTest
             Expect::that($output)->toContain('1 test, 1 passed');
 
             // A synthetic change: append a comment, size changes, mtime may not.
-            $project->write('tests/WatchProbeTest.php', $original . "// touched\n");
+            $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
 
             $output = $process->readStdoutUntil('Watching for changes', 20.0);
             Expect::that($output)->toContain('Change detected')
@@ -49,7 +49,7 @@ final readonly class WatchModeTest
     private function writeProject(): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'watch');
-        $project->write('tests/WatchProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/WatchProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -64,7 +64,7 @@ final readonly class WatchModeTest
                 public function passes(): void {}
             }
             PHP);
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);

@@ -17,7 +17,7 @@ final readonly class ListingTest
     #[Test]
     public function listTestsPrintsTheSelectionInPlanOrderWithoutRunning(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0);
@@ -42,7 +42,7 @@ final readonly class ListingTest
     #[Test]
     public function listTestsIsDeterministicAcrossRuns(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $first = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
         $second = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
         Expect::that($second)->toBe($first);
@@ -51,7 +51,7 @@ final readonly class ListingTest
     #[Test]
     public function listTestsComposesWithExcludeGroup(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests', '--exclude-group=slow']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0);
@@ -65,7 +65,7 @@ final readonly class ListingTest
     #[Test]
     public function listTestsComposesWithShardingIntoDisjointSlices(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $full = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
         $firstResult = GreenlightCli::run($project->directory, ['run', '--list-tests', '--shard=1/2']);
         $secondResult = GreenlightCli::run($project->directory, ['run', '--list-tests', '--shard=2/2']);
@@ -86,7 +86,7 @@ final readonly class ListingTest
     #[Test]
     public function listGroupsPrintsEachGroupWithItsTestCount(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-groups']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0);
@@ -117,7 +117,7 @@ final readonly class ListingTest
     #[Test]
     public function listSuitesWithNoSuitesConfiguredPrintsZero(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-suites']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0)

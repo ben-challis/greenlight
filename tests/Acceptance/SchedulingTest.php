@@ -102,10 +102,10 @@ final readonly class SchedulingTest
             PHP;
 
         foreach (['Alpha', 'Bravo', 'Charlie'] as $name) {
-            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf($fast, $name));
+            $project->writeFile(\sprintf('tests/%sTest.php', $name), \sprintf($fast, $name));
         }
 
-        $project->write('tests/SlowTest.php', <<<'PHP'
+        $project->writeFile('tests/SlowTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -124,7 +124,7 @@ final readonly class SchedulingTest
             }
             PHP);
 
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);

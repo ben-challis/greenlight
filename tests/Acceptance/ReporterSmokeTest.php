@@ -58,7 +58,7 @@ final readonly class ReporterSmokeTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'reporter-smoke');
 
-        $project->write('tests/GoodReporterProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/GoodReporterProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -78,7 +78,7 @@ final readonly class ReporterSmokeTest
             }
             PHP);
 
-        $project->write('tests/BadReporterProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/BadReporterProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -97,7 +97,7 @@ final readonly class ReporterSmokeTest
             }
             PHP);
 
-        $project->writeConfig([
+        $project->configureWithTestFiles([
             'tests/GoodReporterProbeTest.php',
             'tests/BadReporterProbeTest.php',
         ]);
