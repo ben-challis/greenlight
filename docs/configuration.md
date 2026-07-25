@@ -105,8 +105,9 @@ or file handles.
 
 ### resourceLimit(string $name, int $limit = 1): self
 
-Sets the number of class assignments that may simultaneously hold a named
-resource in this Greenlight invocation.
+Default: `1` for a resource used by `#[RequiresResource]`.
+
+Limits how many classes can use the named resource at once.
 
 ```php
 return GreenlightConfig::create()
@@ -114,15 +115,15 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox');
 ```
 
-A `#[RequiresResource]` name without an explicit setting defaults to one, which
-makes it exclusive. Limits must be positive. Names must match
-`[a-z0-9][a-z0-9._-]*`, and declaring the same limit twice is an error.
+Limits must be positive. Names must match `[a-z0-9][a-z0-9._-]*`, and each name
+may be configured only once.
 
-Every requirement consumes one slot. A class requiring several resources starts
-only when all slots can be leased atomically.
+A class that requires several resources waits until all of them have capacity.
+Greenlight claims the slots together, so a class never starts with only part of
+its requirement.
 
-Limits are local to one run. Separate Greenlight processes and CI shards enforce
-their own copies and do not coordinate.
+Each run maintains its own limits. Separate Greenlight processes and CI shards
+do not share capacity.
 
 ### coverage(callable $configurator): self
 
@@ -282,12 +283,9 @@ worker count.
 Use the channel to derive external resources that parallel tests must not share,
 such as database names, ports, virtual hosts, or temp directories.
 
-Channels and resource limits solve different problems:
-
-* use a channel when every worker can receive its own database, port range, or
-  directory
-* use `#[RequiresResource]` when a finite dependency must be shared by fewer
-  tests than the worker count
+Use a channel when every worker can have its own database, port range, or
+directory. Use `#[RequiresResource]` when several workers must share a smaller
+pool.
 
 Two tests running at the same time never share a channel. Channel numbers always
 stay within 1 and the worker count, regardless of how many worker processes are
@@ -399,7 +397,7 @@ Overrides the worker process count.
 
 ### --resource-limit=<name>=<n>
 
-Overrides one configured resource limit for this invocation.
+Sets a resource limit for this run, overriding `greenlight.php`.
 
 ```sh
 vendor/bin/greenlight run \
@@ -407,7 +405,8 @@ vendor/bin/greenlight run \
     --resource-limit=payments-sandbox=1
 ```
 
-The flag is repeatable. A resource may be overridden only once.
+Repeat the option to set limits for different resources. Each name may appear
+only once.
 
 ### --bail[=<n>]
 
@@ -443,8 +442,8 @@ Only whole classes move between shards. Individual methods are not split.
 
 Combines with `--group` and `--filter` by sharding the filtered plan.
 
-Resource limits apply independently inside each shard. If four shards each use
-`postgres=2`, up to eight tests may consume PostgreSQL across the CI job.
+Each shard enforces its own resource limits. If four shards each use
+`postgres=2`, up to eight tests may use PostgreSQL across the CI job.
 
 ### --failed
 

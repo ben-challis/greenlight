@@ -222,8 +222,8 @@ memory indefinitely. Suites that accumulate non-memory state can also recycle
 workers after a fixed number of tests. Both thresholds are configured with
 `workers()` in `greenlight.php`.
 
-When parallel tests can each receive their own copy of an external resource,
-derive it from Greenlight's channel: a stable number from 1 to the worker count.
+Use Greenlight's channel number when each parallel worker can have its own
+external resource. The number stays between 1 and the worker count.
 
 The channel is available as `Greenlight\Core\Test\TestChannel` and is also
 exported to each worker as the `GREENLIGHT_CHANNEL` environment variable.
@@ -247,8 +247,8 @@ final class OrderRepositoryTest
 Two tests running at the same time never share a channel, so databases such as
 `app_test_1` and `app_test_2` do not race each other.
 
-Some dependencies cannot be copied per worker. Declare those with
-`#[RequiresResource]` and configure their concurrency separately:
+Some dependencies have to be shared between workers. Mark those tests with
+`#[RequiresResource]` and set the resource limit separately:
 
 ```php
 #[RequiresResource('payments-sandbox')]
@@ -261,10 +261,12 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);
 ```
 
-Other tests still use the remaining workers. A required resource with no
-configured limit is exclusive by default.
+Tests that do not need `payments-sandbox` can keep running on other workers. If
+no limit is configured, only one class that requires the resource runs at a
+time.
 
-See [configuration](configuration.md) for the full channel rules.
+See [configuration](configuration.md) for the full channel and resource-limit
+rules.
 
 ## Built-in fixtures
 
