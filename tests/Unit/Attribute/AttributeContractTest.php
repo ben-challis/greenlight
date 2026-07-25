@@ -10,6 +10,7 @@ use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
+use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
@@ -40,6 +41,22 @@ final class AttributeContractTest
     {
         Expect::that($this->flags(Group::class))
             ->toBe(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE);
+    }
+
+    #[Test]
+    public function resourceRequirementsAreRepeatableOnMethodsAndClasses(): void
+    {
+        Expect::that($this->flags(RequiresResource::class))
+            ->toBe(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE);
+    }
+
+    #[Test]
+    public function resourceRequirementsRejectNonCanonicalNames(): void
+    {
+        foreach (['', 'Postgres', 'postgres primary', '-postgres'] as $name) {
+            Expect::that(static fn(): object => new \ReflectionClass(RequiresResource::class)->newInstance($name))
+                ->toThrow(\InvalidArgumentException::class);
+        }
     }
 
     #[Test]

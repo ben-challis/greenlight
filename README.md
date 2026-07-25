@@ -18,6 +18,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 ## Highlights
 
 * Parallel execution by default with dynamic, timing-aware scheduling.
+* Named resource limits keep real I/O tests parallel without oversubscribing scarce dependencies.
 * Worker recycling, leak detection, crash recovery, timeouts, and process isolation.
 * Strict mocks, stubs, and spies with automatic verification.
 * Typed expectations with rendered diffs.
@@ -64,7 +65,7 @@ final class PriceTest
 }
 ```
 
-Tests are ordinary typed PHP classes. Attributes mark tests, hooks, data rows, retries, timeouts, skips, groups, and isolation. Constructor injection supplies fixtures, doubles, and plugin-provided services.
+Tests are ordinary typed PHP classes. Attributes mark tests, hooks, data rows, retries, timeouts, skips, groups, resource requirements, and isolation. Constructor injection supplies fixtures, doubles, and plugin-provided services.
 
 ## Configuration
 
@@ -79,7 +80,8 @@ use Greenlight\Config\GreenlightConfig;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->workers(count: 'auto');
+    ->workers(count: 'auto')
+    ->resourceLimit('postgres', limit: 3);
 ```
 
 The fluent API configures suites, workers, coverage, watch mode, randomisation, failure policy, deprecations, and plugins. See the [configuration reference](docs/configuration.md).
@@ -119,7 +121,7 @@ Greenlight uses one orchestrator and a pool of worker processes:
 
 ### Scheduling
 
-The scheduling unit is the test class. Method order within a class is preserved, but classes can run on any available worker.
+The scheduling unit is the test class. Method order within a class is preserved, but classes can run on any available worker. A class with resource requirements starts only when the orchestrator can lease all of them.
 
 The orchestrator owns the queue. A worker receives a class after connecting, then requests another whenever it finishes. Work is not divided into fixed partitions before the run.
 
@@ -130,6 +132,8 @@ Queue order is:
 3. Classes without timing history, in discovery order.
 
 Timings are stored in a per-project state file outside the repository and updated after each run. Seeded randomisation ignores timing data so the shuffled order remains reproducible.
+
+When the oldest class is waiting for a resource, classes using disjoint resources may pass it. The blocked class reserves the capacity it needs, so later work cannot starve it indefinitely.
 
 ### Worker lifecycle
 
@@ -147,6 +151,22 @@ Workers can leave the pool in several ways:
 * **Isolation.** An `#[Isolated]` test runs in a new worker that is discarded afterwards.
 
 A worker that never connects, or stops making progress with no test in flight, fails the run rather than stalling it.
+
+### Shared resource limits
+
+Use repeatable `#[RequiresResource]` attributes for finite dependencies that cannot be partitioned per worker:
+
+```php
+#[RequiresResource('postgres')]
+final class OrderRepositoryTest
+{
+    // ...
+}
+```
+
+An unconfigured resource is exclusive. Raise its local concurrency in `greenlight.php` with `resourceLimit('postgres', 3)`, or for one run with `--resource-limit=postgres=2`.
+
+Requirements declared on methods merge into the class scheduling unit, so one method can conservatively constrain its whole class. Limits apply to one Greenlight invocation; separate processes and CI shards do not coordinate leases.
 
 ### Resource channels
 
@@ -180,6 +200,7 @@ Lifecycle attributes:
 * `#[SkipUnless]`
 * `#[Retry]`
 * `#[Timeout]`
+* `#[RequiresResource]`
 * `#[Isolated]`
 
 Data-driven tests use `#[DataSet]` or inline `#[DataRow]` attributes. Named rows appear in reports.
@@ -250,6 +271,7 @@ Iteration and debugging:
 * `--failed`
 * `--watch`
 * `--workers=1`
+* `--resource-limit=<name>=<n>`
 * `--seed=N`
 * `--repeat=N`
 * `--repeat-until-failure`
@@ -279,7 +301,7 @@ Shard by class without shared coordination:
 vendor/bin/greenlight run --shard=2/4
 ```
 
-`--shard=n/m` uses a stable hash to assign disjoint class sets. It composes with filters and groups, and `list-tests` shows the resolved shard.
+`--shard=n/m` uses a stable hash to assign disjoint class sets. It composes with filters and groups, and `list-tests` shows the resolved shard. Resource limits are enforced independently inside each shard.
 
 Built-in reporters:
 

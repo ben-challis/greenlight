@@ -97,6 +97,7 @@ final readonly class ParallelRunner
                 $ticker,
                 $artifactStore,
                 $artifactConfiguration,
+                resourceLimits: $configuration->resourceLimits,
             );
 
             $summary = $orchestrator->run($plan, $sink, $workerCount);

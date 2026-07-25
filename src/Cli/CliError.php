@@ -83,6 +83,19 @@ final class CliError extends \RuntimeException
         return new self(\sprintf('%s must be a positive integer, got "%s".', $flag, $raw));
     }
 
+    public static function malformedResourceLimit(string $raw): self
+    {
+        return new self(\sprintf(
+            '--resource-limit must look like <name>=<limit>, for example postgres=2, got "%s".',
+            $raw,
+        ));
+    }
+
+    public static function duplicateResourceLimit(string $name): self
+    {
+        return new self(\sprintf('Resource limit "%s" cannot be overridden more than once.', $name));
+    }
+
     public static function unknownReporter(string $name): self
     {
         return new self(\sprintf(

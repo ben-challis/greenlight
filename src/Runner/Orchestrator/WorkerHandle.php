@@ -23,6 +23,12 @@ final class WorkerHandle
 
     public bool $isolatedAssignment = false;
 
+    public ?ResourceLease $lease = null;
+
+    public bool $waitingForWork = false;
+
+    private bool $hasRunAssignment = false;
+
     public ResultSummary $tally;
 
     /**
@@ -61,13 +67,37 @@ final class WorkerHandle
         $this->lastProgressAt = $this->spawnedAt;
     }
 
-    public function beginAssignment(ExecutionPlan $unit, bool $isolated): void
+    public function beginAssignment(ResourceLease $lease): void
     {
-        $this->assigned = $unit;
-        $this->isolatedAssignment = $isolated;
+        $this->lease = $lease;
+        $this->assigned = $lease->unit->plan;
+        $this->isolatedAssignment = $lease->unit->isolated;
+        $this->waitingForWork = false;
         $this->tally = new ResultSummary();
         $this->finished = [];
         $this->inFlight = null;
+    }
+
+    public function finishAssignment(): void
+    {
+        $this->hasRunAssignment = true;
+        $this->lease = null;
+        $this->assigned = null;
+        $this->isolatedAssignment = false;
+        $this->waitingForWork = false;
+        $this->inFlight = null;
+    }
+
+    public function waitForWork(): void
+    {
+        $this->waitingForWork = true;
+        $this->assigned = null;
+        $this->inFlight = null;
+    }
+
+    public function isFresh(): bool
+    {
+        return !$this->hasRunAssignment;
     }
 
     public function isRunning(): bool

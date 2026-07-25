@@ -47,6 +47,7 @@ final class AttributeMergeTest
         Expect::that($metadata->retryOnlyOn)->toBe(null);
         Expect::that($metadata->timeoutSeconds)->toBe(30.0);
         Expect::that($metadata->isolated)->toBe(true);
+        Expect::that($metadata->resources)->toBe(['postgres', 'redis']);
     }
 
     #[Test]
@@ -61,6 +62,7 @@ final class AttributeMergeTest
         Expect::that($metadata->retryOnlyOn)->toBe(\RuntimeException::class);
         Expect::that($metadata->timeoutSeconds)->toBe(1.5);
         Expect::that($metadata->isolated)->toBe(true);
+        Expect::that($metadata->resources)->toBe(['postgres', 'redis', 'sandbox']);
     }
 
     #[Test]
@@ -76,6 +78,7 @@ final class AttributeMergeTest
         Expect::that($metadata->timeoutSeconds)->toBe(null);
         Expect::that($metadata->isolated)->toBe(false);
         Expect::that($metadata->dataSetProvider)->toBe(null);
+        Expect::that($metadata->resources)->toBe([]);
     }
 
     #[Test]
@@ -130,5 +133,6 @@ final class AttributeMergeTest
         Expect::that($metadata->retryOnlyOn)->toBe(\LogicException::class);
         Expect::that($metadata->timeoutSeconds)->toBe(2.5);
         Expect::that($metadata->isolated)->toBe(true);
+        Expect::that($metadata->resources)->toBe(['method-only']);
     }
 }

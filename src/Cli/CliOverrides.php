@@ -27,6 +27,7 @@ final readonly class CliOverrides
      * @param list<non-empty-string> $excludeMethods
      * @param list<non-empty-string> $excludePaths
      * @param positive-int|null $repeat
+     * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public function __construct(
         public ?WorkerCount $workers = null,
@@ -45,6 +46,7 @@ final readonly class CliOverrides
         public ?int $repeat = null,
         public bool $repeatUntilFailure = false,
         public ?string $artifactsDirectory = null,
+        public array $resourceLimits = [],
     ) {}
 
     /**
@@ -129,6 +131,23 @@ final readonly class CliOverrides
             }
         }
 
+        $resourceLimits = [];
+
+        foreach ($arguments->values('resource-limit') as $raw) {
+            if (\preg_match('/^([a-z0-9][a-z0-9._-]*)=(\d+)$/D', $raw, $matches) !== 1) {
+                throw CliError::malformedResourceLimit($raw);
+            }
+
+            $name = $matches[1];
+            $limit = self::positiveInt($matches[2], '--resource-limit');
+
+            if (\array_key_exists($name, $resourceLimits)) {
+                throw CliError::duplicateResourceLimit($name);
+            }
+
+            $resourceLimits[$name] = $limit;
+        }
+
         $seed = null;
 
         if ($arguments->has('seed')) {
@@ -164,6 +183,7 @@ final readonly class CliOverrides
             $repeat,
             $repeatUntilFailure,
             $artifactsDirectory,
+            $resourceLimits,
         );
     }
 

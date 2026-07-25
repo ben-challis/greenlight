@@ -39,6 +39,7 @@ final class GreenlightConfigApiTest
             'paths',
             'plugins',
             'randomizeOrder',
+            'resourceLimit',
             'suite',
             'watch',
             'workers',

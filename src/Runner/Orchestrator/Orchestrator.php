@@ -63,15 +63,7 @@ final class Orchestrator
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
 
-    /**
-     * @var list<ExecutionPlan> pooled per-class units, assigned on demand
-     */
-    private array $queue = [];
-
-    /**
-     * @var list<ExecutionPlan> isolated single-entry units, fresh workers only
-     */
-    private array $isolatedQueue = [];
+    private ?ResourceScheduler $scheduler = null;
 
     /**
      * @var array<string, WorkerHandle>
@@ -111,6 +103,7 @@ final class Orchestrator
      * @param positive-int|null $recycleAboveMemoryBytes
      * @param float $connectDeadlineSeconds seconds a spawned worker gets to complete the hello handshake before the run fails
      * @param float $progressDeadlineSeconds seconds a connected worker may stay silent with no test in flight before the run fails
+     * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public function __construct(
         private readonly array $workerCommand,
@@ -128,6 +121,7 @@ final class Orchestrator
         private readonly ?ArtifactConfiguration $artifactConfiguration = null,
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
+        private readonly array $resourceLimits = [],
     ) {
         $this->summary = new ResultSummary();
     }
@@ -169,9 +163,10 @@ final class Orchestrator
             $this->entriesById[(string) $entry->id] = $entry;
         }
 
-        [$this->queue, $this->isolatedQueue] = new Distributor()->units($plan);
+        [$pooled, $isolated] = new Distributor()->units($plan);
+        $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->resourceLimits);
 
-        if ($this->queue === [] && $this->isolatedQueue === []) {
+        if ($this->scheduler->pendingCount() === 0) {
             return $this->summary;
         }
 
@@ -333,7 +328,7 @@ final class Orchestrator
 
     private function pendingUnits(): int
     {
-        return \count($this->queue) + \count($this->isolatedQueue);
+        return $this->resourceScheduler()->pendingCount();
     }
 
     /**
@@ -409,7 +404,7 @@ final class Orchestrator
                     // Fresh workers may take isolated units; a reused worker
                     // never does, because isolation promises a process no
                     // other test has touched.
-                    $this->assignNext($handle, $sink, allowIsolated: true);
+                    $this->assignNext($handle, $sink);
 
                     continue;
                 }
@@ -430,10 +425,10 @@ final class Orchestrator
 
     /**
      * Hands the next queue unit to a connected worker, or drains it when no
-     * suitable work remains. Fresh workers (first assignment) may take
-     * isolated units once the pooled queue is empty.
+     * suitable work remains. A worker may remain connected without an
+     * assignment while a resource lease is unavailable.
      */
-    private function assignNext(WorkerHandle $handle, EventSink $sink, bool $allowIsolated): void
+    private function assignNext(WorkerHandle $handle, EventSink $sink): void
     {
         $channel = $handle->channel;
 
@@ -441,19 +436,17 @@ final class Orchestrator
             return;
         }
 
-        $unit = null;
-        $isolated = false;
+        $decision = $this->draining
+            ? DispatchDecision::drain()
+            : $this->resourceScheduler()->dispatch($handle->isFresh());
 
-        if (!$this->draining) {
-            $unit = \array_shift($this->queue);
+        if ($decision->kind === DispatchKind::Wait) {
+            $handle->waitForWork();
 
-            if ($unit === null && $allowIsolated) {
-                $unit = \array_shift($this->isolatedQueue);
-                $isolated = $unit !== null;
-            }
+            return;
         }
 
-        if ($unit === null) {
+        if ($decision->kind === DispatchKind::Drain) {
             try {
                 $channel->send(new Drain());
             } catch (ProtocolError) {
@@ -465,11 +458,17 @@ final class Orchestrator
             return;
         }
 
-        $handle->beginAssignment($unit, $isolated);
+        $lease = $decision->lease;
+
+        if (!$lease instanceof ResourceLease) {
+            throw new \LogicException('An assign decision must carry a resource lease.');
+        }
+
+        $handle->beginAssignment($lease);
 
         try {
             $channel->send(new Assign(
-                $unit,
+                $lease->unit->plan,
                 $this->recycleAfterTests,
                 $this->recycleAboveMemoryBytes,
                 $this->coverageSettings?->includePaths,
@@ -506,6 +505,7 @@ final class Orchestrator
                 } elseif ($message instanceof Recycling) {
                     $this->mergeCoverage($message->coverage);
                     $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
+                    $this->releaseAssignment($handle);
                     $this->finishHandle($handle);
                     $this->enqueueRemainder($message->remaining);
 
@@ -514,6 +514,8 @@ final class Orchestrator
                     $this->crossCheck($handle, $message);
                     $this->mergeCoverage($message->coverage);
                     $this->leaks = [...$this->leaks, ...$message->leaks];
+                    $isolatedAssignment = $handle->isolatedAssignment;
+                    $this->releaseAssignment($handle);
 
                     if ($message->wantsRecycle instanceof RecycleReason) {
                         // The worker's cumulative budget is spent; it exits
@@ -524,7 +526,7 @@ final class Orchestrator
                         break;
                     }
 
-                    if ($this->draining || $handle->isolatedAssignment) {
+                    if ($this->draining || $isolatedAssignment) {
                         try {
                             $channel->send(new Drain());
                         } catch (ProtocolError) {
@@ -536,7 +538,7 @@ final class Orchestrator
                         break;
                     }
 
-                    $this->assignNext($handle, $sink, allowIsolated: false);
+                    $this->assignNext($handle, $sink);
 
                     if ($handle->done) {
                         break;
@@ -551,6 +553,8 @@ final class Orchestrator
                 }
             }
         }
+
+        $this->assignWaiting($sink);
     }
 
     private function onEvent(WorkerHandle $handle, Event $event, EventSink $sink): void
@@ -591,7 +595,7 @@ final class Orchestrator
     private function drainAll(): void
     {
         $this->draining = true;
-        $this->queue = [];
+        $this->resourceScheduler()->clearPending();
 
         foreach ($this->handles as $handle) {
             if (!$handle->done && $handle->channel !== null) {
@@ -599,6 +603,10 @@ final class Orchestrator
                     $handle->channel->send(new Drain());
                 } catch (ProtocolError) {
                     // The worker is already gone; crash detection covers it.
+                }
+
+                if ($handle->assigned === null) {
+                    $this->finishHandle($handle);
                 }
             }
         }
@@ -659,6 +667,12 @@ final class Orchestrator
             }
 
             if ($handle->inFlight === null) {
+                if ($handle->assigned === null) {
+                    // The scheduler is intentionally holding this connected
+                    // worker until a resource lease becomes available.
+                    continue;
+                }
+
                 // No per-test budget applies between messages, so a worker
                 // that stops responding after receiving an assignment (or
                 // between tests) would otherwise hang the run forever. Like a
@@ -732,6 +746,7 @@ final class Orchestrator
 
         $remainder = $handle->unfinished();
         $sink->emit(new WorkerRecycled($handle->workerId, RecycleReason::Crash, \microtime(true)));
+        $this->releaseAssignment($handle);
         $this->finishHandle($handle);
         $this->enqueueRemainder($remainder);
     }
@@ -755,7 +770,7 @@ final class Orchestrator
             }
 
             if ($entry->metadata->isolated) {
-                $this->isolatedQueue[] = new ExecutionPlan([$entry]);
+                $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan([$entry]), true));
 
                 continue;
             }
@@ -764,8 +779,40 @@ final class Orchestrator
         }
 
         foreach ($byClass as $entries) {
-            $this->queue[] = new ExecutionPlan($entries);
+            $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan($entries), false));
         }
+    }
+
+    private function releaseAssignment(WorkerHandle $handle): void
+    {
+        $lease = $handle->lease;
+
+        if (!$lease instanceof ResourceLease) {
+            return;
+        }
+
+        $this->resourceScheduler()->release($lease);
+        $handle->finishAssignment();
+    }
+
+    private function assignWaiting(EventSink $sink): void
+    {
+        foreach ($this->handles as $handle) {
+            if ($handle->done || $handle->channel === null || $handle->assigned !== null) {
+                continue;
+            }
+
+            $this->assignNext($handle, $sink);
+        }
+    }
+
+    private function resourceScheduler(): ResourceScheduler
+    {
+        if (!$this->scheduler instanceof ResourceScheduler) {
+            throw new \LogicException('The resource scheduler has not been initialized.');
+        }
+
+        return $this->scheduler;
     }
 
     private function crossCheck(WorkerHandle $handle, Done $done): void
