@@ -18,7 +18,7 @@ the JSON byte count in big-endian order. The protocol limits each frame to
 
 The JSON body is an envelope with three fields:
 
-- The protocol version in `v`, currently `1`
+- The protocol version in `v`, currently `2`
 - A message tag
 - The payload
 
@@ -35,12 +35,14 @@ Test results do not use stdio. Thus, test output cannot corrupt the protocol.
 
 ## Messages
 
-Eight message types cross the socket:
+Eleven message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
 | `hello` | worker to orchestrator | worker ID, shared token, process ID |
-| `assign` | orchestrator to worker | an assignment, recycle limits, coverage settings, configuration file path, leak detection flag, result policy, artifact session and limits |
+| `bootstrap` | orchestrator to worker | stable channel, config file path, that channel's integration resources |
+| `ready` | worker to orchestrator | bootstrap acknowledgement |
+| `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, coverage settings, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `attempt-started` | worker to orchestrator | active test ID and attempt number for a crash report |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
@@ -64,7 +66,10 @@ sequenceDiagram
 
     O->>W: proc_open(address, workerId, token)<br/>env: GREENLIGHT_CHANNEL=n
     W->>O: hello (workerId, token, pid)
-    Note over O,W: hello doubles as the first request for work
+    O->>W: bootstrap (channel, config, resources)
+    W->>W: load plugins, run worker bootstrap,<br/>build harness registry
+    W->>O: ready
+    Note over O,W: initial workers all become ready<br/>before any assignment begins
 
     loop until the queue is empty
         opt required resource capacity is unavailable
@@ -90,11 +95,18 @@ work requests. After each request, the orchestrator assigns the next queued
 class when one is available. Thus, each worker requests more work after it
 completes an assignment.
 
-The worker initializes once when it receives its first `assign` message. It
-builds the plugin and harness registries at that time. It reuses those
-registries for all subsequent assignments. Consequently, per-run harness
-services have worker-lifetime semantics. The worker recreates reflection data,
-hooks, and data sets for each test class.
+The `ready` and `done` messages request work. The initial readiness barrier
+prevents tests from starting while an initial worker is still bootstrapping.
+A replacement worker only has to complete its own bootstrap.
+
+The worker builds its plugin and harness registries during `bootstrap`. It
+reuses those registries for all subsequent assignments. Consequently, per-run
+harness services have worker-lifetime semantics. The worker recreates
+reflection data, hooks, and data sets for each test class.
+
+Integration resource catalogs are limited to 1 MiB for each channel. They use
+the authenticated local socket. They do not use environment variables or
+command arguments.
 
 The worker sends one frame immediately for each event. The orchestrator sends
 each event to the reporters and updates the run summary. This sequence permits
@@ -163,8 +175,11 @@ stateDiagram-v2
     [*] --> Spawned: proc_open
     Spawned --> Connected: hello within 30s
     Spawned --> RunFailed: no hello in 30s
-    Connected --> Running: assign
-    Connected --> Waiting: required capacity unavailable
+    Connected --> Bootstrapping: bootstrap
+    Bootstrapping --> Ready: ready
+    Bootstrapping --> RunFailed: fatal / progress timeout
+    Ready --> Running: assign
+    Ready --> Waiting: required capacity unavailable
     Waiting --> Running: capacity released (assign)
     Waiting --> Drained: queue exhausted (drain)
     Running --> Running: done, next assign
@@ -233,6 +248,8 @@ repeatedly die, the orchestrator fails the run with a diagnosis.
 Workers ignore SIGINT. Ctrl+C sends the signal to the orchestrator. The
 orchestrator performs an orderly drain and reports completed results. It
 permits the active test to finish. This rule also applies to a test that polls.
+The orchestrator tears down integration fixtures after it emits the partial
+result.
 
 ## Isolated tests
 
@@ -261,3 +278,9 @@ scheduler controls shared capacity but does not assign resource identity. A
 test can use both functions. For example, it can use a channel-specific
 database and a concurrency limit for a shared sandbox. For user guidance, see
 [channels and resource limits](../configuration.md#channels-and-resource-limits).
+
+Orchestrator-owned integration fixtures use the same channel pool. Shared
+fixture values are merged with the allocated channel overlay before bootstrap,
+so a worker never receives another channel's resource catalog. Recycling,
+crashes, and isolated tests reuse the released channel and therefore receive the
+same channel resource.

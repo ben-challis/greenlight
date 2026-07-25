@@ -26,13 +26,16 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
+use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
+use Greenlight\Runner\Protocol\Messages\Bootstrap;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
@@ -102,6 +105,10 @@ final class Orchestrator
 
     private ?ChannelAllocator $channels = null;
 
+    private int $initialWorkerTarget = 0;
+
+    private bool $initialBarrierPassed = false;
+
     /**
      * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
      * @param positive-int|null $recycleAfterTests
@@ -124,6 +131,7 @@ final class Orchestrator
         private readonly ?Ticking $ticker = null,
         private readonly ?ArtifactStore $artifactStore = null,
         private readonly ?ArtifactConfiguration $artifactConfiguration = null,
+        private readonly ProvisionedIntegrationFixtures $integrationFixtures = new ProvisionedIntegrationFixtures(),
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
         private readonly array $resourceLimits = [],
@@ -176,6 +184,8 @@ final class Orchestrator
         if ($this->scheduler->pendingCount() === 0) {
             return $this->summary;
         }
+
+        $this->initialWorkerTarget = \min($workerCount, $this->pendingUnits());
 
         // Worker replacement and crash containment can start replacement
         // processes. Permit only a small number for each planned test. A
@@ -367,10 +377,15 @@ final class Orchestrator
                 if ($handle !== null && $handle->channel === null) {
                     $handle->channel = $channel;
                     $handle->lastProgressAt = \microtime(true);
-                    // A new worker can take an isolated scheduling unit. A
-                    // reused worker cannot take it because isolation requires
-                    // an unused process.
-                    $this->assignNext($handle, $sink);
+                    try {
+                        $channel->send(new Bootstrap(
+                            $handle->channelNumber,
+                            $this->configFile === '' ? null : $this->configFile,
+                            $this->integrationFixtures->forChannel($handle->channelNumber),
+                        ));
+                    } catch (ProtocolError) {
+                        $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');
+                    }
 
                     continue;
                 }
@@ -400,7 +415,7 @@ final class Orchestrator
     {
         $channel = $handle->channel;
 
-        if (!$channel instanceof SocketChannel) {
+        if (!$channel instanceof SocketChannel || !$handle->ready) {
             return;
         }
 
@@ -439,7 +454,6 @@ final class Orchestrator
                 $this->recycleAboveMemoryBytes,
                 $this->coverageSettings?->includePaths,
                 $this->coverageSettings?->driver,
-                $this->configFile === '' ? null : $this->configFile,
                 $this->detectLeaks,
                 $this->policy,
                 $this->artifactStore?->session(),
@@ -472,6 +486,24 @@ final class Orchestrator
                     $this->onEvent($handle, $message->event, $sink);
                 } elseif ($message instanceof AttemptStarted) {
                     $this->onAttemptStarted($handle, $message);
+                } elseif ($message instanceof Ready) {
+                    if ($handle->ready) {
+                        throw ProtocolError::malformedFrame(\sprintf(
+                            'worker "%s" reported ready more than once',
+                            $handle->workerId,
+                        ));
+                    }
+
+                    $handle->ready = true;
+
+                    if (!$this->initialBarrierPassed) {
+                        $this->openInitialBarrier($sink);
+                    } else {
+                        // A replacement worker can start as soon as its own
+                        // bootstrap completes; the all-ready barrier only
+                        // applies to the initial pool.
+                        $this->assignNext($handle, $sink, allowIsolated: true);
+                    }
                 } elseif ($message instanceof Recycling) {
                     $this->crossCheck($handle, $message->summary);
                     $this->assertRemainder($handle, $message->remaining);
@@ -527,6 +559,31 @@ final class Orchestrator
             }
         }
 
+    }
+
+    private function openInitialBarrier(EventSink $sink): void
+    {
+        $ready = 0;
+
+        foreach ($this->handles as $handle) {
+            if (!$handle->done && $handle->ready) {
+                ++$ready;
+            }
+        }
+
+        if ($ready < $this->initialWorkerTarget) {
+            return;
+        }
+
+        $this->initialBarrierPassed = true;
+
+        foreach ($this->handles as $handle) {
+            if (!$handle->done && $handle->ready && $handle->assigned === null) {
+                // Every initial worker is fresh, so once pooled work is gone
+                // it may take an isolated unit.
+                $this->assignNext($handle, $sink, allowIsolated: true);
+            }
+        }
     }
 
     private function onEvent(WorkerHandle $handle, Event $event, EventSink $sink): void

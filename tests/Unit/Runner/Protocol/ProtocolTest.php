@@ -19,6 +19,8 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Harness\FixtureResource;
+use Greenlight\Harness\IntegrationResources;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\FrameBuffer;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
@@ -26,11 +28,13 @@ use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\MessageRegistry;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
+use Greenlight\Runner\Protocol\Messages\Bootstrap;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 
@@ -54,6 +58,13 @@ final class ProtocolTest
 
         $messages = [
             new Hello('w-1', 'token-abc', 4242),
+            new Bootstrap(2, '/project/greenlight.php', new IntegrationResources([
+                'postgres' => FixtureResource::from(
+                    ['database' => 'test_2'],
+                    ['password' => 'secret'],
+                ),
+            ])),
+            new Ready(),
             new Assign(new ExecutionPlan([$entry], 7), 500, 256 * 1024 * 1024),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
@@ -202,7 +213,7 @@ final class ProtocolTest
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 2, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
         Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')

@@ -20,6 +20,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 ## Capabilities
 
 * Parallel test execution with a dynamic schedule
+* Orchestrator-owned integration fixtures with per-channel resources and guaranteed cleanup
 * Resource limits for shared databases and services
 * Worker recycle, leak detection, crash recovery, timeouts, and process isolation
 * Strict mocks, stubs, and spies with automatic verification
@@ -135,6 +136,7 @@ for the complete model.
 * [Move from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
 * [Architecture](docs/architecture/README.md)
+* [Orchestrator-owned integration fixtures](docs/architecture/orchestrator-integration-fixtures.md)
 * [Contribute](CONTRIBUTING.md)
 
 ## Requirements and limits
