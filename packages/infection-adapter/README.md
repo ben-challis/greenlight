@@ -1,18 +1,17 @@
 # Greenlight adapter for Infection
 
-This package lets [Infection](https://infection.github.io/) use Greenlight as
-its test framework.
+This package is the [Infection](https://infection.github.io/) adapter for
+Greenlight.
 
-```bash
+```sh
 composer require --dev infection/infection greenlight/infection-adapter
 vendor/bin/infection --test-framework=greenlight
 ```
 
-The initial run enables Greenlight's opt-in per-test coverage map and converts
-it to Infection's current XML input. Mutant runs receive only the exact
-Greenlight test IDs that covered the mutated line. Greenlight's normal
-configuration remains in `greenlight.php`; Infection's source directories
-become the coverage include paths.
+The adapter records per-test coverage during Infection's initial test run and
+converts it to Infection's XML format. It then runs each mutant against the
+Greenlight tests that covered the changed line.
 
-Per-test coverage is intentionally used only for Infection's mutation-test
-selection. It does not replace a normal full-suite CI run.
+Greenlight still reads `greenlight.php`. The adapter uses Infection's source
+directories as coverage include paths. Run the full Greenlight suite separately
+in CI.
