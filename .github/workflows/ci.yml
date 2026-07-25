@@ -127,6 +127,9 @@ jobs:
   coverage:
     name: "Self-coverage gate"
     runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+      id-token: "write"
 
     steps:
       - name: "Checkout"
@@ -147,6 +150,15 @@ jobs:
 
       - name: "Run the suite with coverage"
         run: "composer tests:coverage"
+
+      - name: "Upload coverage to Codecov"
+        continue-on-error: true
+        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        with:
+          disable_search: true
+          fail_ci_if_error: false
+          files: "build/coverage/cobertura.xml"
+          use_oidc: true
 
       - name: "Run the self-coverage gate"
         if: "always()"

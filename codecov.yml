@@ -1,0 +1,13 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  status:
+    project: off
+    patch: off
+
+comment:
+  layout: "condensed_header, condensed_files, condensed_footer"
+  behavior: default
+  require_changes: true
+  hide_project_coverage: true

@@ -1,5 +1,10 @@
 # Greenlight
 
+[![CI](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/ben-challis/greenlight/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ben-challis/greenlight)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.4-777BB4?logo=php&logoColor=white)](composer.json)
+[![License](https://img.shields.io/github/license/ben-challis/greenlight)](LICENSE)
+
 **A parallel-first test framework for PHP 8.4+.**
 
 Greenlight discovers a suite once, schedules test classes across a worker pool, recycles long-lived workers, isolates stateful tests, and ships with zero runtime dependencies.
