@@ -11,3 +11,4 @@
 /phpstan.dist.neon export-ignore
 /rector.php export-ignore
 /deptrac.yaml export-ignore
+/renovate.json export-ignore
