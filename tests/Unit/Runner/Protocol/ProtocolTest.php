@@ -28,6 +28,7 @@ use Greenlight\Runner\Protocol\MessageRegistry;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Bootstrap;
+use Greenlight\Runner\Protocol\Messages\CoverageChunk;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -65,6 +66,7 @@ final class ProtocolTest
             ])),
             new Ready(),
             new Assign(new ExecutionPlan([$entry], 7), 500, 256 * 1024 * 1024),
+            new CoverageChunk(new TestId('App\FooTest', 'bar'), '/app/src/Foo.php', [10, 11]),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             new AttemptStarted(new TestId('App\FooTest', 'bar'), 2),

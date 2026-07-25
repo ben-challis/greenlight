@@ -24,5 +24,6 @@ final readonly class RunResult
         public ?int $seed,
         public ?CoverageMap $coverage = null,
         public array $leaks = [],
+        public string $runId = '',
     ) {}
 }

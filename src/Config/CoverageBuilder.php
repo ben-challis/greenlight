@@ -23,6 +23,11 @@ final class CoverageBuilder
     private array $exports = [];
 
     /**
+     * @var non-empty-string|null
+     */
+    private ?string $perTestTarget = null;
+
+    /**
      * @throws InvalidConfiguration
      */
     public function include(string ...$paths): self
@@ -75,10 +80,27 @@ final class CoverageBuilder
     }
 
     /**
+     * Writes the versioned per-test line-coverage map used by impact-aware
+     * tooling such as mutation-test adapters.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function perTest(string $target): self
+    {
+        if ($target === '') {
+            throw new InvalidConfiguration('Per-test coverage needs a non-empty target.');
+        }
+
+        $this->perTestTarget = $target;
+
+        return $this;
+    }
+
+    /**
      * @internal
      */
     public function toConfiguration(): CoverageConfiguration
     {
-        return new CoverageConfiguration($this->includePaths, $this->driver, $this->exports);
+        return new CoverageConfiguration($this->includePaths, $this->driver, $this->exports, $this->perTestTarget);
     }
 }

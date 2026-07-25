@@ -179,4 +179,15 @@ final class DiscoveryError extends \RuntimeException
             $key,
         ));
     }
+
+    /**
+     * @param list<non-empty-string> $ids
+     */
+    public static function exactTestsNotFound(array $ids): self
+    {
+        return new self(\sprintf(
+            'Exact test selection did not find: %s.',
+            \implode(', ', \array_map(static fn(string $id): string => '"' . $id . '"', $ids)),
+        ));
+    }
 }

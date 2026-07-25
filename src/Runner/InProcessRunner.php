@@ -13,6 +13,7 @@ use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
@@ -57,6 +58,7 @@ final readonly class InProcessRunner
         array $priorityClasses = [],
         array $classSeconds = [],
         ?GracefulShutdown $shutdown = null,
+        ?TestCoverageStore $testCoverageStore = null,
     ): RunResult {
         $seed = null;
 
@@ -64,8 +66,10 @@ final readonly class InProcessRunner
             $seed = $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1);
         }
 
+        $discovered = $this->discover($configuration, $directories, $seed);
+        SelectionFilter::assertExactIdsMatched($configuration, $discovered);
         $plan = PlanOrder::schedule(
-            $this->sharded($this->discover($configuration, $directories, $seed), $configuration),
+            $this->sharded($discovered, $configuration),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );
@@ -96,12 +100,12 @@ final readonly class InProcessRunner
                 $summary = new ResultSummary();
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-                return new RunResult($summary, 0, $durationSeconds, $seed);
+                return new RunResult($summary, 0, $durationSeconds, $seed, runId: $runId);
             }
 
             $fixtures = IntegrationFixtureManager::provision($orchestratorSide, $runId, 1, 1, $configuration->shard);
             $collector = null;
-            $collectingCoverage = false;
+            $coverageNeedsCleanup = false;
 
             try {
                 $sink->emit(new RunStarted(
@@ -138,9 +142,26 @@ final readonly class InProcessRunner
                     );
                 }
 
-                $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
-                $collectingCoverage = $collector instanceof CoverageCollector;
-                $collector?->start();
+                $coverageUnavailable = null;
+                $collector = $coverageSettings instanceof CoverageSettings
+                    ? CoverageCollector::create($coverageSettings, static function (string $reason) use (&$coverageUnavailable): void {
+                        $coverageUnavailable = $reason;
+                    })
+                    : null;
+
+                if ($coverageSettings?->perTest === true && !$collector instanceof CoverageCollector) {
+                    throw CoverageError::requiredDriverUnavailable($coverageUnavailable ?? 'no coverage driver is available');
+                }
+
+                $testCoverageStore?->registerPlan($plan);
+                $testCoverage = $coverageSettings?->perTest === true
+                    ? new CollectingTestCoverageSink($testCoverageStore)
+                    : null;
+                $coverageNeedsCleanup = $collector instanceof CoverageCollector;
+
+                if ($coverageSettings?->perTest !== true) {
+                    $collector?->start();
+                }
 
                 $outcome = $plugins->runWorker(static fn() => new Worker(
                     DefaultServices::registry($plugins, $resources),
@@ -155,18 +176,22 @@ final readonly class InProcessRunner
                     $configuration->stopAfterFailures,
                     null,
                     $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
+                    perTestCoverage: $coverageSettings?->perTest === true ? $collector : null,
+                    testCoverageSink: $testCoverage,
                 ));
                 $summary = $outcome->summary;
 
-                $collectingCoverage = false;
-                $coverage = $collector?->stop();
+                $coverage = $coverageSettings?->perTest === true
+                    ? $testCoverage?->coverage()
+                    : $collector?->stop();
+                $coverageNeedsCleanup = false;
 
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-                $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
+                $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks, $runId);
             } catch (\Throwable $failure) {
-                if ($collectingCoverage) {
+                if ($coverageNeedsCleanup) {
                     try {
                         $collector?->stop();
                     } catch (\Throwable) {

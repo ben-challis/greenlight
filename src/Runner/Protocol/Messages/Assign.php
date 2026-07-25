@@ -34,6 +34,7 @@ final readonly class Assign implements Message
         public ?ResultPolicy $policy = null,
         public ?ArtifactSession $artifactSession = null,
         public ?ArtifactConfiguration $artifactConfiguration = null,
+        public bool $coveragePerTest = false,
     ) {}
 
     #[\Override]
@@ -55,6 +56,7 @@ final readonly class Assign implements Message
             'policy' => $this->policy?->toWire(),
             'artifactSession' => $this->artifactSession?->toWire(),
             'artifactConfiguration' => $this->artifactConfiguration?->toWire(),
+            'coveragePerTest' => $this->coveragePerTest,
         ];
     }
 
@@ -84,6 +86,7 @@ final readonly class Assign implements Message
             ($artifactConfiguration = \array_key_exists('artifactConfiguration', $payload) ? Wire::nullableMap($payload, 'artifactConfiguration') : null) === null
                 ? null
                 : ArtifactConfiguration::fromWire($artifactConfiguration),
+            \array_key_exists('coveragePerTest', $payload) && Wire::bool($payload, 'coveragePerTest'),
         );
     }
 }
