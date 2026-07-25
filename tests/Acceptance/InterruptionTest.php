@@ -100,7 +100,7 @@ final readonly class InterruptionTest
     private function writeProject(): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'interrupt');
-        $project->write('markers/.gitkeep', '');
+        $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
         // Each class writes a marker when work starts. The parent can send
@@ -151,7 +151,7 @@ final readonly class InterruptionTest
 
         foreach (['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'] as $name) {
             $file = \sprintf('tests/%sTest.php', $name);
-            $project->write($file, \sprintf(
+            $project->writeFile($file, \sprintf(
                 $template,
                 $name,
                 \var_export($markerDir, true),
@@ -160,7 +160,7 @@ final readonly class InterruptionTest
             $files[] = $file;
         }
 
-        $project->writeConfig($files);
+        $project->configureWithTestFiles($files);
 
         return $project;
     }

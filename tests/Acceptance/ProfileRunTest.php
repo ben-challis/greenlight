@@ -18,9 +18,9 @@ final readonly class ProfileRunTest
     public function liveProfileAndOfflineReportAgree(): void
     {
         $root = \dirname(__DIR__, 2);
-        // A private copy of ListTestsConfig, so this run cannot race another
+        // An isolated project, so this run cannot race another
         // acceptance test's use of the same working directory.
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'profile');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'profile');
         $artifact = $project->path('profile.jsonl');
 
         $result = GreenlightCli::run(

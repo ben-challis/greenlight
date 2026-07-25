@@ -69,7 +69,7 @@ final readonly class PolicyTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'policy');
 
-        $project->write('tests/DiagnosticProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/DiagnosticProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -104,7 +104,7 @@ final readonly class PolicyTest
             }
             PHP);
 
-        $project->write('tests/RiskyProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/RiskyProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -143,7 +143,7 @@ final readonly class PolicyTest
             }
             PHP);
 
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);

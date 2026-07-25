@@ -85,7 +85,7 @@ final readonly class SelectionTest
         // observability agents (ddtrace) create a missing TMPDIR for their
         // sockets, but nothing can create entries under a file, so the state
         // write fails on every platform.
-        $project->write('not-a-directory', '');
+        $project->writeFile('not-a-directory', '');
         $result = GreenlightCli::run(
             $project->directory,
             ['run', '--reporter=plain', '--filter=alwaysPasses'],
@@ -105,7 +105,7 @@ final readonly class SelectionTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'selection');
 
-        $project->write('tests/SelectionProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/SelectionProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -130,7 +130,7 @@ final readonly class SelectionTest
             }
             PHP);
 
-        $project->write('tests/GroupedProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/GroupedProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -152,7 +152,7 @@ final readonly class SelectionTest
             }
             PHP);
 
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);

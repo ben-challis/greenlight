@@ -27,7 +27,7 @@ final readonly class SymfonyRunTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'symfony');
 
-        $project->write('probe.php', <<<'PHP'
+        $project->writeFile('probe.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -136,10 +136,10 @@ final readonly class SymfonyRunTest
             PHP;
 
         foreach (['Alpha', 'Bravo'] as $name) {
-            $project->write(\sprintf('tests/%sTest.php', $name), \sprintf($template, $name));
+            $project->writeFile(\sprintf('tests/%sTest.php', $name), \sprintf($template, $name));
         }
 
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);

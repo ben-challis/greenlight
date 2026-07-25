@@ -18,12 +18,12 @@ final readonly class TeamCityRunTest
     #[Test]
     public function parallelRunEmitsLocationHintsAndFlowIds(): void
     {
-        // A private copy of ListTestsConfig, so this run cannot race another
+        // An isolated project, so this run cannot race another
         // acceptance test's use of the same working directory. DiscoveryBasic
         // itself stays the single shared copy under tests/Fixture (see
-        // AcceptanceProject::copyOfListTestsConfig), so the location hints
+        // AcceptanceProject::createWithDiscoveryBasicTests), so the location hints
         // still resolve to that fixture's real file.
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'teamcity');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'teamcity');
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=teamcity']);
         $output = $result->output();
         $class = AlphaTest::class;

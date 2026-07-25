@@ -21,9 +21,9 @@ final readonly class ParallelRunTest
     #[Test]
     public function parallelResultsMatchSequentialResults(): void
     {
-        // A private copy of ListTestsConfig, so this comparison run cannot
+        // An isolated project, so this comparison run cannot
         // race another acceptance test's use of the same working directory.
-        $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'parallel');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'parallel');
         $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
         Expect::that($sequential->exitCode)->toBe(0)

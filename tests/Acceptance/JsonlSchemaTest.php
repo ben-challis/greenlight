@@ -80,7 +80,7 @@ final readonly class JsonlSchemaTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'jsonl-schema');
 
-        $project->write('tests/MixedOutcomesProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/MixedOutcomesProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -129,7 +129,7 @@ final readonly class JsonlSchemaTest
             PHP);
 
         // recycleAfterTests: 1 forces worker-recycled events into the stream.
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);

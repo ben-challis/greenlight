@@ -85,7 +85,7 @@ final readonly class ExcludeSelectionTest
     public function excludePathResolvesARelativeDirectoryPrefix(): void
     {
         $project = $this->writeProject();
-        $project->write('tests/nested/DExcludeProbeTest.php', <<<'PHP'
+        $project->writeFile('tests/nested/DExcludeProbeTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -100,7 +100,7 @@ final readonly class ExcludeSelectionTest
                 public function one(): void {}
             }
             PHP);
-        $project->writeConfig([
+        $project->configureWithTestFiles([
             'tests/AExcludeProbeTest.php',
             'tests/BExcludeProbeTest.php',
             'tests/CExcludeProbeTest.php',
@@ -163,7 +163,7 @@ final readonly class ExcludeSelectionTest
         $project = AcceptanceProject::create($this->tempDirectory, 'exclude-selection');
 
         foreach (['A', 'B', 'C'] as $letter) {
-            $project->write(\sprintf('tests/%sExcludeProbeTest.php', $letter), <<<PHP
+            $project->writeFile(\sprintf('tests/%sExcludeProbeTest.php', $letter), <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -180,7 +180,7 @@ final readonly class ExcludeSelectionTest
                 PHP);
         }
 
-        $project->writeConfig([
+        $project->configureWithTestFiles([
             'tests/AExcludeProbeTest.php',
             'tests/BExcludeProbeTest.php',
             'tests/CExcludeProbeTest.php',

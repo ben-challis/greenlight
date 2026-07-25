@@ -57,7 +57,7 @@ final readonly class CoverageIgnoreRunTest
     {
         $root = \dirname(__DIR__, 2);
         $project = AcceptanceProject::create($this->tempDirectory, 'coverage-ignore');
-        $project->write('greenlight.php', \sprintf(
+        $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
 

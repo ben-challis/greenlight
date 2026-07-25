@@ -19,7 +19,7 @@ final readonly class AcceptanceProjectTest
     public function createsAProjectAndWritesNestedFiles(): void
     {
         $project = AcceptanceProject::create($this->workspace, 'project');
-        $project->write('nested/example.txt', 'contents');
+        $project->writeFile('nested/example.txt', 'contents');
 
         Expect::that($project->directory)->toBe($this->workspace->path() . '/project')
             ->and($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt')
@@ -27,20 +27,20 @@ final readonly class AcceptanceProjectTest
     }
 
     #[Test]
-    public function generatedConfigRequiresFilesAndBuildsTheRequestedRun(): void
+    public function configuresTheProjectWithTestFilesAndTheRequestedWorkerCount(): void
     {
         $project = AcceptanceProject::create($this->workspace, 'configured');
-        $project->write('tests/First.php', <<<'PHP'
+        $project->writeFile('tests/First.php', <<<'PHP'
             <?php
 
             file_put_contents(__DIR__ . '/../loaded.txt', 'first');
             PHP);
-        $project->write('tests/Second.php', <<<'PHP'
+        $project->writeFile('tests/Second.php', <<<'PHP'
             <?php
 
             file_put_contents(__DIR__ . '/../loaded.txt', 'second', FILE_APPEND);
             PHP);
-        $project->writeConfig(['tests/First.php', 'tests/Second.php'], workers: 3);
+        $project->configureWithTestFiles(['tests/First.php', 'tests/Second.php'], workers: 3);
 
         $builder = require $project->path('greenlight.php');
 
@@ -69,9 +69,9 @@ final readonly class AcceptanceProjectTest
     }
 
     #[Test]
-    public function listTestsProjectTargetsTheSharedDiscoveryFixture(): void
+    public function projectWithDiscoveryBasicTestsTargetsTheSharedFixture(): void
     {
-        $project = AcceptanceProject::copyOfListTestsConfig($this->workspace, 'listing');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->workspace, 'listing');
         $builder = require $project->path('greenlight.php');
 
         if (!$builder instanceof GreenlightConfig) {

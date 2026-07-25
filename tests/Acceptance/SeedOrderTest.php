@@ -93,7 +93,7 @@ final readonly class SeedOrderTest
         foreach (self::CLASSES as $letter) {
             $file = \sprintf('tests/%sProbeTest.php', $letter);
 
-            $project->write($file, <<<PHP
+            $project->writeFile($file, <<<PHP
                 <?php
 
                 declare(strict_types=1);
@@ -112,7 +112,7 @@ final readonly class SeedOrderTest
             $files[] = $file;
         }
 
-        $project->writeConfig($files);
+        $project->configureWithTestFiles($files);
 
         return $project;
     }

@@ -222,7 +222,7 @@ final readonly class CoverageRunTest
             ? \sprintf("\n        ->include(%s)", \var_export($root . '/src/Runner/Orchestrator', true))
             : '';
 
-        $project->write('greenlight.php', \sprintf(
+        $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
 
