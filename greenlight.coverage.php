@@ -14,4 +14,5 @@ return $config
     ->coverage(fn(CoverageBuilder $c) => $c
         ->include('src')
         ->driver('xdebug')
-        ->export('json', 'build/coverage/coverage.json'));
+        ->export('json', 'build/coverage/coverage.json')
+        ->export('cobertura', 'build/coverage/cobertura.xml'));
