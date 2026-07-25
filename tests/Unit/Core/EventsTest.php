@@ -35,7 +35,7 @@ final class EventsTest
         $summary = new ResultSummary(passed: 3, failed: 1);
 
         $events = [
-            new RunStarted('run-1', 100, 8, $at),
+            new RunStarted('run-1', 100, 8, $at, '/project/build/greenlight-artifacts/run-1'),
             new RunFinished('run-1', $summary, 12.5, $at),
             new SuiteStarted('unit', $at),
             new SuiteFinished('unit', $at),

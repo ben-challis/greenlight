@@ -20,6 +20,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Runner\Artifact\ArtifactStore;
 
 /**
  * Executes a plan slice sequentially in the current process.
@@ -43,6 +44,7 @@ final readonly class Worker
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
         private ?ResultPolicy $policy = null,
+        private ?ArtifactStore $artifactStore = null,
     ) {}
 
     /**
@@ -88,7 +90,14 @@ final readonly class Worker
 
                 try {
                     $context ??= ClassContext::for($class);
-                    $executor ??= new TestExecutor($scopes, $context, $this->plugins, $this->leakDetector, $this->policy);
+                    $executor ??= new TestExecutor(
+                        $scopes,
+                        $context,
+                        $this->plugins,
+                        $this->leakDetector,
+                        $this->policy,
+                        $this->artifactStore,
+                    );
                     $result = $executor->execute($entry);
                 } catch (\Throwable $threw) {
                     $result = new TestResult(
@@ -160,16 +169,8 @@ final readonly class Worker
             return $result;
         }
 
-        return new TestResult(
-            $result->id,
-            Outcome::Errored,
-            $result->durationSeconds,
-            $result->memoryDeltaBytes,
-            $result->attempts,
-            $result->failures,
+        return $result->erroredBy(
             ThrowableDetail::fromThrowable($teardownFailures[0]),
-            $result->skipReason,
-            $result->transformations,
         );
     }
 }

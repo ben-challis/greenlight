@@ -44,6 +44,7 @@ final readonly class CliOverrides
         public array $excludePaths = [],
         public ?int $repeat = null,
         public bool $repeatUntilFailure = false,
+        public ?string $artifactsDirectory = null,
     ) {}
 
     /**
@@ -118,6 +119,15 @@ final readonly class CliOverrides
         }
 
         $repeatUntilFailure = $arguments->has('repeat-until-failure');
+        $artifactsDirectory = null;
+
+        if ($arguments->has('artifacts-dir')) {
+            $artifactsDirectory = $arguments->value('artifacts-dir') ?? '';
+
+            if ($artifactsDirectory === '') {
+                throw CliError::optionRequiresValue('artifacts-dir');
+            }
+        }
 
         $seed = null;
 
@@ -153,6 +163,7 @@ final readonly class CliOverrides
             $excludePaths,
             $repeat,
             $repeatUntilFailure,
+            $artifactsDirectory,
         );
     }
 

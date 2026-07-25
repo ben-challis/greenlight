@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ConfigurationResolver;
+use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\WorkerCount;
@@ -86,6 +87,27 @@ final class PrecedenceMatrixTest
     {
         Expect::that($this->resolve()->groups)->toBe([]);
         Expect::that($this->resolve(cli: new CliOverrides(groups: ['slow']))->groups)->toBe(['slow']);
+    }
+
+    #[Test]
+    public function artifactDirectoryPrecedence(): void
+    {
+        Expect::that($this->resolve()->artifacts->directory)->toBe('build/greenlight-artifacts');
+        Expect::that(
+            $this->resolve(config: static fn(GreenlightConfig $c) => $c
+                ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/config-evidence')))
+                ->artifacts->directory,
+        )->toBe('build/config-evidence');
+        Expect::that(
+            $this->resolve(cli: new CliOverrides(artifactsDirectory: 'build/cli-evidence'))->artifacts->directory,
+        )->toBe('build/cli-evidence');
+        Expect::that(
+            $this->resolve(
+                config: static fn(GreenlightConfig $c) => $c
+                    ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/config-evidence')),
+                cli: new CliOverrides(artifactsDirectory: 'build/cli-evidence'),
+            )->artifacts->directory,
+        )->toBe('build/cli-evidence');
     }
 
     #[Test]

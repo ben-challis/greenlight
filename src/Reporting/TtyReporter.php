@@ -67,6 +67,11 @@ final class TtyReporter implements Reporter, Ticking
      */
     private array $risky = [];
 
+    /**
+     * @var list<string>
+     */
+    private array $successfulAttachments = [];
+
     private int $drawnLines = 0;
 
     private bool $scrollbackStarted = false;
@@ -188,6 +193,11 @@ final class TtyReporter implements Reporter, Ticking
                 $this->risky[] = $id;
             }
 
+            if ($result->outcome->isSuccessful() && $result->attachments !== []) {
+                $this->successfulAttachments[] = '  ' . $result->id . "\n"
+                    . AttachmentFormat::render($result, '    ');
+            }
+
             $this->redraw();
 
             return;
@@ -265,6 +275,14 @@ final class TtyReporter implements Reporter, Ticking
 
         $this->output->write(SummaryFormat::skipped($this->skipped, $this->style));
         $this->output->write($this->slowTests->render($this->style));
+
+        if ($this->successfulAttachments !== []) {
+            $this->output->write("\nRetained attachments from successful tests:\n");
+
+            foreach ($this->successfulAttachments as $rendered) {
+                $this->output->write($rendered);
+            }
+        }
 
         if ($this->risky !== []) {
             $this->output->write(\sprintf(

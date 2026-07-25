@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\Attachment;
+use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\SourceLocation;
@@ -28,6 +30,17 @@ final class TestResultTest
             [new FailureDetail('expected 1, got 2', '1', '2', new SourceLocation('/app/tests/FooTest.php', 12))],
             ThrowableDetail::fromThrowable(new \RuntimeException('boom')),
             expectations: 7,
+            attachments: [
+                new Attachment(
+                    'response.json',
+                    AttachmentKind::Value,
+                    'application/json',
+                    2,
+                    \str_repeat('a', 64),
+                    1,
+                    'build/artifacts/response.json',
+                ),
+            ],
         );
 
         $restored = TestResult::fromWire(JsonWire::roundTrip($result->toWire()));
@@ -42,17 +55,21 @@ final class TestResultTest
         Expect::that((string) $restored->failures[0]->location)->toBe('/app/tests/FooTest.php:12');
         Expect::that($restored->error?->class)->toBe(\RuntimeException::class);
         Expect::that($restored->expectations)->toBe(7);
+        Expect::that($restored->attachments)->toHaveCount(1);
+        Expect::that($restored->attachments[0]->name)->toBe('response.json');
     }
 
     #[Test]
-    public function toleratesPayloadsWithoutExpectations(): void
+    public function toleratesPayloadsWithoutNewOptionalFields(): void
     {
         $payload = new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Passed, 0.1, 0)->toWire();
         unset($payload['expectations']);
+        unset($payload['attachments']);
 
         $restored = TestResult::fromWire(JsonWire::roundTrip($payload));
 
         Expect::that($restored->expectations)->toBe(0);
+        Expect::that($restored->attachments)->toBe([]);
     }
 
     #[Test]

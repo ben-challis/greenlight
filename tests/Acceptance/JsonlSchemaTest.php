@@ -34,7 +34,7 @@ final readonly class JsonlSchemaTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         Expect::that($result->exitCode)->toBe(1);
         $lines = $result->stdoutLines();
-        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
+        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v2.schema.json'];
         $seenTags = [];
         $violations = [];
         Expect::that($lines)->not()->toBeEmpty();

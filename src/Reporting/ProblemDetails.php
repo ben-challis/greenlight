@@ -94,6 +94,13 @@ final class ProblemDetails
             }
         }
 
+        if ($result->attachments !== []) {
+            $lines = [
+                ...$lines,
+                ...\explode("\n", \rtrim(AttachmentFormat::render($result), "\n")),
+            ];
+        }
+
         if ($lines === []) {
             return '';
         }

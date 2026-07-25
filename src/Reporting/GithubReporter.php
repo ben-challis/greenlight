@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Core\Event\Event;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
@@ -21,18 +22,28 @@ use Greenlight\Reporting\Output\Output;
  *
  * @internal
  */
-final readonly class GithubReporter implements Reporter
+final class GithubReporter implements Reporter
 {
-    public function __construct(private Output $output) {}
+    private ?string $artifactsDirectory = null;
+    private bool $hasAttachments = false;
+
+    public function __construct(private readonly Output $output) {}
 
     #[\Override]
     public function onEvent(Event $event): void
     {
+        if ($event instanceof RunStarted) {
+            $this->artifactsDirectory = $event->artifactsDirectory;
+
+            return;
+        }
+
         if (!$event instanceof TestFinished) {
             return;
         }
 
         $result = $event->result;
+        $this->hasAttachments = $this->hasAttachments || $result->attachments !== [];
 
         if ($result->outcome === Outcome::Failed) {
             $this->writeFailures($result);
@@ -46,7 +57,12 @@ final readonly class GithubReporter implements Reporter
     }
 
     #[\Override]
-    public function finish(): void {}
+    public function finish(): void
+    {
+        if ($this->hasAttachments && $this->artifactsDirectory !== null) {
+            $this->output->write('::notice::' . $this->escapeData('Greenlight attachments: ' . $this->artifactsDirectory) . "\n");
+        }
+    }
 
     private function writeFailures(TestResult $result): void
     {
@@ -61,6 +77,10 @@ final readonly class GithubReporter implements Reporter
                 $message .= "\nactual: " . $failure->actual;
             }
 
+            if ($result->attachments !== []) {
+                $message .= "\nattachments:\n" . AttachmentFormat::paths($result->attachments);
+            }
+
             $location = $failure->location;
 
             $this->write(
@@ -71,7 +91,13 @@ final readonly class GithubReporter implements Reporter
         }
 
         if ($result->failures === []) {
-            $this->write(null, null, $result->id . ': failed.');
+            $message = $result->id . ': failed.';
+
+            if ($result->attachments !== []) {
+                $message .= "\nattachments:\n" . AttachmentFormat::paths($result->attachments);
+            }
+
+            $this->write(null, null, $message);
         }
     }
 
@@ -80,12 +106,24 @@ final readonly class GithubReporter implements Reporter
         $error = $result->error;
 
         if (!$error instanceof ThrowableDetail) {
-            $this->write(null, null, $result->id . ': errored.');
+            $message = $result->id . ': errored.';
+
+            if ($result->attachments !== []) {
+                $message .= "\nattachments:\n" . AttachmentFormat::paths($result->attachments);
+            }
+
+            $this->write(null, null, $message);
 
             return;
         }
 
-        $this->write($error->file, $error->line, $result->id . ': ' . $error->class . ': ' . $error->message);
+        $message = $result->id . ': ' . $error->class . ': ' . $error->message;
+
+        if ($result->attachments !== []) {
+            $message .= "\nattachments:\n" . AttachmentFormat::paths($result->attachments);
+        }
+
+        $this->write($error->file, $error->line, $message);
     }
 
     private function write(?string $file, ?int $line, string $message): void

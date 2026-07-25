@@ -246,6 +246,12 @@ The flag is repeatable, so you can emit more than one format:
 vendor/bin/greenlight run --reporter=tty --reporter=junit
 ```
 
+Tests can retain diagnostic data without printing it to stdout. Inject
+`Greenlight\Core\Artifact\Attachments`, then call `value()`, `text()`, `bytes()`,
+or `file()`. Greenlight prints the retained paths and stores the files below
+`build/greenlight-artifacts` by default. See
+[test attachments](attachments.md).
+
 ## Watch mode
 
 ```sh

@@ -67,6 +67,7 @@ final class PlanFormatter
         }
 
         $lines[] = '  plugins: ' . ($plugins === [] ? '(none)' : \implode(', ', $plugins));
+        $lines[] = '  artifacts: ' . $configuration->artifacts->directory;
 
         if (!$configuration->coverage instanceof CoverageConfiguration) {
             $lines[] = '  coverage: (off)';

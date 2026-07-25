@@ -11,7 +11,7 @@ use Greenlight\Reporting\Output\Output;
 /**
  * Streams one JSON object per event as it arrives.
  *
- * Each line is shaped as {"v": 1, "event": "<tag>", "data": {...}} where data
+ * Each line is shaped as {"v": 2, "event": "<tag>", "data": {...}} where data
  * is the event's wire payload.
  *
  * Tags are stable and additive only; the schema is documented in
@@ -21,7 +21,7 @@ use Greenlight\Reporting\Output\Output;
  */
 final readonly class JsonLinesReporter implements Reporter
 {
-    private const int VERSION = 1;
+    private const int VERSION = 2;
 
     public function __construct(private Output $output) {}
 

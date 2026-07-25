@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\GreenlightConfig;
@@ -31,6 +32,8 @@ final class GreenlightConfigTest
         Expect::that($configuration->randomizeOrder)->toBe(false);
         Expect::that($configuration->randomSeed)->toBe(null);
         Expect::that($configuration->groups)->toBe([]);
+        Expect::that($configuration->artifacts->directory)->toBe('build/greenlight-artifacts');
+        Expect::that($configuration->artifacts->maxAttachmentsPerTest)->toBe(32);
     }
 
     #[Test]
@@ -44,6 +47,13 @@ final class GreenlightConfigTest
             ->suite('integration', static fn(SuiteBuilder $suite) => $suite->in('tests/Integration')->tag('io', 'slow'))
             ->workers(count: 8, recycleAfterTests: 250, recycleAboveMemory: '1G')
             ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
+            ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
+                ->directory('build/evidence')
+                ->maxAttachmentsPerTest(10)
+                ->maxAttachmentSize('5M')
+                ->maxTestSize('20M')
+                ->maxRunAttachments(100)
+                ->maxRunSize('100M'))
             ->plugins($plugin)
             ->failFast()
             ->randomizeOrder(seed: 99)
@@ -74,6 +84,9 @@ final class GreenlightConfigTest
         Expect::that($configuration->stopAfterFailures)->toBe(1);
         Expect::that($configuration->randomizeOrder)->toBe(true);
         Expect::that($configuration->randomSeed)->toBe(99);
+        Expect::that($configuration->artifacts->directory)->toBe('build/evidence');
+        Expect::that($configuration->artifacts->maxAttachmentBytes)->toBe(5 * 1024 * 1024);
+        Expect::that($configuration->artifacts->maxRunBytes)->toBe(100 * 1024 * 1024);
     }
 
     #[Test]
@@ -121,6 +134,12 @@ final class GreenlightConfigTest
             },
             'bad memory string surfaces at build' => static function (): void {
                 GreenlightConfig::create()->workers(recycleAboveMemory: 'lots')->build();
+            },
+            'empty artifact directory' => static function (): void {
+                GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory(''));
+            },
+            'zero artifact count' => static function (): void {
+                GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0));
             },
         ];
 

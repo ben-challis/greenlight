@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
+use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\Message;
 
 /**
@@ -32,6 +34,8 @@ final readonly class Assign implements Message
         public ?string $configFile = null,
         public bool $detectLeaks = false,
         public ?ResultPolicy $policy = null,
+        public ?ArtifactSession $artifactSession = null,
+        public ?ArtifactConfiguration $artifactConfiguration = null,
     ) {}
 
     #[\Override]
@@ -52,6 +56,8 @@ final readonly class Assign implements Message
             'configFile' => $this->configFile,
             'detectLeaks' => $this->detectLeaks,
             'policy' => $this->policy?->toWire(),
+            'artifactSession' => $this->artifactSession?->toWire(),
+            'artifactConfiguration' => $this->artifactConfiguration?->toWire(),
         ];
     }
 
@@ -78,6 +84,12 @@ final readonly class Assign implements Message
             $configFile === '' ? null : $configFile,
             Wire::bool($payload, 'detectLeaks'),
             ($policy = Wire::nullableMap($payload, 'policy')) === null ? null : ResultPolicy::fromWire($policy),
+            ($artifacts = \array_key_exists('artifactSession', $payload) ? Wire::nullableMap($payload, 'artifactSession') : null) === null
+                ? null
+                : ArtifactSession::fromWire($artifacts),
+            ($artifactConfiguration = \array_key_exists('artifactConfiguration', $payload) ? Wire::nullableMap($payload, 'artifactConfiguration') : null) === null
+                ? null
+                : ArtifactConfiguration::fromWire($artifactConfiguration),
         );
     }
 }

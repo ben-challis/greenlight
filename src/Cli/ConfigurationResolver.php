@@ -30,6 +30,11 @@ final class ConfigurationResolver
     {
         $randomizeOrder = $overrides->seed !== null || $configuration->randomizeOrder;
         $randomSeed = $overrides->seed ?? $configuration->randomSeed;
+        $artifacts = $configuration->artifacts;
+
+        if ($overrides->artifactsDirectory !== null) {
+            $artifacts = $artifacts->withDirectory($overrides->artifactsDirectory);
+        }
 
         if ($randomizeOrder && $randomSeed === null) {
             $randomSeed = \random_int(0, 2 ** 31 - 1);
@@ -60,6 +65,7 @@ final class ConfigurationResolver
             excludeClasses: $overrides->excludeClasses,
             excludeMethods: $overrides->excludeMethods,
             excludePaths: $overrides->excludePaths,
+            artifacts: $artifacts,
         );
     }
 }

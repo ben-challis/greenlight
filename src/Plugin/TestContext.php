@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
+use Greenlight\Core\Artifact\Attachments;
+use Greenlight\Core\Artifact\UnavailableAttachments;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
@@ -22,12 +24,17 @@ use Greenlight\Harness\UnresolvableService;
  */
 final readonly class TestContext
 {
+    public Attachments $attachments;
+
     public function __construct(
         public object $instance,
         public TestId $id,
         public TestMetadata $metadata,
         private HarnessScopes $scopes,
-    ) {}
+        ?Attachments $attachments = null,
+    ) {
+        $this->attachments = $attachments ?? new UnavailableAttachments();
+    }
 
     /**
      * @template T of object

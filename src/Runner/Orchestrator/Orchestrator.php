@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
+use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
@@ -22,6 +23,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Reporting\Ticking;
+use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\Done;
@@ -154,6 +156,8 @@ final class Orchestrator
         private readonly ?ResultPolicy $policy = null,
         private readonly ?GracefulShutdown $shutdown = null,
         private readonly ?Ticking $ticker = null,
+        private readonly ?ArtifactStore $artifactStore = null,
+        private readonly ?ArtifactConfiguration $artifactConfiguration = null,
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
     ) {
@@ -505,6 +509,8 @@ final class Orchestrator
                 $this->configFile === '' ? null : $this->configFile,
                 $this->detectLeaks,
                 $this->policy,
+                $this->artifactStore?->session(),
+                $this->artifactConfiguration,
             ));
         } catch (ProtocolError) {
             // The worker died before the assignment arrived; containment
@@ -581,6 +587,13 @@ final class Orchestrator
 
     private function onEvent(WorkerHandle $handle, Event $event, EventSink $sink): void
     {
+        if ($event instanceof TestFinished && $this->artifactStore instanceof ArtifactStore) {
+            $event = new TestFinished(
+                $this->artifactStore->publish($event->result),
+                $event->occurredAt,
+            );
+        }
+
         if ($event instanceof TestStarted) {
             $handle->inFlight = $event->id;
             $handle->inFlightSince = \microtime(true);
@@ -738,6 +751,10 @@ final class Orchestrator
                 0,
                 error: ThrowableDetail::fromThrowable(new \RuntimeException($message)),
             );
+
+            if ($this->artifactStore instanceof ArtifactStore) {
+                $result = $this->artifactStore->recover($result);
+            }
 
             $handle->inFlight = null;
             $handle->finished[(string) $inFlight] = true;

@@ -104,6 +104,10 @@ final class PlainReporter implements Reporter
                 $attempts,
             ));
 
+            if ($result->outcome->isSuccessful() && $result->attachments !== []) {
+                $this->output->write(AttachmentFormat::render($result));
+            }
+
             if (!$result->outcome->isSuccessful()) {
                 $this->problems[] = $result;
             }

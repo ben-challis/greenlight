@@ -18,6 +18,7 @@ final readonly class RunStarted implements Event
         public int $plannedTests,
         public int $workers,
         public float $occurredAt,
+        public ?string $artifactsDirectory = null,
     ) {}
 
     #[\Override]
@@ -28,6 +29,7 @@ final readonly class RunStarted implements Event
             'plannedTests' => $this->plannedTests,
             'workers' => $this->workers,
             'occurredAt' => $this->occurredAt,
+            'artifactsDirectory' => $this->artifactsDirectory,
         ];
     }
 
@@ -39,6 +41,7 @@ final readonly class RunStarted implements Event
             \max(0, Wire::int($payload, 'plannedTests')),
             \max(1, Wire::int($payload, 'workers')),
             Wire::float($payload, 'occurredAt'),
+            \array_key_exists('artifactsDirectory', $payload) ? Wire::nullableString($payload, 'artifactsDirectory') : null,
         );
     }
 }

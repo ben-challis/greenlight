@@ -71,9 +71,9 @@ final class JsonlEventsTest
     public function invalidEnvelopesAndPayloadsFailLoudly(): void
     {
         $invalid = [
-            '{"v":2,"event":"worker-spawned","data":{}}',
-            '{"v":1,"event":"unknown","data":{}}',
-            '{"v":1,"event":"worker-spawned","data":{"workerId":"worker-1","pid":"bad","occurredAt":1}}',
+            '{"v":3,"event":"worker-spawned","data":{}}',
+            '{"v":2,"event":"unknown","data":{}}',
+            '{"v":2,"event":"worker-spawned","data":{"workerId":"worker-1","pid":"bad","occurredAt":1}}',
         ];
 
         foreach ($invalid as $line) {
@@ -90,7 +90,7 @@ final class JsonlEventsTest
     private function line(string $event, array $data): string
     {
         return \json_encode(
-            ['v' => 1, 'event' => $event, 'data' => $data],
+            ['v' => 2, 'event' => $event, 'data' => $data],
             \JSON_THROW_ON_ERROR,
         );
     }

@@ -18,6 +18,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 * Strict mocks, stubs, and spies with automatic verification.
 * Typed expectations with rendered diffs.
 * Deterministic terminal and CI output with repeatable reporters.
+* Per-test attachments for structured values, text, bytes, and files.
 * Stable CI sharding with `--shard=n/m`.
 * Failed-first runs, seeded randomisation, watch mode, and repeat modes.
 * Coverage through pcov or Xdebug, including diff coverage gates.
@@ -258,6 +259,11 @@ Iteration and debugging:
 
 Per-test output capture keeps stdout and PHP diagnostics attached to the test that produced them. The `profile:report` command can replay a saved JSONL stream into a profile report.
 
+Tests and plugins can attach diagnostic data to an individual result. Greenlight
+copies the content immediately, retains it on failure by default, and keeps it
+outside the event stream. See
+[test attachments](docs/attachments.md).
+
 ## CI, sharding, and coverage
 
 Shard by class without shared coordination:
@@ -283,6 +289,10 @@ CI controls include:
 * `--fail-on-notice`
 * `ignoreDeprecationsMatching()`
 * `coverage:diff`
+
+Retained attachments are written below `build/greenlight-artifacts` by default.
+Upload that directory from a CI step that always runs, or use
+`--artifacts-dir=<path>` to place it alongside other job outputs.
 
 Coverage uses pcov or Xdebug and can be exported as JSON, LCOV, Clover, Cobertura, or HTML.
 
@@ -321,11 +331,13 @@ Greenlight does not run PHPUnit suites directly. See [migrating from PHPUnit](do
 * [Configuration reference](docs/configuration.md)
 * [Attribute reference](docs/attributes.md)
 * [Writing plugins](docs/plugins.md)
+* [Test attachments](docs/attachments.md)
 * [Static analysis with PHPStan](docs/phpstan.md)
 * [Testing Symfony applications](docs/symfony.md)
 * [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
 * [JSONL reporter schema](docs/architecture/jsonl.md)
+* [Artifact storage architecture](docs/architecture/artifacts.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)
 * [Temporal expectations](docs/architecture/temporal-expectations.md)
 * [Code conventions](docs/architecture/conventions.md)

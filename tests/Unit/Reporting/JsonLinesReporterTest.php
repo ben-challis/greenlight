@@ -47,7 +47,7 @@ final class JsonLinesReporterTest
                 flags: \JSON_THROW_ON_ERROR,
             );
 
-            Expect::that($decoded['v'])->toBe(1)
+            Expect::that($decoded['v'])->toBe(2)
                 ->and($decoded['event'])->toBe(\array_search($event::class, $tags, true))
                 ->and($decoded['data'])->toEqual($expectedData);
         }
@@ -83,7 +83,7 @@ final class JsonLinesReporterTest
         $lines = \explode("\n", $output->buffer());
 
         Expect::that($lines[0])->toBe(
-            '{"v":1,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5}}',
+            '{"v":2,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
         );
     }
 

@@ -27,6 +27,7 @@ final class GreenlightConfigApiTest
         \sort($methods);
 
         Expect::that($methods)->toBe([
+            'artifacts',
             'build',
             'coverage',
             'create',

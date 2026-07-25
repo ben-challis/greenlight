@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Worker;
 
 use Greenlight\Capture\OutputCapture;
+use Greenlight\Core\Artifact\Attachments;
+use Greenlight\Core\Artifact\UnavailableAttachments;
 use Greenlight\Core\Condition;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
@@ -20,6 +22,9 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Runner\Artifact\StagedAttachments;
+use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 /**
  * Runs one plan entry.
@@ -45,6 +50,7 @@ final readonly class TestExecutor
         private PluginRegistry $plugins,
         private ?LeakDetector $leakDetector = null,
         private ?ResultPolicy $policy = null,
+        private ?ArtifactStore $artifactStore = null,
     ) {}
 
     public function execute(PlanEntry $entry): TestResult
@@ -77,26 +83,52 @@ final readonly class TestExecutor
         }
 
         $attempt = 0;
+        $retainedAttachments = [];
+        $artifactBudget = new TestArtifactBudget();
 
         do {
             ++$attempt;
-            [$result, $cause] = $this->attempt($entry, $attempt);
+            [$result, $cause, $attachments] = $this->attempt($entry, $attempt, $artifactBudget);
+
+            if ($attachments instanceof StagedAttachments) {
+                $result = $result->withAttachments($attachments->collected());
+            }
 
             if ($result->outcome->isSuccessful()) {
-                return $this->policy?->apply($result) ?? $result;
+                $result = $this->policy?->apply($result) ?? $result;
+                $sealed = $attachments?->seal() ?? [];
+
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
-            $retry = \array_any($this->plugins->retryDeciders(), fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause));
+
+            try {
+                $retry = \array_any(
+                    $this->plugins->retryDeciders(),
+                    fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause),
+                );
+            } catch (\Throwable $threw) {
+                $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
+                $sealed = $attachments?->seal() ?? [];
+
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
+            }
+
+            $sealed = $attachments?->seal() ?? [];
 
             if (!$retry) {
-                return $this->policy?->apply($result) ?? $result;
+                $result = $this->policy?->apply($result) ?? $result;
+
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
+
+            $retainedAttachments = [...$retainedAttachments, ...$sealed];
         } while (true);
     }
 
     /**
-     * @return array{TestResult, ?\Throwable} the result and the throwable that caused a non-pass, for retry matching
+     * @return array{TestResult, ?\Throwable, ?StagedAttachments}
      */
-    private function attempt(PlanEntry $entry, int $attempt): array
+    private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
     {
         $metadata = $entry->metadata;
         ExpectationCounter::reset();
@@ -110,6 +142,8 @@ final readonly class TestExecutor
         $captured = null;
         $context = null;
         $capture = $metadata->capture ? new OutputCapture() : null;
+        $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
+        $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $capture?->start();
@@ -120,8 +154,8 @@ final readonly class TestExecutor
         );
 
         try {
-            $instance = $this->instantiate($metadata->class);
-            $context = new TestContext($instance, $entry->id, $metadata, $this->scopes);
+            $instance = $this->instantiate($metadata->class, $attachments);
+            $context = new TestContext($instance, $entry->id, $metadata, $this->scopes, $attachments);
             $instance = null;
 
             foreach ($this->plugins->testSubscribers() as $subscriber) {
@@ -250,7 +284,7 @@ final readonly class TestExecutor
             $this->leakDetector?->watch($entry->id, $context->instance);
         }
 
-        return [$result, $cause];
+        return [$result, $cause, $stagedAttachments];
     }
 
     /**
@@ -270,43 +304,22 @@ final readonly class TestExecutor
                 $replacement = $subscriber->afterTest($context, $result);
             } catch (\Throwable $threw) {
                 if ($result->outcome->isSuccessful()) {
-                    $result = new TestResult(
-                        $result->id,
-                        Outcome::Errored,
-                        $result->durationSeconds,
-                        $result->memoryDeltaBytes,
-                        $result->attempts,
-                        $result->failures,
+                    $result = $result->erroredBy(
                         ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
                             'Plugin "%s" failed in afterTest: %s',
                             $subscriber::class,
                             $threw->getMessage(),
                         ), 0, $threw)),
-                        $result->skipReason,
-                        $result->transformations,
-                        $result->output,
-                        $result->risky,
-                        $result->expectations,
                     );
                 } else {
-                    $result = new TestResult(
-                        $result->id,
-                        $result->outcome,
-                        $result->durationSeconds,
-                        $result->memoryDeltaBytes,
-                        $result->attempts,
-                        [...$result->failures, new FailureDetail(\sprintf(
+                    $result = $result->withFailures([
+                        ...$result->failures,
+                        new FailureDetail(\sprintf(
                             'Plugin "%s" failed in afterTest: %s',
                             $subscriber::class,
                             $threw->getMessage(),
-                        ))],
-                        $result->error,
-                        $result->skipReason,
-                        $result->transformations,
-                        $result->output,
-                        $result->risky,
-                        $result->expectations,
-                    );
+                        )),
+                    ]);
                 }
 
                 continue;
@@ -315,24 +328,13 @@ final readonly class TestExecutor
             if ($replacement->outcome !== $result->outcome
                 && \count($replacement->transformations) <= \count($result->transformations)
             ) {
-                $result = new TestResult(
-                    $result->id,
-                    Outcome::Errored,
-                    $result->durationSeconds,
-                    $result->memoryDeltaBytes,
-                    $result->attempts,
-                    $result->failures,
+                $result = $result->erroredBy(
                     ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
                         'Plugin "%s" changed the outcome from %s to %s without withOutcome() provenance.',
                         $subscriber::class,
                         $result->outcome->value,
                         $replacement->outcome->value,
                     ))),
-                    $result->skipReason,
-                    $result->transformations,
-                    $result->output,
-                    $result->risky,
-                    $result->expectations,
                 );
 
                 continue;
@@ -347,7 +349,7 @@ final readonly class TestExecutor
     /**
      * @param non-empty-string $class
      */
-    private function instantiate(string $class): object
+    private function instantiate(string $class, Attachments $attachments): object
     {
         $constructor = $this->context->reflection->getConstructor();
         $arguments = [];
@@ -367,6 +369,13 @@ final readonly class TestExecutor
 
             /** @var class-string $serviceType */
             $serviceType = $type->getName();
+
+            if ($serviceType === Attachments::class) {
+                $arguments[] = $attachments;
+
+                continue;
+            }
+
             $attributes = \array_map(
                 static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
                 $parameter->getAttributes(),
