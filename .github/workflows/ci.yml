@@ -149,6 +149,7 @@ jobs:
         run: "composer tests:coverage"
 
       - name: "Run the self-coverage gate"
+        if: "always()"
         run: "composer coverage-gate"
 
   benchmark-harness:
