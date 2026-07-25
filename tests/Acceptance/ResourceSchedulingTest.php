@@ -52,7 +52,7 @@ final readonly class ResourceSchedulingTest
         $project = AcceptanceProject::create($this->tempDirectory, 'resource-crash');
         $marker = $project->path('survivor-ran');
 
-        $project->write('tests/ACrashTest.php', <<<'PHP'
+        $project->writeFile('tests/ACrashTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -72,7 +72,7 @@ final readonly class ResourceSchedulingTest
                 }
             }
             PHP);
-        $project->write('tests/BSurvivorTest.php', <<<'PHP'
+        $project->writeFile('tests/BSurvivorTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -98,7 +98,7 @@ final readonly class ResourceSchedulingTest
                 }
             }
             PHP);
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -129,7 +129,7 @@ final readonly class ResourceSchedulingTest
     private function concurrencyProject(): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'resource-concurrency');
-        $project->write('tests/Probe.php', <<<'PHP'
+        $project->writeFile('tests/Probe.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -232,7 +232,7 @@ final readonly class ResourceSchedulingTest
             PHP);
 
         foreach (['AFirst', 'BSecond', 'CThird', 'DFourth'] as $class) {
-            $project->write('tests/' . $class . 'Test.php', \sprintf(
+            $project->writeFile('tests/' . $class . 'Test.php', \sprintf(
                 <<<'PHP'
                 <?php
 
@@ -257,7 +257,7 @@ final readonly class ResourceSchedulingTest
             ));
         }
 
-        $project->write('tests/EDisjointTest.php', <<<'PHP'
+        $project->writeFile('tests/EDisjointTest.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -275,7 +275,7 @@ final readonly class ResourceSchedulingTest
                 }
             }
             PHP);
-        $project->write('greenlight.php', <<<'PHP'
+        $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
             declare(strict_types=1);
