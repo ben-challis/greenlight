@@ -18,7 +18,7 @@ final readonly class TemporalExpectationRunTest
     public function aWorkerPollsRealAsynchronousExternalState(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'temporal-expectation');
-        $project->write('tests/AsynchronousAdapterTest.php', <<<'PHP_WRAP'
+        $project->writeFile('tests/AsynchronousAdapterTest.php', <<<'PHP_WRAP'
         <?php
 
         declare(strict_types=1);
@@ -70,7 +70,7 @@ final readonly class TemporalExpectationRunTest
             }
         }
         PHP_WRAP);
-        $project->writeConfig(['tests/AsynchronousAdapterTest.php']);
+        $project->configureWithTestFiles(['tests/AsynchronousAdapterTest.php']);
 
         $result = GreenlightCli::run($project->directory, [
             'run',
