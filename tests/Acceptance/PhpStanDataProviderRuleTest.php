@@ -9,12 +9,6 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 
-/**
- * Runs the real PHPStan binary with the shipped extension against probe test
- * classes: providers and inline rows matching the method signature must
- * analyse clean, while missing providers, wrong visibility, non-iterable
- * returns, arity mismatches, and wrong argument types must be flagged.
- */
 final readonly class PhpStanDataProviderRuleTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

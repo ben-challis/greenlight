@@ -12,17 +12,9 @@ use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 /**
- * Minimal single-file kernel the Symfony bridge tests boot.
- *
- * configureContainer() enables framework.test only in the test environment,
- * so the same kernel proves both the test-container path and the
- * missing-test-container error. It registers Greeter and VisitCounter as
- * ordinary private autoconfigured services, and NamedGreeter under the
- * string id fixture.named_greeter only, which forces the #[Service]
- * attribute.
- *
- * getCacheDir() and getLogDir() are keyed by GREENLIGHT_CHANNEL so parallel
- * workers never compile the same container directory concurrently.
+ * Registers private type-based services and an id-only NamedGreeter.
+ * Cache and log directories include GREENLIGHT_CHANNEL to prevent parallel
+ * workers from compiling the same container.
  */
 final class FixtureKernel extends Kernel
 {

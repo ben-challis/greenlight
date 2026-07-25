@@ -8,11 +8,6 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\Fail;
 
-/**
- * Runs a closure that is expected to fail an expectation and hands back the
- * first FailureDetail, so the specs can assert on failure messages using
- * Expect itself.
- */
 final class FailureProbe
 {
     private function __construct() {}

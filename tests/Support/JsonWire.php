@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-/**
- * Simulates the wire in unit tests: encodes a payload to JSON and decodes it
- * back, so wire round-trip assertions exercise real JSON semantics.
- */
 final class JsonWire
 {
     private function __construct() {}

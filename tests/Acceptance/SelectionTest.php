@@ -11,11 +11,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Drives --filter and --failed through the real CLI against a throwaway
- * project in a unique temp directory, so the run state keyed by that
- * directory cannot collide with other tests.
- */
 final readonly class SelectionTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -67,18 +62,14 @@ final readonly class SelectionTest
     public function failedRerunsExactlyThePreviousFailures(): void
     {
         $project = $this->writeProject();
-        // --failed before any run is a usage error.
         $result = $this->run($project, '--failed');
         Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('previous run');
-        // A full run records one failure.
         $result = $this->run($project);
         Expect::that($result->exitCode)->toBe(1);
-        // --failed re-runs exactly that one test.
         $result = $this->run($project, '--failed');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('1 test, 0 passed, 1 errored')
             ->toContain('breaksSometimes');
-        // A run where everything passes empties the state.
         $result = $this->run($project, '--filter=alwaysPasses');
         Expect::that($result->exitCode)->toBe(0);
         $result = $this->run($project, '--failed');

@@ -9,10 +9,6 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Inline #[DataRow] rows through the real CLI: expansion into the plan,
- * execution across workers, and label filtering.
- */
 final class DataRowRunTest
 {
     #[Test]

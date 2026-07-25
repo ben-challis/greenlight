@@ -11,11 +11,6 @@ use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\Subprocess;
 
-/**
- * The completion command through the real CLI: each supported shell gets a
- * script on stdout with exit 0, a missing or unknown shell is a usage
- * error, and the bash script passes bash -n when bash is installed.
- */
 final readonly class CompletionTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -55,10 +50,7 @@ final readonly class CompletionTest
         $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }
 
-    /**
-     * Pipes the rendered bash script through bash -n. Skipped silently when
-     * bash is not installed; the rest of the test has already run by then.
-     */
+    /** Skips only the optional syntax check when bash is unavailable. */
     private function syntaxCheckWhenBashIsAvailable(string $script): void
     {
         $path = \getenv('PATH');

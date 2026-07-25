@@ -14,15 +14,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 
-/**
- * Worker channels through the real CLI.
- *
- * Every worker process carries GREENLIGHT_CHANNEL, a stable slot between 1
- * and the worker count, matched by the injectable TestChannel service. The
- * generated project echoes the variable and asserts the two agree, so a
- * passing exit code covers the service side and the captured output covers
- * the environment side.
- */
 final readonly class ChannelTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -68,12 +59,9 @@ final readonly class ChannelTest
     }
 
     /**
-     * Channel numbers echoed by the generated tests, sorted ascending, read
-     * from the captured stdout on test-finished events.
-     *
      * @param list<Event> $events
      *
-     * @return list<int>
+     * @return list<int> sorted channel numbers from TestFinished output
      */
     private function reportedChannels(array $events): array
     {
@@ -120,12 +108,9 @@ final readonly class ChannelTest
         $project->write('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
-        // Rather than hope a fixed sleep outlasts the time a second worker
-        // needs to boot and claim a class, every class writes a marker for
-        // its own channel and then waits until markers for every expected
-        // channel exist. Neither worker can drain its whole queue before
-        // the other has started, so the observed channel set is forced
-        // deterministically instead of by timing luck.
+        // Each class records its channel and waits for every expected marker.
+        // This prevents one worker from draining its queue before the other
+        // starts, without relying on a fixed delay.
         $template = <<<'PHP'
             <?php
 

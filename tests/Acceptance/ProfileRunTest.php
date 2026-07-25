@@ -10,13 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * The profile through the real CLI.
- *
- * --profile appends the block after the summary, and profile:report
- * reproduces the same numbers offline from the jsonl artifact of the same
- * run.
- */
 final readonly class ProfileRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

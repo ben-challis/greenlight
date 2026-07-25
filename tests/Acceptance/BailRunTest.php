@@ -11,14 +11,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Drives --bail through the real CLI against a project whose first class
- * fails every test, so the run stops before reaching the later classes.
- *
- * The CLI prints no "stopped after N failures" line; the only observable
- * signs of an early stop are the exit code and a final summary that covers
- * fewer tests than the six-test plan the run header announces.
- */
 final readonly class BailRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

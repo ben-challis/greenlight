@@ -26,10 +26,7 @@ use Greenlight\Core\Test\TestId;
 use Greenlight\Reporting\Reporter;
 
 /**
- * The shared canned event stream for reporter golden tests: two classes, a
- * pass, a failure with expected and actual, a slow pass, an error, a skip,
- * and a retried pass, plus worker spawn and recycle events. Timestamps and
- * durations are fixed so every reporter's output is deterministic.
+ * Fixed timestamps and durations keep reporter golden output deterministic.
  */
 final class CannedStream
 {

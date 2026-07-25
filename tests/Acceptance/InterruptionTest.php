@@ -16,12 +16,6 @@ use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\Subprocess;
 
-/**
- * Interrupts a real bin/greenlight run with SIGINT and asserts the clean
- * shutdown contract: exit code 130, the interrupted marker, no orphaned
- * worker processes, and no leaked orchestrator socket directory. The run
- * gets a private TMPDIR so temp-dir assertions cannot race other tests.
- */
 final readonly class InterruptionTest
 {
     private const float DEADLINE_SECONDS = 30.0;
@@ -52,13 +46,8 @@ final readonly class InterruptionTest
         try {
             $deadline = \microtime(true) + self::DEADLINE_SECONDS;
 
-            // A marker file written straight to disk at the top of the
-            // first test method fires as soon as any test has started,
-            // with none of the block-buffering delay a "test-finished"
-            // line in the piped stdout would carry: under CPU pressure the
-            // whole run could otherwise finish before that line is ever
-            // observed, sending SIGINT after there is nothing left to
-            // interrupt.
+            // A marker avoids stdout block buffering. Waiting for a
+            // test-finished line can delay SIGINT until the run has ended.
             while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
                 $process->pump();
                 \usleep(5_000);
@@ -114,13 +103,9 @@ final readonly class InterruptionTest
         $project->write('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
-        // The first test of every class touches a marker as soon as it
-        // starts, so the parent test can send SIGINT the moment any work
-        // is underway rather than guessing at a sleep long enough to
-        // still be running when it checks. The remaining sleeps only need
-        // to keep the class occupied a little longer than the round trip
-        // to deliver the signal takes; a short deadline-bounded loop
-        // keeps that bounded instead of resting on one blind usleep.
+        // Each class writes a marker when work starts. The parent can send
+        // SIGINT without relying on a fixed startup delay, while the bounded
+        // loop keeps the class busy long enough to receive it.
         $template = <<<'PHP'
             <?php
 

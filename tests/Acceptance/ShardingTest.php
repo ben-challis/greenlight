@@ -10,10 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Sharding through the real CLI: the shards of list-tests reconstitute the
- * full suite exactly once, and malformed shard specs are usage errors.
- */
 final readonly class ShardingTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

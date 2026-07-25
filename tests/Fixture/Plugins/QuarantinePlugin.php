@@ -9,10 +9,6 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\TestLifecycleSubscriber;
 
-/**
- * Flaky-test quarantine: failing tests tagged 'quarantined' are reported
- * skipped instead, with provenance. Built only on the public plugin API.
- */
 final readonly class QuarantinePlugin implements TestLifecycleSubscriber
 {
     #[\Override]

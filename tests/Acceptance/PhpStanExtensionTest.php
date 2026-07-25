@@ -9,12 +9,6 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 
-/**
- * Runs the real PHPStan binary with the shipped extension against probe code
- * calling the fixture matchers: correct calls must analyse clean and a wrong
- * argument type must be flagged, proving the reflected signatures are
- * enforced rather than swallowed by the __call fallback.
- */
 final readonly class PhpStanExtensionTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

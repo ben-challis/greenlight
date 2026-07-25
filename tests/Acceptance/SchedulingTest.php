@@ -15,12 +15,6 @@ use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Demand-driven scheduling through the real CLI.
- *
- * Workers are reused across classes instead of spawning per unit, and once
- * the timing cache knows a slow class it is assigned first on the next run.
- */
 final readonly class SchedulingTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -35,12 +29,9 @@ final readonly class SchedulingTest
         $events = JsonlEvents::from($result);
         Expect::that($result->exitCode)->toBe(0)
             ->and(\count($this->spawnedWorkers($events)))->toBe(2);
-        // Warm run: the slow class heads the queue, so whichever worker
-        // takes it receives it as its first assignment. Assert per
-        // worker rather than on the merged stream: event order between
-        // workers is arrival order, and a worker that boots slowly on a
-        // loaded machine reports its first start only after the other
-        // worker has already started several classes.
+        // Assert the warm run per worker. The merged stream uses arrival
+        // order, so a slow worker may report its first class after another
+        // worker has started several.
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
         $firstStarts = $this->firstClassStartedByWorker($events);
@@ -55,11 +46,9 @@ final readonly class SchedulingTest
     }
 
     /**
-     * The first class each worker started, keyed by worker id.
-     *
      * @param list<Event> $events
      *
-     * @return array<string, string>
+     * @return array<string, string> first class started by each worker id
      */
     private function firstClassStartedByWorker(array $events): array
     {

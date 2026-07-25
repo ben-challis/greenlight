@@ -6,10 +6,6 @@ namespace Greenlight\Tests\Support;
 
 use Greenlight\Fixture\TempDirectory;
 
-/**
- * Analyses one passing and one failing source file with the shipped PHPStan
- * extension, exposing only the observations acceptance tests need.
- */
 final readonly class PhpStanProbe
 {
     /**

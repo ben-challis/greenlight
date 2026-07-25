@@ -10,11 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Worker spawning needs proc_open, which restricted hosts disable. The run
- * must then complete in-process instead of fataling, even when workers were
- * requested explicitly.
- */
 final readonly class SequentialFallbackTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

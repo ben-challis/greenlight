@@ -9,11 +9,8 @@ use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Wire\Wire;
 
 /**
- * Restores the typed Greenlight events emitted by the JSONL reporter.
- *
- * JSONL belongs exclusively to stdout; subprocess diagnostics on stderr are
- * deliberately ignored. Every non-trailing line must be a valid version-one
- * envelope with a known event tag and a valid event wire payload.
+ * Reads JSONL from stdout only. Every non-trailing line must contain a valid
+ * version-one envelope, known event tag, and event payload.
  */
 final class JsonlEvents
 {

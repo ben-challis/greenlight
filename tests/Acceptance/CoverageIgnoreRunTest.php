@@ -11,11 +11,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives bin/greenlight against a fixture project whose only unexecuted
- * lines sit inside coverage ignore markers, so the run reports full
- * coverage exactly when the markers are honoured.
- */
 final readonly class CoverageIgnoreRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

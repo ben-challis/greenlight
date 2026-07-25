@@ -12,13 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
- * Hand-rolled kernel whose container carries whatever the test seeded, for
- * exercising the bridge's boot-time capability validation.
- *
- * withTestContainer() returns a kernel exposing a test container but no
- * services_resetter; withoutTestContainer() returns one exposing neither.
- * Compiling a real framework-bundle container without services_resetter is
- * not practical, since the bundle always tags resettable services.
+ * FrameworkBundle always provides services_resetter, so this hand-rolled
+ * container is needed to test the missing-service path.
+ * withTestContainer() omits services_resetter; withoutTestContainer() also
+ * omits the test container.
  */
 final class BareKernel implements KernelInterface
 {

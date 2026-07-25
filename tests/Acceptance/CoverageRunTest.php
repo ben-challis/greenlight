@@ -13,12 +13,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Drives bin/greenlight with coverage enabled against a fixture project.
- *
- * Collection needs a driver, so runs are spawned with XDEBUG_MODE=coverage;
- * the no-driver branch is exercised with XDEBUG_MODE=off.
- */
 final readonly class CoverageRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

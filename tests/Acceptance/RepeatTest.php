@@ -11,12 +11,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Drives --repeat and --repeat-until-failure through the real CLI against a
- * throwaway project in a unique temp directory. The flaky fixture keeps its
- * run count in a file named by the GREENLIGHT_REPEAT_STATE environment
- * variable, so each test controls exactly which iteration fails.
- */
 final readonly class RepeatTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

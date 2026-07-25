@@ -7,14 +7,8 @@ namespace Greenlight\Tests\Support;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Runs a subprocess synchronously or returns a live interactive handle.
- *
- * run() hides the full lifecycle behind a ProcessResult. start() exposes the
- * interactive operations acceptance tests need: writing stdin, waiting for
- * stdout, sending a signal, pumping output while observing another condition,
- * and collecting the final result. A start() caller owns the live handle and
- * must call terminate() in a finally block; terminate() is a no-op after
- * wait() has already collected the result.
+ * A start() caller owns the live handle and must call terminate() in a finally
+ * block. terminate() is a no-op after wait() collects the result.
  */
 final class Subprocess
 {
@@ -175,11 +169,7 @@ final class Subprocess
         }
     }
 
-    /**
-     * Waits indefinitely, matching the previous synchronous runner contract.
-     *
-     * @throws \RuntimeException when output cannot be read
-     */
+    /** @throws \RuntimeException when output cannot be read */
     public function complete(): ProcessResult
     {
         try {

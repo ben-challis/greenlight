@@ -5,18 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 /**
- * Applies the escape repertoire TtyReporter emits to a small terminal grid.
- *
- * write() consumes raw bytes and updates a grid of rows: plain text lands at
- * the cursor, `\r` returns to column 0, `\n` advances a row, `\x1b[<n>A`
- * moves the cursor up, `\x1b[2K` clears the current row, `\x1b[0J` clears
- * from the cursor to the end of the screen, and `\x1b[?25l` / `\x1b[?25h`
- * toggle cursor visibility without touching the grid. SGR colour codes
- * (`\x1b[...m`) are stripped by default; pass retainColour: true to keep
- * them inline. visibleLines() and screen() expose what the grid looks like
- * once every byte has been applied. Any other escape sequence is a bug in
- * the reporter or in this emulator, so write() throws rather than silently
- * ignoring it.
+ * Supports carriage return, newline, CSI cursor-up, line and screen clearing,
+ * cursor visibility, and SGR sequences emitted by TtyReporter. SGR codes are
+ * stripped unless retainColour is true. write() throws on any other escape
+ * sequence.
  */
 final class TerminalEmulator
 {

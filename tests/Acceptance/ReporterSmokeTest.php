@@ -10,13 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives --reporter=junit and --reporter=github end to end against a project
- * with one passing and one failing test.
- *
- * Both reporters write to stdout; neither takes a file path option, so the
- * subprocess's stdout is the document to parse.
- */
 final readonly class ReporterSmokeTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

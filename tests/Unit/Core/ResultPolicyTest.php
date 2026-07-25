@@ -14,9 +14,6 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 
-/**
- * The policy flips outcomes; everything else the result carries survives.
- */
 final class ResultPolicyTest
 {
     #[Test]

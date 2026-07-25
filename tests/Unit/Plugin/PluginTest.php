@@ -243,9 +243,8 @@ final class PluginTest
         Expect::install([new EvenNumbersExtension()]);
 
         try {
-            // Dispatch is exercised through __call directly: static analysis
-            // cannot know dynamic matchers, and typed autocomplete for extensions
-            // is a GA-time concern.
+            // Dispatch uses __call because static analysis cannot resolve
+            // dynamic matchers.
             Expect::that(4)->__call('toBeEven', []);
             Expect::that(3)->not()->__call('toBeEven', []);
 

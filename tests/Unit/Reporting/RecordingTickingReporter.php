@@ -8,9 +8,6 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\Ticking;
 
-/**
- * Records tick() calls for composite forwarding assertions.
- */
 final class RecordingTickingReporter implements Reporter, Ticking
 {
     /**

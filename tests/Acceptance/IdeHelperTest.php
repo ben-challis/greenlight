@@ -10,11 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\Subprocess;
 
-/**
- * The ide-helper command through the real CLI: a config with extension
- * matchers produces a lintable helper file, and a config without any says
- * so instead of writing one.
- */
 final readonly class IdeHelperTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

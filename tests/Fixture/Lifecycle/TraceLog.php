@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Lifecycle;
 
-/**
- * Static trace accumulator for lifecycle fixtures. Reset it before each
- * worker run; the recorded sequence is the observable lifecycle order.
- */
 final class TraceLog
 {
     /**

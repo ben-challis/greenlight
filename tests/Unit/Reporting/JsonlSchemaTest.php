@@ -10,15 +10,6 @@ use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JsonLinesReporter;
 use JsonSchema\Validator;
 
-/**
- * The shipped JSON Schema and the wire format must stay in lockstep: every
- * line the reporter emits for the canned stream validates against
- * resources/schema/jsonl-v1.schema.json, and the stream exercises every
- * registered event tag so no payload shape escapes the check.
- *
- * The schema must also have teeth: an unknown event tag and a corrupted
- * payload are rejected, so a vacuous always-true schema cannot pass.
- */
 final class JsonlSchemaTest
 {
     #[Test]

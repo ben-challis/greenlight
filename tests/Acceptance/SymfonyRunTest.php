@@ -10,16 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * The Symfony bridge through the real CLI.
- *
- * The generated project boots a single-file kernel via SymfonyPlugin and its
- * tests constructor-inject a container service by type, an id-only service
- * through the #[Service] attribute, the KernelInterface harness service, and
- * a stateful counter whose reset between tests proves the services_resetter
- * hook. Two classes across two workers each compile their own container into
- * a channel-suffixed cache directory.
- */
 final readonly class SymfonyRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

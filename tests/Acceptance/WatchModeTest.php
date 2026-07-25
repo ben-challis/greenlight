@@ -10,11 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives bin/greenlight run --watch as an interactive subprocess: the initial
- * run completes, a synthetic file touch triggers a debounced re-run, and q
- * quits cleanly.
- */
 final readonly class WatchModeTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

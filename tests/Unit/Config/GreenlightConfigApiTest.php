@@ -9,9 +9,8 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
 
 /**
- * Snapshot of the builder's public surface. The builder is the config file
- * API users write against, so any change here must be deliberate: update the
- * expected list only as part of a conscious API decision.
+ * Snapshot of the config file API. Update it only for an intentional API
+ * change.
  */
 final class GreenlightConfigApiTest
 {

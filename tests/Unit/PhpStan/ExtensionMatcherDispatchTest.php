@@ -9,9 +9,8 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\PhpStanExtension\DigestExtension;
 
 /**
- * The calls below are typed by the PHPStan extension during this repo's own
- * static analysis run and dispatched through Expectation::__call at runtime,
- * proving both views of the fixture matchers agree.
+ * PHPStan checks these calls through the extension; runtime dispatch uses
+ * Expectation::__call.
  */
 final class ExtensionMatcherDispatchTest
 {

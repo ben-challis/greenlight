@@ -7,11 +7,7 @@ namespace Greenlight\Tests\Fixture\Symfony;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
- * Stateful container service proving reset-between-tests semantics.
- *
- * Autoconfiguration tags ResetInterface implementations for the
- * services_resetter, so a bridge afterTest() call must bring count() back
- * to zero.
+ * ResetInterface lets services_resetter clear state between tests.
  */
 final class VisitCounter implements ResetInterface
 {

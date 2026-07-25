@@ -11,19 +11,7 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use JsonSchema\Validator;
 
-/**
- * Drives --reporter=jsonl end to end and validates every emitted line
- * against the shipped resources/schema/jsonl-v1.schema.json.
- *
- * The generated project mixes outcomes (pass, expectation failure, error,
- * skip), includes a data-set test for a non-null dataSetKey, and recycles
- * workers after every test so the stream carries every event tag a real run
- * can produce. Suite events are validated at unit level against the canned
- * stream; no run emits them today.
- *
- * Stdout only: extension noise on stderr (Xdebug, ddtrace) would interleave
- * non-JSON lines into the stream.
- */
+/** Suite events use the canned stream because real runs do not emit them. */
 final readonly class JsonlSchemaTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

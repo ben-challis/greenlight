@@ -10,10 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives --list-tests, --list-groups, and --list-suites through the real CLI
- * against the discovery fixtures and asserts on exit codes and output lines.
- */
 final readonly class ListingTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -129,11 +125,9 @@ final readonly class ListingTest
     }
 
     /**
-     * The printed test id lines, in output order.
-     *
      * @param list<string> $output
      *
-     * @return list<string>
+     * @return list<string> printed test ids in output order
      */
     private function testIdLines(array $output): array
     {

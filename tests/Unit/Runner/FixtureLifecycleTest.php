@@ -52,9 +52,8 @@ final class FixtureLifecycleTest
     }
 
     /**
-     * Reads through parameters so static analysis cannot narrow the offset:
-     * the sandbox under test mutates the superglobals behind the analyser's
-     * back.
+     * The sandbox mutates superglobals behind the analyser's back, so read
+     * through a parameter to prevent offset narrowing.
      *
      * @param array<mixed> $superglobal
      */

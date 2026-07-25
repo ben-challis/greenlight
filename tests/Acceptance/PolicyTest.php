@@ -11,15 +11,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * The CI gates through the real CLI.
- *
- * Deprecation and notice policies flip passed tests to failed with the
- * diagnostic as the detail, and the allow-list exempts matched deprecations.
- *
- * Risky tests warn by default and fail under the flag, while both the
- * doubles-only test and the #[NoExpectations] opt-out stay quiet.
- */
 final readonly class PolicyTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

@@ -11,11 +11,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Error paths through the real CLI: an unknown command, missing required
- * options on coverage:diff, an unreadable profile:report input, and an
- * unwritable ide-helper output path.
- */
 final readonly class CommandErrorsTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

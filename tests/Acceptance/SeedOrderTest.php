@@ -10,10 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives --seed through the real CLI against a project with six classes,
- * using --list-tests to read back the plan order without executing anything.
- */
 final readonly class SeedOrderTest
 {
     private const array CLASSES = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -77,10 +73,8 @@ final readonly class SeedOrderTest
     }
 
     /**
-     * The class order the plan would execute in, read from --list-tests
-     * rather than a run, so reordering is asserted without paying for
-     * six class boots per seed. Stdout only: the exact order comparisons
-     * must stay immune to extension noise on stderr (Xdebug, ddtrace).
+     * Reads --list-tests to avoid booting six classes per seed. Uses stdout
+     * so extension noise on stderr cannot affect the order.
      *
      * @return list<string>
      */

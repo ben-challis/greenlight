@@ -13,10 +13,8 @@ use Greenlight\Config\WorkerCount;
 use Greenlight\Expect\Expect;
 
 /**
- * The precedence chain is fixed: built-in defaults, overridden by the config
- * file, overridden by command-line flags. Every command-line-overridable
- * setting is exercised in all four combinations: neither set, config only,
- * command line only, and both (where the command line must win).
+ * Covers every CLI-overridable setting with defaults, config, CLI, and both
+ * sources. CLI values must win when both are set.
  */
 final class PrecedenceMatrixTest
 {

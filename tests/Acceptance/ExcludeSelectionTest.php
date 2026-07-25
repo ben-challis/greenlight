@@ -10,18 +10,6 @@ use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives --exclude-class and --exclude-path through the real CLI.
- *
- * --exclude-class matches by substring or wildcard against the class name;
- * --exclude-path matches by prefix against the discovered file's absolute
- * path. Relative prefixes are resolved against the working directory (and
- * canonicalized when they exist on disk) before matching.
- *
- * An --exclude-path prefix that matches no discovered test file warns on
- * stderr, for listings and runs alike, so a typo'd or stale prefix is
- * visible instead of silently excluding nothing.
- */
 final readonly class ExcludeSelectionTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

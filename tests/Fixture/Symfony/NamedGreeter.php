@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Symfony;
 
-/**
- * Service registered only under the string id fixture.named_greeter, so
- * type-based lookup misses it and only #[Service] reaches it.
- */
+/** Registered by id only, so type-based lookup cannot resolve it. */
 final class NamedGreeter
 {
     public function greet(): string

@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 /**
- * The observable result of a completed subprocess.
- *
- * stdout and stderr are captured separately. output() and outputLines()
- * combine them, stdout first, for assertions that only care about the full
- * diagnostic text; stdoutLines() supports exact assertions that must ignore
- * extension noise on stderr.
+ * output() and outputLines() combine stdout and stderr in that order.
+ * stdoutLines() excludes extension noise written to stderr.
  */
 final readonly class ProcessResult
 {

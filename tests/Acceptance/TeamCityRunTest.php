@@ -11,12 +11,6 @@ use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
-/**
- * Drives bin/greenlight with the teamcity reporter against a fixture project
- * and asserts on the service message stream: php_qn:// location hints
- * resolved through the orchestrator's autoloader, a flowId on every message,
- * and suite nesting that survives a multi-worker run.
- */
 final readonly class TeamCityRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

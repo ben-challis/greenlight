@@ -6,26 +6,6 @@ namespace Greenlight\Tests\Support;
 
 use Greenlight\Fixture\TempDirectory;
 
-/**
- * A project directory inside a test-owned temporary workspace.
- *
- * create() scaffolds a directory inside the injected per-test TempDirectory,
- * so the harness owns cleanup even when a test fails or throws. write() fills
- * the directory, creating parent directories as needed.
- *
- * copyOfListTestsConfig() gives acceptance tests that only need the
- * ListTestsConfig fixture's seven-test suite a private working directory, so
- * concurrent runs cannot collide on the run state file the CLI keys by
- * working directory. It cannot clone the DiscoveryBasic directory it scans:
- * that namespace is claimed by the project's own PSR-4 autoload map, so a
- * second copy of those classes would autoload from the original file and
- * fail discovery's loaded-from-the-wrong-file check. The scan target stays
- * the single shared DiscoveryBasic directory by absolute path instead.
- *
- * writeConfig() writes the common minimal greenlight.php: it requires the
- * given test files, scans the project's tests directory, and pins the worker
- * count.
- */
 final readonly class AcceptanceProject
 {
     private function __construct(public string $directory) {}
@@ -36,10 +16,8 @@ final readonly class AcceptanceProject
     }
 
     /**
-     * A private working directory configured exactly like the shared
-     * ListTestsConfig fixture: the same seven tests from DiscoveryBasic,
-     * scanned by absolute path rather than the original's "../DiscoveryBasic"
-     * hop, so the copy needs no sibling directory of its own.
+     * Uses the shared DiscoveryBasic directory because copying its PSR-4
+     * classes would make them autoload from the original path.
      */
     public static function copyOfListTestsConfig(TempDirectory $workspace, string $name): self
     {
@@ -82,9 +60,7 @@ final readonly class AcceptanceProject
     }
 
     /**
-     * The generated config must never enable randomizeOrder: callers such as
-     * BailRunTest and SeedOrderTest assert on declaration order in the
-     * spawned run.
+     * Keep randomizeOrder disabled. Some callers assert declaration order.
      *
      * @param list<string> $requireRelative test files to require, relative to the project root
      */

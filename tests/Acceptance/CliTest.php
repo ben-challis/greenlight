@@ -11,10 +11,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Runs bin/greenlight as a subprocess and asserts on observable behaviour
- * only: exit codes and output lines.
- */
 final readonly class CliTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

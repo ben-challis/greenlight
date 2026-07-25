@@ -43,11 +43,8 @@ final class DriverSelectorTest
     #[Test]
     public function defaultSelectionYieldsExactlyADriverOrAReason(): void
     {
-        // The real pcov/Xdebug candidates depend on the running machine's
-        // extensions, so this only proves the two outcomes are mutually
-        // exclusive; anAvailableCandidateIsSelected and
-        // noAvailableCandidateYieldsNoDriverAndANamedReason above cover both
-        // branches deterministically with fakes.
+        // Installed extensions determine the real candidate. The fake-based
+        // tests above cover both branches deterministically.
         $selection = new DriverSelector()->select();
 
         if ($selection->driver instanceof CoverageDriver) {

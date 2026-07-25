@@ -9,12 +9,6 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 
-/**
- * Runs the real PHPStan binary with the shipped extension against probe code
- * calling toThrow(): class-only, pattern-only, and message-only calls must
- * analyse clean, while combining pattern and exact-message constraints must
- * be flagged.
- */
 final readonly class PhpStanToThrowRuleTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}

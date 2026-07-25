@@ -13,12 +13,7 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
-/**
- * Drives bin/greenlight with a process pool against fixture projects and
- * asserts on observable behaviour: exit codes and summary lines.
- *
- * Crash and hang fixtures must only ever run through here, never in-process.
- */
+/** Crash and hang fixtures must never run in-process. */
 final readonly class ParallelRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -112,7 +107,6 @@ final readonly class ParallelRunTest
     /**
      * @param list<string> $arguments
      * @param array<string, string> $env
-     *
      */
     private function runIn(string $fixtureConfigDir, array $arguments, array $env = []): ProcessResult
     {

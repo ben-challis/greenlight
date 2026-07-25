@@ -7,10 +7,6 @@ namespace Greenlight\Tests\Fixture\Coverage;
 use Greenlight\Coverage\Driver\CoverageDriver;
 use Greenlight\Coverage\RawCoverage;
 
-/**
- * A CoverageDriver candidate that always reports itself available, for
- * deterministically exercising DriverSelector's selected branch.
- */
 final class AvailableFakeDriver implements CoverageDriver
 {
     #[\Override]
