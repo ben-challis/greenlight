@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Expect\Fail;
 
 /**
  * Runs a closure that is expected to fail an expectation and hands back the
@@ -27,6 +28,6 @@ final class FailureProbe
             return $failure->detail();
         }
 
-        throw new \RuntimeException('Expected the expectation to fail, but it passed.');
+        Fail::because('Expected the expectation to fail, but it passed.');
     }
 }

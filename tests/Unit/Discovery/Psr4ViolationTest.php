@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\SomewhereElse\MismatchTest;
 
 final class Psr4ViolationTest
@@ -20,7 +21,7 @@ final class Psr4ViolationTest
             return $e->getMessage();
         }
 
-        throw new \RuntimeException(\sprintf('Expected discovery of %s to fail.', $fixture));
+        Fail::because(\sprintf('Expected discovery of %s to fail.', $fixture));
     }
 
     #[Test]

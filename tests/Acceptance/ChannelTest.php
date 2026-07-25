@@ -136,6 +136,7 @@ final readonly class ChannelTest
             use Greenlight\Attribute\Test;
             use Greenlight\Core\Test\TestChannel;
             use Greenlight\Expect\Expect;
+            use Greenlight\Expect\Fail;
 
             final class %sTest
             {
@@ -157,7 +158,7 @@ final readonly class ChannelTest
                         }
 
                         if (\microtime(true) >= $deadline) {
-                            throw new \RuntimeException(\sprintf(
+                            Fail::because(\sprintf(
                                 'Timed out after 10s waiting for %d distinct channel markers, found %%d: %%s',
                                 \count($markers),
                                 \implode(', ', $markers),

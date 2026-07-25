@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -36,7 +37,10 @@ final readonly class CoverageRunTest
         $json = \file_get_contents($outDir . '/coverage.json');
 
         if ($json === false) {
-            throw new \RuntimeException('The JSON export was not written.');
+            Fail::because(\sprintf(
+                'Expected a readable coverage JSON export at "%s".',
+                $outDir . '/coverage.json',
+            ));
         }
 
         /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
@@ -90,7 +94,10 @@ final readonly class CoverageRunTest
         $json = \file_get_contents($outDir . '/coverage.json');
 
         if ($json === false) {
-            throw new \RuntimeException('The JSON export was not written.');
+            Fail::because(\sprintf(
+                'Expected a readable coverage JSON export at "%s".',
+                $outDir . '/coverage.json',
+            ));
         }
 
         /** @var array{files: array<string, array{covered: list<int>}>} $decoded */
@@ -156,7 +163,10 @@ final readonly class CoverageRunTest
         $json = \file_get_contents($baseline);
 
         if ($json === false) {
-            throw new \RuntimeException('Baseline export missing.');
+            Fail::because(\sprintf(
+                'Expected a readable baseline coverage export at "%s".',
+                $baseline,
+            ));
         }
 
         /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
@@ -170,7 +180,7 @@ final readonly class CoverageRunTest
         }
 
         if ($mathFile === null) {
-            throw new \RuntimeException('Baseline export has no entry for CoverageLib/Math.php.');
+            Fail::because('Baseline export has no entry for CoverageLib/Math.php.');
         }
 
         $before = $decoded['files'][$mathFile];

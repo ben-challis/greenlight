@@ -9,6 +9,7 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 
 final class MockTest
@@ -51,7 +52,7 @@ final class MockTest
             return;
         }
 
-        throw new \RuntimeException('Verification passed but an unmet expectation was planned.');
+        Fail::because('Expected Doubles::dispose() to fail for the unmet add() expectation.');
     }
 
     #[Test]
@@ -86,7 +87,7 @@ final class MockTest
             return;
         }
 
-        throw new \RuntimeException('The unexpected call did not fail.');
+        Fail::because('Expected the unplanned add(4, 5) call to fail immediately.');
     }
 
     #[Test]
@@ -109,7 +110,7 @@ final class MockTest
             return;
         }
 
-        throw new \RuntimeException('The mismatching call did not fail.');
+        Fail::because("Expected describe('other label') to fail its exact argument matcher.");
     }
 
     #[Test]
@@ -151,7 +152,7 @@ final class MockTest
         try {
             $calculator->add(1, 1);
 
-            throw new \RuntimeException('The forbidden call did not fail.');
+            Fail::because('Expected add(1, 1) to fail because add() was configured with never().');
         } catch (ExpectationFailed $failure) {
             Expect::that($failure->detail()->message)->toContain('Unexpected call')
                 ->and($failure->detail()->expected)->toContain('never');

@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
@@ -38,7 +39,10 @@ final class HarnessScopesTest
         $resolved = $scopes->resolve(\ArrayObject::class, 'test');
 
         if (!$resolved instanceof \ArrayObject) {
-            throw new \RuntimeException('Expected an ArrayObject.');
+            Fail::because(\sprintf(
+                'Expected HarnessScopes::resolve() to return ArrayObject, got %s.',
+                \get_debug_type($resolved),
+            ));
         }
 
         // Realise the lazy proxy so state from the factory result holds.

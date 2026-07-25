@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Expect\Fail;
 
 final class ExpectTest
 {
@@ -51,7 +52,7 @@ final class ExpectTest
             return;
         }
 
-        throw new \RuntimeException('The expectation should have failed.');
+        Fail::because('Expected Expect::that(1)->toBe(2) to throw ExpectationFailed.');
     }
 
     #[Test]

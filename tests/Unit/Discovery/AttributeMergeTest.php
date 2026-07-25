@@ -11,6 +11,7 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArguments\ArgumentsMergeTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysFalse;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
@@ -114,7 +115,7 @@ final class AttributeMergeTest
             return;
         }
 
-        throw new \RuntimeException('Expected discovery to reject a non-scalar SkipUnless argument.');
+        Fail::because('Expected discovery to reject a non-scalar SkipUnless argument.');
     }
 
     #[Test]

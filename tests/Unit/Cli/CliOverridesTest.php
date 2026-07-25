@@ -10,6 +10,7 @@ use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ParsedArguments;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 
 final class CliOverridesTest
 {
@@ -107,7 +108,7 @@ final class CliOverridesTest
             return;
         }
 
-        throw new \RuntimeException('Expected an out-of-range shard to be rejected.');
+        Fail::because('Expected CliOverrides::fromArguments() to reject out-of-range shard "632/13".');
     }
 
     #[Test]
@@ -121,7 +122,7 @@ final class CliOverridesTest
             return;
         }
 
-        throw new \RuntimeException('Expected a zero-shard spec to be rejected.');
+        Fail::because('Expected CliOverrides::fromArguments() to reject zero-shard specification "1/0".');
     }
 
     #[Test]

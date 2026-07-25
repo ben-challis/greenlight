@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 
@@ -37,7 +38,11 @@ final class JsonlEventsTest
         $restoredStarted = $events[1];
 
         if (!$restoredSpawned instanceof WorkerSpawned || !$restoredStarted instanceof TestClassStarted) {
-            throw new \RuntimeException('Expected typed events.');
+            Fail::because(\sprintf(
+                'Expected events 0 and 1 to be WorkerSpawned and TestClassStarted, got %s and %s.',
+                \get_debug_type($restoredSpawned),
+                \get_debug_type($restoredStarted),
+            ));
         }
 
         Expect::that($restoredSpawned->workerId)->toBe('worker-2')

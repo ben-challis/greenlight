@@ -108,6 +108,30 @@ Matchers cover identity and equality (`toBe`, `toEqual`,
 `toMatchJson`), and exceptions (`toThrow`). The `Greenlight\Expect\Expectation`
 class is the authoritative list.
 
+### Failing explicitly
+
+Use `Fail::because()` when a test reaches an invalid state that does not fit a
+matcher naturally. It is especially useful for guards that must narrow a type
+before the test can continue:
+
+```php
+use Greenlight\Expect\Fail;
+
+$response = $client->send();
+
+if (!$response instanceof SuccessResponse) {
+    Fail::because(\sprintf(
+        'Expected SuccessResponse, got %s.',
+        \get_debug_type($response),
+    ));
+}
+
+Expect::that($response->status())->toBe(200);
+```
+
+The call counts as an expectation and fails immediately with the given reason.
+Its reported source location points to the `Fail::because()` call.
+
 ## Running tests
 
 ```sh

@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
@@ -56,7 +57,10 @@ final class ScopeContainerTest
         $container->get($otherDefinition);
 
         if (!$probe instanceof ServiceProbe) {
-            throw new \RuntimeException('Container returned the wrong type.');
+            Fail::because(\sprintf(
+                'Expected ScopeContainer::get() to return ServiceProbe, got %s.',
+                \get_debug_type($probe),
+            ));
         }
 
         $probe->touch();
@@ -78,7 +82,10 @@ final class ScopeContainerTest
         $probe = $container->get($definition);
 
         if (!$probe instanceof FailingDisposalProbe) {
-            throw new \RuntimeException('Container returned the wrong type.');
+            Fail::because(\sprintf(
+                'Expected ScopeContainer::get() to return FailingDisposalProbe, got %s.',
+                \get_debug_type($probe),
+            ));
         }
 
         $probe->touch();

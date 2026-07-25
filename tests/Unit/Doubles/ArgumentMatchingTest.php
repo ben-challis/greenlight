@@ -12,6 +12,7 @@ use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Recorder;
 
@@ -62,7 +63,7 @@ final class ArgumentMatchingTest
             return;
         }
 
-        throw new \RuntimeException('The mismatching call did not fail.');
+        Fail::because("Expected record('not an int') to fail its type(int) argument matcher.");
     }
 
     #[Test]
@@ -100,7 +101,7 @@ final class ArgumentMatchingTest
             return;
         }
 
-        throw new \RuntimeException('The mismatching call did not fail.');
+        Fail::because('Expected add(-2, 1) to fail its predicate(positive) argument matcher.');
     }
 
     #[Test]
@@ -167,7 +168,10 @@ final class ArgumentMatchingTest
         $calculator->add(2, 8);
 
         if (!$captor instanceof ArgumentCaptor) {
-            throw new \RuntimeException('captureArgument() did not hand back a captor.');
+            Fail::because(\sprintf(
+                'Expected captureArgument() to return ArgumentCaptor, got %s.',
+                \get_debug_type($captor),
+            ));
         }
 
         Expect::that($captor->values())->toEqual([9, 8]);
@@ -187,7 +191,10 @@ final class ArgumentMatchingTest
         $calculator->add(42, 7);
 
         if (!$captor instanceof ArgumentCaptor) {
-            throw new \RuntimeException('captureArgument() did not hand back a captor.');
+            Fail::because(\sprintf(
+                'Expected captureArgument() to return ArgumentCaptor, got %s.',
+                \get_debug_type($captor),
+            ));
         }
 
         Expect::that($captor->value())->toBe(42);

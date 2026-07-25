@@ -34,6 +34,7 @@ Assertions start from `Expect::that()`, not from methods on the test class.
 // PHPUnit                                          // Greenlight
 $this->assertSame('a', $value);                     Expect::that($value)->toBe('a');
 $this->assertEquals($expected, $order);             Expect::that($order)->toEqual($expected);
+$this->fail('Reason');                              Fail::because('Reason');
 $this->assertInstanceOf(Response::class, $r);       Expect::that($r)->toBeInstanceOf(Response::class);
 $this->assertCount(3, $items);                      Expect::that($items)->toHaveCount(3);
 $this->expectException(DomainException::class);     Expect::that($fn)->toThrow(DomainException::class);
@@ -64,6 +65,9 @@ A few differences matter during migration:
   `message:` for exact equality or `matching:` for a regular expression; the
   two are mutually exclusive. It replaces the usual `expectException*` setup
   calls with one expression.
+* `Fail::because()` replaces `$this->fail()` and is useful for explicit guards
+  that narrow a value's type before the test continues. It counts as an
+  expectation and reports the guard as the failure location.
 * Expectations fail fast. A failed matcher throws immediately. There is no
   soft-assertion mode.
 

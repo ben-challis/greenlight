@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Fixture\DataRowsConflict;
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Expect\Fail;
 
 final class DuplicateRowKeyTest
 {
@@ -16,7 +17,10 @@ final class DuplicateRowKeyTest
     public function probe(int $value): void
     {
         if ($value < 0) {
-            throw new \RuntimeException('negative');
+            Fail::because(\sprintf(
+                'Expected the duplicate-row fixture value to be non-negative, got %d.',
+                $value,
+            ));
         }
     }
 

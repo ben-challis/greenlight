@@ -10,6 +10,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
@@ -32,7 +33,10 @@ final class SymfonyPluginTest
         $greeter = $this->plugin()->resolve(Greeter::class, []);
 
         if (!$greeter instanceof Greeter) {
-            throw new \RuntimeException('Expected a Greeter.');
+            Fail::because(\sprintf(
+                'Expected SymfonyPlugin::resolve() to return Greeter, got %s.',
+                \get_debug_type($greeter),
+            ));
         }
 
         Expect::that($greeter->greet('Ada'))->toBe('Hello, Ada!');
@@ -127,7 +131,10 @@ final class SymfonyPluginTest
         $counter = $plugin->resolve(VisitCounter::class, []);
 
         if (!$counter instanceof VisitCounter) {
-            throw new \RuntimeException('Expected the VisitCounter.');
+            Fail::because(\sprintf(
+                'Expected SymfonyPlugin::resolve() to return VisitCounter, got %s.',
+                \get_debug_type($counter),
+            ));
         }
 
         $counter->record();
@@ -146,7 +153,10 @@ final class SymfonyPluginTest
         $first = ($definition->factory)();
 
         if (!$first instanceof KernelInterface) {
-            throw new \RuntimeException('Expected a kernel.');
+            Fail::because(\sprintf(
+                'Expected the Symfony harness factory to return KernelInterface, got %s.',
+                \get_debug_type($first),
+            ));
         }
 
         Expect::that($definitions)->toHaveCount(1)
@@ -181,7 +191,10 @@ final class SymfonyPluginTest
         $counter = $plugin->resolve(VisitCounter::class, []);
 
         if (!$counter instanceof VisitCounter) {
-            throw new \RuntimeException('Expected the VisitCounter.');
+            Fail::because(\sprintf(
+                'Expected SymfonyPlugin::resolve() to return VisitCounter, got %s.',
+                \get_debug_type($counter),
+            ));
         }
 
         $counter->record();

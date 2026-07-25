@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\Subprocess;
@@ -33,7 +34,10 @@ final readonly class SubprocessTest
         $workingDirectory = \realpath($this->workspace->path());
 
         if ($workingDirectory === false) {
-            throw new \RuntimeException('Expected subprocess working directory to exist.');
+            Fail::because(\sprintf(
+                'Expected subprocess working directory at "%s".',
+                $this->workspace->path(),
+            ));
         }
 
         Expect::that($result->exitCode)->toBe(7)

@@ -9,6 +9,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\SharedCoverageDirectory;
@@ -55,7 +56,11 @@ final class SubprocessCoverageTest
             $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
             if (!\is_string($directory)) {
-                throw new \RuntimeException('The relay directory was not exported.');
+                Fail::because(\sprintf(
+                    'Expected %s to contain a relay directory, got %s.',
+                    SubprocessCoverage::DIRECTORY_ENV,
+                    \get_debug_type($directory),
+                ));
             }
 
             $this->dump($directory, 'a.json', new CoverageMap([new FileCoverage('/app/a.php', [1, 2], [3])]));
@@ -65,7 +70,10 @@ final class SubprocessCoverageTest
             $merged = $shared->drain();
 
             if (!$merged instanceof CoverageMap) {
-                throw new \RuntimeException('drain() returned no coverage.');
+                Fail::because(\sprintf(
+                    'Expected SharedCoverageDirectory::drain() to return CoverageMap, got %s.',
+                    \get_debug_type($merged),
+                ));
             }
 
             $files = $merged->files();

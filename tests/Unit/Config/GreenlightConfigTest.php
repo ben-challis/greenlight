@@ -11,6 +11,7 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteBuilder;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 
 final class GreenlightConfigTest
 {
@@ -59,7 +60,10 @@ final class GreenlightConfigTest
         $coverage = $configuration->coverage;
 
         if (!$coverage instanceof CoverageConfiguration) {
-            throw new \RuntimeException('Expected coverage to be configured.');
+            Fail::because(\sprintf(
+                'Expected GreenlightConfig::build() to return a CoverageConfiguration, got %s.',
+                \get_debug_type($coverage),
+            ));
         }
 
         Expect::that($coverage->includePaths)->toBe(['src']);

@@ -10,6 +10,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 
 final class DataSetExpansionTest
 {
@@ -45,7 +46,7 @@ final class DataSetExpansionTest
             return $e->getMessage();
         }
 
-        throw new \RuntimeException(\sprintf('Expected discovery of %s to fail.', $fixture));
+        Fail::because(\sprintf('Expected discovery of %s to fail.', $fixture));
     }
 
     #[Test]

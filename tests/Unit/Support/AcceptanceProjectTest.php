@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Support;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
@@ -44,14 +45,21 @@ final readonly class AcceptanceProjectTest
         $builder = require $project->path('greenlight.php');
 
         if (!$builder instanceof GreenlightConfig) {
-            throw new \RuntimeException('Expected generated config to return GreenlightConfig.');
+            Fail::because(\sprintf(
+                'Expected generated config "%s" to return GreenlightConfig, got %s.',
+                $project->path('greenlight.php'),
+                \get_debug_type($builder),
+            ));
         }
 
         $configuration = $builder->build();
         $testsDirectory = \realpath($project->path('tests'));
 
         if ($testsDirectory === false) {
-            throw new \RuntimeException('Expected generated tests directory to exist.');
+            Fail::because(\sprintf(
+                'Expected generated tests directory at "%s".',
+                $project->path('tests'),
+            ));
         }
 
         Expect::that(\file_get_contents($project->path('loaded.txt')))->toBe('firstsecond')
@@ -67,7 +75,11 @@ final readonly class AcceptanceProjectTest
         $builder = require $project->path('greenlight.php');
 
         if (!$builder instanceof GreenlightConfig) {
-            throw new \RuntimeException('Expected generated config to return GreenlightConfig.');
+            Fail::because(\sprintf(
+                'Expected generated config "%s" to return GreenlightConfig, got %s.',
+                $project->path('greenlight.php'),
+                \get_debug_type($builder),
+            ));
         }
 
         Expect::that($builder->build()->paths)->toBe([

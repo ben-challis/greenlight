@@ -9,6 +9,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
@@ -64,7 +65,7 @@ final readonly class InterruptionTest
             }
 
             if (\glob($markerDir . '/*.started') === []) {
-                throw new \RuntimeException(\sprintf(
+                Fail::because(\sprintf(
                     'Timed out after %.1fs waiting for a fixture test to start.',
                     self::DEADLINE_SECONDS,
                 ));

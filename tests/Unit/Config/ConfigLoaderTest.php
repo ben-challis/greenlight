@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 
 final class ConfigLoaderTest
 {
@@ -38,7 +39,10 @@ final class ConfigLoaderTest
             return;
         }
 
-        throw new \RuntimeException('Expected ConfigFileError, nothing was thrown.');
+        Fail::because(\sprintf(
+            'Expected ConfigLoader::loadFromDirectory() to throw ConfigFileError for missing greenlight.php in "%s".',
+            self::fixtureDir('Empty'),
+        ));
     }
 
     #[Test]
@@ -61,7 +65,9 @@ final class ConfigLoaderTest
             return;
         }
 
-        throw new \RuntimeException('Expected ConfigFileError, nothing was thrown.');
+        Fail::because(
+            'Expected ConfigLoader::loadFromDirectory() to throw ConfigFileError when greenlight.php returns a string.',
+        );
     }
 
     #[Test]
@@ -77,7 +83,9 @@ final class ConfigLoaderTest
             return;
         }
 
-        throw new \RuntimeException('Expected ConfigFileError, nothing was thrown.');
+        Fail::because(
+            'Expected ConfigLoader::loadFromDirectory() to wrap the config RuntimeException in ConfigFileError.',
+        );
     }
 
     private static function fixtureDir(string $name): string

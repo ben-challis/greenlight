@@ -17,6 +17,7 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\FrameBuffer;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\Message;
@@ -138,7 +139,7 @@ final class ProtocolTest
         $body = $buffer->next();
 
         if ($body === null) {
-            throw new \RuntimeException('Expected a complete frame.');
+            Fail::because('Expected FrameBuffer::next() to return the complete encoded frame.');
         }
 
         Expect::that($codec->decode($body)['message'])->toContain('bad');

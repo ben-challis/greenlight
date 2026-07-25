@@ -16,6 +16,7 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\TtyReporter;
 use Greenlight\Tests\Support\TerminalEmulator;
@@ -465,7 +466,7 @@ final class TtyReporterTest
         $index = \array_search($line, $lines, strict: true);
 
         if ($index === false) {
-            throw new \RuntimeException(\sprintf('Line "%s" was not found in the visible screen.', $line));
+            Fail::because(\sprintf('Line "%s" was not found in the visible screen.', $line));
         }
 
         return $index;
