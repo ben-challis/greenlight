@@ -148,8 +148,7 @@ Use this for tests that pass by not throwing. Risky-test detection and
 The attribute makes the intent explicit, so a deliberate zero-expectation test is
 not confused with a forgotten assertion.
 
-An `eventually()` or `consistently()` terminal matcher counts as one
-expectation, regardless of its number of observations.
+An `eventually()` or `consistently()` matcher counts as one expectation.
 
 ## Group
 
@@ -274,10 +273,9 @@ caused by that throwable type are retried. Other failures fail immediately.
 Each attempt gets a fresh test instance and a fresh per-test scope, so state does
 not leak between attempts.
 
-Temporal expectations also start with a fresh polling deadline and observation
-history on every attempt. Transient probe exceptions should normally use
-`retryOnException()` so they can be handled inside one attempt; an unconditional
-`#[Retry]` retries the whole test after a temporal expectation fails.
+Each retry also starts `eventually()` and `consistently()` with a new deadline
+and an empty observation log. `retryOnException()` retries a probe within the
+same test attempt, while `#[Retry]` starts the whole test again.
 
 ```php
 #[Test]
@@ -305,10 +303,10 @@ hard-kills a worker if its current test exceeds the budget without returning.
 
 A killed worker is replaced and the run continues.
 
-An `eventually()` or `consistently()` duration is clipped to the remaining
-timeout for its current attempt. If that outer deadline expires first, the
-failure says that the requested temporal wait was truncated. A probe that
-blocks remains subject to the orchestrator's hard-kill grace.
+An `eventually()` or `consistently()` duration cannot run past the current test
+timeout. The failure names the requested polling duration when the test timeout
+comes first. A blocked probe remains subject to the orchestrator's hard-kill
+grace.
 
 ```php
 #[Test]

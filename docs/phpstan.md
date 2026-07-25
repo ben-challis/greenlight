@@ -5,10 +5,8 @@ expectation matchers your config registers, the shape rules for `#[DataSet]`
 and `#[DataRow]` data providers, and native matcher constraints that PHP's
 type system cannot express.
 
-`Expect::eventually()` and `Expect::consistently()` carry the probe's return
-type through their generic PHPDoc. Their native matcher methods are ordinary
-typed methods, and configured custom matcher signatures are exposed on their
-bounded chains as well.
+PHPStan also checks native and custom matchers used with `eventually()` and
+`consistently()`.
 
 ## Setup
 
@@ -83,7 +81,7 @@ Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
 Expect::that($hash)->toHaveDigestLength('six'); // fails analysis: expects int
 ```
 
-The same checks apply after `within()` and `for()`:
+The same checks apply to polling expectations:
 
 ```php
 Expect::eventually(fn(): string => $hash)

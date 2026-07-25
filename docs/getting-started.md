@@ -108,11 +108,10 @@ Matchers cover identity and equality (`toBe`, `toEqual`,
 `toMatchJson`), and exceptions (`toThrow`). The `Greenlight\Expect\Expectation`
 class is the authoritative list.
 
-### Eventually consistent state
+### Waiting for asynchronous state
 
-`Expect::eventually()` repeatedly calls a probe until one matcher passes. The
-first observation is immediate, and `within()` is required so the wait is
-always bounded:
+`Expect::eventually()` calls a probe until its matcher passes. It calls the
+probe immediately, then every 25ms until `within()` expires:
 
 ```php
 Expect::eventually(fn() => $repository->find($id))
@@ -120,8 +119,7 @@ Expect::eventually(fn() => $repository->find($id))
     ->toEqual($expected);
 ```
 
-Observations are sequential and use a fixed 25ms delay by default. Override it
-when an adapter is expensive or has a known cadence:
+Set a different interval with `pollEvery()`:
 
 ```php
 Expect::eventually(fn() => $search->document($id))
@@ -130,9 +128,8 @@ Expect::eventually(fn() => $search->document($id))
     ->toEqual($expected);
 ```
 
-Probe exceptions normally propagate immediately with their original stack.
-Explicitly list transient exception types that should instead count as failed
-observations:
+Probe exceptions stop polling by default. List any transient exception types
+that Greenlight should retry:
 
 ```php
 Expect::eventually(fn() => $client->fetch($id))
@@ -141,11 +138,9 @@ Expect::eventually(fn() => $client->fetch($id))
     ->toBeInstanceOf(Response::class);
 ```
 
-PHP `Error` instances, matcher exceptions, and invalid matcher arguments are
-never retried.
+PHP errors and exceptions from matcher code always stop polling.
 
-Use `Expect::consistently()` when a condition must remain true throughout a
-period:
+Use `Expect::consistently()` when the matcher must keep passing:
 
 ```php
 Expect::consistently(fn() => $outbox->messagesFor($id))
@@ -154,19 +149,16 @@ Expect::consistently(fn() => $outbox->messagesFor($id))
     ->toHaveCount(1);
 ```
 
-It observes immediately, starts the requested period after that first
-successful observation, and fails on the first violation. Both temporal forms
-make a final observation at their boundary.
+The first call must match. Greenlight then checks it for the full duration and
+fails on the first mismatch.
 
-A temporal matcher counts as one expectation. After it passes, the returned
-ordinary `Expectation` is anchored to the final sample, so another chained
-matcher checks that snapshot immediately rather than opening a second polling
-window. Start a new temporal expectation when another matcher needs its own
-wait.
+Each polling matcher counts as one expectation and returns an ordinary
+`Expectation` for its final value. Another matcher in the same chain checks
+that value once. Start a new `eventually()` or `consistently()` chain to poll
+again.
 
-Temporal waits are cooperative. A blocking probe cannot be interrupted by the
-expectation itself, and an enclosing `#[Timeout]` always takes precedence over
-a longer `within()` or `for()` duration.
+The current test timeout always limits polling. Greenlight cannot interrupt a
+probe that blocks, so the worker's hard timeout still applies.
 
 ### Failing explicitly
 
