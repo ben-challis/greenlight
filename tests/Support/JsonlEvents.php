@@ -10,7 +10,7 @@ use Greenlight\Core\Wire\Wire;
 
 /**
  * Reads JSONL from stdout only. Every non-trailing line must contain a valid
- * version-one envelope, known event tag, and event payload.
+ * version-two envelope, known event tag, and event payload.
  */
 final class JsonlEvents
 {
@@ -51,7 +51,7 @@ final class JsonlEvents
 
                 $version = Wire::int($map, 'v');
 
-                if ($version !== 1) {
+                if ($version !== 2) {
                     throw new \RuntimeException(\sprintf('Unsupported version %d.', $version));
                 }
 

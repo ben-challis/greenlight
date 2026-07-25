@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/jsonl-v1.schema.json",
-    "title": "Greenlight jsonl reporter line (v1)",
-    "description": "One line of the jsonl reporter stream. Version 1 changes additively only: payloads may gain new keys and new event tags may appear in newer streams, so consumers should skip lines whose event tag this schema does not define before validating. Prose reference: docs/architecture/jsonl.md.",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/jsonl-v2.schema.json",
+    "title": "Greenlight jsonl reporter line (v2)",
+    "description": "One line of the jsonl reporter stream. Prose reference: docs/architecture/jsonl.md.",
     "type": "object",
     "required": ["v", "event", "data"],
     "properties": {
         "v": {
-            "enum": [1]
+            "enum": [2]
         },
         "event": {
             "type": "string",
@@ -86,12 +86,13 @@
         },
         "runStarted": {
             "type": "object",
-            "required": ["runId", "plannedTests", "workers", "occurredAt"],
+            "required": ["runId", "plannedTests", "workers", "occurredAt", "artifactsDirectory"],
             "properties": {
                 "runId": {"type": "string", "minLength": 1},
                 "plannedTests": {"type": "integer", "minimum": 0},
                 "workers": {"type": "integer", "minimum": 1},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+                "occurredAt": {"$ref": "#/definitions/occurredAt"},
+                "artifactsDirectory": {"type": ["string", "null"]}
             }
         },
         "runFinished": {
@@ -124,7 +125,7 @@
         },
         "testClass": {
             "type": "object",
-            "required": ["class", "occurredAt"],
+            "required": ["class", "occurredAt", "workerId"],
             "properties": {
                 "class": {"type": "string", "minLength": 1},
                 "occurredAt": {"$ref": "#/definitions/occurredAt"},
@@ -185,7 +186,11 @@
                 "failures",
                 "error",
                 "skipReason",
-                "transformations"
+                "transformations",
+                "output",
+                "risky",
+                "expectations",
+                "attachments"
             ],
             "properties": {
                 "id": {"$ref": "#/definitions/testId"},
@@ -216,10 +221,29 @@
                 },
                 "risky": {"type": "boolean"},
                 "expectations": {
-                    "description": "Expectations verified during the final attempt. Older streams omit this key; treat a missing value as 0.",
+                    "description": "Expectations verified during the final attempt.",
                     "type": "integer",
                     "minimum": 0
+                },
+                "attachments": {
+                    "description": "Retained attachment metadata. Content is stored out of band at path.",
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/attachment"}
                 }
+            }
+        },
+        "attachment": {
+            "type": "object",
+            "required": ["name", "kind", "mediaType", "sizeBytes", "sha256", "attempt", "path", "retention"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "kind": {"enum": ["value", "text", "binary", "file"]},
+                "mediaType": {"type": "string", "minLength": 1},
+                "sizeBytes": {"type": "integer", "minimum": 0},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "attempt": {"type": "integer", "minimum": 1},
+                "path": {"type": "string", "minLength": 1},
+                "retention": {"enum": ["on-failure", "always"]}
             }
         },
         "outcome": {

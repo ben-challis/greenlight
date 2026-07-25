@@ -130,7 +130,7 @@ The `tty` and `plain` reporters print paths for retained evidence. JUnit adds
 `[[ATTACHMENT|path]]` markers to the testcase's `system-out`. GitHub annotations
 include paths and finish with an artifact-directory notice. TeamCity emits test
 artifact metadata and publishes the run directory. JSONL carries the metadata
-described in the [version 1 schema](architecture/jsonl.md).
+described in the [version 2 schema](architecture/jsonl.md).
 
 In other CI systems, upload the run directory in an always-running post-test
 step. The directory is announced by `run-started.artifactsDirectory` in JSONL,

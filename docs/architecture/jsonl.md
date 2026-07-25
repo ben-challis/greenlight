@@ -5,25 +5,24 @@ The `jsonl` reporter is Greenlight's machine-readable run output.
 It writes one JSON object per line, streamed as events occur. Typical consumers
 include IDEs, dashboards, and flaky-test tooling.
 
-A machine-readable JSON Schema for version 1 ships at
-[resources/schema/jsonl-v1.schema.json](../../resources/schema/jsonl-v1.schema.json).
+A machine-readable JSON Schema for version 2 ships at
+[resources/schema/jsonl-v2.schema.json](../../resources/schema/jsonl-v2.schema.json).
 Every line the reporter emits validates against it, enforced by tests. The
-schema states the floor of the contract: required keys and their types.
-Payloads may carry additional keys, per the versioning policy below.
+schema defines the required keys and their types.
 
 ## Envelope
 
 Each line is one JSON object with three keys:
 
 ```json id="zk90n2"
-{"v": 1, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
+{"v": 2, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
 ```
 
 ### v
 
 Schema version.
 
-The current version is `1`.
+The current version is `2`.
 
 ### event
 
@@ -45,19 +44,8 @@ sequences.
 
 The schema is versioned by the `v` field.
 
-Version `1` changes additively only:
-
-* New event tags may be added.
-* New keys may be added to `data` payloads.
-* Existing event tags do not change meaning.
-* Existing `data` keys are not removed or retyped.
-
-Consumers should skip events whose `event` tag they do not recognize.
-
-Consumers should ignore unknown keys inside `data`.
-
-A non-additive change requires a new `v` value. Consumers should treat an
-unknown version as unparseable.
+Each version has its own schema. Consumers should validate against the schema
+named by `v` and treat an unsupported version as unparseable.
 
 ## Event tags
 
@@ -77,20 +65,19 @@ unknown version as unparseable.
 `run-finished.summary` contains passed, failed, errored, and skipped counts.
 
 `run-started.artifactsDirectory` is the absolute directory for retained
-evidence from this run, or `null` for an older/attachment-disabled producer.
+evidence from this run, or `null` when no artifact directory is available.
 
 `suite-started` and `suite-finished` are reserved event types.
 Greenlight does not emit them today because suites only group configuration paths into a single discovery set,
 so execution has no suite boundary.
 
 They are defined in the event list and schema now to preserve their meaning if suite-scoped execution is added later.
-Consumers must not wait for these events and, under the versioning policy, must tolerate them appearing in a future
-release.
+Consumers must not wait for these events.
 
 `test-started.id` is the test id: class, method, and data-set key when present.
 
 `class-started.workerId` and `class-finished.workerId` name the worker that
-ran the class. Older streams may omit the key.
+ran the class.
 
 `worker-recycled.reason` is one of:
 
@@ -244,10 +231,12 @@ expectation counts when it is verified. Stubs do not count.
 An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
 not count separately.
 
+Failed, errored, and skipped tests carry the partial count verified before the
+test stopped.
+
 ### attachments
 
-A list of retained attachment metadata. Older streams may omit the key; treat a
-missing value as an empty list.
+A list of retained attachment metadata.
 
 ```json
 {
@@ -270,9 +259,3 @@ path. Internal storage keys never appear in reporter output.
 Attachments from failed retry attempts remain on the final result with their
 original `attempt` number. A passing test can have attachments when their
 retention is `always`.
-
-Failed, errored, and skipped tests carry the partial count verified before the
-test stopped.
-
-Older streams may omit this key. Consumers should treat a missing
-`expectations` key as `0`.

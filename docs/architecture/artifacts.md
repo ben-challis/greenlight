@@ -14,8 +14,8 @@ the public result.
 
 This makes the test attempt the owner of attachment lifetime while keeping the
 orchestrator the authority for publication. It also keeps protocol frames small:
-the existing version-one worker and JSONL envelopes gain optional metadata, not
-base64 payloads.
+the worker protocol carries metadata rather than base64 payloads, and JSONL
+version two makes the published attachment metadata part of the result contract.
 
 Each completed staged file has an atomic JSON sidecar. If a worker dies, the
 orchestrator reads only sidecars whose storage keys resolve inside the staging
@@ -31,7 +31,7 @@ result. Incomplete copies have no completed sidecar and are discarded.
 * Failed retry attempts retain evidence. A passing final attempt retains only
   evidence explicitly marked `always`.
 * Passing results can carry attachments; this is necessary for `always`
-  retention and is an additive result-schema change.
+  retention and is represented by JSONL version two.
 * Run-wide byte and count limits require a small locked quota file shared by
   workers. Per-test limits remain attempt-local.
 * Completed output is intentionally not cleaned by Greenlight. CI or the user
@@ -49,13 +49,11 @@ Greenlight provides path containment and private filesystem permissions, not
 content redaction. The caller is responsible for removing secrets and regulated
 data before attachment.
 
-## Compatibility
+## Protocol schemas
 
-`attachments` on `TestResult` and `artifactsDirectory` on `RunStarted` are
-optional when decoding, so older worker frames, saved JSONL streams, and plugin
-code remain readable. Version-one JSONL permits additive keys, so this does not
-require version two. The worker protocol remains internal and at version one;
-old workers are not mixed with a new orchestrator within one installed package.
+JSONL version two requires `attachments` on `TestResult` and
+`artifactsDirectory` on `RunStarted`. The worker protocol remains an internal,
+independently versioned implementation detail.
 
 The public API consists of `Attachments`, `Attachment`,
 `AttachmentKind`, and `AttachmentRetention`. Storage keys, staging layout,
@@ -80,6 +78,6 @@ The first version deliberately leaves three policies to callers and CI:
 * whether suites need a global mode that retains every default attachment,
   rather than marking selected attachments `always`.
 
-None changes the version-one metadata contract. Compression, content-addressed
+None changes the version-two metadata contract. Compression, content-addressed
 deduplication, and inline previews can likewise be added behind the storage and
 reporter seams if real-world artifact volume justifies them.
