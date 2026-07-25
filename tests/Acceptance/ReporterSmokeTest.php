@@ -35,16 +35,13 @@ final readonly class ReporterSmokeTest
         Expect::that($testcases->length)->toBe(2);
         $errors = $document->getElementsByTagName('error');
         Expect::that($errors->length)->toBe(1);
-        $failingCase = null;
+        $failingClass = null;
         foreach ($testcases as $testcase) {
             if ($testcase->getAttribute('name') === 'fails') {
-                $failingCase = $testcase;
+                $failingClass = $testcase->getAttribute('classname');
             }
         }
-        if (!$failingCase instanceof \DOMElement) {
-            throw new \RuntimeException('Expected the junit output to include a testcase named "fails".');
-        }
-        Expect::that($failingCase->getAttribute('classname'))->toBe('ReporterProbe\BadReporterProbeTest');
+        Expect::that($failingClass)->toBe('ReporterProbe\BadReporterProbeTest');
     }
 
     #[Test]
@@ -58,10 +55,10 @@ final readonly class ReporterSmokeTest
         // dirs alias /var/folders/... to /private/var/folders/...).
         $failingFile = (string) \realpath($project->path('tests/BadReporterProbeTest.php'));
         Expect::that($result->output())->toContain('::error file=' . $failingFile)
-            ->and($result->output())->toContain('ReporterProbe\BadReporterProbeTest::fails')
-            ->and($result->output())->toContain('intentional reporter probe failure')
+            ->toContain('ReporterProbe\BadReporterProbeTest::fails')
+            ->toContain('intentional reporter probe failure')
             // Passing tests add no annotation.
-            ->and($result->output())->not()->toContain('GoodReporterProbeTest');
+            ->not()->toContain('GoodReporterProbeTest');
     }
 
     private function writeProject(): AcceptanceProject

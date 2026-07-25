@@ -71,7 +71,7 @@ final readonly class ParallelRunTest
 
         Expect::that($withFlag->exitCode)->toBe(1)
             ->and($withFlag->output())->toContain('Leaks (the test instance survived its test):')
-            ->and($withFlag->output())->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
+            ->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         $withoutFlag = $this->runIn('LeakConfig', ['run', '--workers=2']);
 

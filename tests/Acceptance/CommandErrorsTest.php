@@ -27,7 +27,7 @@ final readonly class CommandErrorsTest
 
         Expect::that($result->exitCode)->toBe(64)
             ->and($result->output())->toContain("Unknown command 'bogus-command'")
-            ->and($result->output())->toContain('greenlight --help');
+            ->toContain('greenlight --help');
     }
 
     #[Test]
@@ -46,7 +46,7 @@ final readonly class CommandErrorsTest
         $result = GreenlightCli::run($project->directory, ['profile:report', '--input=nowhere.jsonl']);
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('Could not read')
-            ->and($result->output())->toContain('nowhere.jsonl');
+            ->toContain('nowhere.jsonl');
     }
 
     #[Test]

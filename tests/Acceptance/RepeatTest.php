@@ -28,9 +28,9 @@ final readonly class RepeatTest
         $result = $this->run($project, [], '--repeat=3');
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('Repeat: iteration 1 of 3')
-            ->and($result->output())->toContain('Repeat: iteration 2 of 3')
-            ->and($result->output())->toContain('Repeat: iteration 3 of 3')
-            ->and($result->output())->toContain('Repeat: 3 iterations, all passed');
+            ->toContain('Repeat: iteration 2 of 3')
+            ->toContain('Repeat: iteration 3 of 3')
+            ->toContain('Repeat: 3 iterations, all passed');
     }
 
     #[Test]
@@ -40,7 +40,7 @@ final readonly class RepeatTest
         $result = $this->run($project, [], '--repeat=2');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('Repeat: iteration 2 of 2')
-            ->and($result->output())->toContain('Repeat: failed on iteration(s) 1, 2');
+            ->toContain('Repeat: failed on iteration(s) 1, 2');
     }
 
     #[Test]
@@ -51,8 +51,8 @@ final readonly class RepeatTest
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('Repeat: iteration 3 of at most 100')
-            ->and($result->output())->toContain('Repeat: failed on iteration(s) 3')
-            ->and($result->output())->not()->toContain('Repeat: iteration 4');
+            ->toContain('Repeat: failed on iteration(s) 3')
+            ->not()->toContain('Repeat: iteration 4');
     }
 
     #[Test]
@@ -67,7 +67,7 @@ final readonly class RepeatTest
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--failed');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('failsOnTheThirdRun')
-            ->and($result->output())->toContain('1 test');
+            ->toContain('1 test');
     }
 
     #[Test]

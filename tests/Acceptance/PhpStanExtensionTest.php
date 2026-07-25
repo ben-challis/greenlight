@@ -56,6 +56,6 @@ final readonly class PhpStanExtensionTest
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(2)
             ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
-            ->and($probe->messages())->toContain('invoked with 1 parameter, 0 required');
+            ->toContain('invoked with 1 parameter, 0 required');
     }
 }

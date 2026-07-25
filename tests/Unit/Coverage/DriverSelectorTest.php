@@ -50,6 +50,10 @@ final class DriverSelectorTest
         // branches deterministically with fakes.
         $selection = new DriverSelector()->select();
 
-        Expect::that(!$selection->driver instanceof CoverageDriver)->not()->toBe($selection->reason === null);
+        if ($selection->driver instanceof CoverageDriver) {
+            Expect::that($selection->reason)->toBeNull();
+        } else {
+            Expect::that($selection->reason)->not()->toBeNull();
+        }
     }
 }

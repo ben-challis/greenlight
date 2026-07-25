@@ -137,12 +137,12 @@ final readonly class ExcludeSelectionTest
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/MissingProbeTest.php']);
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('matched no discovered test file')
-            ->and($result->output())->toContain('MissingProbeTest.php')
-            ->and($result->output())->toContain('3 tests');
+            ->toContain('MissingProbeTest.php')
+            ->toContain('3 tests');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php']);
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('matched no discovered test file')
-            ->and($result->output())->toContain('3 tests, 3 passed');
+            ->toContain('3 tests, 3 passed');
     }
 
     #[Test]

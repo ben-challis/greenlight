@@ -38,7 +38,7 @@ final class XdebugDriverTest
             ->and($file)->not()->toBeNull();
         \assert($file !== null);
 
-        Expect::that(Adder::ADD_RETURN_LINE)->toBeIn($file->coveredLines)
-            ->and(\in_array(Adder::ADD_RETURN_LINE, $file->uncoveredLines, true))->toBeFalse();
+        Expect::that($file->coveredLines)->toContain(Adder::ADD_RETURN_LINE)
+            ->and($file->uncoveredLines)->not()->toContain(Adder::ADD_RETURN_LINE);
     }
 }

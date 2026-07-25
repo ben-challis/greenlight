@@ -60,9 +60,9 @@ final class TestDiscovererTest
         $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')]);
 
         foreach ($plan->classes() as $class) {
-            Expect::that(
-                !\str_contains($class, 'AbstractSharedTest') && !\str_contains($class, 'NoTestMethodsTest'),
-            )->toBeTrue();
+            Expect::that($class)
+                ->not()->toContain('AbstractSharedTest')
+                ->not()->toContain('NoTestMethodsTest');
         }
     }
 

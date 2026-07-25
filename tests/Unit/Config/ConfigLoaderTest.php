@@ -72,7 +72,7 @@ final class ConfigLoaderTest
         } catch (ConfigFileError $error) {
             Expect::that($error->getMessage())->toContain('config exploded');
             Expect::that($error->getMessage())->toContain('RuntimeException');
-            Expect::that($error->getPrevious() instanceof \RuntimeException)->toBeTrue();
+            Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
 
             return;
         }

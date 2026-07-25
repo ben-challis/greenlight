@@ -89,7 +89,9 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['workers' => ['auto']]));
 
-        Expect::that($overrides->workers instanceof WorkerCount && $overrides->workers->isAuto())->toBeTrue();
+        Expect::that($overrides->workers)->toBeInstanceOf(WorkerCount::class);
+        \assert($overrides->workers instanceof WorkerCount);
+        Expect::that($overrides->workers->isAuto())->toBeTrue();
     }
 
     #[Test]

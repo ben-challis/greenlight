@@ -41,9 +41,9 @@ final class SummaryFormatTest
         $block = SummaryFormat::skipped($results, new Style(ansi: false));
 
         Expect::that($block)->toContain("  xdebug not loaded:\n    App\GammaTest::case1\n")
-            ->and($block)->toContain("    App\GammaTest::case5\n")
-            ->and($block)->not()->toContain('case6')
-            ->and($block)->toContain('    … and 2 more');
+            ->toContain("    App\GammaTest::case5\n")
+            ->not()->toContain('case6')
+            ->toContain('    … and 2 more');
     }
 
     #[Test]

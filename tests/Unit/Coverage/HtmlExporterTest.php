@@ -40,10 +40,10 @@ final class HtmlExporterTest
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
         Expect::that($index)->toContain('/src/A.php')
-            ->and($index)->toContain('75.00%')
-            ->and($index)->toContain(HtmlExporter::pageName('/src/A.php'))
-            ->and($index)->toContain('<th>Total</th>')
-            ->and($index)->not()->toContain('<script');
+            ->toContain('75.00%')
+            ->toContain(HtmlExporter::pageName('/src/A.php'))
+            ->toContain('<th>Total</th>')
+            ->not()->toContain('<script');
     }
 
     #[Test]
@@ -56,9 +56,9 @@ final class HtmlExporterTest
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
         Expect::that($index)->toContain('class="cards"')
-            ->and($index)->toContain('Total coverage')
-            ->and($index)->toContain('class="bar"')
-            ->and($index)->toContain('width:75.00%');
+            ->toContain('Total coverage')
+            ->toContain('class="bar"')
+            ->toContain('width:75.00%');
     }
 
     #[Test]
@@ -73,8 +73,8 @@ final class HtmlExporterTest
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
         Expect::that($index)->toContain('class="hi"')
-            ->and($index)->toContain('class="mid"')
-            ->and($index)->toContain('class="lo"');
+            ->toContain('class="mid"')
+            ->toContain('class="lo"');
     }
 
     #[Test]
@@ -89,8 +89,8 @@ final class HtmlExporterTest
         $filePage = $pages[HtmlExporter::pageName('/proj/src/A.php')];
 
         Expect::that($index)->toContain('>src/A.php<')
-            ->and($index)->not()->toContain('/proj/src/A.php')
-            ->and($index)->toContain(HtmlExporter::pageName('/proj/src/A.php'))
+            ->not()->toContain('/proj/src/A.php')
+            ->toContain(HtmlExporter::pageName('/proj/src/A.php'))
             ->and($filePage)->toContain('<h1>src/A.php</h1>');
     }
 
@@ -118,9 +118,9 @@ final class HtmlExporterTest
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
 
         Expect::that($page)->toContain('class="cov"')
-            ->and($page)->toContain('class="unc"')
-            ->and($page)->toContain('return</span> <span class="tv">$a</span> + <span class="tv">$b</span>;')
-            ->and($page)->not()->toContain('<script');
+            ->toContain('class="unc"')
+            ->toContain('return</span> <span class="tv">$a</span> + <span class="tv">$b</span>;')
+            ->not()->toContain('<script');
     }
 
     #[Test]
@@ -135,8 +135,8 @@ final class HtmlExporterTest
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
 
         Expect::that($page)->toContain('<span class="tk">return</span>')
-            ->and($page)->toContain('<span class="tk">function</span>')
-            ->and($page)->not()->toContain('<script');
+            ->toContain('<span class="tk">function</span>')
+            ->not()->toContain('<script');
     }
 
     #[Test]
@@ -149,7 +149,7 @@ final class HtmlExporterTest
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName('/no/such/file.php')];
 
         Expect::that($page)->toContain('class="cov"')
-            ->and($page)->toContain('class="unc"')
-            ->and($page)->toContain('<span class="num">5</span>');
+            ->toContain('class="unc"')
+            ->toContain('<span class="num">5</span>');
     }
 }

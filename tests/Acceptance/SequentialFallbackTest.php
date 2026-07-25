@@ -32,6 +32,6 @@ final readonly class SequentialFallbackTest
         );
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('7 tests, 7 passed')
-            ->and($result->output())->not()->toContain('proc_open');
+            ->not()->toContain('proc_open');
     }
 }

@@ -160,11 +160,11 @@ final readonly class PhpStanDataProviderRuleTest
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(7)
             ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
-            ->and($probe->messages())->toContain('notStatic() must be public and static')
-            ->and($probe->messages())->toContain('notIterable() must return an iterable of argument arrays, returns string')
-            ->and($probe->messages())->toContain('scalarRows() must yield arrays of arguments, yields int')
-            ->and($probe->messages())->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
-            ->and($probe->messages())->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
-            ->and($probe->messages())->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
+            ->toContain('notStatic() must be public and static')
+            ->toContain('notIterable() must return an iterable of argument arrays, returns string')
+            ->toContain('scalarRows() must yield arrays of arguments, yields int')
+            ->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
+            ->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
+            ->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
     }
 }

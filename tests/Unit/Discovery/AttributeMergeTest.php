@@ -105,11 +105,11 @@ final class AttributeMergeTest
         try {
             new TestDiscoverer()->discover([$dir]);
         } catch (DiscoveryError $error) {
-            Expect::that(
-                \str_contains($error->getMessage(), 'NonScalarArgumentTest')
-                && \str_contains($error->getMessage(), 'neverDiscovered')
-                && \str_contains($error->getMessage(), 'array'),
-            )->toBeTrue();
+            $message = $error->getMessage();
+            Expect::that($message)
+                ->toContain('NonScalarArgumentTest')
+                ->toContain('neverDiscovered')
+                ->toContain('array');
 
             return;
         }

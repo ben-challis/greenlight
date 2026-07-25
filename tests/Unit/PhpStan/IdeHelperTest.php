@@ -19,9 +19,9 @@ final class IdeHelperTest
         $rendered = IdeHelper::render($map);
 
         Expect::that($rendered)->toContain('namespace Greenlight\Expect;')
-            ->and($rendered)->toContain(' * @method self toBeHexadecimal()')
-            ->and($rendered)->toContain(' * @method self toHaveDigestLength(int $length)')
-            ->and($rendered)->toContain('final class Expectation {}')
-            ->and($rendered)->toContain('Never executed or autoloaded');
+            ->toContain(' * @method self toBeHexadecimal()')
+            ->toContain(' * @method self toHaveDigestLength(int $length)')
+            ->toContain('final class Expectation {}')
+            ->toContain('Never executed or autoloaded');
     }
 }

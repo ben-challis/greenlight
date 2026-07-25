@@ -43,8 +43,8 @@ final class MockTest
             $detail = $failure->detail();
 
             Expect::that($detail->message)->toContain('add')
-                ->and($detail->message)->toContain('exactly 2 times')
-                ->and($detail->message)->toContain('1 time')
+                ->toContain('exactly 2 times')
+                ->toContain('1 time')
                 ->and($detail->expected)->toContain('exactly 2 times')
                 ->and($detail->actual)->toContain('add(1, 2)');
 
@@ -79,7 +79,7 @@ final class MockTest
             $detail = $failure->detail();
 
             Expect::that($detail->message)->toContain('Unexpected call')
-                ->and($detail->message)->toContain('add')
+                ->toContain('add')
                 ->and($detail->actual)->toBe('add(4, 5)')
                 ->and($detail->expected)->toContain('no call to add() was expected');
 

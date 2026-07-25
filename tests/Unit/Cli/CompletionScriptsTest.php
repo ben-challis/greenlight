@@ -29,14 +29,17 @@ final class CompletionScriptsTest
     public function generatesFlagCandidatesFromTheOptionSpecList(): void
     {
         foreach (['bash', 'zsh'] as $shell) {
-            Expect::that((string) $this->scripts()->render($shell))
+            $script = (string) $this->scripts()->render($shell);
+
+            Expect::that($script)
                 ->toContain('--only-in-the-spec-table=')
-                ->and((string) $this->scripts()->render($shell))->toContain('--watch');
+                ->toContain('--watch');
         }
 
-        Expect::that((string) $this->scripts()->render('fish'))
+        $script = (string) $this->scripts()->render('fish');
+        Expect::that($script)
             ->toContain('-l only-in-the-spec-table -r')
-            ->and((string) $this->scripts()->render('fish'))->toContain('-l watch');
+            ->toContain('-l watch');
     }
 
     #[Test]

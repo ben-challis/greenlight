@@ -46,11 +46,11 @@ final class TtyReporterTest
         $screen = $terminal->screen();
 
         Expect::that($screen)->toContain('Greenlight dev-main')
-            ->and($screen)->toContain('PHP 8.4.0 | config: greenlight.php | workers: 2 | seed: 4242')
+            ->toContain('PHP 8.4.0 | config: greenlight.php | workers: 2 | seed: 4242')
             // Only the failing class earns a permanent line; the pass just counts.
-            ->and($screen)->not()->toContain('✓ App\AlphaTest')
-            ->and($screen)->toContain('✗ App\BetaTest (1 test, 1 failed, 0.010s)')
-            ->and($screen)->toContain('2 tests, 1 passed, 1 failed, 0 expectations');
+            ->not()->toContain('✓ App\AlphaTest')
+            ->toContain('✗ App\BetaTest (1 test, 1 failed, 0.010s)')
+            ->toContain('2 tests, 1 passed, 1 failed, 0 expectations');
     }
 
     #[Test]
@@ -68,8 +68,8 @@ final class TtyReporterTest
         $buffer = $output->buffer();
 
         Expect::that($buffer)->not()->toContain("\x1b[")
-            ->and($buffer)->toContain("✓ App\AlphaTest (1 test, 0.010s)\n")
-            ->and($buffer)->toContain('1 test, 1 passed, 0 expectations');
+            ->toContain("✓ App\AlphaTest (1 test, 0.010s)\n")
+            ->toContain('1 test, 1 passed, 0 expectations');
     }
 
     #[Test]
@@ -85,8 +85,8 @@ final class TtyReporterTest
         $reporter->finish();
 
         Expect::that($output->buffer())->not()->toContain('failed')
-            ->and($output->buffer())->not()->toContain('errored')
-            ->and($output->buffer())->not()->toContain('skipped');
+            ->not()->toContain('errored')
+            ->not()->toContain('skipped');
     }
 
     #[Test]
@@ -109,9 +109,9 @@ final class TtyReporterTest
 
         // A fully skipped class reads "skipped", a mixed one counts them.
         Expect::that($buffer)->toContain('− App\GammaTest (1 test, skipped, 0.010s)')
-            ->and($buffer)->toContain('✓ App\DeltaTest (2 tests, 1 skipped, 0.020s)')
-            ->and($buffer)->toContain('3 tests, 1 passed, 2 skipped, 0 expectations')
-            ->and($buffer)->toContain("Skipped:\n  App\GammaTest::one (xdebug not loaded)\n  App\DeltaTest::two (no reason given)");
+            ->toContain('✓ App\DeltaTest (2 tests, 1 skipped, 0.020s)')
+            ->toContain('3 tests, 1 passed, 2 skipped, 0 expectations')
+            ->toContain("Skipped:\n  App\GammaTest::one (xdebug not loaded)\n  App\DeltaTest::two (no reason given)");
     }
 
     #[Test]
@@ -124,7 +124,7 @@ final class TtyReporterTest
         $reporter->finish();
 
         Expect::that($spawned->buffer())->toContain("Workers: 1 spawned\n")
-            ->and($spawned->buffer())->not()->toContain('recycled');
+            ->not()->toContain('recycled');
 
         $inProcess = new BufferOutput();
         $reporter = new TtyReporter($inProcess, colour: false, cursor: false);
@@ -235,9 +235,9 @@ final class TtyReporterTest
         $buffer = $output->buffer();
 
         Expect::that($buffer)->toContain("\x1b[0J")
-            ->and($buffer)->not()->toContain("\x1b[32m")
-            ->and($buffer)->not()->toContain("\x1b[31m")
-            ->and($buffer)->not()->toContain("\x1b[33m");
+            ->not()->toContain("\x1b[32m")
+            ->not()->toContain("\x1b[31m")
+            ->not()->toContain("\x1b[33m");
     }
 
     #[Test]
@@ -254,7 +254,7 @@ final class TtyReporterTest
         $reporter->finish();
 
         Expect::that($output->buffer())->toContain("✓ App\AlphaTest (1 test, 0.010s)\n")
-            ->and($output->buffer())->not()->toContain("\x1b[");
+            ->not()->toContain("\x1b[");
     }
 
     #[Test]
@@ -275,7 +275,7 @@ final class TtyReporterTest
             // In-flight line: failure mark, dim name and running count so the
             // line reads as pending, elapsed since class start (1.5s crosses
             // the slow threshold, so it renders yellow).
-            ->and($terminal->screen())->toContain("\x1b[31m✗\x1b[0m \x1b[2mApp\AlphaTest (1)\x1b[0m \x1b[33m1.500s\x1b[0m");
+            ->toContain("\x1b[31m✗\x1b[0m \x1b[2mApp\AlphaTest (1)\x1b[0m \x1b[33m1.500s\x1b[0m");
     }
 
     #[Test]
@@ -296,8 +296,8 @@ final class TtyReporterTest
 
         // Oldest class stays visible; the rest collapse into the overflow line.
         Expect::that($screen)->toContain('App\AlphaTest (0)')
-            ->and($screen)->toContain('… and 2 more running')
-            ->and($screen)->not()->toContain('App\BetaTest');
+            ->toContain('… and 2 more running')
+            ->not()->toContain('App\BetaTest');
     }
 
     #[Test]
@@ -322,7 +322,7 @@ final class TtyReporterTest
         $terminal->write($output->buffer());
 
         Expect::that($terminal->screen())->toContain('App\AlphaTest (0)')
-            ->and($terminal->screen())->toContain('2.500s');
+            ->toContain('2.500s');
     }
 
     #[Test]
@@ -383,7 +383,7 @@ final class TtyReporterTest
         // clears each line right before rewriting it; blanking the whole
         // region first is what makes terminals flash mid-frame.
         Expect::that($frame)->toContain("\x1b[3A\r\x1b[2K")
-            ->and($frame)->not()->toContain("\x1b[0J");
+            ->not()->toContain("\x1b[0J");
     }
 
     #[Test]
@@ -403,8 +403,8 @@ final class TtyReporterTest
         // The permanent line rides the same frame as the window repaint; a
         // separate erase-then-rebuild would flash the region blank.
         Expect::that($frame)->toContain("\x1b[4A\r\x1b[2K")
-            ->and($frame)->toContain('✗ App\AlphaTest (1 test, 1 failed')
-            ->and($frame)->not()->toContain("\x1b[0J");
+            ->toContain('✗ App\AlphaTest (1 test, 1 failed')
+            ->not()->toContain("\x1b[0J");
     }
 
     #[Test]
@@ -416,7 +416,7 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
 
         Expect::that($output->buffer())->toContain("\x1b[?25l")
-            ->and($output->buffer())->not()->toContain("\x1b[?25h");
+            ->not()->toContain("\x1b[?25h");
 
         $reporter->finish();
 

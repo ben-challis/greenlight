@@ -31,7 +31,7 @@ final readonly class CoverageRunTest
 
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('Coverage: 60.00% (3 of 5 lines)')
-            ->and($result->output())->toContain('  json → coverage-out/coverage.json');
+            ->toContain('  json → coverage-out/coverage.json');
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
@@ -56,7 +56,7 @@ final readonly class CoverageRunTest
         $lcov = \file_get_contents($outDir . '/lcov.info');
 
         Expect::that($lcov)->toContain('SF:')
-            ->and($lcov)->toContain('end_of_record');
+            ->toContain('end_of_record');
     }
 
     #[Test]
@@ -194,7 +194,7 @@ final readonly class CoverageRunTest
 
         Expect::that($regressedResult->exitCode)->toBe(1)
             ->and($regressedResult->output())->toContain('Coverage regressed against the baseline.')
-            ->and($regressedResult->output())->toContain('newly uncovered lines: ' . $movedLine);
+            ->toContain('newly uncovered lines: ' . $movedLine);
     }
 
     /**

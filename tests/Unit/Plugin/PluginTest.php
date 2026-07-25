@@ -89,7 +89,7 @@ final class PluginTest
 
         Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('failed in beforeTest')
-            ->and($results[0]->error?->message)->toContain('plugin exploded');
+            ->toContain('plugin exploded');
     }
 
     #[Test]
@@ -117,7 +117,7 @@ final class PluginTest
         // The passing test errors, naming the plugin.
         Expect::that($byMethod['passes']->outcome)->toBe(Outcome::Errored)
             ->and($byMethod['passes']->error?->message)->toContain('failed in afterTest')
-            ->and($byMethod['passes']->error?->message)->toContain('plugin exploded');
+            ->toContain('plugin exploded');
 
         // The already-errored test keeps its original error; the plugin
         // failure is recorded as a failure detail instead of vanishing.
@@ -125,7 +125,7 @@ final class PluginTest
         Expect::that($errored->outcome)->toBe(Outcome::Errored)
             ->and($errored->error?->message)->toContain('intentional boom')
             ->and($errored->failures[0]->message ?? '')->toContain('failed in afterTest')
-            ->and($errored->failures[0]->message ?? '')->toContain('plugin exploded');
+            ->toContain('plugin exploded');
     }
 
     #[Test]

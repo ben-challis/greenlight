@@ -77,7 +77,7 @@ final readonly class SelectionTest
         $result = $this->run($project, '--failed');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('1 test, 0 passed, 1 errored')
-            ->and($result->output())->toContain('breaksSometimes');
+            ->toContain('breaksSometimes');
         // A run where everything passes empties the state.
         $result = $this->run($project, '--filter=alwaysPasses');
         Expect::that($result->exitCode)->toBe(0);
@@ -102,7 +102,7 @@ final readonly class SelectionTest
         );
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('1 test, 1 passed')
-            ->and($result->output())->toContain('Run state was not saved');
+            ->toContain('Run state was not saved');
     }
 
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult

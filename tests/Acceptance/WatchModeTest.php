@@ -41,7 +41,7 @@ final readonly class WatchModeTest
 
             $output = $process->readStdoutUntil('Watching for changes', 20.0);
             Expect::that($output)->toContain('Change detected')
-                ->and($output)->toContain('1 test, 1 passed');
+                ->toContain('1 test, 1 passed');
 
             $process->write('q');
             $result = $process->wait(10.0);

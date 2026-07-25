@@ -47,8 +47,8 @@ final class CapturedOutputTest
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip($original->toWire()));
 
         Expect::that($restored->stdout)->toMatch('//u')
-            ->and($restored->stdout)->toContain('stdout with')
-            ->and($restored->stdout)->toContain('1')
+            ->toContain('stdout with')
+            ->toContain('1')
             ->and(\preg_match('//u', $restored->diagnostics[0]->message))->toBe(1)
             ->and($restored->diagnostics[0]->message)->toContain('message with')
             ->and(\preg_match('//u', $restored->diagnostics[0]->file))->toBe(1);

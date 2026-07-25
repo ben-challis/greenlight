@@ -33,20 +33,20 @@ final readonly class PolicyTest
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('3 tests, 3 passed')
             // One matcher per test crossed the worker boundary into the summary.
-            ->and($result->output())->toContain('3 expectations');
+            ->toContain('3 expectations');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
-            ->and($result->output())->toContain('deprecation policy failed this passed test')
-            ->and($result->output())->toContain('old api is deprecated')
+            ->toContain('deprecation policy failed this passed test')
+            ->toContain('old api is deprecated')
             // The flip must not drop the flipped test's verified expectations.
-            ->and($result->output())->toContain('3 expectations')
+            ->toContain('3 expectations')
             // The allow-listed deprecation stays green.
-            ->and($result->output())->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
+            ->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('notice policy failed this passed test')
-            ->and($result->output())->toContain('a probe notice');
+            ->toContain('a probe notice');
     }
 
     #[Test]
@@ -58,15 +58,15 @@ final readonly class PolicyTest
         $riskyBlock = \substr($output, (int) \strpos($output, 'Risky:'));
         Expect::that($result->exitCode)->toBe(0)
             ->and($riskyBlock)->toContain('Risky: 1 passed without verifying any expectation')
-            ->and($riskyBlock)->toContain('RiskyProbeTest::assertsNothing')
-            ->and($riskyBlock)->not()->toContain('optedOut')
-            ->and($riskyBlock)->not()->toContain('mocksOnly')
+            ->toContain('RiskyProbeTest::assertsNothing')
+            ->not()->toContain('optedOut')
+            ->not()->toContain('mocksOnly')
             // Only the mock verification counts; the empty tests add nothing.
             ->and($output)->toContain('1 expectation');
         $result = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
-            ->and($result->output())->toContain('fail-on-risky policy failed this passed test');
+            ->toContain('fail-on-risky policy failed this passed test');
     }
 
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult

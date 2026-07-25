@@ -30,9 +30,9 @@ final readonly class BailRunTest
         $result = $this->run($project, '--bail');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('6 tests, 1 worker')
-            ->and($result->output())->toContain('1 test, 0 passed, 1 errored')
-            ->and($result->output())->not()->toContain('BProbe')
-            ->and($result->output())->not()->toContain('CProbe');
+            ->toContain('1 test, 0 passed, 1 errored')
+            ->not()->toContain('BProbe')
+            ->not()->toContain('CProbe');
     }
 
     #[Test]
@@ -44,9 +44,9 @@ final readonly class BailRunTest
         // class starts.
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('6 tests, 1 worker')
-            ->and($result->output())->toContain('2 tests, 0 passed, 2 errored')
-            ->and($result->output())->not()->toContain('BProbe')
-            ->and($result->output())->not()->toContain('CProbe');
+            ->toContain('2 tests, 0 passed, 2 errored')
+            ->not()->toContain('BProbe')
+            ->not()->toContain('CProbe');
     }
 
     #[Test]

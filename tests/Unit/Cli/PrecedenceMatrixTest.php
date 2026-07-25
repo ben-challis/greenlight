@@ -72,7 +72,7 @@ final class PrecedenceMatrixTest
         $resolved = $this->resolve(config: static fn(GreenlightConfig $c) => $c->randomizeOrder());
 
         Expect::that($resolved->randomizeOrder)->toBeTrue();
-        Expect::that($resolved->randomSeed !== null)->toBeTrue();
+        Expect::that($resolved->randomSeed)->not()->toBeNull();
     }
 
     #[Test]

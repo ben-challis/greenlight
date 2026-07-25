@@ -34,8 +34,8 @@ final class JsonLinesReporterTest
             $event = $events[$index];
 
             Expect::that($decoded)->toHaveKey('v')
-                ->and($decoded)->toHaveKey('event')
-                ->and($decoded)->toHaveKey('data');
+                ->toHaveKey('event')
+                ->toHaveKey('data');
 
             if (!\is_array($decoded)) {
                 continue;

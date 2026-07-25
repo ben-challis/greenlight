@@ -22,7 +22,7 @@ final class ExtensionMatcherDispatchTest
 
         try {
             Expect::that('c0ffee')->toBeHexadecimal()
-                ->and('c0ffee')->toHaveDigestLength(6)
+                ->toHaveDigestLength(6)
                 ->and('not hex!')->not()->toBeHexadecimal();
         } finally {
             Expect::install([]);

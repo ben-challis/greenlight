@@ -177,8 +177,8 @@ final class OutputCaptureTest
         $captured = $capture->stop();
 
         Expect::that($captured->stdout)->toMatch('//u')
-            ->and($captured->stdout)->toContain('binary')
-            ->and($captured->stdout)->toContain('1 output');
+            ->toContain('binary')
+            ->toContain('1 output');
     }
 
     #[Test]

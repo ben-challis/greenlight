@@ -21,10 +21,10 @@ final class DataRowRunTest
         $result = $this->run('--workers=2');
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('4 tests, 4 passed')
-            ->and($result->output())->toContain('addsUp[small]')
-            ->and($result->output())->toContain('addsUp[#1]')
-            ->and($result->output())->toContain('acceptsWord[from attribute]')
-            ->and($result->output())->toContain('acceptsWord[from provider]');
+            ->toContain('addsUp[small]')
+            ->toContain('addsUp[#1]')
+            ->toContain('acceptsWord[from attribute]')
+            ->toContain('acceptsWord[from provider]');
 
         $result = $this->run('--filter=*[from attribute]');
         Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');

@@ -72,7 +72,7 @@ final class ProfileAggregatorTest
         $rendered = $aggregator->render(new Style(ansi: false));
 
         Expect::that($rendered)->toContain("    12.000s  Acme\\SlowTest\n")
-            ->and($rendered)->toContain("     1.000s  Acme\\QuickTest\n");
+            ->toContain("     1.000s  Acme\\QuickTest\n");
     }
 
     #[Test]
@@ -90,8 +90,8 @@ final class ProfileAggregatorTest
         // class crosses the slow threshold (yellow). Cells pad outside the
         // colour codes so escape sequences cannot break column alignment.
         Expect::that($rendered)->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
-            ->and($rendered)->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
-            ->and($rendered)->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
+            ->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
+            ->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
     }
 
     #[Test]

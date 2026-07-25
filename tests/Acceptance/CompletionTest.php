@@ -26,23 +26,23 @@ final readonly class CompletionTest
         $result = $this->run('bash');
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->stdout)->toContain('_greenlight_completions')
-            ->and($result->stdout)->toContain('coverage:diff')
-            ->and($result->stdout)->toContain('--detect-leaks')
-            ->and($result->stdout)->toContain('teamcity');
+            ->toContain('coverage:diff')
+            ->toContain('--detect-leaks')
+            ->toContain('teamcity');
 
         $bashScript = $result->stdout;
 
         $result = $this->run('zsh');
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->stdout)->toContain('compdef _greenlight greenlight')
-            ->and($result->stdout)->toContain('--detect-leaks')
-            ->and($result->stdout)->toContain('teamcity');
+            ->toContain('--detect-leaks')
+            ->toContain('teamcity');
 
         $result = $this->run('fish');
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->stdout)->toContain('complete -c greenlight')
-            ->and($result->stdout)->toContain('-l detect-leaks')
-            ->and($result->stdout)->toContain('teamcity');
+            ->toContain('-l detect-leaks')
+            ->toContain('teamcity');
 
         $result = $this->run('powershell');
         Expect::that($result->exitCode)->toBe(64)

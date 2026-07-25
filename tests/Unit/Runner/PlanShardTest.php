@@ -31,7 +31,7 @@ final class PlanShardTest
             foreach ($shard->entries as $entry) {
                 $id = (string) $entry->id;
                 // Disjoint: no id may appear in two shards.
-                Expect::that(isset($seen[$id]))->toBeFalse();
+                Expect::that($seen)->not()->toHaveKey($id);
                 $seen[$id] = true;
             }
 

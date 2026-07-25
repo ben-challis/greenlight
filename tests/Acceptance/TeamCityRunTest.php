@@ -38,10 +38,10 @@ final readonly class TeamCityRunTest
             ->and($output)->toContain(
                 "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']",
             )
-            ->and($output)->toContain(
+            ->toContain(
                 "##teamcity[testStarted name='{$class}::one' locationHint='php_qn://{$file}::\\{$class}::one' flowId='{$class}']",
             )
-            ->and($output)->toContain("##teamcity[testSuiteFinished name='{$class}' flowId='{$class}']");
+            ->toContain("##teamcity[testSuiteFinished name='{$class}' flowId='{$class}']");
         foreach (\explode("\n", $output) as $line) {
             if (!\str_starts_with($line, '##teamcity[')) {
                 continue;

@@ -39,9 +39,9 @@ final readonly class ProfileRunTest
 
         Expect::that($result->exitCode)->toBe(0)
             ->and($live)->toContain('Profile:')
-            ->and($live)->toContain('spawned, 0 recycled')
-            ->and($live)->toContain('Boot latency:')
-            ->and($live)->toContain('Slowest classes:');
+            ->toContain('spawned, 0 recycled')
+            ->toContain('Boot latency:')
+            ->toContain('Slowest classes:');
 
         // The jsonl lines are interleaved with the plain report on
         // stdout; extract them into an artifact file.

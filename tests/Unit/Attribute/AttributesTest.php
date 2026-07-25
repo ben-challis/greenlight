@@ -35,9 +35,7 @@ final class AttributesTest
 
             $flags = $attributes[0]->newInstance()->flags;
 
-            if ($flags !== \Attribute::TARGET_METHOD) {
-                throw new \RuntimeException(\sprintf('%s must target methods only.', $attributeClass));
-            }
+            Expect::that($flags)->toBe(\Attribute::TARGET_METHOD);
         }
     }
 }

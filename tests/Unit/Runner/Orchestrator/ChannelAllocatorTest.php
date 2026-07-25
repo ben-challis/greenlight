@@ -60,8 +60,8 @@ final readonly class ChannelAllocatorTest
             $second = $allocator->allocate();
 
             Expect::that($second)->toBeLessThan(3)
-                ->and($second)->toBeGreaterThan(0)
-                ->and($second === $first)->toBeFalse();
+                ->toBeGreaterThan(0)
+                ->not()->toBe($first);
         }
     }
 

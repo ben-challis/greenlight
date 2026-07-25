@@ -84,9 +84,9 @@ final class DataSetExpansionTest
         $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
         $rendered = \array_map(static fn(PlanEntry $entry): string => (string) $entry->id, $plan->entries);
 
-        Expect::that(
-            \in_array('Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest::withStringKeys[first case]', $rendered, true),
-        )->toBeTrue();
+        Expect::that($rendered)->toContain(
+            'Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest::withStringKeys[first case]',
+        );
     }
 
     #[Test]

@@ -25,9 +25,10 @@ final readonly class ListingTest
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
-        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls');
-        $this->assertContainsLine($output, '7 tests');
+        Expect::that($output)
+            ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
+            ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls')
+            ->toContain('7 tests');
         // Cheap proxy for "the seed shuffled the plan": ids must stay
         // grouped by class. Alphabetical output would also pass this
         // check; interleaved classes would not.
@@ -58,14 +59,11 @@ final readonly class ListingTest
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests', '--exclude-group=slow']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
-        $this->assertContainsLine($output, '5 tests');
-        Expect::that(
-            !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two', $output, true),
-        )->toBeTrue();
-        Expect::that(
-            !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls', $output, true),
-        )->toBeTrue();
+        Expect::that($output)
+            ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
+            ->toContain('5 tests')
+            ->not()->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two')
+            ->not()->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls');
     }
 
     #[Test]
@@ -96,9 +94,10 @@ final readonly class ListingTest
         $result = GreenlightCli::run($project->directory, ['run', '--list-groups']);
         $output = $result->stdoutLines();
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, 'basic (2 tests)');
-        $this->assertContainsLine($output, 'slow (2 tests)');
-        $this->assertContainsLine($output, '2 groups');
+        Expect::that($output)
+            ->toContain('basic (2 tests)')
+            ->toContain('slow (2 tests)')
+            ->toContain('2 groups');
         $second = GreenlightCli::run($project->directory, ['run', '--list-groups'])->stdoutLines();
         Expect::that($second)->toBe($output);
     }
@@ -113,9 +112,10 @@ final readonly class ListingTest
         $output = $result->stdoutLines();
 
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, 'unit: tests/Unit');
-        $this->assertContainsLine($output, 'integration: tests/Integration [tags: io]');
-        $this->assertContainsLine($output, '2 suites');
+        Expect::that($output)
+            ->toContain('unit: tests/Unit')
+            ->toContain('integration: tests/Integration [tags: io]')
+            ->toContain('2 suites');
     }
 
     #[Test]
@@ -124,8 +124,8 @@ final readonly class ListingTest
         $project = AcceptanceProject::copyOfListTestsConfig($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-suites']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, '0 suites');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($output)->toContain('0 suites');
     }
 
     /**
@@ -143,17 +143,4 @@ final readonly class ListingTest
         ));
     }
 
-    /**
-     * @param list<string> $output
-     */
-    private function assertContainsLine(array $output, string $expected): void
-    {
-        if (!\in_array($expected, $output, true)) {
-            throw new \RuntimeException(\sprintf(
-                "Expected output to contain the line '%s'. Got:\n%s",
-                $expected,
-                \implode("\n", $output),
-            ));
-        }
-    }
 }

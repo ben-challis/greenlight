@@ -26,14 +26,15 @@ final readonly class CliTest
         $output = $result->outputLines();
 
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, '  test paths: tests/Unit, tests/Acceptance');
-        $this->assertContainsLine($output, '  suite unit: tests/Unit');
-        $this->assertContainsLine($output, '  suite integration: tests/Integration [tags: io]');
-        $this->assertContainsLine($output, '  workers: 4');
-        $this->assertContainsLine($output, '  recycle: after 100 tests or above 128M memory');
-        $this->assertContainsLine($output, '  stop after: 1 failure');
-        $this->assertContainsLine($output, '  order: random (seed 4242)');
-        $this->assertContainsLine($output, '  groups: (all)');
+        Expect::that($output)
+            ->toContain('  test paths: tests/Unit, tests/Acceptance')
+            ->toContain('  suite unit: tests/Unit')
+            ->toContain('  suite integration: tests/Integration [tags: io]')
+            ->toContain('  workers: 4')
+            ->toContain('  recycle: after 100 tests or above 128M memory')
+            ->toContain('  stop after: 1 failure')
+            ->toContain('  order: random (seed 4242)')
+            ->toContain('  groups: (all)');
     }
 
     #[Test]
@@ -50,10 +51,11 @@ final readonly class CliTest
         $output = $result->outputLines();
 
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, '  workers: 2');
-        $this->assertContainsLine($output, '  stop after: 7 failures');
-        $this->assertContainsLine($output, '  order: random (seed 9)');
-        $this->assertContainsLine($output, '  groups: slow');
+        Expect::that($output)
+            ->toContain('  workers: 2')
+            ->toContain('  stop after: 7 failures')
+            ->toContain('  order: random (seed 9)')
+            ->toContain('  groups: slow');
     }
 
     #[Test]
@@ -64,8 +66,8 @@ final readonly class CliTest
         Expect::that($result->output())->toContain('Usage:');
 
         $result = $this->runCli(['--version']);
-        Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($result->outputLines(), 'Greenlight dev-main');
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->outputLines())->toContain('Greenlight dev-main');
     }
 
     #[Test]
@@ -117,8 +119,9 @@ final readonly class CliTest
         $result = GreenlightCli::run($project->directory, ['list-tests']);
         $output = $result->outputLines();
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
-        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
+        Expect::that($output)
+            ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
+            ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
     }
 
     #[Test]
@@ -128,10 +131,9 @@ final readonly class CliTest
         $result = GreenlightCli::run($project->directory, ['list-tests', '--group=slow']);
         $output = $result->outputLines();
         Expect::that($result->exitCode)->toBe(0);
-        $this->assertContainsLine($output, 'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
-        Expect::that(
-            !\in_array('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one', $output, true),
-        )->toBeTrue();
+        Expect::that($output)
+            ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two')
+            ->not()->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
     }
 
     #[Test]
@@ -155,7 +157,6 @@ final readonly class CliTest
 
     /**
      * @param list<string> $arguments
-     *
      */
     private function runCli(array $arguments, string $relativeCwd = ''): ProcessResult
     {
@@ -165,17 +166,4 @@ final readonly class CliTest
         return GreenlightCli::run($cwd, $arguments);
     }
 
-    /**
-     * @param list<string> $output
-     */
-    private function assertContainsLine(array $output, string $expected): void
-    {
-        if (!\in_array($expected, $output, true)) {
-            throw new \RuntimeException(\sprintf(
-                "Expected output to contain the line '%s'. Got:\n%s",
-                $expected,
-                \implode("\n", $output),
-            ));
-        }
-    }
 }
