@@ -34,6 +34,8 @@ final class WorkerHandle
 {
     public ?SocketChannel $channel = null;
 
+    public bool $ready = false;
+
     public ?ExecutionPlan $assigned = null;
 
     public bool $isolatedAssignment = false;

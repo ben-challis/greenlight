@@ -4,8 +4,10 @@ Plugins are plain objects passed to `GreenlightConfig::plugins()` in
 `greenlight.php`. Greenlight works out what a plugin can do from the interfaces
 it implements. A single plugin can implement more than one interface.
 
-Worker-side plugins get the live test instance, its metadata, and access to
-harness services.
+Some capabilities run in the orchestrator and some run in workers. Worker-side
+plugins get the live test instance, its metadata, and access to harness
+services. Orchestrator-side plugins can observe the run or own external
+integration infrastructure.
 
 ```php
 return GreenlightConfig::create()
@@ -19,11 +21,206 @@ Tests run in worker processes, and live PHP objects cannot be sent across a
 process boundary. Each worker loads `greenlight.php` and creates its own plugin
 instances.
 
-That means plugin constructors run once per worker. Plugins also cannot share
-in-memory state between workers. If a plugin needs shared state, keep it outside
-the process, for example in a file, socket, or external service.
+The orchestrator also has its own configured plugin instances. That means a
+plugin constructor runs in the orchestrator and once per worker. Plugins cannot
+share in-memory state across that boundary. `--workers=1` is in-process, but
+plugins should not depend on that implementation detail: move cross-process
+information through the integration resource API.
 
 ## Capability interfaces
+
+### IntegrationFixtureProvider
+
+Orchestrator-side.
+
+Use an integration fixture for real infrastructure that must exist before tests
+start and must outlive individual worker processes: a database server, broker,
+container stack, emulator, or remote test tenant.
+
+```php
+use Greenlight\Harness\FixtureResource;
+use Greenlight\Plugin\IntegrationFixtureContext;
+use Greenlight\Plugin\IntegrationFixtureDefinition;
+use Greenlight\Plugin\IntegrationFixtureProvider;
+
+final class BrokerFixtures implements IntegrationFixtureProvider
+{
+    public function integrationFixtures(): array
+    {
+        return [
+            new IntegrationFixtureDefinition(
+                'broker',
+                static function (IntegrationFixtureContext $context): void {
+                    $broker = TestBroker::start();
+
+                    // Register this immediately after acquisition. It still
+                    // runs if later provisioning or worker startup fails.
+                    $context->defer(static fn() => $broker->stop());
+
+                    $channels = [];
+
+                    foreach ($context->channels() as $channel) {
+                        $tenant = $broker->createTenant('test_' . $channel);
+                        $channels[$channel] = FixtureResource::from(
+                            values: ['tenant' => $tenant->name],
+                            secrets: ['token' => $tenant->token],
+                        );
+                    }
+
+                    $context->expose(
+                        FixtureResource::from(values: ['host' => $broker->host()]),
+                        $channels,
+                    );
+                },
+            ),
+        ];
+    }
+}
+```
+
+The provider declares definitions; Greenlight provisions them after discovery,
+selection, and sharding, but before `RunStarted` or worker spawn. No provider is
+called for an empty plan or an inspection command such as `list-tests`,
+`--list-groups`, `--list-suites`, or `--dry-run`.
+
+Each definition has a unique ID, a provisioning closure, and optional
+dependencies:
+
+```php
+new IntegrationFixtureDefinition(
+    'schema',
+    static function (IntegrationFixtureContext $context): void {
+        foreach ($context->channels() as $channel) {
+            $database = $context->dependency('postgres', $channel);
+            // Migrate this channel's database.
+        }
+    },
+    dependsOn: ['postgres'],
+);
+```
+
+Dependencies provision first. Cleanup callbacks run in reverse registration
+order, including callbacks registered by a provisioner that later throws.
+Missing dependencies, duplicate IDs, and cycles fail before infrastructure is
+created.
+
+`IntegrationFixtureContext` exposes:
+
+* `runId()`: the identifier also used by run lifecycle events
+* `configuredWorkers()`: the configured worker ceiling
+* `channels()`: the non-empty set of channel slots this selected plan can use
+* `shard()`: the selected one-based shard and shard count, or `null`
+* `dependency()`: an already-provisioned dependency's shared or merged
+  channel resource
+* `defer()`: one teardown callback
+* `expose()`: shared data and optional per-channel overlays
+
+`FixtureResource` accepts JSON-safe nulls, booleans, finite numbers, UTF-8
+strings, lists, and maps. Maps require non-empty UTF-8 string keys and nesting
+is limited. Each channel's complete catalog is limited to 1 MiB.
+
+Tests can inject `IntegrationResources` directly:
+
+```php
+final class PublishesMessageTest
+{
+    public function __construct(
+        private readonly IntegrationResources $resources,
+    ) {}
+
+    #[Test]
+    public function publishes(): void
+    {
+        $broker = $this->resources->fixture('broker');
+        $client = new BrokerClient(
+            $broker->string('host'),
+            $broker->string('tenant'),
+            $broker->secret('token')->reveal(),
+        );
+    }
+}
+```
+
+Shared values are merged with only the current worker's channel overlay.
+Workers cannot inspect another channel's resource data.
+
+#### Fixture lifecycle
+
+Fixtures have one scope: one selected run iteration. They are provisioned again
+for every `--repeat` iteration and every watch-mode rerun. A shard provisions
+its own independent fixture graph; Greenlight does not coordinate
+infrastructure across machines. Fixtures are global to the selected run rather
+than to a configured suite, so a provider that needs suite-specific behaviour
+must inspect its own plugin configuration.
+
+Retries, classes, and tests reuse the same resources. Worker recycling, worker
+crashes, and `#[Isolated]` replacements reuse the resource for the released
+channel. Teardown starts after `RunFinished`, or immediately when provisioning,
+worker bootstrap, execution, reporting, or shutdown fails.
+
+All registered callbacks are attempted even if one teardown throws. Teardown
+failures fail an otherwise successful run and are appended to an existing
+failure. On the first SIGINT or SIGTERM, Greenlight drains and then tears down
+before returning the conventional signal exit code. No in-process API can
+guarantee cleanup after SIGKILL, a second signal, host failure, or the
+orchestrator process being forcibly terminated; provisioners should use
+idempotent cleanup and external leases for those cases.
+
+#### Secrets
+
+Put credentials in the `secrets` argument, not ordinary `values`. A secret is
+returned as `SensitiveValue` and requires an explicit `reveal()` call. Debug
+views and exports redact it. Catalogs travel over Greenlight's authenticated
+local worker socket and are not placed in `GREENLIGHT_CHANNEL`, another
+environment variable, a command argument, or worker diagnostics.
+
+The plaintext necessarily exists in the orchestrator and the matching worker.
+Plugin code must not include it in fixture IDs, exception messages, logs, test
+names, or ordinary values. For especially sensitive systems, expose a
+short-lived credential or a reference to an external secret store instead.
+
+### WorkerBootstrapSubscriber
+
+Worker-side.
+
+This hook runs once per physical worker after its integration resources arrive
+and before `HarnessProvider::services()` and `ServiceResolver` instances are
+consumed. Use it to adapt serializable connection data into worker-local
+services:
+
+```php
+final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
+{
+    private ?FixtureResource $broker = null;
+
+    public function onWorkerBootstrap(WorkerBootstrapContext $context): void
+    {
+        $this->broker = $context->resources->fixture('broker');
+    }
+
+    public function services(): array
+    {
+        $broker = $this->broker
+            ?? throw new \LogicException('Broker resources were not bootstrapped.');
+
+        return [
+            new ServiceDefinition(
+                BrokerClient::class,
+                Scope::PerRun,
+                static fn() => new BrokerClient(
+                    $broker->string('host'),
+                    $broker->secret('token')->reveal(),
+                ),
+            ),
+        ];
+    }
+}
+```
+
+`WorkerBootstrapContext` contains the physical `workerId`, its injectable
+`TestChannel`, and its `IntegrationResources`. Subscribers may implement
+`Prioritized`; lower priorities run first. A thrown exception fails worker
+bootstrap and therefore the run before tests begin.
 
 ### TestLifecycleSubscriber
 
@@ -96,7 +293,9 @@ Run subscribers receive the event stream in the orchestrator process. This
 includes run, worker, class, and test events.
 
 This side is observation-only. Results cannot be changed across the process
-boundary. If a run subscriber throws, the run fails.
+boundary. Integration fixture provisioning completes before `RunStarted`;
+`RunFinished` is delivered before fixture teardown begins. If a run subscriber
+throws, the run fails and fixtures are still torn down.
 
 ### HarnessProvider
 
@@ -119,8 +318,9 @@ Harness providers contribute services that tests can receive through constructor
 injection.
 
 Services can be scoped as `PerTest`, `PerClass`, `PerSuite`, or `PerRun`.
-`PerRun` means the worker lifetime. Services are lazy, so a service is not
-constructed unless it is actually used.
+`PerRun` means the physical worker lifetime, not the orchestrator-owned
+integration fixture lifetime. Services are lazy, so a service is not constructed
+unless it is actually used.
 
 If a service implements `Greenlight\Harness\Disposable`, it is disposed when its
 scope closes. Disposal happens in reverse creation order.

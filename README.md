@@ -14,6 +14,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 ## Highlights
 
 * Parallel execution by default with dynamic, timing-aware scheduling.
+* Orchestrator-owned integration fixtures with per-channel resources and guaranteed cleanup.
 * Worker recycling, leak detection, crash recovery, timeouts, and process isolation.
 * Strict mocks, stubs, and spies with automatic verification.
 * Typed expectations with rendered diffs.
@@ -130,7 +131,9 @@ Timings are stored in a per-project state file outside the repository and update
 
 The orchestrator starts workers and listens on a local socket. Workers exchange framed messages with it: class assignments go in, test events come out.
 
-A worker bootstraps on its first assignment and reuses that process state across classes. Per-class reflection, hooks, and data sets are rebuilt for each assignment.
+A worker receives its channel's integration resources and bootstraps before any
+worker receives an assignment. It reuses that process state across classes.
+Per-class reflection, hooks, and data sets are rebuilt for each assignment.
 
 Test events stream as they occur. When a worker finishes an assignment, it also reports its own totals. The orchestrator cross-checks those totals against the events it received and fails the run on a mismatch.
 
@@ -147,7 +150,10 @@ A worker that never connects, or stops making progress with no test in flight, f
 
 Each worker receives a stable channel number from `1` to the configured worker count. Concurrent workers never share a channel, and a replacement inherits the released slot.
 
-Use `GREENLIGHT_CHANNEL` or the injectable `TestChannel` service to select a per-worker database, port range, temporary directory, or other resource. Greenlight assigns the slot; the application manages the resource.
+Use `GREENLIGHT_CHANNEL` or the injectable `TestChannel` service to select a
+per-worker database, port range, temporary directory, or other resource.
+Plugins can provision those resources once in the orchestrator and publish
+only the matching channel's connection data to each worker.
 
 ### Discovery and overhead
 
@@ -278,6 +284,8 @@ Plugin extension points include:
 * retry deciders
 * harness providers
 * service resolvers
+* orchestrator-owned integration fixture providers
+* worker bootstrap subscribers
 * custom expectation matchers
 
 Plugins receive the test instance, test metadata, and harness services at runtime.
@@ -306,6 +314,7 @@ Greenlight does not run PHPUnit suites directly. See [migrating from PHPUnit](do
 * [Benchmarks](docs/benchmarks.md)
 * [JSONL reporter schema](docs/architecture/jsonl.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)
+* [Orchestrator-owned integration fixtures](docs/architecture/orchestrator-integration-fixtures.md)
 * [Code conventions](docs/architecture/conventions.md)
 * [Contributing guide](CONTRIBUTING.md)
 

@@ -21,7 +21,6 @@ final readonly class Assign implements Message
      * @param positive-int|null $recycleAboveMemoryBytes
      * @param list<non-empty-string>|null $coverageInclude null means coverage is off
      * @param non-empty-string|null $coverageDriver
-     * @param non-empty-string|null $configFile loaded worker-side to instantiate plugins; null runs plugin-free
      */
     public function __construct(
         public ExecutionPlan $slice,
@@ -29,7 +28,6 @@ final readonly class Assign implements Message
         public ?int $recycleAboveMemoryBytes = null,
         public ?array $coverageInclude = null,
         public ?string $coverageDriver = null,
-        public ?string $configFile = null,
         public bool $detectLeaks = false,
         public ?ResultPolicy $policy = null,
     ) {}
@@ -49,7 +47,6 @@ final readonly class Assign implements Message
             'recycleAboveMemoryBytes' => $this->recycleAboveMemoryBytes,
             'coverageInclude' => $this->coverageInclude,
             'coverageDriver' => $this->coverageDriver,
-            'configFile' => $this->configFile,
             'detectLeaks' => $this->detectLeaks,
             'policy' => $this->policy?->toWire(),
         ];
@@ -67,15 +64,12 @@ final readonly class Assign implements Message
             $coverageInclude = \array_values(\array_filter($coverageInclude, static fn(string $path): bool => $path !== ''));
         }
 
-        $configFile = Wire::nullableString($payload, 'configFile');
-
         return new self(
             ExecutionPlan::fromWire(Wire::map($payload, 'slice')),
             $recycleAfterTests === null ? null : \max(1, $recycleAfterTests),
             $recycleAboveMemory === null ? null : \max(1, $recycleAboveMemory),
             $coverageInclude,
             $coverageDriver === '' ? null : $coverageDriver,
-            $configFile === '' ? null : $configFile,
             Wire::bool($payload, 'detectLeaks'),
             ($policy = Wire::nullableMap($payload, 'policy')) === null ? null : ResultPolicy::fromWire($policy),
         );

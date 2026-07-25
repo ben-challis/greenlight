@@ -144,8 +144,14 @@ when the class finishes.
 
 Harness services are registered by plugins. A plugin implements
 `HarnessProvider` and returns service definitions with their scopes. If a test
-suite has shared fixtures, expect to move them into a small plugin rather than a
-static property on the test class.
+suite has in-process shared fixtures, expect to move them into a small plugin
+rather than a static property on the test class.
+
+External infrastructure such as database servers, message brokers, or
+containers belongs in an `IntegrationFixtureProvider`. It provisions in the
+orchestrator, can allocate one resource per worker channel, and tears down after
+the run even if workers fail. Worker-side tests consume its serializable
+connection data through `IntegrationResources` or a `HarnessProvider` bridge.
 
 ## Deliberate differences
 

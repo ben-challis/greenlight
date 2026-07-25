@@ -8,18 +8,22 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\TestChannel;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\Bootstrap;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\SocketChannel;
 
@@ -68,9 +72,8 @@ final readonly class WorkerProcess
         $pid = \getmypid();
         $channel->send(new Hello($workerId, $token, $pid === false ? 1 : \max(1, $pid)));
 
-        // Built on the first assignment and reused for every later one, so
-        // plugin construction happens once per worker and per-run harness
-        // services keep worker-lifetime semantics across assignments.
+        // Built by Bootstrap and reused for every assignment, so plugin
+        // construction and bootstrap happen once per physical worker.
         $plugins = null;
         $registry = null;
         $scopes = null;
@@ -93,8 +96,39 @@ final readonly class WorkerProcess
                     return 0;
                 }
 
+                if ($message instanceof Bootstrap) {
+                    if ($plugins instanceof PluginRegistry) {
+                        throw new \RuntimeException('Worker received bootstrap more than once.');
+                    }
+
+                    $rawChannel = \getenv('GREENLIGHT_CHANNEL');
+
+                    if (!\is_string($rawChannel) || (int) $rawChannel !== $message->channel) {
+                        throw new \RuntimeException('Worker bootstrap channel does not match GREENLIGHT_CHANNEL.');
+                    }
+
+                    $userPlugins = $message->configFile === null
+                        ? []
+                        : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
+                    $plugins = PluginRegistry::forWorker($userPlugins);
+                    $plugins->bootstrapWorker(new WorkerBootstrapContext(
+                        $workerId,
+                        new TestChannel($message->channel),
+                        $message->resources,
+                    ));
+                    $registry = DefaultServices::registry($plugins, $message->resources);
+                    $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
+                    $channel->send(new Ready());
+
+                    continue;
+                }
+
                 if (!$message instanceof Assign) {
                     continue;
+                }
+
+                if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
+                    throw new \RuntimeException('Worker received an assignment before bootstrap completed.');
                 }
 
                 $collector = null;
@@ -103,15 +137,6 @@ final readonly class WorkerProcess
                     $collector = CoverageCollector::create(
                         new CoverageSettings($message->coverageInclude, $message->coverageDriver),
                     );
-                }
-
-                if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
-                    $userPlugins = $message->configFile === null
-                        ? []
-                        : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
-                    $plugins = PluginRegistry::forWorker($userPlugins);
-                    $registry = DefaultServices::registry($plugins);
-                    $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
                 }
 
                 $collector?->start();
@@ -162,6 +187,7 @@ final readonly class WorkerProcess
 
             return 1;
         } finally {
+            $scopes?->closeRun();
             $channel->close();
         }
     }

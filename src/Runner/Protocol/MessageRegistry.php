@@ -7,11 +7,13 @@ namespace Greenlight\Runner\Protocol;
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\Bootstrap;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 
 /**
@@ -24,13 +26,15 @@ use Greenlight\Runner\Protocol\Messages\Recycling;
  */
 final class MessageRegistry
 {
-    private const int VERSION = 1;
+    private const int VERSION = 2;
 
     /**
      * @var array<non-empty-string, class-string<Message>>
      */
     private const array TAGS = [
         'hello' => Hello::class,
+        'bootstrap' => Bootstrap::class,
+        'ready' => Ready::class,
         'assign' => Assign::class,
         'drain' => Drain::class,
         'event' => EventEnvelope::class,

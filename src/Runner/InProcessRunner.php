@@ -8,11 +8,16 @@ use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\GracefulShutdown;
+use Greenlight\Core\Test\TestChannel;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Runner\Integration\IntegrationFixtureError;
+use Greenlight\Runner\Integration\IntegrationFixtureManager;
+use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
@@ -66,32 +71,61 @@ final readonly class InProcessRunner
             $sink = new PluginEventSink($orchestratorSide, $sink);
         }
 
-        $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
+        $fixtures = \count($plan) === 0
+            ? new ProvisionedIntegrationFixtures()
+            : IntegrationFixtureManager::provision($orchestratorSide, $runId, 1, 1, $configuration->shard);
 
-        $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
-        $collector?->start();
+        try {
+            $sink->emit(new RunStarted($runId, \count($plan), 1, \microtime(true)));
 
-        // A single in-process worker is always channel 1. Setting the
-        // variable, rather than relying on its absence, overrides any value
-        // inherited from an outer Greenlight run spawning this one.
-        \putenv('GREENLIGHT_CHANNEL=1');
+            $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
+            $collector?->start();
 
-        $outcome = new Worker(DefaultServices::registry($plugins), $plugins, $detectLeaks ? new LeakDetector() : null, 'in-process', $configuration->policy->isNoOp() ? null : $configuration->policy)
-            ->run(
-                $plan,
-                $sink,
-                $configuration->stopAfterFailures,
-                null,
-                $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
-            );
-        $summary = $outcome->summary;
+            // A single in-process worker is always channel 1. Setting the
+            // variable, rather than relying on its absence, overrides any value
+            // inherited from an outer Greenlight run spawning this one.
+            \putenv('GREENLIGHT_CHANNEL=1');
 
-        $coverage = $collector?->stop();
+            $resources = $fixtures->forChannel(1);
+            $plugins->bootstrapWorker(new WorkerBootstrapContext(
+                'in-process',
+                new TestChannel(1),
+                $resources,
+            ));
 
-        $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
-        $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+            $outcome = new Worker(DefaultServices::registry($plugins, $resources), $plugins, $detectLeaks ? new LeakDetector() : null, 'in-process', $configuration->policy->isNoOp() ? null : $configuration->policy)
+                ->run(
+                    $plan,
+                    $sink,
+                    $configuration->stopAfterFailures,
+                    null,
+                    $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
+                );
+            $summary = $outcome->summary;
 
-        return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
+            $coverage = $collector?->stop();
+
+            $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
+            $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+
+            $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
+        } catch (\Throwable $failure) {
+            $cleanupFailures = $fixtures->close();
+
+            if ($cleanupFailures !== []) {
+                throw IntegrationFixtureError::afterFailure($failure, $cleanupFailures);
+            }
+
+            throw $failure;
+        }
+
+        $cleanupFailures = $fixtures->close();
+
+        if ($cleanupFailures !== []) {
+            throw IntegrationFixtureError::cleanup($cleanupFailures);
+        }
+
+        return $result;
     }
 
     /**

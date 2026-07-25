@@ -57,6 +57,7 @@ use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
+use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
@@ -481,12 +482,19 @@ final readonly class Application
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
                     ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
             }
-        } catch (DiscoveryError|ProtocolError $error) {
+        } catch (DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
             $orchestratorCollector?->stop();
             $shared?->drain();
+            $reporter->finish();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_FAILURE;
+            $interruptExit = $shutdown->exitCode();
+
+            if ($interruptExit !== null) {
+                ($this->err)("Interrupted. Integration fixture teardown was attempted before exit.\n");
+            }
+
+            return $interruptExit ?? self::EXIT_FAILURE;
         }
 
         // Merged before any early return so the relay variables are restored
@@ -696,7 +704,8 @@ final readonly class Application
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
                             ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                     }
-                } catch (DiscoveryError|ProtocolError $error) {
+                } catch (DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+                    $reporter->finish();
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                     return $priorityClasses;

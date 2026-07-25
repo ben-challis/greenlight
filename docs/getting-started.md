@@ -229,6 +229,11 @@ worker its own copy. Greenlight provides a channel for this: a stable number fro
 The channel is available as `Greenlight\Core\Test\TestChannel` and is also
 exported to each worker as the `GREENLIGHT_CHANNEL` environment variable.
 
+A plugin can also provision real infrastructure in the orchestrator and expose
+typed connection data through `Greenlight\Harness\IntegrationResources`.
+That keeps setup and teardown alive even when a worker crashes or is recycled.
+See [Writing plugins](plugins.md#integrationfixtureprovider).
+
 ```php
 final class OrderRepositoryTest
 {

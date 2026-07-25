@@ -286,6 +286,13 @@ previous channel-2 worker left behind.
 This makes one-resource-per-channel setups cheap. For example, one database
 schema can be created per channel and reused for the whole run.
 
+For infrastructure that must be created and destroyed with the run, a plugin
+can implement `IntegrationFixtureProvider`. The provider runs in the
+orchestrator after discovery and sharding, creates shared or per-channel
+resources, and registers teardown. Workers receive an injectable
+`IntegrationResources` catalog containing shared values plus only their own
+channel overlay. See [Writing plugins](plugins.md#integrationfixtureprovider).
+
 ## CLI reference
 
 ```sh
