@@ -32,8 +32,7 @@ final class Expect
     }
 
     /**
-     * Repeatedly samples the probe until one matcher passes within an explicit
-     * deadline.
+     * Polls the probe until its matcher passes or the deadline expires.
      *
      * @template T
      *
@@ -53,8 +52,7 @@ final class Expect
     }
 
     /**
-     * Repeatedly samples the probe and requires one matcher to keep passing
-     * throughout an explicit observation period.
+     * Polls the probe for a fixed period and fails on the first mismatch.
      *
      * @template T
      *

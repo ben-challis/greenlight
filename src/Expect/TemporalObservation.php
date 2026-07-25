@@ -7,7 +7,7 @@ namespace Greenlight\Expect;
 use Greenlight\Core\Result\FailureDetail;
 
 /**
- * The result of sampling a probe and applying one matcher.
+ * Records the outcome of one polling attempt.
  *
  * @internal
  */

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Reads monotonic time with hrtime() and sleeps with usleep().
+ * Uses hrtime() for monotonic time and usleep() between polls.
  *
  * @internal
  */

@@ -9,7 +9,8 @@ use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * Shared typed matcher surface and observation machinery for temporal waits.
+ * Contains the matcher dispatch and probe handling shared by eventual and
+ * consistent expectations.
  *
  * @internal
  *
@@ -33,7 +34,7 @@ abstract class TemporalExpectation
     ) {}
 
     /**
-     * Inverts the temporal matcher. The negation is consumed by that matcher.
+     * Negates the next matcher for every value returned by the probe.
      */
     final public function not(): static
     {
@@ -43,8 +44,7 @@ abstract class TemporalExpectation
     }
 
     /**
-     * Dispatches configured extension matchers through the same polling
-     * semantics as native matchers.
+     * Runs a configured extension matcher against each value from the probe.
      *
      * @param array<int, mixed> $arguments
      */

@@ -9,7 +9,7 @@ use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * Applies one matcher repeatedly until it passes or its deadline expires.
+ * Polls the probe until its matcher passes or the deadline expires.
  *
  * @template T
  *

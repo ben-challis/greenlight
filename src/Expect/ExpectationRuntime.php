@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Worker-local temporal expectation context installed around each attempt.
+ * Stores the polling clock and current test deadline for a worker.
  *
  * @internal
  */
@@ -39,7 +39,7 @@ final class ExpectationRuntime
     }
 
     /**
-     * Runs deterministic expectation tests against a supplied clock.
+     * Runs an operation with a temporary polling clock.
      *
      * @template T
      *

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Configures polling before consistently applying one matcher.
+ * Collects polling options until for() sets the duration.
  *
  * @template T
  */

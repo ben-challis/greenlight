@@ -41,8 +41,7 @@ final class ExpectationCounter
     }
 
     /**
-     * Evaluates internal matcher probes without presenting each probe as a
-     * user-authored expectation.
+     * Runs an operation without adding to the expectation count.
      *
      * @internal
      *

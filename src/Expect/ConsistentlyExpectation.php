@@ -8,7 +8,7 @@ use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * Applies one matcher repeatedly and fails on its first violation.
+ * Checks each probe value for a fixed period and fails on the first mismatch.
  *
  * @template T
  *
