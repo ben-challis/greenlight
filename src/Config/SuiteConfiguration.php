@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-/**
- * A resolved named suite: a set of paths and the tags applied to every test
- * found under them.
- *
- * @internal
- */
+/** @internal */
 final readonly class SuiteConfiguration
 {
     /**

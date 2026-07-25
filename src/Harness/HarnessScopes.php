@@ -5,15 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * The active scope containers of one worker.
- *
- * The run and suite containers live for the worker's lifetime; the class and
- * test containers are opened and closed by the worker as execution
- * progresses.
- *
- * resolve() answers from the registry first; a type without a registered
- * definition is offered to the fallback resolvers in order. Fallback-supplied
- * objects are not tracked by any scope container and are never disposed.
+ * Registry definitions take precedence over fallback resolvers. Fallback
+ * objects are unmanaged and never disposed by Greenlight.
  *
  * The suite scope currently shares the run container's lifetime because suite
  * boundaries are not yet part of the execution plan.

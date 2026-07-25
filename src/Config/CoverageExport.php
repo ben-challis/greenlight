@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-/**
- * A single requested coverage export: a report format and where to write it.
- *
- * @internal
- */
+/** @internal */
 final readonly class CoverageExport
 {
     /**

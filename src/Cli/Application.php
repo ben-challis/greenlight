@@ -67,15 +67,8 @@ use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
- * The greenlight command.
- *
- * run() parses arguments, loads greenlight.php, applies command-line
- * overrides, and dispatches to a command: run executes the tests (or prints
- * the resolved plan under --dry-run), list-tests prints every discovered
- * test id.
- *
- * Exit codes: 0 success, 1 failure (bad config, discovery error),
- * 64 usage error.
+ * Exit codes: 0 success, 1 test or run failure, 64 invalid command-line
+ * usage.
  *
  * @internal
  */
@@ -428,10 +421,7 @@ final readonly class Application
     }
 
     /**
-     * One full execution: run the plan, finish the reporter, record run
-     * state, and translate the outcome into an exit code.
-     *
-     * The reporter must be fresh; finish() is called on it exactly once.
+     * The reporter must be fresh; finish() is called exactly once.
      *
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
@@ -458,13 +448,9 @@ final readonly class Application
         $shared = null;
 
         if ($coverageSettings instanceof CoverageSettings) {
-            // The orchestrator process collects its own coverage alongside
-            // the workers, so runner and reporting code exercised only on
-            // this side of the pool shows up in the export. Skipped when this
-            // process inherited the relay variables: it is already dumping
-            // whole-process coverage, and a second driver window would close
-            // that one early. The in-process runner opens its own window, so
-            // only the pool path collects here.
+            // The pool path collects orchestrator coverage unless this process
+            // inherited relay variables. A second driver window would close
+            // the inherited whole-process window early.
             if ($workers !== 1 && $realBin !== false && !SubprocessCoverage::requested()) {
                 $orchestratorCollector = CoverageCollector::create($coverageSettings);
                 $orchestratorCollector?->start();
@@ -553,10 +539,8 @@ final readonly class Application
     }
 
     /**
-     * Records the run's failure set and class durations, warning on stderr
-     * when persistence fails: a lost state file silently degrades --failed,
-     * failed-first ordering, and longest-first scheduling on the next run,
-     * so the loss must be visible without affecting the exit code.
+     * Warns when run state cannot be saved; persistence failure does not
+     * change the exit code.
      *
      * @param list<non-empty-string> $failedTests
      * @param array<non-empty-string, float> $classSeconds
@@ -569,10 +553,8 @@ final readonly class Application
     }
 
     /**
-     * Warns on stderr for each exclude-path prefix that matches none of the
-     * test files the scan would discover, so an ineffective prefix is visible
-     * instead of silently excluding nothing. Enumeration problems are left to
-     * the discovery that follows, which reports them as errors.
+     * Warns when an exclude-path prefix matches no discovered test files.
+     * Discovery reports enumeration errors separately.
      */
     private function warnWhenExcludePathsMatchNothing(Configuration $resolved, string $workingDirectory, bool $noAnsiFlag): void
     {
@@ -606,19 +588,11 @@ final readonly class Application
         }
     }
 
-    /**
-     * Reports a top-level error on stderr, under a red "greenlight:" prefix
-     * when stderr supports colour, so errors stand out from other output.
-     */
     private function printError(string $message, bool $noAnsiFlag): void
     {
         ($this->err)($this->stderrStyle($noAnsiFlag)->error('greenlight:') . ' ' . $message . "\n");
     }
 
-    /**
-     * Colour for stdout messages written outside the reporters, from stdout's
-     * own terminal capabilities.
-     */
     private function stdoutStyle(bool $noAnsiFlag): Style
     {
         $capabilities = TerminalCapabilities::detect(
@@ -630,9 +604,6 @@ final readonly class Application
         return new Style($capabilities->colour);
     }
 
-    /**
-     * Colour for stderr messages, from stderr's own terminal capabilities.
-     */
     private function stderrStyle(bool $noAnsiFlag): Style
     {
         $capabilities = TerminalCapabilities::detect(
@@ -932,10 +903,7 @@ final readonly class Application
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
     }
 
-    /**
-     * LINES when the shell exports it, tput as fallback, 24 as the safe
-     * default; probed once per reporter build, no resize handling.
-     */
+    /** Uses LINES, then tput, then 24. Probed once when the reporter is built. */
     private function terminalRows(): int
     {
         $linesEnv = \getenv('LINES');
@@ -950,13 +918,7 @@ final readonly class Application
         return $probed > 0 ? $probed : 24;
     }
 
-    /**
-     * Writes the duplicate-declaration helper file IDEs index for extension
-     * matcher autocomplete.
-     *
-     * Loads the same config file the run would, so the generated signatures
-     * match what the PHPStan extension enforces.
-     */
+    /** Uses the loaded config so IDE and PHPStan signatures match. */
     private function ideHelperCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         try {
@@ -995,9 +957,7 @@ final readonly class Application
     }
 
     /**
-     * Prints the completion script for the requested shell to stdout. The
-     * script is generated from the same option specs the parser is built
-     * from, so there is no second flag list to maintain.
+     * Completion flags share the parser's OptionSpec list.
      *
      * @param list<string> $rest the arguments after the completion command word
      */
@@ -1024,10 +984,7 @@ final readonly class Application
         return self::EXIT_OK;
     }
 
-    /**
-     * Replays a saved jsonl event stream through the profile aggregator, so
-     * a CI run's profile is recoverable from its artifact without a re-run.
-     */
+    /** Recreates a run profile from a saved jsonl event stream. */
     private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         $input = $arguments->value('input');

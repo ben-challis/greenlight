@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * Raised when the config file cannot be loaded: it does not exist, it threw
- * while being included, or it returned something other than a GreenlightConfig
- * builder.
+ * Raised when greenlight.php is missing, throws while loading, or does not
+ * return GreenlightConfig.
  *
  * @internal
  */

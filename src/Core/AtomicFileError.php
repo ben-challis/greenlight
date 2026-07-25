@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Core;
 
-/**
- * Raised when an atomic file write cannot complete.
- *
- * Always names the target path and, when PHP raised a warning, its message,
- * so a failed write is diagnosable without re-running under a debugger.
- * Callers that treat the write as advisory catch and discard this.
- */
+/** Messages include the target path and any warning emitted by PHP. */
 final class AtomicFileError extends \RuntimeException
 {
     private function __construct(string $message, ?\Throwable $previous = null)

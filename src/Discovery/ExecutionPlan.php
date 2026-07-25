@@ -8,14 +8,8 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * The ordered, fully expanded list of tests a run will execute.
- *
- * Entries are grouped by class: all entries for a class are contiguous,
- * classes appear in plan order, and methods keep their declaration order
- * within the class.
- *
- * Given the same directories, filters, seed, and code state the plan is
- * byte-identical across processes and runs.
+ * Entries are contiguous by class and preserve plan, method, and data-set
+ * order. The same inputs produce the same entry order.
  *
  * @internal
  */

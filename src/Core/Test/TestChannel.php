@@ -5,28 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Core\Test;
 
 /**
- * The parallel slot a test is running in, for deriving isolated external
- * resources.
+ * A live worker owns a unique slot from 1 to the worker count. Replacements
+ * reuse freed slots, so channel resources persist across worker recycling.
+ * In-process runs use channel 1.
  *
- * Channels are small integers from 1 to the worker count. Each live worker
- * holds exactly one channel for its lifetime, and when a worker is recycled
- * or crashes its replacement reuses the freed number. Two tests running at
- * the same time therefore never share a channel, which makes the number safe
- * to embed in database names, ports, virtual hosts, or temp directories. The
- * in-process runner (workers=1) is always channel 1.
- *
- * Channel-derived resources are per slot, not per worker process: a
- * replacement worker that reuses channel 2 sees whatever state the previous
- * channel-2 worker left behind. That persistence is what makes patterns like
- * one database schema per channel work across recycling.
- *
- * Inject this class through a test constructor, or resolve it in a harness
- * provider, to read the slot. The same value is exported to the worker
- * process as the GREENLIGHT_CHANNEL environment variable, so code outside
- * the harness (bootstrap files, spawned tools) can read it via getenv().
- *
- * number is the raw slot. label() prefixes it as "gl-<number>" for use in
- * resource names that need a recognisable, collision-free string.
+ * GREENLIGHT_CHANNEL exposes the same value outside the harness. label()
+ * prefixes the raw number with "gl-".
  */
 final readonly class TestChannel
 {

@@ -6,15 +6,7 @@ namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
 
-/**
- * The mutable fluent builder that greenlight.php files return.
- *
- * build() produces the immutable Configuration.
- *
- * Defaults: paths ['tests'], workers 'auto' recycling above '256M' memory
- * with no test-count recycling, no suites, no coverage, no plugins, failFast
- * off, declared order with no seed.
- */
+/** Fluent configuration builder returned by greenlight.php. */
 final class GreenlightConfig
 {
     private const string DEFAULT_RECYCLE_ABOVE_MEMORY = '256M';
@@ -129,10 +121,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Recycling by test count is opt-in: every recycle costs a full worker
-     * boot while that worker's lane idles, and memory growth already has the
-     * direct guard in $recycleAboveMemory. Set $recycleAfterTests only for
-     * suites that accumulate non-memory state (connections, file handles).
+     * Test-count recycling is opt-in because each recycle boots a new worker.
+     * Use it for state that memory-based recycling cannot bound.
      *
      * @param int|'auto' $count
      * @param int|null $recycleAfterTests null means workers are never
@@ -193,9 +183,6 @@ final class GreenlightConfig
         return $this;
     }
 
-    /**
-     * Fails a passed test whose captured output contains a notice.
-     */
     public function failOnNotice(bool $enabled = true): self
     {
         $this->failOnNotice = $enabled;
@@ -248,10 +235,7 @@ final class GreenlightConfig
         return $this;
     }
 
-    /**
-     * Enables randomized class order. A null seed means one is chosen and
-     * printed at run time.
-     */
+    /** A null seed is generated and printed at run time. */
     public function randomizeOrder(?int $seed = null): self
     {
         $this->randomizeOrder = true;

@@ -8,8 +8,6 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\RawCoverage;
 
 /**
- * Line coverage via the pcov extension.
- *
  * pcov reports each seen line as covered (one) or executable but not executed
  * (minus one); it has no dead code detection.
  *

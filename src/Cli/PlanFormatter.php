@@ -8,12 +8,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\MemorySize;
 
-/**
- * Renders a resolved configuration as the human-readable plan the run
- * command prints under --dry-run.
- *
- * @internal
- */
+/** @internal */
 final class PlanFormatter
 {
     /** @codeCoverageIgnore */

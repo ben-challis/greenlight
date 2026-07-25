@@ -4,15 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-/**
- * Recursive subset comparison used by Expectation::toContainSubset().
- *
- * firstDifference() walks the subset and reports the first key that is
- * missing from the subject or holds an unequal value, identified by its
- * dot-joined path.
- *
- * @internal
- */
+/** @internal */
 final class ArraySubset
 {
     /** @codeCoverageIgnore */

@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-/**
- * Resolved coverage settings. Collection itself lives elsewhere; this object
- * only records what the user asked for.
- *
- * @internal
- */
+/** @internal */
 final readonly class CoverageConfiguration
 {
     /**

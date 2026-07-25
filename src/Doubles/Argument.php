@@ -4,14 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-/**
- * Factories for the argument matchers usable in with() positions.
- *
- * any() accepts every value, type() constrains by class, interface, or
- * builtin type name, predicate() delegates to a closure, equals() states the
- * default deep-equality comparison explicitly, and captor() records the
- * matched value for later inspection.
- */
 final class Argument
 {
     /** @codeCoverageIgnore */

@@ -15,21 +15,13 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Emits TeamCity service messages for the run.
- *
- * onEvent() maps the event stream onto the protocol: a test suite per class,
- * testStarted and testFinished per test with the duration in milliseconds,
- * testFailed with comparison details, and testIgnored for skips.
- *
  * Every message carries a flowId set to the class name, keeping interleaved
  * parallel output untangled for consumers. The class name identifies the
  * flow because a class never spans workers and, unlike a worker id, it is
  * present on test events as well as class events.
  *
- * locationHint() adds php_qn:// navigation hints to testSuiteStarted and
- * testStarted for JetBrains IDEs, resolving the class file by reflection
- * and caching it per class in classFile(). A class that is not loadable in
- * the orchestrator simply loses its hint; the message stays valid.
+ * JetBrains navigation hints are omitted when the class is not loadable in
+ * the orchestrator.
  *
  * Values are escaped per the TeamCity service message rules.
  *

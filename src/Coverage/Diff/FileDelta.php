@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Diff;
 
 /**
- * The coverage change of one file between a baseline and the current run.
- *
  * A null percentage on either side means the file was absent from that map;
  * delta() treats an absent side as zero percent.
  *

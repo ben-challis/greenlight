@@ -8,28 +8,13 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\Export\JsonExporter;
 
 /**
- * Reports a spawned CLI process's own coverage back to the run that spawned it.
- *
- * A coverage-enabled run exports GREENLIGHT_COVERAGE_DIR and
- * GREENLIGHT_COVERAGE_INCLUDE to the processes it starts. Any bin/greenlight
- * process that inherits them, typically one spawned by an acceptance test
- * driving the real CLI, collects its own coverage and drops a JSON export
- * into the shared directory, where the spawning run folds it into the final
- * CoverageMap. Without this relay, orchestrator-side code exercised only
- * through spawned processes reports no coverage at all.
- *
- * begin() opens the collection window when the variables are present and a
- * driver is available; like worker collection it fails soft, so a missing
- * driver never fails the spawned command. write() closes the window and
- * writes the dump under a unique name; empty maps are not written.
- * requested() reports whether the variables are present, which the spawning
- * side uses to avoid opening a second driver window in a process that is
- * already dumping.
+ * Inherited GREENLIGHT_COVERAGE_DIR and GREENLIGHT_COVERAGE_INCLUDE variables
+ * relay a spawned CLI process's coverage to its parent run. Missing drivers
+ * fail soft, and empty maps are not written.
  *
  * Worker processes never dump; their coverage travels over the worker
- * protocol. A process that also opens an inner collection window, such as a
- * workers=1 run with coverage enabled, closes the shared driver state early
- * and truncates its dump.
+ * protocol. Opening a second collection window would close the inherited
+ * whole-process window early.
  *
  * @internal
  */

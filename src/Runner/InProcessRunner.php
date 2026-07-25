@@ -17,14 +17,7 @@ use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
 
-/**
- * Runs discovery plus one in-process worker and returns a summary.
- *
- * This is the workers=1 runner, used when a single worker is requested or
- * the host lacks process support.
- *
- * @internal
- */
+/** @internal */
 final readonly class InProcessRunner
 {
     /**

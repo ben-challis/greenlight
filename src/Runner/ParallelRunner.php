@@ -17,14 +17,7 @@ use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
-/**
- * Runs discovery plus the process pool.
- *
- * This is the default runner; workers=1 falls back to the in-process runner
- * at the call site.
- *
- * @internal
- */
+/** @internal */
 final readonly class ParallelRunner
 {
     /**

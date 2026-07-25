@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-/**
- * A class-like declaration found by token parsing a file, before any code
- * from that file has been loaded.
- *
- * @internal
- */
+/** @internal */
 final readonly class ClassDeclaration
 {
     /**

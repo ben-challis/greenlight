@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage;
 
-/**
- * Raised when coverage collection or import cannot proceed: a driver is
- * used while its extension is unavailable, or a coverage JSON document
- * does not match the documented schema.
- *
- * @internal
- */
+/** @internal */
 final class CoverageError extends \RuntimeException
 {
     private function __construct(string $message)

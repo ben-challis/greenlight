@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
-/**
- * The extension matcher maps of the given config files cannot be combined
- * into one static view.
- *
- * @internal
- */
+/** @internal */
 final class MatcherMapError extends \RuntimeException
 {
     private function __construct(string $message)

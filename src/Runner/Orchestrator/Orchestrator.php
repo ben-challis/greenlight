@@ -35,47 +35,15 @@ use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Runs the process pool: spawns workers and assigns work class by class on
- * demand.
+ * Workers pull classes on demand; isolated entries use fresh processes.
+ * Crashes fail the in-flight test and requeue the rest of its assignment.
  *
- * Demand-driven assignment means a worker that finishes early pulls the next
- * class instead of idling behind a static bucket. Isolated entries run on
- * dedicated fresh workers.
+ * Bail and graceful shutdown stop new assignments, drain active workers, and
+ * reap every process. Queue and within-class order are deterministic, but
+ * worker placement depends on load.
  *
- * run() forwards worker event streams to the sink, recycles workers on
- * request (mid-assignment or between assignments once the cumulative budget
- * is spent), and drains everything on bail.
- *
- * Crashes are contained: the in-flight test is attributed to the crash and
- * the remainder of the assignment is reassigned, minus the crashed test. Any
- * bookkeeping mismatch fails loudly.
- *
- * When the injected GracefulShutdown flag reports a request, run() switches
- * to the same drain path used for bail: no further units are assigned,
- * workers finish their in-flight test and report Done, and the finally
- * block reaps processes and removes the socket directory as on any run.
- *
- * Worker placement is load-dependent by design. What stays deterministic is
- * the queue order for a given plan, within-class method order under the
- * seed, and per-class results. The seed reproduces failures, not placement.
- *
- * An optional Ticking collaborator is ticked once per loop iteration. The
- * select timeout bounds the interval at 200ms, so a live display keeps
- * advancing even when no worker sends anything.
- *
- * Every spawn is covered by a deadline: a worker process that stays alive
- * but never completes the hello handshake (a boot stuck on an exhausted
- * machine) fails the run loudly instead of leaving it waiting forever.
- *
- * Connected workers are covered by a progress deadline: a worker that holds
- * an open channel but sends nothing while no test is in flight (stuck after
- * receiving an assignment, or between tests) is terminated and fails the run
- * loudly. While a test is in flight, only its own timeout budget applies.
- *
- * Every spawned worker gets a channel from a ChannelAllocator bounded by the
- * worker count, exported as GREENLIGHT_CHANNEL in its environment.
- * finishHandle() releases the channel on every path that retires a handle,
- * so replacements reuse freed slots and live workers never share one.
+ * Deadlines cover workers that never authenticate and authenticated workers
+ * that stop making progress outside a running test.
  *
  * @internal
  */

@@ -7,11 +7,7 @@ namespace Greenlight\Core\Result;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
-/**
- * Provenance record for a plugin changing a test's outcome.
- *
- * Every transformation is attributable in reports.
- */
+/** Provenance record for a plugin changing a test's outcome. */
 final readonly class OutcomeTransformation implements WireSerializable
 {
     /**

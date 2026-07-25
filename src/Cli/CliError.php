@@ -4,13 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-/**
- * A user-facing command-line usage error.
- *
- * The application prints the message and exits with the usage error code.
- *
- * @internal
- */
+/** @internal */
 final class CliError extends \RuntimeException
 {
     private function __construct(string $message)

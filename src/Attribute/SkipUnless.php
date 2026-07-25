@@ -7,12 +7,8 @@ namespace Greenlight\Attribute;
 use Greenlight\Core\Condition;
 
 /**
- * Skips the test method, or every test in the class, unless the condition is
- * satisfied.
- *
- * The condition is evaluated at execution time in the worker. Any extra
- * arguments are passed to the condition's constructor and must be scalars or
- * null so they survive the wire to parallel workers.
+ * Evaluates the condition in the worker. Constructor arguments must be
+ * scalars or null so they can cross the worker boundary.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class SkipUnless

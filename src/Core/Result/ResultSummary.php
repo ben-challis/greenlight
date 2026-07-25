@@ -7,12 +7,7 @@ namespace Greenlight\Core\Result;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
-/**
- * Bounded aggregate counts for a run.
- *
- * Reporters that need aggregates keep summaries like this one, never
- * per-test collections.
- */
+/** Aggregate outcome counts for a run. */
 final readonly class ResultSummary implements WireSerializable
 {
     /**

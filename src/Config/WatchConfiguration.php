@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-/**
- * Resolved watch-mode settings.
- *
- * @internal
- */
+/** @internal */
 final readonly class WatchConfiguration
 {
     /**

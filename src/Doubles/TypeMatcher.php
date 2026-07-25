@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-/**
- * Matches values by class, interface, or builtin type name.
- *
- * @internal obtain via Argument::type()
- */
+/** @internal */
 final readonly class TypeMatcher implements ArgumentMatcher
 {
     /**

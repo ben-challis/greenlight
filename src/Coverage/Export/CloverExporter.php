@@ -7,12 +7,10 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * Clover XML output.
- *
  * Every executable line becomes a stmt line element with a count of one or
  * zero, and file plus project metrics carry statement totals.
  *
- * The timestamp is injected so output is deterministic and testable.
+ * The timestamp is injected for deterministic output.
  *
  * @internal
  */

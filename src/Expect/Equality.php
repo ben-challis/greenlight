@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-/**
- * Deep equality used by Expectation::toEqual().
- *
- * The full semantics are documented on the Expectation class docblock; this
- * class only implements them.
- *
- * @internal
- */
+/** @internal */
 final class Equality
 {
     /** @codeCoverageIgnore */

@@ -9,11 +9,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Wire\Wire;
 
-/**
- * Tagged wire encoding for events, delegating to the canonical tag map.
- *
- * @internal
- */
+/** @internal */
 final class EventRegistry
 {
     #[CoverageIgnore]

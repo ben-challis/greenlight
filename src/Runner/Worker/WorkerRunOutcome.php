@@ -8,12 +8,7 @@ use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
 
-/**
- * Carries what one worker run produced: the tally of executed tests, the
- * entries it never reached, and why it stopped early when it did.
- *
- * @internal
- */
+/** @internal */
 final readonly class WorkerRunOutcome
 {
     /**

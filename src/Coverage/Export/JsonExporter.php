@@ -12,12 +12,7 @@ use Greenlight\Coverage\FileCoverage;
  * Greenlight's own JSON coverage schema, documented in
  * docs/architecture/coverage-json.md.
  *
- * The document is self-describing via a "v" field and carries covered and
- * uncovered line lists plus a rounded percentage per file, and aggregate
- * totals.
- *
- * import() reads the same schema back into a CoverageMap, which is what
- * baseline diffing consumes.
+ * import() reads the schema back into a CoverageMap for baseline diffing.
  *
  * @internal
  */

@@ -9,17 +9,8 @@ use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Persists the previous run's failure set and per-class durations between
- * invocations.
- *
- * record() writes both after a run. failedTests() feeds --failed re-runs and
- * lets plain runs order failed classes first; classSeconds() lets the
- * scheduler order the rest longest first.
- *
- * The file lives under the system temp dir keyed by a hash of the working
- * directory, the same convention as the proxy cache, so the project tree
- * stays untouched and a lost file costs one full run plus one unpacked
- * schedule.
+ * Stores failures and class timings under the system temp directory, keyed
+ * by working directory.
  *
  * @internal
  */
@@ -113,8 +104,7 @@ final readonly class RunState
     }
 
     /**
-     * Returns false when the state could not be persisted, so the caller can
-     * surface the loss instead of letting the next run start cold silently.
+     * Returns false when state cannot be persisted.
      *
      * @param list<non-empty-string> $failedTests
      * @param array<non-empty-string, float> $classSeconds

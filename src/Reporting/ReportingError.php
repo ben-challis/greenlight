@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-/**
- * Raised when a reporter cannot render or deliver its output, for example
- * when the underlying stream rejects a write or an event has no wire tag.
- *
- * @internal
- */
+/** @internal */
 final class ReportingError extends \RuntimeException
 {
     private function __construct(string $message)

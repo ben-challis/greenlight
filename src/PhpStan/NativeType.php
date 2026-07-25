@@ -21,11 +21,8 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 /**
- * Maps a native reflection type from a matcher closure onto the PHPStan type
- * it advertises.
- *
- * Matchers declare native parameter types only (closures carry no analysable
- * phpdoc at runtime), so this covers exactly the native type grammar.
+ * Matcher closures carry no analysable PHPDoc at runtime, so this covers
+ * native types only.
  *
  * @internal
  */

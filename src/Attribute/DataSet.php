@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
-/**
- * References a public static method on the same class that yields named data
- * sets for the test method.
- *
- * The provider must be pure; it runs at discovery time.
- */
+/** References a pure public static provider that runs during discovery. */
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class DataSet
 {

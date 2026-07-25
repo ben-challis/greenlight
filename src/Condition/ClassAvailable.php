@@ -6,9 +6,6 @@ namespace Greenlight\Condition;
 
 use Greenlight\Core\Condition;
 
-/**
- * Satisfied when the named class exists or can be autoloaded.
- */
 final readonly class ClassAvailable implements Condition
 {
     /**

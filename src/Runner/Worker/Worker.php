@@ -22,10 +22,7 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
 
 /**
- * Executes a plan slice sequentially in the current process.
- *
- * run() manages the class and test scopes and emits events as results
- * happen. A class-scope teardown failure is attributed to the test that
+ * A class-scope teardown failure is attributed to the test that
  * triggered the close: the last test executed in that class.
  *
  * run() stops early when the failure threshold is hit, when the recycling

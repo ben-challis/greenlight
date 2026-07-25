@@ -11,22 +11,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * Tracks one spawned worker: its process, its channel once authenticated,
- * its current assignment, and the orchestrator-side tally used for crash
- * attribution and summary cross-checks.
- *
- * beginAssignment() resets the tally and finished set, because the worker's
- * Done summary covers one assignment.
- *
- * channelNumber is the slot allocated to this worker at spawn; the
- * orchestrator returns it to the allocator when the handle finishes.
- *
- * spawnedAt anchors the orchestrator's connect deadline: a worker that is
- * still alive but has not authenticated by then fails the run.
- *
- * lastProgressAt records when the worker last sent anything over its
- * channel; the orchestrator uses it to detect a connected worker that has
- * stopped responding while no test is in flight.
+ * Assignment state supports crash attribution and summary cross-checking.
  *
  * @internal
  */

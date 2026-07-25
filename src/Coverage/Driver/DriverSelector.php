@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Driver;
 
 /**
- * Picks the first available coverage driver from an ordered candidate list.
- *
  * The default order prefers pcov over Xdebug because pcov collects line
  * coverage much faster.
  *

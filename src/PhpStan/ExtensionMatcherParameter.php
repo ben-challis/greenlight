@@ -8,12 +8,7 @@ use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\PassedByReference;
 use PHPStan\Type\Type;
 
-/**
- * One caller-facing parameter of an extension matcher, backed by the native
- * reflection of the matcher closure.
- *
- * @internal
- */
+/** @internal */
 final readonly class ExtensionMatcherParameter implements ParameterReflection
 {
     public function __construct(private \ReflectionParameter $parameter) {}

@@ -4,19 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-/**
- * Mutable per-worker accumulation for the run profile.
- *
- * spawned(), classStarted(), and classFinished() apply the corresponding
- * events; classFinished() returns the closed class span so the caller can
- * attribute it to the class, or null when no window was open.
- *
- * bootLatency(), window(), and utilisationPercent() derive the profile
- * numbers, each returning null (or a zero window) when the events needed to
- * compute them never arrived.
- *
- * @internal
- */
+/** @internal */
 final class WorkerProfile
 {
     public ?float $spawnedAt = null;

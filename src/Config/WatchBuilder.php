@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-/**
- * Configures watch mode inside the greenlight.php configurator callable.
- */
 final class WatchBuilder
 {
     /**
