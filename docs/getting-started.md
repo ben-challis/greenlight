@@ -144,15 +144,17 @@ vendor/bin/greenlight
 
 Some useful commands:
 
-| Command | Purpose |
-| --- | --- |
-| `vendor/bin/greenlight list-tests` | Print every discovered test id |
-| `vendor/bin/greenlight run --dry-run` | Print the resolved plan without executing |
-| `vendor/bin/greenlight run --workers=1` | Use one in-process worker |
-| `vendor/bin/greenlight run --group=slow` | Run only tests tagged `#[Group('slow')]` |
-| `vendor/bin/greenlight run --exclude-group=slow` | Run everything except that group |
-| `vendor/bin/greenlight run --list-tests` | Print the selection instead of running it |
-| `vendor/bin/greenlight run --bail` | Stop after the first failure |
+* `vendor/bin/greenlight list-tests` prints every discovered test id.
+* `vendor/bin/greenlight run --dry-run` prints the resolved plan without
+  executing it.
+* `vendor/bin/greenlight run --workers=1` uses one in-process worker.
+* `vendor/bin/greenlight run --group=slow` runs only tests tagged
+  `#[Group('slow')]`.
+* `vendor/bin/greenlight run --exclude-group=slow` runs everything except that
+  group.
+* `vendor/bin/greenlight run --list-tests` prints the selection instead of
+  running it.
+* `vendor/bin/greenlight run --bail` stops after the first failure.
 
 `--exclude-class`, `--exclude-method`, and `--exclude-path` carve tests out the
 same way, and exclusions always win over includes. `--list-groups` and
