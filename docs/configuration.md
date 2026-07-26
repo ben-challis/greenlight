@@ -1,15 +1,14 @@
 # Configuration
 
-Greenlight is configured with a single file: `greenlight.php` at the project
-root.
+Configure Greenlight with one `greenlight.php` file at the project root.
 
 The file returns a `Greenlight\Config\GreenlightConfig` builder. The CLI loads
-the builder, applies command-line overrides, then freezes the result into an
-immutable configuration object.
+the builder and applies command-line overrides. It then creates an immutable
+configuration object.
 
 ## Precedence
 
-Configuration is applied in this order:
+Greenlight applies configuration in this order:
 
 1. Built-in defaults
 2. `greenlight.php`
@@ -17,7 +16,7 @@ Configuration is applied in this order:
 
 Later layers override earlier ones.
 
-For example, this config:
+For example, use this configuration:
 
 ```php
 ->workers('auto')
@@ -39,13 +38,13 @@ Create the builder with:
 GreenlightConfig::create()
 ```
 
-Every builder method returns `$this`, so calls can be chained.
+Every builder method returns `$this`. Thus, you can chain method calls.
 
 ### paths(array $tests): self
 
 Default: `['tests']`.
 
-Sets the directories Greenlight scans when no suite is selected.
+Sets the directories that Greenlight scans when you do not select a suite.
 
 Paths must be non-empty strings. The list itself must not be empty.
 
@@ -53,10 +52,11 @@ Paths must be non-empty strings. The list itself must not be empty.
 
 Default: no suites.
 
-Declares a named suite. The configurator receives a `SuiteBuilder` and must add
-at least one path. Its return value is ignored, so arrow functions are fine.
+Declares a named suite. Greenlight gives a `SuiteBuilder` to the configurator.
+The configurator must add at least one path. Greenlight ignores its return
+value. Thus, you can use an arrow function.
 
-Declaring the same suite name twice is an error.
+A second declaration with the same suite name causes an error.
 
 ```php
 ->suite('unit', fn ($s) => $s->in('tests/Unit'))
@@ -70,14 +70,16 @@ Declaring the same suite name twice is an error.
 
 ### workers(int|string $count = 'auto', ?int $recycleAfterTests = null, string $recycleAboveMemory = '256M'): self
 
-Default: `'auto'` workers, recycled above `256M`, with no test-count recycling.
+Default: `'auto'` workers, a `256M` memory recycle limit, and no test-count
+recycle limit.
 
-Workers pull one class at a time from a queue held by the orchestrator. As soon
-as a worker finishes a class, it takes the next one. This avoids a worker sitting
-idle behind another worker's long batch.
+Workers pull one class at a time from the orchestrator queue. When a worker
+finishes a class, it takes the next one. Thus, a long batch for one worker does
+not make another worker idle.
 
-The queue is ordered longest-first using durations recorded from the previous
-run. Classes that failed previously still go first.
+The orchestrator orders the queue by the class durations from the previous run.
+The longest classes go first. Classes that failed in that run go before other
+classes.
 
 Worker placement is load-dependent. The stable parts are:
 
@@ -85,23 +87,24 @@ Worker placement is load-dependent. The stable parts are:
 * method order within each class under the selected seed
 * per-class results
 
-The seed reproduces ordering-related failures, not exact worker placement.
+The seed reproduces failures related to order. It does not reproduce exact
+worker placement.
 
 `$count` accepts a positive integer or `'auto'`. With `'auto'`, Greenlight uses
 one worker per CPU core. Install the suggested `fidry/cpu-core-counter` package
 for CPU detection that respects cgroup limits in containers.
 
-A worker is recycled when either condition is met:
+Greenlight recycles a worker when one of these conditions is true:
 
 * it has run `$recycleAfterTests` tests
 * its memory usage exceeds `$recycleAboveMemory`
 
 `$recycleAboveMemory` is a size string such as `'256M'` or `'1G'`.
 
-Count-based recycling is opt-in because every recycle requires a full worker
-boot, and that worker's lane is idle during the boot. Use it for suites that
-accumulate per-process state that memory checks cannot see, such as connections
-or file handles.
+Test-count recycle is optional because each recycle requires a complete worker
+boot. The worker channel is idle during the boot. Use this limit for suites
+that collect per-process state that memory checks cannot detect. Examples
+include connections and file handles.
 
 ### resourceLimit(string $name, int $limit = 1): self
 
@@ -116,8 +119,8 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox');
 ```
 
-Limits must be positive. Names must match `[a-z0-9][a-z0-9._-]*`, and each name
-may be configured only once.
+Limits must be positive. Names must match `[a-z0-9][a-z0-9._-]*`. Configure
+each name only one time.
 
 A class that requires several resources waits until all of them have capacity.
 Greenlight claims the slots together, so a class never starts with only part of
@@ -135,10 +138,10 @@ instance.
 
 Default: coverage off.
 
-Calling `coverage()` enables coverage collection. The configurator receives a
-`CoverageBuilder`.
+The `coverage()` method enables coverage collection. Greenlight gives a
+`CoverageBuilder` to the configurator.
 
-Calling `coverage()` more than once reuses the same builder, so settings
+Multiple calls to `coverage()` use the same builder. Thus, its settings
 accumulate.
 
 `CoverageBuilder` methods:
@@ -160,22 +163,24 @@ accumulate.
     ->export('html', 'coverage/html'))
 ```
 
-When coverage is configured, the run prints the total percentage and writes each
-configured export.
+When you configure coverage, the run prints the total percentage and writes
+each coverage export.
 
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
 itself.
 
-Workers are not the only processes measured. On a parallel run the
-orchestrator collects its own coverage, so code that only executes on its side
-of the pool shows up in the export. A coverage-enabled run also exports
-`GREENLIGHT_COVERAGE_DIR` and `GREENLIGHT_COVERAGE_INCLUDE` to everything it
-spawns. Any `bin/greenlight` process that inherits them, for example one an
-acceptance test launches to drive the real CLI, writes its own coverage into
-the shared directory, and the run folds those dumps into the result before
-exporting. Like worker collection this fails soft, and the include paths you
-configured filter all of it.
+The workers are not the only measured processes. In a parallel run, the
+orchestrator collects its own coverage. Thus, the export includes code that
+executes only in the orchestrator. A coverage run also exports
+`GREENLIGHT_COVERAGE_DIR` and `GREENLIGHT_COVERAGE_INCLUDE` to each process that
+it starts. A `bin/greenlight` process writes coverage to the shared directory
+if it inherits these variables. For example, an acceptance test can start this
+process to operate the real CLI.
+
+Before export, the run adds these coverage files to the
+result. This collection operation does not fail the run. The configured include
+paths filter coverage from all processes.
 
 ### watch(callable $configurator): self
 
@@ -188,8 +193,8 @@ The configurator receives a `WatchBuilder`.
 * `debounceMilliseconds(int $milliseconds): self` sets the quiet period before a
   rerun starts. The value must be at least 1.
 
-A rerun fires only after no further file changes have arrived for the configured
-period, so save bursts collapse into one run.
+A rerun starts after the configured period has no file changes. Thus, a group
+of save operations starts only one run.
 
 ```php
 ->watch(fn ($w) => $w->debounceMilliseconds(500))
@@ -202,11 +207,10 @@ Default: off.
 Fails a test that otherwise passed if its captured diagnostics contain a
 deprecation.
 
-The change is recorded as a result transformation, so the exit code, `--bail`,
-Junit output, and plugins all see the same final result.
+The worker records the change as a result transformation. Thus, the exit code,
+`--bail`, JUnit output, and plugins use the same final result.
 
-This policy is applied by the worker after retries and after
-`afterTest()` subscribers.
+The worker applies this policy after retries and `afterTest()` subscribers.
 
 Also available as `--fail-on-deprecation`.
 
@@ -216,19 +220,21 @@ Default: off.
 
 Fails a test that otherwise passed if its captured diagnostics contain a notice.
 
-Like `failOnDeprecation()`, the change is recorded as a result transformation
-and is applied after retries and `afterTest()` subscribers.
+As with `failOnDeprecation()`, the worker records the change as a result
+transformation. It applies the change after retries and `afterTest()`
+subscribers.
 
 Also available as `--fail-on-notice`.
 
-### ignoreDeprecationsMatching(string ...$patterns): self
+### `ignoreDeprecationsMatching(string ...$patterns): self`
 
 Default: none.
 
-Exempts matching deprecations from `failOnDeprecation()`.
+Exempts deprecations that match a pattern from `failOnDeprecation()`.
 
-Patterns are matched case-insensitively. A plain pattern is treated as a
-substring match. A pattern containing `*` or `?` must match the whole message.
+Greenlight compares patterns without regard to case. A plain pattern matches a
+part of the message. A pattern that contains `*` or `?` must match the complete
+message.
 
 The method is repeatable and patterns accumulate.
 
@@ -238,11 +244,12 @@ Use this for dependency deprecations you cannot fix yet.
 
 Default: off.
 
-A test is risky if it passes without verifying any expectations. That means no
-`Expect` calls and no mock expectations verified at teardown.
+A successful test is risky if it does not verify an expectation. Such a test has
+no `Expect` calls and no mock expectations that Greenlight verifies at
+teardown.
 
-The `tty` and `plain` reporters list risky tests after the summary regardless of
-this setting. Enabling `failOnRisky()` upgrades risky tests to failures.
+The `tty` and `plain` reporters always list risky tests after the summary. The
+`failOnRisky()` method changes risky tests to failures.
 
 A test that intentionally has no expectations can opt out with
 `#[NoExpectations]`.
@@ -264,8 +271,8 @@ The method is repeatable and instances accumulate.
 
 Default: output below `build/greenlight-artifacts`, with failure-only retention.
 
-The configurator receives an `ArtifactBuilder`. Repeated calls reuse the same
-builder.
+Greenlight gives an `ArtifactBuilder` to the configurator. Repeated calls use
+the same builder.
 
 ```php
 ->artifacts(fn ($artifacts) => $artifacts
@@ -277,10 +284,10 @@ builder.
     ->maxRunSize('500M'))
 ```
 
-Defaults are 32 attachments and 100 MiB per test, 25 MiB per attachment,
-10,000 attachments and 1 GiB per run. Per-test limits cover all retry attempts,
-including attachments later discarded by retention policy. Run-wide quota is
-released when passing attachments are discarded.
+Defaults are 32 attachments and 100 MiB per test. Each attachment has a 25 MiB
+limit. Each run has limits of 10,000 attachments and 1 GiB. Per-test limits
+include all retry attempts, even if retention policy discards attachments
+later. Greenlight releases run quota when it discards an attachment.
 
 See [test attachments](attachments.md) for the runtime API and security model.
 
@@ -296,39 +303,39 @@ Default: declared order, no seed.
 
 Randomizes class order.
 
-If `$seed` is `null`, Greenlight chooses one at runtime and prints it, so the
-same order can be reproduced with `--seed`.
+If `$seed` is `null`, Greenlight selects and prints a seed at run time. Use
+`--seed` with that value to reproduce the same order.
 
 ### build(): Configuration
 
-Called by the loader, not by user config.
+The loader calls this method. User configuration does not call it.
 
 `build()` validates the builder and returns the immutable configuration object.
 
-Your `greenlight.php` should return the builder itself without calling
-`build()`.
+Return the builder from `greenlight.php`. Do not call `build()`.
 
 ## Channels and resource limits
 
 Every worker process runs in a channel: a stable slot numbered from 1 to the
 worker count.
 
-Use the channel to derive external resources that parallel tests must not share,
-such as database names, ports, virtual hosts, or temp directories.
+Use the channel to derive external resources that parallel tests must not share.
+Examples include database names, ports, virtual hosts, and temporary
+directories.
 
-Use a channel when every worker can have its own resource. Use
-`#[RequiresResource]` when workers use the same dependency and its safe
-concurrency is lower than the worker count. A resource limit controls how many
-classes may run; it does not assign an instance to either class.
+Use a channel when each worker can have a separate resource. Use
+`#[RequiresResource]` when workers share a dependency with lower safe
+concurrency. A resource limit controls the number of classes that can run. It
+does not assign a resource instance to a class.
 
-Two tests running at the same time never share a channel. Channel numbers always
-stay within 1 and the worker count, regardless of how many worker processes are
-spawned during the run. When a worker is recycled or crashes, its replacement
-reuses the freed slot.
+Two concurrent tests do not share a channel. Channel numbers are from 1 through
+the worker count. The number of worker processes during the run does not change
+this range. After a worker recycle or crash, its replacement reuses the freed
+slot.
 
 A `--workers=1` run executes in-process on channel 1.
 
-The channel is exposed in two ways:
+Greenlight makes the channel available in two ways:
 
 * `GREENLIGHT_CHANNEL`, set in each worker environment for bootstrap files and
   tools that use `getenv()`
@@ -339,12 +346,12 @@ The channel is exposed in two ways:
 
 `TestChannel->label()` returns `gl-<number>` for resource names.
 
-Because channel slots are reused, resources derived from a channel can persist
-across worker recycling. A replacement worker on channel 2 sees whatever the
-previous channel-2 worker left behind.
+Because Greenlight uses channel slots again, channel resources can persist
+after a worker recycle. A replacement worker on channel 2 can access resources
+from the previous channel-2 worker.
 
-This makes one-resource-per-channel setups cheap. For example, one database
-schema can be created per channel and reused for the whole run.
+This design reduces the cost of one-resource-per-channel setups. For example,
+you can create one database schema per channel and use it for the complete run.
 
 A test can use both. Its channel can select a private database while
 `#[RequiresResource('payments-sandbox')]` limits access to a shared external
@@ -362,11 +369,11 @@ greenlight [command] [options]
 
 Discovers and executes tests.
 
-This is the default command when no command is given.
+This is the default command if you do not give a command.
 
 ### list-tests
 
-Prints every discovered test id, one per line, followed by a count.
+Prints each discovered test ID on a separate line. It then prints the count.
 
 ### coverage:diff
 
@@ -383,7 +390,7 @@ Exits with code 1 when coverage regressed against the baseline.
 
 ### profile:report
 
-Renders a run profile from a saved jsonl event stream.
+Renders a run profile from a saved JSONL event stream.
 
 Requires:
 
@@ -407,7 +414,8 @@ Override it with:
 --output=<path>
 ```
 
-Gitignore the generated file and regenerate it after changing matchers.
+Add the generated file to `.gitignore`. Regenerate the file after a matcher
+change.
 
 ### completion
 
@@ -421,13 +429,13 @@ source <(greenlight completion zsh)
 greenlight completion fish > ~/.config/fish/completions/greenlight.fish
 ```
 
-For zsh, run `compinit` before sourcing the completion script.
+For zsh, run `compinit` before you source the completion script.
 
 ## Options
 
 ### --config=<path>
 
-Uses this config file instead of `./greenlight.php`.
+Uses this configuration file instead of `./greenlight.php`.
 
 ### --workers=<n|auto>
 
@@ -435,7 +443,7 @@ Overrides the worker process count.
 
 ### --resource-limit=<name>=<n>
 
-Sets a resource limit for this run, overriding `greenlight.php`.
+Sets a resource limit for this run and overrides `greenlight.php`.
 
 ```sh
 vendor/bin/greenlight run \
@@ -443,8 +451,8 @@ vendor/bin/greenlight run \
     --resource-limit=payments-sandbox=1
 ```
 
-Repeat the option to set limits for different resources. Each name may appear
-only once.
+Repeat the option to set limits for different resources. Use each name only one
+time.
 
 ### --bail[=<n>]
 
@@ -460,21 +468,21 @@ Repeatable.
 
 ### --filter=<pattern>
 
-Runs only tests whose id matches the pattern.
+Runs only tests with a test ID that matches the pattern.
 
-A test id is `Class::method`, including the data-set label when present.
+A test ID is `Class::method` with an optional data-set label.
 
-Matching is case-insensitive substring matching by default. A pattern containing
-`*` or `?` must match the whole id.
+By default, Greenlight matches substrings without regard to case. A pattern
+that contains `*` or `?` must match the complete test ID.
 
-Repeatable. Multiple filters are unioned.
+Repeatable. Multiple filters form a union.
 
 ### --test-id=<id>
 
-Runs only the exact test id. Unlike `--filter`, this option never performs
-substring or wildcard matching.
+Runs only the exact test ID. Unlike `--filter`, this option does not compare
+substrings or wildcard patterns.
 
-Use the ids printed by `list-tests` or `--list-tests`, including the data-set
+Use the test IDs printed by `list-tests` or `--list-tests`. Include the data-set
 label when present:
 
 ```sh
@@ -482,8 +490,8 @@ greenlight run \
     '--test-id=App\Tests\OrderTest::placesOrder[card]'
 ```
 
-Repeatable. Multiple exact ids are unioned with each other and with
-`--filter`. Exclusions still take precedence.
+Repeatable. Multiple exact test IDs and `--filter` patterns form a union.
+Exclusions have precedence.
 
 ### --exclude-group=<name>
 
@@ -493,19 +501,19 @@ Repeatable. Exclusions take precedence over `--group` and `--filter`.
 
 ### --exclude-class=<pattern>
 
-Excludes classes matching the pattern.
+Excludes classes with names that match the pattern.
 
-Matching is case-insensitive substring matching by default. A pattern containing
-`*` or `?` must match the whole class name.
+By default, Greenlight matches substrings without regard to case. A pattern
+that contains `*` or `?` must match the complete class name.
 
 Repeatable.
 
 ### --exclude-method=<pattern>
 
-Excludes methods matching the pattern.
+Excludes methods with names that match the pattern.
 
-Matching is case-insensitive substring matching by default. A pattern containing
-`*` or `?` must match the whole method name.
+By default, Greenlight matches substrings without regard to case. A pattern
+that contains `*` or `?` must match the complete method name.
 
 Repeatable.
 
@@ -513,68 +521,70 @@ Repeatable.
 
 Excludes tests whose source file is below the path prefix.
 
-Relative prefixes are resolved from the working directory. Repeatable.
+Greenlight resolves relative prefixes from the current directory. Repeatable.
 
 ### --list-tests
 
-Prints the selected test ids instead of running them.
+Prints the selected test IDs. It does not run them.
 
 ### --list-groups
 
-Prints each selected group and its test count instead of running tests.
+Prints each selected group and its test count. It does not run tests.
 
 ### --list-suites
 
-Prints the configured named suites instead of discovering or running tests.
+Prints the configured named suites. It does not discover or run tests.
 
 ### --repeat=<n>
 
 Runs the selected tests in `<n>` fresh iterations.
 
-The command exits non-zero if any iteration fails. `--repeat=1` is equivalent to
-an ordinary run.
+The command exits with a nonzero code if an iteration fails. `--repeat=1` is
+equivalent to an ordinary run.
 
 ### --repeat-until-failure
 
 Repeats fresh runs until an iteration fails.
 
-On its own, the command stops after 100 passing iterations. Combine it with
-`--repeat=<n>` to set a different limit. It cannot be combined with `--watch`.
+On its own, the command stops after 100 successful iterations. Use
+`--repeat=<n>` to set a different limit. Do not use it with `--watch`.
 
 ### --shard=n/m
 
 Runs the nth of m disjoint slices of the plan.
 
-Shards are selected by stable class hash, so CI machines can split a suite
-without coordination. The union of all shards is exactly the full suite.
+Greenlight selects shards by a stable class hash. Thus, CI machines can split a
+suite without coordination. Together, all shards contain the complete suite.
 
 Only whole classes move between shards. Individual methods are not split.
 
-Combines with `--group` and `--filter` by sharding the filtered plan.
+Combines with `--group` and `--filter`. Greenlight divides the filtered plan
+into shards.
 
 Each shard enforces its own resource limits. If four shards each use
-`postgres=2`, up to eight tests may use PostgreSQL across the CI job.
+`postgres=2`, up to eight tests can use PostgreSQL across the CI job.
 
 ### --failed
 
 Reruns only tests that did not pass in the previous run.
 
-Failure state is recorded on every run under the system temp directory.
+Greenlight records failure state for each run in the system temporary
+directory.
 
 If no previous failure state exists, this is a usage error.
 
 If the previous run passed completely, Greenlight reports that there is nothing
 to rerun and exits 0.
 
-When failure state exists, normal runs also place previously failed classes
-first. This ordering is skipped under `--seed`.
+When failure state exists, normal runs put previously failed classes first.
+`--seed` disables this order.
 
 ### --seed=<n>
 
 Randomizes class order with this seed.
 
-Seeded runs skip timing-cache ordering, so the order is exactly the one produced
-from the seed.
+Seeded runs do not use the timing-cache order. The seed determines the complete
+order.
 
 ### --reporter=<name>
 
@@ -593,9 +603,10 @@ Repeatable. Multiple reporters write concurrently.
 
 Default: `tty` on an interactive terminal, otherwise `plain`.
 
-The `tty` reporter is parallel-aware. It keeps one live line per in-flight class,
-with a spinner and running count, and finalizes each line in place when the class
-finishes. Multi-worker output does not interleave randomly.
+The `tty` reporter supports parallel work. It keeps one live line for each
+active class. Each line has a spinner and a current count. The reporter
+completes the line in place when the class finishes. Multi-worker output does
+not interleave randomly.
 
 The `teamcity` reporter includes IDE navigation metadata: `php_qn://` location
 hints for click-to-source, plus a per-class `flowId` to keep parallel output
@@ -619,16 +630,16 @@ Sets the current coverage JSON file for `coverage:diff`.
 
 Reruns on file changes.
 
-While watching:
+In watch mode:
 
 * Enter reruns everything.
 * `q` quits.
 
 ### --detect-leaks
 
-Verifies that every test instance is garbage-collected after its test.
+Verifies that garbage collection removes each test instance after its test.
 
-Any detected leak fails the run.
+A detected leak fails the run.
 
 ### --fail-on-deprecation
 
@@ -656,8 +667,8 @@ The profile includes:
 * makespan spread between the first and last worker to finish
 * the ten slowest classes
 
-The profile is derived entirely from the event stream. A saved jsonl artifact can
-be rendered later with:
+The event stream supplies all profile data. You can render a saved JSONL
+artifact later with:
 
 ```sh
 greenlight profile:report --input=<file>
@@ -675,7 +686,7 @@ Default: `_greenlight_ide_helper.php`.
 
 ### --dry-run
 
-Prints the resolved configuration without executing tests.
+Prints the resolved configuration and does not run tests.
 
 ### --verbose
 
@@ -683,12 +694,12 @@ In interactive output, prints a permanent line for every completed class.
 
 ### --no-ansi
 
-Disables colours and the live progress window. Output becomes plain and
+Disables colors and the live progress window. Output becomes plain and
 append-only.
 
 A truthy `CI` environment variable has the same effect.
 
-`NO_COLOR` disables colours only.
+`NO_COLOR` disables colors only.
 
 ### -h, --help
 
@@ -703,13 +714,13 @@ Shows the version.
 Greenlight uses these exit codes:
 
 * `0`: success
-* `1`: failure, including failing or erroring tests, invalid config, discovery
+* `1`: failure from failed tests, test errors, invalid configuration, discovery
   errors, coverage export errors, detected leaks, and zero discovered tests
 * `64`: usage error, such as an unknown command, unknown flag, or malformed
   option value
 
-A run that discovers zero tests is treated as a configuration problem, not a
-success.
+Greenlight treats a run with zero tests as a configuration problem. It does not
+treat the run as a success.
 
 ## Interruption
 
@@ -717,13 +728,13 @@ The first Ctrl+C, SIGINT, or SIGTERM starts a graceful shutdown.
 
 During graceful shutdown, Greenlight:
 
-* stops assigning new work
+* stops new assignments
 * lets workers finish their in-flight test
 * drains worker output
 * prints the summary for completed work
 * records the failure state used by `--failed`
-* records the timing cache
-* restores the terminal when exiting watch mode
+* records class durations in the timing cache
+* restores the terminal when it exits watch mode
 
 The run then exits with:
 
@@ -733,15 +744,15 @@ The run then exits with:
 A second signal during shutdown terminates immediately.
 
 Graceful shutdown requires `ext-pcntl`. Without it, PHP uses its default signal
-behaviour and exits at once.
+behavior and exits immediately.
 
 ## Discovery cache
 
 Greenlight caches discovery results per file under the system temp directory.
 
-The cache key includes the file path, mtime, and size. Unchanged files can skip
-re-parsing on the next run. If anything is uncertain, Greenlight parses the file
-again.
+The cache key includes the file path, mtime, and size. Greenlight can reuse
+discovery data for an unchanged file in the next run. If the cache data is
+uncertain, Greenlight parses the file again.
 
 Watch mode benefits most because every iteration rediscovers the suite.
 
@@ -753,21 +764,21 @@ In an interactive terminal, the `tty` reporter shows a bounded live window:
 * in-flight classes
 * at most ten live lines, clamped to the terminal height
 
-Failures and skips are printed permanently as soon as their class finishes.
+The reporter prints failures and skips permanently when their class finishes.
 
-Passing classes only advance the counter unless `--verbose` is enabled.
+Classes that pass only advance the counter unless you enable `--verbose`.
 
-Both human reporters start with a one-line header containing:
+Both human reporters start with a one-line header that contains:
 
 * Greenlight version
 * PHP version
-* config file
+* configuration file
 * seed, when randomized
 * worker count
 
-They end with a "Slowest tests" block when any test took at least 500 ms. The
+They end with a "Slowest tests" block when a test took at least 500 ms. The
 block lists the five slowest tests.
 
 Fast suites do not print the block.
 
-With `--profile`, the slowest-test list is extended to 25 entries.
+`--profile` extends the slowest-test list to 25 entries.

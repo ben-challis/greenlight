@@ -1,6 +1,6 @@
 # Attributes
 
-Test metadata is declared with attributes from the `Greenlight\Attribute`
+Declare test metadata with attributes from the `Greenlight\Attribute`
 namespace.
 
 There are no method-name conventions and no annotations. Attributes on a class
@@ -18,15 +18,16 @@ bool $capture = true
 
 Marks a public method as a test.
 
-Output capture is enabled by default. Greenlight records output written through
-PHP's output buffer, such as `echo` and `print`, together with notices, warnings,
-and deprecations raised during the test. Reporters can then associate that
-output with the test that produced it.
+Greenlight enables output capture by default. It records output from PHP's
+output buffer, such as `echo` and `print`. It also records notices, warnings,
+and deprecations from the test. Reporters can associate this output with its
+test.
 
 Direct writes to the `STDOUT` and `STDERR` stream resources bypass PHP's output
-buffer and are not captured. They can also interfere with terminal output, so
-tests should not use them for diagnostics. Use test attachments when diagnostic
-content must be retained; see [test attachments](attachments.md).
+buffer. Greenlight does not capture these writes. They can also interfere with
+terminal output. Do not use these resources for test diagnostics. Use test
+attachments to retain diagnostic content. See [test
+attachments](attachments.md).
 
 Set `capture: false` only when a test needs to control PHP's output buffer or
 error handler itself. With capture disabled, Greenlight does not record output
@@ -48,10 +49,11 @@ No parameters.
 
 Marks a public method to run before each test in the class.
 
-If a class has multiple before-hooks, they run in declaration order.
+If a class has multiple before-hooks, Greenlight runs them in declaration
+order.
 
-A `SkipTest` thrown from a before-hook skips the test. Any other throwable marks
-the test as errored.
+A before-hook can throw `SkipTest` to skip the test. A throwable other than
+`SkipTest` gives the test an error.
 
 ## After
 
@@ -59,15 +61,14 @@ Target: method.
 
 No parameters.
 
-Marks a public method to run after each test in the class, including tests that
-fail or error.
+Marks a public method to run after each test in the class. The method also runs
+after a test failure or error.
 
-If a class has multiple after-hooks, they run in reverse declaration order. This
-mirrors before-hooks as a stack.
+If a class has multiple after-hooks, Greenlight runs them in reverse declaration
+order. Thus, the before-hooks and after-hooks form a stack.
 
-Every after-hook is called, even if an earlier one throws. If the test did not
-already fail or error, the first throwable from an after-hook becomes the test's
-cause.
+Greenlight calls each after-hook, even if an earlier hook throws. If the test
+does not have a failure or error, the first throwable becomes its cause.
 
 ## DataSet
 
@@ -81,8 +82,8 @@ string $provider
 ```
 
 With one argument, references a public static provider method on the test
-class. With two arguments, the first is a provider class and the second is its
-public static method:
+class. With two arguments, the first argument is a provider class. The second
+argument is its public static method:
 
 ```php
 #[DataSet('currencies')]
@@ -96,10 +97,10 @@ or:
 
 The provider must return an iterable of named data sets for the test method.
 
-Providers run at discovery time, before any tests execute. Keep them pure: no
-I/O and no global state.
+Providers run at discovery time before tests execute. Do not use I/O or global
+state in a provider.
 
-Each provider key names a data set and appears in test ids and reports. Each
+Each provider key names a data set and appears in test IDs and reports. Each
 provider value is the argument list for one test invocation.
 
 ```php
@@ -132,11 +133,12 @@ final class CurrencyDataSets
 public function roundsSharedCurrencyCases(Currency $currency, string $expected): void { ... }
 ```
 
-The bundled PHPStan extension validates providers statically: the provider
-must exist, be public and static, and return an iterable of argument arrays,
-and row shapes PHPStan can see (such as the `array{...}` return type above)
-are checked against the test method's parameters. `#[DataRow]` literals get
-the same check. See [static analysis with PHPStan](phpstan.md).
+The bundled PHPStan extension validates providers without their execution. Each
+provider must exist, be public and static, and return an iterable of argument
+arrays. PHPStan compares visible row shapes with the test method parameters.
+The `array{...}` return type above is one visible row shape. The extension
+applies the same check to `#[DataRow]` literals. See [static analysis with
+PHPStan](phpstan.md).
 
 ## DataRow
 
@@ -154,15 +156,15 @@ array $arguments
 Adds one inline data set.
 
 `$arguments` contains the test arguments in parameter order. The label becomes
-the data-set key in test ids and reports. If no label is provided, the key is
-`#<position>` among the inline rows.
+the data-set key in test IDs and reports. Without a label, Greenlight uses
+`#<position>` as the key for the inline row.
 
-Inline rows are limited to values that PHP attributes can express, such as
-scalars, arrays, and constants. For computed rows, ranges, or objects, use a
-`#[DataSet]` provider.
+Inline rows can contain only values that PHP attributes can express. Examples
+include scalars, arrays, and constants. Use a `#[DataSet]` provider for
+calculated rows, ranges, or objects.
 
-`#[DataRow]` and `#[DataSet]` can be used on the same method. They share one
-data-set key space, so duplicate keys are a discovery error.
+You can use `#[DataRow]` and `#[DataSet]` on the same method. They use one
+data-set key space. Thus, duplicate keys cause a discovery error.
 
 ```php
 #[Test]
@@ -177,13 +179,13 @@ Target: method.
 
 No parameters.
 
-Declares that the test is expected to verify no expectations.
+Declares that the test intentionally verifies no expectations.
 
-Use this for tests that pass by not throwing. Risky-test detection and
+Use this for tests that pass and do not throw. Risky-test detection and
 `--fail-on-risky` ignore tests marked with this attribute.
 
-The attribute makes the intent explicit, so a deliberate zero-expectation test is
-not confused with a forgotten assertion.
+The attribute makes the intent explicit. Thus, Greenlight does not confuse this
+test with a test that has a missing assertion.
 
 An `eventually()` or `consistently()` matcher counts as one expectation.
 
@@ -201,7 +203,7 @@ string $name
 
 Tags a test method, or every test in a class, with a group name.
 
-Groups can be selected at run time with `--group=<name>`. The flag is
+Select groups at run time with `--group=<name>`. The flag is
 repeatable. `list-tests` applies the same filter.
 
 ```php
@@ -222,9 +224,9 @@ string $reason
 
 Skips the test method, or every test in the class, unconditionally.
 
-The reason is required and appears in the report.
+You must give a reason. The reason appears in the report.
 
-Skipped tests are not constructed.
+Greenlight does not construct skipped tests.
 
 ## SkipUnless
 
@@ -239,12 +241,13 @@ mixed ...$arguments
 
 `$condition` must be a class-string for `Greenlight\Core\Condition`.
 
-Skips the test unless the condition is satisfied.
+Skips the test if the condition is false.
 
-Any further attribute arguments are passed to the condition's constructor.
-Arguments must be scalars or null, because they travel to parallel workers;
-anything else is a discovery error. The constructor must only store them, and
-evaluation happens in `isSatisfied()` without side effects:
+Greenlight passes the remaining attribute arguments to the condition
+constructor. Arguments must be scalars or null because Greenlight sends them to
+parallel workers. Another argument type causes a discovery error. The
+constructor must only store the arguments. The `isSatisfied()` method must
+evaluate the condition without side effects:
 
 ```php
 interface Condition
@@ -253,11 +256,11 @@ interface Condition
 }
 ```
 
-The condition is evaluated in the worker at execution time, before the test class
-is constructed. If the condition is not satisfied, constructor injection and
-harness services are not used.
+The worker evaluates the condition before it constructs the test class. If the
+condition is false, Greenlight does not use constructor injection or harness
+services.
 
-If the condition throws, the test errors instead of being skipped.
+If the condition throws, the test has an error. Greenlight does not skip it.
 
 ```php
 #[Test]
@@ -274,8 +277,8 @@ public function usesTheRedisExtension(): void { ... }
 The `Greenlight\Condition` namespace ships conditions for the common
 environment checks, so most `#[SkipUnless]` uses need no hand-written class:
 
-* `ExtensionLoaded('redis')` checks that the extension is loaded.
-* `ExtensionMissing('xdebug')` checks that the extension is not loaded.
+* `ExtensionLoaded('redis')` checks for the extension.
+* `ExtensionMissing('xdebug')` checks for the absence of the extension.
 * `EnvironmentVariableSet('CI')` checks that `getenv()` returns a value.
 * `EnvironmentVariableEquals('APP_ENV', 'test')` checks that the variable
   equals the value exactly.
@@ -302,15 +305,16 @@ int $times
 ?string $onlyOn = null
 ```
 
-Retries a failing test up to `$times` additional attempts.
+Retries a failed test up to `$times` additional attempts.
 
 `$times` must be at least 1.
 
-When `$onlyOn` is provided, it must be a throwable class-string. Only failures
-caused by that throwable type are retried. Other failures fail immediately.
+When you supply `$onlyOn`, it must be a throwable class-string. Greenlight
+retries only failures with that throwable type. It does not retry other
+failures.
 
-Each attempt gets a fresh test instance and a fresh per-test scope, so state does
-not leak between attempts.
+Greenlight gives each attempt a new test instance and a new per-test scope.
+Thus, state does not pass between attempts.
 
 Each retry also starts `eventually()` and `consistently()` with a new deadline
 and an empty observation log. `retryOnException()` retries a probe within the
@@ -336,16 +340,16 @@ float $seconds
 
 Fails the test if it runs longer than the configured budget.
 
-Timeout enforcement has two layers. Inside the worker, elapsed time is checked
-cooperatively and an over-budget test is marked failed. The orchestrator also
-hard-kills a worker if its current test exceeds the budget without returning.
+Greenlight enforces a timeout in two layers. The worker checks elapsed time
+cooperatively and fails a test that exceeds its budget. If the worker does not
+return, the orchestrator terminates it after the hard-kill grace period.
 
-A killed worker is replaced and the run continues.
+The orchestrator replaces the stopped worker and continues the run.
 
-An `eventually()` or `consistently()` duration cannot run past the current test
-timeout. The failure names the requested polling duration when the test timeout
-comes first. A blocked probe remains subject to the orchestrator's hard-kill
-grace.
+An `eventually()` or `consistently()` matcher cannot run past the current test
+timeout. If the test timeout occurs first, the failure gives the requested
+duration. A blocked probe remains subject to the orchestrator hard-kill grace
+period.
 
 ```php
 #[Test]
@@ -363,9 +367,9 @@ Parameters:
 string $name
 ```
 
-Marks a test as requiring one slot of a named resource. A name must start with a
-lowercase letter or digit. The rest may also contain dots, underscores, and
-hyphens.
+Marks a test that requires one slot of a named resource. A name must start with
+a lowercase letter or digit. After the first character, the name accepts dots,
+underscores, and hyphens.
 
 ```php
 #[RequiresResource('postgres')]
@@ -373,8 +377,8 @@ hyphens.
 final class OrderRepositoryTest { ... }
 ```
 
-Class-level requirements apply to every method. Method-level requirements are
-combined with them. Repeating the same name has no effect.
+Class-level requirements apply to each method. Greenlight combines method-level
+requirements with them. Multiple occurrences of the same name have no effect.
 
 Greenlight assigns work by class, so it combines the requirements from every
 method and holds those resources until the class finishes. A requirement on one
@@ -383,7 +387,7 @@ method can therefore reduce concurrency for other methods in the same class.
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.
 
-The requirement controls when a class may start. It does not select a concrete
+The requirement controls the class start time. It does not select a concrete
 resource instance or provide a lease identifier. Use `TestChannel` when every
 worker can have its own instance. A smaller set of distinct instances still
 needs an application-owned allocator.
@@ -397,8 +401,8 @@ Target: method or class.
 
 No parameters.
 
-Runs the test method, or every test in the class, in a dedicated fresh worker.
-That worker is discarded afterwards.
+Runs the test method, or each test in the class, in a dedicated new worker.
+Greenlight discards that worker after the test.
 
 Use this for tests that modify process-global state, such as ini settings,
 environment variables, or static caches.
@@ -409,9 +413,9 @@ Target: class, method, or function.
 
 No parameters.
 
-Excludes the declaration from coverage. Ignored lines are removed from both the
-covered and executable totals, so they never move a percentage, an export, or a
-baseline diff.
+Excludes the declaration from coverage. Greenlight removes ignored lines from
+the covered and executable totals. Thus, they do not change a percentage,
+export, or baseline diff.
 
 ```php
 final class Config
@@ -426,11 +430,11 @@ final class Config
 function dumpDebugState(): void { ... }
 ```
 
-The attribute is matched by name without loading the code it's applied to, so
-an aliased import (`use Greenlight\Attribute\CoverageIgnore as Ignore`) is not
-recognised.
+Greenlight matches the attribute name and does not load the related code.
+Therefore, it does not recognize an aliased import
+(`use Greenlight\Attribute\CoverageIgnore as Ignore`).
 
-The PHPUnit comment annotations work unchanged: `@codeCoverageIgnore` in a
-docblock before a declaration, `@codeCoverageIgnoreStart` and
-`@codeCoverageIgnoreEnd` around a block, and a trailing `// @codeCoverageIgnore`
-on a single line.
+The PHPUnit comment annotations work without changes. Put
+`@codeCoverageIgnore` in a docblock before a declaration. Put
+`@codeCoverageIgnoreStart` and `@codeCoverageIgnoreEnd` around a block. Put
+`// @codeCoverageIgnore` at the end of one line.
