@@ -18,18 +18,26 @@ bool $capture = true
 
 Marks a public method as a test.
 
-Output capture is enabled by default. Anything the test writes to stdout or
-stderr is captured and attached to the test result instead of being written into
-the reporter output.
+Output capture is enabled by default. Greenlight records output written through
+PHP's output buffer, such as `echo` and `print`, together with notices, warnings,
+and deprecations raised during the test. Reporters can then associate that
+output with the test that produced it.
 
-Use `capture: false` for tests that need to write output directly.
+Direct writes to the `STDOUT` and `STDERR` stream resources bypass PHP's output
+buffer and are not captured. They can also interfere with terminal output, so
+tests should not use them for diagnostics. Use test attachments when diagnostic
+content must be retained; see [test attachments](attachments.md).
+
+Set `capture: false` only when a test needs to control PHP's output buffer or
+error handler itself. With capture disabled, Greenlight does not record output
+or diagnostics for that test.
 
 ```php
 #[Test]
 public function totalsAreRounded(): void { ... }
 
 #[Test(capture: false)]
-public function printsDirectly(): void { ... }
+public function managesItsOwnOutputBuffer(): void { ... }
 ```
 
 ## Before
