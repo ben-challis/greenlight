@@ -89,6 +89,7 @@ final class MetadataFactory
                 $method->getAttributes(NoExpectations::class) !== [],
                 $this->skipUnlessArguments($skipUnless, $where),
                 $resources,
+                $dataSet?->providerClass,
             );
         }
 

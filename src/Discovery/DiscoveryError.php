@@ -81,22 +81,36 @@ final class DiscoveryError extends \RuntimeException
         );
     }
 
-    public static function providerMissing(string $class, string $method, string $provider): self
+    public static function providerClassMissing(string $class, string $method, string $providerClass): self
+    {
+        return new self(\sprintf(
+            'Data-set provider class "%s" referenced by %s::%s() does not exist.',
+            $providerClass,
+            $class,
+            $method,
+        ));
+    }
+
+    public static function providerMissing(string $class, string $method, string $providerClass, string $provider): self
     {
         return new self(\sprintf(
             'Data-set provider "%s" referenced by %s::%s() does not exist on %s.',
             $provider,
             $class,
             $method,
-            $class,
+            $providerClass,
         ));
     }
 
-    public static function providerNotPublicStatic(string $class, string $method, string $provider): self
-    {
+    public static function providerNotPublicStatic(
+        string $class,
+        string $method,
+        string $providerClass,
+        string $provider,
+    ): self {
         return new self(\sprintf(
             'Data-set provider %s::%s() referenced by %s::%s() must be public and static.',
-            $class,
+            $providerClass,
             $provider,
             $class,
             $method,

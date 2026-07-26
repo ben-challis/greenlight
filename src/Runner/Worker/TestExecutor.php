@@ -193,6 +193,7 @@ final readonly class TestExecutor
                     if ($entry->id->dataSetKey !== null) {
                         $arguments = $this->context->argumentsFor(
                             $metadata->dataSetProvider,
+                            $metadata->dataSetProviderClass,
                             $metadata->method,
                             $entry->id->dataSetKey,
                         );

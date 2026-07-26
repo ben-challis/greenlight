@@ -35,13 +35,19 @@ final class DataSetExpander
      * @param \ReflectionClass<covariant object> $class
      * @param non-empty-string $testMethod
      * @param non-empty-string|null $provider
+     * @param non-empty-string|null $providerClass
      *
      * @return array<string, mixed>
      *
      * @throws DiscoveryError
      */
-    public function rowsFor(\ReflectionClass $class, string $testMethod, ?string $provider, float $budgetSeconds): array
-    {
+    public function rowsFor(
+        \ReflectionClass $class,
+        string $testMethod,
+        ?string $provider,
+        float $budgetSeconds,
+        ?string $providerClass = null,
+    ): array {
         $className = $class->getName();
         $rows = [];
         $position = 0;
@@ -62,7 +68,17 @@ final class DataSetExpander
             return $rows;
         }
 
-        foreach ($this->expand($class, $testMethod, $provider, $budgetSeconds) as $key => $value) {
+        $providerReflection = $class;
+
+        if ($providerClass !== null) {
+            if (!\class_exists($providerClass)) {
+                throw DiscoveryError::providerClassMissing($className, $testMethod, $providerClass);
+            }
+
+            $providerReflection = new \ReflectionClass($providerClass);
+        }
+
+        foreach ($this->expand($class, $providerReflection, $testMethod, $provider, $budgetSeconds) as $key => $value) {
             if (\array_key_exists($key, $rows)) {
                 throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $key);
             }
@@ -77,7 +93,8 @@ final class DataSetExpander
      * Returns each derived key mapped to its yielded data set, in provider
      * order.
      *
-     * @param \ReflectionClass<covariant object> $class
+     * @param \ReflectionClass<covariant object> $testClass
+     * @param \ReflectionClass<covariant object> $providerClass
      * @param non-empty-string $testMethod
      * @param non-empty-string $provider
      *
@@ -85,18 +102,24 @@ final class DataSetExpander
      *
      * @throws DiscoveryError
      */
-    private function expand(\ReflectionClass $class, string $testMethod, string $provider, float $budgetSeconds): array
-    {
-        $className = $class->getName();
+    private function expand(
+        \ReflectionClass $testClass,
+        \ReflectionClass $providerClass,
+        string $testMethod,
+        string $provider,
+        float $budgetSeconds,
+    ): array {
+        $testClassName = $testClass->getName();
+        $providerClassName = $providerClass->getName();
 
-        if (!$class->hasMethod($provider)) {
-            throw DiscoveryError::providerMissing($className, $testMethod, $provider);
+        if (!$providerClass->hasMethod($provider)) {
+            throw DiscoveryError::providerMissing($testClassName, $testMethod, $providerClassName, $provider);
         }
 
-        $method = $class->getMethod($provider);
+        $method = $providerClass->getMethod($provider);
 
         if (!$method->isPublic() || !$method->isStatic()) {
-            throw DiscoveryError::providerNotPublicStatic($className, $testMethod, $provider);
+            throw DiscoveryError::providerNotPublicStatic($testClassName, $testMethod, $providerClassName, $provider);
         }
 
         $deadline = \hrtime(true) + (int) \round($budgetSeconds * 1_000_000_000);
@@ -104,11 +127,11 @@ final class DataSetExpander
         try {
             $result = $method->invoke(null);
         } catch (\Throwable $e) {
-            throw DiscoveryError::providerThrew($className, $provider, $e);
+            throw DiscoveryError::providerThrew($providerClassName, $provider, $e);
         }
 
         if (!\is_iterable($result)) {
-            throw DiscoveryError::providerNotIterable($className, $provider, \get_debug_type($result));
+            throw DiscoveryError::providerNotIterable($providerClassName, $provider, \get_debug_type($result));
         }
 
         $dataSets = [];
@@ -116,13 +139,13 @@ final class DataSetExpander
         try {
             foreach ($result as $key => $value) {
                 if (\hrtime(true) > $deadline) {
-                    throw DiscoveryError::providerTooSlow($className, $provider, $budgetSeconds);
+                    throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
                 }
 
-                $derived = $this->deriveKey($className, $provider, $key);
+                $derived = $this->deriveKey($providerClassName, $provider, $key);
 
                 if (\array_key_exists($derived, $dataSets)) {
-                    throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $derived);
+                    throw DiscoveryError::duplicateDataSetKey($testClassName, $testMethod, $derived);
                 }
 
                 $dataSets[$derived] = $value;
@@ -130,15 +153,15 @@ final class DataSetExpander
         } catch (DiscoveryError $e) {
             throw $e;
         } catch (\Throwable $e) {
-            throw DiscoveryError::providerThrew($className, $provider, $e);
+            throw DiscoveryError::providerThrew($providerClassName, $provider, $e);
         }
 
         if (\hrtime(true) > $deadline) {
-            throw DiscoveryError::providerTooSlow($className, $provider, $budgetSeconds);
+            throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
         }
 
         if ($dataSets === []) {
-            throw DiscoveryError::providerYieldedNothing($className, $provider);
+            throw DiscoveryError::providerYieldedNothing($providerClassName, $provider);
         }
 
         return $dataSets;

@@ -12,6 +12,7 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassMethodNode;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ParametersAcceptor;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
@@ -19,19 +20,21 @@ use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * A provider must exist on the same class as a public static method
- * returning an iterable of argument arrays. Where PHPStan knows a row's
- * exact shape (an array{...} return type or an inline #[DataRow] literal),
- * each value is checked against the matching parameter, and rows with too
- * few or too many values are flagged.
+ * A provider must exist as a public static method on the test class or the
+ * explicitly referenced provider class, returning an iterable of argument
+ * arrays. Where PHPStan knows a row's exact shape (an array{...} return type
+ * or an inline #[DataRow] literal), each value is checked against the matching
+ * parameter, and rows with too few or too many values are flagged.
  *
  * Rows without a known shape are only required to be arrays; what is in
  * them stays a runtime concern.
  *
  * @implements Rule<InClassMethodNode>
  */
-final class DataProviderSignatureRule implements Rule
+final readonly class DataProviderSignatureRule implements Rule
 {
+    public function __construct(private ReflectionProvider $reflectionProvider) {}
+
     #[\Override]
     public function getNodeType(): string
     {
@@ -111,9 +114,37 @@ final class DataProviderSignatureRule implements Rule
     private function checkDataSet(Attribute $attribute, ParametersAcceptor $acceptor, ClassReflection $class, string $methodName, Scope $scope): array
     {
         $providerExpression = $this->attributeArgument($attribute, 0, 'provider');
+        $methodExpression = $this->attributeArgument($attribute, 1, 'method');
 
         if (!$providerExpression instanceof Node\Expr) {
             return [];
+        }
+
+        $providerClass = $class;
+
+        if ($methodExpression instanceof Node\Expr) {
+            $providerClasses = $scope->getType($providerExpression)->getConstantStrings();
+
+            if (\count($providerClasses) !== 1) {
+                return [];
+            }
+
+            $providerClassName = $providerClasses[0]->getValue();
+
+            if (!$this->reflectionProvider->hasClass($providerClassName)) {
+                return [$this->error(
+                    \sprintf(
+                        'Data provider class %s referenced by %s() does not exist.',
+                        $providerClassName,
+                        $methodName,
+                    ),
+                    'provider',
+                    $attribute->getStartLine(),
+                )];
+            }
+
+            $providerClass = $this->reflectionProvider->getClass($providerClassName);
+            $providerExpression = $methodExpression;
         }
 
         $providerNames = $scope->getType($providerExpression)->getConstantStrings();
@@ -125,19 +156,24 @@ final class DataProviderSignatureRule implements Rule
         $provider = $providerNames[0]->getValue();
         $line = $attribute->getStartLine();
 
-        if (!$class->hasMethod($provider)) {
+        if (!$providerClass->hasMethod($provider)) {
             return [$this->error(
-                \sprintf('Data provider %s() for %s() does not exist on %s.', $provider, $methodName, $class->getDisplayName()),
+                \sprintf(
+                    'Data provider %s() for %s() does not exist on %s.',
+                    $provider,
+                    $methodName,
+                    $providerClass->getDisplayName(),
+                ),
                 'provider',
                 $line,
             )];
         }
 
-        $providerMethod = $class->getMethod($provider, $scope);
+        $providerMethod = $providerClass->getMethod($provider, $scope);
 
         if (!$providerMethod->isStatic() || !$providerMethod->isPublic()) {
             return [$this->error(
-                \sprintf('Data provider %s::%s() must be public and static.', $class->getDisplayName(), $provider),
+                \sprintf('Data provider %s::%s() must be public and static.', $providerClass->getDisplayName(), $provider),
                 'provider',
                 $line,
             )];
@@ -155,7 +191,7 @@ final class DataProviderSignatureRule implements Rule
             return [$this->error(
                 \sprintf(
                     'Data provider %s::%s() must return an iterable of argument arrays, returns %s.',
-                    $class->getDisplayName(),
+                    $providerClass->getDisplayName(),
                     $provider,
                     $returnType->describe(VerbosityLevel::typeOnly()),
                 ),
@@ -170,7 +206,7 @@ final class DataProviderSignatureRule implements Rule
             return [$this->error(
                 \sprintf(
                     'Data provider %s::%s() must yield arrays of arguments, yields %s.',
-                    $class->getDisplayName(),
+                    $providerClass->getDisplayName(),
                     $provider,
                     $rowType->describe(VerbosityLevel::typeOnly()),
                 ),

@@ -77,12 +77,24 @@ Parameters:
 
 ```php
 string $provider
+?string $method = null
 ```
 
-References a public static provider method on the same class.
+With one argument, references a public static provider method on the test
+class. With two arguments, the first is a provider class and the second is its
+public static method:
+
+```php
+#[DataSet('currencies')]
+```
+
+or:
+
+```php
+#[DataSet(CurrencyDataSets::class, 'currencies')]
+```
 
 The provider must return an iterable of named data sets for the test method.
-Providers on other classes are not supported.
 
 Providers run at discovery time, before any tests execute. Keep them pure: no
 I/O and no global state.
@@ -101,6 +113,23 @@ public static function currencies(): iterable
     yield 'GBP rounds half-up' => [Currency::GBP, '10.01'];
     yield 'JPY has no minor unit' => [Currency::JPY, '10'];
 }
+```
+
+Use the two-argument form to share a provider between test classes:
+
+```php
+final class CurrencyDataSets
+{
+    /** @return iterable<string, array{Currency, string}> */
+    public static function currencies(): iterable
+    {
+        yield 'GBP rounds half-up' => [Currency::GBP, '10.01'];
+    }
+}
+
+#[Test]
+#[DataSet(CurrencyDataSets::class, 'currencies')]
+public function roundsSharedCurrencyCases(Currency $currency, string $expected): void { ... }
 ```
 
 The bundled PHPStan extension validates providers statically: the provider
