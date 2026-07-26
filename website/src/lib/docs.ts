@@ -38,12 +38,12 @@ export const docSections = [
       },
       {
         id: 'test-doubles',
-        title: 'Test doubles',
+        title: 'Doubles',
         description: 'Plan strict mocks, use inert stubs, and inspect spies.',
       },
       {
         id: 'attachments',
-        title: 'Test attachments',
+        title: 'Attachments',
         description: 'Attach structured values and files to individual test results.',
       },
     ],

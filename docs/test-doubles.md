@@ -33,8 +33,7 @@ final class CheckoutServiceTest
 }
 ```
 
-Mocks are verified automatically when the test ends. There is no cleanup call
-to remember.
+Mocks are verified automatically when the test ends.
 
 ## Choosing a double
 
@@ -44,8 +43,7 @@ to remember.
 | `stub(Type::class)` | A dependency must exist but must not be used | Fails immediately |
 | `spy(Type::class)` | The test wants to inspect void-returning calls afterwards | Records the call |
 
-A spy cannot invent return values. Calling a value-returning method on one fails
-the test.
+Calling a value-returning method on a spy fails the test.
 
 ## Planning mock calls
 
