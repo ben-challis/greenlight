@@ -1,0 +1,36 @@
+src/Expect/Expectation.php
+  s_c149b400bf05a5::t_142c0f8a852aa4 37-38
+  s_c149b400bf05a5::t_bc47ef22e6c82c 96-117
+  s_c149b400bf05a5::t_ccd806ecd82cbe 743-744,753-754,763-769
+  s_c149b400bf05a5::t_b4ccc5446fc05a 824
+tests/Unit/Expect/BecauseTest.php
+  s_c149b400bf05a5::t_87d74859c6daf0 1-126
+docs/expectations.md
+  s_c149b400bf05a5::t_cef540ed98da85 32-49
+docs/migrating-from-phpunit.md
+  s_c149b400bf05a5::t_b4fddc4bf33882 75-76
+  s_c149b400bf05a5::t_51f487c1b90446 45
+src/Expect/TemporalExpectation.php
+  s_c149b400bf05a5::t_ffc942f13164bc 49-70
+  s_c149b400bf05a5::t_634dba8cbe3df2 23-24
+  s_c149b400bf05a5::t_c900e6bf8db0ef 288-294
+  s_c149b400bf05a5::t_f1c7f378e654ce 48
+tests/Unit/Expect/TemporalExpectationTest.php
+  s_c149b400bf05a5::t_31dd3d7d6fcfac 298-348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e838c6a8d95819e123f6072e8cf7075a81698d9d",
+  "prompts": {},
+  "sessions": {
+    "s_c149b400bf05a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "353c93e2-f020-4d2f-bb2b-8812721431e2",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
