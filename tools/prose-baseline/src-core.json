@@ -1,0 +1,86 @@
+[
+    {
+        "fingerprint": "fe5289f541a202ac2d9dbfeacae82a10985c47d82e1204a2c85e9ae385e3fc9b",
+        "path": "src/Core/Artifact/Attachments.php",
+        "rule": "semicolon",
+        "passage": "implementations copy input immediately. attachment content is persisted out of band; test results carry metadata and published paths only.",
+        "count": 1
+    },
+    {
+        "fingerprint": "adb19ead49664ec39dedbb296ddc8fe21293b21c6b9114d6ded3e9f1bfed3480",
+        "path": "src/Core/AtomicFile.php",
+        "rule": "semicolon",
+        "passage": "write() puts the contents in a uniquely named temp file in the target's directory, then renames it over the target, so concurrent writers of the same file cannot interleave partial writes. failure leaves no temp file behind and throws atomicfileerror carrying the underlying warning; callers for whom the write is advisory catch and discard it.",
+        "count": 1
+    },
+    {
+        "fingerprint": "d1e04df9c8d7b946950f2b5f274c0e363b77a6e5f1f0ed8006944e568d59681f",
+        "path": "src/Core/Condition.php",
+        "rule": "semicolon",
+        "passage": "implementations may take constructor arguments supplied through #[skipunless]; constructors must only store them. evaluation happens in issatisfied() and must be side-effect free.",
+        "count": 1
+    },
+    {
+        "fingerprint": "5caec4e3a454693dcb53cf533d369bab18dad15bc15b28dbb646aaa686b1655b",
+        "path": "src/Core/ErrorTrap.php",
+        "rule": "semicolon",
+        "passage": "run() installs an error handler that records the last message and marks it handled, invokes the operation, and restores the previous handler on the way out. failure still signals through the operation's return value; the recorded message exists to enrich whatever error the caller raises.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1653a6ffff297a02885e2eb54f2e539c707ca39b5a97900ee9a19aa101f9f731",
+        "path": "src/Core/ErrorTrap.php",
+        "rule": "sentence-length",
+        "passage": "this replaces the @ operator: @ still exposes the diagnostic to any installed error handler that ignores error_reporting(), and it discards the message this helper keeps.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4e18e9498a0e3511bb76a6023cf203347f99083d6654b443ac77dab31262a0bd",
+        "path": "src/Core/Result/CapturedOutput.php",
+        "rule": "semicolon",
+        "passage": "when output is truncated the head is kept, because the first output a test produces usually names the cause; the tail is commonly repetition.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e761a34be226879fcaeb27cafd20b855d660ab39dfb85a261bb60abd6376ef22",
+        "path": "src/Core/Result/Outcome.php",
+        "rule": "semicolon",
+        "passage": "a retried test still ends in exactly one of these; the attempt count lives on testresult.",
+        "count": 1
+    },
+    {
+        "fingerprint": "68ea61db264a465d77aaea18221061431776febdd953afd47026d6f4b3965372",
+        "path": "src/Core/Result/ResultPolicy.php",
+        "rule": "sentence-length",
+        "passage": "a passed test with a captured deprecation or notice fails under the matching flag, with the diagnostic as the failure detail and the flip recorded as a provenance transformation.",
+        "count": 1
+    },
+    {
+        "fingerprint": "2ff43054506c9303205781ac03c833e946e6a3a072c23d76202df441233922a7",
+        "path": "src/Core/Result/TestResult.php",
+        "rule": "semicolon",
+        "passage": "expectations counts the verifications of the final attempt: each matcher in a chain individually and each mock expectation at disposal; stubs never count. a non-passed result carries whatever verified before the abort. wire payloads written before the field existed decode to zero.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1090281e71ae9ac213257c8c09b3309410e93ae997b83773083e4a4424885383",
+        "path": "src/Core/Result/TestResult.php",
+        "rule": "semicolon",
+        "passage": "plugins never mutate a result; they produce a replacement via withoutcome(), which records provenance.",
+        "count": 1
+    },
+    {
+        "fingerprint": "9f93f9875fb19895242acf842f2776266e2c076af62145101d22e3e5f8b10f83",
+        "path": "src/Core/Test/TestMetadata.php",
+        "rule": "semicolon",
+        "passage": "class-level attributes are already merged in; method-level wins on conflict.",
+        "count": 1
+    },
+    {
+        "fingerprint": "0af4c2cd9a192ca59ccfc69ec78172120b11e1ee35566343219c664bdd45760c",
+        "path": "src/Core/Wildcard.php",
+        "rule": "semicolon",
+        "passage": "a pattern without \"*\" or \"?\" matches by substring; a pattern containing either must match the whole subject, shell-style.",
+        "count": 1
+    }
+]

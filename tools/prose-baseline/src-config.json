@@ -1,0 +1,16 @@
+[
+    {
+        "fingerprint": "4b7e8d926e1992e9c4e0112816f4a560a769a1be6f5888e27025c06cdbfcd43b",
+        "path": "src/Config/GreenlightConfig.php",
+        "rule": "semicolon",
+        "passage": "exempts deprecation messages from failondeprecation(): patterns match by case-insensitive substring, or against the whole message when they contain \"*\" or \"?\". repeatable; patterns accumulate.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e9837dbaf10a3fd76b9dda881baf36ae6837afcad3e22674fafd5c072f6c9f9b",
+        "path": "src/Config/WorkerCount.php",
+        "rule": "semicolon",
+        "passage": "the runner resolves 'auto'; configuration never guesses a cpu count.",
+        "count": 1
+    }
+]

@@ -1,0 +1,9 @@
+[
+    {
+        "fingerprint": "c5378693aa01426b9bc1e5b8acfaba29c459f3c8ad9f480e8b3a124103fe384f",
+        "path": "src/Capture/OutputCapture.php",
+        "rule": "semicolon",
+        "passage": "when output is truncated, the start of the output is kept because it usually contains the useful error context; the end is often repeated noise. a cut may split a multibyte character, in which case the final scrub replaces the dangling bytes with u+fffd.",
+        "count": 1
+    }
+]

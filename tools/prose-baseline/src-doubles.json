@@ -1,0 +1,128 @@
+[
+    {
+        "fingerprint": "57dc9a00d5ec63a5df197e1131d8f2442e655985fdda37bd3943617ed0b5a425",
+        "path": "src/Doubles/Argument.php",
+        "rule": "semicolon",
+        "passage": "matches by the same deep equality a bare with() value uses; this form exists to state that comparison explicitly.",
+        "count": 1
+    },
+    {
+        "fingerprint": "21466d0244c7fff649f038d0e0c5041a9082c75f825c09c0143eb395840f0ee8",
+        "path": "src/Doubles/ArgumentCaptor.php",
+        "rule": "semicolon",
+        "passage": "matches() always accepts and never records; capturing happens only for the expectation that won the call, so probing candidate expectations cannot pollute a captor.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e4a3504631926c221476cf25dbb51ead605e8bb46b5ab0cdcf063d86e40c7055",
+        "path": "src/Doubles/ArgumentMatcher.php",
+        "rule": "semicolon",
+        "passage": "matches() decides whether a value is acceptable in the matcher's position; it must be side-effect free, because candidate expectations are probed against calls they may not win. describe() names the constraint in failure messages.",
+        "count": 1
+    },
+    {
+        "fingerprint": "9b5c3e27bb0f1d8e35d187a6b06183ccd995ddc69546435703c2980aa3cd9860",
+        "path": "src/Doubles/ArgumentMatcher.php",
+        "rule": "sentence-length",
+        "passage": "matches() decides whether a value is acceptable in the matcher's position; it must be side-effect free, because candidate expectations are probed against calls they may not win. describe() names the constraint in failure messages.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e366d93836ac01cbe6492936551af79244346fdcc179b4e20d4722b949e3d6a3",
+        "path": "src/Doubles/CallHandler.php",
+        "rule": "sentence-length",
+        "passage": "a mock answers only what was explicitly configured, a stub errors on any call, and a spy records interactions and errors on calls to value-returning methods.",
+        "count": 1
+    },
+    {
+        "fingerprint": "2738edfe5e087a0dcc86e89a64e0342b5e26de2d2e75ce057f3ea0fcb375645b",
+        "path": "src/Doubles/Doubles.php",
+        "rule": "semicolon",
+        "passage": "a recording double: every call is recorded with its arguments. only methods that return nothing can be spied on; a call to a value-returning method errors the test. read the recording back with callsto() and assert on it with expect.",
+        "count": 1
+    },
+    {
+        "fingerprint": "b88fb1ab6d26727c98ad9a5d46eaa956c2ee7ee3e5f2892a96464bf9a8d41b8b",
+        "path": "src/Doubles/DoublesError.php",
+        "rule": "sentence-length",
+        "passage": "a misuse of the doubles api: doubling a type outside the supported boundary, planning a method that cannot be intercepted, interacting with a double in a way its kind forbids, or relying on a return value that was never configured.",
+        "count": 1
+    },
+    {
+        "fingerprint": "24630a38fa5d879cfe3e5e473651d81754265d855a2f7a257040e9bdc8efd9fd",
+        "path": "src/Doubles/Fake.php",
+        "rule": "british-spelling",
+        "passage": "implementing it changes no behaviour; it lets reporters and tooling label the object as a deliberate fake rather than production code under test.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c643f5cc05d5d51f5d383a35a50181ee053a30f42430c2229b8345fa28544ab8",
+        "path": "src/Doubles/Fake.php",
+        "rule": "semicolon",
+        "passage": "implementing it changes no behaviour; it lets reporters and tooling label the object as a deliberate fake rather than production code under test.",
+        "count": 1
+    },
+    {
+        "fingerprint": "ef78c166823ca3c76c4a96355d906ad31364ad2fab50f8574895ceaacc0cdfaf",
+        "path": "src/Doubles/MethodExpectation.php",
+        "rule": "semicolon",
+        "passage": "built fluently from mockplan::expects(). the fluent planning methods are the public surface; the members the call handler and the verifier consume are marked @internal individually.",
+        "count": 1
+    },
+    {
+        "fingerprint": "dedbce8db921855fc2c6127cf5635f4d33620f29fe0dbf3bb6abd32da7423c29",
+        "path": "src/Doubles/MethodExpectation.php",
+        "rule": "semicolon",
+        "passage": "each matched call consumes the next value; a matched call after the last value is an authoring error.",
+        "count": 1
+    },
+    {
+        "fingerprint": "a4f12298d2ed71d031e745f5aa75b5e660f0cc4bd8a7d3d825861394f9f8505a",
+        "path": "src/Doubles/MethodExpectation.php",
+        "rule": "semicolon",
+        "passage": "records the argument at $position on every call this expectation answers. returns the captor rather than the expectation, so it deliberately ends the fluent chain; configure counts and answers before calling it.",
+        "count": 1
+    },
+    {
+        "fingerprint": "d4a5c112012c5d50c24ba1811cca6c0790c33c2714fdd9072d7601b85c58ee51",
+        "path": "src/Doubles/MockPlan.php",
+        "rule": "semicolon",
+        "passage": "$plan->expects('charge')->with(mockplan::any())->once()->andreturns($ok);",
+        "count": 1
+    },
+    {
+        "fingerprint": "7452d11c9fcb4d4e0702271c0cbbeede44951a0773a7c9b1712f5c531f94caf3",
+        "path": "src/Doubles/ProxyGenerator.php",
+        "rule": "semicolon",
+        "passage": "final classes, readonly classes, enums, partial mocks, and static interception are unsupported. final methods on otherwise doubleable classes are not intercepted and keep their real implementation, which runs against an object whose constructor never ran; prefer doubling an interface.",
+        "count": 1
+    },
+    {
+        "fingerprint": "bd6a4a80324e748acf849368eec48aad264aeefd3f9ac6455aeb08de4217ae3e",
+        "path": "src/Doubles/ProxyGenerator.php",
+        "rule": "semicolon",
+        "passage": "interface properties and abstract hooked properties must be declared for the proxy to be instantiable; a plain property satisfies both get and set requirements.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e7ec8238dc0eb9b4d2fa6ffa556ebbd9e956abebb0476baa50d99a9dba7a8f08",
+        "path": "src/Doubles/ProxyGenerator.php",
+        "rule": "sentence-length",
+        "passage": "final classes, readonly classes, enums, partial mocks, and static interception are unsupported. final methods on otherwise doubleable classes are not intercepted and keep their real implementation, which runs against an object whose constructor never ran; prefer doubling an interface.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1aa8175a17785f81429d3819a7da48970dad262df611cfa749314481a8c5f5aa",
+        "path": "src/Doubles/TypeRenderer.php",
+        "rule": "semicolon",
+        "passage": "self and parent resolve against the declaring class so the rendered code is position independent; static stays literal because it is only valid, and correct, in the proxy.",
+        "count": 1
+    },
+    {
+        "fingerprint": "7413bd0c515fd27ae9fa0bbec924a8673c0dd002da3a01826cbe0fe37e7fad45",
+        "path": "src/Doubles/TypeRenderer.php",
+        "rule": "sentence-length",
+        "passage": "self and parent resolve against the declaring class so the rendered code is position independent; static stays literal because it is only valid, and correct, in the proxy.",
+        "count": 1
+    }
+]

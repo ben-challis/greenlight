@@ -1,0 +1,240 @@
+[
+    {
+        "fingerprint": "7d2acf64f71131aafa4a9925efc084c6060baf512577468f37dba2b41988d94f",
+        "path": "docs/architecture/README.md",
+        "rule": "british-spelling",
+        "passage": "the execution plan is the seam between discovery and execution. workers receive plan values and emit typed events; they do not rediscover tests. the in-process and parallel paths are two adapters for the same execution behaviour.",
+        "count": 1
+    },
+    {
+        "fingerprint": "77f8f239fdc4a9b9960d83f02509382bd21f71956c985ef7b39838902674d457",
+        "path": "docs/architecture/README.md",
+        "rule": "british-spelling",
+        "passage": "this page is the starting point for contributors. user-facing behaviour belongs in the main documentation; the pages in this directory explain implementation seams, invariants, and machine-readable formats.",
+        "count": 1
+    },
+    {
+        "fingerprint": "572c2071ceb6efc0e2147895a266a97568839f70a2af11d307fb043f3e0d1eb5",
+        "path": "docs/architecture/README.md",
+        "rule": "semicolon",
+        "passage": "discovery happens before execution; workers consume plans rather than scan",
+        "count": 1
+    },
+    {
+        "fingerprint": "0dfb8bb87fbdc85779a5cebb226c2801f191206ae3ddc06a71120ad73e2002b1",
+        "path": "docs/architecture/README.md",
+        "rule": "semicolon",
+        "passage": "the execution plan is the seam between discovery and execution. workers receive plan values and emit typed events; they do not rediscover tests. the in-process and parallel paths are two adapters for the same execution behaviour.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c832d63d339e22fc256d4d0c61e43975569f8d72d2ebaf2ce05c5846e2a3c4e4",
+        "path": "docs/architecture/README.md",
+        "rule": "semicolon",
+        "passage": "this page is the starting point for contributors. user-facing behaviour belongs in the main documentation; the pages in this directory explain implementation seams, invariants, and machine-readable formats.",
+        "count": 1
+    },
+    {
+        "fingerprint": "a613e3ab45f0cd6f1d070d4643b534545f82983ce3a065b4a7a4f2d558773758",
+        "path": "docs/architecture/artifacts.md",
+        "rule": "semicolon",
+        "passage": "each run has an eventual public output directory and a private staging directory in the system temporary directory. the orchestrator passes both paths to workers as part of the assignment. staging is created when the first attachment is added; the public directory is created only if the run publishes one.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4ef6845fea5471d274ef43b597e55fd804860bb079d9eb40136a50956f886fb7",
+        "path": "docs/architecture/artifacts.md",
+        "rule": "sentence-length",
+        "passage": "once a test has staged evidence, a small marker records later retry attempts so a synthetic crash result reports the right attempt count even when the crashing attempt added nothing. recovery accepts only storage keys that resolve within the staging directory.",
+        "count": 1
+    },
+    {
+        "fingerprint": "9f301ffbf3101c916967d20b7f339dfc7cca122b061452fcfd52978868746488",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "semicolon",
+        "passage": "coverage json keys;",
+        "count": 1
+    },
+    {
+        "fingerprint": "ed8a9ec5f46dcf16fe0b758301b772b726a7e7e5535fe4646201dd2e5a48114c",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "semicolon",
+        "passage": "failure and diagnostic source locations in jsonl;",
+        "count": 1
+    },
+    {
+        "fingerprint": "ed4adef82d3f759274ce646690919bb1dbbbfa598fb50fbb4cbdb2a31bdfa87c",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "semicolon",
+        "passage": "literal is the selected plan size, not a promise that every test will finish. bail, interruption, or a run-level protocol failure can stop execution early. a process killed outside greenlight may leave a truncated final line and no literal ; line-oriented consumers should commit only complete newline-terminated objects.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e17160e1410956a6792aa07fbe8d78bf73aae8d14749a34bc52b4e0b8182723f",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "semicolon",
+        "passage": "optional payload keys may be added, and consumers must ignore unknown keys;",
+        "count": 1
+    },
+    {
+        "fingerprint": "c5a6c30148a169e1ab5c0380f80ed38fab4cab7ba302704bf3061b12270494ef",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "semicolon",
+        "passage": "stay fixed;",
+        "count": 1
+    },
+    {
+        "fingerprint": "1a0354203dc8fe3d0ad7d6c1eea5be786a8c212059684c9fb9e02d14efbef7f7",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "sentence-length",
+        "passage": "absolute paths make reports immediately actionable on the producing machine, but they are machine-local data. coverage baselines only compare the same file when their absolute keys match, so different checkout roots, containers, or worktrees need the same mounted path or an explicit normalization step.",
+        "count": 1
+    },
+    {
+        "fingerprint": "80adf4f733e2264ed3e5ea57b8e801f760d968c294801ec08a4c7d7c96af2ec6",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "sentence-length",
+        "passage": "changes to a public php interface require a compatibility decision when they remove or rename a symbol, narrow accepted input, change a return or thrown type, alter lifecycle ordering, or change documented semantics.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c56bab7123dfd10ef16af559e0f3f766b710ab1f7d6a345793f98d8e6c771800",
+        "path": "docs/architecture/compatibility.md",
+        "rule": "sentence-length",
+        "passage": "removing or renaming a key, making a new key required, changing a type or meaning, adding an event tag, or extending a closed enum requires a new envelope version and a new schema file. reserved event tags are the exception: they already belong to the current schema even when greenlight does not emit them yet.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f9e9956560de2a9dae84d0c51da6959149b3e5b62beefd97092908d0ce00abf9",
+        "path": "docs/architecture/coverage-json.md",
+        "rule": "semicolon",
+        "passage": "the schema is versioned. version 1's existing fields and meanings are stable; see literal for the change rules.",
+        "count": 1
+    },
+    {
+        "fingerprint": "3c452a2cac82cfcde95818c0b01e768373c8d67e022f7ca6d2643fd4a991688f",
+        "path": "docs/architecture/jsonl.md",
+        "rule": "british-spelling",
+        "passage": "optional payload keys may be added within a version, and consumers must ignore unknown keys. new required keys, event tags, enum values, or changes to existing types and meanings require a new version. the complete policy, ordering guarantees, and truncation behaviour are documented in literal .",
+        "count": 1
+    },
+    {
+        "fingerprint": "770c34e80d9bb4f763d93fda8ebddd588a7b57d354c8917be0b60d8365c95a6d",
+        "path": "docs/architecture/jsonl.md",
+        "rule": "semicolon",
+        "passage": "literal is literal , literal , literal , or literal . literal is literal or literal . content is stored out of band at literal ; it is never embedded or base64-encoded in jsonl. literal is a published path, not the caller's source path. internal storage keys never appear in reporter output.",
+        "count": 1
+    },
+    {
+        "fingerprint": "ecb2569d5649aa374ef0e3b9780a36152f10c68cb88544a232d32044b8917c0d",
+        "path": "docs/architecture/jsonl.md",
+        "rule": "semicolon",
+        "passage": "source locations and published artifact paths are absolute and can disclose the producer's workspace layout. they are not portable identifiers; see literal .",
+        "count": 1
+    },
+    {
+        "fingerprint": "86a8eb067f61b190c899240cedca4993fdd9065b3560b6bb89c4b9cc94df171f",
+        "path": "docs/architecture/temporal-expectations.md",
+        "rule": "semicolon",
+        "passage": "literal and literal apply an ordinary matcher to values returned by a probe. only the fluent api is public; its polling support is internal.",
+        "count": 1
+    },
+    {
+        "fingerprint": "5a0328a463c87b20f65aefedfc405e3b92d6b84043581d090742ecde5aba37ff",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "paragraph-length",
+        "passage": "recycling. recycle budgets (a test count, a memory ceiling, or both) travel inside literal , and the worker checks them after every test. when a budget runs out mid-assignment, the worker sends literal with the list of tests it never reached, then exits. when the budget runs out exactly at an assignment boundary, it sets a recycle flag on literal instead. either way the orchestrator re-queues the remainder, spawns a replacement, and emits a literal event so reporters can show it. memory-based recycling defaults to 256m. test-count recycling is opt-in.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1d79a5688658e7bcdf0b758a9fa373ec23e90a96b04fc3ce842e3b3f5f297202",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "semicolon",
+        "passage": "hangs. each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. past the grace window the orchestrator kills the process with sigkill. the test is reported as failed, with its elapsed duration and a timeout failure detail; staged attachments are recovered and untouched tests are re-queued. the replacement is currently reported with the literal recycle reason because the public recycle-reason enum groups all abnormal worker terminations together.",
+        "count": 1
+    },
+    {
+        "fingerprint": "efdab45171f378d5758c47a5904168850a7376916952968ee91acbb48d5f4aa1",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "semicolon",
+        "passage": "literal orchestrator to worker none; asks the worker to exit cleanly",
+        "count": 1
+    },
+    {
+        "fingerprint": "bc2127b703a55060038a278563fd7112829684cd8e5ac863bbf409218e008eba",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "semicolon",
+        "passage": "the orchestrator listens on a unix domain socket in a private temporary directory. if it cannot use a unix socket, it falls back to tcp on literal with an ephemeral port. workers are ordinary child processes started with literal ; each one connects back to that address as a client.",
+        "count": 1
+    },
+    {
+        "fingerprint": "02b9ab0600761f1e9e607f48103ef05b7518ca2f881f6780aa4b3a93e22de95a",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "semicolon",
+        "passage": "this document covers the wire traffic between the orchestrator and its workers: how a worker is born, what the two processes say to each other, and every way a worker leaves the pool. it is background reading for contributors and for anyone debugging a parallel run. nothing here is public api; the protocol is an internal detail and can change between releases.",
+        "count": 1
+    },
+    {
+        "fingerprint": "df009118dbfc52b18999a1f9e512b6188513c97aab5cf52da136df1b74fa4e84",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "semicolon",
+        "passage": "two situations fail the whole run rather than triggering containment, on the theory that a broken environment should be loud: a spawned worker that never says literal within 30 seconds, and a connected worker that goes silent for 60 seconds with no test in flight. both point at something outside the suite (a broken bootstrap, a blocked socket), and re-spawning would loop forever. there is also a spawn budget across the whole run; if replacements keep dying, the run fails with a diagnosis instead of respawning indefinitely.",
+        "count": 1
+    },
+    {
+        "fingerprint": "460dd56686df46f4bc444a8141d2e0669e317053b33b1f60a0d11b7ee8e6a196",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "semicolon",
+        "passage": "workers send only metadata in literal . the orchestrator publishes staged files before forwarding the event, keeping binary content outside the 8 mib frame limit. atomic sidecars let it recover completed attachments if a worker crashes; see literal .",
+        "count": 1
+    },
+    {
+        "fingerprint": "c07f2b729d86983c14d0da6de014bb758c31164a0ea4a0637312c3ef74398e70",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "crashes. if the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. the rest of the assignment goes back on the queue for a replacement. the crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn. the orchestrator releases the assignment's resource slots before re-queuing unfinished entries.",
+        "count": 1
+    },
+    {
+        "fingerprint": "a05c0892edf90524c37ca13d80ded6efbaf8b857dba7afa136333f7a98f2092c",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "events stream one frame per event, the moment they happen. the orchestrator forwards each event to the reporters and updates its running summary as frames arrive, which is what makes live per-worker output and flat orchestrator memory possible. nothing accumulates worker-side.",
+        "count": 1
+    },
+    {
+        "fingerprint": "abfe05f9c78a0cb45f3a59ee33ec56c8396351fc41d23d494bd11eb1e2fb612a",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "fatal errors. a worker that catches an error it cannot recover from sends literal with the throwable's details before exiting, which gives the orchestrator a real message to report instead of a bare dead process.",
+        "count": 1
+    },
+    {
+        "fingerprint": "d34b995b3cec9fcc15ff07dee0f7473305900a032ea9ec8c902b9e6c4150274a",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "literal entries are queued separately and follow a stricter rule: only a fresh worker, one that has not yet run anything, may take one, and only once the pooled queue is empty. after the isolated assignment's literal , the orchestrator sends literal and lets the process exit rather than returning it to the pool. whatever global state the test mutated dies with the worker. an isolated entry still waits for its required resources before assignment.",
+        "count": 1
+    },
+    {
+        "fingerprint": "96dc028583e300c68fd0db85d0c97344a6b3c24154c2b45f4302d0d177d51140",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "there is no separate \"give me work\" message. the pull model rides on literal and literal : the orchestrator reacts to each by assigning the next queued class, so a worker asks for more work simply by finishing what it has.",
+        "count": 1
+    },
+    {
+        "fingerprint": "0e5db80d24c5ae9d8b14cc3a85061ddce193a2b94697fce7c3095fa00da34c0b",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "this document covers the wire traffic between the orchestrator and its workers: how a worker is born, what the two processes say to each other, and every way a worker leaves the pool. it is background reading for contributors and for anyone debugging a parallel run. nothing here is public api; the protocol is an internal detail and can change between releases.",
+        "count": 1
+    },
+    {
+        "fingerprint": "21d87680560800b4c55becdc648219356c82505e367143f5e1992066431b2669",
+        "path": "docs/architecture/worker-lifecycle.md",
+        "rule": "sentence-length",
+        "passage": "two situations fail the whole run rather than triggering containment, on the theory that a broken environment should be loud: a spawned worker that never says literal within 30 seconds, and a connected worker that goes silent for 60 seconds with no test in flight. both point at something outside the suite (a broken bootstrap, a blocked socket), and re-spawning would loop forever. there is also a spawn budget across the whole run; if replacements keep dying, the run fails with a diagnosis instead of respawning indefinitely.",
+        "count": 1
+    }
+]

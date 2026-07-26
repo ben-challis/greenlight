@@ -1,0 +1,128 @@
+[
+    {
+        "fingerprint": "4b13e3a0a7cde175481260c2d3446cdac4c5ce0e654c9e1b9adcd2dfe9538cc8",
+        "path": "src/Expect/Equality.php",
+        "rule": "semicolon",
+        "passage": "beyond 2**53 a float cannot hold the int exactly; keeping the exact digits stops distinct large ints from colliding on one key, which would freeze them in their original list positions.",
+        "count": 1
+    },
+    {
+        "fingerprint": "91327c6a8dc1642246bbc1428a43104f2ed1e62af2a6a6dff99e148fed0bcc9d",
+        "path": "src/Expect/Equality.php",
+        "rule": "semicolon",
+        "passage": "keys are precomputed once per element; sorting with a comparator would re-serialize both operands on every comparison.",
+        "count": 1
+    },
+    {
+        "fingerprint": "72b4d6edd2ef8d81a6cc29329d86d61792f71b6caaa9746239acdb00ce799f7b",
+        "path": "src/Expect/Equality.php",
+        "rule": "semicolon",
+        "passage": "serializes a canonicalized value into a stable ordering key. numbers share one representation so 1 and 1.0 sort together; objects without comparable state (closures, resources) fall back to identity.",
+        "count": 1
+    },
+    {
+        "fingerprint": "75fbcb38a2c4cd252c26e8d43f93c7bd34a70f3929a979ee989c842b6a3f4f8b",
+        "path": "src/Expect/Equality.php",
+        "rule": "sentence-length",
+        "passage": "beyond 2**53 a float cannot hold the int exactly; keeping the exact digits stops distinct large ints from colliding on one key, which would freeze them in their original list positions.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f7f61e7d58de012989f53b70ec6e33fb67b28a3b096a25d0abc39af9cb4bfcdf",
+        "path": "src/Expect/Expect.php",
+        "rule": "semicolon",
+        "passage": "replaces the worker-local extension list consulted by every subsequent that() chain. called once per worker at boot; tests that install their own extensions must restore the previous list themselves.",
+        "count": 1
+    },
+    {
+        "fingerprint": "6c4e9c8d9ebfc8e6eda22289cc0a7d8cea0a29fe478d7e60b6fcf213ad2ecb6a",
+        "path": "src/Expect/Expect.php",
+        "rule": "sentence-length",
+        "passage": "extension matchers are worker-local state: install() stores the configured expectationextension list once at worker boot, and every chain created by that() dispatches through it. workers are single-threaded and the runner owns the install point, so the static registry is never observed mid-mutation. before install() runs, that() works with no extensions.",
+        "count": 1
+    },
+    {
+        "fingerprint": "df71def85a6e44691268392e88d1e94783b6a480ee8163caf67352cdf4b3d3c9",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "- ints and floats compare by numeric value, so 1 equals 1.0; nan equals nothing, including itself - all other scalars and null compare strictly, so '1' does not equal 1 - arrays are equal when they hold the same keys, in any order, with recursively equal values - enum cases compare by identity - datetimeinterface instances are equal when they denote the same instant at microsecond precision; the timezone is ignored - other objects are equal when they share the exact class and every property, including private and inherited ones, is recursively equal; cyclic structures are compared without recursing forever - closures and resources compare by identity",
+        "count": 1
+    },
+    {
+        "fingerprint": "9068cb46cfe93cab222d756932eaf6381f2cf0472bce7e1c106d6ae95e8ee745",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "deep equality; the exact semantics are documented on this class.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1c79853b017787f7862b6ac1526a0ec185e5037f2b997a1a6eff494eb40171c1",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "every key in the subset must exist in the subject array with an equal value (toequal() semantics); nested arrays match as subsets too, so they may hold extra keys. the failure names the first differing key by its dot-joined path.",
+        "count": 1
+    },
+    {
+        "fingerprint": "04246c1ca90db20646c6dd01e17c086666a850983cce62f2b6e565ac931b4265",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "passes when the subject is the empty string or holds zero elements. the subject must be a string, array, countable or iterable; traversable subjects are consumed by the check.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4f1e092bc2281daf092339f35dccd131e7f7a77f86d926499b1d55aa216736fb",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "the subject must be a callable; it is invoked with no arguments. passes when it throws an instance of the given class whose message satisfies the optional regular expression or exact-message constraint.",
+        "count": 1
+    },
+    {
+        "fingerprint": "d65f5eebc716a275bf78f5bda655f85dc4e8ef5a92da0b92ff6ca4c2a6e5ed42",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "the subject must be a string holding valid json that decodes to a structure deeply equal to the decoded expected json, so object key order is irrelevant. a subject that is not valid json fails with a message saying so; expected values that are not valid json are misuse.",
+        "count": 1
+    },
+    {
+        "fingerprint": "70de418242af0175a2caa313be67491f7603566220abfe5abfa2719a5dd48830",
+        "path": "src/Expect/Expectation.php",
+        "rule": "semicolon",
+        "passage": "the subject must be a string; passes when it is valid json.",
+        "count": 1
+    },
+    {
+        "fingerprint": "340b0879c3c2f4b36ec88c8484c6c7a5df75a59f345fd208c0b7bf338d747276",
+        "path": "src/Expect/Expectation.php",
+        "rule": "sentence-length",
+        "passage": "- ints and floats compare by numeric value, so 1 equals 1.0; nan equals nothing, including itself - all other scalars and null compare strictly, so '1' does not equal 1 - arrays are equal when they hold the same keys, in any order, with recursively equal values - enum cases compare by identity - datetimeinterface instances are equal when they denote the same instant at microsecond precision; the timezone is ignored - other objects are equal when they share the exact class and every property, including private and inherited ones, is recursively equal; cyclic structures are compared without recursing forever - closures and resources compare by identity",
+        "count": 1
+    },
+    {
+        "fingerprint": "64a60065c6f04fae7833c2b4a1a8626b39dce2b97e86267bf29271f49de85e9e",
+        "path": "src/Expect/Expectation.php",
+        "rule": "sentence-length",
+        "passage": "every key in the subset must exist in the subject array with an equal value (toequal() semantics); nested arrays match as subsets too, so they may hold extra keys. the failure names the first differing key by its dot-joined path.",
+        "count": 1
+    },
+    {
+        "fingerprint": "6fa22233c095aa01560b791fb9d44b23134078ccdaf6813aa8b444347b0defae",
+        "path": "src/Expect/Expectation.php",
+        "rule": "sentence-length",
+        "passage": "the subject must be a string holding valid json that decodes to a structure deeply equal to the decoded expected json, so object key order is irrelevant. a subject that is not valid json fails with a message saying so; expected values that are not valid json are misuse.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1c3d6ed2759e2ffd7bc72efa9234b31c61ed38c9ef69c1e24f017999e0215602",
+        "path": "src/Expect/ExpectationExtension.php",
+        "rule": "semicolon",
+        "passage": "the predicate receives the subject followed by the matcher arguments, declared with real native parameter types, and must return true for the expectation to hold; anything else fails it. concrete matchers narrow their parameters, so no closure signature covers them all.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f23755f74c89266a1de29a479980d40b35db5507f6770fe6dc7e5342742cb6bc",
+        "path": "src/Expect/ExpectationExtension.php",
+        "rule": "sentence-length",
+        "passage": "the predicate receives the subject followed by the matcher arguments, declared with real native parameter types, and must return true for the expectation to hold; anything else fails it. concrete matchers narrow their parameters, so no closure signature covers them all.",
+        "count": 1
+    }
+]

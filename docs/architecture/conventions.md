@@ -1,11 +1,28 @@
 # Code conventions
 
 These conventions apply to new and materially changed Greenlight modules.
-Existing code may predate a rule; do not churn unrelated code solely to make a
-file look conformant.
+Existing code can predate a rule. Do not change unrelated code only to make a
+file conform.
 
-The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are
-to be interpreted as normative requirements.
+In this document, uppercase **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**,
+and **MAY** specify normative requirements.
+
+## Technical writing
+
+Repository-owned technical prose **MUST** follow
+[the technical writing standard](technical-writing.md). The standard applies
+ASD-STE100 Issue 9 to documentation, PHPDoc, comments, contributor material,
+accessibility copy, diagnostics, CLI help, and human-readable output.
+
+Authors **MUST** manually review the meaning and the controlled vocabulary.
+They **MUST** also review active voice, verbal `-ing` forms, and instruction
+structure. Automated checks cannot certify these requirements.
+
+Marketing copy **MUST** use STE clarity principles. It **MAY** use words that
+are not in the controlled vocabulary.
+
+Uppercase normative tokens are an approved exception to the controlled
+vocabulary.
 
 ## Exceptions
 
@@ -63,8 +80,8 @@ naming the fix, flag, or method to call.
 Value objects **SHOULD** be `final readonly` classes with promoted constructor
 properties.
 
-A property **SHOULD NOT** be demoted unless runtime validation is needed to
-protect a narrowed phpdoc type.
+A property **SHOULD NOT** be demoted unless runtime validation is necessary to
+protect a narrowed PHPDoc type.
 
 Constructor validation **MUST** throw `\InvalidArgumentException`.
 
@@ -93,7 +110,7 @@ files, or phase numbers. They **MUST** state the relevant constraint directly.
 ## Tests
 
 Test method names **MUST** use sentence-style camelCase and describe the
-behaviour:
+behavior:
 
 ```php
 bailStopsTheRunAfterTheThreshold
@@ -104,7 +121,7 @@ Assertions **SHOULD** use `Greenlight\Expect`.
 `Greenlight\Tests\Support\Check` **MUST** be used only where `Expect` cannot test
 itself.
 
-Fixture directories under `tests/Fixture/` **SHOULD** cover one behaviour each.
+Fixture directories under `tests/Fixture/` **SHOULD** cover one behavior each.
 
 Once another suite depends on a fixture directory, that directory **MUST** be
 treated as append-only.

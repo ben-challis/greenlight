@@ -1,0 +1,16 @@
+[
+    {
+        "fingerprint": "92492a76bdd9b9e6afb6ce6302a52f5d35dc50878480b14878c18d7ae614552e",
+        "path": "src/Harness/ScopeContainer.php",
+        "rule": "semicolon",
+        "passage": "disposes created services in reverse creation order. never throws; every failure is collected so one broken teardown cannot leak the rest.",
+        "count": 1
+    },
+    {
+        "fingerprint": "86494f0c8108416402162c204c481aeaa079627fa1d486e74179d473c9624379",
+        "path": "src/Harness/UnresolvableService.php",
+        "rule": "sentence-length",
+        "passage": "raised when constructor injection cannot resolve a parameter: no harness service is registered for the type and no fallback resolver supplied it, a resolver answered with the wrong type, or the parameter has no resolvable type at all.",
+        "count": 1
+    }
+]
