@@ -115,7 +115,7 @@ stateDiagram-v2
 
 **Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn. The orchestrator releases the assignment's resource slots before re-queuing unfinished entries.
 
-**Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL and treats it like a crash, except the test is reported as a timeout failure.
+**Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL. The test is reported as failed, with its elapsed duration and a timeout failure detail; staged attachments are recovered and untouched tests are re-queued. The replacement is currently reported with the `crash` recycle reason because the public recycle-reason enum groups all abnormal worker terminations together.
 
 The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
