@@ -1,10 +1,10 @@
 # Test attachments
 
-Attachments keep diagnostic data with the test result that produced it, without
-writing the data to captured stdout. Tests and worker-side plugins can attach
-JSON values, text, bytes, or existing files.
+Attachments keep diagnostic data with the related test result. They do not write this
+data to captured stdout. Tests and worker-side plugins can attach JSON values,
+text, bytes, or files that already exist.
 
-## Adding attachments
+## Attachment creation
 
 Ask for `Greenlight\Core\Artifact\Attachments` through constructor injection:
 
@@ -37,13 +37,13 @@ final readonly class CheckoutTest
 media type. `file()` copies a regular file and detects its media type when
 possible.
 
-Greenlight copies the content before the method returns. A temporary source file
-can be removed as soon as `file()` returns, and later changes to a value or file
-do not affect the attachment.
+Greenlight copies the content before the method returns. You can remove a
+temporary source file after `file()` returns. Later changes to a value or file
+do not change the attachment.
 
-Attachments are retained when the attempt fails or errors. This includes a
-passing attempt changed to another outcome by result policy. To retain an
-attachment from a passing attempt, set its retention to
+Greenlight retains attachments when the attempt fails or has an error. This
+rule includes a successful attempt that result policy changes to another
+outcome. To retain an attachment from a successful attempt, set its retention to
 `AttachmentRetention::Always`:
 
 ```php
@@ -54,16 +54,16 @@ $attachments->text(
 );
 ```
 
-Each retry has its own attachments. Attachments from failed attempts remain on
+Each retry has separate attachments. Attachments from failed attempts stay on
 the final result even if a later attempt passes. The `attempt` field identifies
-the attempt that produced each attachment. Attachments from the passing attempt
-are discarded unless their retention is `always`.
+the source attempt for each attachment. Greenlight discards attachments from
+the successful attempt unless their retention is `always`.
 
 ## Output directory
 
-Retained attachments from each run go into a unique directory below
-`build/greenlight-artifacts` by default. Runs with no retained attachments do
-not create an empty directory. Change the parent directory in `greenlight.php`:
+By default, Greenlight writes retained attachments to a unique run directory
+below `build/greenlight-artifacts`. A run with no retained attachments does not
+create an empty directory. Change the parent directory in `greenlight.php`:
 
 ```php
 use Greenlight\Config\ArtifactBuilder;
@@ -79,8 +79,8 @@ Use `--artifacts-dir` to override it for one run:
 greenlight run --artifacts-dir=build/ci-evidence
 ```
 
-Greenlight does not delete completed run directories. Remove them locally or use
-the artifact retention settings in CI.
+Greenlight does not delete completed run directories. For local runs, remove
+these directories. In CI, use the artifact retention settings.
 
 ## Metadata and names
 
@@ -93,18 +93,18 @@ separators, control characters, `.` or `..`. Repeated names within one attempt
 receive `-2`, `-3`, and later suffixes in their published filenames. Their
 logical names remain unchanged in the result metadata.
 
-Test identifiers are slugged and hashed before Greenlight uses them in paths.
+Greenlight converts test IDs to slugs and hashes before it uses them in paths.
 
 ## File safety
 
 Source files must be regular files, not symlinks. Greenlight verifies that a
-source does not change while it is copied. Published paths remain inside the
-configured run directory. Artifact files are created with private permissions
-where the platform supports them.
+source does not change during the copy operation. Published paths stay in the
+configured run directory. Greenlight creates artifact files with private
+permissions on supported platforms.
 
-Greenlight does not inspect or redact attachment contents. Remove secrets and
-personal data before attaching a value or file. Access to the output directory
-should follow the same policy as other sensitive CI artifacts.
+Greenlight does not inspect attachment content. It does not redact attachment
+content. Before you attach a value or file, remove secrets and personal data.
+Apply the policy for sensitive CI artifacts to the output directory.
 
 ## Limits
 
@@ -116,22 +116,22 @@ The defaults are:
 * 10,000 attachments per run
 * 1 GiB across all attachments for one run
 
-Configure them with `maxAttachmentsPerTest()`, `maxAttachmentSize()`,
+Configure the limits with `maxAttachmentsPerTest()`, `maxAttachmentSize()`,
 `maxTestSize()`, `maxRunAttachments()`, and `maxRunSize()` on
-`ArtifactBuilder`. Size methods accept values such as `10M` and `2G`. Exceeding
-a limit fails the active test with an attachment error. Greenlight does not
+`ArtifactBuilder`. Size methods accept values such as `10M` and `2G`. A limit
+violation fails the active test with an attachment error. Greenlight does not
 truncate attachment content.
 
-Run-wide limits are coordinated through private shared staging, so they
+Greenlight coordinates run limits through private shared staging. Thus, they
 apply across parallel workers. Per-test limits include all attempts, even when
-some attachments are later discarded. Run quota is released when an attachment
-is discarded.
+Greenlight discards some attachments later. Greenlight releases run quota when
+it discards an attachment.
 
 ## Plugins
 
-`$context->attachments` exposes the same attempt-owned object to
+`$context->attachments` gives the same attempt-owned object to
 `TestLifecycleSubscriber::beforeTest()` and `afterTest()`. A plugin can attach
-data before the test or after inspecting its result.
+data before the test or after it examines the result.
 
 A retry decider receives attachment metadata on the `TestResult`, but it cannot
 read the content through the result. See [writing plugins](plugins.md) for the
@@ -148,5 +148,5 @@ JSONL includes attachment metadata and reports the run directory in
 `run-started.artifactsDirectory`. See the [JSONL
 schema](architecture/jsonl.md).
 
-For other CI systems, upload the reported run directory from a post-test step
-that runs even when the test command fails.
+For other CI systems, use a post-test step that always runs. Upload the reported
+run directory from this step.

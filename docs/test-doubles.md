@@ -1,7 +1,8 @@
 # Test doubles
 
-Greenlight provides strict mocks, inert stubs, and recording spies through the
-per-test `Doubles` service. Ask for it through constructor injection:
+Greenlight provides strict mocks, inert stubs, and spies that record calls. The
+per-test `Doubles` service supplies these doubles. Request this service through
+constructor injection:
 
 ```php
 use Greenlight\Attribute\Test;
@@ -33,20 +34,20 @@ final class CheckoutServiceTest
 }
 ```
 
-Mocks are verified automatically when the test ends.
+Greenlight verifies mocks when the test ends.
 
-## Choosing a double
+## Double selection
 
-* Use `mock(Type::class, $plan)` when the test expects specific calls and
-  responses. An unplanned interaction fails immediately.
-* Use `stub(Type::class)` when a dependency must exist but must not be used.
-  Any interaction fails immediately.
-* Use `spy(Type::class)` when the test needs to inspect void-returning calls
-  afterwards. An unplanned call is recorded.
+* If the test expects specific calls and responses, use
+  `mock(Type::class, $plan)`. An unplanned interaction fails immediately.
+* If the test needs an unused dependency, use `stub(Type::class)`. Each
+  interaction fails immediately.
+* If the test must examine void-returning calls after they occur, use
+  `spy(Type::class)`. The spy records an unplanned call.
 
-Calling a value-returning method on a spy fails the test.
+A call to a value-returning method on a spy fails the test.
 
-## Planning mock calls
+## Mock call plans
 
 The plan passed to `mock()` declares expectations with `expects()`:
 
@@ -57,20 +58,21 @@ $plan->expects('reserve')
     ->andReturns(true);
 ```
 
-Each method expectation defaults to at least one call. Change its cardinality
-with:
+Each method expectation has a default cardinality of at least one call. Use one
+of these methods to change its cardinality:
 
 * `once()`
 * `times(int $count)`
 * `atLeast(int $count)`
 * `never()`
 
-A call that matches no expectation fails immediately. Unmet expectations fail
-at teardown, and Greenlight reports all of them together.
+A call that does not match an expectation fails immediately. At teardown, an
+unmet expectation fails the test. Greenlight reports all unmet expectations
+together.
 
-## Configuring responses
+## Mock responses
 
-Every value-returning mock method needs an explicit response:
+Each value-returning mock method needs an explicit response:
 
 ```php
 $plan->expects('nextId')->andReturns('id-1');
@@ -86,10 +88,10 @@ $plan->expects('load')
     ->andThrows(new NotFound('Missing record.'));
 ```
 
-`andReturnsSequence()` consumes one value per matching call. Calling the method
-after the sequence is exhausted is an authoring error.
+`andReturnsSequence()` consumes one value for each call that matches. A call
+after the sequence is empty causes an authoring error.
 
-## Matching arguments
+## Argument matches
 
 Bare values passed to `with()` use the same deep equality as `toEqual()`:
 
@@ -120,7 +122,7 @@ Available matchers are:
 * `Argument::equals(mixed $value)`
 * `Argument::captor()`
 
-## Capturing arguments
+## Argument capture
 
 Capture one argument from every matched call:
 
@@ -136,13 +138,13 @@ Expect::that($captor->values())->toHaveCount(2);
 Expect::that($captor->value())->toBeInstanceOf(Order::class);
 ```
 
-`values()` returns every captured value. `value()` returns the last one and
-fails if nothing was captured.
+`values()` returns each captured value. `value()` returns the last value. It
+fails if `Argument::captor()` did not capture a value.
 
-An explicit `Argument::captor()` can be placed directly inside `with()` when a
-plan needs more than one captor.
+If a plan must capture more than one argument, put an explicit
+`Argument::captor()` inside `with()` for each argument.
 
-## Reading spy calls
+## Spy calls
 
 `callsTo()` returns argument lists in call order:
 
@@ -158,9 +160,9 @@ Expect::that(
 
 ## Supported types and limits
 
-Interfaces and non-final classes can be doubled. Greenlight does not run the
-class constructor when it creates a double.
+Greenlight can create doubles for interfaces and non-final classes. It does not
+run the class constructor when it creates a double.
 
-Final classes, readonly classes, and enums are rejected. Greenlight does not
-support partial mocks or static method interception. Prefer doubling an
+Greenlight rejects final classes, readonly classes, and enums. It does not
+support partial mocks or static method interception. Prefer a double for an
 interface at the application boundary.

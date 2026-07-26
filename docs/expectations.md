@@ -1,7 +1,7 @@
 # Expectations
 
-Greenlight expectations start with a subject value and apply one or more typed
-matchers to it:
+A Greenlight expectation starts with a subject value. It applies one or more
+typed matchers to that value:
 
 ```php
 use Greenlight\Expect\Expect;
@@ -9,11 +9,11 @@ use Greenlight\Expect\Expect;
 Expect::that($order->status())->toBe(OrderStatus::Paid);
 ```
 
-A matcher that does not pass throws immediately. Greenlight reports the source
-location and includes expected and actual values when the matcher can provide
+A matcher throws immediately if it does not pass. Greenlight reports the source
+location. It also reports expected and actual values when the matcher supplies
 them.
 
-## Chaining
+## Matcher chains
 
 `and()` starts a new chain from another value:
 
@@ -37,17 +37,19 @@ Expect::that($result)->not()->toBeNull()
   identical with `===`.
 * `toEqual(mixed $expected)` passes when the values are deeply equal.
 * `toEqualCanonicalizing(mixed $expected)` passes when the values are deeply
-  equal after list order is ignored recursively.
+  equal after the matcher recursively ignores list order.
 * `toBeOneOf(mixed ...$options)` passes when the subject is identical to one
   option.
 * `toBeIn(iterable $haystack)` passes when the subject is identical to an item
   in the iterable.
 
-`toEqual()` compares integers and floats by numeric value. Other scalars compare
-strictly. Arrays compare by key and recursively equal values. Objects must have
-the same class and recursively equal properties, including private properties.
-Enum cases compare by identity, and `DateTimeInterface` values compare by
-instant at microsecond precision.
+`toEqual()` compares integers and floats by numeric value. It compares other
+scalars strictly. It compares arrays by key and recursively equal values.
+Objects must have the same class and recursively equal properties. This rule
+includes private properties.
+
+Enum cases compare by identity.
+`DateTimeInterface` values compare by instant at microsecond precision.
 
 ### Type predicates
 
@@ -100,7 +102,7 @@ Numeric matchers accept integer or float subjects:
 
 ### JSON
 
-`toBeJson()` requires a string containing valid JSON.
+`toBeJson()` requires a string that contains valid JSON.
 
 `toMatchJson(string $expected)` decodes both strings and compares their
 structures with `toEqual()` semantics. JSON object key order does not matter.
@@ -130,10 +132,10 @@ Expect::that($callback)->toThrow(
 
 `message:` and `matching:` are mutually exclusive.
 
-## Waiting for asynchronous state
+## Asynchronous state
 
-`Expect::eventually()` calls a probe immediately, then polls until its matcher
-passes or `within()` expires:
+`Expect::eventually()` calls a probe immediately. It then polls until its
+matcher passes or `within()` expires:
 
 ```php
 Expect::eventually(fn() => $repository->find($id))
@@ -142,8 +144,8 @@ Expect::eventually(fn() => $repository->find($id))
     ->toEqual($expected);
 ```
 
-The default polling interval is 25ms. Probe exceptions stop polling unless
-their types are listed with `retryOnException()`:
+The default poll interval is 25 ms. A probe exception stops the polls unless
+`retryOnException()` lists its type:
 
 ```php
 Expect::eventually(fn() => $client->fetch($id))
@@ -162,13 +164,13 @@ Expect::consistently(fn() => $outbox->messagesFor($id))
     ->toHaveCount(1);
 ```
 
-Each polling matcher counts as one expectation. The test timeout limits its
-duration, and the worker timeout remains the hard limit for a blocked probe.
+Each temporal matcher counts as one expectation. The test timeout limits its
+duration. The worker timeout remains the hard limit for a blocked probe.
 
-## Failing explicitly
+## Explicit failures
 
-Use `Fail::because()` when a test reaches an invalid state that does not fit a
-matcher:
+If a test reaches an invalid state that does not fit a matcher, use
+`Fail::because()`:
 
 ```php
 use Greenlight\Expect\Fail;
@@ -182,4 +184,4 @@ if (!$response instanceof SuccessResponse) {
 ```
 
 The call counts as an expectation and reports itself as the failure location.
-Use a manual guard when the IDE needs type narrowing.
+If the IDE cannot determine the type, use a manual guard.
