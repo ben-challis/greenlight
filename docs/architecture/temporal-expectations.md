@@ -23,6 +23,10 @@ value. Any matcher chained after it checks that value once.
 Polling uses a monotonic clock. `SystemPollingClock` reads `hrtime(true)` and
 sleeps with `usleep()`. Unit tests use a fake clock.
 
+The default polling interval is 25ms. `pollEvery()` accepts finite intervals of
+at least 1ms. The duration passed to `within()` or `for()` must be finite and
+greater than zero.
+
 Both methods call the probe immediately, then wait for the configured fixed
 interval before calling it again. Probe calls never overlap.
 
@@ -49,6 +53,9 @@ orchestrator's process timeout remains the hard limit.
 Each test retry has a new instance, scope, deadline, and observation log. The
 first interrupt signal still lets tests in flight finish, including tests that
 are polling.
+
+`retryOnException()` accepts `Exception` subclasses only. PHP `Error` values are
+never retryable, even when a broad throwable type would otherwise match.
 
 ## Failures
 
