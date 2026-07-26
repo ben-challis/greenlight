@@ -1029,10 +1029,9 @@ code {
   max-width: 12ch;
 }
 
-.closing-cta > p:not(.eyebrow) {
+.closing-cta-intro > p:not(.eyebrow) {
   max-width: 42rem;
   margin-top: 1.5rem;
-  margin-left: max(0px, calc((100% - min(100%, 72rem)) / 2));
   font-size: 1.2rem;
 }
 
