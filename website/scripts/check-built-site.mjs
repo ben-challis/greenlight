@@ -44,6 +44,23 @@ const files = await filesBelow(root);
 const htmlFiles = files.filter((file) => file.endsWith('.html'));
 const htmlByFile = new Map();
 
+const application = await readFile(resolve('../src/Cli/Application.php'), 'utf8');
+const configurationReference = await readFile(resolve('../docs/configuration.md'), 'utf8');
+const registeredOptions = new Set(
+  [...application.matchAll(/new OptionSpec\('([^']+)'/g)].map((match) => match[1]),
+);
+const documentedOptions = new Set(
+  [...configurationReference.matchAll(/^### (?:-[A-Za-z], )?--([a-z][a-z-]*)(?:[=<[]|$)/gm)].map(
+    (match) => match[1],
+  ),
+);
+
+for (const option of registeredOptions) {
+  if (!documentedOptions.has(option)) {
+    errors.push(`configuration.md: missing CLI option section for --${option}`);
+  }
+}
+
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
   htmlByFile.set(file, html);
