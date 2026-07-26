@@ -57,7 +57,7 @@ const documentedOptions = new Set(
 
 for (const option of registeredOptions) {
   if (!documentedOptions.has(option)) {
-    errors.push(`configuration.md: missing CLI option section for --${option}`);
+    errors.push(`configuration.md: No section exists for CLI option --${option}.`);
   }
 }
 
@@ -68,27 +68,27 @@ for (const file of htmlFiles) {
   const label = relative(root, file);
 
   if (!/<title>[^<]+<\/title>/.test(html)) {
-    errors.push(`${label}: missing title`);
+    errors.push(`${label}: The page does not contain a title.`);
   }
 
   if (!/<meta name="description" content="[^"]+">/.test(html)) {
-    errors.push(`${label}: missing description`);
+    errors.push(`${label}: The page does not contain a description.`);
   }
 
   if (!/<link rel="canonical" href="https:\/\/ben-challis\.github\.io\/greenlight\//.test(html)) {
-    errors.push(`${label}: missing or invalid canonical URL`);
+    errors.push(`${label}: The page does not contain a valid canonical URL.`);
   }
 
   const attributes = html.matchAll(/\b(?:href|src)="([^"]+)"/g);
 
   for (const [, url] of attributes) {
     if (url.endsWith('.md') && !url.startsWith('https://github.com/')) {
-      errors.push(`${label}: source Markdown link leaked into the built site (${url})`);
+      errors.push(`${label}: The built site contains a source Markdown link (${url}).`);
       continue;
     }
 
     if (url.startsWith('/') && !url.startsWith(`${base}/`)) {
-      errors.push(`${label}: root-relative URL is missing the Pages base path (${url})`);
+      errors.push(`${label}: The root-relative URL does not include the Pages base path (${url}).`);
       continue;
     }
 
@@ -96,7 +96,7 @@ for (const file of htmlFiles) {
       const id = decodeURIComponent(url.slice(1));
 
       if (id !== '' && !html.includes(`id="${id}"`)) {
-        errors.push(`${label}: missing local fragment target (${url})`);
+        errors.push(`${label}: Local fragment target does not exist (${url}).`);
       }
 
       continue;
@@ -110,7 +110,7 @@ for (const file of htmlFiles) {
     const target = targetFile(parsed.pathname);
 
     if (!(await exists(target))) {
-      errors.push(`${label}: missing internal target (${url})`);
+      errors.push(`${label}: Internal target does not exist (${url}).`);
       continue;
     }
 
@@ -119,23 +119,23 @@ for (const file of htmlFiles) {
       const id = decodeURIComponent(parsed.hash.slice(1));
 
       if (!targetHtml.includes(`id="${id}"`)) {
-        errors.push(`${label}: missing cross-page fragment target (${url})`);
+        errors.push(`${label}: Cross-page fragment target does not exist (${url}).`);
       }
     }
   }
 }
 
 if (!(await exists(join(root, '_pagefind', 'pagefind.js')))) {
-  errors.push('Pagefind search index is missing');
+  errors.push('The Pagefind search index does not exist.');
 }
 
 if (await exists(join(root, 'docs', 'architecture', 'index.html'))) {
-  errors.push('Repository-only architecture documentation was published');
+  errors.push('The site contains repository-only architecture documentation.');
 }
 
 if (errors.length > 0) {
   console.error(errors.join('\n'));
   process.exitCode = 1;
 } else {
-  console.log(`Validated ${htmlFiles.length} HTML pages and their internal targets.`);
+  console.log(`The site check validated ${htmlFiles.length} HTML pages and their internal targets.`);
 }

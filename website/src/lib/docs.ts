@@ -8,13 +8,13 @@ export const docSections = [
     items: [
       {
         id: 'getting-started',
-        title: 'Getting started',
-        description: 'Install Greenlight, write a first test, and understand the runner.',
+        title: 'Start with Greenlight',
+        description: 'This guide explains how to install Greenlight, write your first test, and use the runner.',
       },
       {
         id: 'migrating-from-phpunit',
-        title: 'Migrating from PHPUnit',
-        description: 'Map familiar PHPUnit concepts onto Greenlight deliberately.',
+        title: 'Move from PHPUnit',
+        description: 'This guide compares PHPUnit and Greenlight concepts and explains the required changes.',
       },
     ],
   },
@@ -24,27 +24,27 @@ export const docSections = [
       {
         id: 'configuration',
         title: 'Configuration',
-        description: 'Configure suites, workers, resource limits, coverage, and the CLI.',
+        description: 'This reference explains configuration for suites, workers, resource limits, coverage, and the CLI.',
       },
       {
         id: 'attributes',
         title: 'Attributes',
-        description: 'Reference every test, lifecycle, data, and execution attribute.',
+        description: 'This reference explains attributes for tests, hooks, data sets, and execution.',
       },
       {
         id: 'expectations',
         title: 'Expectations',
-        description: 'Assert values, exceptions, and asynchronous state.',
+        description: 'This reference explains value, exception, and temporal expectations.',
       },
       {
         id: 'test-doubles',
         title: 'Doubles',
-        description: 'Plan strict mocks, use inert stubs, and inspect spies.',
+        description: 'This guide explains mocks, stubs, and spies.',
       },
       {
         id: 'attachments',
         title: 'Attachments',
-        description: 'Attach structured values and files to individual test results.',
+        description: 'This guide explains how to attach structured values and files to one test result.',
       },
     ],
   },
@@ -54,17 +54,17 @@ export const docSections = [
       {
         id: 'symfony',
         title: 'Symfony',
-        description: 'Use kernel-aware tests and inject services from the container.',
+        description: 'This guide explains how tests use a kernel and receive container services.',
       },
       {
         id: 'phpstan',
         title: 'PHPStan',
-        description: 'Type-check matchers, providers, and custom expectations.',
+        description: 'This guide explains how PHPStan checks matchers, data providers, and extension matchers.',
       },
       {
         id: 'plugins',
-        title: 'Writing plugins',
-        description: 'Extend lifecycle, retries, services, expectations, and reporting.',
+        title: 'Plugins',
+        description: 'This guide explains plugins for hooks, retry deciders, harness services, expectations, and reporters.',
       },
     ],
   },
@@ -74,7 +74,7 @@ export const docSections = [
       {
         id: 'benchmarks',
         title: 'Benchmarks',
-        description: 'Review the generated benchmark method, results, and limitations.',
+        description: 'This guide explains the generated benchmark method, results, and limitations.',
       },
     ],
   },
@@ -93,7 +93,7 @@ export function docById(id: string): DocDefinition {
   const doc = docs.find((candidate) => candidate.id === id);
 
   if (!doc) {
-    throw new Error(`No documentation metadata exists for "${id}".`);
+    throw new Error(`Documentation metadata does not exist for "${id}".`);
   }
 
   return doc;
@@ -131,15 +131,15 @@ export function assertCompleteDocCollection(
   if (missingMetadata.length > 0 || missingFiles.length > 0) {
     const details = [
       missingMetadata.length > 0
-        ? `missing metadata: ${missingMetadata.join(', ')}`
+        ? `No metadata exists for these documentation entries: ${missingMetadata.join(', ')}.`
         : undefined,
       missingFiles.length > 0
-        ? `missing Markdown: ${missingFiles.join(', ')}`
+        ? `No Markdown file exists for these metadata entries: ${missingFiles.join(', ')}.`
         : undefined,
     ]
       .filter(Boolean)
-      .join('; ');
+      .join(' ');
 
-    throw new Error(`Documentation collection is incomplete (${details}).`);
+    throw new Error(`Documentation collection is incomplete. ${details}`);
   }
 }
