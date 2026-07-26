@@ -6,12 +6,42 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch: ~
 
 concurrency:
   group: "ci-${{ github.head_ref || github.run_id }}"
   cancel-in-progress: true
 
 jobs:
+  documentation:
+    name: "Build documentation"
+    runs-on: "ubuntu-latest"
+    env:
+      ASTRO_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+
+      - name: "Set up Node"
+        uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: "website/package-lock.json"
+
+      - name: "Install dependencies"
+        run: "npm --prefix website ci"
+
+      - name: "Check and build"
+        run: "npm --prefix website run check"
+
+      - name: "Upload Pages artifact"
+        if: "github.event_name == 'push' || github.event_name == 'workflow_dispatch'"
+        uses: "actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9" # v5
+        with:
+          path: "website/dist"
+
   renovate-config:
     name: "Renovate configuration"
     runs-on: "ubuntu-latest"
@@ -187,10 +217,32 @@ jobs:
       - name: "Run the harness on a small parameter set"
         run: "php tools/benchmark.php --shape=many-fast --scale=1 --runs=1"
 
+  deploy-documentation:
+    name: "Deploy documentation"
+    if: "github.event_name == 'push' || github.event_name == 'workflow_dispatch'"
+    needs:
+      - "documentation"
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    runs-on: "ubuntu-latest"
+    permissions:
+      pages: "write"
+      id-token: "write"
+    environment:
+      name: "github-pages"
+      url: "${{ steps.deployment.outputs.page_url }}"
+
+    steps:
+      - name: "Deploy to GitHub Pages"
+        id: "deployment"
+        uses: "actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128" # v5
+
   required-checks:
     name: "Required checks"
     if: "always()"
     needs:
+      - "documentation"
       - "renovate-config"
       - "ci"
       - "memory"
@@ -201,6 +253,7 @@ jobs:
     steps:
       - name: "Verify required jobs"
         run: |
+          test "${{ needs.documentation.result }}" = "success"
           test "${{ needs.renovate-config.result }}" = "success"
           test "${{ needs.ci.result }}" = "success"
           test "${{ needs.memory.result }}" = "success"
