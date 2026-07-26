@@ -7,13 +7,12 @@ namespace Greenlight\Plugin;
 use Greenlight\Core\Event\Event;
 
 /**
- * Orchestrator-side observation of the event stream.
+ * Observes the orchestrator event stream.
  *
- * onRunEvent() receives run, worker, suite, class, and test events in arrival
- * order.
+ * onRunEvent() receives run, worker, suite, class, and test events in the
+ * order that they arrive.
  *
- * Observation is read-only; results cannot be altered from this side of the
- * process boundary.
+ * The subscriber only observes events and cannot change results.
  */
 interface RunLifecycleSubscriber extends Plugin
 {

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Raised when constructor injection cannot resolve a parameter: no harness
- * service is registered for the type and no fallback resolver supplied it,
- * a resolver answered with the wrong type, or the parameter has no
- * resolvable type at all.
+ * Reports that constructor injection cannot resolve a parameter. This happens
+ * if no harness service or service resolver supplies the required type. It
+ * also happens if a resolver supplies the wrong type or the parameter has no
+ * resolvable type.
  *
  * @internal
  */

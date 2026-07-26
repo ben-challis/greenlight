@@ -4,6 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
-/** Runs even when the test fails. */
+/** Runs after a test, even if the test fails. */
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class After {}

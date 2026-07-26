@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Attribute;
 
 /**
- * Supplies one inline argument list for a test method.
+ * Supplies one argument list in an attribute for a test method.
  *
- * The optional label becomes the data-set key in test ids. Unlabelled rows
- * use their position. Use #[DataSet] when attributes cannot express a value.
+ * The optional label becomes the data-set key in the test ID. A row without a
+ * label uses its position. Use #[DataSet] if an attribute cannot express a
+ * value.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final readonly class DataRow

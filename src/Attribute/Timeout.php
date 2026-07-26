@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Attribute;
 
 /**
- * Fails the test method, or every test in the class, when it runs longer
- * than the given number of seconds.
+ * Fails the test if its run time exceeds the specified number of seconds. A
+ * class attribute applies the limit to each test in the class.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Timeout

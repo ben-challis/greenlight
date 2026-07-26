@@ -8,10 +8,10 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
 
 /**
- * The configured plugins of one run, filtered by capability.
+ * Stores the plugins for one run and groups them by capability.
  *
- * Internal plugins (retry policy) run before user plugins; within each group,
- * Prioritized ordering applies with a stable sort.
+ * Internal plugins, such as RetryPlugin, run before user plugins. Within
+ * each group, Prioritized controls a stable order.
  *
  * @internal
  */

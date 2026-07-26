@@ -12,8 +12,8 @@ final class WatchBuilder
     private int $debounceMilliseconds = 200;
 
     /**
-     * The quiet period: a re-run fires only once no further change has
-     * arrived for this long, so save bursts coalesce into one run.
+     * Sets the quiet period before a new run. The period restarts after each
+     * change. Thus, multiple consecutive saves cause one run.
      *
      * @throws InvalidConfiguration
      */

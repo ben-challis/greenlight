@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Registry definitions take precedence over fallback resolvers. Fallback
- * objects are unmanaged and never disposed by Greenlight.
+ * A registry definition has precedence over a service resolver. Greenlight
+ * does not manage or dispose objects from a service resolver.
  *
- * The suite scope currently shares the run container's lifetime because suite
- * boundaries are not yet part of the execution plan.
+ * Currently, the suite service scope and run service scope have the same
+ * lifetime. The execution plan does not contain suite boundaries.
  *
  * @internal
  */

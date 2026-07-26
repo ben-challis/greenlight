@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * Parses human-readable memory sizes into bytes.
+ * Converts memory-size text to bytes.
  *
- * parseToBytes() accepts a plain byte count ('4096') or a positive integer
- * with a K, M, or G suffix using binary multiples ('512K', '256M', '1G'). An
- * optional trailing 'B' is tolerated ('256MB'). Anything else is rejected.
+ * parseToBytes() accepts a byte count ('4096') or a positive integer with a K,
+ * M, or G suffix ('512K', '256M', '1G'). The suffixes specify binary
+ * multiples. An optional final 'B' is valid ('256MB'). The method rejects all
+ * other forms.
  *
  * @internal
  */
@@ -61,8 +62,9 @@ final class MemorySize
     }
 
     /**
-     * Renders a byte count back into the shortest exact suffixed form, or a
-     * plain byte count when no binary suffix divides it evenly.
+     * Converts a byte count to the shortest exact form with a suffix. If no
+     * binary suffix divides the value evenly, the method returns a byte count
+     * without a suffix.
      *
      * @param positive-int $bytes
      */
