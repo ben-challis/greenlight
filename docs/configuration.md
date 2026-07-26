@@ -469,6 +469,22 @@ Matching is case-insensitive substring matching by default. A pattern containing
 
 Repeatable. Multiple filters are unioned.
 
+### --test-id=<id>
+
+Runs only the exact test id. Unlike `--filter`, this option never performs
+substring or wildcard matching.
+
+Use the ids printed by `list-tests` or `--list-tests`, including the data-set
+label when present:
+
+```sh
+greenlight run \
+    '--test-id=App\Tests\OrderTest::placesOrder[card]'
+```
+
+Repeatable. Multiple exact ids are unioned with each other and with
+`--filter`. Exclusions still take precedence.
+
 ### --exclude-group=<name>
 
 Excludes tests in the given group.
