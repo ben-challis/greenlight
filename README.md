@@ -29,6 +29,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Coverage through pcov or Xdebug
 * Plain PHP test classes and PHP configuration
 * First-party Symfony and PHPStan extensions
+* Automated PHPUnit test conversion with a bundled Rector rule
 
 ## Example test
 

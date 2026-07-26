@@ -35,6 +35,7 @@
         "fidry/cpu-core-counter": "Improves worker core detection for auto with cgroup limits and more platforms",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled extension.neon",
+        "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled PhpUnitToGreenlightRector rule",
         "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the SymfonyPlugin bridge"
     },
     "autoload": {
