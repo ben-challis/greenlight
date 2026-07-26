@@ -1085,6 +1085,53 @@ code {
   word-break: normal !important;
 }
 
+.docs-command {
+  position: relative;
+  margin-block: 1.15rem;
+}
+
+.docs-command pre {
+  margin-block: 0;
+  padding-right: 5.75rem;
+}
+
+.command-copy {
+  position: absolute;
+  z-index: 1;
+  top: 0.55rem;
+  right: 0.55rem;
+  min-width: 4.5rem;
+  min-height: 2rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: 0.3rem;
+  background: var(--surface);
+  color: var(--action-dark);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.command-copy:hover {
+  border-color: var(--action);
+  background: var(--signal-soft);
+}
+
+.command-copy[data-state='copied'] {
+  border-color: color-mix(in oklch, var(--action) 45%, var(--rule));
+  background: var(--signal-soft);
+  color: var(--ink);
+}
+
+.command-copy[data-state='error'] {
+  color: var(--muted);
+}
+
 .docs-article blockquote {
   margin-inline: 0;
   padding: 1rem 1.2rem;
