@@ -1,0 +1,191 @@
+[
+    {
+        "fingerprint": "64684965cc299001e9aed5a33c439453900c5f754bf8ea851000ef4a2a1e5b77",
+        "path": "docs/attributes.md",
+        "rule": "british-spelling",
+        "passage": "the attribute is matched by name without loading the code it's applied to, so an aliased import ( literal ) is not recognised.",
+        "count": 1
+    },
+    {
+        "fingerprint": "43c509078d2ae283def713bd1f2ab14ee046661796321c92eef8054f7b50fe8d",
+        "path": "docs/attributes.md",
+        "rule": "contraction",
+        "passage": "the attribute is matched by name without loading the code it's applied to, so an aliased import ( literal ) is not recognised.",
+        "count": 1
+    },
+    {
+        "fingerprint": "623afe4c8fe053a605cc44d15e247ec577367df7cbca43a3aef79eb842ea609f",
+        "path": "docs/attributes.md",
+        "rule": "semicolon",
+        "passage": "any further attribute arguments are passed to the condition's constructor. arguments must be scalars or null, because they travel to parallel workers; anything else is a discovery error. the constructor must only store them, and evaluation happens in literal without side effects:",
+        "count": 1
+    },
+    {
+        "fingerprint": "dbf73af573faa08567470bb915e7bb092faa686e38d09d0ff0ba6cace6b03f2a",
+        "path": "docs/attributes.md",
+        "rule": "semicolon",
+        "passage": "direct writes to the literal and literal stream resources bypass php's output buffer and are not captured. they can also interfere with terminal output, so tests should not use them for diagnostics. use test attachments when diagnostic content must be retained; see literal .",
+        "count": 1
+    },
+    {
+        "fingerprint": "b151b754156192f212064ee970064b7484ae93c6f2f28971aebcdac3dbdec9af",
+        "path": "docs/attributes.md",
+        "rule": "sentence-length",
+        "passage": "the bundled phpstan extension validates providers statically: the provider must exist, be public and static, and return an iterable of argument arrays, and row shapes phpstan can see (such as the literal return type above) are checked against the test method's parameters. literal literals get the same check. see literal .",
+        "count": 1
+    },
+    {
+        "fingerprint": "c97617c47b7ed6aff1ef05947808594da3ec65ef14007acffea03c9fb4184a54",
+        "path": "docs/attributes.md",
+        "rule": "sentence-length",
+        "passage": "the phpunit comment annotations work unchanged: literal in a docblock before a declaration, literal and literal around a block, and a trailing literal on a single line.",
+        "count": 1
+    },
+    {
+        "fingerprint": "0b6e06e2bdcc43d08a6e7d10be5a077376053d3dc478d043af1718e21e2978c2",
+        "path": "docs/benchmarks.md",
+        "rule": "semicolon",
+        "passage": "update this document by rerunning the full benchmark on an idle machine whenever the runner changes materially. record the greenlight commit and run date with the results. comparison-tool versions are pinned in literal ; update the constants and this page together.",
+        "count": 1
+    },
+    {
+        "fingerprint": "9bc650f0985de3cb0067f38ea65eb41c8fbbda8da70c2b366669b9cf668f6168",
+        "path": "docs/configuration.md",
+        "rule": "british-spelling",
+        "passage": "disables colours and the live progress window. output becomes plain and append-only.",
+        "count": 1
+    },
+    {
+        "fingerprint": "63ca8bf8a03b6c7304af0d3abddcf1078c64c591f733ab358b3417004b6ac463",
+        "path": "docs/configuration.md",
+        "rule": "british-spelling",
+        "passage": "graceful shutdown requires literal . without it, php uses its default signal behaviour and exits at once.",
+        "count": 1
+    },
+    {
+        "fingerprint": "497335588b1ba43bfdf1f99d2d31d8ab07a907a72e2f62b3e0bd9d19ec4b3f15",
+        "path": "docs/configuration.md",
+        "rule": "british-spelling",
+        "passage": "literal disables colours only.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e7adfb351c108e11fc420b8a38bd835bb36e8ac595a900d70e32925cd9ce59c1",
+        "path": "docs/configuration.md",
+        "rule": "semicolon",
+        "passage": "use a channel when every worker can have its own resource. use literal when workers use the same dependency and its safe concurrency is lower than the worker count. a resource limit controls how many classes may run; it does not assign an instance to either class.",
+        "count": 1
+    },
+    {
+        "fingerprint": "8325a1ef8c299a18a3926aa9ae1c3a17bf1ca7b936670368179d7baecb9bfcf7",
+        "path": "docs/configuration.md",
+        "rule": "sentence-length",
+        "passage": "workers are not the only processes measured. on a parallel run the orchestrator collects its own coverage, so code that only executes on its side of the pool shows up in the export. a coverage-enabled run also exports literal and literal to everything it spawns. any literal process that inherits them, for example one an acceptance test launches to drive the real cli, writes its own coverage into the shared directory, and the run folds those dumps into the result before exporting. like worker collection this fails soft, and the include paths you configured filter all of it.",
+        "count": 2
+    },
+    {
+        "fingerprint": "9d89c69a60d527cb7ab058d5301cb73ea03fc5c9a6e8909889080d983b187cb1",
+        "path": "docs/getting-started.md",
+        "rule": "british-spelling",
+        "passage": "on an interactive terminal, greenlight uses the literal reporter. it shows live progress with ansi colour and prints failure diffs as they happen.",
+        "count": 1
+    },
+    {
+        "fingerprint": "05ce160ae865c301416046f27ae93bf6d2d6b4c1d2c8b0aebe5fc2e7067c8353",
+        "path": "docs/getting-started.md",
+        "rule": "british-spelling",
+        "passage": "watch mode reruns affected tests when files under the configured paths change. classes that failed in the previous run are prioritised.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1d86105349316d3fc9f6f8f128c300293e73ecf103ef3f1bf6e1dbf7bf3a32ac",
+        "path": "docs/getting-started.md",
+        "rule": "semicolon",
+        "passage": "each iteration reports its number, the summary names the iterations that failed, and the exit code is non-zero if any iteration failed. literal stops at the first failing iteration; on its own it gives up after 100 iterations, or combine it with literal to set the limit.",
+        "count": 1
+    },
+    {
+        "fingerprint": "89f1627788ae4c06512a4c070588228207bdbc4ca360029f220b423ff199788a",
+        "path": "docs/migrating-from-phpunit.md",
+        "rule": "british-spelling",
+        "passage": "the main difference from phpunit is that greenlight does not guess behaviour. phpunit's literal can create a tolerant dummy where methods silently return literal or auto-stubs. greenlight has no equivalent object.",
+        "count": 1
+    },
+    {
+        "fingerprint": "651e5122ca8ceb68cd2790f134e023a2e99377168fe08776bf35a7d5c28ff3f6",
+        "path": "docs/migrating-from-phpunit.md",
+        "rule": "semicolon",
+        "passage": "convert data providers. the provider body usually stays the same; only the",
+        "count": 1
+    },
+    {
+        "fingerprint": "00820206ec0af40f0e8208b75d5d4c1a7a28c524ba4bb9495b45292f634d7d3c",
+        "path": "docs/migrating-from-phpunit.md",
+        "rule": "semicolon",
+        "passage": "literal for exact equality or literal for a regular expression; the two are mutually exclusive. it replaces the usual literal setup calls with one expression.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c381a6e49d3cae291f5be1e95c8b56271105fb6e02178c85b7d269d9b7429ae4",
+        "path": "docs/phpstan.md",
+        "rule": "semicolon",
+        "passage": "if you use literal , it registers the include for you; you only set the literal parameter.",
+        "count": 1
+    },
+    {
+        "fingerprint": "d53f5fdcd3e85405a56085d22fda983dc0ed7a75ec73576737234efdc3626865",
+        "path": "docs/phpstan.md",
+        "rule": "semicolon",
+        "passage": "rows phpstan cannot narrow to an exact shape, such as a provider typed literal , only need to be arrays; the runtime checks their contents instead.",
+        "count": 1
+    },
+    {
+        "fingerprint": "202b4c07bd0428baaa69fa4c7110fdd7bc6ea0a2bdd5d7833beae42f37959d1c",
+        "path": "docs/phpstan.md",
+        "rule": "sentence-length",
+        "passage": "greenlight ships a phpstan extension. it teaches phpstan about the custom expectation matchers your config registers, the shape rules for literal and literal data providers, and native matcher constraints that php's type system cannot express.",
+        "count": 1
+    },
+    {
+        "fingerprint": "119da8bc04748e2075757aeac92ff51c143c7f709534838d231421847da8f7fa",
+        "path": "docs/phpstan.md",
+        "rule": "sentence-length",
+        "passage": "or an inline literal literal, the rule checks each value against the matching test method parameter and flags rows with too few or too many values.",
+        "count": 1
+    },
+    {
+        "fingerprint": "7cbe5ef9be808878bbf9f8d0aea01152f4f5e81f1f2b6d730a4f0173cecb585e",
+        "path": "docs/plugins.md",
+        "rule": "semicolon",
+        "passage": "call literal to stop the attempt and report the test as skipped. the method is typed literal , so code after the call does not run. it throws literal , which is declared on the interface; throwing that exception yourself has the same effect. any other throwable marks the test as errored and names the plugin.",
+        "count": 1
+    },
+    {
+        "fingerprint": "bdc5e740e2f3a40f1c455bf6362afbd57bdd8596060f36186aa64d4eed70febe",
+        "path": "docs/plugins.md",
+        "rule": "sentence-length",
+        "passage": "greenlight includes a phpstan extension for matcher calls. it loads your greenlight config files the same way workers do, reflects each matcher closure, and exposes every matcher to phpstan as a real method on the expectation chain. this includes literal and literal chains.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1e6f55063e8720548fd248e881fb14c7f667dd63f5b8f71c57d4aa51f72d662e",
+        "path": "docs/plugins.md",
+        "rule": "sentence-length",
+        "passage": "relative config paths are resolved from the directory where phpstan runs. listing multiple config files unions their matchers. if the same matcher name is declared with different signatures, analysis fails, because a single analysis run can only have one signature for a matcher name.",
+        "count": 1
+    },
+    {
+        "fingerprint": "a71ba080e40fe017395a37d40d5cec7c226cec1b5dc755709b3cf82e56630c68",
+        "path": "docs/symfony.md",
+        "rule": "semicolon",
+        "passage": "the bridge boots your kernel once per worker. it lives in the literal namespace, ships with greenlight, and does nothing unless you register it. symfony remains a dev dependency of your application; it is not required by greenlight itself.",
+        "count": 1
+    },
+    {
+        "fingerprint": "0d9568be8310da48ede93646b245e61cc3d5d932467bdf47aa9e9d0142eaac98",
+        "path": "docs/symfony.md",
+        "rule": "semicolon",
+        "passage": "the bridge is tested with literal 6.4, 7.x, and 8.x. at boot, it requires the kernel's container to expose literal ; with service resets enabled, it also requires literal . a standard frameworkbundle test environment provides the test container when literal is enabled.",
+        "count": 1
+    }
+]

@@ -1,0 +1,135 @@
+[
+    {
+        "fingerprint": "a97dc4e8fb20117812097d01ed54bcbdb541359cbeaf26fde8fb564f8b8c53b5",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "--repeat-until-failure without an explicit --repeat cannot loop forever; 100 iterations is the safety limit.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c12324bbeec8789b7a450b704613b831e543244eac7a8ea02812ad538d905b5c",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "--repeat=1 is the ordinary single run; the loop, its banners, and its summary only appear when more than one iteration is possible.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f368368c28d1acb3618bfe414477dc9ad92317cfb118eca12285b199eadecdd5",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "a coverage-enabled run exports the relay variables to everything it spawns; a cli process that inherits them reports its own coverage back through the shared directory.",
+        "count": 1
+    },
+    {
+        "fingerprint": "fb614cc671937202c426288483aa660720bf137701c3555d64a5d9235b849347",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "discovery reports symlink-resolved absolute file paths, so prefixes are resolved against the working directory and canonicalized before the prefix match; a prefix that does not exist on disk keeps its uncanonicalized absolute form.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e7359f208c4a46472bf6843fae6e69aae5ce5e52409cf402e721eff9a021f26b",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "internal worker entry, spawned by the orchestrator. bypasses the normal parser; undocumented and carries no compatibility promise.",
+        "count": 1
+    },
+    {
+        "fingerprint": "9439f99982eef771e008d9c06bbb0babb34cfec71dd1f673ac643b9c33b29585",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "the reporter must be fresh; finish() is called exactly once.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4093f9da3511e2a3f36dc3a31a98fd0cd0730dd422e9590732f594f6200b552b",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "warns when run state cannot be saved; persistence failure does not change the exit code.",
+        "count": 1
+    },
+    {
+        "fingerprint": "b7f7966788090fe6d92acbf667a5ad69568244bc145f4c919b7b417e67b721db",
+        "path": "src/Cli/Application.php",
+        "rule": "semicolon",
+        "passage": "worker processes are spawned with proc_open over core stream sockets, so no extension is required; hosts that put proc_open in disable_functions get an in-process sequential run instead.",
+        "count": 1
+    },
+    {
+        "fingerprint": "929a2b42772ad86658bc47d042a2cfb6c088340453d4efcad9c3ae814964d972",
+        "path": "src/Cli/Application.php",
+        "rule": "sentence-length",
+        "passage": "a coverage-enabled run exports the relay variables to everything it spawns; a cli process that inherits them reports its own coverage back through the shared directory.",
+        "count": 1
+    },
+    {
+        "fingerprint": "698b87ee03fdf20b87d23e27e55ca5e724f295861e140ee23f233e210a68286d",
+        "path": "src/Cli/Application.php",
+        "rule": "sentence-length",
+        "passage": "discovery reports symlink-resolved absolute file paths, so prefixes are resolved against the working directory and canonicalized before the prefix match; a prefix that does not exist on disk keeps its uncanonicalized absolute form.",
+        "count": 1
+    },
+    {
+        "fingerprint": "dc1fff00813594b735a2ea8992c02f901a6385562456594b616b49fd2979c3b7",
+        "path": "src/Cli/Application.php",
+        "rule": "sentence-length",
+        "passage": "worker processes are spawned with proc_open over core stream sockets, so no extension is required; hosts that put proc_open in disable_functions get an in-process sequential run instead.",
+        "count": 1
+    },
+    {
+        "fingerprint": "a934972f21f64e768d80a96e75281103ca2d7d97e14f88b3de421ff86b2e9a8f",
+        "path": "src/Cli/ArgumentParser.php",
+        "rule": "semicolon",
+        "passage": "long options use --name or --name=value; short aliases are single letters (-h) and never take values. the first bare word is the command.",
+        "count": 1
+    },
+    {
+        "fingerprint": "41d8365473900f89468acc98c834938c4d24f97e21b56a681089434429b09cc4",
+        "path": "src/Cli/SignalHandlers.php",
+        "rule": "british-spelling",
+        "passage": "without ext-pcntl, php keeps its default hard-exit behaviour. the first signal requests a normal drain; a second terminates immediately.",
+        "count": 1
+    },
+    {
+        "fingerprint": "78be4978bb318d0cdfa0862ba0778ddca4527a7ccf8de5afa4cd577b127a022c",
+        "path": "src/Cli/SignalHandlers.php",
+        "rule": "semicolon",
+        "passage": "without ext-pcntl, php keeps its default hard-exit behaviour. the first signal requests a normal drain; a second terminates immediately.",
+        "count": 1
+    },
+    {
+        "fingerprint": "655f22447b7d8ed87918c1c50f597e71bb2645d299bcfda3be5deee71cacf9df",
+        "path": "src/Cli/TerminalCapabilities.php",
+        "rule": "british-spelling",
+        "passage": "interactive output (live window and cursor control) requires a tty without --no-ansi and without a truthy ci variable. colour also requires no_color to be unset or empty.",
+        "count": 1
+    },
+    {
+        "fingerprint": "2f11ee8dea57a90c5ae16ce56d324355634f6e419e5b90136c54d80be4debe0b",
+        "path": "src/Cli/Watch/Debouncer.php",
+        "rule": "sentence-length",
+        "passage": "notechange() starts (or restarts) the quiet timer, and shouldfire() lets the pending run fire only once no further change has arrived for the configured period. bursts such as a branch switch coalesce into one run.",
+        "count": 1
+    },
+    {
+        "fingerprint": "5bc0e12caa6cd2b6130d0dbabebbbe866726436938c42f648d6c139d41c35147",
+        "path": "src/Cli/Watch/StdinKeyInput.php",
+        "rule": "semicolon",
+        "passage": "on an interactive terminal the constructor disables canonical mode so keys arrive without a newline; restore() re-enables it when the loop ends.",
+        "count": 1
+    },
+    {
+        "fingerprint": "cfe77ee13be0f08e06ce9f6d658066b313c40c245ab97a06533b4b9a056d8618",
+        "path": "src/Cli/Watch/WatchLoop.php",
+        "rule": "semicolon",
+        "passage": "each iteration is an ordinary run producing ordinary reporter output; the loop only decides when to run and hands the previous iteration's failed classes to the runner so they execute first.",
+        "count": 1
+    },
+    {
+        "fingerprint": "30996c48b5ca920eea8f1c40978783619fc4b0466462cf678f24738fcb3e3832",
+        "path": "src/Cli/Watch/WatchLoop.php",
+        "rule": "sentence-length",
+        "passage": "each iteration is an ordinary run producing ordinary reporter output; the loop only decides when to run and hands the previous iteration's failed classes to the runner so they execute first.",
+        "count": 1
+    }
+]

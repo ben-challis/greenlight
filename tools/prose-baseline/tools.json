@@ -1,0 +1,23 @@
+[
+    {
+        "fingerprint": "e5ce93a217a3f26e93ebb383357b9c509be37b3d8a397deee827882975ee2ad0",
+        "path": "tools/benchmark.php",
+        "rule": "semicolon",
+        "passage": "benchmark harness: generates synthetic suites in the shapes that matter, runs each under greenlight (and under phpunit and paratest when --with-phpunit is given, installed into the generated project via composer), and reports median wall times. results are only meaningful on an idle machine; docs/benchmarks.md records the parameters alongside the numbers so anyone can reproduce them.",
+        "count": 1
+    },
+    {
+        "fingerprint": "d8c771c368d1ac9f7b2e22fd7c976334d1f290c9b7d19182cbb6a6fd99277404",
+        "path": "tools/extract-phpstan-api.php",
+        "rule": "semicolon",
+        "passage": "extracts the phpstan api sources from phpstan.phar into .phpstan-api-stubs/ so editors can index the symbols that src/phpstan/ implements. phpstan itself autoloads these classes from the phar at analysis time; the extracted copy exists only for ide completion and is never executed.",
+        "count": 1
+    },
+    {
+        "fingerprint": "6d237c241946c243ba91a8f23722d2ef3dc12579372013c26717b150a8cb9824",
+        "path": "tools/memory-gate.php",
+        "rule": "sentence-length",
+        "passage": "the flat-memory gate: generates a 10,000-test project, runs it through bin/greenlight in one worker, samples php-visible memory via a probe plugin after a warmup, and fails when late-run memory drifts more than 1 mib above the post-warmup baseline. leaks in the framework itself have nowhere to hide across ten thousand tests.",
+        "count": 1
+    }
+]

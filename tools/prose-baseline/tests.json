@@ -1,0 +1,261 @@
+[
+    {
+        "fingerprint": "b6a48b2406d51c44f5bd53b9db0c84780e1a9b8acb7809bf56f0ec5232214265",
+        "path": "tests/Acceptance/ChannelTest.php",
+        "rule": "semicolon",
+        "passage": "recycling after every test forces replacement workers; more workers are spawned than channels exist, yet the occupied set never leaves {1, 2}.",
+        "count": 1
+    },
+    {
+        "fingerprint": "bca35f7b1a972fc046a60daa4a27be78f7907f01ed8f3c42ce10e3abc4c9ba54",
+        "path": "tests/Acceptance/CliTest.php",
+        "rule": "british-spelling",
+        "passage": "the subprocess pipes stdout, so detection already lands on plain output with or without the flag; this pins flag parsing and the escape-free contract, while the tty behaviour matrix lives in terminalcapabilitiestest and ttyreportertest.",
+        "count": 1
+    },
+    {
+        "fingerprint": "fc03d5d2ce5245ec05c8df77714d6f7043f05ee9dbb23614f5d56894513dc146",
+        "path": "tests/Acceptance/CliTest.php",
+        "rule": "semicolon",
+        "passage": "the subprocess pipes stdout, so detection already lands on plain output with or without the flag; this pins flag parsing and the escape-free contract, while the tty behaviour matrix lives in terminalcapabilitiestest and ttyreportertest.",
+        "count": 1
+    },
+    {
+        "fingerprint": "228cba186a488398d730f4bf63a0f5d1807fe660db90c6636d216c4e5e978da0",
+        "path": "tests/Acceptance/CliTest.php",
+        "rule": "sentence-length",
+        "passage": "the subprocess pipes stdout, so detection already lands on plain output with or without the flag; this pins flag parsing and the escape-free contract, while the tty behaviour matrix lives in terminalcapabilitiestest and ttyreportertest.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4fdfdc8aca48beb52b9a7a2b2f50308327eeeee5f611931b72fc4fdbdb7c290c",
+        "path": "tests/Acceptance/CoverageRunTest.php",
+        "rule": "semicolon",
+        "passage": "a relay environment inherited from an outer coverage-enabled suite run would suppress this run's own orchestrator collection window; clear it so the run behaves as a standalone one.",
+        "count": 1
+    },
+    {
+        "fingerprint": "ee42156f0e45dee66dcbab58b0035ee5bd602cfd86bc5c971a2bcb1321e98709",
+        "path": "tests/Acceptance/CoverageRunTest.php",
+        "rule": "sentence-length",
+        "passage": "a relay environment inherited from an outer coverage-enabled suite run would suppress this run's own orchestrator collection window; clear it so the run behaves as a standalone one.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f6a842a87b23ed3e6e01f32b6f2d90d6bbd0bc1d66a6d01448d332bd52c92685",
+        "path": "tests/Acceptance/ListingTest.php",
+        "rule": "semicolon",
+        "passage": "cheap proxy for \"the seed shuffled the plan\": ids must stay grouped by class. alphabetical output would also pass this check; interleaved classes would not.",
+        "count": 1
+    },
+    {
+        "fingerprint": "0ed8cdf14aaee2e8f57694208727207d5e5677af10025f67e10a1e4181730bb9",
+        "path": "tests/Acceptance/PolicyTest.php",
+        "rule": "semicolon",
+        "passage": "only the mock verification counts; the empty tests add nothing.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e4de095c424a4747bbdc53ac795ca970bf8856d98123a5cf7b5705c332fcb11a",
+        "path": "tests/Acceptance/PolicyTest.php",
+        "rule": "semicolon",
+        "passage": "without flags everything passes; deprecations are recorded, not fatal.",
+        "count": 1
+    },
+    {
+        "fingerprint": "10585f98e4ccdbcfee3e3c40d7fbbbccad15c7a33927a3579069b59c57b07ce0",
+        "path": "tests/Acceptance/ProfileRunTest.php",
+        "rule": "semicolon",
+        "passage": "the jsonl lines are interleaved with the plain report on stdout; extract them into an artifact file.",
+        "count": 1
+    },
+    {
+        "fingerprint": "86f94e246f297a35bbf3247a0cd21f9666afd83464d9846031088b4334181af9",
+        "path": "tests/Acceptance/SelectionTest.php",
+        "rule": "semicolon",
+        "passage": "the full project is 5 tests; excluding the slow group drops one.",
+        "count": 1
+    },
+    {
+        "fingerprint": "b049bafac6ad49cd2b5ae5ff6a55f08fb7f39fe0b40fe808c6e0a9c4a945d64e",
+        "path": "tests/Acceptance/SelectionTest.php",
+        "rule": "sentence-length",
+        "passage": "tmpdir points at a regular file rather than a missing directory: observability agents (ddtrace) create a missing tmpdir for their sockets, but nothing can create entries under a file, so the state write fails on every platform.",
+        "count": 1
+    },
+    {
+        "fingerprint": "16be453da6d03a541a3c0b526f89c9be22d87afd5d47efc8116ae13702192264",
+        "path": "tests/Support/Subprocess.php",
+        "rule": "sentence-length",
+        "passage": "a start() caller owns the live handle and must call terminate() in a finally block. terminate() is a no-op after wait() collects the result.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c9e88d33374313c80ae14389140aa85cc1ec71a237bff8716fe046a9bedc317b",
+        "path": "tests/Unit/Cli/RunStateTest.php",
+        "rule": "sentence-length",
+        "passage": "a non-empty directory squatting on the target path makes the temp-file write succeed but the final rename fail, exercising the failure branch that must remove the temp file.",
+        "count": 1
+    },
+    {
+        "fingerprint": "62706e2bea7ee633b905b0479931d277f2ba35cf8ca14adf44387723262fdac2",
+        "path": "tests/Unit/Discovery/DiscoveryCacheTest.php",
+        "rule": "sentence-length",
+        "passage": "a class name distinct from the other tests in this file: they may share a worker process, and the discoverer rejects a class it has already autoloaded from a different fixture directory.",
+        "count": 1
+    },
+    {
+        "fingerprint": "5cdb49417bdad9c201f2edd8cc704f1c6aafabcb34242b339937e2110e643450",
+        "path": "tests/Unit/Discovery/DiscoveryCacheTest.php",
+        "rule": "sentence-length",
+        "passage": "a non-empty directory squatting on the cache path makes the temp-file write succeed but the final rename fail, exercising the failure branch that must remove the temp file.",
+        "count": 1
+    },
+    {
+        "fingerprint": "19496b9c963c95c277d139f6f98e48ebeca0fead12e23dc9e87190385c9ec517",
+        "path": "tests/Unit/Doubles/ProxyGenerationTest.php",
+        "rule": "semicolon",
+        "passage": "the clock constructor throws; creating the double without an exception proves it never ran.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4dcc7262d4644de6d00f42a48394ee8eb657631c7275c16c10306a556a634aa9",
+        "path": "tests/Unit/Doubles/ProxyGenerationTest.php",
+        "rule": "semicolon",
+        "passage": "the proxy class name embeds a hash of calculator's signatures, so its generated file has a deterministic name; other tests may have left it cached from an earlier run, so start from a clean slate.",
+        "count": 1
+    },
+    {
+        "fingerprint": "acec3436c784c7ac22c33e313db986107d762e2fc170fda5df905437231e70af",
+        "path": "tests/Unit/Doubles/ProxyGenerationTest.php",
+        "rule": "sentence-length",
+        "passage": "the proxy class name embeds a hash of calculator's signatures, so its generated file has a deterministic name; other tests may have left it cached from an earlier run, so start from a clean slate.",
+        "count": 1
+    },
+    {
+        "fingerprint": "9ce60a5727a8b933bec4347de7563d5840baecd7963d0ecf7d63f62ac60a9ebe",
+        "path": "tests/Unit/Fixture/TempDirectoryTest.php",
+        "rule": "semicolon",
+        "passage": "path() is the only method that touches the disk; if construction already created and bound a directory, disposing without ever calling path() would try to remove it and could throw.",
+        "count": 1
+    },
+    {
+        "fingerprint": "cb5375662445ba6761fd3b298f0379fd2938b451e09d3fe743c42dbf24cb5863",
+        "path": "tests/Unit/Fixture/TempDirectoryTest.php",
+        "rule": "sentence-length",
+        "passage": "path() is the only method that touches the disk; if construction already created and bound a directory, disposing without ever calling path() would try to remove it and could throw.",
+        "count": 1
+    },
+    {
+        "fingerprint": "15e61d455cbc75d69e8eca55f5f171d24d728db3861e51a506a42209fda7df31",
+        "path": "tests/Unit/PhpStan/ExtensionMatcherDispatchTest.php",
+        "rule": "semicolon",
+        "passage": "phpstan checks these calls through the extension; runtime dispatch uses expectation::__call.",
+        "count": 1
+    },
+    {
+        "fingerprint": "da6d44e78c8cc43e5407b3485e1ac15608af4b5df5cba27de53c9919a62e46ec",
+        "path": "tests/Unit/Plugin/PluginTest.php",
+        "rule": "semicolon",
+        "passage": "the already-errored test keeps its original error; the plugin failure is recorded as a failure detail instead of vanishing.",
+        "count": 1
+    },
+    {
+        "fingerprint": "6d4f15faea474674666bcd008915a6930eee1d6a9ee124a13cd15e1d1d9be40d",
+        "path": "tests/Unit/Reporting/ProfileAggregatorTest.php",
+        "rule": "british-spelling",
+        "passage": "78% sits in the mid band (yellow), 50% below it (red); the 2.5s class crosses the slow threshold (yellow). cells pad outside the colour codes so escape sequences cannot break column alignment.",
+        "count": 1
+    },
+    {
+        "fingerprint": "349bd1b8dc6c782569491d8bee5b4c1090d98b25cae4219643407fd0a23025e7",
+        "path": "tests/Unit/Reporting/ProfileAggregatorTest.php",
+        "rule": "semicolon",
+        "passage": "78% sits in the mid band (yellow), 50% below it (red); the 2.5s class crosses the slow threshold (yellow). cells pad outside the colour codes so escape sequences cannot break column alignment.",
+        "count": 1
+    },
+    {
+        "fingerprint": "0275592aeeb7478586c8cb30b0bac7ba9a7e9478396b8f68a5f9cc4900865300",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "british-spelling",
+        "passage": "the no_color matrix row: cursor control stays, colour goes.",
+        "count": 1
+    },
+    {
+        "fingerprint": "05790fbbca87b029d929c614874438adc3d6d703eeaccb1fbc9e7e3ce0f6e6ec",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "semicolon",
+        "passage": "--reporter=tty on a non-tty degrades to append-only output; nothing may become invisible just because the live window is unavailable.",
+        "count": 1
+    },
+    {
+        "fingerprint": "1a3aa89072f93083b1838925d015399e185ce055d3d203bb05db20ba45c69f3c",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "semicolon",
+        "passage": "oldest class stays visible; the rest collapse into the overflow line.",
+        "count": 1
+    },
+    {
+        "fingerprint": "6cbb16a3ac087d11f7ddbef62a20bd8d8db612859d8bfd30dfd8fc0fe5637f2a",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "semicolon",
+        "passage": "only the failing class earns a permanent line; the pass just counts.",
+        "count": 1
+    },
+    {
+        "fingerprint": "c179dea09bf28c97cab09aac10e980ace5c10dc6501a70b753ab971a84f64faa",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "semicolon",
+        "passage": "the first permanent line opens with a blank line so it never butts against the header; the second stacks directly under the first, without a gap.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4e52d8366d020e775bebcd9949e25c6bba20ae07da148753bd0e408e41322aa5",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "semicolon",
+        "passage": "the permanent line rides the same frame as the window repaint; a separate erase-then-rebuild would flash the region blank.",
+        "count": 1
+    },
+    {
+        "fingerprint": "a55d74c82127084f95ff4ba931b84c298740e63696cbcc76c97831504fec4c4e",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "semicolon",
+        "passage": "the repaint repositions over the previous three-line window and clears each line right before rewriting it; blanking the whole region first is what makes terminals flash mid-frame.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f4f73ebcfff02151440c91f62e40a09925e8a865d27401da78db6a278ac57222",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "sentence-length",
+        "passage": "the first permanent line opens with a blank line so it never butts against the header; the second stacks directly under the first, without a gap.",
+        "count": 1
+    },
+    {
+        "fingerprint": "427a8bf53857a39d27ce21accebc4b1299c49c96a4c7b590b5d4827b446ece63",
+        "path": "tests/Unit/Reporting/TtyReporterTest.php",
+        "rule": "sentence-length",
+        "passage": "the repaint repositions over the previous three-line window and clears each line right before rewriting it; blanking the whole region first is what makes terminals flash mid-frame.",
+        "count": 1
+    },
+    {
+        "fingerprint": "e59af36823f95856e0e8c9237516bdafbfa87e062dc4a7df4e58e3d9d31cd78d",
+        "path": "tests/Unit/Runner/Orchestrator/ChannelAllocatorTest.php",
+        "rule": "semicolon",
+        "passage": "recycling and crash containment retire and respawn workers many times; the occupied set must stay within 1..bound throughout.",
+        "count": 1
+    },
+    {
+        "fingerprint": "734845d31463a4350eeaae5de96242ff0cf5eb6ef1d69dbfb61c880e47834dd8",
+        "path": "tests/Unit/Symfony/SymfonyPluginTest.php",
+        "rule": "semicolon",
+        "passage": "the prod environment compiles without framework.test; the boot validation rejects it before any resolution can degrade silently.",
+        "count": 1
+    },
+    {
+        "fingerprint": "aaa7abfa2024e517b3141e109c23adb17b12cc42b6faee3751f612e568b02ff6",
+        "path": "tests/Unit/Symfony/SymfonyPluginTest.php",
+        "rule": "semicolon",
+        "passage": "visitcounter is private and unreferenced; only the test container keeps it reachable.",
+        "count": 1
+    }
+]

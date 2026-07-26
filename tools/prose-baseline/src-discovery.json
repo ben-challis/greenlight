@@ -1,0 +1,86 @@
+[
+    {
+        "fingerprint": "39d87eeb218c15d9535ad925ceabf204a373027d21d5fb34ce27f959c58d217b",
+        "path": "src/Discovery/ClassFileParser.php",
+        "rule": "sentence-length",
+        "passage": "extracts class-like declarations from a php file using the tokenizer, so discovery can decide which fully qualified name to autoload without ever executing an unknown file directly.",
+        "count": 1
+    },
+    {
+        "fingerprint": "eb00e97225e084f1a15038f05e0855bca89b59d0b7ffb4e4e524fc34e866fcb6",
+        "path": "src/Discovery/DataSetExpander.php",
+        "rule": "semicolon",
+        "passage": "providers are the only code discovery executes; they must be pure and are held to a per-provider time budget.",
+        "count": 1
+    },
+    {
+        "fingerprint": "8050f50f4a256a833d4fe0f5a154b72959c7797065aa67b157406ab3687fde40",
+        "path": "src/Discovery/DataSetExpander.php",
+        "rule": "sentence-length",
+        "passage": "key derivation: printable string keys are used as-is, integer keys become \"#<value>\", and empty or non-printable string keys become the first eight hex characters of the key's sha-256 hash.",
+        "count": 1
+    },
+    {
+        "fingerprint": "74c3c9f42b9d990e6b817109efdfd2908b6b8f5b8adb3fc4532e58ff56429fb3",
+        "path": "src/Discovery/DiscoveryCache.php",
+        "rule": "semicolon",
+        "passage": "undecodable cached payload; treat as a miss and re-parse.",
+        "count": 1
+    },
+    {
+        "fingerprint": "3c6e53985e9484e98cfc277d4b99c5d77df9c5cf17478cb612f399c3280358df",
+        "path": "src/Discovery/DiscoveryCacheEntry.php",
+        "rule": "sentence-length",
+        "passage": "fromdecoded() validates untrusted json and returns null when any part of the shape is malformed, so a corrupt cache degrades to a re-parse. jsonserialize() emits the same shape.",
+        "count": 1
+    },
+    {
+        "fingerprint": "094fbaf0b606ff4d4af3752ef97a2a93f2de4e210cc71ed980e6773dd20f1c13",
+        "path": "src/Discovery/DiscoveryError.php",
+        "rule": "semicolon",
+        "passage": "discovery never silently skips a file it cannot resolve; every failure mode has a named constructor whose message identifies the file, class, or method involved.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f162a2cfd8e29d742e285275687b000456a9b18946a8a5753cc12698b42f520c",
+        "path": "src/Discovery/Filter.php",
+        "rule": "semicolon",
+        "passage": "acceptsid() applies the id filters after data-set expansion, against the rendered test id (class::method, with the data-set label when present), case insensitively, with the same substring-or-wildcard rule; exact ids match the rendered id verbatim.",
+        "count": 1
+    },
+    {
+        "fingerprint": "006917f4adb928ec3455e8e2a5b8b4880fcc0ffbb6a1dd7a6d557013630cfd52",
+        "path": "src/Discovery/Filter.php",
+        "rule": "semicolon",
+        "passage": "include lists are or-ed within a dimension and and-ed across dimensions; exclude lists always win.",
+        "count": 1
+    },
+    {
+        "fingerprint": "164a62276ab4d0bd866b7d7f279e7f7a0104232289aac80a2d0984c0d6fb3cbf",
+        "path": "src/Discovery/Filter.php",
+        "rule": "sentence-length",
+        "passage": "acceptsid() applies the id filters after data-set expansion, against the rendered test id (class::method, with the data-set label when present), case insensitively, with the same substring-or-wildcard rule; exact ids match the rendered id verbatim.",
+        "count": 1
+    },
+    {
+        "fingerprint": "3758af0f331af583d019cd573031c1ef111c9d3669de6899d77afe55c0af6d85",
+        "path": "src/Discovery/MetadataFactory.php",
+        "rule": "sentence-length",
+        "passage": "class-level attributes merge into each method: the method-level value wins on conflict, groups merge as a union (class groups first), and isolation applies when either level declares it.",
+        "count": 1
+    },
+    {
+        "fingerprint": "987c96246c94086381b48e3e6f932a3b90e57290ebe316c650c465bbc5113279",
+        "path": "src/Discovery/TestDiscoverer.php",
+        "rule": "semicolon",
+        "passage": "default order is file path order; a seed shuffles the class order deterministically. methods always keep declaration order within a class, and data sets keep provider order within a method.",
+        "count": 1
+    },
+    {
+        "fingerprint": "8d31f60e8c01b9a6d054c1d0eb492306f652ddca38e5175fcf5ff3aeaffc5461",
+        "path": "src/Discovery/TestDiscoverer.php",
+        "rule": "sentence-length",
+        "passage": "resolves the class declared in a file without executing the file: token parsing yields the expected fully qualified name, autoloading then loads exactly that class, and reflection confirms the class really came from this file.",
+        "count": 1
+    }
+]

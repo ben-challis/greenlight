@@ -1,0 +1,51 @@
+[
+    {
+        "fingerprint": "91482832336e80ab14b9b02db8163b3c5978fc6222233ffae37ef5cb417492c2",
+        "path": "src/Plugin/PluginRegistry.php",
+        "rule": "semicolon",
+        "passage": "internal plugins (retry policy) run before user plugins; within each group, prioritized ordering applies with a stable sort.",
+        "count": 1
+    },
+    {
+        "fingerprint": "4f83634a1a646125a1800111fc53e6b307b9a9b81d312246f1a4af27f82cd150",
+        "path": "src/Plugin/RetryPlugin.php",
+        "rule": "semicolon",
+        "passage": "shouldretry() answers yes until the attribute's extra attempts are used up. when the attribute names a throwable type, the cause must be an instance of it; tests without the attribute are never retried.",
+        "count": 1
+    },
+    {
+        "fingerprint": "65f4f379c3b669f8e529dd9682065d36a562637e4fdfea3b1437b4cc4f495c27",
+        "path": "src/Plugin/RunLifecycleSubscriber.php",
+        "rule": "semicolon",
+        "passage": "observation is read-only; results cannot be altered from this side of the process boundary.",
+        "count": 1
+    },
+    {
+        "fingerprint": "6d5e91389bd0717cf9c7adbdec7ec2c328f03aa02ac2052150081617586ef375",
+        "path": "src/Plugin/TestContext.php",
+        "rule": "semicolon",
+        "passage": "service() is usable during beforetest and the test itself; by the time aftertest runs, the per-test scope has closed and service() throws.",
+        "count": 1
+    },
+    {
+        "fingerprint": "21b339e6f6ca7320261ead34eec49b5d74e483e9a822e75956026c68223849bb",
+        "path": "src/Plugin/TestContext.php",
+        "rule": "semicolon",
+        "passage": "skips the current attempt during beforetest; code after the call does not run.",
+        "count": 1
+    },
+    {
+        "fingerprint": "f7c9e063da9b92d48a2fe27a2d8424dd4106fd44ac71008af7c2f82f3d795187",
+        "path": "src/Plugin/TestLifecycleSubscriber.php",
+        "rule": "semicolon",
+        "passage": "aftertest() receives the result and returns it, replaced or untouched; outcome changes are only legal through testresult::withoutcome() so every change carries provenance.",
+        "count": 1
+    },
+    {
+        "fingerprint": "3d9458c5ee01e383692338773aa600038514bb13f5131b3a8fa38c8d3ab77590",
+        "path": "src/Plugin/TestLifecycleSubscriber.php",
+        "rule": "semicolon",
+        "passage": "runs after the test instance is constructed and before the before-hooks. calling $context->skip() (or throwing skiptest directly) reports the test as skipped; any other throwable errors it with this plugin named.",
+        "count": 1
+    }
+]
