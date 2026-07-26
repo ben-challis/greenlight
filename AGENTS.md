@@ -6,3 +6,4 @@
 - Run focused tests with `php bin/greenlight run --filter=<test-id>`.
 - Before finishing PHP changes, run `composer static-analysis && composer tests`.
 - For website changes, run `make docs-check`.
+- Use Conventional Commits for commit messages.
