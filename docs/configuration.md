@@ -419,6 +419,62 @@ Matching is case-insensitive substring matching by default. A pattern containing
 
 Repeatable. Multiple filters are unioned.
 
+### --exclude-group=<name>
+
+Excludes tests in the given group.
+
+Repeatable. Exclusions take precedence over `--group` and `--filter`.
+
+### --exclude-class=<pattern>
+
+Excludes classes matching the pattern.
+
+Matching is case-insensitive substring matching by default. A pattern containing
+`*` or `?` must match the whole class name.
+
+Repeatable.
+
+### --exclude-method=<pattern>
+
+Excludes methods matching the pattern.
+
+Matching is case-insensitive substring matching by default. A pattern containing
+`*` or `?` must match the whole method name.
+
+Repeatable.
+
+### --exclude-path=<prefix>
+
+Excludes tests whose source file is below the path prefix.
+
+Relative prefixes are resolved from the working directory. Repeatable.
+
+### --list-tests
+
+Prints the selected test ids instead of running them.
+
+### --list-groups
+
+Prints each selected group and its test count instead of running tests.
+
+### --list-suites
+
+Prints the configured named suites instead of discovering or running tests.
+
+### --repeat=<n>
+
+Runs the selected tests in `<n>` fresh iterations.
+
+The command exits non-zero if any iteration fails. `--repeat=1` is equivalent to
+an ordinary run.
+
+### --repeat-until-failure
+
+Repeats fresh runs until an iteration fails.
+
+On its own, the command stops after 100 passing iterations. Combine it with
+`--repeat=<n>` to set a different limit. It cannot be combined with `--watch`.
+
 ### --shard=<n>/<m>
 
 Runs the nth of m disjoint slices of the plan.
@@ -482,6 +538,14 @@ Overrides the configured artifact parent directory for this run. Greenlight
 creates a unique run directory below it and reports that path in human and
 machine-readable output.
 
+### --baseline=<path>
+
+Sets the baseline coverage JSON file for `coverage:diff`.
+
+### --current=<path>
+
+Sets the current coverage JSON file for `coverage:diff`.
+
 ### --watch
 
 Reruns on file changes.
@@ -529,6 +593,16 @@ be rendered later with:
 ```sh
 greenlight profile:report --input=<file>
 ```
+
+### --input=<path>
+
+Sets the JSONL input file for `profile:report`.
+
+### --output=<path>
+
+Changes the file written by `ide-helper`.
+
+Default: `_greenlight_ide_helper.php`.
 
 ### --dry-run
 
