@@ -90,7 +90,7 @@ stateDiagram-v2
     Drained --> [*]: channel slot released
 ```
 
-**Recycling.** Recycle budgets (a test count, a memory ceiling, or both) travel inside `assign`, and the worker checks them after every test. When a budget runs out mid-assignment, the worker sends `recycling` with the list of tests it never reached, then exits. When the budget runs out exactly at an assignment boundary, it sets a recycle flag on `done` instead. Either way the orchestrator re-queues the remainder, spawns a replacement, and emits a `WorkerRecycled` event so reporters can show it. Recycling is off by default; both budgets are opt-in configuration.
+**Recycling.** Recycle budgets (a test count, a memory ceiling, or both) travel inside `assign`, and the worker checks them after every test. When a budget runs out mid-assignment, the worker sends `recycling` with the list of tests it never reached, then exits. When the budget runs out exactly at an assignment boundary, it sets a recycle flag on `done` instead. Either way the orchestrator re-queues the remainder, spawns a replacement, and emits a `WorkerRecycled` event so reporters can show it. Memory-based recycling defaults to 256M. Test-count recycling is opt-in.
 
 **Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn.
 
