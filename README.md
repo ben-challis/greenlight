@@ -278,7 +278,7 @@ Tests that pass without verifying anything can be reported as risky. Use `#[NoEx
 Selection and inspection:
 
 * `--config=<path>`
-* `--filter` and `--group`
+* `--filter`, exact `--test-id`, and `--group`
 * Exclusions by group, class, method, and path
 * `list-tests`
 * `--list-tests`, `--list-groups`, and `--list-suites`

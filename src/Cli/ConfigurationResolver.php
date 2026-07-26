@@ -57,6 +57,7 @@ final class ConfigurationResolver
             randomSeed: $randomSeed,
             groups: $overrides->groups === [] ? $configuration->groups : $overrides->groups,
             filters: $overrides->filters,
+            onlyTests: $overrides->testIds === [] ? null : $overrides->testIds,
             shard: $overrides->shard,
             excludeGroups: $overrides->excludeGroups,
             excludeClasses: $overrides->excludeClasses,

@@ -20,7 +20,8 @@ functionally possible, but not a useful integration.
 
 Greenlight already has the pieces around the edge of that loop:
 
-* `--filter` can run exact test ids, so per-mutant test selection is available.
+* Repeatable `--test-id` arguments run exact test ids, so per-mutant test
+  selection is available without substring or wildcard ambiguity.
 * Discovery is cached, keeping repeated invocations cheap.
 * JUnit output provides test locations.
 * Machine-readable reporters and exit codes provide mutant run results.
@@ -63,7 +64,7 @@ The adapter would:
 
 * run Greenlight once for per-test coverage and JUnit output
 * map mutated lines to Greenlight test ids
-* invoke Greenlight with `--filter` for those ids
+* invoke Greenlight with `--test-id` for those ids
 * use the result to classify each mutant as killed or survived
 
 No further runner changes should be required.
