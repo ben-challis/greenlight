@@ -17,13 +17,14 @@ prints to stdout cannot corrupt the protocol.
 
 ## The messages
 
-Seven message types cross the socket:
+Eight message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
 | `hello` | worker to orchestrator | worker id, shared token, pid |
 | `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, coverage settings, config file path, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
+| `attempt-started` | worker to orchestrator | in-flight test id and attempt number, for crash accounting |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
 | `recycling` | worker to orchestrator | recycle reason, the tests it did not run, result summary, partial coverage |
 | `drain` | orchestrator to worker | none; asks the worker to exit cleanly |
@@ -69,6 +70,10 @@ Some notes on that exchange:
 
 - The worker bootstraps once, on its first `assign`. Plugins and harness registries are built then and reused for every later assignment, which is why per-run harness services keep worker-lifetime semantics. Per-class state (reflection, hooks, data sets) is rebuilt for each class.
 - Events stream one frame per event, the moment they happen. The orchestrator forwards each event to the reporters and updates its running summary as frames arrive, which is what makes live per-worker output and flat orchestrator memory possible. Nothing accumulates worker-side.
+- Attempts are not separate public events: a retried test still produces one
+  `test-started` and one `test-finished`. The internal `attempt-started` frame
+  lets the orchestrator report the right attempt count if the worker dies
+  before `test-finished`.
 - Attachment content uses the shared run-scoped filesystem, not the socket.
   Workers send only metadata in `TestFinished`. The orchestrator publishes
   staged files before forwarding the event, keeping binary content outside the

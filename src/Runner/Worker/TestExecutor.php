@@ -15,6 +15,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Core\Test\SkipTest;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
@@ -39,6 +40,9 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
  */
 final readonly class TestExecutor
 {
+    /**
+     * @param \Closure(TestId, positive-int): void|null $attemptStarted
+     */
     public function __construct(
         private HarnessScopes $scopes,
         private ClassContext $context,
@@ -46,6 +50,7 @@ final readonly class TestExecutor
         private ?LeakDetector $leakDetector = null,
         private ?ResultPolicy $policy = null,
         private ?ArtifactStore $artifactStore = null,
+        private ?\Closure $attemptStarted = null,
     ) {}
 
     public function execute(PlanEntry $entry): TestResult
@@ -83,6 +88,11 @@ final readonly class TestExecutor
 
         do {
             ++$attempt;
+
+            if ($this->attemptStarted instanceof \Closure) {
+                ($this->attemptStarted)($entry->id, $attempt);
+            }
+
             [$result, $cause, $attachments] = $this->attempt($entry, $attempt, $artifactBudget);
 
             if ($attachments instanceof StagedAttachments) {
