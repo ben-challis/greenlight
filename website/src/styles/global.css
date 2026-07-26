@@ -931,13 +931,14 @@ code {
 
 .docs-sidebar,
 .page-index {
-  align-self: start;
-}
-
-.docs-sidebar nav,
-.page-index nav {
   position: sticky;
   top: 7.25rem;
+  align-self: start;
+  max-height: calc(100vh - 9.25rem);
+  max-height: calc(100dvh - 9.25rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .docs-nav-section + .docs-nav-section {
