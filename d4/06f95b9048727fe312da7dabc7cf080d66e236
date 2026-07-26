@@ -1,0 +1,70 @@
+src/Rector/PhpUnitToGreenlightRector.php
+  s_d0e98f298e7532::t_2928e1906144ec 674-677
+  s_d0e98f298e7532::t_c5f09f56d823e7 479,507,597,633,706
+  s_d0e98f298e7532::t_a4ce97eee44972 1022-1026
+  s_d0e98f298e7532::t_b4a527fe423d50 1-60,62,64-163,165-173,175-299,301-412,415-478,480-506,508-558,563,570-572,584,586-592,594-596,598-632,634-637,639-673,678-705,707-774,776-783,785-810,812-837,839-884,886-988,990-1021,1027-1035,1037-1113,1118-1146
+  s_d0e98f298e7532::t_8fa3f99b634056 784
+  s_d0e98f298e7532::t_3cb7c2f846baf0 164,174,300,838,885
+  s_d0e98f298e7532::t_ea52c5062d676f 1114-1117
+  s_d0e98f298e7532::t_0397e88760e83c 775
+  s_d0e98f298e7532::t_30cbccfefc2269 559-562,564-569,573-583,585,593
+  s_d0e98f298e7532::t_11e9450ea9d8b6 61,63
+  s_d0e98f298e7532::t_131dae792d6da3 638,989,1036
+  s_d0e98f298e7532::t_422f91456b3146 413-414
+  s_d0e98f298e7532::t_a775bff0dddf9b 811
+tests/Unit/Rector/AssertionMapTest.php
+  s_d0e98f298e7532::t_8a6387ea30d3b3 20-21,24-25,28-30
+  s_d0e98f298e7532::t_28a6ac7c43ab71 1-19,22-23,26-27,31-44
+src/Rector/AssertionConversion.php
+  s_d0e98f298e7532::t_82031d79176a08 1-28
+deptrac.yaml
+  s_d0e98f298e7532::t_dc72a32741172d 80-83
+  s_d0e98f298e7532::t_a9219c28fdb6bf 104-109
+  s_d0e98f298e7532::t_eae9fc5fc57ecd 128,134
+src/Rector/AssertionMap.php
+  s_d0e98f298e7532::t_7a83b474a8038a 73-77,82,86,88,90-100
+  s_d0e98f298e7532::t_133316e71ea23c 1-72,78-81,83-85,87,89,101-102
+tests/Fixture/RectorMigration/phpunit-stubs.php
+  s_d0e98f298e7532::t_e4c81e1c92027a 28-30
+  s_d0e98f298e7532::t_8352719e7998e3 1-27,31-60
+tests/Acceptance/RectorMigrationTest.php
+  s_d0e98f298e7532::t_3cb7c2f846baf0 17-40,42-44,46-52,54-59,61-66,68-73,75-79,82-83,85-90,92-95,98-99,101-104,106-109,112,114,116,118-119,121,123,125,127-129,131,133,135,187,205,209,235,239,260
+  s_d0e98f298e7532::t_cbc465b2a135a6 1-16,41,45,53,60,67,74,80-81,84,91,96-97,100,105,110-111,113,115,117,120,122,124,126,130,132,134,136-159,161-180,184-186,188-204,206-208,210-234,236-238,240-259,261-298
+  s_d0e98f298e7532::t_92a548e9ba3adc 160
+  s_d0e98f298e7532::t_937eb2c222f352 181-183
+rector.php
+  s_d0e98f298e7532::t_eb91bd1fd318e7 7,16
+tests/Support/RectorProbe.php
+  s_d0e98f298e7532::t_c7cf12c2b09601 1-109
+src/Rector/PhpUnitAttributes.php
+  s_d0e98f298e7532::t_ce0e879672ba78 84-85
+  s_d0e98f298e7532::t_8e6bb940f35caa 1-83,86-98
+docs/migrating-from-phpunit.md
+  s_d0e98f298e7532::t_42454f9797bb64 7,9,14,16-30,35,37,47-53,58
+src/Rector/ThrowRewrite.php
+  s_d0e98f298e7532::t_be857532c02438 1-11,15-28
+  s_d0e98f298e7532::t_385eed4367c94d 12-14
+src/Rector/ClassPlan.php
+  s_d0e98f298e7532::t_6092e26bff7b9a 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d406f95b9048727fe312da7dabc7cf080d66e236",
+  "prompts": {},
+  "humans": {
+    "h_cc42924719f456": {
+      "author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  },
+  "sessions": {
+    "s_d0e98f298e7532": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e40493fb-5324-4801-b026-981bf05ad1e7",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
