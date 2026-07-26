@@ -1,17 +1,16 @@
 # Coverage JSON schema
 
-Greenlight's JSON coverage export is produced by
-`Greenlight\Coverage\Export\JsonExporter` and imported by
-`JsonExporter::import()`.
+`Greenlight\Coverage\Export\JsonExporter` produces the Greenlight JSON coverage
+export. `JsonExporter::import()` imports it.
 
-It is also used by coverage diffing:
+The coverage difference command also uses this format:
 
 ```sh id="x3l9w8"
 greenlight coverage:diff --baseline=baseline.json --current=current.json
 ```
 
-The schema is versioned. Version 1's existing fields and meanings are stable;
-see [compatibility](compatibility.md) for the change rules.
+The schema has a version. The fields and meanings in version 1 are stable. See
+[compatibility](compatibility.md) for the change rules.
 
 ## Document shape
 
@@ -38,24 +37,26 @@ see [compatibility](compatibility.md) for the change rules.
 
 ### v
 
-Schema version.
+The schema version.
 
-For this revision, the value is always the integer `1`.
+For this revision, this value is always the integer `1`.
 
-Readers must reject any other value.
+Readers **MUST** reject all other values.
 
 ### files
 
-An object keyed by absolute file path.
+An object that uses absolute file paths as keys.
 
-Entries are sorted by path.
+Greenlight sorts entries by path.
 
 Absolute keys make a baseline specific to its checkout root. Coverage from two
-worktrees, containers, or machines compares as the same file only when the keys
-match exactly. Use a stable mounted path or normalize both documents before
-diffing. Project-relative keys would require a new schema version.
+sources represents the same file only when the keys match exactly. Sources
+include worktrees, containers, and machines.
 
-`files` is always an object, including in an empty report:
+Use a stable mounted path. As an alternative, normalize both documents before
+you compare them. Project-relative keys require a new schema version.
+
+`files` is always an object. This rule also applies to an empty report:
 
 ```json id="g6nqcx"
 {}
@@ -65,12 +66,13 @@ It is never an array.
 
 ### files.*.covered
 
-A sorted list of unique positive line numbers that executed at least once.
+A sorted list of unique positive line numbers. Each line in the list executed
+at least once.
 
 ### files.*.uncovered
 
-A sorted list of unique positive line numbers that are executable but did not
-execute.
+A sorted list of unique positive line numbers. Each line in the list is
+executable but did not execute.
 
 This list is disjoint from `covered`.
 
@@ -82,9 +84,9 @@ The file coverage percentage:
 covered / (covered + uncovered) * 100
 ```
 
-The value is rounded to two decimal places.
+Greenlight rounds the value to two decimal places.
 
-A file with no executable lines reports `100.0`.
+A file that has no executable lines reports `100.0`.
 
 ### totals.files
 
@@ -108,7 +110,7 @@ The total coverage percentage:
 coveredLines / executableLines * 100
 ```
 
-The value is rounded to two decimal places.
+Greenlight rounds the value to two decimal places.
 
 An empty report has `100.0` coverage because there are no executable lines to
 miss.
@@ -117,25 +119,26 @@ miss.
 
 The format stores line coverage only.
 
-Lines reported by the coverage driver as dead or unreachable code are excluded.
-They appear in neither `covered` nor `uncovered`.
+The format excludes lines that the coverage driver identifies as dead or
+unreachable code. These lines do not appear in `covered` or `uncovered`.
 
-A line is covered if any test in the run executed it. The format does not store
-hit counts.
+A line has coverage if one or more tests in the run executed it. The format
+does not store hit counts.
 
-`percentage` values and the `totals` object are derived from the line lists.
-`import()` recomputes them and ignores the stored values, so editing the
-percentages cannot change the imported coverage.
+The line lists supply the `percentage` values and the `totals` object.
+`import()` calculates these values again and ignores the stored values.
+Therefore, a percentage edit cannot change the imported coverage.
 
-The file is UTF-8 JSON, written with unescaped slashes and a trailing newline.
+The file uses UTF-8 JSON, unescaped slashes, and a newline at its end.
 
 ## Versioning
 
-Version `1` may gain additive fields.
+Version `1` **MAY** receive additive fields.
 
-Readers must ignore unknown keys.
+Readers **MUST** ignore unknown keys.
 
-Any change to the meaning or shape of existing fields requires a new `v` value.
+Each change to the meaning or shape of an existing field **MUST** use a new
+`v` value.
 
-Per-test coverage mapping may be added later as an opt-in extension. If added,
-it will use an additive key and be documented separately.
+Greenlight **MAY** add per-test coverage maps later as an optional extension.
+This extension **MUST** use an additive key and separate documentation.
