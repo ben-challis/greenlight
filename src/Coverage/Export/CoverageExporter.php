@@ -8,10 +8,10 @@ use Greenlight\Coverage\CoverageMap;
 
 /**
  * export() returns a map of relative file name to full content.
- * Single-document formats return exactly one entry; the HTML exporter returns
- * an index plus one page per covered file.
+ * A single-document format returns exactly one entry. The HTML exporter
+ * returns an index and one page for each covered file.
  *
- * Callers own writing the files to disk.
+ * Callers write the files to disk.
  *
  * @internal
  */

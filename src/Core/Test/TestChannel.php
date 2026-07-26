@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Core\Test;
 
 /**
- * A live worker owns a unique slot from 1 to the worker count. Replacements
- * reuse freed slots, so channel resources persist across worker recycling.
+ * A live worker owns a unique channel from 1 to the worker count. A
+ * replacement worker reuses a free channel. Thus, channel resources remain
+ * available when Greenlight replaces a worker.
  * In-process runs use channel 1.
  *
- * GREENLIGHT_CHANNEL exposes the same value outside the harness. label()
- * prefixes the raw number with "gl-".
+ * GREENLIGHT_CHANNEL supplies the same value outside the harness. label()
+ * adds "gl-" before the number.
  */
 final readonly class TestChannel
 {

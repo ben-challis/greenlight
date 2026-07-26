@@ -8,8 +8,8 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Expected and actual are pre-rendered strings: rendering happens
- * worker-side, and live values never cross the process boundary.
+ * Expected and actual are strings that the worker renders. Live values never
+ * cross the process boundary.
  */
 final readonly class FailureDetail implements WireSerializable
 {

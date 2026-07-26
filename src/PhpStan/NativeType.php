@@ -21,8 +21,8 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 /**
- * Matcher closures carry no analysable PHPDoc at runtime, so this covers
- * native types only.
+ * Matcher closures have no PHPDoc that PHPStan can analyze at run time. Thus,
+ * this class supports only native types.
  *
  * @internal
  */

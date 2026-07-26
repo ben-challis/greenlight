@@ -20,14 +20,15 @@ use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * A provider must exist as a public static method on the test class or the
- * explicitly referenced provider class, returning an iterable of argument
- * arrays. Where PHPStan knows a row's exact shape (an array{...} return type
- * or an inline #[DataRow] literal), each value is checked against the matching
- * parameter, and rows with too few or too many values are flagged.
+ * A data provider must be a public static method. It must be in the test class
+ * or the specified provider class. It must return an iterable of argument
+ * arrays.
  *
- * Rows without a known shape are only required to be arrays; what is in
- * them stays a runtime concern.
+ * PHPStan can know the exact form of an array{...} return type or an inline
+ * #[DataRow] literal. In these forms, PHPStan compares each value to its
+ * parameter. It also reports too few or too many values. For other forms,
+ * PHPStan verifies only that each data set is an array. Greenlight validates
+ * its content at run time.
  *
  * @implements Rule<InClassMethodNode>
  */
@@ -72,8 +73,8 @@ final readonly class DataProviderSignatureRule implements Rule
     }
 
     /**
-     * A method with anything other than exactly one variant has no single
-     * signature to validate rows against, so it is skipped.
+     * If a method does not have exactly one variant, it has no single
+     * signature. Thus, the rule does not validate its data sets.
      *
      * @param list<ParametersAcceptor> $variants
      */
@@ -231,8 +232,10 @@ final readonly class DataProviderSignatureRule implements Rule
     }
 
     /**
-     * Positional check of one row against the method's parameters. Rows are
-     * applied with array_values() at run time, so only value order matters.
+     * Compares one data set to the method parameters by position.
+     *
+     * Greenlight applies array_values() at run time. Thus, only value order is
+     * applicable.
      *
      * @param list<Type> $valueTypes
      *

@@ -7,12 +7,12 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * Each file becomes one class element with per-line hit counts, and line-rate
- * attributes appear at class, package, and root level.
+ * Each file becomes one class element with a hit count for each line.
+ * Class, package, and root elements contain line-rate attributes.
  *
- * Branch rates are reported as zero because only line coverage is collected.
+ * The report uses zero for branch rates because Greenlight collects only line coverage.
  *
- * The timestamp is injected for deterministic output.
+ * The caller supplies the timestamp to make the output deterministic.
  *
  * @internal
  */

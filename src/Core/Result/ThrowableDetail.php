@@ -8,7 +8,7 @@ use Greenlight\Core\Wire\Utf8;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
-/** Stack frames are bounded so a deep trace cannot bloat the wire. */
+/** Limits stack frames so a deep trace cannot make the wire payload too large. */
 final readonly class ThrowableDetail implements WireSerializable
 {
     private const int MAX_STACK_FRAMES = 32;

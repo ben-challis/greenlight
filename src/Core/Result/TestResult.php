@@ -11,13 +11,13 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Plugins never mutate a result; they produce a replacement via
- * withOutcome(), which records provenance.
+ * A plugin does not change a result object. It uses withOutcome() to produce
+ * a replacement and record the source of the change.
  *
- * expectations counts the verifications of the final attempt: each matcher
- * in a chain individually and each mock expectation at disposal; stubs never
- * count. A non-passed result carries whatever verified before the abort. Wire
- * payloads written before the field existed decode to zero.
+ * The expectations value counts each matcher in a chain separately. It counts
+ * each mock expectation when disposal verifies it. Stubs do not add to the
+ * count. An unsuccessful result contains the count at the time of the abort.
+ * Old wire payloads without this field decode to zero.
  */
 final readonly class TestResult implements WireSerializable
 {
@@ -72,7 +72,7 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
-     * Appends failure details and records the outcome transformation.
+     * Adds failure details and records the outcome transformation.
      *
      * @param non-empty-string $transformedBy
      * @param non-empty-list<FailureDetail> $details
@@ -100,7 +100,7 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
-     * The same result with a recovered attempt count.
+     * Returns the same result with a recovered attempt count.
      *
      * @internal
      */
@@ -110,7 +110,7 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
-     * The same result errored with the supplied detail.
+     * Returns the same result with an error and the specified detail.
      */
     public function erroredBy(ThrowableDetail $error): self
     {
@@ -126,8 +126,8 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
-     * Every field a derived result does not override carries over, so new
-     * fields only need threading through here.
+     * Copies each field that the derived result does not replace. New fields
+     * only require an entry here.
      *
      * @param list<FailureDetail>|null $failures
      * @param list<OutcomeTransformation>|null $transformations

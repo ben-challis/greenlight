@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Test;
 
 /**
- * Validates the canonical names used to join test requirements to configured
- * resource limits.
+ * Validates the standard names that connect test requirements to configured resource limits.
  *
  * @internal
  */

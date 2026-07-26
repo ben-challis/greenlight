@@ -8,8 +8,7 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Cross-process identity used for distribution, rerun selection, and timing
- * caches.
+ * Identifies a test across processes for assignment, rerun selection, and the timing cache.
  */
 final readonly class TestId implements WireSerializable, \Stringable
 {

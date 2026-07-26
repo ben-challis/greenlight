@@ -7,7 +7,7 @@ namespace Greenlight\Core\Artifact;
 use Greenlight\Core\Wire\Wire;
 
 /**
- * Attachment metadata carrying its private worker-to-orchestrator coordinate.
+ * Attachment metadata with its private worker-to-orchestrator coordinate.
  *
  * @internal
  */

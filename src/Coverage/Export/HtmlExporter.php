@@ -8,15 +8,15 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
 /**
- * Uses the PHP tokenizer so multiline constructs remain valid when split
- * into highlighted lines. The report is self-contained and works offline.
+ * Uses the PHP tokenizer to keep multiline constructs valid in highlighted
+ * lines. The report is self-contained and operates without a network.
  *
- * Paths are relative to the project root; paths outside it stay absolute.
- * Per-file page names hash the absolute path for deterministic,
- * filesystem-safe names.
+ * Paths in the project root are relative to that root. Other paths remain
+ * absolute. Each file page name contains a hash of its absolute path. Thus,
+ * page names are deterministic and safe for a file system.
  *
- * When a source file is unreadable the page falls back to line numbers and
- * statuses only.
+ * If Greenlight cannot read a source file, the page shows only line numbers
+ * and statuses.
  *
  * @internal
  */
@@ -167,8 +167,8 @@ final readonly class HtmlExporter implements CoverageExporter
         for ($line = 1; $line <= $lastLine; ++$line) {
             $lineClass = isset($covered[$line]) ? 'cov' : (isset($uncovered[$line]) ? 'unc' : '');
             $content = \sprintf('<span class="num">%d</span>%s', $line, $source[$line - 1] ?? '');
-            // Classed lines render as blocks, so a trailing newline would add
-            // an empty line box inside the <pre>.
+            // Lines with a class appear as blocks. A final newline adds an
+            // empty line box inside the <pre>.
             $body .= $lineClass === '' ? $content . "\n" : \sprintf('<span class="%s">%s</span>', $lineClass, $content);
         }
 
@@ -189,10 +189,11 @@ final readonly class HtmlExporter implements CoverageExporter
     }
 
     /**
-     * Tokenizes the source and renders one escaped HTML string per line.
-     * Token spans never cross a line boundary: a multi-line token is split
-     * and each segment wrapped separately, so per-line cov/unc blocks stay
-     * well-formed.
+     * Converts the source to tokens and renders one escaped HTML string for each line.
+     *
+     * A token span does not cross a line boundary. The method divides a
+     * multiline token and puts each part in a separate element. Thus, each
+     * cov or unc block remains valid.
      *
      * @return list<string>|null
      */
@@ -259,8 +260,8 @@ final readonly class HtmlExporter implements CoverageExporter
             return '';
         }
 
-        // Remaining named word-shaped tokens are language keywords; single
-        // characters and operators fall through to the default colour.
+        // Other named tokens that contain words are language keywords.
+        // Single characters and operators use the default color.
         if ($token->id >= 256 && \preg_match('/^[A-Za-z_]+$/', $token->text) === 1) {
             return 'tk';
         }

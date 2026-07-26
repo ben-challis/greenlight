@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Coverage;
 
 /**
- * Per file, it holds a map of line number to status flag in the shared driver
- * vocabulary: a value of one or more means the line executed, minus one means
- * executable but not executed, minus two means dead code.
+ * Contains a map of line numbers to driver status values for each file.
+ * A positive value means that the line executed. Minus one means uncovered.
+ * Minus two means dead code.
  *
- * Dead code is dropped during normalisation into a CoverageMap.
+ * CoverageMap conversion removes dead code.
  *
  * @internal
  */

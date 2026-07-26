@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 /**
- * Runs one native operation with engine diagnostics routed away from any
- * host error handler.
+ * Runs one native operation. It does not send engine diagnostics to a host error handler.
  *
- * run() installs an error handler that records the last message and marks
- * it handled, invokes the operation, and restores the previous handler on
- * the way out. Failure still signals through the operation's return value;
- * the recorded message exists to enrich whatever error the caller raises.
+ * run() installs an error handler that records the last message and handles
+ * it. It then invokes the operation and restores the previous handler.
+ * The return value of the operation still identifies a failure. The recorded
+ * message gives more information for an error that the caller raises.
  *
- * This replaces the @ operator: @ still exposes the diagnostic to any
- * installed error handler that ignores error_reporting(), and it discards
- * the message this helper keeps.
+ * This operation replaces the @ operator. That operator sends the diagnostic
+ * to an installed error handler that ignores error_reporting(). It also
+ * discards the message that this helper keeps.
  *
  * @internal
  */
@@ -28,8 +27,8 @@ final class ErrorTrap
      * @template T
      *
      * @param \Closure(): T $operation
-     * @param string|null $warning the last engine message raised during the
-     *   operation, null when none was raised
+     * @param string|null $warning The last engine message from the operation,
+     *   or null if there was no message
      *
      * @param-out string|null $warning
      *

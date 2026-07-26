@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Driver;
 
 /**
- * It holds either a ready driver, or a reason string explaining why coverage
- * cannot be collected. Exactly one of the two is present.
+ * Contains one ready driver or one reason that identifies why coverage is not available.
  *
  * @internal
  */

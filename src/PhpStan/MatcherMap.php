@@ -9,15 +9,16 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Expect\ExpectationExtension;
 
 /**
- * The union of every extension matcher declared across a set of greenlight
- * config files, keyed by matcher name.
+ * Combines extension matchers from a set of Greenlight configuration files.
+ * The matcher name identifies each entry.
  *
- * Two files may declare the same matcher with the same signature (typically
- * by registering the same plugin); the same name with a different signature
- * is refused, because static analysis needs one signature per name.
+ * Two files can declare one matcher with the same signature. This usually
+ * occurs when they register the same plugin. A different signature with the
+ * same name causes an error. Static analysis requires one signature for each
+ * name.
  *
- * Free of PHPStan symbols on purpose: everything except the thin adapter
- * classes can run, and be tested, outside a PHPStan process.
+ * This class does not contain PHPStan symbols. Thus, all components except the
+ * adapter classes can operate outside a PHPStan process.
  *
  * @internal
  */
@@ -29,8 +30,8 @@ final readonly class MatcherMap
     private function __construct(private array $matchers) {}
 
     /**
-     * @param list<string> $configFiles relative paths resolve against the
-     *   current working directory
+     * @param list<string> $configFiles Relative paths use the current
+     *   directory
      *
      * @throws ConfigFileError
      * @throws MatcherMapError
@@ -91,8 +92,10 @@ final readonly class MatcherMap
     }
 
     /**
-     * The parameters a caller passes on the expectation chain: the matcher
-     * closure's parameters minus the leading subject, which the chain binds.
+     * Returns the matcher parameters that a caller supplies to the expectation chain.
+     *
+     * The result does not include the first subject parameter. The chain
+     * supplies this parameter.
      *
      * @return list<\ReflectionParameter>
      */
@@ -116,8 +119,9 @@ final readonly class MatcherMap
     }
 
     /**
-     * Renders one caller-facing parameter the way source code writes it;
-     * $defaultPlaceholder stands in for the unrepresentable default value.
+     * Renders one caller parameter in source-code form.
+     *
+     * $defaultPlaceholder replaces a default value that source code cannot represent.
      */
     public static function parameterSignature(\ReflectionParameter $parameter, string $defaultPlaceholder): string
     {
@@ -131,8 +135,9 @@ final readonly class MatcherMap
     }
 
     /**
-     * Renders a native reflection type the way source code writes it, for
-     * signature comparison and for the generated @method annotations.
+     * Renders a native reflection type in source-code form.
+     *
+     * Signature comparison and generated @method annotations use this form.
      */
     public static function typeName(?\ReflectionType $type): string
     {

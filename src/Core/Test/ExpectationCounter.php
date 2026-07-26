@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace Greenlight\Core\Test;
 
 /**
- * Process-local count of verified expectations, used to spot tests that
- * assert nothing.
+ * Counts verified expectations in one process. This count identifies tests
+ * that verify no expectations.
  *
- * The executor calls reset() before each attempt and count() after per-test
- * teardown, so double verification at scope close is included. Expect and
- * Doubles call increment() on every verification, pass or fail.
+ * The executor calls reset() before each attempt. It calls count() after test
+ * teardown. Thus, the count includes double verification at scope close.
+ * Expect and Doubles call increment() for each successful or failed
+ * verification.
  *
- * A static counter is deliberate: harness service factories receive no
- * resolver, workers are single-threaded, and the executor owns the
- * reset/read lifecycle.
+ * The static counter supports the design. Harness service factories do not
+ * receive a resolver. Each worker uses one thread. The executor controls the
+ * reset and read operations.
  *
  * @internal
  */
@@ -41,7 +42,7 @@ final class ExpectationCounter
     }
 
     /**
-     * Runs an operation without adding to the expectation count.
+     * Runs an operation without a change to the expectation count.
      *
      * @internal
      *
