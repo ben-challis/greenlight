@@ -122,6 +122,25 @@ final class AttributeMergeTest
     }
 
     #[Test]
+    public function invalidResourceNamesAreRejectedAtDiscoveryWithTheirLocation(): void
+    {
+        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryResourceInvalid';
+
+        try {
+            new TestDiscoverer()->discover([$dir]);
+        } catch (DiscoveryError $error) {
+            Expect::that($error->getMessage())
+                ->toContain('InvalidResourceTest')
+                ->toContain('neverDiscovered')
+                ->toContain('Resource names');
+
+            return;
+        }
+
+        Fail::because('Expected discovery to reject an invalid resource name.');
+    }
+
+    #[Test]
     public function methodLevelAttributesApplyWithoutClassLevelCounterparts(): void
     {
         $metadata = $this->metadataByTest()[PlainTest::class . '::fullyDecorated'];

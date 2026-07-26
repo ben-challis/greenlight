@@ -35,6 +35,10 @@ final readonly class WorkerProcess
 {
     private const float RECEIVE_POLL_SECONDS = 30.0;
 
+    public function __construct(
+        private float $receivePollSeconds = self::RECEIVE_POLL_SECONDS,
+    ) {}
+
     /**
      * @param non-empty-string $address
      * @param non-empty-string $workerId
@@ -75,7 +79,7 @@ final readonly class WorkerProcess
 
         try {
             while (true) {
-                $message = $channel->receive(self::RECEIVE_POLL_SECONDS);
+                $message = $channel->receive($this->receivePollSeconds);
 
                 if (!$message instanceof Message) {
                     if (!$channel->isEof()) {

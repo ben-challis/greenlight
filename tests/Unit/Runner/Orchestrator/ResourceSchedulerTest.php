@@ -97,6 +97,18 @@ final class ResourceSchedulerTest
     }
 
     #[Test]
+    public function requeuedIsolatedUnitsStillNeedAFreshWorker(): void
+    {
+        $isolated = $this->unit('IsolatedTest', ['database'], isolated: true);
+        $scheduler = new ResourceScheduler([], [], []);
+
+        $scheduler->requeue($isolated);
+
+        Expect::that($scheduler->dispatch(false)->kind)->toBe(DispatchKind::Drain);
+        Expect::that($this->assigned($scheduler, fresh: true)->unit)->toBe($isolated);
+    }
+
+    #[Test]
     public function releasedLeasesCannotBeReleasedTwice(): void
     {
         $scheduler = new ResourceScheduler([$this->unit('OnlyTest', ['database'])], [], []);
