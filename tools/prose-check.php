@@ -13,10 +13,13 @@ const PROSE_BLOCKING_RULES = [
 const PROSE_EXCLUDED_DIRECTORIES = [
     '.git',
     '.phpstan-api-stubs',
-    'node_modules',
     'tests/Fixture',
-    'vendor',
     'website/dist',
+];
+
+const PROSE_EXCLUDED_DIRECTORY_NAMES = [
+    'node_modules',
+    'vendor',
 ];
 
 const PROSE_CONTRACTIONS = [
@@ -259,7 +262,13 @@ function proseFiles(string $root): array
 
 function proseIsExcluded(string $relativePath): bool
 {
-    return \array_any(PROSE_EXCLUDED_DIRECTORIES, fn($directory) => $relativePath === $directory || \str_starts_with($relativePath, $directory . '/'));
+    if (\array_any(PROSE_EXCLUDED_DIRECTORIES, fn($directory) => $relativePath === $directory || \str_starts_with($relativePath, $directory . '/'))) {
+        return true;
+    }
+
+    $segments = \explode('/', $relativePath);
+
+    return \array_any(PROSE_EXCLUDED_DIRECTORY_NAMES, fn(string $directory): bool => \in_array($directory, $segments, true));
 }
 
 function proseRelativePath(string $root, string $path): string
