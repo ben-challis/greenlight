@@ -14,7 +14,7 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
   </summary>
   <div class="search-surface" role="dialog" aria-label="Search documentation">
     <div id="pagefind-search">
-      <p class="search-loading">Start typing to search the documentation.</p>
+      <p class="search-loading">Enter text to search the documentation.</p>
     </div>
   </div>
 </details>
@@ -51,7 +51,7 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
     script.onerror = () => {
       const loading = document.querySelector('.search-loading');
       if (loading) {
-        loading.textContent = 'Search is available in the production build.';
+        loading.textContent = 'Search is not available.';
       }
     };
     document.head.append(script);

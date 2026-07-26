@@ -1,9 +1,0 @@
-[
-    {
-        "fingerprint": "da272bfa0ef2b43c554a934da3552ec63ccb773b6528264ec513b57c52c8a49d",
-        "path": "website/src/components/Footer.astro",
-        "rule": "british-spelling",
-        "passage": "mit licence",
-        "count": 1
-    }
-]

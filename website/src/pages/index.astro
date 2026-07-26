@@ -42,7 +42,7 @@ final class PriceTest
           worker pool for parallel execution by default.
         </p>
         <div class="hero-actions">
-          <a class="button primary" href={sitePath('docs/getting-started/')}>Get started</a>
+          <a class="button primary" href={sitePath('docs/getting-started/')}>Start with Greenlight</a>
           <a class="button secondary" href={githubUrl}>View on GitHub</a>
         </div>
         <div class="install-command" aria-label="Composer installation command" data-copy-command>
@@ -55,9 +55,9 @@ final class PriceTest
     </section>
 
     <section class="proof-line" aria-label="Greenlight characteristics">
-      <p><strong>Use every available core</strong><span>Parallel execution is built into the runner.</span></p>
-      <p><strong>Keep tests as plain PHP</strong><span>No base class or method-name convention.</span></p>
-      <p><strong>Stay inside your tools</strong><span>Typed APIs work with your IDE and PHPStan.</span></p>
+      <p><strong>Use every available core</strong><span>The runner executes test classes in parallel.</span></p>
+      <p><strong>Use plain PHP tests</strong><span>Tests need no base class or method-name convention.</span></p>
+      <p><strong>Use your current tools</strong><span>Typed APIs work with your IDE and PHPStan.</span></p>
     </section>
 
     <section class="code-proof section-shell">
@@ -86,15 +86,15 @@ final class PriceTest
         <li>
           <span>01</span>
           <div>
-            <h3>Start one command</h3>
-            <p>Greenlight discovers the suite once and builds the run plan.</p>
+            <h3>Run one command</h3>
+            <p>Greenlight discovers the suite once and builds the execution plan.</p>
           </div>
         </li>
         <li>
           <span>02</span>
           <div>
             <h3>Keep every worker busy</h3>
-            <p>Free workers take the next class, with known slow and failed tests starting early.</p>
+            <p>Free workers take the next class. Greenlight starts known slow classes and previously failed classes early.</p>
           </div>
         </li>
         <li>
@@ -109,13 +109,13 @@ final class PriceTest
 
     <section class="runner-proof section-shell">
       <div class="runner-copy">
-        <p class="eyebrow">When a test misbehaves</p>
+        <p class="eyebrow">Test failures</p>
         <h2>Failures stay contained and readable.</h2>
         <div class="capability-list">
-          <p><strong>Crashed worker</strong><span>Queued classes return to the pool and a replacement takes over.</span></p>
-          <p><strong>Hung test</strong><span>A hard timeout stops the worker so the rest of the suite can finish.</span></p>
-          <p><strong>External resources</strong><span>Channels isolate per-worker resources; named limits cap access to shared dependencies.</span></p>
-          <p><strong>Missed mock call</strong><span>Strict doubles verify at teardown and report unmet expectations.</span></p>
+          <p><strong>Crashed worker</strong><span>The orchestrator returns the rest of the assignment to the queue and starts a replacement worker.</span></p>
+          <p><strong>Hung test</strong><span>A hard timeout stops the worker. A replacement worker continues the suite.</span></p>
+          <p><strong>External resources</strong><span>Use channels to select separate resources for each worker. Resource limits restrict concurrent access to shared dependencies.</span></p>
+          <p><strong>Missed mock call</strong><span>At teardown, strict doubles verify interactions and report unmet expectations.</span></p>
         </div>
       </div>
       <div class="terminal-window" aria-label="Example Greenlight terminal output">
@@ -129,12 +129,12 @@ final class PriceTest
 
     <section class="migration section-shell">
       <div class="migration-copy">
-        <p class="eyebrow">Coming from PHPUnit?</p>
+        <p class="eyebrow">Move from PHPUnit</p>
         <h2>Move one test class at a time.</h2>
         <p>
-          Greenlight changes the test scaffolding, not the code you are testing.
-          Start with a leaf class, run it with one worker, then enable parallel
-          execution when it passes.
+          Greenlight changes the test support code but does not change the code
+          under test. Start with one small test class that has few dependencies.
+          Run it with one worker. After it passes, enable parallel execution.
         </p>
         <a class="text-link" href={sitePath('docs/migrating-from-phpunit/')}>
           Read the PHPUnit migration guide
@@ -167,9 +167,9 @@ final class PriceTest
     <section class="closing-cta">
       <div class="closing-cta-intro">
         <p class="eyebrow">Try one test class</p>
-        <h2>Go from install to first run.</h2>
+        <h2>Go from installation to your first run.</h2>
         <p>
-          You can see a passing Greenlight run before changing the rest of your suite.
+          Before you change the rest of your suite, run one test class successfully.
         </p>
       </div>
       <ol class="setup-steps">
@@ -191,7 +191,7 @@ final class PriceTest
       </ol>
       <div class="hero-actions">
         <a class="button primary" href={sitePath('docs/getting-started/')}>
-          Follow the getting-started guide
+          Read the Start with Greenlight guide
         </a>
       </div>
     </section>

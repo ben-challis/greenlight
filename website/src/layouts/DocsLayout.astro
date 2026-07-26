@@ -62,7 +62,7 @@ const { previous, next } = adjacentDocs(doc.id);
     <article class="docs-article" data-pagefind-body>
       <slot />
 
-      <nav class="doc-pagination" aria-label="Adjacent documentation" data-pagefind-ignore="all">
+      <nav class="doc-pagination" aria-label="Previous and next documentation pages" data-pagefind-ignore="all">
         {
           previous ? (
             <a class="previous" href={docPath(previous.id)}>

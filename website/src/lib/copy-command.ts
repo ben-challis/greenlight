@@ -28,8 +28,8 @@ function copyIcon(state: CopyState): SVGSVGElement {
 function setCopyState(button: HTMLButtonElement, state: CopyState): void {
   const labels = {
     idle: 'Copy command to clipboard',
-    copied: 'Command copied to clipboard',
-    error: 'Copy failed, try again',
+    copied: 'The clipboard contains the command.',
+    error: 'Copy failed. Try again.',
   };
 
   button.replaceChildren(copyIcon(state));
@@ -49,7 +49,7 @@ async function writeToClipboard(text: string): Promise<void> {
       await navigator.clipboard.writeText(text);
       return;
     } catch {
-      // Fall back for browsers that expose the API but deny clipboard access.
+      // If the browser denies clipboard access, use the compatibility method.
     }
   }
 
@@ -72,7 +72,7 @@ async function writeToClipboard(text: string): Promise<void> {
   activeElement?.focus();
 
   if (!copied) {
-    throw new Error('Unable to copy command');
+    throw new Error('The browser could not copy the command.');
   }
 }
 
