@@ -1,40 +1,5 @@
 [
     {
-        "fingerprint": "dfdb614ea933b638d3e0526d61a88980887be96a64024245e2d923c980c0fbbf",
-        "path": "README.md",
-        "rule": "semicolon",
-        "passage": "greenlight schedules a whole class at once, so a method-level requirement applies to the whole class assignment. limits belong to one greenlight run. other processes, worktrees, and shards do not share them; this is not a distributed lock.",
-        "count": 1
-    },
-    {
-        "fingerprint": "e2f323e9c717cc0c360bd6070b60f395ea5e458b10a958a0c9d021c89b636dcb",
-        "path": "README.md",
-        "rule": "semicolon",
-        "passage": "literal and the injectable literal service expose that number. greenlight assigns the slot; the application creates and manages the resource.",
-        "count": 1
-    },
-    {
-        "fingerprint": "bae038668938b3abf4aba832c51231f9a674422d1be47f490d7c8f8c1263fae8",
-        "path": "README.md",
-        "rule": "semicolon",
-        "passage": "literal cannot be combined with literal or literal ; invalid combinations exit with code literal .",
-        "count": 1
-    },
-    {
-        "fingerprint": "f1d31b88efbd8bbf621e01b18109436fc738dca05cbd06a163778e59480eb77c",
-        "path": "README.md",
-        "rule": "semicolon",
-        "passage": "on the literal , greenlight's best configuration is 2.5x to 7x faster than phpunit running directly across the documented suite shapes. against paratest, results depend on workload; in the few-slow-tests case, greenlight is about 1.6x faster.",
-        "count": 1
-    },
-    {
-        "fingerprint": "4ce8aca4e47735f8386db7edaf0e2db1dcf997baf1d981845601860a9a118c23",
-        "path": "README.md",
-        "rule": "semicolon",
-        "passage": "the runner uses core stream sockets and literal ; it does not require a php extension. coverage requires pcov or xdebug.",
-        "count": 1
-    },
-    {
         "fingerprint": "12cc49d1ee6bb2be2e0ff0d37555114f5a4148af3b1b0019b2f07159e3957692",
         "path": "greenlight.php",
         "rule": "sentence-length",

@@ -1,33 +1,34 @@
-# Getting started
+# Start with Greenlight
 
-Greenlight is an attribute-based testing framework for PHP 8.4 and later. It
-runs tests in parallel by default.
+Greenlight is an attribute-based test framework for PHP 8.4 and later. It runs
+tests in parallel by default.
 
-This page takes an empty project to a passing test run.
+This guide starts with an empty project and creates a successful test run.
 
 ## Requirements and installation
 
-Greenlight requires PHP 8.4 or newer.
+Greenlight requires PHP 8.4 or later. It does not require a PHP extension.
 
-It has no required PHP extensions. The parallel runner uses core stream sockets
-and `proc_open`. Code coverage needs `ext-pcov`, or Xdebug running in coverage
-mode.
+The parallel runner uses core stream sockets and `proc_open`. Coverage requires
+`ext-pcov` or Xdebug in coverage mode.
 
-If `proc_open` is disabled, Greenlight falls back to an in-process sequential
+If the system disables `proc_open`, Greenlight uses an in-process sequential
 run.
 
-Install it as a dev dependency:
+Install Greenlight as a development dependency:
 
 ```sh
 composer require --dev greenlight/greenlight
 ```
 
-## The config file
+## Create the configuration file
 
-Greenlight reads `greenlight.php` from the project root. The file returns a
-typed builder. There is no XML, YAML, or JSON config format.
+Greenlight reads `greenlight.php` from the project root. This file returns a
+typed builder.
 
-A minimal config:
+Greenlight does not use an XML, YAML, or JSON configuration format.
+
+Create this minimum configuration:
 
 ```php
 <?php
@@ -41,27 +42,29 @@ return GreenlightConfig::create()
     ->workers(count: 'auto');
 ```
 
-`paths()` lists the directories to scan for tests. `workers('auto')` sizes the
-worker pool from the CPU count.
+`paths()` specifies the directories that Greenlight scans for tests.
+`workers('auto')` calculates the worker count from the CPU count.
 
-Both are defaults, so this would behave the same way:
+These values are defaults. Thus, this configuration has the same result:
 
 ```php
 return GreenlightConfig::create();
 ```
 
-The longer form is often clearer in a new project. The full builder API is
-documented in [configuration](configuration.md).
+The longer form can make a new project easier to understand. See the
+[configuration reference](configuration.md) for the complete builder API.
 
-## Your first test
+## Create the first test
 
-Tests are ordinary classes. Test methods are marked with `#[Test]`.
+Tests are PHP classes. Add `#[Test]` to each test method.
 
-There is no `TestCase` base class and no test-method naming convention.
-Assertions start from `Expect::that()`. Stateful test services, such as doubles,
-are provided by constructor injection when a test asks for them.
+Greenlight does not require a `TestCase` base class or a test method name
+pattern. Start each expectation with `Expect::that()`.
 
-Start with a small class to test:
+Constructor injection supplies stateful test services when a test requests
+them.
+
+Create this small class:
 
 ```php
 <?php
@@ -85,8 +88,9 @@ final class Greeter
 }
 ```
 
-Save it as `src/Greeter.php`. Its test exercises both outcomes through the
-public method:
+Save the file as `src/Greeter.php`.
+
+Create a test for both results of the public method:
 
 ```php
 <?php
@@ -121,121 +125,132 @@ final class GreeterTest
 }
 ```
 
-Save this as `tests/GreeterTest.php`. Make sure Composer maps `App` to `src/`
-and `App\Tests` to `tests/`, then the test will run as written.
+Save the file as `tests/GreeterTest.php`.
+
+Map `App` to `src/` in Composer. Map `App\Tests` to `tests/`.
 
 `Expect::that()` starts a matcher chain for a value. A failed matcher throws
-immediately and includes a rendered diff where applicable.
+immediately and includes a clear difference when applicable.
 
-The [expectations reference](expectations.md) covers every matcher, negation and
-chaining, asynchronous polling, exception checks, and explicit failures.
+The [expectations reference](expectations.md) describes each matcher, negation,
+polls, exception checks, and explicit failures.
 
-## Running tests
+## Run tests
+
+Run the suite:
 
 ```sh
 vendor/bin/greenlight run
 ```
 
-`run` is the default command, so this is equivalent:
+`run` is the default command. This command has the same result:
 
 ```sh
 vendor/bin/greenlight
 ```
 
-Some useful commands:
+Use these commands for common tasks:
 
-* `vendor/bin/greenlight list-tests` prints every discovered test id.
-* `vendor/bin/greenlight run --dry-run` prints the resolved plan without
-  executing it.
+* `vendor/bin/greenlight list-tests` prints each discovered test ID.
+* `vendor/bin/greenlight run --dry-run` prints the execution plan.
 * `vendor/bin/greenlight run --workers=1` uses one in-process worker.
-* `vendor/bin/greenlight run --group=slow` runs only tests tagged
-  `#[Group('slow')]`.
-* `vendor/bin/greenlight run --exclude-group=slow` runs everything except that
-  group.
-* `vendor/bin/greenlight run --list-tests` prints the selection instead of
-  running it.
+* `vendor/bin/greenlight run --group=slow` selects tests with `#[Group('slow')]`.
+* `vendor/bin/greenlight run --exclude-group=slow` excludes that group.
+* `vendor/bin/greenlight run --list-tests` prints the selected tests.
 * `vendor/bin/greenlight run --bail` stops after the first failure.
 
-`--exclude-class`, `--exclude-method`, and `--exclude-path` carve tests out the
-same way, and exclusions always win over includes. `--list-groups` and
-`--list-suites` print the discovered groups and the configured suites.
+The `--exclude-class`, `--exclude-method`, and `--exclude-path` flags also
+exclude tests. Exclusion rules take priority over inclusion rules.
 
-To hunt a flaky test, repeat the same plan:
+The `--list-groups` and `--list-suites` flags print the discovered groups and
+configured suites.
+
+Repeat one plan to find an intermittent failure:
 
 ```sh
 vendor/bin/greenlight run --filter=CheckoutTest --repeat=20
 vendor/bin/greenlight run --filter=CheckoutTest --repeat-until-failure
 ```
 
-Each iteration reports its number, the summary names the iterations that
-failed, and the exit code is non-zero if any iteration failed.
-`--repeat-until-failure` stops at the first failing iteration; on its own it
-gives up after 100 iterations, or combine it with `--repeat=N` to set the
-limit.
+Each iteration reports its number. The summary identifies each failed
+iteration.
 
-## Reading the output
+The command returns a nonzero exit code if an iteration fails.
+`--repeat-until-failure` stops after the first failed iteration.
 
-On an interactive terminal, Greenlight uses the `tty` reporter. It shows live
-progress with ANSI colour and prints failure diffs as they happen.
+Without `--repeat=N`, this mode stops after 100 iterations. Add `--repeat=N`
+to specify a different limit.
 
-When stdout is not a TTY, such as in CI or a pipe, Greenlight uses the `plain`
-reporter. It prints one line per event and no escape codes.
+## Read the output
 
-Use `--reporter` to choose a format explicitly:
+Greenlight uses the `tty` reporter on an interactive terminal. This reporter
+shows live progress with ANSI color and prints failure differences immediately.
+
+Greenlight uses the `plain` reporter when standard output is not a TTY. This
+reporter prints one line for each event and does not print escape codes.
+
+Select a reporter with `--reporter`:
 
 ```sh
 vendor/bin/greenlight run --reporter=plain
 vendor/bin/greenlight run --reporter=junit
 ```
 
-The flag is repeatable, so you can emit more than one format:
+Repeat the flag to select more than one reporter:
 
 ```sh
 vendor/bin/greenlight run --reporter=tty --reporter=junit
 ```
 
-Tests can retain diagnostic data without printing it to stdout. Inject
-`Greenlight\Core\Artifact\Attachments`, then call `value()`, `text()`, `bytes()`,
-or `file()`. Greenlight prints the retained paths and stores the files below
-`build/greenlight-artifacts` by default. See
-[test attachments](attachments.md).
+Tests can retain diagnostic data without output to standard output. Inject
+`Greenlight\Core\Artifact\Attachments`.
 
-## Watch mode
+Call `value()`, `text()`, `bytes()`, or `file()` to add an attachment.
+Greenlight prints retained paths and stores files below
+`build/greenlight-artifacts` by default.
+
+See [test attachments](attachments.md) for more information.
+
+## Use watch mode
+
+Start watch mode:
 
 ```sh
 vendor/bin/greenlight run --watch
 ```
 
-Watch mode reruns affected tests when files under the configured paths change.
-Classes that failed in the previous run are prioritised.
+Watch mode runs affected tests after a file changes in a configured path.
+Classes from the previous failed run have priority.
 
-While watching, Enter reruns everything and `q` quits.
+Press Enter to run all tests. Press `q` to stop watch mode.
 
-Save bursts are debounced. The default debounce is 200 ms and can be changed
-with the `watch()` config builder.
+Watch mode combines rapid save events. The default delay is 200 ms.
 
-## Workers
+Use the `watch()` configuration builder to change this delay.
+
+## Configure workers
 
 Tests run in parallel worker processes by default.
 
-`--workers=auto` is the default and uses one worker per CPU core.
-`--workers=4` sets an explicit count.
-`--workers=1` runs everything in a single in-process runner, which is usually the
-simplest mode for debugging.
+`--workers=auto` uses one worker for each CPU core. This value is the default.
 
-Workers are recycled when they grow past 256M, so long runs do not keep growing
-memory indefinitely. Suites that accumulate non-memory state can also recycle
-workers after a fixed number of tests. Both thresholds are configured with
-`workers()` in `greenlight.php`.
+`--workers=4` specifies four workers. `--workers=1` uses one in-process runner.
+The last mode is usually the simplest choice for debug work.
 
-Parallel suites usually need either a separate resource for each worker or a
-concurrency limit around one shared dependency. Greenlight supports both.
+Greenlight replaces a worker after its memory use exceeds 256M. This behavior
+prevents unlimited memory growth during long runs.
 
-Use the channel number when each worker can have its own external resource. The
-number stays between 1 and the worker count.
+Greenlight can also replace a worker after a specified number of tests. Use
+`workers()` in `greenlight.php` to configure both limits.
 
-The channel is available as `Greenlight\Core\Test\TestChannel` and is also
-exported to each worker as the `GREENLIGHT_CHANNEL` environment variable.
+Parallel suites need separate resources for workers or a limit for one shared
+dependency. Greenlight supports both methods.
+
+Use a channel when each worker has a separate external resource. The channel
+number is from 1 through the worker count.
+
+Each worker receives its channel through `Greenlight\Core\Test\TestChannel` and
+the `GREENLIGHT_CHANNEL` environment variable.
 
 ```php
 final class OrderRepositoryTest
@@ -253,11 +268,11 @@ final class OrderRepositoryTest
 }
 ```
 
-Two tests running at the same time never share a channel, so databases such as
-`app_test_1` and `app_test_2` do not race each other.
+Concurrent tests never share a channel. Thus, databases such as `app_test_1`
+and `app_test_2` do not conflict.
 
-Use `#[RequiresResource]` when workers must use the same dependency but it has a
-lower safe concurrency than the worker pool:
+Use `#[RequiresResource]` when several workers use one dependency with limited
+capacity:
 
 ```php
 #[RequiresResource('payments-sandbox')]
@@ -270,37 +285,38 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);
 ```
 
-Tests that do not need `payments-sandbox` can keep running on other workers. If
-no limit is configured, only one class that requires the resource runs at a
-time.
+Other workers can run tests that do not require `payments-sandbox`. Without a
+configured limit, only one class can use the resource.
 
-A resource limit is a capacity gate. It does not choose which sandbox, database,
-or account a test should use. Use a channel when one instance per worker is
-available. A smaller set of distinct instances needs an application-owned
-allocator. A Greenlight limit can keep excess tests from blocking inside that
-allocator.
+A resource limit controls capacity. It does not select a sandbox, database, or
+account for a test.
 
-A test can use both mechanisms. Its channel can select a database while
-`#[RequiresResource('payments-sandbox')]` limits access to a shared service.
+Use a channel when each worker has one resource instance. Use an
+application-owned allocator for fewer resource instances.
 
-Limits apply to one Greenlight run. Concurrent runs from another worktree or CI
-shard keep their own counts, so use external coordination when the dependency is
-shared across processes.
+A Greenlight resource limit can restrict the tests that enter that allocator.
 
-See [configuration](configuration.md) for the full channel and resource limit
-rules.
+A test can use both methods. Its channel can select a database while
+`#[RequiresResource]` controls access to a shared service.
 
-## Built-in fixtures
+Resource limits apply to one Greenlight run. Other worktrees and CI shards have
+separate counts.
 
-The harness ships a small set of per-test fixtures in `Greenlight\Fixture`.
-Like every harness service, they arrive by constructor injection and are
-disposed automatically after each test, so cleanup never leaks between tests
-or workers.
+Use external coordination when different processes share the dependency. See
+the [configuration reference](configuration.md) for all resource limit rules.
 
-* `TempDirectory` creates a unique temporary directory on first use and removes
-  it, recursively, when the test finishes.
-* `EnvironmentSandbox` sets and unsets environment variables (`getenv`, `$_ENV`,
-  and `$_SERVER` together) and restores the original values afterwards.
+## Use built-in fixtures
+
+The harness supplies per-test fixtures in `Greenlight\Fixture`. Constructor
+injection supplies each fixture.
+
+Greenlight disposes each fixture after its test. Thus, fixture state does not
+leak to other tests or workers.
+
+* `TempDirectory` creates a unique temporary directory on first use. It removes
+  the directory after the test.
+* `EnvironmentSandbox` changes environment variables in `getenv`, `$_ENV`, and
+  `$_SERVER`. It restores the original values after the test.
 
 ```php
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -325,17 +341,18 @@ final class ExporterTest
 }
 ```
 
-Each test gets its own instances, and directories are unique per instance, so
-the fixtures are safe under parallel workers.
+Each test receives separate instances. Each `TempDirectory` instance has a
+unique directory.
 
 ## Exit codes
 
 Greenlight uses three exit codes:
 
-* `0`: the run succeeded.
-* `1`: the run failed. This includes failing or erroring tests, invalid
-  configuration, discovery errors, coverage export errors, detected leaks, and a
-  run that discovered no tests. An empty run is treated as a configuration
-  problem.
-* `64`: usage error, such as an unknown command, unknown flag, or malformed
-  option value.
+* `0` means that the run succeeded.
+* `1` means that the run failed or found no tests.
+* `64` means that the command has a usage error.
+
+Exit code `1` includes test failures, test errors, invalid configuration,
+discovery errors, coverage export errors, and detected leaks.
+
+Greenlight treats a run without tests as a configuration problem.
