@@ -33,13 +33,15 @@ Expect::that($result)->not()->toBeNull()
 
 ### Identity and equality
 
-| Matcher | Passes when |
-| --- | --- |
-| `toBe(mixed $expected)` | Subject and expected value are identical with `===` |
-| `toEqual(mixed $expected)` | Values are deeply equal |
-| `toEqualCanonicalizing(mixed $expected)` | Values are deeply equal while list order is ignored recursively |
-| `toBeOneOf(mixed ...$options)` | Subject is identical to one option |
-| `toBeIn(iterable $haystack)` | Subject is identical to an item in the iterable |
+* `toBe(mixed $expected)` passes when the subject and expected value are
+  identical with `===`.
+* `toEqual(mixed $expected)` passes when the values are deeply equal.
+* `toEqualCanonicalizing(mixed $expected)` passes when the values are deeply
+  equal after list order is ignored recursively.
+* `toBeOneOf(mixed ...$options)` passes when the subject is identical to one
+  option.
+* `toBeIn(iterable $haystack)` passes when the subject is identical to an item
+  in the iterable.
 
 `toEqual()` compares integers and floats by numeric value. Other scalars compare
 strictly. Arrays compare by key and recursively equal values. Objects must have
@@ -49,33 +51,37 @@ instant at microsecond precision.
 
 ### Type predicates
 
-| Matcher | Required subject |
-| --- | --- |
-| `toBeInstanceOf(string $class)` | Instance of the given class or interface |
-| `toBeTrue()` | `true` |
-| `toBeFalse()` | `false` |
-| `toBeNull()` | `null` |
-| `toBeArray()` | Array |
-| `toBeString()` | String |
-| `toBeInt()` | Integer |
-| `toBeFloat()` | Float |
-| `toBeBool()` | Boolean |
-| `toBeCallable()` | Callable |
-| `toBeIterable()` | Iterable |
+* `toBeInstanceOf(string $class)` requires an instance of the given class or
+  interface.
+* `toBeTrue()` requires `true`.
+* `toBeFalse()` requires `false`.
+* `toBeNull()` requires `null`.
+* `toBeArray()` requires an array.
+* `toBeString()` requires a string.
+* `toBeInt()` requires an integer.
+* `toBeFloat()` requires a float.
+* `toBeBool()` requires a boolean.
+* `toBeCallable()` requires a callable.
+* `toBeIterable()` requires an iterable.
 
 ### Strings and collections
 
-| Matcher | Passes when |
-| --- | --- |
-| `toContain(mixed $needle)` | A string contains a string, or an iterable contains an identical value |
-| `toHaveCount(int $count)` | A countable or traversable subject has the given count |
-| `toBeEmpty()` | A string, countable, or traversable subject contains nothing |
-| `toHaveLength(int $length)` | A string has the given character length, or a countable has the given count |
-| `toHaveKey(int|string $key)` | An array or `ArrayAccess` subject contains the key |
-| `toContainSubset(array $subset)` | An array contains each subset key with a deeply equal value |
-| `toMatch(string $pattern)` | A string matches the regular expression |
-| `toStartWith(string $prefix)` | A string starts with the prefix |
-| `toEndWith(string $suffix)` | A string ends with the suffix |
+* `toContain(mixed $needle)` checks that a string contains a string, or that an
+  iterable contains an identical value.
+* `toHaveCount(int $count)` checks that a countable or traversable subject has
+  the given count.
+* `toBeEmpty()` checks that a string, countable, or traversable subject contains
+  nothing.
+* `toHaveLength(int $length)` checks the character length of a string or the
+  count of a countable subject.
+* `toHaveKey(int|string $key)` checks that an array or `ArrayAccess` subject
+  contains the key.
+* `toContainSubset(array $subset)` checks that an array contains every subset
+  key with a deeply equal value.
+* `toMatch(string $pattern)` checks that a string matches the regular
+  expression.
+* `toStartWith(string $prefix)` checks that a string starts with the prefix.
+* `toEndWith(string $suffix)` checks that a string ends with the suffix.
 
 Matchers that consume a `Traversable` do not rewind it afterwards.
 

@@ -110,13 +110,11 @@ should follow the same policy as other sensitive CI artifacts.
 
 The defaults are:
 
-| Limit | Default |
-| --- | ---: |
-| attachments per test | 32 |
-| one attachment | 25 MiB |
-| all attachments for one test | 100 MiB |
-| attachments per run | 10,000 |
-| all attachments for one run | 1 GiB |
+* 32 attachments per test
+* 25 MiB per attachment
+* 100 MiB across all attachments for one test
+* 10,000 attachments per run
+* 1 GiB across all attachments for one run
 
 Configure them with `maxAttachmentsPerTest()`, `maxAttachmentSize()`,
 `maxTestSize()`, `maxRunAttachments()`, and `maxRunSize()` on

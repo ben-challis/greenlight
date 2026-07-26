@@ -245,17 +245,19 @@ public function usesTheRedisExtension(): void { ... }
 The `Greenlight\Condition` namespace ships conditions for the common
 environment checks, so most `#[SkipUnless]` uses need no hand-written class:
 
-| Condition | Satisfied when |
-| --------- | -------------- |
-| `ExtensionLoaded('redis')` | the extension is loaded |
-| `ExtensionMissing('xdebug')` | the extension is not loaded |
-| `EnvironmentVariableSet('CI')` | `getenv()` returns a value |
-| `EnvironmentVariableEquals('APP_ENV', 'test')` | the variable equals the value exactly |
-| `OperatingSystemFamily('Linux')` | `PHP_OS_FAMILY` matches, case-insensitively |
-| `PhpVersionAtLeast('8.5')` | `PHP_VERSION` is at least the given version |
-| `PhpVersionLessThan('9.0')` | `PHP_VERSION` is below the given version |
-| `FunctionAvailable('pcntl_fork')` | the function exists |
-| `ClassAvailable(Redis::class)` | the class exists |
+* `ExtensionLoaded('redis')` checks that the extension is loaded.
+* `ExtensionMissing('xdebug')` checks that the extension is not loaded.
+* `EnvironmentVariableSet('CI')` checks that `getenv()` returns a value.
+* `EnvironmentVariableEquals('APP_ENV', 'test')` checks that the variable
+  equals the value exactly.
+* `OperatingSystemFamily('Linux')` compares the value with `PHP_OS_FAMILY`
+  without regard to case.
+* `PhpVersionAtLeast('8.5')` checks that `PHP_VERSION` is at least the given
+  version.
+* `PhpVersionLessThan('9.0')` checks that `PHP_VERSION` is below the given
+  version.
+* `FunctionAvailable('pcntl_fork')` checks that the function exists.
+* `ClassAvailable(Redis::class)` checks that the class exists.
 
 The skip reason names the condition and its arguments, for example
 `Condition ExtensionLoaded("redis") is not satisfied.`

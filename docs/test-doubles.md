@@ -37,11 +37,12 @@ Mocks are verified automatically when the test ends.
 
 ## Choosing a double
 
-| Double | Use it when | Unplanned interaction |
-| --- | --- | --- |
-| `mock(Type::class, $plan)` | The test expects specific calls and responses | Fails immediately |
-| `stub(Type::class)` | A dependency must exist but must not be used | Fails immediately |
-| `spy(Type::class)` | The test wants to inspect void-returning calls afterwards | Records the call |
+* Use `mock(Type::class, $plan)` when the test expects specific calls and
+  responses. An unplanned interaction fails immediately.
+* Use `stub(Type::class)` when a dependency must exist but must not be used.
+  Any interaction fails immediately.
+* Use `spy(Type::class)` when the test needs to inspect void-returning calls
+  afterwards. An unplanned call is recorded.
 
 Calling a value-returning method on a spy fails the test.
 

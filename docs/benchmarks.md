@@ -15,7 +15,9 @@ throwaway project, and reports median wall-clock time over three runs.
 
 * Machine: Apple Silicon, 11 logical cores, macOS, local SSD
 * PHP: 8.4.14 NTS, with default CLI opcache settings
-* Greenlight: `305f833ab5d3fc8c046b04182a9d0989e6b072aa` (2026-07-12)
+* Greenlight:
+  [`305f833ab5d3`](https://github.com/ben-challis/greenlight/commit/305f833ab5d3fc8c046b04182a9d0989e6b072aa)
+  (2026-07-12)
 * PHPUnit: 13.2.3
 * ParaTest: 7.23.0
 * Parameters: `--scale=10 --workers=4 --runs=3`, which are the defaults
@@ -25,12 +27,41 @@ reporting. This matches the time a developer waits for during a normal test run.
 
 ## Results
 
-| Shape                                         | Tests | Greenlight w=4 | Greenlight w=1 | PHPUnit | ParaTest p=4 |
-| --------------------------------------------- | ----: | -------------: | -------------: | ------: | -----------: |
-| many-fast: 400 classes with trivial bodies    |  2000 |         0.490s |         0.257s |  1.910s |       4.810s |
-| few-slow: 8 classes, 25ms per test            |    32 |         0.529s |         1.064s |  1.326s |       0.840s |
-| giant-dataset: 1 class, 1000 provider rows    |  1000 |         0.442s |         0.165s |  1.016s |       1.190s |
-| mixed: fast tests, slow tests, and a data set |  1416 |         0.617s |         0.708s |  1.855s |       2.920s |
+### `many-fast`
+
+400 classes with trivial bodies, containing 2,000 tests:
+
+* Greenlight, 4 workers: 0.490s
+* Greenlight, 1 worker: 0.257s
+* PHPUnit: 1.910s
+* ParaTest, 4 processes: 4.810s
+
+### `few-slow`
+
+8 classes with 25ms per test, containing 32 tests:
+
+* Greenlight, 4 workers: 0.529s
+* Greenlight, 1 worker: 1.064s
+* PHPUnit: 1.326s
+* ParaTest, 4 processes: 0.840s
+
+### `giant-dataset`
+
+1 class with 1,000 provider rows:
+
+* Greenlight, 4 workers: 0.442s
+* Greenlight, 1 worker: 0.165s
+* PHPUnit: 1.016s
+* ParaTest, 4 processes: 1.190s
+
+### `mixed`
+
+Fast tests, slow tests, and a data set, containing 1,416 tests:
+
+* Greenlight, 4 workers: 0.617s
+* Greenlight, 1 worker: 0.708s
+* PHPUnit: 1.855s
+* ParaTest, 4 processes: 2.920s
 
 ## Reading the results
 

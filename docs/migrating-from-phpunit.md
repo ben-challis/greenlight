@@ -8,23 +8,29 @@ the body of the test can stay close to what it was.
 
 ## Concept mapping
 
-| PHPUnit                                          | Greenlight                                                                                    |
-|--------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `extends TestCase`                               | nothing; tests are plain classes                                                              |
-| `testFoo()` naming                               | `#[Test]` on any public method                                                                |
-| `setUp()`                                        | `#[Before]` on a public method                                                                |
-| `tearDown()`                                     | `#[After]` on a public method                                                                 |
-| `#[DataProvider('cases')]`                       | `#[DataSet('cases')]`, static provider on the same class                                      |
-| `#[TestWith([1, 2])]`                            | `#[DataRow([1, 2])]`, optionally labelled                                                     |
-| `#[Group('slow')]` / `@group`                    | `#[Group('slow')]`, repeatable, method or class                                               |
-| `$this->markTestSkipped($reason)`                | `throw new SkipTest($reason)`                                                                 |
-| `#[RequiresPhpExtension]` and related attributes | `#[SkipUnless(ExtensionLoaded::class, 'redis')]` and the other `Greenlight\Condition` classes |
-| `$this->assert...()`                             | static `Expect::that(...)` chains                                                             |
-| `createMock()` / `getMockBuilder()`              | injected `Doubles` service: `mock()`, `stub()`, `spy()`                                       |
-| `setUpBeforeClass()` statics                     | per-class harness services                                                                    |
-| `#[RunInSeparateProcess]`                        | `#[Isolated]`                                                                                 |
-| `#[Depends]`                                     | no equivalent                                                                                 |
-| `@codeCoverageIgnore` and related annotations    | work unchanged; `#[CoverageIgnore]` is the native equivalent                                  |
+* Replace `extends TestCase` with a plain class.
+* Replace test-method naming rules with `#[Test]` on any public method.
+* Replace `setUp()` with `#[Before]` on a public method.
+* Replace `tearDown()` with `#[After]` on a public method.
+* Replace `#[DataProvider('cases')]` with `#[DataSet('cases')]` and keep the
+  static provider on the same class.
+* Replace `#[TestWith([1, 2])]` with `#[DataRow([1, 2])]`, optionally with a
+  label.
+* Replace `#[Group('slow')]` or `@group` with the repeatable `#[Group('slow')]`
+  attribute on a method or class.
+* Replace `$this->markTestSkipped($reason)` with
+  `throw new SkipTest($reason)`.
+* Replace `#[RequiresPhpExtension]` and related attributes with
+  `#[SkipUnless(ExtensionLoaded::class, 'redis')]` or another
+  `Greenlight\Condition` class.
+* Replace `$this->assert...()` calls with static `Expect::that(...)` chains.
+* Replace `createMock()` and `getMockBuilder()` with the injected `Doubles`
+  service and its `mock()`, `stub()`, and `spy()` methods.
+* Replace `setUpBeforeClass()` statics with per-class harness services.
+* Replace `#[RunInSeparateProcess]` with `#[Isolated]`.
+* `#[Depends]` has no equivalent.
+* `@codeCoverageIgnore` and related annotations keep working.
+  `#[CoverageIgnore]` is the native equivalent.
 
 ## Assertions
 
