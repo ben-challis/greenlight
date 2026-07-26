@@ -32,6 +32,16 @@ export const docSections = [
         description: 'Reference every test, lifecycle, data, and execution attribute.',
       },
       {
+        id: 'expectations',
+        title: 'Expectations',
+        description: 'Assert values, exceptions, and asynchronous state.',
+      },
+      {
+        id: 'test-doubles',
+        title: 'Test doubles',
+        description: 'Plan strict mocks, use inert stubs, and inspect spies.',
+      },
+      {
         id: 'attachments',
         title: 'Test attachments',
         description: 'Attach structured values and files to individual test results.',

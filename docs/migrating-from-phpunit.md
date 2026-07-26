@@ -145,6 +145,9 @@ There are no partial mocks and no static method mocks.
 Tests that relied on tolerant PHPUnit mocks may fail at first after migration.
 Those failures usually point to interactions the old test allowed implicitly.
 
+See [test doubles](test-doubles.md) for the complete Greenlight API without the
+PHPUnit comparison.
+
 ## Class-level fixtures
 
 `setUpBeforeClass()` and static fixture properties map to per-class harness
