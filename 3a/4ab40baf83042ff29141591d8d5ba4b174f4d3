@@ -1,0 +1,21 @@
+composer.json
+  s_8c67f4b803e049::t_ef33290d7b4bf5 25
+composer.lock
+  s_8c67f4b803e049::t_ecff43de905e8a 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3a4ab40baf83042ff29141591d8d5ba4b174f4d3",
+  "prompts": {},
+  "sessions": {
+    "s_8c67f4b803e049": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d92c075a-3d55-404b-ba90-486e991dd305",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
