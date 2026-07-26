@@ -18,6 +18,8 @@ final readonly class ExecutionOverrides
     /**
      * @param positive-int|null $stopAfterFailures
      * @param array<non-empty-string, positive-int> $resourceLimits
+     * @param array<non-empty-string, positive-int> $machineResourceLimits
+     * @param non-empty-string|null $resourceCoordinationNamespace
      */
     public function __construct(
         public ?WorkerCount $workers = null,
@@ -26,5 +28,7 @@ final readonly class ExecutionOverrides
         public RunPolicy $runPolicy = new RunPolicy(),
         public ?string $artifactsDirectory = null,
         public array $resourceLimits = [],
+        public array $machineResourceLimits = [],
+        public ?string $resourceCoordinationNamespace = null,
     ) {}
 }

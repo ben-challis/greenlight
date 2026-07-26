@@ -21,6 +21,7 @@ final readonly class Assign implements Message
     /**
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
+     * @param list<non-empty-string> $machineResourceLeases
      * @param positive-int|null $stopAfterFailures Remaining assignment allowance for failed or errored tests.
      */
     public function __construct(
@@ -32,6 +33,7 @@ final readonly class Assign implements Message
         public ?ArtifactSession $artifactSession = null,
         public ?ArtifactConfiguration $artifactConfiguration = null,
         public ?int $stopAfterFailures = null,
+        public array $machineResourceLeases = [],
     ) {}
 
     #[\Override]
@@ -52,6 +54,7 @@ final readonly class Assign implements Message
             'artifactSession' => $this->artifactSession?->toWire(),
             'artifactConfiguration' => $this->artifactConfiguration?->toWire(),
             'stopAfterFailures' => $this->stopAfterFailures,
+            'machineResourceLeases' => $this->machineResourceLeases,
         ];
     }
 
@@ -81,6 +84,12 @@ final readonly class Assign implements Message
                 ? null
                 : ArtifactConfiguration::fromWire($artifactConfiguration),
             $stopAfterFailures === null ? null : \max(1, $stopAfterFailures),
+            \array_key_exists('machineResourceLeases', $payload)
+                ? \array_values(\array_filter(
+                    Wire::listOfStrings($payload, 'machineResourceLeases'),
+                    static fn(string $key): bool => $key !== '',
+                ))
+                : [],
         );
     }
 }

@@ -41,6 +41,9 @@ coverage. The CLI coverage session can merge this map with command-process and
 relayed subprocess coverage. Command-side coverage plugins transform the merged
 map. The CLI writes exports and evaluates coverage gates.
 
+Machine-scoped resource limits use file locks. Both execution adapters honor
+these limits. See [machine resource coordination](resource-coordination.md).
+
 ## Module map
 
 [`deptrac.yaml`](../../deptrac.yaml) defines and enforces the dependency
@@ -77,6 +80,7 @@ public.
 | `Reporting/Profile` | Profile event aggregation and profile output | `Event` and `Reporting` |
 | `Execution/Artifact` | Private attachment staging, publication, recovery, quotas, and cleanup | Artifact, configuration, event, result, test, wire, and internal utilities |
 | `Execution/Plugin` | Run-owned orchestrator, worker-owned, and command-side run-policy plugin runtimes | Artifacts, plans, events, expectations, harnesses, fixtures, plugin contracts, results, and tests |
+| `Execution/Resource` | Machine-scoped resource limits and file-lock permits | Discovery plan and internal PHP utilities |
 | `Execution/Worker` | In-process test execution, bounded output capture, and worker-owned lifecycle | Test execution modules and execution artifacts |
 | `Execution/ProcessPool/Protocol` | Internal worker messages, frames, and socket channels | Wire values and message payload modules |
 | `Execution/ProcessPool/Worker` | Hidden worker command and protocol event delivery | Worker, protocol, plugin, and coverage modules |

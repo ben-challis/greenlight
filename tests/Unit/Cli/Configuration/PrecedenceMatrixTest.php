@@ -27,6 +27,27 @@ use function Greenlight\expect;
 final class PrecedenceMatrixTest
 {
     #[Test]
+    public function commandLineResourceScopeAndNamespaceOverrideConfiguration(): void
+    {
+        $configuration = GreenlightConfig::create()
+            ->resourceLimit('postgres', 4)
+            ->resourceCoordinationNamespace('config-project')
+            ->machineResourceLimit('redis', 2)
+            ->build();
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides(
+            execution: new ExecutionOverrides(
+                resourceLimits: ['redis' => 3],
+                machineResourceLimits: ['postgres' => 1],
+                resourceCoordinationNamespace: 'cli-project',
+            ),
+        ));
+
+        expect($resolved->workers->resourceLimits)->toBe(['redis' => 3]);
+        expect($resolved->workers->machineResourceLimits)->toBe(['postgres' => 1]);
+        expect($resolved->workers->resourceCoordinationNamespace)->toBe('cli-project');
+    }
+
+    #[Test]
     public function workersPrecedence(): void
     {
         expect($this->resolve()->workers->count->isAuto())->because('worker options use the required precedence')->toBeTrue();

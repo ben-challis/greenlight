@@ -30,6 +30,7 @@ use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionFailed;
+use Greenlight\Execution\Resource\ResourceCoordinationError;
 use Greenlight\Execution\RunAcceptance;
 use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunPolicyError;
@@ -94,7 +95,7 @@ final readonly class RunSession
             // Watch mode does not write coverage. Collection only makes each
             // iteration slower.
             $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, null);
-        } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
+        } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError|ResourceCoordinationError $error) {
             $reporter->finish();
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
@@ -140,7 +141,7 @@ final readonly class RunSession
         try {
             try {
                 $run = $this->coordinate($reporter, $failedTap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
-            } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
+            } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError|ResourceCoordinationError $error) {
                 $reporter->finish();
                 $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
                 $interruptSignal = $this->shutdown->signal();
@@ -297,7 +298,7 @@ final readonly class RunSession
     private function adapter(WorkerConfiguration $workerConfiguration, int $workers, ?CoverageSettings $coverageSettings, Reporter $reporter): ExecutionAdapter
     {
         if ($workers === 1 || $this->workerBin === false) {
-            return new InProcessExecution($coverageSettings, $this->arguments->has('detect-leaks'), $this->shutdown);
+            return new InProcessExecution($coverageSettings, $this->arguments->has('detect-leaks'), $this->shutdown, $workerConfiguration);
         }
 
         return new ProcessPoolExecution(

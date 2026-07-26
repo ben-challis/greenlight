@@ -70,6 +70,12 @@ final readonly class Definition
                              tests in the command process without process isolation.
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
+          --machine-resource-limit=<name>=<n>
+                             Set a machine-scoped resource limit. You can repeat
+                             this option.
+          --resource-coordination-namespace=<name>
+                             Set the coordination namespace for machine resource
+                             limits
           --bail[=<n>]       Stop new work after <n> failed or errored tests.
                              Without <n>, this option uses a limit of 1.
                              Active assignments can finish after the limit.
@@ -188,6 +194,8 @@ final readonly class Definition
             new OptionSpec('config', OptionValue::Required),
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('resource-limit', OptionValue::Required, repeatable: true),
+            new OptionSpec('machine-resource-limit', OptionValue::Required, repeatable: true),
+            new OptionSpec('resource-coordination-namespace', OptionValue::Required),
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('suite', OptionValue::Required, repeatable: true),
             new OptionSpec('suite-tag', OptionValue::Required, repeatable: true),

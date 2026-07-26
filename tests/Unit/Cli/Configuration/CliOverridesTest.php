@@ -112,6 +112,8 @@ final class CliOverridesTest
             'test-id' => ['App\ExampleTest::one', 'App\ExampleTest::two'],
             'artifacts-dir' => ['build/evidence'],
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
+            'machine-resource-limit' => ['external-api=4'],
+            'resource-coordination-namespace' => ['orders-service'],
             'minimum-coverage' => ['95.25'],
             'maximum-uncovered-lines' => ['0'],
             'require-coverage-driver' => [null],
@@ -133,6 +135,8 @@ final class CliOverridesTest
         expect($overrides->coverage->minimumPercentage)->because('extracts typed values')->toBe(95.25);
         expect($overrides->coverage->maximumUncoveredLines)->because('extracts typed values')->toBe(0);
         expect($overrides->coverage->requireDriver)->because('extracts typed values')->toBeTrue();
+        expect($overrides->execution->machineResourceLimits)->toBe(['external-api' => 4]);
+        expect($overrides->execution->resourceCoordinationNamespace)->toBe('orders-service');
     }
 
     #[Test]

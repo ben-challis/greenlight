@@ -66,7 +66,7 @@ final class ProtocolTest
                 ),
             ]), policy: new ResultPolicy(failOnRisky: true)),
             new Ready(),
-            new Assign(new ExecutionPlan([$entry], 7)),
+            new Assign(new ExecutionPlan([$entry], 7), machineResourceLeases: ['coordination-key']),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             new AttemptStarted(new TestId('App\FooTest', 'bar'), 2),
@@ -152,7 +152,7 @@ final class ProtocolTest
     public function legacyAssignmentPayloadsDefaultArtifactFields(): void
     {
         $payload = new Assign(new ExecutionPlan([]))->toWire();
-        unset($payload['artifactSession'], $payload['artifactConfiguration'], $payload['stopAfterFailures']);
+        unset($payload['artifactSession'], $payload['artifactConfiguration'], $payload['stopAfterFailures'], $payload['machineResourceLeases']);
 
         $assign = Assign::fromWire($payload);
 

@@ -7,6 +7,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Execution\Artifact\ArtifactStore;
+use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\IntegrationFixture\ProvisionedIntegrationFixtures;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Ticking;
@@ -42,5 +43,6 @@ final readonly class OrchestratorConfiguration
         public InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
         public ?string $generatedCodeDirectory = null,
         public ?string $temporaryDirectory = null,
+        public ?MachineResourceCoordinator $machineResources = null,
     ) {}
 }

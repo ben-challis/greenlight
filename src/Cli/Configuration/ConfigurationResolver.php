@@ -8,6 +8,7 @@ use Greenlight\Cli\Input\CliError;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\ExecutionConfiguration;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Result\ResultPolicy;
@@ -30,7 +31,10 @@ final class ConfigurationResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    /** @throws CliError */
+    /**
+     * @throws CliError
+     * @throws InvalidConfiguration
+     */
     public static function resolve(Configuration $configuration, CliOverrides $overrides): ResolvedConfiguration
     {
         $executionOverrides = $overrides->execution;
@@ -55,6 +59,26 @@ final class ConfigurationResolver
             );
         }
 
+        $resourceLimits = \array_replace($configuration->workers->resourceLimits, $executionOverrides->resourceLimits);
+        $machineResourceLimits = \array_replace($configuration->workers->machineResourceLimits, $executionOverrides->machineResourceLimits);
+
+        foreach (\array_keys($executionOverrides->resourceLimits) as $name) {
+            unset($machineResourceLimits[$name]);
+        }
+
+        foreach (\array_keys($executionOverrides->machineResourceLimits) as $name) {
+            unset($resourceLimits[$name]);
+        }
+
+        $resourceCoordinationNamespace = $executionOverrides->resourceCoordinationNamespace
+            ?? $configuration->workers->resourceCoordinationNamespace;
+
+        if ($machineResourceLimits !== [] && $resourceCoordinationNamespace === null) {
+            throw new InvalidConfiguration(
+                'Machine resource limits require a coordination namespace. Use resourceCoordinationNamespace() or --resource-coordination-namespace to configure one.',
+            );
+        }
+
         return new ResolvedConfiguration(
             discovery: $configuration->discovery,
             suiteSelection: SuiteSelectionResolver::resolve(
@@ -64,7 +88,9 @@ final class ConfigurationResolver
             ),
             workers: new WorkerConfiguration(
                 count: $executionOverrides->workers ?? $configuration->workers->count,
-                resourceLimits: \array_replace($configuration->workers->resourceLimits, $executionOverrides->resourceLimits),
+                resourceLimits: $resourceLimits,
+                machineResourceLimits: $machineResourceLimits,
+                resourceCoordinationNamespace: $resourceCoordinationNamespace,
             ),
             execution: new ExecutionConfiguration(
                 plugins: $configuration->execution->plugins,

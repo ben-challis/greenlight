@@ -52,6 +52,15 @@ final class PlanFormatter
             $resourceLimits[] = $name . '=' . $limit;
         }
 
+        foreach ($configuration->workers->machineResourceLimits as $name => $limit) {
+            $resourceLimits[] = \sprintf(
+                '%s=%d (machine-scoped, namespace %s)',
+                $name,
+                $limit,
+                $configuration->workers->resourceCoordinationNamespace,
+            );
+        }
+
         $lines[] = '  resource limits: ' . ($resourceLimits === [] ? '(default 1 per required resource)' : \implode(', ', $resourceLimits));
         $lines[] = '  stop after: ' . match (true) {
             $configuration->execution->stopAfterFailures === null => 'never',

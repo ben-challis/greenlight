@@ -11,6 +11,7 @@ use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionContext;
+use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
@@ -66,7 +67,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         $fixtureChannels = new ResourceScheduler(
             $pooled,
             $isolated,
-            $this->workers->resourceLimits,
+            \array_replace($this->workers->resourceLimits, $this->workers->machineResourceLimits),
         )->initialWorkerTarget($this->workerCount);
 
         return new ExecutionTopology($this->workerCount, $fixtureChannels);
@@ -84,6 +85,11 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         ExecutionContext $context,
     ): ExecutionOutcome {
         $cleanup = null;
+        $machineResources = MachineResourceCoordinator::openForPlan(
+            $plan,
+            $this->workers->machineResourceLimits,
+            $this->workers->resourceCoordinationNamespace,
+        );
 
         try {
             $execution = $context->execution;
@@ -109,7 +115,8 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                     artifactStore: $context->artifacts,
                     artifactConfiguration: $execution->artifacts,
                     integrationFixtures: $context->fixtures,
-                    resourceLimits: $this->workers->resourceLimits,
+                    resourceLimits: \array_replace($this->workers->resourceLimits, $this->workers->machineResourceLimits),
+                    machineResources: $machineResources,
                     initialWorkerAssignment: WorkerPluginRuntime::requiresInitialBootstrapBarrier($execution->plugins)
                         ? InitialWorkerAssignment::AfterAllReady
                         : InitialWorkerAssignment::Progressive,
@@ -122,6 +129,8 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         } catch (WireCommunicationFailed $failure) {
             throw ExecutionFailed::processPool($failure);
         } finally {
+            $machineResources->close();
+
             if ($cleanup !== null) {
                 $this->emergencyCleanups?->unregister($cleanup);
             }

@@ -203,7 +203,12 @@ final class Orchestrator
         }
 
         [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $workerCount);
-        $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->configuration->resourceLimits);
+        $this->scheduler = new ResourceScheduler(
+            $pooled,
+            $isolated,
+            $this->configuration->resourceLimits,
+            $this->configuration->machineResources,
+        );
 
         if ($this->scheduler->pendingCount() === 0) {
             $this->transport->close();
@@ -526,6 +531,7 @@ final class Orchestrator
                 $this->configuration->artifactStore?->session(),
                 $this->configuration->artifactConfiguration,
                 $this->remainingFailureAllowance(),
+                $lease->machinePermit?->coordinationKeys ?? [],
             ));
             $handle->lastProgressAt = $this->monotonicTime();
             $handle->timing->assigned($handle->lastProgressAt);
@@ -1032,7 +1038,7 @@ final class Orchestrator
      */
     private function assignWaiting(EventSink $sink): void
     {
-        if (!$this->retryWaitingWorkers) {
+        if (!$this->retryWaitingWorkers && $this->configuration->machineResources?->hasLimits() !== true) {
             return;
         }
 

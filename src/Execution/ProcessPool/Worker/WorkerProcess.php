@@ -27,6 +27,7 @@ use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\ResultPolicyPlugin;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
+use Greenlight\Execution\Resource\MachineResourceEnvironment;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Harness\HarnessScopes;
@@ -261,22 +262,35 @@ final readonly class WorkerProcess
             $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
             $events = new SocketEventSink($channel);
 
-            $outcome = new Worker(
-                [],
-                $plugins,
-                $leakDetector,
-                $workerId,
-                $artifactStore,
-            )->run(
-                $message->slice,
-                $events,
-                $message->stopAfterFailures,
-                static fn(): bool => $channel->poll() instanceof Drain,
-                $scopes,
-                static function (TestId $id, int $attempt) use ($channel): void {
-                    $channel->send(new AttemptStarted($id, $attempt));
-                },
-            );
+            $inheritedMachineResources = null;
+
+            if ($message->machineResourceLeases !== []) {
+                $inheritedMachineResources = MachineResourceEnvironment::inherited();
+                MachineResourceEnvironment::set([...$inheritedMachineResources, ...$message->machineResourceLeases]);
+            }
+
+            try {
+                $outcome = new Worker(
+                    [],
+                    $plugins,
+                    $leakDetector,
+                    $workerId,
+                    $artifactStore,
+                )->run(
+                    $message->slice,
+                    $events,
+                    $message->stopAfterFailures,
+                    static fn(): bool => $channel->poll() instanceof Drain,
+                    $scopes,
+                    static function (TestId $id, int $attempt) use ($channel): void {
+                        $channel->send(new AttemptStarted($id, $attempt));
+                    },
+                );
+            } finally {
+                if ($inheritedMachineResources !== null) {
+                    MachineResourceEnvironment::set($inheritedMachineResources);
+                }
+            }
 
             $coverage = $collector?->stop();
 

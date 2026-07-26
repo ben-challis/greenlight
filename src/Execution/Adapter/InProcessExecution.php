@@ -10,7 +10,9 @@ use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\Artifact\PublishingEventSink;
 use Greenlight\Execution\ExecutionAdapter;
+use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Execution\ExecutionContext;
+use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
@@ -38,6 +40,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
         private ?CoverageSettings $coverageSettings = null,
         private bool $detectLeaks = false,
         private ?GracefulShutdown $shutdown = null,
+        private ?WorkerConfiguration $workers = null,
     ) {}
 
     #[\Override]
@@ -71,6 +74,11 @@ final readonly class InProcessExecution implements ExecutionAdapter
             ),
             ...($execution->policy->isNoOp() ? [] : [new ResultPolicyPlugin($execution->policy)]),
         ]);
+        $machineResources = MachineResourceCoordinator::openForPlan(
+            $plan,
+            $this->workers?->machineResourceLimits ?? [],
+            $this->workers?->resourceCoordinationNamespace,
+        );
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
 
@@ -108,6 +116,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
                             $this->detectLeaks ? new LeakDetector() : null,
                             'in-process',
                             $context->artifacts,
+                            $machineResources->hasLimits() ? $machineResources : null,
                         )->run(
                             $plan,
                             new PublishingEventSink($context->artifacts, $sink),
@@ -145,6 +154,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
             return new ExecutionOutcome($outcome->summary, $coverage, $outcome->leaks);
         } finally {
             $channelEnvironment->restore();
+            $machineResources->close();
         }
     }
 }

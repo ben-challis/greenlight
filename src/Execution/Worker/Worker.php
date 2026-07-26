@@ -12,6 +12,9 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
+use Greenlight\Execution\Resource\MachineResourceCoordinator;
+use Greenlight\Execution\Resource\MachineResourceEnvironment;
+use Greenlight\Execution\Resource\MachineResourcePermit;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
@@ -45,6 +48,7 @@ final readonly class Worker
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
         private ?ArtifactStore $artifactStore = null,
+        private ?MachineResourceCoordinator $machineResources = null,
     ) {}
 
     /**
@@ -80,80 +84,103 @@ final readonly class Worker
                     continue;
                 }
 
-                $isolated = \count($entries) === 1 && $entries[0]->definition->scheduling->isolated;
-                $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId, $isolated));
-                $scopes->openClass(allowPerClassServices: !$entries[0]->definition->scheduling->allowParallel);
-                $lastIndex = \count($entries) - 1;
+                $permit = $this->acquireMachinePermit($entries, $drainRequested);
 
-                $context = null;
-                $executor = null;
+                if ($permit === false) {
+                    $drained = true;
+                    $remaining = [...$remaining, ...\array_map(static fn(PlanEntry $entry): TestId => $entry->id, $entries)];
 
-                foreach ($entries as $index => $entry) {
-                    $sink->emit(new TestStarted($entry->id, \microtime(true)));
+                    continue;
+                }
 
-                    try {
-                        $context ??= ClassContext::for($class);
-                        $executor ??= new TestExecutor(
-                            $scopes,
-                            $context,
-                            $plugins,
-                            $this->leakDetector,
-                            $this->artifactStore,
-                            $attemptStarted,
-                        );
-                        $result = $executor->execute($entry);
-                    } catch (\Throwable $threw) {
-                        $result = new TestResult(
-                            $entry->id,
-                            Outcome::Errored,
-                            0.0,
-                            0,
-                            error: ThrowableDetail::fromThrowable($threw),
-                        );
-                    }
+                $inherited = null;
 
-                    $result = $plugins->terminalResult($entry->definition, $result);
+                if ($permit instanceof MachineResourcePermit) {
+                    $inherited = MachineResourceEnvironment::inherited();
+                    MachineResourceEnvironment::set([...$inherited, ...$permit->coordinationKeys]);
+                }
 
-                    $failureLimitReached = false;
+                try {
+                    $isolated = \count($entries) === 1 && $entries[0]->definition->scheduling->isolated;
+                    $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId, $isolated));
+                    $scopes->openClass(allowPerClassServices: !$entries[0]->definition->scheduling->allowParallel);
+                    $lastIndex = \count($entries) - 1;
 
-                    if ($stopAfterFailures !== null) {
-                        $candidateSummary = $summary->add($result->outcome);
-                        $failureLimitReached = $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
-                    }
-                    $drainReached = $drainRequested instanceof \Closure && $drainRequested();
+                    $context = null;
+                    $executor = null;
 
-                    if ($index === $lastIndex || $failureLimitReached || $drainReached) {
-                        $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
-                    }
+                    foreach ($entries as $index => $entry) {
+                        $sink->emit(new TestStarted($entry->id, \microtime(true)));
 
-                    $summary = $summary->add($result->outcome);
-                    $sink->emit(new TestFinished($result, \microtime(true)));
-
-                    if ($this->leakDetector instanceof LeakDetector) {
-                        $leaks = [...$leaks, ...$this->leakDetector->sweep()];
-                    }
-
-                    $stopReached = match (true) {
-                        $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
-                        $drainReached => 'drain',
-                        default => null,
-                    };
-
-                    if ($stopReached !== null) {
-                        $drained = true;
-
-                        if ($index !== $lastIndex) {
-                            $remaining = \array_map(
-                                static fn(PlanEntry $unexecuted): TestId => $unexecuted->id,
-                                \array_slice($entries, $index + 1),
+                        try {
+                            $context ??= ClassContext::for($class);
+                            $executor ??= new TestExecutor(
+                                $scopes,
+                                $context,
+                                $plugins,
+                                $this->leakDetector,
+                                $this->artifactStore,
+                                $attemptStarted,
+                            );
+                            $result = $executor->execute($entry);
+                        } catch (\Throwable $threw) {
+                            $result = new TestResult(
+                                $entry->id,
+                                Outcome::Errored,
+                                0.0,
+                                0,
+                                error: ThrowableDetail::fromThrowable($threw),
                             );
                         }
 
-                        break;
+                        $result = $plugins->terminalResult($entry->definition, $result);
+
+                        $failureLimitReached = false;
+
+                        if ($stopAfterFailures !== null) {
+                            $candidateSummary = $summary->add($result->outcome);
+                            $failureLimitReached = $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
+                        }
+                        $drainReached = $drainRequested instanceof \Closure && $drainRequested();
+
+                        if ($index === $lastIndex || $failureLimitReached || $drainReached) {
+                            $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
+                        }
+
+                        $summary = $summary->add($result->outcome);
+                        $sink->emit(new TestFinished($result, \microtime(true)));
+
+                        if ($this->leakDetector instanceof LeakDetector) {
+                            $leaks = [...$leaks, ...$this->leakDetector->sweep()];
+                        }
+
+                        $stopReached = match (true) {
+                            $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
+                            $drainReached => 'drain',
+                            default => null,
+                        };
+
+                        if ($stopReached !== null) {
+                            $drained = true;
+
+                            if ($index !== $lastIndex) {
+                                $remaining = \array_map(
+                                    static fn(PlanEntry $unexecuted): TestId => $unexecuted->id,
+                                    \array_slice($entries, $index + 1),
+                                );
+                            }
+
+                            break;
+                        }
+                    }
+
+                    $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
+                } finally {
+                    if ($permit instanceof MachineResourcePermit && $inherited !== null) {
+                        MachineResourceEnvironment::set($inherited);
+                        $this->machineResources?->release($permit);
                     }
                 }
-
-                $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
             }
         } catch (\Throwable $primary) {
             $failures = $scopes->closeClass();
@@ -176,5 +203,39 @@ final readonly class Worker
         }
 
         return HarnessServiceDisposal::runAndClose($scopes, static fn(): WorkerRunOutcome => $outcome);
+    }
+
+    /**
+     * @param non-empty-list<PlanEntry> $entries
+     * @param \Closure(): bool|null $drainRequested
+     *
+     * @return MachineResourcePermit|false|null Returns false when a drain
+     *   request interrupts the wait.
+     */
+    private function acquireMachinePermit(array $entries, ?\Closure $drainRequested): MachineResourcePermit|false|null
+    {
+        if (!$this->machineResources instanceof MachineResourceCoordinator) {
+            return null;
+        }
+
+        $resources = [];
+
+        foreach ($entries as $entry) {
+            foreach ($entry->definition->scheduling->resources as $resource) {
+                $resources[$resource] = $resource;
+            }
+        }
+
+        $permit = false;
+
+        while (($permit = $this->machineResources->tryAcquire(\array_values($resources))) === false) {
+            if ($drainRequested instanceof \Closure && $drainRequested()) {
+                return false;
+            }
+
+            \usleep(50_000);
+        }
+
+        return $permit;
     }
 }
