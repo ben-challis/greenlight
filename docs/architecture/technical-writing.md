@@ -123,6 +123,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | harness service | Technical noun | An object that the harness supplies to a test constructor |
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
+| Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
 | matcher | Technical noun | An operation that checks an expectation |
 | matcher map | Technical noun | The configured names and signatures of extension matchers |
 | mock | Technical noun | A strict double with planned interactions |
@@ -145,6 +146,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | run subscriber | Technical noun | An orchestrator plugin that observes run events |
 | run time | Technical noun | The time when a program executes |
 | runtime | Noun modifier | Related to program execution |
+| service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |
 | sidecar | Technical noun | A JSON metadata file for one complete staged file |

@@ -19,6 +19,7 @@
         "ergebnis/composer-normalize": "^2.47",
         "fidry/cpu-core-counter": "^1.3",
         "justinrainbow/json-schema": "^6.10",
+        "laravel/framework": "^13.0",
         "php-cs-fixer/shim": "^3.75",
         "php-parallel-lint/php-parallel-lint": "^1.4",
         "phpstan/phpstan": "^2.1",
@@ -33,6 +34,7 @@
     "suggest": {
         "ext-pcov": "Collects line coverage quickly",
         "fidry/cpu-core-counter": "Improves worker core detection for auto with cgroup limits and more platforms",
+        "laravel/framework": "Enables container service injection into application-aware Laravel tests through the LaravelPlugin bridge",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled extension.neon",
         "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the SymfonyPlugin bridge"

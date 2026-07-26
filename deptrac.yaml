@@ -81,6 +81,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Symfony/.*
+    - name: Laravel
+      collectors:
+        - type: directory
+          value: src/Laravel/.*
     - name: PhpStanFramework
       collectors:
         - type: classNameRegex
@@ -89,6 +93,10 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^Symfony\\(Component\\(DependencyInjection|HttpKernel)|Contracts\\Service)\\/
+    - name: LaravelFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Illuminate\\(Container|Contracts\\(Console|Foundation)|Support\\Facades)\\/
     - name: CpuCoreCounter
       collectors:
         - type: classNameRegex
@@ -116,7 +124,9 @@ deptrac:
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Core, Attribute, Config, Expect, PhpStanFramework, PhpParserFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
+    Laravel: [Core, Harness, Plugin, LaravelFramework]
     PhpStanFramework: []
     SymfonyFramework: []
+    LaravelFramework: []
     CpuCoreCounter: []
     PhpParserFramework: []

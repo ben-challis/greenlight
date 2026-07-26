@@ -57,6 +57,11 @@ export const docSections = [
         description: 'This guide explains how tests use a kernel and receive container services.',
       },
       {
+        id: 'laravel',
+        title: 'Laravel',
+        description: 'This guide explains how tests receive container services from a fresh Laravel application.',
+      },
+      {
         id: 'phpstan',
         title: 'PHPStan',
         description: 'This guide explains how PHPStan checks matchers, data providers, and extension matchers.',
