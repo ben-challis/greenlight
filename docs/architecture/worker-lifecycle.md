@@ -8,7 +8,12 @@ The orchestrator listens on a Unix domain socket in a private temporary director
 
 Every message is a length-prefixed JSON frame: a 4-byte big-endian length, then that many bytes of JSON. Frames are capped at 8 MiB, and an oversized or malformed frame is a protocol error, not a warning. The JSON body is an envelope with three fields: a protocol version (`v`, currently `1`), a type tag, and the payload. Unknown versions and unknown tags fail loudly.
 
-The socket is the only data channel. The worker's stdin is closed right after spawn, and its stdout and stderr are drained into a small bounded buffer that the orchestrator only reads when something goes wrong, to attach the worker's last output to a crash report. Test results never travel over stdio, so a test that prints to stdout cannot corrupt the protocol.
+The socket is the only protocol channel. Attachment content uses a shared
+run-scoped staging directory described below. The worker's stdin is closed
+right after spawn, and its stdout and stderr are drained continuously into a
+small bounded diagnostics buffer. The buffer is reported only when it helps
+explain a worker failure. Test results never travel over stdio, so a test that
+prints to stdout cannot corrupt the protocol.
 
 ## The messages
 

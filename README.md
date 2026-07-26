@@ -388,6 +388,8 @@ the guided website, or browse the Markdown sources directly:
 * [Testing Symfony applications](docs/symfony.md)
 * [Migrating from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
+* [Architecture overview](docs/architecture/README.md)
+* [Compatibility and public interfaces](docs/architecture/compatibility.md)
 * [JSONL reporter schema](docs/architecture/jsonl.md)
 * [Artifact storage architecture](docs/architecture/artifacts.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)

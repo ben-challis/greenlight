@@ -47,6 +47,12 @@ The schema is versioned by the `v` field.
 Each version has its own schema. Consumers should validate against the schema
 named by `v` and treat an unsupported version as unparseable.
 
+Optional payload keys may be added within a version, and consumers must ignore
+unknown keys. New required keys, event tags, enum values, or changes to existing
+types and meanings require a new version. The complete policy, ordering
+guarantees, and truncation behaviour are documented in
+[compatibility](compatibility.md).
+
 ## Event tags
 
 | Tag               | Event                      | Payload keys                                        |
@@ -89,6 +95,9 @@ ran the class.
 `occurredAt` is a Unix timestamp with microsecond precision. Consumers should
 accept either a JSON number with decimals or an integer, since some JSON round
 trips may narrow whole-number floats.
+
+Events from different workers may interleave. Arrival order is useful for live
+display, but it is not a deterministic test order.
 
 ## The test-finished payload
 
@@ -260,3 +269,7 @@ path. Internal storage keys never appear in reporter output.
 Attachments from failed retry attempts remain on the final result with their
 original `attempt` number. A passing test can have attachments when their
 retention is `always`.
+
+Source locations and published artifact paths are absolute and can disclose the
+producer's workspace layout. They are not portable identifiers; see
+[compatibility](compatibility.md#paths-and-portability).

@@ -28,10 +28,11 @@ temporary file beside its destination and renamed into place atomically. The
 public `TestResult` contains the published metadata without the storage key.
 
 Attachments from failed attempts are retained across retries. A passing attempt
-retains only attachments marked `always`. The retention decision happens after
-result policy and class-scope teardown, so evidence is not discarded before the
-outcome is final. Discarding an attachment removes its staged content and
-releases its run quota.
+retains only attachments marked `always`. Sealing an attempt prevents further
+attachments but does not apply retention. The process publishing the terminal
+result decides retention after retries, per-test and class-scope teardown,
+plugin outcome transformation, and result policy. Discarding an attachment
+removes its staged content and releases its run quota.
 
 Greenlight leaves completed output in place. Cleanup and retention belong to
 the user or CI system.
@@ -63,8 +64,8 @@ reporters.
 
 Logical names are validated before they become filenames. Test identifiers are
 slugged and hashed, and repeated names get a numeric suffix. Source files must
-be regular files and cannot be symlinks. Greenlight also checks that a source
-file does not change while it is copied.
+be regular files and cannot be symlinks. Greenlight compares the file's size
+and modification time before and after copying and rejects a detected change.
 
 Destination and recovery paths must remain under their configured roots.
 Attachment files and internal metadata use private permissions on supported
@@ -75,7 +76,7 @@ before attaching data.
 
 ## Public and wire formats
 
-The public API is `Attachments`, `Attachment`, `AttachmentKind`, and
+The public interface is `Attachments`, `Attachment`, `AttachmentKind`, and
 `AttachmentRetention`. Storage keys and the classes used for staging,
 publication, and recovery are internal.
 

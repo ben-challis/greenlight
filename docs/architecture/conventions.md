@@ -1,13 +1,15 @@
 # Code conventions
 
-These conventions apply to new Greenlight components.
+These conventions apply to new and materially changed Greenlight modules.
+Existing code may predate a rule; do not churn unrelated code solely to make a
+file look conformant.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are
 to be interpreted as normative requirements.
 
 ## Exceptions
 
-Components **SHOULD** expose one exception class per component boundary.
+Modules **SHOULD** expose one exception class at each caller-facing seam.
 
 Exception classes **MUST** be named `<Component>Error`, or use a domain-specific
 name ending in `Error` or `Failed`.
@@ -27,9 +29,9 @@ Exception base classes **MUST** be chosen by meaning:
 * `\LogicException` **MUST** be used for internal framework misuse that indicates
   a bug in Greenlight.
 
-`ExpectationFailed` is the only deliberate exception to these rules. It is
-public API, extends `\Exception`, and has a frozen shape. Internal exception
-types **MUST NOT** use it as a template.
+`ExpectationFailed` and `SkipTest` are deliberate control-signal exceptions.
+They are public interface, extend `\Exception`, and are interpreted by the
+runner. Internal exception types **MUST NOT** use them as templates.
 
 Every exception class docblock **MUST** include at least one prose sentence
 describing when the exception is raised.
@@ -41,7 +43,9 @@ public API.
 
 Error messages **MUST** use sentence case.
 
-Error messages **MUST** end with a period.
+Framework-authored error messages **MUST** end with a period. When a message
+embeds text from an underlying throwable, preserve that text rather than
+rewriting its punctuation.
 
 Interpolated identifiers **MUST** be wrapped in double quotes:
 

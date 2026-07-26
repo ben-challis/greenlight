@@ -10,7 +10,8 @@ It is also used by coverage diffing:
 greenlight coverage:diff --baseline=baseline.json --current=current.json
 ```
 
-The schema is versioned and stable.
+The schema is versioned. Version 1's existing fields and meanings are stable;
+see [compatibility](compatibility.md) for the change rules.
 
 ## Document shape
 
@@ -48,6 +49,11 @@ Readers must reject any other value.
 An object keyed by absolute file path.
 
 Entries are sorted by path.
+
+Absolute keys make a baseline specific to its checkout root. Coverage from two
+worktrees, containers, or machines compares as the same file only when the keys
+match exactly. Use a stable mounted path or normalize both documents before
+diffing. Project-relative keys would require a new schema version.
 
 `files` is always an object, including in an empty report:
 
