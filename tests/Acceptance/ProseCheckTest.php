@@ -303,6 +303,20 @@ final readonly class ProseCheckTest
     }
 
     #[Test]
+    public function excludesDependenciesAtAnyDirectoryDepth(): void
+    {
+        [$root, $baseline] = $this->workspace('dependency-exclusion');
+        $invalid = "The worker doesn't use the configured colour; it stops.\n";
+        $this->write($root, 'vendor/package/README.md', $invalid);
+        $this->write($root, 'website/node_modules/package/README.md', $invalid);
+        $this->write($root, 'packages/example/vendor/package/README.md', $invalid);
+        $this->write($root, 'packages/example/node_modules/package/README.md', $invalid);
+
+        $result = $this->run('check', $root, $baseline);
+        Expect::that($result->exitCode)->toBe(0);
+    }
+
+    #[Test]
     public function createsAnInitialBaselineThatAllowsExistingFindings(): void
     {
         [$root, $baseline] = $this->workspace('baseline-create');
