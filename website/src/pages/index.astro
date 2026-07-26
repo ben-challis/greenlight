@@ -114,7 +114,7 @@ final class PriceTest
         <div class="capability-list">
           <p><strong>Crashed worker</strong><span>Queued classes return to the pool and a replacement takes over.</span></p>
           <p><strong>Hung test</strong><span>A hard timeout stops the worker so the rest of the suite can finish.</span></p>
-          <p><strong>Shared resources</strong><span>Stable channel numbers give parallel tests isolated resource lanes.</span></p>
+          <p><strong>External resources</strong><span>Channels isolate per-worker resources; named limits cap access to shared dependencies.</span></p>
           <p><strong>Missed mock call</strong><span>Strict doubles verify at teardown and report unmet expectations.</span></p>
         </div>
       </div>

@@ -14,7 +14,7 @@ use Greenlight\Discovery\ExecutionPlan;
 final readonly class Distributor
 {
     /**
-     * @return array{list<ExecutionPlan>, list<ExecutionPlan>} pooled per-class units in plan order, then isolated single-entry units
+     * @return array{list<SchedulingUnit>, list<SchedulingUnit>} pooled per-class units in plan order, then isolated single-entry units
      */
     public function units(ExecutionPlan $plan): array
     {
@@ -26,14 +26,14 @@ final readonly class Distributor
 
             foreach ($entries as $entry) {
                 if ($entry->metadata->isolated) {
-                    $isolated[] = new ExecutionPlan([$entry], $plan->seed);
+                    $isolated[] = new SchedulingUnit(new ExecutionPlan([$entry], $plan->seed), true);
                 } else {
                     $pooledEntries[] = $entry;
                 }
             }
 
             if ($pooledEntries !== []) {
-                $pooled[] = new ExecutionPlan($pooledEntries, $plan->seed);
+                $pooled[] = new SchedulingUnit(new ExecutionPlan($pooledEntries, $plan->seed), false);
             }
         }
 

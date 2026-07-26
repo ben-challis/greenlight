@@ -228,9 +228,11 @@ memory indefinitely. Suites that accumulate non-memory state can also recycle
 workers after a fixed number of tests. Both thresholds are configured with
 `workers()` in `greenlight.php`.
 
-When parallel tests share an external resource, such as a database, give each
-worker its own copy. Greenlight provides a channel for this: a stable number from
-1 to the worker count.
+Parallel suites usually need either a separate resource for each worker or a
+concurrency limit around one shared dependency. Greenlight supports both.
+
+Use the channel number when each worker can have its own external resource. The
+number stays between 1 and the worker count.
 
 The channel is available as `Greenlight\Core\Test\TestChannel` and is also
 exported to each worker as the `GREENLIGHT_CHANNEL` environment variable.
@@ -254,7 +256,39 @@ final class OrderRepositoryTest
 Two tests running at the same time never share a channel, so databases such as
 `app_test_1` and `app_test_2` do not race each other.
 
-See [configuration](configuration.md) for the full channel rules.
+Use `#[RequiresResource]` when workers must use the same dependency but it has a
+lower safe concurrency than the worker pool:
+
+```php
+#[RequiresResource('payments-sandbox')]
+final class PaymentGatewayTest { ... }
+```
+
+```php
+return GreenlightConfig::create()
+    ->workers(8)
+    ->resourceLimit('payments-sandbox', 2);
+```
+
+Tests that do not need `payments-sandbox` can keep running on other workers. If
+no limit is configured, only one class that requires the resource runs at a
+time.
+
+A resource limit is a capacity gate. It does not choose which sandbox, database,
+or account a test should use. Use a channel when one instance per worker is
+available. A smaller set of distinct instances needs an application-owned
+allocator. A Greenlight limit can keep excess tests from blocking inside that
+allocator.
+
+A test can use both mechanisms. Its channel can select a database while
+`#[RequiresResource('payments-sandbox')]` limits access to a shared service.
+
+Limits apply to one Greenlight run. Concurrent runs from another worktree or CI
+shard keep their own counts, so use external coordination when the dependency is
+shared across processes.
+
+See [configuration](configuration.md) for the full channel and resource limit
+rules.
 
 ## Built-in fixtures
 

@@ -36,6 +36,7 @@ final class GreenlightConfigTest
         Expect::that($configuration->groups)->toBe([]);
         Expect::that($configuration->artifacts->directory)->toBe('build/greenlight-artifacts');
         Expect::that($configuration->artifacts->maxAttachmentsPerTest)->toBe(32);
+        Expect::that($configuration->resourceLimits)->toBe([]);
     }
 
     #[Test]
@@ -51,6 +52,8 @@ final class GreenlightConfigTest
             ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit'))
             ->suite('integration', static fn(SuiteBuilder $suite) => $suite->in('tests/Integration')->tag('io', 'slow'))
             ->workers(count: 8, recycleAfterTests: 250, recycleAboveMemory: '1G')
+            ->resourceLimit('postgres', 3)
+            ->resourceLimit('payments-sandbox')
             ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
             ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
                 ->directory('build/evidence')
@@ -92,6 +95,7 @@ final class GreenlightConfigTest
         Expect::that($configuration->artifacts->directory)->toBe('build/evidence');
         Expect::that($configuration->artifacts->maxAttachmentBytes)->toBe(5 * 1024 * 1024);
         Expect::that($configuration->artifacts->maxRunBytes)->toBe(100 * 1024 * 1024);
+        Expect::that($configuration->resourceLimits)->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
     }
 
     #[Test]
@@ -145,6 +149,15 @@ final class GreenlightConfigTest
             },
             'zero artifact count' => static function (): void {
                 GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0));
+            },
+            'invalid resource name' => static function (): void {
+                GreenlightConfig::create()->resourceLimit('Postgres');
+            },
+            'zero resource limit' => static function (): void {
+                GreenlightConfig::create()->resourceLimit('postgres', 0);
+            },
+            'duplicate resource limit' => static function (): void {
+                GreenlightConfig::create()->resourceLimit('postgres')->resourceLimit('postgres', 2);
             },
         ];
 

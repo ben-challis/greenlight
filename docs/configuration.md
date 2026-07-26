@@ -103,6 +103,34 @@ boot, and that worker's lane is idle during the boot. Use it for suites that
 accumulate per-process state that memory checks cannot see, such as connections
 or file handles.
 
+### resourceLimit(string $name, int $limit = 1): self
+
+Default: `1` for a resource used by `#[RequiresResource]`.
+
+Limits how many class assignments in one Greenlight run can use the named
+resource at once.
+
+```php
+return GreenlightConfig::create()
+    ->resourceLimit('postgres', 3)
+    ->resourceLimit('payments-sandbox');
+```
+
+Limits must be positive. Names must match `[a-z0-9][a-z0-9._-]*`, and each name
+may be configured only once.
+
+A class that requires several resources waits until all of them have capacity.
+Greenlight claims the slots together, so a class never starts with only part of
+its requirement.
+
+The limit is an in-memory scheduler gate, not a distributed lock. Separate
+Greenlight processes, worktrees, and CI shards do not share capacity.
+
+The scheduler does not choose a concrete resource instance or expose a lease
+identifier. If a test needs one of several distinct instances, the application
+must allocate it. Use a channel instead when every worker can have its own
+instance.
+
 ### coverage(callable $configurator): self
 
 Default: coverage off.
@@ -280,13 +308,18 @@ Called by the loader, not by user config.
 Your `greenlight.php` should return the builder itself without calling
 `build()`.
 
-## Channels
+## Channels and resource limits
 
 Every worker process runs in a channel: a stable slot numbered from 1 to the
 worker count.
 
 Use the channel to derive external resources that parallel tests must not share,
 such as database names, ports, virtual hosts, or temp directories.
+
+Use a channel when every worker can have its own resource. Use
+`#[RequiresResource]` when workers use the same dependency and its safe
+concurrency is lower than the worker count. A resource limit controls how many
+classes may run; it does not assign an instance to either class.
 
 Two tests running at the same time never share a channel. Channel numbers always
 stay within 1 and the worker count, regardless of how many worker processes are
@@ -312,6 +345,10 @@ previous channel-2 worker left behind.
 
 This makes one-resource-per-channel setups cheap. For example, one database
 schema can be created per channel and reused for the whole run.
+
+A test can use both. Its channel can select a private database while
+`#[RequiresResource('payments-sandbox')]` limits access to a shared external
+service.
 
 ## CLI reference
 
@@ -395,6 +432,19 @@ Uses this config file instead of `./greenlight.php`.
 ### --workers=<n|auto>
 
 Overrides the worker process count.
+
+### --resource-limit=<name>=<n>
+
+Sets a resource limit for this run, overriding `greenlight.php`.
+
+```sh
+vendor/bin/greenlight run \
+    --resource-limit=postgres=2 \
+    --resource-limit=payments-sandbox=1
+```
+
+Repeat the option to set limits for different resources. Each name may appear
+only once.
 
 ### --bail[=<n>]
 
@@ -485,6 +535,9 @@ without coordination. The union of all shards is exactly the full suite.
 Only whole classes move between shards. Individual methods are not split.
 
 Combines with `--group` and `--filter` by sharding the filtered plan.
+
+Each shard enforces its own resource limits. If four shards each use
+`postgres=2`, up to eight tests may use PostgreSQL across the CI job.
 
 ### --failed
 

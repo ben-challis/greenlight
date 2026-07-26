@@ -21,7 +21,7 @@ use Greenlight\Core\Wire\InvalidWirePayload;
  */
 final class DiscoveryCache
 {
-    private const int VERSION = 1;
+    private const int VERSION = 2;
 
     /**
      * @var array<string, DiscoveryCacheEntry>

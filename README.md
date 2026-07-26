@@ -18,6 +18,7 @@ Greenlight runs its own test suite with `bin/greenlight run` across an automatic
 ## Highlights
 
 * Parallel execution by default with dynamic, timing-aware scheduling.
+* Resource limits for tests that share databases, services, or other finite dependencies.
 * Worker recycling, leak detection, crash recovery, timeouts, and process isolation.
 * Strict mocks, stubs, and spies with automatic verification.
 * Typed expectations with rendered diffs.
@@ -64,7 +65,7 @@ final class PriceTest
 }
 ```
 
-Tests are ordinary typed PHP classes. Attributes mark tests, hooks, data rows, retries, timeouts, skips, groups, and isolation. Constructor injection supplies fixtures, doubles, and plugin-provided services.
+Tests are ordinary typed PHP classes. Attributes mark tests, hooks, data rows, retries, timeouts, skips, groups, resource requirements, and isolation. Constructor injection supplies fixtures, doubles, and plugin-provided services.
 
 ## Configuration
 
@@ -119,7 +120,7 @@ Greenlight uses one orchestrator and a pool of worker processes:
 
 ### Scheduling
 
-The scheduling unit is the test class. Method order within a class is preserved, but classes can run on any available worker.
+The scheduling unit is the test class. Method order within a class is preserved, but classes can run on any available worker. A class that requires a shared resource waits until capacity is available.
 
 The orchestrator owns the queue. A worker receives a class after connecting, then requests another whenever it finishes. Work is not divided into fixed partitions before the run.
 
@@ -130,6 +131,8 @@ Queue order is:
 3. Classes without timing history, in discovery order.
 
 Timings are stored in a per-project state file outside the repository and updated after each run. Seeded randomisation ignores timing data so the shuffled order remains reproducible.
+
+If the first queued class is waiting for a resource, Greenlight may run classes that use other resources first. It reserves capacity for the waiting class so it cannot be postponed indefinitely.
 
 ### Worker lifecycle
 
@@ -148,11 +151,46 @@ Workers can leave the pool in several ways:
 
 A worker that never connects, or stops making progress with no test in flight, fails the run rather than stalling it.
 
-### Resource channels
+### External resources
 
-Each worker receives a stable channel number from `1` to the configured worker count. Concurrent workers never share a channel, and a replacement inherits the released slot.
+Channels and resource requirements solve different parallel-test problems.
 
-Use `GREENLIGHT_CHANNEL` or the injectable `TestChannel` service to select a per-worker database, port range, temporary directory, or other resource. Greenlight assigns the slot; the application manages the resource.
+Use a channel when each worker can have its own database, port range, temporary
+directory, or other resource. Every worker receives a stable channel number from
+`1` to the configured worker count. Concurrent workers never share a channel,
+and a replacement inherits the released slot.
+
+`GREENLIGHT_CHANNEL` and the injectable `TestChannel` service expose that number.
+Greenlight assigns the slot; the application creates and manages the resource.
+
+Use `#[RequiresResource]` when workers must use the same dependency but only a
+limited number of classes can use it safely at once:
+
+```php
+#[RequiresResource('payments-sandbox')]
+final class PaymentGatewayTest
+{
+    // ...
+}
+```
+
+Without a configured limit, only one class that requires a resource runs at a
+time. Set a larger limit in `greenlight.php` with
+`resourceLimit('payments-sandbox', 3)`, or for one run with
+`--resource-limit=payments-sandbox=2`.
+
+A resource limit controls concurrency. It does not choose one concrete resource
+instance or expose a lease identifier. Use a channel when one instance per
+worker is available. If a smaller set of distinct instances needs allocating,
+the application still needs its own allocator.
+
+A test can use both. Its channel can select the worker's database while
+`#[RequiresResource('payments-sandbox')]` limits access to a shared test service.
+
+Greenlight schedules a whole class at once, so a method-level requirement applies
+to the whole class assignment. Limits belong to one Greenlight run. Other
+processes, worktrees, and shards do not share them; this is not a distributed
+lock.
 
 ### Discovery and overhead
 
@@ -180,6 +218,7 @@ Lifecycle attributes:
 * `#[SkipUnless]`
 * `#[Retry]`
 * `#[Timeout]`
+* `#[RequiresResource]`
 * `#[Isolated]`
 
 Data-driven tests use `#[DataSet]` or inline `#[DataRow]` attributes. Named rows appear in reports.
@@ -250,6 +289,7 @@ Iteration and debugging:
 * `--failed`
 * `--watch`
 * `--workers=1`
+* `--resource-limit=<name>=<n>`
 * `--seed=N`
 * `--repeat=N`
 * `--repeat-until-failure`
@@ -279,7 +319,7 @@ Shard by class without shared coordination:
 vendor/bin/greenlight run --shard=2/4
 ```
 
-`--shard=n/m` uses a stable hash to assign disjoint class sets. It composes with filters and groups, and `list-tests` shows the resolved shard.
+`--shard=n/m` uses a stable hash to assign disjoint class sets. It composes with filters and groups, and `list-tests` shows the resolved shard. Each shard applies resource limits separately.
 
 Built-in reporters:
 
@@ -352,6 +392,7 @@ the guided website, or browse the Markdown sources directly:
 * [Artifact storage architecture](docs/architecture/artifacts.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)
 * [Temporal expectations](docs/architecture/temporal-expectations.md)
+* [Worker lifecycle and scheduling](docs/architecture/worker-lifecycle.md)
 * [Code conventions](docs/architecture/conventions.md)
 * [Contributing guide](CONTRIBUTING.md)
 

@@ -63,6 +63,7 @@ final class ConfigurationResolver
             excludeMethods: $overrides->excludeMethods,
             excludePaths: $overrides->excludePaths,
             artifacts: $artifacts,
+            resourceLimits: \array_replace($configuration->resourceLimits, $overrides->resourceLimits),
         );
     }
 }

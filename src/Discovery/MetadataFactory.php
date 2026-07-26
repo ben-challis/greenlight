@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\NoExpectations;
+use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
@@ -40,6 +41,7 @@ final class MetadataFactory
         $classRetry = $this->attributeInstance($class, Retry::class, $className);
         $classTimeout = $this->attributeInstance($class, Timeout::class, $className);
         $classIsolated = $class->getAttributes(Isolated::class) !== [];
+        $classResources = $this->resourceNames($class, $className);
 
         $metadata = [];
 
@@ -70,6 +72,7 @@ final class MetadataFactory
             $timeout = $this->attributeInstance($method, Timeout::class, $where) ?? $classTimeout;
             $dataSet = $this->attributeInstance($method, DataSet::class, $where);
             $groups = \array_values(\array_unique([...$classGroups, ...$this->groupNames($method, $where)]));
+            $resources = \array_values(\array_unique([...$classResources, ...$this->resourceNames($method, $where)]));
 
             $metadata[] = new TestMetadata(
                 $className,
@@ -85,6 +88,7 @@ final class MetadataFactory
                 $test->capture,
                 $method->getAttributes(NoExpectations::class) !== [],
                 $this->skipUnlessArguments($skipUnless, $where),
+                $resources,
             );
         }
 
@@ -133,6 +137,26 @@ final class MetadataFactory
         $names = [];
 
         foreach ($reflector->getAttributes(Group::class) as $attribute) {
+            try {
+                $names[] = $attribute->newInstance()->name;
+            } catch (\Throwable $e) {
+                throw DiscoveryError::invalidAttribute($where, $e);
+            }
+        }
+
+        return $names;
+    }
+
+    /**
+     * @param \ReflectionClass<object>|\ReflectionMethod $reflector
+     *
+     * @return list<non-empty-string>
+     */
+    private function resourceNames(\ReflectionClass|\ReflectionMethod $reflector, string $where): array
+    {
+        $names = [];
+
+        foreach ($reflector->getAttributes(RequiresResource::class) as $attribute) {
             try {
                 $names[] = $attribute->newInstance()->name;
             } catch (\Throwable $e) {

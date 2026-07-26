@@ -324,6 +324,44 @@ grace.
 public function convergesQuickly(): void { ... }
 ```
 
+## RequiresResource
+
+Target: method or class. Repeatable.
+
+Parameters:
+
+```php
+string $name
+```
+
+Marks a test as requiring one slot of a named resource. A name must start with a
+lowercase letter or digit. The rest may also contain dots, underscores, and
+hyphens.
+
+```php
+#[RequiresResource('postgres')]
+#[RequiresResource('payments-sandbox')]
+final class OrderRepositoryTest { ... }
+```
+
+Class-level requirements apply to every method. Method-level requirements are
+combined with them. Repeating the same name has no effect.
+
+Greenlight assigns work by class, so it combines the requirements from every
+method and holds those resources until the class finishes. A requirement on one
+method can therefore reduce concurrency for other methods in the same class.
+
+Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
+or `--resource-limit` to set a larger limit.
+
+The requirement controls when a class may start. It does not select a concrete
+resource instance or provide a lease identifier. Use `TestChannel` when every
+worker can have its own instance. A smaller set of distinct instances still
+needs an application-owned allocator.
+
+Resource counts live in the current orchestrator. Other Greenlight processes,
+worktrees, and shards have their own counts.
+
 ## Isolated
 
 Target: method or class.

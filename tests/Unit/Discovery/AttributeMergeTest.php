@@ -47,6 +47,7 @@ final class AttributeMergeTest
         Expect::that($metadata->retryOnlyOn)->toBe(null);
         Expect::that($metadata->timeoutSeconds)->toBe(30.0);
         Expect::that($metadata->isolated)->toBe(true);
+        Expect::that($metadata->resources)->toBe(['postgres', 'redis']);
     }
 
     #[Test]
@@ -61,6 +62,7 @@ final class AttributeMergeTest
         Expect::that($metadata->retryOnlyOn)->toBe(\RuntimeException::class);
         Expect::that($metadata->timeoutSeconds)->toBe(1.5);
         Expect::that($metadata->isolated)->toBe(true);
+        Expect::that($metadata->resources)->toBe(['postgres', 'redis', 'sandbox']);
     }
 
     #[Test]
@@ -76,6 +78,7 @@ final class AttributeMergeTest
         Expect::that($metadata->timeoutSeconds)->toBe(null);
         Expect::that($metadata->isolated)->toBe(false);
         Expect::that($metadata->dataSetProvider)->toBe(null);
+        Expect::that($metadata->resources)->toBe([]);
     }
 
     #[Test]
@@ -119,6 +122,25 @@ final class AttributeMergeTest
     }
 
     #[Test]
+    public function invalidResourceNamesAreRejectedAtDiscoveryWithTheirLocation(): void
+    {
+        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryResourceInvalid';
+
+        try {
+            new TestDiscoverer()->discover([$dir]);
+        } catch (DiscoveryError $error) {
+            Expect::that($error->getMessage())
+                ->toContain('InvalidResourceTest')
+                ->toContain('neverDiscovered')
+                ->toContain('Resource names');
+
+            return;
+        }
+
+        Fail::because('Expected discovery to reject an invalid resource name.');
+    }
+
+    #[Test]
     public function methodLevelAttributesApplyWithoutClassLevelCounterparts(): void
     {
         $metadata = $this->metadataByTest()[PlainTest::class . '::fullyDecorated'];
@@ -130,5 +152,6 @@ final class AttributeMergeTest
         Expect::that($metadata->retryOnlyOn)->toBe(\LogicException::class);
         Expect::that($metadata->timeoutSeconds)->toBe(2.5);
         Expect::that($metadata->isolated)->toBe(true);
+        Expect::that($metadata->resources)->toBe(['method-only']);
     }
 }

@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Fixture\DiscoveryAttributes;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Retry;
+use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
@@ -19,6 +20,8 @@ use Greenlight\Attribute\Timeout;
 #[Retry(2)]
 #[Timeout(30.0)]
 #[Isolated]
+#[RequiresResource('postgres')]
+#[RequiresResource('redis')]
 final class MergedTest
 {
     #[Test]
@@ -34,6 +37,8 @@ final class MergedTest
     #[SkipUnless(AlwaysFalse::class)]
     #[Retry(5, onlyOn: \RuntimeException::class)]
     #[Timeout(1.5)]
+    #[RequiresResource('sandbox')]
+    #[RequiresResource('postgres')]
     public function overridesClassLevel(): void
     {
         echo "merged:overrides\n";

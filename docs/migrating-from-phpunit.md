@@ -181,6 +181,9 @@ These are intentional differences, not missing PHPUnit features.
   in a class- or suite-scoped harness service.
 * Tests run in parallel by default, across worker processes sized to the machine.
   Tests that assume they own the process need `#[Isolated]` or a design change.
+* External dependencies need an explicit parallel strategy. Use a channel for
+  one resource per worker, or `#[RequiresResource]` to limit concurrent access
+  to a shared dependency.
 * Doubles are strict. Unplanned interactions fail, and no return value is guessed.
 
 ## Practical order of attack

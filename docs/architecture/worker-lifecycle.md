@@ -40,6 +40,9 @@ sequenceDiagram
     Note over O,W: hello doubles as the first request for work
 
     loop until the queue is empty
+        opt required resource capacity is unavailable
+            Note over O,W: worker stays connected; no frame is sent
+        end
         O->>W: assign (plan slice, budgets, coverage)
         loop each test in the slice
             W->>O: event (TestClassStarted)
@@ -68,6 +71,20 @@ Some notes on that exchange:
   worker crashes; see [artifact storage](artifacts.md).
 - `done` carries the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated frame cannot silently pass a suite.
 
+## Resource-aware assignment
+
+Discovery stores `#[RequiresResource]` names in test metadata. The distributor still groups entries by class, but combines the requirements from every entry in that class. An isolated entry remains its own scheduling unit.
+
+Before sending `assign`, the orchestrator claims one slot from every required resource as a single operation. An unconfigured resource has one slot. The assignment keeps its slots until it finishes or until the worker recycles, crashes, times out, or fails to receive the assignment. Retries run within the same assignment and keep the slots.
+
+When the oldest unit is waiting, the scheduler reserves one slot from each resource it needs. A later unit may pass it only if it uses other resources or there is capacity beyond the reservation. Unrelated work can continue, but it cannot keep the waiting unit blocked indefinitely.
+
+A connected worker may receive no message while it waits for resource capacity. The orchestrator records this separately from an active assignment, so the normal progress deadline does not treat the worker as stalled. Whenever capacity is released, the orchestrator checks the waiting workers again.
+
+The scheduler lives entirely in the orchestrator. The existing `assign` message already carries the test metadata, so resource scheduling adds no wire message. Another Greenlight process, worktree, or shard has another scheduler and another set of counters. Coordinating those runs requires an external lock or service.
+
+The scheduler tracks capacity, not resource identity. A limit of two allows two matching class assignments to run. It does not tell either class which database, account, or sandbox to use.
+
 ## Leaving the pool
 
 A worker can leave the pool in several ways, and the orchestrator handles each one differently.
@@ -78,7 +95,11 @@ stateDiagram-v2
     Spawned --> Connected: hello within 30s
     Spawned --> RunFailed: no hello in 30s
     Connected --> Running: assign
+    Connected --> Waiting: required capacity unavailable
+    Waiting --> Running: capacity released (assign)
+    Waiting --> Drained: queue exhausted (drain)
     Running --> Running: done, next assign
+    Running --> Waiting: done, next assignment blocked
     Running --> Drained: done, queue empty (drain)
     Running --> Recycled: budget exhausted (recycling / done + wantsRecycle)
     Running --> Crashed: process dies mid-assignment
@@ -92,7 +113,7 @@ stateDiagram-v2
 
 **Recycling.** Recycle budgets (a test count, a memory ceiling, or both) travel inside `assign`, and the worker checks them after every test. When a budget runs out mid-assignment, the worker sends `recycling` with the list of tests it never reached, then exits. When the budget runs out exactly at an assignment boundary, it sets a recycle flag on `done` instead. Either way the orchestrator re-queues the remainder, spawns a replacement, and emits a `WorkerRecycled` event so reporters can show it. Memory-based recycling defaults to 256M. Test-count recycling is opt-in.
 
-**Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn.
+**Crashes.** If the worker process dies mid-assignment, whatever test was in flight is reported as errored, with the tail of the worker's captured stderr attached to the failure. The rest of the assignment goes back on the queue for a replacement. The crashed test itself is deliberately not re-queued: a test that kills its process would otherwise crash every replacement in turn. The orchestrator releases the assignment's resource slots before re-queuing unfinished entries.
 
 **Hangs.** Each test's timeout is enforced orchestrator-side with a grace window on top (twice the budget plus two seconds), because the worker may be too wedged to enforce anything itself. Past the grace window the orchestrator kills the process with SIGKILL and treats it like a crash, except the test is reported as a timeout failure.
 
@@ -108,8 +129,10 @@ Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the sign
 
 ## Isolated tests
 
-`#[Isolated]` entries are queued separately and follow a stricter rule: only a fresh worker, one that has not yet run anything, may take one, and only once the pooled queue is empty. After the isolated assignment's `done`, the orchestrator sends `drain` and lets the process exit rather than returning it to the pool. Whatever global state the test mutated dies with the worker.
+`#[Isolated]` entries are queued separately and follow a stricter rule: only a fresh worker, one that has not yet run anything, may take one, and only once the pooled queue is empty. After the isolated assignment's `done`, the orchestrator sends `drain` and lets the process exit rather than returning it to the pool. Whatever global state the test mutated dies with the worker. An isolated entry still waits for its required resources before assignment.
 
 ## Channel numbers
 
-Every worker carries a channel number in the `GREENLIGHT_CHANNEL` environment variable, allocated from a fixed pool of `1` to the configured worker count. The allocator always hands out the lowest free number and gets each number back when a worker retires, so a replacement inherits a released slot. However many processes a long run spawns in total, at most `workerCount` channels are ever live at once, and no two concurrent tests share one. That guarantee is what makes per-channel databases, port ranges, and temp directories safe to key on; see the [README](../../README.md) section on stable resource channels for the user-facing side.
+Every worker carries a channel number in the `GREENLIGHT_CHANNEL` environment variable, allocated from a fixed pool of `1` to the configured worker count. The allocator always hands out the lowest free number and gets each number back when a worker retires, so a replacement inherits a released slot. However many processes a long run spawns in total, at most `workerCount` channels are ever live at once, and no two concurrent tests share one.
+
+A channel identifies a stable per-worker resource slot. The resource scheduler gates shared capacity without assigning an identity. Tests can use both, for example a channel-specific database plus a concurrency limit around a shared sandbox. See [external resources](../../README.md#external-resources) for the user-facing guidance.

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\WorkerCount;
+use Greenlight\Core\Test\ResourceName;
 
 /**
  * The settings the command line can override, already validated and typed.
@@ -27,6 +28,7 @@ final readonly class CliOverrides
      * @param list<non-empty-string> $excludeMethods
      * @param list<non-empty-string> $excludePaths
      * @param positive-int|null $repeat
+     * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public function __construct(
         public ?WorkerCount $workers = null,
@@ -45,6 +47,7 @@ final readonly class CliOverrides
         public ?int $repeat = null,
         public bool $repeatUntilFailure = false,
         public ?string $artifactsDirectory = null,
+        public array $resourceLimits = [],
     ) {}
 
     /**
@@ -129,6 +132,32 @@ final readonly class CliOverrides
             }
         }
 
+        $resourceLimits = [];
+
+        foreach ($arguments->values('resource-limit') as $raw) {
+            $parts = \explode('=', $raw);
+
+            if (\count($parts) !== 2) {
+                throw CliError::malformedResourceLimit($raw);
+            }
+
+            [$name, $rawLimit] = $parts;
+
+            try {
+                ResourceName::assertValid($name);
+            } catch (\InvalidArgumentException) {
+                throw CliError::malformedResourceLimit($raw);
+            }
+
+            $limit = self::positiveInt($rawLimit, '--resource-limit');
+
+            if (\array_key_exists($name, $resourceLimits)) {
+                throw CliError::duplicateResourceLimit($name);
+            }
+
+            $resourceLimits[$name] = $limit;
+        }
+
         $seed = null;
 
         if ($arguments->has('seed')) {
@@ -164,6 +193,7 @@ final readonly class CliOverrides
             $repeat,
             $repeatUntilFailure,
             $artifactsDirectory,
+            $resourceLimits,
         );
     }
 

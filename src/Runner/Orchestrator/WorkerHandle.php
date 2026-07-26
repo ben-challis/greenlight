@@ -11,7 +11,8 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * Assignment state supports crash attribution and summary cross-checking.
+ * Assignment state supports crash attribution, resource release, progress
+ * deadlines, and summary cross-checking.
  *
  * @internal
  */
@@ -22,6 +23,10 @@ final class WorkerHandle
     public ?ExecutionPlan $assigned = null;
 
     public bool $isolatedAssignment = false;
+
+    public ?ResourceLease $lease = null;
+
+    private bool $hasRunAssignment = false;
 
     public ResultSummary $tally;
 
@@ -61,13 +66,28 @@ final class WorkerHandle
         $this->lastProgressAt = $this->spawnedAt;
     }
 
-    public function beginAssignment(ExecutionPlan $unit, bool $isolated): void
+    public function beginAssignment(ResourceLease $lease): void
     {
-        $this->assigned = $unit;
-        $this->isolatedAssignment = $isolated;
+        $this->lease = $lease;
+        $this->assigned = $lease->unit->plan;
+        $this->isolatedAssignment = $lease->unit->isolated;
         $this->tally = new ResultSummary();
         $this->finished = [];
         $this->inFlight = null;
+    }
+
+    public function finishAssignment(): void
+    {
+        $this->hasRunAssignment = true;
+        $this->lease = null;
+        $this->assigned = null;
+        $this->isolatedAssignment = false;
+        $this->inFlight = null;
+    }
+
+    public function isFresh(): bool
+    {
+        return !$this->hasRunAssignment;
     }
 
     public function isRunning(): bool

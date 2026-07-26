@@ -24,7 +24,7 @@ export const docSections = [
       {
         id: 'configuration',
         title: 'Configuration',
-        description: 'Configure suites, workers, coverage, failure policy, and the CLI.',
+        description: 'Configure suites, workers, resource limits, coverage, and the CLI.',
       },
       {
         id: 'attributes',

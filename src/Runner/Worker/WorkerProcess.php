@@ -33,7 +33,11 @@ use Greenlight\Runner\Protocol\SocketChannel;
  */
 final readonly class WorkerProcess
 {
-    private const float IDLE_TIMEOUT_SECONDS = 30.0;
+    private const float RECEIVE_POLL_SECONDS = 30.0;
+
+    public function __construct(
+        private float $receivePollSeconds = self::RECEIVE_POLL_SECONDS,
+    ) {}
 
     /**
      * @param non-empty-string $address
@@ -75,13 +79,18 @@ final readonly class WorkerProcess
 
         try {
             while (true) {
-                $message = $channel->receive(self::IDLE_TIMEOUT_SECONDS);
+                $message = $channel->receive($this->receivePollSeconds);
 
                 if (!$message instanceof Message) {
-                    // Idle too long or orchestrator gone; exit quietly.
+                    if (!$channel->isEof()) {
+                        // Resource-aware scheduling may intentionally leave an
+                        // idle worker without a message for an arbitrary time.
+                        continue;
+                    }
+
                     $scopes?->closeRun();
 
-                    return $channel->isEof() ? 0 : 1;
+                    return 0;
                 }
 
                 if ($message instanceof Drain) {
