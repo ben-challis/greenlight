@@ -1,34 +1,34 @@
 # Temporal expectations
 
 `Expect::eventually()` and `Expect::consistently()` apply an ordinary matcher to
-values returned by a probe. Only the fluent API is public; its polling support
-is internal.
+values that a probe returns. Only the fluent API is public. Its poll support is
+internal.
 
-## Running matchers
+## Matcher operation
 
 `TemporalExpectation` has the same native matcher methods as `Expectation`.
-Each poll creates an ordinary expectation for the probe's value and runs the
-selected matcher without incrementing the expectation counter. The polling
-matcher increments the counter once.
+Each poll creates an ordinary expectation for the probe value. It then runs the
+selected matcher without an increment to the expectation counter. The temporal
+matcher increments the counter one time.
 
 Custom matchers use the same `Expectation::__call()` path. An exception from
-matcher code stops polling. `eventually()` only retries exceptions thrown by
-the probe when their types are listed with `retryOnException()`.
+matcher code stops the poll operation. `eventually()` retries a probe exception
+only if `retryOnException()` lists its type.
 
-A successful polling matcher returns an ordinary `Expectation` for the last
-value. Any matcher chained after it checks that value once.
+A successful temporal matcher returns an ordinary `Expectation` for the last
+value. Each matcher after it checks that value one time.
 
-## Polling
+## Poll operation
 
-Polling uses a monotonic clock. `SystemPollingClock` reads `hrtime(true)` and
-sleeps with `usleep()`. Unit tests use a fake clock.
+The poll operation uses a monotonic clock. `SystemPollingClock` reads
+`hrtime(true)` and waits with `usleep()`. Unit tests use `FakePollingClock`.
 
-The default polling interval is 25ms. `pollEvery()` accepts finite intervals of
-at least 1ms. The duration passed to `within()` or `for()` must be finite and
-greater than zero.
+The default poll interval is 25ms. `pollEvery()` accepts finite intervals of at
+least 1ms. A duration for `within()` or `for()` **MUST** be finite and more
+than zero.
 
-Both methods call the probe immediately, then wait for the configured fixed
-interval before calling it again. Probe calls never overlap.
+Both methods call the probe immediately. They then wait for the configured fixed
+interval and call the probe again. Probe calls never overlap.
 
 `eventually()` sets its deadline before the first call and returns after the
 first match. `consistently()` requires its first call to match, starts its
@@ -36,34 +36,36 @@ stability period after that call, and fails on the first mismatch.
 `eventually()` makes a final call at its deadline if no earlier call matches.
 `consistently()` makes a final call at the end of its stability period.
 
-Polling has no backoff or jitter. A fixed interval makes the schedule
-predictable and avoids skipping short-lived states.
+The poll operation has no backoff or jitter. A fixed interval gives a
+predictable schedule. It does not guarantee detection of states between probe
+calls.
 
 ## Test timeouts
 
 `TestExecutor` makes the current attempt's absolute monotonic deadline
 available before it constructs the test. It clears the deadline after per-test
-teardown. A polling expectation uses whichever deadline comes first: its own or
-the test's.
+teardown. A temporal expectation uses the first applicable deadline. This
+deadline is the earlier of its own deadline and the test deadline.
 
-If the test deadline comes first, the failure includes the requested polling
-duration. Greenlight cannot interrupt a probe that blocks, so the
-orchestrator's process timeout remains the hard limit.
+If the test deadline comes first, the failure includes the requested poll
+duration. Greenlight cannot interrupt a blocked probe. Therefore, the
+orchestrator process timeout remains the hard limit.
 
 Each test retry has a new instance, scope, deadline, and observation log. The
-first interrupt signal still lets tests in flight finish, including tests that
-are polling.
+first interrupt signal still lets active tests finish. This rule includes tests
+that use a temporal expectation.
 
 `retryOnException()` accepts `Exception` subclasses only. PHP `Error` values are
-never retryable, even when a broad throwable type would otherwise match.
+never valid for a retry. The method rejects a broad type that is not an
+`Exception` subtype.
 
 ## Failures
 
-`ObservationLog` stores rendered strings instead of retaining every value. It
-keeps the first group and the last three groups, combines repeated values, and
-records elapsed time and the number of omitted groups. The rendered log is
-limited to 2 KiB.
+`ObservationLog` stores rendered strings instead of every value. It keeps the
+first group and the last three groups. It combines repeated values. It also
+records elapsed time and the number of omitted groups. The rendered log has a
+2 KiB limit.
 
-The final failure keeps the matcher's expected and actual values, so existing
-reporters render their usual diff. Greenlight appends the observation log to
-the failure message. The wire format does not change.
+The final failure keeps the matcher's expected and actual values. Thus, current
+reporters render their usual difference. Greenlight adds the observation log
+to the failure message. The wire format does not change.

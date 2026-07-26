@@ -1,15 +1,14 @@
 # Code conventions
 
-These conventions apply to new and materially changed Greenlight modules.
-Existing code can predate a rule. Do not change unrelated code only to make a
-file conform.
+These conventions apply to new and materially changed Greenlight modules. Some
+code predates a rule. Do not change unrelated code only to make it conform.
 
 In this document, uppercase **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**,
 and **MAY** specify normative requirements.
 
-## Technical writing
+## Technical prose
 
-Repository-owned technical prose **MUST** follow
+Repository-owned technical prose **MUST** comply with
 [the technical writing standard](technical-writing.md). The standard applies
 ASD-STE100 Issue 9 to documentation, PHPDoc, comments, contributor material,
 accessibility copy, diagnostics, CLI help, and human-readable output.
@@ -26,32 +25,34 @@ vocabulary.
 
 ## Exceptions
 
-Modules **SHOULD** expose one exception class at each caller-facing seam.
+Modules **SHOULD** expose one exception class at each caller seam.
 
-Exception classes **MUST** be named `<Component>Error`, or use a domain-specific
-name ending in `Error` or `Failed`.
+Each exception class **MUST** use one of these name forms:
 
-Repeated failure modes **SHOULD** be represented by named constructors.
+* `<Component>Error`
+* A domain-specific name that ends in `Error` or `Failed`
+
+Named constructors **SHOULD** represent repeated failure modes.
 `DiscoveryError` and `ConfigFileError` are the reference examples.
 
-Small validation guards inside value objects **MAY** throw inline instead of
-adding a named constructor.
+Small validation guards inside value objects **MAY** throw inline. This option
+avoids a named constructor.
 
-Exception base classes **MUST** be chosen by meaning:
+Exception base classes **MUST** match their meaning:
 
-* `\InvalidArgumentException` **MUST** be used for malformed input caught during
+* Code **MUST** use `\InvalidArgumentException` for malformed input found during
   construction or configuration.
-* `\RuntimeException` **MUST** be used for failures that depend on runtime state,
-  such as files, processes, or wire payloads.
-* `\LogicException` **MUST** be used for internal framework misuse that indicates
-  a bug in Greenlight.
+* Code **MUST** use `\RuntimeException` for failures that depend on runtime
+  state. Examples include files, processes, and wire payloads.
+* Code **MUST** use `\LogicException` for internal framework misuse that
+  indicates a Greenlight defect.
 
 `ExpectationFailed` and `SkipTest` are deliberate control-signal exceptions.
-They are public interface, extend `\Exception`, and are interpreted by the
-runner. Internal exception types **MUST NOT** use them as templates.
+They are public interfaces and extend `\Exception`. The runner interprets them.
+Internal exception types **MUST NOT** use them as templates.
 
-Every exception class docblock **MUST** include at least one prose sentence
-describing when the exception is raised.
+Every exception class docblock **MUST** contain at least one prose sentence.
+This sentence **MUST** identify the condition that causes the exception.
 
 Exception class docblocks **MUST** include `@internal` unless the exception is
 public API.
@@ -60,11 +61,10 @@ public API.
 
 Error messages **MUST** use sentence case.
 
-Framework-authored error messages **MUST** end with a period. When a message
-embeds text from an underlying throwable, preserve that text rather than
-rewriting its punctuation.
+Greenlight error messages **MUST** end with a period. If a message contains text
+from another throwable, preserve that text and its punctuation.
 
-Interpolated identifiers **MUST** be wrapped in double quotes:
+An error message **MUST** enclose an interpolated identifier in double quotes:
 
 ```php
 'Config file "%s" does not exist.'
@@ -72,16 +72,16 @@ Interpolated identifiers **MUST** be wrapped in double quotes:
 
 The PHP string literal itself **SHOULD** stay single-quoted.
 
-When a short actionable fix exists, the message **SHOULD** include it. Prefer
-naming the fix, flag, or method to call.
+If a short corrective action exists, the message **SHOULD** include it. Name the
+applicable fix, flag, or method.
 
 ## Value objects
 
-Value objects **SHOULD** be `final readonly` classes with promoted constructor
+Value objects **SHOULD** use `final readonly` classes and promoted constructor
 properties.
 
-A property **SHOULD NOT** be demoted unless runtime validation is necessary to
-protect a narrowed PHPDoc type.
+Code **SHOULD NOT** demote a property unless it needs runtime validation to
+protect a narrow PHPDoc type.
 
 Constructor validation **MUST** throw `\InvalidArgumentException`.
 
@@ -98,19 +98,19 @@ Wire payloads **MUST** survive a JSON round trip.
 
 Class docblocks **SHOULD** be one to three prose sentences.
 
-Class docblocks **MUST** state the class purpose and any constraint that cannot
-be expressed in types.
+Class docblocks **MUST** state the class purpose. They **MUST** also state each
+constraint that types cannot express.
 
-Class docblocks **MUST** then include a blank line followed by `@internal`,
-unless the class is part of the public surface.
+Unless a class is public, its docblock **MUST** contain `@internal` after a
+blank line.
 
-Code comments and docblocks **MUST NOT** refer to design documents, plan
-files, or phase numbers. They **MUST** state the relevant constraint directly.
+Code comments and docblocks **MUST NOT** refer to design documents, plan files,
+or phase numbers. They **MUST** state the applicable constraint directly.
 
 ## Tests
 
-Test method names **MUST** use sentence-style camelCase and describe the
-behavior:
+Test method names **MUST** use sentence-style camelCase. Each name **MUST**
+describe the behavior:
 
 ```php
 bailStopsTheRunAfterTheThreshold
@@ -118,10 +118,10 @@ bailStopsTheRunAfterTheThreshold
 
 Assertions **SHOULD** use `Greenlight\Expect`.
 
-`Greenlight\Tests\Support\Check` **MUST** be used only where `Expect` cannot test
-itself.
+Tests **MUST** use `Greenlight\Tests\Support\Check` only when `Expect` cannot
+test itself.
 
 Fixture directories under `tests/Fixture/` **SHOULD** cover one behavior each.
 
-Once another suite depends on a fixture directory, that directory **MUST** be
-treated as append-only.
+When another suite depends on a fixture directory, contributors **MUST** treat
+that directory as append-only.

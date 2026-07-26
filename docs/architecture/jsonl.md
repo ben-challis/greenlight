@@ -2,13 +2,13 @@
 
 The `jsonl` reporter is Greenlight's machine-readable run output.
 
-It writes one JSON object per line, streamed as events occur. Typical consumers
-include IDEs, dashboards, and flaky-test tooling.
+It writes one JSON object per line as each event occurs. Typical consumers
+include IDEs, dashboards, and tools for intermittent test failures.
 
-A machine-readable JSON Schema for version 2 ships at
+A machine-readable JSON Schema for version 2 is at
 [resources/schema/jsonl-v2.schema.json](../../resources/schema/jsonl-v2.schema.json).
-Every line the reporter emits validates against it, enforced by tests. The
-schema defines the required keys and their types.
+Tests verify that each reporter line conforms to this schema. The schema
+defines the required keys and their types.
 
 ## Envelope
 
@@ -32,26 +32,29 @@ A stable short tag for the event type.
 
 The event payload.
 
-This is the payload produced by the event's `toWire()` method.
+The event `toWire()` method produces this payload.
 
-Lines are terminated with `\n`.
+Each line ends with `\n`.
 
-Output is UTF-8 JSON. Strings captured from invalid UTF-8 are scrubbed before
-they reach the reporter, and the encoder substitutes any remaining invalid
-sequences.
+Output uses UTF-8 JSON. Greenlight cleans captured strings that contain invalid
+UTF-8 before they reach the reporter. The encoder replaces invalid sequences
+that remain.
 
 ## Versioning
 
-The schema is versioned by the `v` field.
+The `v` field identifies the schema version.
 
-Each version has its own schema. Consumers should validate against the schema
-named by `v` and treat an unsupported version as unparseable.
+Each version has its own schema. Consumers **SHOULD** validate against the schema
+named by `v`. They **SHOULD** treat an unsupported version as data that they
+cannot parse.
 
-Optional payload keys may be added within a version, and consumers must ignore
-unknown keys. New required keys, event tags, enum values, or changes to existing
-types and meanings require a new version. The complete policy, ordering
-guarantees, and truncation behaviour are documented in
-[compatibility](compatibility.md).
+Greenlight **MAY** add optional payload keys within a version. Consumers
+**MUST** ignore unknown keys. New required keys, event tags, or enum values
+require a new version. Changes to existing types and meanings also require a
+new version.
+
+[Compatibility](compatibility.md) defines the complete policy, order
+guarantees, and incomplete-output behavior.
 
 ## Event tags
 
@@ -66,46 +69,48 @@ guarantees, and truncation behaviour are documented in
 | `test-started`    | Test begins                | `id`, `occurredAt`                                  |
 | `test-finished`   | Test ends                  | `result`, `occurredAt`                              |
 | `worker-spawned`  | Worker process starts      | `workerId`, `pid`, `occurredAt`                     |
-| `worker-recycled` | Worker process is replaced | `workerId`, `reason`, `occurredAt`                  |
+| `worker-recycled` | Greenlight replaces a worker process | `workerId`, `reason`, `occurredAt`                  |
 
-`run-finished.summary` contains passed, failed, errored, and skipped counts.
+`run-finished.summary` contains the passed, failed, errored, and skipped totals.
 
 `run-started.artifactsDirectory` is the absolute target directory for retained
-evidence from this run, or `null` when no artifact directory is available. The
-directory may not exist if the run retains no attachments.
+evidence from this run. Its value is `null` when an artifact directory is not
+available. The directory can be absent if the run retains no attachments.
 
-`suite-started` and `suite-finished` are reserved event types.
-Greenlight does not emit them today because suites only group configuration paths into a single discovery set,
-so execution has no suite boundary.
+The schema reserves the `suite-started` and `suite-finished` event types.
+Greenlight does not emit them now. Suites only group configuration paths into
+one discovery set. Therefore, execution has no suite boundary.
 
-They are defined in the event list and schema now to preserve their meaning if suite-scoped execution is added later.
-Consumers must not wait for these events.
+The event list and schema define these types to preserve their meaning. This
+meaning will apply if Greenlight adds suite-scope execution. Consumers
+**MUST NOT** wait for these events.
 
-`test-started.id` is the test id: class, method, and data-set key when present.
+`test-started.id` is the test ID. It contains the class, method, and optional
+data-set key.
 
 `class-started.workerId` and `class-finished.workerId` name the worker that
 ran the class.
 
-`worker-recycled.reason` is one of:
+`worker-recycled.reason` has one of these values:
 
 * `test-count`
 * `memory`
 * `crash`
 
-`occurredAt` is a Unix timestamp with microsecond precision. Consumers should
-accept either a JSON number with decimals or an integer, since some JSON round
-trips may narrow whole-number floats.
+`occurredAt` is a Unix timestamp with microsecond precision. Consumers
+**SHOULD** accept a JSON number with decimals or an integer. Some JSON round
+trips can convert a whole-number float to an integer.
 
-Events from different workers may interleave. Arrival order is useful for live
+Events from different workers can interleave. Arrival order helps a live
 display, but it is not a deterministic test order.
 
 ## The test-finished payload
 
-`data.result` contains the full test result.
+`data.result` contains the complete test result.
 
 ### id
 
-The test id:
+The test ID:
 
 ```json id="ifx1kl"
 {
@@ -115,19 +120,19 @@ The test id:
 }
 ```
 
-`dataSetKey` is `null` unless the test came from a data set.
+`dataSetKey` is `null` when the test has no data set.
 
 ### outcome
 
-One of:
+One of these values:
 
 * `passed`
 * `failed`
 * `errored`
 * `skipped`
 
-Retries do not add a separate outcome. A retried test still ends with one of
-these four values.
+Retries do not add a separate outcome. After a retry, the test still ends with
+one of these four values.
 
 ### durationSeconds
 
@@ -141,7 +146,7 @@ The memory delta for the test, in bytes.
 
 The number of attempts used.
 
-This is `1` unless the test was retried.
+This value is `1` unless the test used more than one attempt.
 
 ### failures
 
@@ -161,13 +166,15 @@ Each item has this shape:
 }
 ```
 
-`expected` and `actual` are pre-rendered strings or `null`.
+Greenlight renders `expected` and `actual` before it sends them to the reporter.
+Each field is a string or `null`.
 
 `location` is an object with `file` and `line`, or `null`.
 
 ### error
 
-The thrown error or exception, or `null`.
+The value describes a test, condition, plugin, framework, or synthetic
+worker-crash error. Its value is an object or `null`.
 
 When present, it has this shape:
 
@@ -199,11 +206,12 @@ Each item has this shape:
 }
 ```
 
-These records provide provenance for plugin outcome changes.
+These records identify each plugin that changed the outcome.
 
 ### output
 
-The output captured during the test, or `null` when nothing was captured.
+The output that Greenlight captured during the test. The value is `null` when
+Greenlight captured no output.
 
 When present, it has this shape:
 
@@ -225,28 +233,28 @@ When present, it has this shape:
 
 `severity` is one of `notice`, `warning`, or `deprecation`.
 
-The truncation flags record that capture hit its size limit.
+The two output flags show that output capture reached its size limit.
 
 ### risky
 
-Whether the test was flagged as risky.
+The value shows whether Greenlight identified the test as risky.
 
 ### expectations
 
-The number of expectations verified during the final attempt.
+The number of expectations that Greenlight verified during the final attempt.
 
-Each matcher in a chain counts once. Each mock expectation counts when it is
-verified. Stubs do not count.
+Each matcher in a chain counts one time. Each mock expectation counts when
+Greenlight verifies it. Stubs do not count.
 
 An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
 not count separately.
 
-Failed, errored, and skipped tests carry the partial count verified before the
+Failed, errored, and skipped tests contain the partial count from before the
 test stopped.
 
 ### attachments
 
-A list of retained attachment metadata.
+A list of metadata for retained attachments.
 
 ```json
 {
@@ -262,14 +270,16 @@ A list of retained attachment metadata.
 ```
 
 `kind` is `value`, `text`, `binary`, or `file`. `retention` is `on-failure` or
-`always`. Content is stored out of band at `path`; it is never embedded or
-base64-encoded in JSONL. `path` is a published path, not the caller's source
-path. Internal storage keys never appear in reporter output.
+`always`. Greenlight stores content separately at `path`. It does not embed
+content or its base64 form in JSONL.
 
-Attachments from failed retry attempts remain on the final result with their
-original `attempt` number. A passing test can have attachments when their
-retention is `always`.
+`path` is a published path, not the caller source path. Internal storage keys
+never appear in reporter output.
 
-Source locations and published artifact paths are absolute and can disclose the
-producer's workspace layout. They are not portable identifiers; see
-[compatibility](compatibility.md#paths-and-portability).
+Attachments from failed retry attempts remain on the final result. They keep
+their original `attempt` number. A successful test can have attachments with
+the `always` retention value.
+
+Source locations and published artifact paths are absolute. They can disclose
+the layout of the workspace that produced them. They are not portable
+identifiers. See [compatibility](compatibility.md#paths-and-portability).

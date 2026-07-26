@@ -86,33 +86,50 @@ and meaning. Use the singular form unless the context requires a plural.
 
 | Term | Type | Approved meaning |
 | --- | --- | --- |
+| adapter | Technical noun | A component that connects Greenlight to an external tool or execution method |
 | artifact | Technical noun | A file or data item that a run produces |
 | assignment | Technical noun | A group of test classes that an orchestrator sends to a worker |
 | attachment | Technical noun | Evidence that belongs to one test result |
 | channel | Technical noun | A stable resource slot that belongs to one worker |
 | configuration | Technical noun | The settings that control a Greenlight run |
+| coverage map | Technical noun | Data that identifies executable and covered source lines |
 | data set | Technical noun | One named set of arguments for a test method |
 | data-set | Noun modifier | Related to a data set |
 | double | Technical noun | A test object that replaces a collaborator |
+| envelope | Technical noun | A versioned JSONL object that contains one event |
+| event tag | Technical noun | A string that selects the event payload shape |
+| execution plan | Technical noun | The ordered test metadata that discovery sends for execution |
 | expectation | Technical noun | A required condition for a test value |
 | fixture | Technical noun | Test support code or data with a controlled purpose |
 | matcher | Technical noun | An operation that checks an expectation |
 | mock | Technical noun | A strict double with planned interactions |
+| mutant | Technical noun | A source version that contains one deliberate change |
 | orchestrator | Technical noun | The process that plans and controls a run |
+| poll | Technical noun | One observation of a probe value |
+| poll | Technical verb | To observe a probe until a condition or deadline stops the operation |
+| probe | Technical noun | A callable that supplies values to a temporal expectation |
 | plugin | Technical noun | An extension that adds a Greenlight capability |
 | reporter | Technical noun | A component that converts run events to output |
 | resource limit | Technical noun | A limit on concurrent access to a named resource |
+| retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
 | run | Technical noun | One execution of a selected test suite |
 | run | Technical verb | To execute a command, test, or test suite |
 | run time | Technical noun | The time when a program executes |
 | runtime | Noun modifier | Related to program execution |
+| sidecar | Technical noun | A JSON metadata file for one complete staged file |
 | spy | Technical noun | A double that records permitted calls |
+| staged | Noun modifier | Stored in staging before publication |
+| staging | Technical noun | A private area that stores attachment content before publication |
+| storage key | Technical noun | An opaque value that identifies staged attachment content |
 | stub | Technical noun | An inert double that supplies a dependency |
 | suite | Technical noun | A selected group of test classes |
+| temporal expectation | Technical noun | An expectation that observes probe values over time |
 | test | Technical noun | One test method with one optional data set |
 | test class | Technical noun | A class that contains one or more test methods |
 | test ID | Technical noun | The stable class, method, and optional data-set label for a test |
+| terminal result | Technical noun | The final result after all test and plugin changes |
 | worker | Technical noun | A process that executes assigned test classes |
+| worker protocol | Technical noun | The internal message contract between the orchestrator and workers |
 
 Use `configuration`, not `config`, in prose. Preserve `config` when it is part
 of code, a path, a command, or exact output.

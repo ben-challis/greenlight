@@ -1,31 +1,31 @@
 # Decision record: Infection support
 
-Status: deferred until Greenlight has per-test coverage mapping.
+Status: deferred until Greenlight has a per-test coverage map.
 
 ## Requirement
 
-Infection needs to know which tests cover each mutated line.
+Infection needs the tests that cover each mutated line.
 
 Its adapter can then run this loop:
 
 1. Run the suite once and collect per-test coverage.
 2. For each mutant, find the tests that cover the changed line.
 3. Run only those tests.
-4. Treat a failing run as a killed mutant.
+4. Treat a run with a test failure or test error as a killed mutant.
 
-That keeps mutation testing bounded. Running the whole suite for every mutant is
-functionally possible, but not a useful integration.
+This process keeps mutation tests within a practical limit. Infection can run
+the complete suite for every mutant, but that integration is too slow.
 
 ## Current Greenlight support
 
-Greenlight already has the pieces around the edge of that loop:
+Greenlight already supplies these parts of the process:
 
-* Repeatable `--test-id` arguments run exact test ids, so per-mutant test
-  selection is available without substring or wildcard ambiguity.
-* Discovery is cached, keeping repeated invocations cheap.
+* Repeatable `--test-id` arguments run exact test IDs. Thus, partial text and
+  wildcard patterns do not cause selection ambiguity.
+* The discovery cache reduces the cost of repeated commands.
 * JUnit output provides test locations.
 * Machine-readable reporters and exit codes provide mutant run results.
-* Coverage collection and export already exist for whole-run line coverage.
+* Coverage capture and export exist for line coverage of a complete run.
 
 The missing part is attribution.
 
@@ -43,35 +43,36 @@ which tests covered this line?
 
 ## Required engine work
 
-Per-test coverage mapping needs changes below the adapter layer.
+Per-test coverage maps need changes below the adapter layer.
 
-The collector must record coverage per test, either by starting and stopping
-coverage around each test or by taking per-test deltas.
+The collector **MUST** record coverage for each test. It can start and stop
+coverage around each test. As an alternative, it can calculate the difference
+for each test.
 
-Workers must send that data back to the orchestrator.
+Workers **MUST** send that data back to the orchestrator.
 
-The merge model must preserve the relationship between test ids and covered
-lines, instead of collapsing everything into one file-level line set.
+The merge model **MUST** preserve the relation between test IDs and covered
+lines. It **MUST NOT** reduce all data to one file-level line set.
 
-The export layer must then write a format Infection can consume.
+The export layer **MUST** then write a format Infection can consume.
 
 ## Adapter shape
 
-Once per-test coverage exists, Infection support can be a small external
-package: an Infection `TestFrameworkAdapter` plus factory.
+After per-test coverage exists, a small external package can add Infection
+support. The package contains an Infection `TestFrameworkAdapter` and a factory.
 
-The adapter would:
+The adapter has these responsibilities:
 
-* run Greenlight once for per-test coverage and JUnit output
-* map mutated lines to Greenlight test ids
-* invoke Greenlight with `--test-id` for those ids
+* run Greenlight one time for per-test coverage and JUnit output
+* map mutated lines to Greenlight test IDs
+* call Greenlight with `--test-id` for those test IDs
 * use the result to classify each mutant as killed or survived
 
-No further runner changes should be required.
+The proposed design requires no other runner changes.
 
 ## Decision
 
-Defer the adapter until per-test coverage mapping exists.
+Defer the adapter until a per-test coverage map exists.
 
-Shipping the adapter before then would mean full-suite execution per mutant,
-which is too slow for the integration Greenlight should provide.
+Before that work is complete, the adapter **MUST** run the complete suite for
+each mutant. This process is too slow for a useful Greenlight integration.
