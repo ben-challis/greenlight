@@ -60,10 +60,6 @@ const { previous, next } = adjacentDocs(doc.id);
     </aside>
 
     <article class="docs-article" data-pagefind-body>
-      <div class="doc-kicker">
-        <span>{doc.section}</span>
-      </div>
-
       <slot />
 
       <nav class="doc-pagination" aria-label="Adjacent documentation" data-pagefind-ignore="all">
