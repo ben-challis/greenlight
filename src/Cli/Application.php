@@ -107,6 +107,7 @@ final readonly class Application
           --group=<name>     Only run this group; repeatable
           --filter=<pattern> Only run tests whose id matches; substring, or
                              full match with * wildcards; repeatable
+          --test-id=<id>     Only run this exact id; repeatable
           --exclude-group=<name>     Skip tests in this group; repeatable
           --exclude-class=<pattern>  Skip classes matching this pattern;
                              substring or * wildcards; repeatable
@@ -1287,6 +1288,7 @@ final readonly class Application
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
+            new OptionSpec('test-id', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-group', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-class', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-method', OptionValue::Required, repeatable: true),

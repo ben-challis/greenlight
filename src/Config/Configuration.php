@@ -21,7 +21,7 @@ final readonly class Configuration
      * @param list<non-empty-string> $filters test id patterns from --filter;
      *   empty means no id filter
      * @param list<non-empty-string>|null $onlyTests exact test ids to run
-     *   (the --failed selection); null means no restriction
+     *   (the --test-id or --failed selection); null means no restriction
      * @param array{int, int}|null $shard 1-based shard index and total shard
      *   count from --shard; null means the whole plan
      * @param list<non-empty-string> $excludeGroups groups to drop from the plan
