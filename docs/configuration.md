@@ -475,7 +475,7 @@ Repeats fresh runs until an iteration fails.
 On its own, the command stops after 100 passing iterations. Combine it with
 `--repeat=<n>` to set a different limit. It cannot be combined with `--watch`.
 
-### --shard=<n>/<m>
+### --shard=n/m
 
 Runs the nth of m disjoint slices of the plan.
 
