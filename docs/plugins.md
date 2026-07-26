@@ -73,7 +73,7 @@ services from the active harness scopes.
 `Greenlight\Core\Artifact\Attachments` object a test can receive through
 constructor injection. Plugins can add attachments in either hook, including
 after inspecting a failure in `afterTest()`. The usual retention and size
-limits apply. See [test attachments](attachments.md).
+limits apply. See [attachments](attachments.md).
 
 `service()` is available during `beforeTest()` and during the test itself. By
 `afterTest()`, the per-test scope has already closed, so `service()` throws.
