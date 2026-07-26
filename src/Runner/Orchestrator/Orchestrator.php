@@ -505,6 +505,7 @@ final class Orchestrator
                 if ($message instanceof EventEnvelope) {
                     $this->onEvent($handle, $message->event, $sink);
                 } elseif ($message instanceof Recycling) {
+                    $this->crossCheck($handle, $message->summary);
                     $this->mergeCoverage($message->coverage);
                     $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
                     $this->releaseAssignment($handle);
@@ -513,7 +514,7 @@ final class Orchestrator
 
                     break;
                 } elseif ($message instanceof Done) {
-                    $this->crossCheck($handle, $message);
+                    $this->crossCheck($handle, $message->summary);
                     $this->mergeCoverage($message->coverage);
                     $this->leaks = [...$this->leaks, ...$message->leaks];
                     $isolatedAssignment = $handle->isolatedAssignment;
@@ -823,13 +824,13 @@ final class Orchestrator
         return $this->scheduler;
     }
 
-    private function crossCheck(WorkerHandle $handle, Done $done): void
+    private function crossCheck(WorkerHandle $handle, ResultSummary $reported): void
     {
-        if ($handle->tally->toWire() !== $done->summary->toWire()) {
+        if ($handle->tally->toWire() !== $reported->toWire()) {
             throw ProtocolError::summaryMismatch(
                 $handle->workerId,
                 \json_encode($handle->tally->toWire(), \JSON_THROW_ON_ERROR),
-                \json_encode($done->summary->toWire(), \JSON_THROW_ON_ERROR),
+                \json_encode($reported->toWire(), \JSON_THROW_ON_ERROR),
             );
         }
     }

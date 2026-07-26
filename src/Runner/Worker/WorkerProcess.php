@@ -154,7 +154,12 @@ final readonly class WorkerProcess
 
                 if ($outcome->recycleReason instanceof RecycleReason) {
                     $scopes->closeRun();
-                    $channel->send(new Recycling($outcome->recycleReason, $outcome->remaining, $coverage));
+                    $channel->send(new Recycling(
+                        $outcome->recycleReason,
+                        $outcome->remaining,
+                        $outcome->summary,
+                        $coverage,
+                    ));
 
                     return 0;
                 }
