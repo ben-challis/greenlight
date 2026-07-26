@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
+use Greenlight\Runner\Resource\MachineResourceCoordinator;
+use Greenlight\Runner\Resource\MachineResourcePermit;
+
 /**
- * Controls queued work and named-resource capacity for one run.
+ * Controls queued work and run-scoped and machine-scoped resource capacity.
  *
  * The oldest blocked scheduling unit reserves one future slot on each
  * required resource. A later scheduling unit can proceed only with separate
@@ -37,6 +40,7 @@ final class ResourceScheduler
         private array $pooled,
         private array $isolated,
         private array $limits,
+        private readonly ?MachineResourceCoordinator $machineCoordinator = null,
     ) {}
 
     public function dispatch(bool $freshWorker): DispatchDecision
@@ -63,6 +67,10 @@ final class ResourceScheduler
         }
 
         unset($this->leases[$lease->id]);
+
+        if ($lease->machinePermit instanceof MachineResourcePermit) {
+            $this->machineCoordinator?->release($lease->machinePermit);
+        }
 
         foreach ($lease->unit->resources as $resource) {
             $used = $this->inUse[$resource] ?? 0;
@@ -100,19 +108,32 @@ final class ResourceScheduler
      */
     private function dispatchFrom(array &$queue): DispatchDecision
     {
-        if ($this->fits($queue[0])) {
-            return DispatchDecision::assign($this->acquire($queue, 0));
+        $head = $queue[0];
+        $headMachineBlocked = false;
+
+        if ($this->fits($head)) {
+            $permit = $this->tryAcquireMachine($head);
+
+            if ($permit !== false) {
+                return DispatchDecision::assign($this->acquire($queue, 0, $permit));
+            }
+
+            $headMachineBlocked = true;
         }
 
-        $reserved = \array_fill_keys($queue[0]->resources, 1);
+        $reserved = \array_fill_keys($head->resources, 1);
 
         foreach ($queue as $index => $unit) {
             if ($index === 0) {
                 continue;
             }
 
-            if ($this->fits($unit, $reserved)) {
-                return DispatchDecision::assign($this->acquire($queue, $index));
+            if ($headMachineBlocked && \array_intersect($head->resources, $unit->resources) !== []) {
+                continue;
+            }
+
+            if ($this->fits($unit, $reserved) && ($permit = $this->tryAcquireMachine($unit)) !== false) {
+                return DispatchDecision::assign($this->acquire($queue, $index, $permit));
             }
         }
 
@@ -138,7 +159,7 @@ final class ResourceScheduler
     /**
      * @param list<SchedulingUnit> $queue
      */
-    private function acquire(array &$queue, int $index): ResourceLease
+    private function acquire(array &$queue, int $index, ?MachineResourcePermit $machinePermit): ResourceLease
     {
         $unit = $queue[$index];
         \array_splice($queue, $index, 1);
@@ -153,7 +174,7 @@ final class ResourceScheduler
             $this->inUse[$resource] = $used;
         }
 
-        $lease = new ResourceLease($this->nextLeaseId++, $unit);
+        $lease = new ResourceLease($this->nextLeaseId++, $unit, $machinePermit);
         $this->leases[$lease->id] = $lease;
 
         return $lease;
@@ -167,5 +188,10 @@ final class ResourceScheduler
     private function limit(string $resource): int
     {
         return $this->limits[$resource] ?? 1;
+    }
+
+    private function tryAcquireMachine(SchedulingUnit $unit): MachineResourcePermit|false|null
+    {
+        return $this->machineCoordinator?->tryAcquire($unit->resources);
     }
 }

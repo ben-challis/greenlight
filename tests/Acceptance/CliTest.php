@@ -59,6 +59,21 @@ final readonly class CliTest
     }
 
     #[Test]
+    public function dryRunShowsMachineResourceScopeAndNamespace(): void
+    {
+        $result = $this->runCli([
+            '--dry-run',
+            '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php',
+            '--resource-coordination-namespace=orders-service',
+            '--machine-resource-limit=postgres=2',
+        ]);
+
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->outputLines())
+            ->toContain('  resource limits: postgres=2 (machine, namespace orders-service)');
+    }
+
+    #[Test]
     public function helpAndVersionExitZero(): void
     {
         $result = $this->runCli(['--help']);

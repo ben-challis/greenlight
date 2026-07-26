@@ -294,14 +294,24 @@ application-owned allocator for fewer resource instances.
 
 A Greenlight resource limit can restrict the tests that enter that allocator.
 
+`resourceLimit()` applies to one Greenlight run. To coordinate concurrent runs
+from another worktree or a same-machine shard, use a shared namespace:
+
+```php
+return GreenlightConfig::create()
+    ->workers(8)
+    ->resourceCoordinationNamespace('orders-service')
+    ->machineResourceLimit('payments-sandbox', 2);
+```
+
+Machine-scoped limits use local advisory file locks. They do not coordinate
+runs on another host.
+
 A test can use both methods. Its channel can select a database while
 `#[RequiresResource]` controls access to a shared service.
 
-Resource limits apply to one Greenlight run. Other worktrees and CI shards have
-separate counts.
-
-Use external coordination when different processes share the dependency. See
-the [configuration reference](configuration.md) for all resource limit rules.
+Use external coordination when different hosts share the dependency. See the
+[configuration reference](configuration.md) for all resource limit rules.
 
 ## Use built-in fixtures
 

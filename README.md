@@ -117,6 +117,9 @@ different workers can run different classes.
 Use a channel to give each worker a separate external resource. Use
 `#[RequiresResource]` to limit concurrent access to a shared resource.
 
+Use `machineResourceLimit()` when concurrent Greenlight processes on one
+machine must share that limit.
+
 See [worker lifecycle and scheduling](docs/architecture/worker-lifecycle.md)
 for the complete model.
 

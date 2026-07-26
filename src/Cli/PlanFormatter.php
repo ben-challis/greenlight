@@ -37,6 +37,15 @@ final class PlanFormatter
             $resourceLimits[] = $name . '=' . $limit;
         }
 
+        foreach ($configuration->machineResourceLimits as $name => $limit) {
+            $resourceLimits[] = \sprintf(
+                '%s=%d (machine, namespace %s)',
+                $name,
+                $limit,
+                $configuration->resourceCoordinationNamespace,
+            );
+        }
+
         $lines[] = '  resource limits: ' . ($resourceLimits === [] ? '(default 1 per required resource)' : \implode(', ', $resourceLimits));
         $lines[] = $configuration->recycleAfterTests === null
             ? \sprintf('  recycle: above %s memory', MemorySize::format($configuration->recycleAboveMemoryBytes))

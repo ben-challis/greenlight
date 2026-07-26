@@ -33,10 +33,13 @@ execution. Both paths emit the same event model. Reporters consume events and
 do not access runner state.
 
 The orchestrator controls all decisions that affect more than one worker. These
-decisions include assignments, resource capacity, bail, hard timeouts, and
-crash containment. They also include summary totals, artifact publication, and
-the final coverage merge. Workers execute their plan sections in sequence and
-send each result immediately.
+decisions include assignments, run-scoped resource capacity, machine resource
+permits, bail, hard timeouts, and crash containment. They also include summary
+totals, artifact publication, and the final coverage merge.
+
+Workers execute their plan sections in sequence and send each result
+immediately. The in-process runner gets machine resource permits directly for
+each class.
 
 ## Module map
 
@@ -103,7 +106,7 @@ output shape, read [compatibility](compatibility.md).
 - Discovery occurs before execution. Workers consume plans and do not scan the
   file system.
 - One terminal `TestResult` represents all attempts of one test ID.
-- The orchestrator controls the global summary and all resource totals.
+- The orchestrator controls the parallel-run summary and its resource totals.
 - Greenlight contains worker failures. It does not automatically repeat the
   test that stops its process.
 - Binary attachment content stays out of event and protocol frames.
@@ -114,6 +117,7 @@ output shape, read [compatibility](compatibility.md).
 
 - [Compatibility and public interfaces](compatibility.md)
 - [Worker lifecycle and wire protocol](worker-lifecycle.md)
+- [Machine resource coordination](resource-coordination.md)
 - [Artifact storage](artifacts.md)
 - [JSONL reporter schema](jsonl.md)
 - [Coverage JSON schema](coverage-json.md)

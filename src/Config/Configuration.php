@@ -36,6 +36,10 @@ final readonly class Configuration
      * @param list<non-empty-string> $excludePaths Path prefixes to exclude.
      * @param array<non-empty-string, positive-int> $resourceLimits Configured
      *   local resource limits.
+     * @param array<non-empty-string, positive-int> $machineResourceLimits
+     *   Machine-scoped resource limits.
+     * @param non-empty-string|null $resourceCoordinationNamespace The namespace
+     *   for machine-scoped resource limits.
      */
     public function __construct(
         public array $paths,
@@ -60,6 +64,8 @@ final readonly class Configuration
         public array $excludePaths = [],
         public ArtifactConfiguration $artifacts = new ArtifactConfiguration(),
         public array $resourceLimits = [],
+        public array $machineResourceLimits = [],
+        public ?string $resourceCoordinationNamespace = null,
     ) {}
 
     /**
@@ -90,6 +96,8 @@ final readonly class Configuration
             excludePaths: $this->excludePaths,
             artifacts: $this->artifacts,
             resourceLimits: $this->resourceLimits,
+            machineResourceLimits: $this->machineResourceLimits,
+            resourceCoordinationNamespace: $this->resourceCoordinationNamespace,
         );
     }
 
@@ -121,6 +129,8 @@ final readonly class Configuration
             excludePaths: $paths,
             artifacts: $this->artifacts,
             resourceLimits: $this->resourceLimits,
+            machineResourceLimits: $this->machineResourceLimits,
+            resourceCoordinationNamespace: $this->resourceCoordinationNamespace,
         );
     }
 }
