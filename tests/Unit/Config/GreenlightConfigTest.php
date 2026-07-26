@@ -38,6 +38,8 @@ final class GreenlightConfigTest
         Expect::that($configuration->artifacts->directory)->because('builds documented defaults')->toBe('build/greenlight-artifacts');
         Expect::that($configuration->artifacts->maxAttachmentsPerTest)->because('builds documented defaults')->toBe(32);
         Expect::that($configuration->resourceLimits)->because('builds documented defaults')->toBe([]);
+        Expect::that($configuration->machineResourceLimits)->because('builds documented defaults')->toBe([]);
+        Expect::that($configuration->resourceCoordinationNamespace)->because('builds documented defaults')->toBe(null);
     }
 
     #[Test]
@@ -67,6 +69,8 @@ final class GreenlightConfigTest
             ->workers(count: 8, recycleAfterTests: 250, recycleAboveMemory: '1G')
             ->resourceLimit('postgres', 3)
             ->resourceLimit('payments-sandbox')
+            ->resourceCoordinationNamespace('orders-service')
+            ->machineResourceLimit('external-api', 2)
             ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
             ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
                 ->directory('build/evidence')
@@ -106,6 +110,8 @@ final class GreenlightConfigTest
         Expect::that($configuration->artifacts->maxAttachmentBytes)->because('builds a fully configured run')->toBe(5 * 1024 * 1024);
         Expect::that($configuration->artifacts->maxRunBytes)->because('builds a fully configured run')->toBe(100 * 1024 * 1024);
         Expect::that($configuration->resourceLimits)->because('builds a fully configured run')->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
+        Expect::that($configuration->machineResourceLimits)->because('builds a fully configured run')->toBe(['external-api' => 2]);
+        Expect::that($configuration->resourceCoordinationNamespace)->because('builds a fully configured run')->toBe('orders-service');
     }
 
     #[Test]
@@ -434,6 +440,18 @@ final class GreenlightConfigTest
 
         yield 'duplicate resource limit' => [static function (): void {
             GreenlightConfig::create()->resourceLimit('postgres')->resourceLimit('postgres', 2);
+        }];
+
+        yield 'duplicate resource across scopes' => [static function (): void {
+            GreenlightConfig::create()->resourceLimit('postgres')->machineResourceLimit('postgres');
+        }];
+
+        yield 'invalid coordination namespace' => [static function (): void {
+            GreenlightConfig::create()->resourceCoordinationNamespace('Orders Service');
+        }];
+
+        yield 'machine resource without namespace' => [static function (): void {
+            GreenlightConfig::create()->machineResourceLimit('postgres')->build();
         }];
     }
 

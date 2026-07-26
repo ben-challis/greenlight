@@ -156,13 +156,16 @@ final class PaymentGatewayTest { ... }
 <!-- php-example {"example":"symfony-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create()
-    ->resourceLimit('payments-sandbox', 2);
+    ->resourceCoordinationNamespace('orders-service')
+    ->machineResourceLimit('payments-sandbox', 2);
 ```
 
 The limit controls how many assignments that require this resource can run. It
-does not choose a service instance, and it does not coordinate another
-Greenlight process or CI shard. See [configuration](configuration.md) for the
-complete resource rules.
+does not choose a service instance. The machine-scoped form coordinates
+Greenlight processes on the same host. Use `resourceLimit()` when only one run
+needs the gate.
+
+See [configuration](configuration.md) for the complete resource rules.
 
 ## Doubles and the container
 

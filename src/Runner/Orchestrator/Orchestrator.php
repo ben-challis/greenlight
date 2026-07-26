@@ -45,6 +45,8 @@ use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Runner\Resource\MachineResourceCoordinator;
+use Greenlight\Runner\Resource\MachineResourcePermit;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\WorkerError;
 
@@ -138,6 +140,7 @@ final class Orchestrator
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
         private readonly array $resourceLimits = [],
+        private readonly ?MachineResourceCoordinator $machineResourceCoordinator = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -186,7 +189,12 @@ final class Orchestrator
         }
 
         [$pooled, $isolated] = new Distributor()->units($plan);
-        $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->resourceLimits);
+        $this->scheduler = new ResourceScheduler(
+            $pooled,
+            $isolated,
+            $this->resourceLimits,
+            $this->machineResourceCoordinator,
+        );
 
         if ($this->scheduler->pendingCount() === 0) {
             return $this->summary;
@@ -219,6 +227,7 @@ final class Orchestrator
                 $handle->terminate();
             }
 
+            $this->machineResourceCoordinator?->close();
             $server->close();
         }
 
@@ -459,6 +468,10 @@ final class Orchestrator
         $handle->beginAssignment($lease);
 
         try {
+            $machineResourceLeases = $lease->machinePermit instanceof MachineResourcePermit
+                ? $lease->machinePermit->coordinationKeys
+                : [];
+
             $channel->send(new Assign(
                 $lease->unit->plan,
                 $this->recycleAfterTests,
@@ -469,6 +482,7 @@ final class Orchestrator
                 $this->policy,
                 $this->artifactStore?->session(),
                 $this->artifactConfiguration,
+                $machineResourceLeases,
             ));
             $handle->lastProgressAt = $this->monotonicTime();
         } catch (ProtocolError) {
@@ -961,7 +975,7 @@ final class Orchestrator
      */
     private function assignWaiting(EventSink $sink): void
     {
-        if (!$this->retryWaitingWorkers) {
+        if (!$this->retryWaitingWorkers && $this->machineResourceCoordinator?->hasLimits() !== true) {
             return;
         }
 

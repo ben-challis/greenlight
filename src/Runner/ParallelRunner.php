@@ -21,6 +21,7 @@ use Greenlight\Runner\Integration\IntegrationFixtureManager;
 use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\Orchestrator;
+use Greenlight\Runner\Resource\MachineResourceCoordinator;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
@@ -77,6 +78,11 @@ final readonly class ParallelRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
+        $machineResources = MachineResourceCoordinator::openForPlan(
+            $plan,
+            $configuration->machineResourceLimits,
+            $configuration->resourceCoordinationNamespace,
+        );
         $artifactStore = ArtifactStore::open($artifactConfiguration, $this->workingDirectory, $runId);
 
         try {
@@ -124,7 +130,11 @@ final readonly class ParallelRunner
                     $artifactStore,
                     $artifactConfiguration,
                     $fixtures,
-                    resourceLimits: $configuration->resourceLimits,
+                    resourceLimits: \array_replace(
+                        $configuration->resourceLimits,
+                        $configuration->machineResourceLimits,
+                    ),
+                    machineResourceCoordinator: $machineResources,
                 );
 
                 $summary = $orchestrator->run($plan, $sink, $workerCount);
@@ -152,6 +162,7 @@ final readonly class ParallelRunner
             return $result;
         } finally {
             $artifactStore->cleanup();
+            $machineResources->close();
         }
     }
 

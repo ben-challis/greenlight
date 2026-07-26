@@ -32,6 +32,8 @@ final readonly class CliOverrides
      * @param list<non-empty-string> $excludePaths
      * @param positive-int|null $repeat
      * @param array<non-empty-string, positive-int> $resourceLimits
+     * @param array<non-empty-string, positive-int> $machineResourceLimits
+     * @param non-empty-string|null $resourceCoordinationNamespace
      */
     public function __construct(
         public ?WorkerCount $workers = null,
@@ -52,6 +54,8 @@ final readonly class CliOverrides
         public bool $repeatUntilFailure = false,
         public ?string $artifactsDirectory = null,
         public array $resourceLimits = [],
+        public array $machineResourceLimits = [],
+        public ?string $resourceCoordinationNamespace = null,
     ) {}
 
     /**
@@ -144,29 +148,38 @@ final readonly class CliOverrides
         }
 
         $resourceLimits = [];
+        $machineResourceLimits = [];
 
         foreach ($arguments->values('resource-limit') as $raw) {
-            $parts = \explode('=', $raw);
-
-            if (\count($parts) !== 2) {
-                throw CliError::malformedResourceLimit($raw);
-            }
-
-            [$name, $rawLimit] = $parts;
-
-            try {
-                ResourceName::assertValid($name);
-            } catch (\InvalidArgumentException) {
-                throw CliError::malformedResourceLimit($raw);
-            }
-
-            $limit = self::positiveInt($rawLimit, '--resource-limit');
+            [$name, $limit] = self::resourceLimit($raw, '--resource-limit');
 
             if (\array_key_exists($name, $resourceLimits)) {
                 throw CliError::duplicateResourceLimit($name);
             }
 
             $resourceLimits[$name] = $limit;
+        }
+
+        foreach ($arguments->values('machine-resource-limit') as $raw) {
+            [$name, $limit] = self::resourceLimit($raw, '--machine-resource-limit');
+
+            if (\array_key_exists($name, $resourceLimits) || \array_key_exists($name, $machineResourceLimits)) {
+                throw CliError::duplicateResourceLimit($name);
+            }
+
+            $machineResourceLimits[$name] = $limit;
+        }
+
+        $resourceCoordinationNamespace = null;
+
+        if ($arguments->has('resource-coordination-namespace')) {
+            $resourceCoordinationNamespace = $arguments->value('resource-coordination-namespace') ?? '';
+
+            try {
+                ResourceName::assertValid($resourceCoordinationNamespace);
+            } catch (\InvalidArgumentException) {
+                throw CliError::invalidResourceCoordinationNamespace($resourceCoordinationNamespace);
+            }
         }
 
         $seed = null;
@@ -202,6 +215,8 @@ final readonly class CliOverrides
             repeatUntilFailure: $repeatUntilFailure,
             artifactsDirectory: $artifactsDirectory,
             resourceLimits: $resourceLimits,
+            machineResourceLimits: $machineResourceLimits,
+            resourceCoordinationNamespace: $resourceCoordinationNamespace,
         );
     }
 
@@ -238,5 +253,27 @@ final readonly class CliOverrides
         }
 
         return $value;
+    }
+
+    /**
+     * @return array{non-empty-string, positive-int}
+     */
+    private static function resourceLimit(string $raw, string $flag): array
+    {
+        $parts = \explode('=', $raw);
+
+        if (\count($parts) !== 2) {
+            throw CliError::malformedResourceLimit($flag, $raw);
+        }
+
+        [$name, $rawLimit] = $parts;
+
+        try {
+            ResourceName::assertValid($name);
+        } catch (\InvalidArgumentException) {
+            throw CliError::malformedResourceLimit($flag, $raw);
+        }
+
+        return [$name, self::positiveInt($rawLimit, $flag)];
     }
 }

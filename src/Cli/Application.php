@@ -64,6 +64,7 @@ use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Runner\Resource\ResourceCoordinationError;
 use Greenlight\Runner\SelectionFilter;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Runner\Worker\LeakDetector;
@@ -120,6 +121,11 @@ final readonly class Application
           --workers=<n|auto> Set the worker process count
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
+          --machine-resource-limit=<name>=<n>
+                             Set a machine-scoped resource limit. You can repeat
+                             this option.
+          --resource-coordination-namespace=<name>
+                             Set the machine resource coordination namespace
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Run only this group. You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a
@@ -527,7 +533,7 @@ final readonly class Application
                     $run = new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
                         ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                 }
-            } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+            } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError|ResourceCoordinationError $error) {
                 $reporter->finish();
                 $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -539,7 +545,6 @@ final readonly class Application
 
                 return $interruptExit ?? self::EXIT_FAILURE;
             }
-
             // Merge before an early return. Thus, this operation restores relay
             // variables and removes the shared directory for interrupted or empty
             // runs.
@@ -720,7 +725,7 @@ final readonly class Application
                         new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
                             ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                     }
-                } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+                } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError|ResourceCoordinationError $error) {
                     $reporter->finish();
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -1331,6 +1336,8 @@ final readonly class Application
             new OptionSpec('config', OptionValue::Required),
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('resource-limit', OptionValue::Required, repeatable: true),
+            new OptionSpec('machine-resource-limit', OptionValue::Required, repeatable: true),
+            new OptionSpec('resource-coordination-namespace', OptionValue::Required),
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),

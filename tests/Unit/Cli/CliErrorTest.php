@@ -92,6 +92,10 @@ final class CliErrorTest
             static fn(): CliError => CliError::duplicateResourceLimit('postgres'),
             'Set resource limit "postgres" only once.',
         ];
+        yield 'invalid resource coordination namespace' => [
+            static fn(): CliError => CliError::invalidResourceCoordinationNamespace('Bad'),
+            '--resource-coordination-namespace requires a valid resource name. Received "Bad".',
+        ];
         yield 'unknown reporter' => [
             static fn(): CliError => CliError::unknownReporter('verbose'),
             'Unknown reporter "verbose". Select tty, plain, junit, jsonl, github, or teamcity.',
