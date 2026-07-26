@@ -1,0 +1,109 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+import BaseLayout from './BaseLayout.astro';
+import { adjacentDocs, docPath, docSections, sourceUrl, type DocDefinition } from '../lib/docs';
+
+interface Props {
+  doc: DocDefinition;
+  headings: MarkdownHeading[];
+}
+
+const { doc, headings } = Astro.props;
+const onThisPage = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const { previous, next } = adjacentDocs(doc.id);
+---
+
+<BaseLayout title={`${doc.title} · Greenlight`} description={doc.description}>
+  <main id="main-content" class="docs-shell">
+    <details class="mobile-doc-nav" data-pagefind-ignore="all">
+      <summary>Browse documentation</summary>
+      <nav aria-label="Documentation">
+        {
+          docSections.map((section) => (
+            <div>
+              <h2>{section.title}</h2>
+              <ul>
+                {section.items.map((item) => (
+                  <li>
+                    <a href={docPath(item.id)} aria-current={item.id === doc.id ? 'page' : undefined}>
+                      {item.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </nav>
+    </details>
+
+    <aside class="docs-sidebar" data-pagefind-ignore="all">
+      <nav aria-label="Documentation">
+        {
+          docSections.map((section) => (
+            <div class="docs-nav-section">
+              <h2>{section.title}</h2>
+              <ul>
+                {section.items.map((item) => (
+                  <li>
+                    <a href={docPath(item.id)} aria-current={item.id === doc.id ? 'page' : undefined}>
+                      {item.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </nav>
+    </aside>
+
+    <article class="docs-article" data-pagefind-body>
+      <div class="doc-kicker">
+        <span>{doc.section}</span>
+        <a href={sourceUrl(doc.id)}>View source</a>
+      </div>
+
+      <slot />
+
+      <nav class="doc-pagination" aria-label="Adjacent documentation" data-pagefind-ignore="all">
+        {
+          previous ? (
+            <a class="previous" href={docPath(previous.id)}>
+              <span>Previous</span>
+              <strong>{previous.title}</strong>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next && (
+            <a class="next" href={docPath(next.id)}>
+              <span>Next</span>
+              <strong>{next.title}</strong>
+            </a>
+          )
+        }
+      </nav>
+    </article>
+
+    {
+      onThisPage.length > 0 && (
+        <aside class="page-index" data-pagefind-ignore="all">
+          <nav aria-label="On this page">
+            <h2>On this page</h2>
+            <ol>
+              {onThisPage.map((heading) => (
+                <li class:list={{ nested: heading.depth === 3 }}>
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </aside>
+      )
+    }
+  </main>
+</BaseLayout>

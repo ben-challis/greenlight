@@ -14,7 +14,7 @@ use Greenlight\Core\Test\SkipTest;
  * outcome changes are only legal through TestResult::withOutcome() so every
  * change carries provenance.
  */
-interface TestLifecycleSubscriber
+interface TestLifecycleSubscriber extends Plugin
 {
     /**
      * Runs after the test instance is constructed and before the before-hooks.

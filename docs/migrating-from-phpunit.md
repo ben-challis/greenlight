@@ -10,7 +10,7 @@ the body of the test can stay close to what it was.
 
 | PHPUnit                                          | Greenlight                                                                                    |
 |--------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| `extends TestCase`                               | nothing; tests are plain final classes                                                        |
+| `extends TestCase`                               | nothing; tests are plain classes                                                              |
 | `testFoo()` naming                               | `#[Test]` on any public method                                                                |
 | `setUp()`                                        | `#[Before]` on a public method                                                                |
 | `tearDown()`                                     | `#[After]` on a public method                                                                 |
@@ -31,20 +31,20 @@ the body of the test can stay close to what it was.
 Assertions start from `Expect::that()`, not from methods on the test class.
 
 ```php
-// PHPUnit                                          // Greenlight
-$this->assertSame('a', $value);                     Expect::that($value)->toBe('a');
-$this->assertEquals($expected, $order);             Expect::that($order)->toEqual($expected);
-$this->fail('Reason');                              Fail::because('Reason');
-$this->assertInstanceOf(Response::class, $r);       Expect::that($r)->toBeInstanceOf(Response::class);
-$this->assertCount(3, $items);                      Expect::that($items)->toHaveCount(3);
-$this->expectException(DomainException::class);     Expect::that($fn)->toThrow(DomainException::class);
-$this->assertEmpty($items);                         Expect::that($items)->toBeEmpty();
-$this->assertGreaterThanOrEqual(3, $n);             Expect::that($n)->toBeGreaterThanOrEqual(3);
-$this->assertIsArray($value);                       Expect::that($value)->toBeArray();
-$this->assertContains($needle, $haystack);          Expect::that($haystack)->toContain($needle);
-$this->assertEqualsCanonicalizing($a, $b);          Expect::that($b)->toEqualCanonicalizing($a);
-$this->assertJson($payload);                        Expect::that($payload)->toBeJson();
-$this->assertJsonStringEqualsJsonString($e, $a);    Expect::that($a)->toMatchJson($e);
+// PHPUnit                                                // Greenlight
+$this->assertSame('a', $value);                           Expect::that($value)->toBe('a');
+$this->assertEquals($expected, $order);                   Expect::that($order)->toEqual($expected);
+$this->fail('Reason');                                    Fail::because('Reason');
+$this->assertInstanceOf(Response::class, $r);             Expect::that($r)->toBeInstanceOf(Response::class);
+$this->assertCount(3, $items);                            Expect::that($items)->toHaveCount(3);
+$this->expectException(DomainException::class);           Expect::that($fn)->toThrow(DomainException::class);
+$this->assertEmpty($items);                               Expect::that($items)->toBeEmpty();
+$this->assertGreaterThanOrEqual(3, $n);                   Expect::that($n)->toBeGreaterThanOrEqual(3);
+$this->assertIsArray($value);                             Expect::that($value)->toBeArray();
+$this->assertContains($needle, $haystack);                Expect::that($haystack)->toContain($needle);
+$this->assertEqualsCanonicalizing($a, $b);                Expect::that($b)->toEqualCanonicalizing($a);
+$this->assertJson($payload);                              Expect::that($payload)->toBeJson();
+$this->assertJsonStringEqualsJsonString($e, $a);          Expect::that($a)->toMatchJson($e);
 ```
 
 The other type predicates (`toBeString()`, `toBeInt()`, `toBeFloat()`,

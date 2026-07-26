@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
+use Greenlight\Plugin\Plugin;
+
 /** Contributes matchers dispatched through Expectation::__call. */
-interface ExpectationExtension
+interface ExpectationExtension extends Plugin
 {
     /**
      * Matcher name (as it would appear on the expectation chain) mapped to its

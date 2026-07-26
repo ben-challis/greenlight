@@ -14,6 +14,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
@@ -335,7 +336,7 @@ final class WorkerTest
     }
 
     /**
-     * @param list<object> $plugins
+     * @param list<Plugin> $plugins
      *
      * @return array{ResultSummary, list<TestResult>}
      */

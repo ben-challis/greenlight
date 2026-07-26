@@ -1,4 +1,4 @@
-# Greenlight
+# <img src="docs/logo.svg" alt="Greenlight" width="292">
 
 [![CI](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/ben-challis/greenlight/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ben-challis/greenlight)
@@ -8,9 +8,6 @@
 **A parallel-first test framework for PHP 8.4+.**
 
 Greenlight discovers a suite once, schedules test classes across a worker pool, recycles long-lived workers, isolates stateful tests, and ships with zero runtime dependencies.
-
-> [!NOTE]
-> Greenlight is not yet released.
 
 Greenlight runs its own test suite with `bin/greenlight run` across an automatically sized worker pool.
 
@@ -331,6 +328,9 @@ The runner uses core stream sockets and `proc_open`; it does not require a PHP e
 Greenlight does not run PHPUnit suites directly. See [migrating from PHPUnit](docs/migrating-from-phpunit.md). Browser testing belongs in plugins rather than core.
 
 ## Documentation
+
+Read the [Greenlight documentation](https://ben-challis.github.io/greenlight/) for
+the guided website, or browse the Markdown sources directly:
 
 * [Getting started](docs/getting-started.md)
 * [Configuration reference](docs/configuration.md)

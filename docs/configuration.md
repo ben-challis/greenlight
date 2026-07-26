@@ -223,11 +223,12 @@ Each `eventually()` or `consistently()` matcher counts once.
 
 Also available as `--fail-on-risky`.
 
-### plugins(object ...$plugins): self
+### plugins(Plugin ...$plugins): self
 
 Default: none.
 
-Registers plugin instances.
+Registers Greenlight plugin instances. Each plugin implements one or more
+capability interfaces.
 
 The method is repeatable and instances accumulate.
 

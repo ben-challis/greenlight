@@ -55,11 +55,38 @@ documented in [configuration](configuration.md).
 
 ## Your first test
 
-Tests are final classes. Test methods are marked with `#[Test]`.
+Tests are ordinary classes. Test methods are marked with `#[Test]`.
 
 There is no `TestCase` base class and no test-method naming convention.
 Assertions start from `Expect::that()`. Stateful test services, such as doubles,
 are provided by constructor injection when a test asks for them.
+
+Start with a small class to test:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App;
+
+final class Greeter
+{
+    public function greet(string $name): string
+    {
+        $name = \trim($name);
+
+        if ($name === '') {
+            throw new \InvalidArgumentException('Name cannot be empty.');
+        }
+
+        return \sprintf('Hello, %s!', $name);
+    }
+}
+```
+
+Save it as `src/Greeter.php`. Its test exercises both outcomes through the
+public method:
 
 ```php
 <?php
@@ -68,33 +95,34 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\Greeter;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
-final class GreetingTest
+final class GreeterTest
 {
     #[Test]
     public function greetsByName(): void
     {
-        $greeting = \sprintf('Hello, %s!', 'Ada');
+        $greeter = new Greeter();
 
-        Expect::that($greeting)
-            ->toBe('Hello, Ada!')
-            ->and(\strlen($greeting))->toBeGreaterThan(5);
+        Expect::that($greeter->greet('Ada'))->toBe('Hello, Ada!');
     }
 
     #[Test]
     public function rejectsEmptyNames(): void
     {
-        Expect::that(static function (): void {
-            throw new \InvalidArgumentException('Name cannot be empty.');
-        })->toThrow(\InvalidArgumentException::class, matching: '/empty/');
+        $greeter = new Greeter();
+
+        Expect::that(
+            static fn (): string => $greeter->greet(''),
+        )->toThrow(\InvalidArgumentException::class, matching: '/empty/');
     }
 }
 ```
 
-Save this as `tests/GreetingTest.php`. Make sure Composer maps the `App\Tests`
-namespace to `tests/`, and the test will run as written.
+Save this as `tests/GreeterTest.php`. Make sure Composer maps `App` to `src/`
+and `App\Tests` to `tests/`, then the test will run as written.
 
 `Expect::that()` starts a matcher chain for a value. A failed matcher throws
 immediately and includes a rendered diff where applicable.
@@ -166,6 +194,13 @@ Use `Fail::because()` when a test reaches an invalid state that does not fit a
 matcher naturally. It is especially useful for guards that must narrow a type
 before the test can continue:
 
+> **Current limitation**
+>
+> The manual guard is required when the IDE needs type narrowing.
+> Planned Greenlight IDE extension support will let matcher calls narrow the
+> value directly; `Fail::because()` will remain available for invalid states
+> that do not fit a matcher.
+
 ```php
 use Greenlight\Expect\Fail;
 
@@ -198,15 +233,15 @@ vendor/bin/greenlight
 
 Some useful commands:
 
-```sh
-vendor/bin/greenlight list-tests               # print every discovered test id
-vendor/bin/greenlight run --dry-run            # print the resolved plan without executing
-vendor/bin/greenlight run --workers=1          # single worker, in-process
-vendor/bin/greenlight run --group=slow         # only tests tagged #[Group('slow')]
-vendor/bin/greenlight run --exclude-group=slow # everything except that group
-vendor/bin/greenlight run --list-tests         # print the selection instead of running it
-vendor/bin/greenlight run --bail               # stop after the first failure
-```
+| Command | Purpose |
+| --- | --- |
+| `vendor/bin/greenlight list-tests` | Print every discovered test id |
+| `vendor/bin/greenlight run --dry-run` | Print the resolved plan without executing |
+| `vendor/bin/greenlight run --workers=1` | Use one in-process worker |
+| `vendor/bin/greenlight run --group=slow` | Run only tests tagged `#[Group('slow')]` |
+| `vendor/bin/greenlight run --exclude-group=slow` | Run everything except that group |
+| `vendor/bin/greenlight run --list-tests` | Print the selection instead of running it |
+| `vendor/bin/greenlight run --bail` | Stop after the first failure |
 
 `--exclude-class`, `--exclude-method`, and `--exclude-path` carve tests out the
 same way, and exclusions always win over includes. `--list-groups` and

@@ -15,7 +15,7 @@ use Greenlight\Core\Event\Event;
  * Observation is read-only; results cannot be altered from this side of the
  * process boundary.
  */
-interface RunLifecycleSubscriber
+interface RunLifecycleSubscriber extends Plugin
 {
     public function onRunEvent(Event $event): void;
 }

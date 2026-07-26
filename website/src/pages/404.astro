@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { sitePath } from '../lib/paths';
+---
+
+<BaseLayout
+  title="Page not found · Greenlight"
+  description="The requested Greenlight documentation page does not exist."
+>
+  <main id="main-content" class="not-found">
+    <p class="eyebrow">404 · No test collected</p>
+    <h1>This page is not in the execution plan.</h1>
+    <p>Return to the documentation index and pick up from a known route.</p>
+    <a class="button primary" href={sitePath('docs/getting-started/')}>Browse documentation</a>
+  </main>
+</BaseLayout>

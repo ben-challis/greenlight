@@ -10,6 +10,7 @@
         "mocking",
         "coverage"
     ],
+    "homepage": "https://ben-challis.github.io/greenlight/",
     "require": {
         "php": ">=8.4"
     },
