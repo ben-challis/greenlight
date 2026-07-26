@@ -1006,17 +1006,6 @@ code {
   max-width: 70ch;
 }
 
-.doc-kicker {
-  margin-bottom: 1.5rem;
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-.doc-kicker span {
-  font-family: var(--font-display);
-  font-weight: 650;
-}
-
 .docs-article h1 {
   margin-bottom: 1.8rem;
   font-size: clamp(2.8rem, 6vw, 5rem);
