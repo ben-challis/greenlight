@@ -29,10 +29,6 @@ Expect::that($result)->not()->toBeNull()
     ->and($errors)->toBeEmpty();
 ```
 
-Subject type requirements still apply under `not()`. For example,
-`Expect::that(42)->not()->toStartWith('4')` fails because `toStartWith()` needs
-a string.
-
 ## Matcher reference
 
 ### Identity and equality
@@ -180,5 +176,4 @@ if (!$response instanceof SuccessResponse) {
 ```
 
 The call counts as an expectation and reports itself as the failure location.
-A manual guard is currently required when the IDE needs type narrowing. Planned
-IDE extension support will allow matcher calls to narrow the value directly.
+Use a manual guard when the IDE needs type narrowing.
