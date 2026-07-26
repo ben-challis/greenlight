@@ -135,6 +135,7 @@ final readonly class TestDiscoverer
                 $metadata->method,
                 $metadata->dataSetProvider,
                 $this->providerTimeBudgetSeconds,
+                $metadata->dataSetProviderClass,
             );
 
             if ($rows === []) {

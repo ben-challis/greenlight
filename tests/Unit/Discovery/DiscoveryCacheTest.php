@@ -68,6 +68,105 @@ final class DiscoveryCacheTest
     }
 
     #[Test]
+    public function externalProviderFileChangesInvalidateTestEntries(): void
+    {
+        $directory = \sys_get_temp_dir() . '/greenlight-disco-' . \bin2hex(\random_bytes(6));
+        \mkdir($directory, 0o777, true);
+        $testFile = $directory . '/ExternalCachedProbeTest.php';
+        $providerFile = $directory . '/ExternalRows.php';
+
+        \file_put_contents($testFile, <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightExternalDiscoCache;
+
+            use Greenlight\Attribute\DataSet;
+            use Greenlight\Attribute\Test;
+
+            final class ExternalCachedProbeTest
+            {
+                #[Test]
+                #[DataSet(ExternalRows::class, 'rows')]
+                public function probe(int $value): void {}
+            }
+            PHP);
+        \file_put_contents($providerFile, <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightExternalDiscoCache;
+
+            final class ExternalRows
+            {
+                /** @return iterable<string, array{int}> */
+                public static function rows(): iterable
+                {
+                    yield 'one' => [1];
+                }
+            }
+            PHP);
+
+        \spl_autoload_register(static function (string $class) use ($directory): void {
+            $file = match ($class) {
+                'GreenlightExternalDiscoCache\ExternalCachedProbeTest' => 'ExternalCachedProbeTest.php',
+                'GreenlightExternalDiscoCache\ExternalRows' => 'ExternalRows.php',
+                default => null,
+            };
+
+            if ($file !== null) {
+                require_once $directory . '/' . $file;
+            }
+        });
+
+        try {
+            $cache = DiscoveryCache::forDirectories([$directory]);
+            $cold = new TestDiscoverer()->discover([$directory], cache: $cache);
+            Expect::that($cold->count())->toBe(1);
+
+            $cacheFile = $this->cacheFile($directory);
+            $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
+            \assert(\is_array($decoded) && \is_array($decoded['files']));
+            $cachedPath = \array_find(
+                \array_keys($decoded['files']),
+                static fn($path): bool => \is_string($path) && \basename($path) === 'ExternalCachedProbeTest.php',
+            );
+
+            \assert($cachedPath !== null);
+            $cachedFile = $decoded['files'][$cachedPath];
+            \assert(\is_array($cachedFile) && \is_array($cachedFile['entries']));
+            $planted = $cachedFile['entries'][0];
+            \assert(\is_array($planted) && \is_array($planted['id']) && \is_array($planted['metadata']));
+            $planted['id']['method'] = 'plantedFromCache';
+            $planted['metadata']['method'] = 'plantedFromCache';
+            $cachedFile['entries'][] = $planted;
+            $decoded['files'][$cachedPath] = $cachedFile;
+            \file_put_contents($cacheFile, \json_encode($decoded));
+
+            $warm = new TestDiscoverer()->discover(
+                [$directory],
+                cache: DiscoveryCache::forDirectories([$directory]),
+            );
+            Expect::that($warm->count())->toBe(2);
+
+            \file_put_contents($providerFile, \file_get_contents($providerFile) . "\n// changed");
+
+            $reparsed = new TestDiscoverer()->discover(
+                [$directory],
+                cache: DiscoveryCache::forDirectories([$directory]),
+            );
+            Expect::that($reparsed->count())->toBe(1);
+        } finally {
+            @\unlink($this->cacheFile($directory));
+            @\unlink($testFile);
+            @\unlink($providerFile);
+            @\rmdir($directory);
+        }
+    }
+
+    #[Test]
     public function persistWritesThroughATempFileAndLeavesNoneBehind(): void
     {
         // A class name distinct from the other tests in this file: they may

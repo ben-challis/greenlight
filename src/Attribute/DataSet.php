@@ -9,7 +9,25 @@ namespace Greenlight\Attribute;
 final readonly class DataSet
 {
     /**
-     * @param non-empty-string $provider
+     * @var non-empty-string
      */
-    public function __construct(public string $provider) {}
+    public string $provider;
+
+    /**
+     * @var non-empty-string|null
+     */
+    public ?string $providerClass;
+
+    /**
+     * With one argument, $provider names a method on the test class. With two,
+     * it names the provider class and $method names the provider method.
+     *
+     * @param non-empty-string $provider
+     * @param non-empty-string|null $method
+     */
+    public function __construct(string $provider, ?string $method = null)
+    {
+        $this->provider = $method ?? $provider;
+        $this->providerClass = $method === null ? null : $provider;
+    }
 }

@@ -29,6 +29,18 @@ final class AttributeContractTest
     }
 
     #[Test]
+    public function dataSetAcceptsLocalAndExternalProviders(): void
+    {
+        $local = new DataSet('rows');
+        $external = new DataSet(self::class, 'rows');
+
+        Expect::that($local->provider)->toBe('rows')
+            ->and($local->providerClass)->toBeNull()
+            ->and($external->provider)->toBe('rows')
+            ->and($external->providerClass)->toBe(self::class);
+    }
+
+    #[Test]
     public function methodOrClassAttributesTargetBoth(): void
     {
         foreach ([Skip::class, SkipUnless::class, Retry::class, Timeout::class, Isolated::class] as $attribute) {

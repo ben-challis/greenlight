@@ -15,11 +15,13 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
 {
     /**
      * @param list<array<string, mixed>> $entries
+     * @param array<non-empty-string, array{mtime: int, size: int}> $dependencies
      */
     public function __construct(
         public int $mtime,
         public int $size,
         public array $entries,
+        public array $dependencies = [],
     ) {}
 
     /**
@@ -51,11 +53,37 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
             $payloads[] = $normalized;
         }
 
-        return new self($decoded['mtime'], $decoded['size'], $payloads);
+        $dependencies = [];
+        $decodedDependencies = $decoded['dependencies'] ?? [];
+
+        if (!\is_array($decodedDependencies)) {
+            return null;
+        }
+
+        foreach ($decodedDependencies as $path => $stat) {
+            if (
+                !\is_string($path)
+                || $path === ''
+                || !\is_array($stat)
+                || !\is_int($stat['mtime'] ?? null)
+                || !\is_int($stat['size'] ?? null)
+            ) {
+                return null;
+            }
+
+            $dependencies[$path] = ['mtime' => $stat['mtime'], 'size' => $stat['size']];
+        }
+
+        return new self($decoded['mtime'], $decoded['size'], $payloads, $dependencies);
     }
 
     /**
-     * @return array{mtime: int, size: int, entries: list<array<string, mixed>>}
+     * @return array{
+     *     mtime: int,
+     *     size: int,
+     *     entries: list<array<string, mixed>>,
+     *     dependencies: array<non-empty-string, array{mtime: int, size: int}>
+     * }
      */
     #[\Override]
     public function jsonSerialize(): array
@@ -64,6 +92,7 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
             'mtime' => $this->mtime,
             'size' => $this->size,
             'entries' => $this->entries,
+            'dependencies' => $this->dependencies,
         ];
     }
 }

@@ -10,8 +10,8 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Wire\InvalidWirePayload;
 
 /**
- * Per-file cache keyed by path, mtime, and size. Entries are unfiltered, so
- * changing filters does not require parsing again.
+ * Per-file cache keyed by path, mtime, size, and external provider files.
+ * Entries are unfiltered, so changing filters does not require parsing again.
  *
  * A missing or stale file, corrupt cache, or version mismatch falls back to
  * parsing. If a data-set provider changes output without a file change, the
@@ -21,7 +21,7 @@ use Greenlight\Core\Wire\InvalidWirePayload;
  */
 final class DiscoveryCache
 {
-    private const int VERSION = 2;
+    private const int VERSION = 3;
 
     /**
      * @var array<string, DiscoveryCacheEntry>
@@ -75,6 +75,14 @@ final class DiscoveryCache
             return null;
         }
 
+        foreach ($cached->dependencies as $path => $dependency) {
+            $stat = $this->stat($path);
+
+            if ($stat === null || $stat !== $dependency) {
+                return null;
+            }
+        }
+
         $entries = [];
 
         try {
@@ -107,7 +115,48 @@ final class DiscoveryCache
             $stat['mtime'],
             $stat['size'],
             \array_map(static fn(PlanEntry $entry): array => $entry->toWire(), $entries),
+            $this->providerDependencies($entries),
         );
+    }
+
+    /**
+     * @param list<PlanEntry> $entries
+     *
+     * @return array<non-empty-string, array{mtime: int, size: int}>
+     */
+    private function providerDependencies(array $entries): array
+    {
+        $dependencies = [];
+
+        foreach ($entries as $entry) {
+            $class = $entry->metadata->dataSetProviderClass;
+
+            if ($class === null || !\class_exists($class)) {
+                continue;
+            }
+
+            $reflection = new \ReflectionClass($class);
+            $files = [$reflection->getFileName()];
+            $provider = $entry->metadata->dataSetProvider;
+
+            if ($provider !== null && $reflection->hasMethod($provider)) {
+                $files[] = $reflection->getMethod($provider)->getFileName();
+            }
+
+            foreach ($files as $file) {
+                if (!\is_string($file) || $file === '') {
+                    continue;
+                }
+
+                $stat = $this->stat($file);
+
+                if ($stat !== null) {
+                    $dependencies[$file] = $stat;
+                }
+            }
+        }
+
+        return $dependencies;
     }
 
     /**

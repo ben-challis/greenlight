@@ -29,6 +29,17 @@ final readonly class PhpStanDataProviderRuleTest
             use Greenlight\Attribute\DataSet;
             use Greenlight\Attribute\Test;
 
+            final class SharedProviders
+            {
+                /**
+                 * @return iterable<string, array{int, int, int}>
+                 */
+                public static function sums(): iterable
+                {
+                    yield 'ones' => [1, 1, 2];
+                }
+            }
+
             final class GoodProviderProbe
             {
                 #[Test]
@@ -45,6 +56,13 @@ final readonly class PhpStanDataProviderRuleTest
                 public function optionalTail(string $label, int $count = 1): void
                 {
                     echo $label, $count;
+                }
+
+                #[Test]
+                #[DataSet(SharedProviders::class, 'sums')]
+                public function addsFromSharedProvider(int $left, int $right, int $expected): void
+                {
+                    echo $left + $right === $expected;
                 }
 
                 /**
@@ -66,6 +84,17 @@ final readonly class PhpStanDataProviderRuleTest
             use Greenlight\Attribute\DataRow;
             use Greenlight\Attribute\DataSet;
             use Greenlight\Attribute\Test;
+
+            final class SharedBadProviders
+            {
+                /**
+                 * @return iterable<string, array{int}>
+                 */
+                public function notStatic(): iterable
+                {
+                    yield 'one' => [1];
+                }
+            }
 
             final class BadProviderProbe
             {
@@ -100,6 +129,13 @@ final readonly class PhpStanDataProviderRuleTest
                 #[Test]
                 #[DataSet('stringRows')]
                 public function typedRows(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
+                #[DataSet(SharedBadProviders::class, 'notStatic')]
+                public function externalInstanceProvider(int $value): void
                 {
                     echo $value;
                 }
@@ -152,12 +188,13 @@ final readonly class PhpStanDataProviderRuleTest
 
         Expect::that($probe->exitCode)->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(7)
+            ->and(\count($probe->errors))->toBe(8)
             ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
             ->toContain('notStatic() must be public and static')
             ->toContain('notIterable() must return an iterable of argument arrays, returns string')
             ->toContain('scalarRows() must yield arrays of arguments, yields int')
             ->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
+            ->toContain('SharedBadProviders::notStatic() must be public and static')
             ->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
             ->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
     }

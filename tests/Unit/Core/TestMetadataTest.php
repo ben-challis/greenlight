@@ -27,6 +27,7 @@ final class TestMetadataTest
             true,
             'currencies',
             resources: ['postgres', 'redis', 'postgres'],
+            dataSetProviderClass: 'App\SharedDataSets',
         );
 
         $restored = TestMetadata::fromWire(JsonWire::roundTrip($metadata->toWire()));
@@ -42,6 +43,7 @@ final class TestMetadataTest
         Expect::that($restored->timeoutSeconds)->toBe(5.5);
         Expect::that($restored->isolated)->toBe(true);
         Expect::that($restored->dataSetProvider)->toBe('currencies');
+        Expect::that($restored->dataSetProviderClass)->toBe('App\SharedDataSets');
         Expect::that($restored->resources)->toBe(['postgres', 'redis']);
     }
 
@@ -55,6 +57,7 @@ final class TestMetadataTest
         Expect::that($restored->retryTimes)->toBe(null);
         Expect::that($restored->timeoutSeconds)->toBe(null);
         Expect::that($restored->isolated)->toBe(false);
+        Expect::that($restored->dataSetProviderClass)->toBe(null);
         Expect::that($restored->resources)->toBe([]);
     }
 

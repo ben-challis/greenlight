@@ -40,6 +40,7 @@ final readonly class TestMetadata implements WireSerializable
      * @param non-empty-string|null $dataSetProvider
      * @param list<mixed> $skipUnlessArguments validated to scalars or null
      * @param list<string> $resources named resources required by this test entry
+     * @param non-empty-string|null $dataSetProviderClass
      *
      * @throws \InvalidArgumentException
      */
@@ -58,6 +59,7 @@ final readonly class TestMetadata implements WireSerializable
         public bool $noExpectations = false,
         array $skipUnlessArguments = [],
         array $resources = [],
+        public ?string $dataSetProviderClass = null,
     ) {
         $validated = [];
 
@@ -111,6 +113,7 @@ final readonly class TestMetadata implements WireSerializable
             'timeoutSeconds' => $this->timeoutSeconds,
             'isolated' => $this->isolated,
             'dataSetProvider' => $this->dataSetProvider,
+            'dataSetProviderClass' => $this->dataSetProviderClass,
             'capture' => $this->capture,
             'noExpectations' => $this->noExpectations,
             'resources' => $this->resources,
@@ -132,6 +135,9 @@ final readonly class TestMetadata implements WireSerializable
         $skipUnless = Wire::nullableString($payload, 'skipUnlessCondition');
         $retryOnlyOn = Wire::nullableString($payload, 'retryOnlyOn');
         $dataSetProvider = Wire::nullableString($payload, 'dataSetProvider');
+        $dataSetProviderClass = \array_key_exists('dataSetProviderClass', $payload)
+            ? Wire::nullableString($payload, 'dataSetProviderClass')
+            : null;
         $retryTimes = Wire::nullableInt($payload, 'retryTimes');
         $timeoutSeconds = Wire::nullableFloat($payload, 'timeoutSeconds');
         $skipUnlessArguments = self::skipUnlessArgumentsFromWire($payload);
@@ -158,6 +164,7 @@ final readonly class TestMetadata implements WireSerializable
             \array_key_exists('noExpectations', $payload) && Wire::bool($payload, 'noExpectations'),
             $skipUnlessArguments,
             $resources,
+            $dataSetProviderClass === '' ? null : $dataSetProviderClass,
         );
     }
 

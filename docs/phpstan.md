@@ -103,8 +103,8 @@ vendor/bin/greenlight ide-helper
 The extension validates data providers before anything runs, so a broken
 provider fails analysis instead of surfacing as errored tests:
 
-* A `#[DataSet]` provider must exist on the test class as a public static
-  method.
+* A `#[DataSet]` provider must exist as a public static method on the test
+  class, or on the provider class supplied in the two-argument form.
 * It must return an iterable of argument arrays.
 * Where PHPStan knows a row's exact shape, from an `array{...}` return type
   or an inline `#[DataRow]` literal, the rule checks each value against the
@@ -122,6 +122,12 @@ public static function sums(): iterable
 {
     yield 'ones' => [1, 1, 2];       // checked against (int, int, int)
 }
+```
+
+Providers shared by multiple test classes receive the same checks:
+
+```php
+#[DataSet(ArithmeticDataSets::class, 'sums')]
 ```
 
 Typical messages:

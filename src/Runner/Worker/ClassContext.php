@@ -81,13 +81,14 @@ final class ClassContext
      * that is an error.
      *
      * @param non-empty-string|null $provider
+     * @param non-empty-string|null $providerClass
      * @param non-empty-string $testMethod
      *
      * @return list<mixed>
      *
      * @throws DiscoveryError
      */
-    public function argumentsFor(?string $provider, string $testMethod, string $key): array
+    public function argumentsFor(?string $provider, ?string $providerClass, string $testMethod, string $key): array
     {
         if (!\array_key_exists($testMethod, $this->dataSets)) {
             $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
@@ -95,6 +96,7 @@ final class ClassContext
                 $testMethod,
                 $provider,
                 $this->providerBudgetSeconds,
+                $providerClass,
             );
         }
 

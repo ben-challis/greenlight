@@ -166,6 +166,15 @@ final class WorkerTest
     }
 
     #[Test]
+    public function dataSetProvidersCanBeDeclaredOnAnotherClass(): void
+    {
+        [$summary] = $this->runFixture('ExternalDataSets');
+
+        Expect::that($summary->total())->toBe(2)
+            ->and($summary->passed)->toBe(2);
+    }
+
+    #[Test]
     public function perClassServicesAreSharedAndDisposedAtClassClose(): void
     {
         ServiceProbe::reset();
