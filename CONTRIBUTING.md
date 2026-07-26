@@ -11,10 +11,12 @@ Greenlight requires PHP 8.4 or later.
 Run:
 
 ```bash
-composer static-analysis && composer tests
+composer static-analysis
+composer tests
+make docs-check
 ```
 
-CI runs the same scripts, so both must pass locally.
+CI runs the same checks, so all three must pass locally.
 
 ## Commits and pull requests
 

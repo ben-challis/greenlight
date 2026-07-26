@@ -17,6 +17,9 @@ declare(strict_types=1);
  * Shapes: many-fast, few-slow, giant-dataset, mixed (default: all).
  */
 
+const PHPUNIT_VERSION = '13.2.3';
+const PARATEST_VERSION = '7.23.0';
+
 $options = \getopt('', ['shape:', 'scale:', 'workers:', 'runs:', 'with-phpunit']);
 $shapes = isset($options['shape']) && \is_string($options['shape'])
     ? [$options['shape']]
@@ -323,8 +326,10 @@ function writeGiantDataSet(string $project, int $rows): int
 function install(string $project): void
 {
     \exec(\sprintf(
-        'cd %s && composer require --dev --quiet --no-interaction phpunit/phpunit brianium/paratest 2>&1',
+        'cd %s && composer require --dev --quiet --no-interaction %s %s 2>&1',
         \escapeshellarg($project),
+        \escapeshellarg('phpunit/phpunit:' . PHPUNIT_VERSION),
+        \escapeshellarg('brianium/paratest:' . PARATEST_VERSION),
     ), $output, $exit);
 
     if ($exit !== 0) {

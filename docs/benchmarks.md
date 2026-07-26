@@ -15,7 +15,7 @@ throwaway project, and reports median wall-clock time over three runs.
 
 * Machine: Apple Silicon, 11 logical cores, macOS, local SSD
 * PHP: 8.4.14 NTS, with default CLI opcache settings
-* Greenlight: commit introducing this document
+* Greenlight: `305f833ab5d3fc8c046b04182a9d0989e6b072aa` (2026-07-12)
 * PHPUnit: 13.2.3
 * ParaTest: 7.23.0
 * Parameters: `--scale=10 --workers=4 --runs=3`, which are the defaults
@@ -70,5 +70,6 @@ CI numbers are not published because shared runners are too noisy for stable
 comparisons.
 
 Update this document by rerunning the full benchmark on an idle machine whenever
-the runner changes materially. Also update the tool versions above when the
-comparison tools change.
+the runner changes materially. Record the Greenlight commit and run date with
+the results. Comparison-tool versions are pinned in `tools/benchmark.php`; update
+the constants and this page together.
