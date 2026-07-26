@@ -30,6 +30,28 @@ final readonly class SelectionTest
     }
 
     #[Test]
+    public function testIdSelectsOnlyAnExactId(): void
+    {
+        $project = $this->writeProject();
+        $result = $this->run(
+            $project,
+            '--test-id=SelectionProbe\SelectionProbeTest::alsoPasses',
+        );
+
+        Expect::that($result->exitCode)->toBe(0)
+            ->and($result->output())->toContain('1 test, 1 passed')
+            ->not()->toContain('alwaysPasses');
+
+        $result = $this->run(
+            $project,
+            '--test-id=SelectionProbe\SelectionProbeTest::also',
+        );
+
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())->toContain('No tests found');
+    }
+
+    #[Test]
     public function excludeGroupRemovesGroupedTestsFromARun(): void
     {
         $project = $this->writeProject();

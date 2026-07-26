@@ -22,6 +22,7 @@ final readonly class CliOverrides
      * @param list<non-empty-string> $groups
      * @param int<0, max>|null $seed
      * @param list<non-empty-string> $filters
+     * @param list<non-empty-string> $testIds
      * @param array{int, int}|null $shard
      * @param list<non-empty-string> $excludeGroups
      * @param list<non-empty-string> $excludeClasses
@@ -36,6 +37,7 @@ final readonly class CliOverrides
         public array $groups = [],
         public ?int $seed = null,
         public array $filters = [],
+        public array $testIds = [],
         public ?array $shard = null,
         public bool $failOnDeprecation = false,
         public bool $failOnNotice = false,
@@ -91,6 +93,7 @@ final readonly class CliOverrides
             $filters[] = $pattern;
         }
 
+        $testIds = self::nonEmptyValues($arguments, 'test-id');
         $shard = null;
 
         if ($arguments->has('shard')) {
@@ -177,23 +180,24 @@ final readonly class CliOverrides
         }
 
         return new self(
-            $workers,
-            $stopAfterFailures,
-            $groups,
-            $seed,
-            $filters,
-            $shard,
-            $arguments->has('fail-on-deprecation'),
-            $arguments->has('fail-on-notice'),
-            $arguments->has('fail-on-risky'),
-            $excludeGroups,
-            $excludeClasses,
-            $excludeMethods,
-            $excludePaths,
-            $repeat,
-            $repeatUntilFailure,
-            $artifactsDirectory,
-            $resourceLimits,
+            workers: $workers,
+            stopAfterFailures: $stopAfterFailures,
+            groups: $groups,
+            seed: $seed,
+            filters: $filters,
+            testIds: $testIds,
+            shard: $shard,
+            failOnDeprecation: $arguments->has('fail-on-deprecation'),
+            failOnNotice: $arguments->has('fail-on-notice'),
+            failOnRisky: $arguments->has('fail-on-risky'),
+            excludeGroups: $excludeGroups,
+            excludeClasses: $excludeClasses,
+            excludeMethods: $excludeMethods,
+            excludePaths: $excludePaths,
+            repeat: $repeat,
+            repeatUntilFailure: $repeatUntilFailure,
+            artifactsDirectory: $artifactsDirectory,
+            resourceLimits: $resourceLimits,
         );
     }
 

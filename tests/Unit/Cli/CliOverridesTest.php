@@ -23,6 +23,7 @@ final class CliOverridesTest
         Expect::that($overrides->stopAfterFailures)->toBe(null);
         Expect::that($overrides->groups)->toBe([]);
         Expect::that($overrides->seed)->toBe(null);
+        Expect::that($overrides->testIds)->toBe([]);
         Expect::that($overrides->excludeGroups)->toBe([]);
         Expect::that($overrides->excludeClasses)->toBe([]);
         Expect::that($overrides->excludeMethods)->toBe([]);
@@ -71,6 +72,7 @@ final class CliOverridesTest
             'bail' => ['3'],
             'group' => ['slow', 'io'],
             'seed' => ['0'],
+            'test-id' => ['App\ExampleTest::one', 'App\ExampleTest::two'],
             'artifacts-dir' => ['build/evidence'],
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
         ]));
@@ -79,6 +81,7 @@ final class CliOverridesTest
         Expect::that($overrides->stopAfterFailures)->toBe(3);
         Expect::that($overrides->groups)->toBe(['slow', 'io']);
         Expect::that($overrides->seed)->toBe(0);
+        Expect::that($overrides->testIds)->toBe(['App\ExampleTest::one', 'App\ExampleTest::two']);
         Expect::that($overrides->artifactsDirectory)->toBe('build/evidence');
         Expect::that($overrides->resourceLimits)->toBe([
             'postgres' => 3,
@@ -144,6 +147,7 @@ final class CliOverridesTest
             'bail zero' => ['bail' => ['0']],
             'bail word' => ['bail' => ['soon']],
             'empty group' => ['group' => ['']],
+            'empty test id' => ['test-id' => ['']],
             'seed word' => ['seed' => ['tomorrow']],
             'negative seed' => ['seed' => ['-1']],
             'empty exclude group' => ['exclude-group' => ['']],
