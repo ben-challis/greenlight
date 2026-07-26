@@ -5,8 +5,8 @@ declare(strict_types=1);
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 
-// Layers coverage collection on the base config so the gate always measures
-// the same test set the real suite runs.
+// This configuration adds coverage collection to the base configuration.
+// The gate measures the same test set as the base suite.
 $config = require __DIR__ . '/greenlight.php';
 \assert($config instanceof GreenlightConfig);
 

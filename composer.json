@@ -1,6 +1,6 @@
 {
     "name": "greenlight/greenlight",
-    "description": "An opinionated testing framework for PHP 8.4+: typed attribute-driven tests, parallel-first execution with flat memory, lifecycle-safe test doubles.",
+    "description": "A test framework for PHP 8.4+ with typed attributes, parallel execution, flat memory use, and lifecycle-safe test doubles.",
     "license": "MIT",
     "type": "library",
     "keywords": [
@@ -31,11 +31,11 @@
         "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
     },
     "suggest": {
-        "ext-pcov": "Fast line coverage collection",
-        "fidry/cpu-core-counter": "Sharper core detection for workers: auto (cgroup limits, more platforms)",
+        "ext-pcov": "Collects line coverage quickly",
+        "fidry/cpu-core-counter": "Improves worker core detection for auto with cgroup limits and more platforms",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
-        "phpstan/phpstan": "Type-checks extension matcher calls and data providers via the bundled extension.neon",
-        "symfony/framework-bundle": "Kernel-aware Symfony tests: container service injection via the SymfonyPlugin bridge"
+        "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled extension.neon",
+        "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the SymfonyPlugin bridge"
     },
     "autoload": {
         "psr-4": {

@@ -2,10 +2,15 @@
 
 ## Supported versions
 
-Greenlight is pre-1.0. Only the latest minor release receives security fixes. Once 1.0 ships, this policy will be revisited.
+Greenlight is pre-1.0. We give security fixes only for the latest minor release.
+We will review this policy after we release version 1.0.
 
-## Reporting a vulnerability
+## Vulnerability reports
 
-Please do not open a public issue for security problems. Instead, report them privately through GitHub Security Advisories on this repository: go to the Security tab and choose "Report a vulnerability".
+Do not open a public issue for a security problem.
 
-You will get an acknowledgement as soon as possible, and a fix or mitigation plan will be coordinated with you before any public disclosure.
+Report the problem privately through GitHub Security Advisories in this
+repository. On the Security tab, select "Report a vulnerability".
+
+We will acknowledge your report as soon as possible. We will coordinate a fix
+or mitigation plan with you before public disclosure.

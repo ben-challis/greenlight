@@ -13,10 +13,10 @@ body:
     id: reproduction
     attributes:
       label: Minimal reproduction
-      description: The smallest test class, config, and command that reproduce the problem.
+      description: Provide the smallest test class, configuration, and command that reproduce the problem.
       placeholder: |
         ```php
-        // test class and config here
+        // test class and configuration here
         ```
         Command: bin/greenlight ...
     validations:
@@ -24,14 +24,14 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: Expected behaviour
+      label: Expected behavior
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: Actual behaviour
-      description: Include full output or a stack trace where relevant.
+      label: Actual behavior
+      description: If available, include the full output or a stack trace.
     validations:
       required: true
   - type: input
@@ -45,13 +45,13 @@ body:
     id: greenlight-version
     attributes:
       label: Greenlight version
-      placeholder: "e.g. 0.1.0 or a commit hash"
+      placeholder: "For example, 0.1.0 or a commit hash"
     validations:
       required: true
   - type: input
     id: os
     attributes:
       label: Operating system
-      placeholder: "e.g. Ubuntu 24.04, macOS 26"
+      placeholder: "For example, Ubuntu 24.04 or macOS 26"
     validations:
       required: true

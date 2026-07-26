@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/jsonl-v2.schema.json",
-    "title": "Greenlight jsonl reporter line (v2)",
-    "description": "One line of the jsonl reporter stream. Prose reference: docs/architecture/jsonl.md.",
+    "title": "Greenlight JSONL reporter line (version 2)",
+    "description": "One line from the JSONL reporter stream. Prose reference: docs/architecture/jsonl.md.",
     "type": "object",
     "required": ["v", "event", "data"],
     "properties": {
@@ -81,7 +81,7 @@
     ],
     "definitions": {
         "occurredAt": {
-            "description": "Unix timestamp with microsecond precision. JSON round trips may narrow whole-number floats to integers.",
+            "description": "A Unix timestamp with microsecond precision. A JSON round trip can convert a whole-number float to an integer.",
             "type": "number"
         },
         "runStarted": {
@@ -221,12 +221,12 @@
                 },
                 "risky": {"type": "boolean"},
                 "expectations": {
-                    "description": "Expectations verified during the final attempt.",
+                    "description": "The number of expectations that Greenlight verified in the final attempt.",
                     "type": "integer",
                     "minimum": 0
                 },
                 "attachments": {
-                    "description": "Retained attachment metadata. Content is stored out of band at path.",
+                    "description": "Metadata for a retained attachment. Greenlight stores the content separately at the specified path.",
                     "type": "array",
                     "items": {"$ref": "#/definitions/attachment"}
                 }
