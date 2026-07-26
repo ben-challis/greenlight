@@ -1,17 +1,16 @@
 # Static analysis with PHPStan
 
-Greenlight ships a PHPStan extension. It teaches PHPStan about the custom
-expectation matchers your config registers, the shape rules for `#[DataSet]`
-and `#[DataRow]` data providers, and native matcher constraints that PHP's
-type system cannot express.
+Greenlight includes a PHPStan extension. The extension supplies information
+about custom expectation matchers and data-provider shape rules. It also
+supplies native matcher constraints that the PHP type system cannot express.
 
 PHPStan also checks native and custom matchers used with `eventually()` and
 `consistently()`.
 
 ## Setup
 
-Include the extension in your PHPStan configuration and point it at your
-Greenlight config files:
+Include the extension in your PHPStan configuration. Set the Greenlight
+configuration files:
 
 ```neon
 includes:
@@ -23,11 +22,11 @@ parameters:
             - greenlight.php
 ```
 
-`configFiles` is only needed for custom matcher checking. The data provider
-and native matcher rules work without it.
+Use `configFiles` only for custom matcher checks. The data-provider and native
+matcher rules work without it.
 
 If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
-it registers the include for you; you only set the `greenlight.configFiles`
+it registers the include for you. Set only the `greenlight.configFiles`
 parameter.
 
 ## Native matcher constraints
@@ -40,23 +39,22 @@ Expect::that($callback)->toThrow(DomainException::class, message: 'Exact message
 Expect::that($callback)->toThrow(DomainException::class, matching: '/message/i');
 ```
 
-Supplying both `message:` and `matching:` is reported as
-`greenlight.toThrow.messageConstraint`. The same call is rejected at run time
-so the constraint is also enforced without PHPStan.
+A call that supplies both `message:` and `matching:` causes the
+`greenlight.toThrow.messageConstraint` error. Greenlight also rejects the call
+at run time. Thus, the constraint does not depend on PHPStan.
 
-## Custom matcher checking
+## Custom matcher checks
 
-This applies when a plugin adds its own matchers to the expectation chain
-through `ExpectationExtension` (see [writing plugins](plugins.md)). Built-in
-matchers like `toBe()` are real methods, so PHPStan checks them without any
-help.
+These checks apply when a plugin adds matchers through `ExpectationExtension`.
+See [plugins](plugins.md). Built-in matchers such as `toBe()` are real methods.
+Thus, PHPStan checks them without help from the extension.
 
-Custom matchers are different: they dispatch through `__call` at run time,
-which PHPStan would normally wave through. With the extension, PHPStan loads
-your config files the same way workers do, reflects each matcher closure,
-and checks calls against the real signature.
+Custom matchers send calls through `__call` at run time. PHPStan does not
+usually check these calls. The extension loads your configuration files in the
+same way as workers. It reflects each matcher closure and checks calls against
+the real signature.
 
-Given a plugin registering these matchers:
+For example, use a plugin with these matchers:
 
 ```php
 final class DigestMatchers implements ExpectationExtension
@@ -73,7 +71,7 @@ final class DigestMatchers implements ExpectationExtension
 }
 ```
 
-calls are checked against those closure signatures:
+The extension checks calls against those closure signatures:
 
 ```php
 Expect::that($id)->toBeValidUuid();     // checked: name, arguments, types
@@ -81,7 +79,7 @@ Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
 Expect::that($hash)->toHaveDigestLength('six'); // fails analysis: expects int
 ```
 
-The same checks apply to polling expectations:
+The same checks apply to temporal expectations:
 
 ```php
 Expect::eventually(fn(): string => $hash)
@@ -89,27 +87,27 @@ Expect::eventually(fn(): string => $hash)
     ->toHaveDigestLength(6);
 ```
 
-The same matcher name registered with two different signatures across config
-files fails the run loudly rather than picking one.
+If configuration files register one matcher name with different signatures,
+analysis fails. PHPStan does not select one signature.
 
-For IDE autocomplete with the same signatures, generate the helper file:
+To give an IDE the same signatures, generate the helper file:
 
 ```sh
 vendor/bin/greenlight ide-helper
 ```
 
-## Data provider checking
+## Data provider checks
 
-The extension validates data providers before anything runs, so a broken
-provider fails analysis instead of surfacing as errored tests:
+The extension validates data providers before a test runs. If you run analysis
+first, PHPStan reports a broken provider before a test can report the error:
 
-* A `#[DataSet]` provider must exist as a public static method on the test
-  class, or on the provider class supplied in the two-argument form.
-* It must return an iterable of argument arrays.
-* Where PHPStan knows a row's exact shape, from an `array{...}` return type
-  or an inline `#[DataRow]` literal, the rule checks each value against the
-  matching test method parameter and flags rows with too few or too many
-  values.
+* The `#[DataSet]` provider must exist as a public static method. It belongs to
+  the test class or the provider class in the two-argument form.
+* The provider must return an iterable of argument arrays.
+* PHPStan can know the exact row shape from an `array{...}` return type or an
+  inline `#[DataRow]` literal. In this case, the rule checks each value against
+  the applicable test method parameter. It also reports rows with too few
+  or too many values.
 
 ```php
 #[Test]
@@ -140,12 +138,12 @@ Data provider sums() row argument #3 of adds() expects int, string given.
 #[DataRow] supplies 2 arguments, but adds() expects exactly 3.
 ```
 
-Rows PHPStan cannot narrow to an exact shape, such as a provider typed
-`iterable<array<mixed>>`, only need to be arrays; the runtime checks their
-contents instead.
+Some rows have no exact shape in PHPStan. For example, a provider can have the
+type `iterable<array<mixed>>`. PHPStan requires only that each row is an array.
+Greenlight checks the array contents at run time.
 
-Errors carry identifiers under `greenlight.dataProvider.*` (`provider`,
-`returnType`, `arity`, `argument`), so you can suppress a deliberate
+Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
+`returnType`, `arity`, `argument`). Thus, you can suppress a deliberate
 exception inline:
 
 ```php

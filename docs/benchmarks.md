@@ -1,6 +1,6 @@
 # Benchmarks
 
-These benchmarks are generated and reproducible.
+The benchmark script generates reproducible results.
 
 Run the full benchmark with:
 
@@ -8,8 +8,8 @@ Run the full benchmark with:
 php tools/benchmark.php --with-phpunit
 ```
 
-The script generates the test suites, installs the comparison tools into a
-throwaway project, and reports median wall-clock time over three runs.
+The script generates the test suites and installs the comparison tools in a
+temporary project. It reports the median wall-clock time for three runs.
 
 ## Setup
 
@@ -22,14 +22,15 @@ throwaway project, and reports median wall-clock time over three runs.
 * ParaTest: 7.23.0
 * Parameters: `--scale=10 --workers=4 --runs=3`, which are the defaults
 
-Wall-clock time includes process start, autoloading, discovery, execution, and
-reporting. This matches the time a developer waits for during a normal test run.
+Wall-clock time includes process start, autoload, discovery, and execution.
+Greenlight uses plain output, PHPUnit disables output, and ParaTest uses its
+default output. The measurements include these output-mode differences.
 
 ## Results
 
 ### `many-fast`
 
-400 classes with trivial bodies, containing 2,000 tests:
+This shape has 400 classes with trivial bodies and 2,000 tests:
 
 * Greenlight, 4 workers: 0.490s
 * Greenlight, 1 worker: 0.257s
@@ -38,7 +39,7 @@ reporting. This matches the time a developer waits for during a normal test run.
 
 ### `few-slow`
 
-8 classes with 25ms per test, containing 32 tests:
+This shape has 8 classes, 25ms for each test, and 32 tests:
 
 * Greenlight, 4 workers: 0.529s
 * Greenlight, 1 worker: 1.064s
@@ -47,7 +48,7 @@ reporting. This matches the time a developer waits for during a normal test run.
 
 ### `giant-dataset`
 
-1 class with 1,000 provider rows:
+This shape has 1 class and 1,000 provider rows:
 
 * Greenlight, 4 workers: 0.442s
 * Greenlight, 1 worker: 0.165s
@@ -56,51 +57,51 @@ reporting. This matches the time a developer waits for during a normal test run.
 
 ### `mixed`
 
-Fast tests, slow tests, and a data set, containing 1,416 tests:
+This shape combines fast tests, slow tests, and a data set. It has 1,416 tests:
 
 * Greenlight, 4 workers: 0.617s
 * Greenlight, 1 worker: 0.708s
 * PHPUnit: 1.855s
 * ParaTest, 4 processes: 2.920s
 
-## Reading the results
+## Results analysis
 
-Greenlight's fastest configuration is faster than PHPUnit's fastest
-configuration on each generated shape in this run. The difference is mostly
-runner overhead per test and per class, not just parallel execution.
+In this run, Greenlight's fastest configuration is faster on each generated
+shape than PHPUnit's fastest configuration. Runner overhead for each test and
+class causes most of the difference. Parallelism is not the only cause.
 
 Parallelism is not always faster. On trivial suites such as `many-fast` and
-`giant-dataset`, Greenlight with four workers is slower than Greenlight with one
-worker. Worker startup and socket communication cost more than the trivial test
-bodies save.
+`giant-dataset`, four Greenlight workers are slower than one worker. Worker
+startup and socket communication cost more time than the trivial test bodies
+save.
 
 Parallel execution helps once tests do enough work. In `few-slow`, four workers
 reduce the run from 1.064s to 0.529s.
 
-The `giant-dataset` shape is one class, so Greenlight's class-level scheduling
-cannot split it across workers. Extra workers add overhead without adding
-parallelism.
+The `giant-dataset` shape is one class. Thus, the Greenlight class-level
+schedule cannot split it across workers. Extra workers add overhead but do not
+add parallelism.
 
-ParaTest shows the same overhead pattern more strongly on tiny work units. In
-the `many-fast` shape, it is slower than plain PHPUnit because process-level
-parallelism adds per-process overhead.
+A similar overhead pattern has a larger effect on small ParaTest work units. In the
+`many-fast` shape, ParaTest is slower than plain PHPUnit. Process-level
+parallelism adds overhead for each process.
 
-These are synthetic benchmarks from one machine. They are useful for comparing
-runner overhead under known shapes, but they do not predict every real suite.
-Suites dominated by I/O waits may benefit much more from parallel execution.
+These synthetic benchmarks are from one machine. They help compare runner
+overhead for known shapes, but they do not predict every real suite. Suites with
+large I/O waits can have a much larger benefit from parallel execution.
 
 ## Maintenance
 
-CI runs a small benchmark to keep the harness working:
+CI runs a small benchmark to check the harness:
 
 ```sh
 php tools/benchmark.php --shape=many-fast --scale=1 --runs=1
 ```
 
-CI numbers are not published because shared runners are too noisy for stable
-comparisons.
+The project does not publish CI numbers because shared runners do not give
+stable comparisons.
 
-Update this document by rerunning the full benchmark on an idle machine whenever
-the runner changes materially. Record the Greenlight commit and run date with
-the results. Comparison-tool versions are pinned in `tools/benchmark.php`; update
-the constants and this page together.
+When the runner changes materially, run the full benchmark on an idle machine.
+Record the Greenlight commit and run date with the results. The
+`tools/benchmark.php` file pins comparison-tool versions. Update the constants
+and this page in the same change.

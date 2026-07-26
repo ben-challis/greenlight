@@ -1,12 +1,12 @@
-# Testing Symfony applications
+# Symfony applications
 
-The Symfony bridge lets tests receive Symfony services through constructor
-injection, alongside Greenlight's built-in harness services.
+The Symfony bridge supplies Symfony services to test constructors. It supplies
+these services together with the built-in Greenlight harness services.
 
-The bridge boots your kernel once per worker. It lives in the
-`Greenlight\Symfony` namespace, ships with Greenlight, and does nothing unless
-you register it. Symfony remains a dev dependency of your application; it is
-not required by Greenlight itself.
+The bridge boots your kernel once for each worker. The bridge is in the
+`Greenlight\Symfony` namespace and is part of Greenlight. Register it to activate
+it. Symfony remains a development dependency of your application. Greenlight
+does not require Symfony.
 
 ## Setup
 
@@ -27,22 +27,23 @@ Use a closure when the kernel needs custom construction:
 new SymfonyPlugin(static fn(): KernelInterface => new App\Kernel('test', false));
 ```
 
-The kernel boots lazily the first time a test asks for a container service, then
-stays alive for the lifetime of the worker. Workers whose tests never use the
-container do not boot Symfony.
+The kernel boots when a test first requests a container service. It remains
+active for the worker lifetime. A worker does not boot Symfony when its tests do
+not use the container.
 
-The bridge is tested with `symfony/framework-bundle` 6.4, 7.x, and 8.x. At
-boot, it requires the kernel's container to expose `test.service_container`;
-with service resets enabled, it also requires `services_resetter`. A standard
-FrameworkBundle test environment provides the test container when
-`framework.test` is enabled.
+Greenlight tests the bridge with `symfony/framework-bundle` 6.4, 7.x, and 8.x.
+At boot, the bridge requires the kernel container to expose
+`test.service_container`. When service resets are active, it also requires
+`services_resetter`. A standard FrameworkBundle test environment provides the
+test container when `framework.test` is active.
 
 At boot, the bridge checks that the container supports the features it needs.
-Missing the Symfony test container, or missing `services_resetter` while service
-resets are enabled, is treated as a configuration error with a fix in the
-message. The bridge does not silently fall back to weaker isolation.
+The bridge reports a configuration error if the Symfony test container is not
+present. It also reports a configuration error if an active service reset has
+no `services_resetter`. The error message contains a correction. The bridge
+does not silently use weaker isolation.
 
-## Injecting services
+## Container services
 
 Declare the dependency by type:
 
@@ -56,21 +57,22 @@ final class RegistrationTest
 }
 ```
 
-Greenlight resolves constructor parameters from its own harness first, then from
-the Symfony container. That means services such as `Doubles`, `TestChannel`, and
-provider services take precedence over container services.
+Greenlight first resolves constructor parameters from its harness. It then uses
+the Symfony container. Thus, `Doubles`, `TestChannel`, and provider services
+take precedence over container services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
-Symfony's usual test-container rules still apply. A private service must be
-referenced somewhere in the container to survive compilation. A service that is
-unused and removed during compilation cannot be injected.
+The normal Symfony test-container rules still apply. The container must
+reference a private service to retain it during compilation. The Symfony
+compiler can remove an unused service. Greenlight cannot inject a removed
+service.
 
 ### Services without a usable type
 
-Some services cannot be selected by type alone: string-id-only services,
-interfaces with multiple implementations, and decorated services are common
-examples. Use `#[Service]` to name the service explicitly:
+Type alone cannot select some services. Examples include string-ID-only
+services, interfaces with multiple implementations, and decorated services.
+Use `#[Service]` to name the service explicitly:
 
 ```php
 use Greenlight\Symfony\Service;
@@ -80,13 +82,13 @@ public function __construct(
 ) {}
 ```
 
-The parameter type is still checked. If the named service is not an instance of
-the declared type, the test fails instead of receiving the wrong object.
+Greenlight still checks the parameter type. If the named service is not an
+instance of the declared type, the test fails and does not receive the object.
 
 ### The kernel itself
 
-`KernelInterface` is available as a per-run harness service for tests that need
-to inspect boot parameters or the container directly:
+Greenlight supplies `KernelInterface` as a per-run harness service. Tests can
+use it to inspect boot parameters or the container directly:
 
 ```php
 public function __construct(private readonly KernelInterface $kernel) {}
@@ -94,34 +96,34 @@ public function __construct(private readonly KernelInterface $kernel) {}
 
 ## State between tests
 
-The kernel is not rebooted between tests.
+The bridge keeps the kernel active between tests.
 
 After each test, the bridge calls Symfony's `services_resetter`, the same reset
-mechanism Symfony uses between requests. Services tagged with `kernel.reset` are
-reset, including services autoconfigured from `ResetInterface`. This also covers
-common Symfony services such as Doctrine's `ManagerRegistry`, cache pools, and
-the profiler. Any stateful service of your own that must not leak between tests
-should implement `ResetInterface`.
+mechanism Symfony uses between requests. The resetter resets services with the
+`kernel.reset` tag. This includes services that Symfony configures from
+`ResetInterface`. It also includes common Symfony services such as Doctrine's
+`ManagerRegistry`, cache pools, and the profiler. Implement `ResetInterface` for
+each stateful service that must keep tests isolated.
 
-The resetter is captured and checked when the kernel boots. If resets are
-enabled and the container does not provide a resetter, every test fails rather
-than running with shared, unreset state.
+The bridge captures and checks the resetter when the kernel boots. If service
+resets are active without a container resetter, every test fails. No test runs
+with shared state that has not had a reset.
 
-For a container that genuinely has no stateful services, pass
-`resetBetweenTests: false` to the plugin. This explicitly disables the resetter
-requirement. Do not use it with services that keep state: tests running on the
-same worker will then share those service instances.
+For a container that has no stateful services, pass `resetBetweenTests: false`
+to the plugin. This value disables the resetter requirement. Do not use this
+value with services that keep state. Tests on the same worker will share those
+service instances.
 
 The bridge boots and resets the Symfony kernel. Isolation for databases and
 other external services remains the test suite's responsibility.
 
 ## Parallel resources
 
-Workers run tests at the same time, so shared external resources need to be
-split per worker or protected by a concurrency limit.
+Workers run tests at the same time. Split shared external resources for each
+worker. Alternatively, protect them with a concurrency limit.
 
 Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. It is a stable
-number from 1 to the worker count, and no two concurrent tests use the same
+number from 1 through the worker count, and no two concurrent tests use the same
 channel. Use it in normal Symfony configuration to key shared resources:
 
 ```yaml
@@ -137,13 +139,13 @@ parameters:
 The same pattern works for cache directories, upload paths, message transport
 names, and similar resources.
 
-Creating and migrating per-channel databases is still the application's job.
-Use a loop in the test bootstrap, a Makefile target, or another project-level
-setup step. Channel numbers remain stable across worker recycling, so those
-schemas can live for the whole test run.
+The application must create and migrate databases for each channel. Use a loop
+in the test bootstrap, a Makefile target, or another project-level setup step.
+Channel numbers remain stable after a worker recycle. Thus, these schemas can
+remain for the complete test run.
 
 If a service cannot be split per channel, mark the classes that use it with
-`#[RequiresResource]` and configure its safe concurrency:
+`#[RequiresResource]`. Configure its safe concurrency:
 
 ```php
 #[RequiresResource('payments-sandbox')]
@@ -155,32 +157,33 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);
 ```
 
-The limit controls how many matching classes run. It does not choose a service
-instance, and it does not coordinate another Greenlight process or CI shard.
-See [configuration](configuration.md) for the complete resource rules.
+The limit controls how many classes that require this resource can run. It does
+not choose a service instance, and it does not coordinate another Greenlight
+process or CI shard. See [configuration](configuration.md) for the complete
+resource rules.
 
 ## Doubles and the container
 
-The bridge only injects real Symfony container services.
+The bridge injects only real Symfony container services.
 
-There is no API for replacing a container service with a double. Tests that need
-a doubled collaborator should get the double through `Doubles` and construct the
-subject under test directly. That keeps the double's lifecycle and verification
-under Greenlight's control.
+There is no API that replaces a container service with a double. If a test needs
+a doubled collaborator, get the double through `Doubles`. Then construct the
+test subject directly. Greenlight then controls the double lifecycle and
+verification.
 
-Container-level replacement may be added later, but only if there is a design
-that avoids guessy service swapping.
+Container-level replacement remains a possible future addition. Its design must
+prevent uncertain service replacement.
 
 ## Non-goals
 
 The current bridge does not cover:
 
-* HTTP request/response testing with `KernelBrowser`
+* HTTP request and response tests with `KernelBrowser`
 * transaction rollback isolation
-* dotenv loading
+* dotenv file load
 * kernel auto-discovery
-* database creation or migration tooling
+* database creation or migration tools
 * Messenger assertions
 
-The bridge is intentionally small: it provides the kernel, container services,
-service resets, and worker channels.
+The bridge has a deliberately small scope. It provides the kernel, container
+services, service resets, and worker channels.
