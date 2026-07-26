@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 
 /** Crash and hang fixtures must never run in-process. */
@@ -96,12 +99,22 @@ final readonly class ParallelRunTest
     public function hangingTestsAreHardKilledByTheOrchestrator(): void
     {
         $startedAt = \hrtime(true);
-        $result = $this->runIn('HangConfig', ['run', '--workers=2']);
+        $result = $this->runIn('HangConfig', ['run', '--workers=2', '--reporter=jsonl']);
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
+        $events = JsonlEvents::from($result);
+        $finished = \array_find($events, static fn($event): bool => $event instanceof TestFinished);
+
+        if (!$finished instanceof TestFinished) {
+            Fail::because('The hard timeout did not emit TestFinished.');
+        }
 
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('timeout budget')
-            ->and($durationSeconds)->toBeLessThan(20.0);
+            ->and($durationSeconds)->toBeLessThan(20.0)
+            ->and($finished->result->outcome)->toBe(Outcome::Failed)
+            ->and($finished->result->durationSeconds)->toBeGreaterThan(0.1)
+            ->and($finished->result->failures)->toHaveCount(1)
+            ->and($finished->result->error)->toBeNull();
     }
 
     /**

@@ -13,6 +13,7 @@ use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\GracefulShutdown;
+use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\ResultSummary;
@@ -707,12 +708,39 @@ final class Orchestrator
 
             if (\microtime(true) > $deadline) {
                 $handle->terminate();
-                $this->containCrash($handle, $sink, \sprintf(
-                    'the test exceeded its %.3fs timeout budget and the worker was killed',
-                    $budget,
-                ));
+                $this->containTimeout($handle, $sink, $budget);
             }
         }
+    }
+
+    private function containTimeout(WorkerHandle $handle, EventSink $sink, float $budget): void
+    {
+        $inFlight = $handle->inFlight;
+
+        if ($inFlight instanceof TestId) {
+            $duration = \max(0.0, \microtime(true) - $handle->inFlightSince);
+            $message = \sprintf(
+                'The test exceeded its %.3fs timeout budget; worker "%s" was killed after %.3fs.',
+                $budget,
+                $handle->workerId,
+                $duration,
+            );
+            $diagnostics = \trim($handle->diagnostics);
+
+            if ($diagnostics !== '') {
+                $message .= "\nWorker output:\n" . \substr($diagnostics, -2048);
+            }
+
+            $this->recordSyntheticResult($handle, $sink, new TestResult(
+                $inFlight,
+                Outcome::Failed,
+                $duration,
+                0,
+                failures: [new FailureDetail($message)],
+            ));
+        }
+
+        $this->retireFailedWorker($handle, $sink);
     }
 
     private function containCrash(WorkerHandle $handle, EventSink $sink, string $reason): void
@@ -727,24 +755,33 @@ final class Orchestrator
                 $message .= "\nWorker output:\n" . \substr($diagnostics, -2048);
             }
 
-            $result = new TestResult(
+            $this->recordSyntheticResult($handle, $sink, new TestResult(
                 $inFlight,
                 Outcome::Errored,
                 0.0,
                 0,
                 error: ThrowableDetail::fromThrowable(new \RuntimeException($message)),
-            );
-
-            if ($this->artifactStore instanceof ArtifactStore) {
-                $result = $this->artifactStore->recover($result);
-            }
-
-            $handle->inFlight = null;
-            $handle->finished[(string) $inFlight] = true;
-            $this->summary = $this->summary->add(Outcome::Errored);
-            $sink->emit(new TestFinished($result, \microtime(true)));
+            ));
         }
 
+        $this->retireFailedWorker($handle, $sink);
+    }
+
+    private function recordSyntheticResult(WorkerHandle $handle, EventSink $sink, TestResult $result): void
+    {
+        if ($this->artifactStore instanceof ArtifactStore) {
+            $result = $this->artifactStore->recover($result);
+        }
+
+        $handle->inFlight = null;
+        $handle->finished[(string) $result->id] = true;
+        unset($this->entriesById[(string) $result->id]);
+        $this->summary = $this->summary->add($result->outcome);
+        $sink->emit(new TestFinished($result, \microtime(true)));
+    }
+
+    private function retireFailedWorker(WorkerHandle $handle, EventSink $sink): void
+    {
         $remainder = $handle->unfinished();
         $sink->emit(new WorkerRecycled($handle->workerId, RecycleReason::Crash, \microtime(true)));
         $this->releaseAssignment($handle);
