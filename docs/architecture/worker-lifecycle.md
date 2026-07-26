@@ -20,7 +20,7 @@ Seven message types cross the socket:
 | `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, coverage settings, config file path, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
-| `recycling` | worker to orchestrator | recycle reason, the tests it did not run, partial coverage |
+| `recycling` | worker to orchestrator | recycle reason, the tests it did not run, result summary, partial coverage |
 | `drain` | orchestrator to worker | none; asks the worker to exit cleanly |
 | `fatal` | worker to orchestrator | details of a throwable the worker could not contain |
 
@@ -69,7 +69,7 @@ Some notes on that exchange:
   staged files before forwarding the event, keeping binary content outside the
   8 MiB frame limit. Atomic sidecars let it recover completed attachments if a
   worker crashes; see [artifact storage](artifacts.md).
-- `done` carries the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated frame cannot silently pass a suite.
+- `done` and `recycling` carry the worker's own tally. The orchestrator compares it against the events it counted for that assignment, and a mismatch fails the run. A lost or duplicated result frame cannot silently pass a suite.
 
 ## Resource-aware assignment
 

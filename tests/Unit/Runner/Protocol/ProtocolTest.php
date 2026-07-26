@@ -56,7 +56,11 @@ final class ProtocolTest
             new Assign(new ExecutionPlan([$entry], 7), 500, 256 * 1024 * 1024),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
-            new Recycling(RecycleReason::Memory, [new TestId('App\FooTest', 'bar')]),
+            new Recycling(
+                RecycleReason::Memory,
+                [new TestId('App\FooTest', 'bar')],
+                new ResultSummary(passed: 2),
+            ),
             new Done(new ResultSummary(passed: 3, failed: 1), 12345),
             new Fatal(ThrowableDetail::fromThrowable(new \RuntimeException('boom'))),
         ];

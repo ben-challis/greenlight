@@ -65,6 +65,61 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
+    public function aRecyclingWorkerWithAMismatchedSummaryFailsTheRun(): void
+    {
+        $script = <<<'PHP'
+            [, , $address, $workerId, $token] = $argv;
+            $socket = stream_socket_client($address);
+
+            $send = static function (array $message) use ($socket): void {
+                $json = json_encode($message, JSON_THROW_ON_ERROR);
+                fwrite($socket, pack('N', strlen($json)) . $json);
+                fflush($socket);
+            };
+
+            $read = static function (int $length) use ($socket): string {
+                $bytes = '';
+
+                while (strlen($bytes) < $length) {
+                    $chunk = fread($socket, $length - strlen($bytes));
+
+                    if ($chunk === false || $chunk === '') {
+                        exit(1);
+                    }
+
+                    $bytes .= $chunk;
+                }
+
+                return $bytes;
+            };
+
+            $send(['v' => 1, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
+            $length = unpack('Nlength', $read(4))['length'];
+            $read($length);
+            $send([
+                'v' => 1,
+                't' => 'recycling',
+                'p' => [
+                    'reason' => 'test-count',
+                    'remaining' => [],
+                    'summary' => ['passed' => 1, 'failed' => 0, 'errored' => 0, 'skipped' => 0],
+                    'coverage' => null,
+                ],
+            ]);
+            sleep(60);
+            PHP;
+
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, '-r', $script],
+            workingDirectory: \sys_get_temp_dir(),
+        );
+
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
+            ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream tallies/');
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
     public function resourceWaitStartsANewProgressWindowBeforeAssignment(): void
     {
         $root = \dirname(__DIR__, 4);
