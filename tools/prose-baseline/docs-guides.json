@@ -84,48 +84,6 @@
         "count": 2
     },
     {
-        "fingerprint": "9d89c69a60d527cb7ab058d5301cb73ea03fc5c9a6e8909889080d983b187cb1",
-        "path": "docs/getting-started.md",
-        "rule": "british-spelling",
-        "passage": "on an interactive terminal, greenlight uses the literal reporter. it shows live progress with ansi colour and prints failure diffs as they happen.",
-        "count": 1
-    },
-    {
-        "fingerprint": "05ce160ae865c301416046f27ae93bf6d2d6b4c1d2c8b0aebe5fc2e7067c8353",
-        "path": "docs/getting-started.md",
-        "rule": "british-spelling",
-        "passage": "watch mode reruns affected tests when files under the configured paths change. classes that failed in the previous run are prioritised.",
-        "count": 1
-    },
-    {
-        "fingerprint": "1d86105349316d3fc9f6f8f128c300293e73ecf103ef3f1bf6e1dbf7bf3a32ac",
-        "path": "docs/getting-started.md",
-        "rule": "semicolon",
-        "passage": "each iteration reports its number, the summary names the iterations that failed, and the exit code is non-zero if any iteration failed. literal stops at the first failing iteration; on its own it gives up after 100 iterations, or combine it with literal to set the limit.",
-        "count": 1
-    },
-    {
-        "fingerprint": "89f1627788ae4c06512a4c070588228207bdbc4ca360029f220b423ff199788a",
-        "path": "docs/migrating-from-phpunit.md",
-        "rule": "british-spelling",
-        "passage": "the main difference from phpunit is that greenlight does not guess behaviour. phpunit's literal can create a tolerant dummy where methods silently return literal or auto-stubs. greenlight has no equivalent object.",
-        "count": 1
-    },
-    {
-        "fingerprint": "651e5122ca8ceb68cd2790f134e023a2e99377168fe08776bf35a7d5c28ff3f6",
-        "path": "docs/migrating-from-phpunit.md",
-        "rule": "semicolon",
-        "passage": "convert data providers. the provider body usually stays the same; only the",
-        "count": 1
-    },
-    {
-        "fingerprint": "00820206ec0af40f0e8208b75d5d4c1a7a28c524ba4bb9495b45292f634d7d3c",
-        "path": "docs/migrating-from-phpunit.md",
-        "rule": "semicolon",
-        "passage": "literal for exact equality or literal for a regular expression; the two are mutually exclusive. it replaces the usual literal setup calls with one expression.",
-        "count": 1
-    },
-    {
         "fingerprint": "c381a6e49d3cae291f5be1e95c8b56271105fb6e02178c85b7d269d9b7429ae4",
         "path": "docs/phpstan.md",
         "rule": "semicolon",
