@@ -15,10 +15,9 @@ use Greenlight\Core\Wire\WireSerializable;
  * withOutcome(), which records provenance.
  *
  * expectations counts the verifications of the final attempt: each matcher
- * in a chain individually, soft-mode failures included, and each mock
- * expectation at disposal; stubs never count. A non-passed result carries
- * whatever verified before the abort. Wire payloads written before the field
- * existed decode to zero.
+ * in a chain individually and each mock expectation at disposal; stubs never
+ * count. A non-passed result carries whatever verified before the abort. Wire
+ * payloads written before the field existed decode to zero.
  */
 final readonly class TestResult implements WireSerializable
 {
