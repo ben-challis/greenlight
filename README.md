@@ -151,27 +151,46 @@ Workers can leave the pool in several ways:
 
 A worker that never connects, or stops making progress with no test in flight, fails the run rather than stalling it.
 
-### Shared resources
+### External resources
 
-Some tests must share a dependency that cannot be provisioned once per worker. Mark them with the repeatable `#[RequiresResource]` attribute:
+Channels and resource requirements solve different parallel-test problems.
+
+Use a channel when each worker can have its own database, port range, temporary
+directory, or other resource. Every worker receives a stable channel number from
+`1` to the configured worker count. Concurrent workers never share a channel,
+and a replacement inherits the released slot.
+
+`GREENLIGHT_CHANNEL` and the injectable `TestChannel` service expose that number.
+Greenlight assigns the slot; the application creates and manages the resource.
+
+Use `#[RequiresResource]` when workers must use the same dependency but only a
+limited number of classes can use it safely at once:
 
 ```php
-#[RequiresResource('postgres')]
-final class OrderRepositoryTest
+#[RequiresResource('payments-sandbox')]
+final class PaymentGatewayTest
 {
     // ...
 }
 ```
 
-Without a configured limit, only one class that requires a resource runs at a time. Set a larger limit in `greenlight.php` with `resourceLimit('postgres', 3)`, or for one run with `--resource-limit=postgres=2`.
+Without a configured limit, only one class that requires a resource runs at a
+time. Set a larger limit in `greenlight.php` with
+`resourceLimit('payments-sandbox', 3)`, or for one run with
+`--resource-limit=payments-sandbox=2`.
 
-Greenlight schedules a whole class at once. A method-level requirement therefore applies to the whole class assignment. Limits belong to one Greenlight run; shards and separate processes do not share them.
+A resource limit controls concurrency. It does not choose one concrete resource
+instance or expose a lease identifier. Use a channel when one instance per
+worker is available. If a smaller set of distinct instances needs allocating,
+the application still needs its own allocator.
 
-### Resource channels
+A test can use both. Its channel can select the worker's database while
+`#[RequiresResource('payments-sandbox')]` limits access to a shared test service.
 
-Each worker receives a stable channel number from `1` to the configured worker count. Concurrent workers never share a channel, and a replacement inherits the released slot.
-
-Use `GREENLIGHT_CHANNEL` or the injectable `TestChannel` service to select a per-worker database, port range, temporary directory, or other resource. Greenlight assigns the slot; the application manages the resource.
+Greenlight schedules a whole class at once, so a method-level requirement applies
+to the whole class assignment. Limits belong to one Greenlight run. Other
+processes, worktrees, and shards do not share them; this is not a distributed
+lock.
 
 ### Discovery and overhead
 
@@ -373,6 +392,7 @@ the guided website, or browse the Markdown sources directly:
 * [Artifact storage architecture](docs/architecture/artifacts.md)
 * [Coverage JSON schema](docs/architecture/coverage-json.md)
 * [Temporal expectations](docs/architecture/temporal-expectations.md)
+* [Worker lifecycle and scheduling](docs/architecture/worker-lifecycle.md)
 * [Code conventions](docs/architecture/conventions.md)
 * [Contributing guide](CONTRIBUTING.md)
 

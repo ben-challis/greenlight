@@ -115,10 +115,10 @@ same worker will then share those service instances.
 The bridge boots and resets the Symfony kernel. Isolation for databases and
 other external services remains the test suite's responsibility.
 
-## Parallel isolation
+## Parallel resources
 
 Workers run tests at the same time, so shared external resources need to be
-split per worker.
+split per worker or protected by a concurrency limit.
 
 Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. It is a stable
 number from 1 to the worker count, and no two concurrent tests use the same
@@ -141,6 +141,23 @@ Creating and migrating per-channel databases is still the application's job.
 Use a loop in the test bootstrap, a Makefile target, or another project-level
 setup step. Channel numbers remain stable across worker recycling, so those
 schemas can live for the whole test run.
+
+If a service cannot be split per channel, mark the classes that use it with
+`#[RequiresResource]` and configure its safe concurrency:
+
+```php
+#[RequiresResource('payments-sandbox')]
+final class PaymentGatewayTest { ... }
+```
+
+```php
+return GreenlightConfig::create()
+    ->resourceLimit('payments-sandbox', 2);
+```
+
+The limit controls how many matching classes run. It does not choose a service
+instance, and it does not coordinate another Greenlight process or CI shard.
+See [configuration](configuration.md) for the complete resource rules.
 
 ## Doubles and the container
 

@@ -107,7 +107,8 @@ or file handles.
 
 Default: `1` for a resource used by `#[RequiresResource]`.
 
-Limits how many classes can use the named resource at once.
+Limits how many class assignments in one Greenlight run can use the named
+resource at once.
 
 ```php
 return GreenlightConfig::create()
@@ -122,8 +123,13 @@ A class that requires several resources waits until all of them have capacity.
 Greenlight claims the slots together, so a class never starts with only part of
 its requirement.
 
-Each run maintains its own limits. Separate Greenlight processes and CI shards
-do not share capacity.
+The limit is an in-memory scheduler gate, not a distributed lock. Separate
+Greenlight processes, worktrees, and CI shards do not share capacity.
+
+The scheduler does not choose a concrete resource instance or expose a lease
+identifier. If a test needs one of several distinct instances, the application
+must allocate it. Use a channel instead when every worker can have its own
+instance.
 
 ### coverage(callable $configurator): self
 
@@ -302,7 +308,7 @@ Called by the loader, not by user config.
 Your `greenlight.php` should return the builder itself without calling
 `build()`.
 
-## Channels
+## Channels and resource limits
 
 Every worker process runs in a channel: a stable slot numbered from 1 to the
 worker count.
@@ -310,9 +316,10 @@ worker count.
 Use the channel to derive external resources that parallel tests must not share,
 such as database names, ports, virtual hosts, or temp directories.
 
-Use a channel when every worker can have its own database, port range, or
-directory. Use `#[RequiresResource]` when several workers must share a smaller
-pool.
+Use a channel when every worker can have its own resource. Use
+`#[RequiresResource]` when workers use the same dependency and its safe
+concurrency is lower than the worker count. A resource limit controls how many
+classes may run; it does not assign an instance to either class.
 
 Two tests running at the same time never share a channel. Channel numbers always
 stay within 1 and the worker count, regardless of how many worker processes are
@@ -338,6 +345,10 @@ previous channel-2 worker left behind.
 
 This makes one-resource-per-channel setups cheap. For example, one database
 schema can be created per channel and reused for the whole run.
+
+A test can use both. Its channel can select a private database while
+`#[RequiresResource('payments-sandbox')]` limits access to a shared external
+service.
 
 ## CLI reference
 

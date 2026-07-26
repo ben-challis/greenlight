@@ -40,6 +40,9 @@ sequenceDiagram
     Note over O,W: hello doubles as the first request for work
 
     loop until the queue is empty
+        opt required resource capacity is unavailable
+            Note over O,W: worker stays connected; no frame is sent
+        end
         O->>W: assign (plan slice, budgets, coverage)
         loop each test in the slice
             W->>O: event (TestClassStarted)
@@ -78,7 +81,9 @@ When the oldest unit is waiting, the scheduler reserves one slot from each resou
 
 A connected worker may receive no message while it waits for resource capacity. The orchestrator records this separately from an active assignment, so the normal progress deadline does not treat the worker as stalled. Whenever capacity is released, the orchestrator checks the waiting workers again.
 
-The wire protocol does not need another message. The orchestrator owns the limits and tracks the slots, while the existing `assign` message already carries the test metadata.
+The scheduler lives entirely in the orchestrator. The existing `assign` message already carries the test metadata, so resource scheduling adds no wire message. Another Greenlight process, worktree, or shard has another scheduler and another set of counters. Coordinating those runs requires an external lock or service.
+
+The scheduler tracks capacity, not resource identity. A limit of two allows two matching class assignments to run. It does not tell either class which database, account, or sandbox to use.
 
 ## Leaving the pool
 
@@ -90,7 +95,11 @@ stateDiagram-v2
     Spawned --> Connected: hello within 30s
     Spawned --> RunFailed: no hello in 30s
     Connected --> Running: assign
+    Connected --> Waiting: required capacity unavailable
+    Waiting --> Running: capacity released (assign)
+    Waiting --> Drained: queue exhausted (drain)
     Running --> Running: done, next assign
+    Running --> Waiting: done, next assignment blocked
     Running --> Drained: done, queue empty (drain)
     Running --> Recycled: budget exhausted (recycling / done + wantsRecycle)
     Running --> Crashed: process dies mid-assignment
@@ -124,4 +133,6 @@ Workers ignore SIGINT. When you press Ctrl+C, the orchestrator receives the sign
 
 ## Channel numbers
 
-Every worker carries a channel number in the `GREENLIGHT_CHANNEL` environment variable, allocated from a fixed pool of `1` to the configured worker count. The allocator always hands out the lowest free number and gets each number back when a worker retires, so a replacement inherits a released slot. However many processes a long run spawns in total, at most `workerCount` channels are ever live at once, and no two concurrent tests share one. That guarantee is what makes per-channel databases, port ranges, and temp directories safe to key on; see the [README](../../README.md) section on stable resource channels for the user-facing side.
+Every worker carries a channel number in the `GREENLIGHT_CHANNEL` environment variable, allocated from a fixed pool of `1` to the configured worker count. The allocator always hands out the lowest free number and gets each number back when a worker retires, so a replacement inherits a released slot. However many processes a long run spawns in total, at most `workerCount` channels are ever live at once, and no two concurrent tests share one.
+
+A channel identifies a stable per-worker resource slot. The resource scheduler gates shared capacity without assigning an identity. Tests can use both, for example a channel-specific database plus a concurrency limit around a shared sandbox. See [external resources](../../README.md#external-resources) for the user-facing guidance.

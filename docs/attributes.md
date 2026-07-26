@@ -352,8 +352,15 @@ method and holds those resources until the class finishes. A requirement on one
 method can therefore reduce concurrency for other methods in the same class.
 
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
-or `--resource-limit` to set a larger limit. Other Greenlight processes and
-shards have their own limits.
+or `--resource-limit` to set a larger limit.
+
+The requirement controls when a class may start. It does not select a concrete
+resource instance or provide a lease identifier. Use `TestChannel` when every
+worker can have its own instance. A smaller set of distinct instances still
+needs an application-owned allocator.
+
+Resource counts live in the current orchestrator. Other Greenlight processes,
+worktrees, and shards have their own counts.
 
 ## Isolated
 
