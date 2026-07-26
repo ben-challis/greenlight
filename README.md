@@ -340,6 +340,8 @@ the guided website, or browse the Markdown sources directly:
 * [Getting started](docs/getting-started.md)
 * [Configuration reference](docs/configuration.md)
 * [Attribute reference](docs/attributes.md)
+* [Expectations](docs/expectations.md)
+* [Test doubles](docs/test-doubles.md)
 * [Writing plugins](docs/plugins.md)
 * [Test attachments](docs/attachments.md)
 * [Static analysis with PHPStan](docs/phpstan.md)
