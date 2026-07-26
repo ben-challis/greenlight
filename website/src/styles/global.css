@@ -34,9 +34,13 @@ html {
 }
 
 body {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
   margin: 0;
   background: var(--canvas);
   color: var(--ink);
+  flex-direction: column;
   font-family: var(--font-body);
   font-size: 1.075rem;
   line-height: 1.6;
@@ -274,6 +278,7 @@ code {
 }
 
 .site-footer {
+  margin-top: auto;
   border-top: 1px solid var(--rule);
   background: color-mix(in oklch, var(--ink) 4%, var(--canvas));
 }
