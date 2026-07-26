@@ -29,6 +29,16 @@
     ],
     "packageRules": [
         {
+            "description": "Keep TypeScript on v6 until Astro Check supports the native compiler API",
+            "matchManagers": [
+                "npm"
+            ],
+            "matchPackageNames": [
+                "typescript"
+            ],
+            "allowedVersions": "<7"
+        },
+        {
             "description": "Group non-major Composer development dependency updates",
             "matchManagers": [
                 "composer"
