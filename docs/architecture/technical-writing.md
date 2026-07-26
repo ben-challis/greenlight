@@ -100,7 +100,9 @@ and meaning. Use the singular form unless the context requires a plural.
 | condition | Technical noun | A rule that determines if Greenlight skips a test |
 | configuration | Technical noun | The settings that control a Greenlight run |
 | configurator | Technical noun | A callable that changes a builder |
+| consumer | Technical noun | A program or tool that reads Greenlight output |
 | coverage export | Technical noun | A file or directory that contains coverage results |
+| coverage gate | Technical noun | A repository check that enforces a coverage requirement |
 | coverage map | Technical noun | Data that identifies executable and covered source lines |
 | data provider | Technical noun | A public static method that supplies named data sets |
 | data set | Technical noun | One named set of arguments for a test method |
@@ -114,6 +116,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | expectation | Technical noun | A required condition for a test value |
 | extension matcher | Technical noun | A matcher that an expectation extension supplies |
 | fixture | Technical noun | Test support code or data with a controlled purpose |
+| flat memory | Technical noun | Memory use that does not increase with the number of completed tests |
 | frame | Technical noun | One length-prefixed worker-protocol message |
 | harness | Technical noun | The test environment that supplies application services to a worker |
 | harness provider | Technical noun | A plugin that supplies services to the Greenlight harness |
@@ -126,6 +129,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | mutant | Technical noun | A source version that contains one deliberate change |
 | orchestrator | Technical noun | The process that plans and controls a run |
 | output capture | Technical noun | The collection of test output and PHP diagnostics for one result |
+| payload | Technical noun | The data that an event envelope contains |
 | poll | Technical noun | One observation of a probe value |
 | poll | Technical verb | To observe a probe until a condition or deadline stops the operation |
 | probe | Technical noun | A callable that supplies values to a temporal expectation |
@@ -148,6 +152,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | staged | Noun modifier | Stored in staging before publication |
 | staging | Technical noun | A private area that stores attachment content before publication |
 | storage key | Technical noun | An opaque value that identifies staged attachment content |
+| stream | Technical noun | An ordered sequence of reporter events or JSONL lines |
 | stub | Technical noun | An inert double that supplies a dependency |
 | suite | Technical noun | A selected group of test classes |
 | Symfony bridge | Technical noun | The component that connects the Greenlight harness to a Symfony kernel and container |

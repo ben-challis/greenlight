@@ -6,17 +6,17 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What problem does this solve? Describe the situation, not the solution.
+      description: Describe the situation. Do not describe the solution.
     validations:
       required: true
   - type: textarea
     id: api-sketch
     attributes:
       label: Proposed API sketch
-      description: Rough typed PHP showing how a test author or plugin would use it.
+      description: Provide an approximate typed PHP example. Show how a test author or plugin uses the API.
       placeholder: |
         ```php
-        // attribute, method, or config sketch here
+        // attribute, method, or configuration sketch here
         ```
     validations:
       required: true
@@ -24,6 +24,6 @@ body:
     id: alternatives
     attributes:
       label: Alternatives considered
-      description: Other designs you thought about and why you set them aside.
+      description: List the other designs that you considered. Give the reason that you rejected each design.
     validations:
       required: false

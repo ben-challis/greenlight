@@ -15,7 +15,7 @@
     "customManagers": [
         {
             "customType": "regex",
-            "description": "Update the Renovate config validator used by CI",
+            "description": "Update the Renovate configuration validator that CI uses",
             "managerFilePatterns": [
                 "/^\\.github/workflows/ci\\.yml$/"
             ],
@@ -29,7 +29,7 @@
     ],
     "packageRules": [
         {
-            "description": "Keep TypeScript on v6 until Astro Check supports the native compiler API",
+            "description": "Keep TypeScript at version 6 until Astro Check supports the native compiler API",
             "matchManagers": [
                 "npm"
             ],

@@ -4,9 +4,9 @@ declare(strict_types=1);
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
 
-// bin/greenlight is excluded: its shebang line confuses import-adding fixers
-// into placing use statements before declare(strict_types=1), which is fatal.
-// Fixtures are excluded because they encode deliberate patterns.
+// Exclude bin/greenlight because its shebang causes import fixers to put use statements
+// before declare(strict_types=1). PHP stops with an error if this occurs.
+// Exclude fixtures because they contain deliberate patterns.
 $finder = Finder::create()
     ->in([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/tools'])
     ->exclude('Fixture')

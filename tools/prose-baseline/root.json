@@ -1,9 +1,0 @@
-[
-    {
-        "fingerprint": "12cc49d1ee6bb2be2e0ff0d37555114f5a4148af3b1b0019b2f07159e3957692",
-        "path": "greenlight.php",
-        "rule": "sentence-length",
-        "passage": "tests/fixture must never be included here: its hang/crash/leak suites call sleep(60)/exit(9) and are only safe when driven as subprocesses by acceptance tests.",
-        "count": 1
-    }
-]

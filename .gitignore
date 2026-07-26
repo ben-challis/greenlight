@@ -1,11 +1,11 @@
-# Composer (composer.lock is committed)
+# Composer dependencies (Git tracks composer.lock)
 /vendor/
 
-# Tooling caches
+# Tool caches
 .php-cs-fixer.cache
 .deptrac.cache
 
-# PHPStan API sources extracted from phpstan.phar for IDE indexing
+# Extracted PHPStan API sources for IDE completion
 /.phpstan-api-stubs/
 
 # Coverage exports
