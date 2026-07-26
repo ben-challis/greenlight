@@ -410,6 +410,7 @@ code {
 
 .install-command {
   display: flex;
+  align-items: center;
   width: max-content;
   max-width: 100%;
   margin-top: 1.4rem;
@@ -419,12 +420,14 @@ code {
   background: var(--code-surface);
   color: var(--muted);
   gap: 0.65rem;
-  overflow-x: auto;
+  overflow: hidden;
   white-space: nowrap;
 }
 
 .install-command code {
+  min-width: 0;
   color: var(--ink);
+  overflow-x: auto;
 }
 
 .run-preview {
@@ -1079,29 +1082,47 @@ code {
 
 .docs-command pre {
   margin-block: 0;
-  padding-right: 5.75rem;
+  padding-right: 3.65rem;
 }
 
 .command-copy {
-  position: absolute;
   z-index: 1;
-  top: 0.55rem;
-  right: 0.55rem;
-  min-width: 4.5rem;
-  min-height: 2rem;
-  padding: 0.3rem 0.65rem;
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  place-items: center;
   border: 1px solid var(--rule-strong);
   border-radius: 0.3rem;
   background: var(--surface);
   color: var(--action-dark);
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 650;
   cursor: pointer;
   transition:
     color 140ms ease,
     background-color 140ms ease,
     border-color 140ms ease;
+}
+
+.command-copy svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.docs-command > .command-copy {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  transform: translateY(-50%);
+}
+
+.install-command > .command-copy {
+  margin-left: 0.1rem;
 }
 
 .command-copy:hover {

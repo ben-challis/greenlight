@@ -49,5 +49,10 @@ const socialImage = new URL(sitePath('og.png'), Astro.site);
     <Header />
     <slot />
     <Footer />
+    <script>
+      import { initializeCopyCommands } from '../lib/copy-command';
+
+      initializeCopyCommands();
+    </script>
   </body>
 </html>
