@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Protocol;
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -34,6 +35,7 @@ final class MessageRegistry
         'assign' => Assign::class,
         'drain' => Drain::class,
         'event' => EventEnvelope::class,
+        'attempt-started' => AttemptStarted::class,
         'recycling' => Recycling::class,
         'done' => Done::class,
         'fatal' => Fatal::class,

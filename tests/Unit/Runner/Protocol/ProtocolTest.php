@@ -25,6 +25,7 @@ use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\MessageRegistry;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -56,6 +57,7 @@ final class ProtocolTest
             new Assign(new ExecutionPlan([$entry], 7), 500, 256 * 1024 * 1024),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
+            new AttemptStarted(new TestId('App\FooTest', 'bar'), 2),
             new Recycling(
                 RecycleReason::Memory,
                 [new TestId('App\FooTest', 'bar')],

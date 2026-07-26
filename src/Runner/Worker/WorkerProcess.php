@@ -9,6 +9,7 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
@@ -19,6 +20,7 @@ use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\Fatal;
@@ -148,6 +150,9 @@ final readonly class WorkerProcess
                     new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
                     static fn(): bool => $channel->poll() instanceof Drain,
                     $scopes,
+                    static function (TestId $id, int $attempt) use ($channel): void {
+                        $channel->send(new AttemptStarted($id, $attempt));
+                    },
                 );
 
                 $coverage = $collector?->stop();

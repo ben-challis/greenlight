@@ -39,6 +39,11 @@ final class WorkerHandle
 
     public float $inFlightSince = 0.0;
 
+    /**
+     * @var non-negative-int
+     */
+    public int $inFlightAttempt = 0;
+
     public bool $done = false;
 
     public string $diagnostics = '';
@@ -74,6 +79,7 @@ final class WorkerHandle
         $this->tally = new ResultSummary();
         $this->finished = [];
         $this->inFlight = null;
+        $this->inFlightAttempt = 0;
     }
 
     public function finishAssignment(): void
@@ -83,6 +89,7 @@ final class WorkerHandle
         $this->assigned = null;
         $this->isolatedAssignment = false;
         $this->inFlight = null;
+        $this->inFlightAttempt = 0;
     }
 
     public function isFresh(): bool

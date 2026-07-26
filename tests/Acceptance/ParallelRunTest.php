@@ -46,6 +46,54 @@ final readonly class ParallelRunTest
     }
 
     #[Test]
+    public function aCrashOnARetryPreservesTheAttemptCount(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'retry-crash');
+        $project->writeFile('tests/RetryCrashTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace RetryCrash;
+
+            use Greenlight\Attribute\Retry;
+            use Greenlight\Attribute\Test;
+
+            final class RetryCrashTest
+            {
+                #[Test]
+                #[Retry(1)]
+                public function crashesOnItsSecondAttempt(): never
+                {
+                    static $attempt = 0;
+                    ++$attempt;
+
+                    if ($attempt === 1) {
+                        throw new \RuntimeException('retry me');
+                    }
+
+                    exit(23);
+                }
+            }
+            PHP);
+        $project->configureWithTestFiles(['tests/RetryCrashTest.php'], workers: 2);
+
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
+        $finished = \array_find(
+            JsonlEvents::from($result),
+            static fn($event): bool => $event instanceof TestFinished,
+        );
+
+        if (!$finished instanceof TestFinished) {
+            Fail::because('The crashed retry did not emit TestFinished.');
+        }
+
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($finished->result->outcome)->toBe(Outcome::Errored)
+            ->and($finished->result->attempts)->toBe(2);
+    }
+
+    #[Test]
     public function configuredPluginsReachWorkersAcrossTheProcessBoundary(): void
     {
         $result = $this->runIn('PluginRunConfig', ['run', '--workers=2']);

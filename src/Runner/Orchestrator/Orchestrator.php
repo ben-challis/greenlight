@@ -27,6 +27,7 @@ use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -505,6 +506,8 @@ final class Orchestrator
 
                 if ($message instanceof EventEnvelope) {
                     $this->onEvent($handle, $message->event, $sink);
+                } elseif ($message instanceof AttemptStarted) {
+                    $this->onAttemptStarted($handle, $message);
                 } elseif ($message instanceof Recycling) {
                     $this->crossCheck($handle, $message->summary);
                     $this->mergeCoverage($message->coverage);
@@ -572,10 +575,12 @@ final class Orchestrator
         if ($event instanceof TestStarted) {
             $handle->inFlight = $event->id;
             $handle->inFlightSince = \microtime(true);
+            $handle->inFlightAttempt = 0;
         }
 
         if ($event instanceof TestFinished) {
             $handle->inFlight = null;
+            $handle->inFlightAttempt = 0;
             $handle->finished[(string) $event->result->id] = true;
             // Finished tests no longer need plan lookups; the index tracks only
             // outstanding tests so it shrinks as the run progresses.
@@ -593,6 +598,27 @@ final class Orchestrator
         ) {
             $this->drainAll();
         }
+    }
+
+    private function onAttemptStarted(WorkerHandle $handle, AttemptStarted $message): void
+    {
+        $inFlight = $handle->inFlight;
+        $expectedAttempt = $handle->inFlightAttempt + 1;
+
+        if (!$inFlight instanceof TestId
+            || !$inFlight->equals($message->id)
+            || $message->attempt !== $expectedAttempt
+        ) {
+            throw ProtocolError::unexpectedAttempt(
+                $handle->workerId,
+                (string) $message->id,
+                $message->attempt,
+                $inFlight instanceof TestId ? (string) $inFlight : null,
+                $expectedAttempt,
+            );
+        }
+
+        $handle->inFlightAttempt = $message->attempt;
     }
 
     private function drainAll(): void
@@ -770,6 +796,8 @@ final class Orchestrator
 
     private function recordSyntheticResult(WorkerHandle $handle, EventSink $sink, TestResult $result): void
     {
+        $result = $result->withAttempts(\max($result->attempts, $handle->inFlightAttempt));
+
         if ($this->artifactStore instanceof ArtifactStore) {
             $result = $this->artifactStore->recover($result);
         }

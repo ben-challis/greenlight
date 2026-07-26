@@ -58,6 +58,23 @@ final class ProtocolError extends \RuntimeException
         ));
     }
 
+    public static function unexpectedAttempt(
+        string $workerId,
+        string $reportedTest,
+        int $reportedAttempt,
+        ?string $inFlightTest,
+        int $expectedAttempt,
+    ): self {
+        return new self(\sprintf(
+            'Worker "%s" reported attempt %d for "%s"; expected attempt %d for %s.',
+            $workerId,
+            $reportedAttempt,
+            $reportedTest,
+            $expectedAttempt,
+            $inFlightTest === null ? 'no in-flight test' : '"' . $inFlightTest . '"',
+        ));
+    }
+
     public static function workerNeverConnected(string $workerId, float $deadlineSeconds, string $diagnostics): self
     {
         $message = \sprintf(

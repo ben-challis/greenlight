@@ -46,6 +46,7 @@ final readonly class Worker
 
     /**
      * @param \Closure(): bool|null $drainRequested polled between tests
+     * @param \Closure(TestId, positive-int): void|null $attemptStarted reports retry progress for crash containment
      */
     public function run(
         ExecutionPlan $plan,
@@ -54,6 +55,7 @@ final readonly class Worker
         ?WorkerBudget $budget = null,
         ?\Closure $drainRequested = null,
         ?HarnessScopes $scopes = null,
+        ?\Closure $attemptStarted = null,
     ): WorkerRunOutcome {
         // Externally owned scopes survive this call, so per-run services
         // keep worker-lifetime semantics when one worker runs several
@@ -94,6 +96,7 @@ final readonly class Worker
                         $this->leakDetector,
                         $this->policy,
                         $this->artifactStore,
+                        $attemptStarted,
                     );
                     $result = $executor->execute($entry);
                 } catch (\Throwable $threw) {
