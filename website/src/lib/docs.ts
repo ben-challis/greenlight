@@ -103,10 +103,6 @@ export function docPath(id: string): string {
   return sitePath(`docs/${id}/`);
 }
 
-export function sourceUrl(id: string): string {
-  return `https://github.com/ben-challis/greenlight/blob/main/docs/${id}.md`;
-}
-
 export function adjacentDocs(id: string): {
   previous?: DocDefinition;
   next?: DocDefinition;

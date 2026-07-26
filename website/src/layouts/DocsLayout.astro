@@ -2,7 +2,7 @@
 import type { MarkdownHeading } from 'astro';
 
 import BaseLayout from './BaseLayout.astro';
-import { adjacentDocs, docPath, docSections, sourceUrl, type DocDefinition } from '../lib/docs';
+import { adjacentDocs, docPath, docSections, type DocDefinition } from '../lib/docs';
 
 interface Props {
   doc: DocDefinition;
@@ -62,7 +62,6 @@ const { previous, next } = adjacentDocs(doc.id);
     <article class="docs-article" data-pagefind-body>
       <div class="doc-kicker">
         <span>{doc.section}</span>
-        <a href={sourceUrl(doc.id)}>View source</a>
       </div>
 
       <slot />

@@ -1007,9 +1007,6 @@ code {
 }
 
 .doc-kicker {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 1.5rem;
   color: var(--muted);
   font-size: 0.82rem;
@@ -1018,10 +1015,6 @@ code {
 .doc-kicker span {
   font-family: var(--font-display);
   font-weight: 650;
-}
-
-.doc-kicker a {
-  color: var(--muted);
 }
 
 .docs-article h1 {
