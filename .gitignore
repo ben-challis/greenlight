@@ -10,3 +10,8 @@
 
 # Coverage exports
 /build/
+
+# Documentation site
+/website/.astro/
+/website/dist/
+/website/node_modules/

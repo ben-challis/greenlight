@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Plugin\Plugin;
 
 /** @internal */
 final readonly class Configuration
@@ -14,7 +15,7 @@ final readonly class Configuration
      * @param list<SuiteConfiguration> $suites
      * @param positive-int|null $recycleAfterTests null means workers are never recycled by test count
      * @param positive-int $recycleAboveMemoryBytes
-     * @param list<object> $plugins
+     * @param list<Plugin> $plugins
      * @param positive-int|null $stopAfterFailures null means run everything regardless of failures
      * @param list<non-empty-string> $groups empty means no group filter
      * @param list<non-empty-string> $filters test id patterns from --filter;

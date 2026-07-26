@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Plugin\Plugin;
 
 /** Fluent configuration builder returned by greenlight.php. */
 final class GreenlightConfig
@@ -37,7 +38,7 @@ final class GreenlightConfig
     private ?ArtifactBuilder $artifacts = null;
 
     /**
-     * @var list<object>
+     * @var list<Plugin>
      */
     private array $plugins = [];
 
@@ -233,7 +234,7 @@ final class GreenlightConfig
         return $this;
     }
 
-    public function plugins(object ...$plugins): self
+    public function plugins(Plugin ...$plugins): self
     {
         foreach ($plugins as $plugin) {
             $this->plugins[] = $plugin;

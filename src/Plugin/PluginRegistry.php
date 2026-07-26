@@ -18,12 +18,12 @@ use Greenlight\Harness\ServiceResolver;
 final readonly class PluginRegistry
 {
     /**
-     * @param list<object> $plugins
+     * @param list<Plugin> $plugins
      */
     public function __construct(private array $plugins = []) {}
 
     /**
-     * @param list<object> $userPlugins
+     * @param list<Plugin> $userPlugins
      */
     public static function forWorker(array $userPlugins): self
     {
@@ -31,7 +31,7 @@ final readonly class PluginRegistry
     }
 
     /**
-     * @param list<object> $userPlugins
+     * @param list<Plugin> $userPlugins
      */
     public static function orchestratorSide(array $userPlugins): self
     {

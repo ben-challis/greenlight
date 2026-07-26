@@ -31,9 +31,11 @@ The kernel boots lazily the first time a test asks for a container service, then
 stays alive for the lifetime of the worker. Workers whose tests never use the
 container do not boot Symfony.
 
-Your project must provide `symfony/framework-bundle` 6.4, 7.x, or 8.x, and the
-selected kernel environment must have `framework.test: true`, as the standard
-`test` environment does.
+The bridge is tested with `symfony/framework-bundle` 6.4, 7.x, and 8.x. At
+boot, it requires the kernel's container to expose `test.service_container`;
+with service resets enabled, it also requires `services_resetter`. A standard
+FrameworkBundle test environment provides the test container when
+`framework.test` is enabled.
 
 At boot, the bridge checks that the container supports the features it needs.
 Missing the Symfony test container, or missing `services_resetter` while service
@@ -110,10 +112,8 @@ For a container that genuinely has no stateful services, pass
 requirement. Do not use it with services that keep state: tests running on the
 same worker will then share those service instances.
 
-The bridge does not wrap each test in a database transaction, and that is not
-planned. Transaction-per-test isolation breaks down for tests that cross process
-or connection boundaries. Data written by a test remains written, so tests should
-create, name, and clean up their own data.
+The bridge boots and resets the Symfony kernel. Isolation for databases and
+other external services remains the test suite's responsibility.
 
 ## Parallel isolation
 

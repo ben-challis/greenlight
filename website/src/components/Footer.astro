@@ -1,0 +1,16 @@
+---
+import BrandMark from './BrandMark.astro';
+import { githubUrl, sitePath } from '../lib/paths';
+---
+
+<footer class="site-footer" data-pagefind-ignore="all">
+  <div class="footer-inner">
+    <BrandMark />
+    <p>Parallel-first testing for PHP 8.4 and later.</p>
+    <nav aria-label="Footer navigation">
+      <a href={sitePath('docs/getting-started/')}>Documentation</a>
+      <a href={githubUrl}>Source</a>
+      <a href={`${githubUrl}/blob/main/LICENSE`}>MIT licence</a>
+    </nav>
+  </div>
+</footer>

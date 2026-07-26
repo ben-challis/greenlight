@@ -1,0 +1,77 @@
+---
+import { sitePath } from '../lib/paths';
+
+const pagefindCss = sitePath('_pagefind/pagefind-ui.css');
+const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
+---
+
+<link rel="stylesheet" href={pagefindCss} />
+
+<details class="site-search" data-search data-pagefind-ignore="all">
+  <summary>
+    <span>Search</span>
+    <kbd>/</kbd>
+  </summary>
+  <div class="search-surface">
+    <div id="pagefind-search">
+      <p class="search-loading">Start typing to search the documentation.</p>
+    </div>
+  </div>
+</details>
+
+<script is:inline define:vars={{ pagefindScript }}>
+  const search = document.querySelector('[data-search]');
+  let pagefindLoaded = false;
+
+  const loadPagefind = () => {
+    if (pagefindLoaded) {
+      return;
+    }
+
+    pagefindLoaded = true;
+    const script = document.createElement('script');
+    script.src = pagefindScript;
+    script.onload = () => {
+      const loading = document.querySelector('.search-loading');
+      loading?.remove();
+      new window.PagefindUI({
+        element: '#pagefind-search',
+        showSubResults: true,
+        resetStyles: false,
+      });
+      document.querySelector('#pagefind-search input')?.focus();
+    };
+    script.onerror = () => {
+      const loading = document.querySelector('.search-loading');
+      if (loading) {
+        loading.textContent = 'Search is available in the production build.';
+      }
+    };
+    document.head.append(script);
+  };
+
+  search?.addEventListener('toggle', () => {
+    if (search.open) {
+      loadPagefind();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (
+      event.key === '/' &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)
+    ) {
+      event.preventDefault();
+      search.open = true;
+      loadPagefind();
+    }
+
+    if (event.key === 'Escape' && search?.open) {
+      search.open = false;
+      search.querySelector('summary')?.focus();
+    }
+  });
+</script>

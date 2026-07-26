@@ -13,6 +13,7 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\TestContext;
@@ -260,7 +261,7 @@ final class PluginTest
     }
 
     /**
-     * @param list<object> $plugins
+     * @param list<Plugin> $plugins
      *
      * @return array{ResultSummary, list<TestResult>}
      */

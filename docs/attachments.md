@@ -147,7 +147,7 @@ annotations include attachment paths and an artifact directory notice. TeamCity
 emits artifact metadata and publishes the run directory.
 
 JSONL includes attachment metadata and reports the run directory in
-`run-started.artifactsDirectory`. See the [JSONL version 2
+`run-started.artifactsDirectory`. See the [JSONL
 schema](architecture/jsonl.md).
 
 For other CI systems, upload the reported run directory from a post-test step

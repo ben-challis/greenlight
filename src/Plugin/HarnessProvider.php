@@ -12,7 +12,7 @@ use Greenlight\Harness\ServiceDefinition;
  * services() results are merged after the built-ins. Registering a type twice
  * is a configuration error.
  */
-interface HarnessProvider
+interface HarnessProvider extends Plugin
 {
     /**
      * @return list<ServiceDefinition>

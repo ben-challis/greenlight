@@ -16,7 +16,7 @@ use Greenlight\Core\Test\TestMetadata;
  * shouldRetry() receives metadata and the causing throwable rather than a
  * context: the failed attempt's instance is already gone when this runs.
  */
-interface RetryDecider
+interface RetryDecider extends Plugin
 {
     public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 }

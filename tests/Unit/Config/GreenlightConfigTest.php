@@ -11,8 +11,10 @@ use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteBuilder;
+use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Plugin\RunLifecycleSubscriber;
 
 final class GreenlightConfigTest
 {
@@ -39,7 +41,10 @@ final class GreenlightConfigTest
     #[Test]
     public function buildsAFullyConfiguredRun(): void
     {
-        $plugin = new \stdClass();
+        $plugin = new class implements RunLifecycleSubscriber {
+            #[\Override]
+            public function onRunEvent(Event $event): void {}
+        };
 
         $configuration = GreenlightConfig::create()
             ->paths(['tests/Unit', 'tests/Integration'])

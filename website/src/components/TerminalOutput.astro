@@ -1,0 +1,61 @@
+---
+type Tone = 'command' | 'muted' | 'prompt' | 'success' | 'warning';
+
+interface Part {
+  text: string;
+  tone?: Tone;
+}
+
+const lines: Part[][] = [
+  [
+    { text: '❯', tone: 'prompt' },
+    { text: ' ./bin/greenlight', tone: 'command' },
+  ],
+  [],
+  [
+    { text: 'Greenlight', tone: 'success' },
+    { text: ' dev-main' },
+  ],
+  [
+    { text: 'PHP 8.4.14 | config: greenlight.php | workers: 11 | ' },
+    { text: 'seed: 560647545', tone: 'muted' },
+  ],
+  [],
+  [
+    { text: '−', tone: 'warning' },
+    { text: ' Unit\\Coverage\\XdebugDriverTest (1 test, ' },
+    { text: 'skipped', tone: 'warning' },
+    { text: ', 0.002s)' },
+  ],
+  [],
+  [
+    { text: '802 tests, ' },
+    { text: '801 passed', tone: 'success' },
+    { text: ', ' },
+    { text: '1 skipped', tone: 'warning' },
+    { text: ', 2797 expectations' },
+  ],
+  [{ text: 'Time: 10.341s' }],
+  [{ text: 'Workers: 11 spawned' }],
+  [],
+  [{ text: 'Skipped:', tone: 'warning' }],
+  [{ text: '  XdebugDriverTest::collectsRealLineCoverageOverTheFixture' }],
+  [{ text: '  (xdebug with coverage mode is not available)', tone: 'muted' }],
+  [],
+  [{ text: 'Slowest tests:' }],
+  [
+    { text: '  4.187s', tone: 'warning' },
+    { text: ' PhpStanToThrowRuleTest::patternAndExactMessageConstraints…' },
+  ],
+  [
+    { text: '  4.174s', tone: 'warning' },
+    { text: ' PhpStanExtensionTest::reflectedMatcherSignatures…' },
+  ],
+  [
+    { text: '  3.908s', tone: 'warning' },
+    { text: ' PhpStanDataProviderRuleTest::providerAndRowShapes…' },
+  ],
+];
+---
+
+<pre class="terminal-output"><code>{lines.map((line) => <span class="terminal-line">{line.map((part) => <span class={part.tone && `terminal-${part.tone}`}>{part.text}</span>)}</span>)}</code></pre>

@@ -1,8 +1,9 @@
 # Writing plugins
 
-Plugins are plain objects passed to `GreenlightConfig::plugins()` in
-`greenlight.php`. Greenlight works out what a plugin can do from the interfaces
-it implements. A single plugin can implement more than one interface.
+Plugins implement one or more capability interfaces and are passed to
+`GreenlightConfig::plugins()` in `greenlight.php`. Greenlight works out what a
+plugin can do from those interfaces. A single plugin can implement more than
+one.
 
 Worker-side plugins get the live test instance, its metadata, and access to
 harness services.
