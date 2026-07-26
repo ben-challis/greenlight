@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Marker for hand-written in-memory test implementations.
+ * Identifies a manual in-memory test implementation.
  *
- * Implementing it changes no behaviour; it lets reporters and tooling label
- * the object as a deliberate fake rather than production code under test.
+ * The interface does not change behavior. It lets reporters and tools
+ * identify the object as an intentional fake, not production code under
+ * test.
  */
 interface Fake {}

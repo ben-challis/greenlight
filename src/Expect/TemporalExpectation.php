@@ -9,7 +9,7 @@ use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * Contains the matcher dispatch and probe handling shared by eventual and
+ * Contains the matcher dispatch and probe operations for eventual and
  * consistent expectations.
  *
  * @internal

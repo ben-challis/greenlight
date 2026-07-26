@@ -10,7 +10,7 @@ final class Argument
     private function __construct() {}
 
     /**
-     * Matches any value in its position.
+     * This matcher accepts all values in its position.
      */
     public static function any(): Any
     {
@@ -18,8 +18,8 @@ final class Argument
     }
 
     /**
-     * Matches instances of the given class or interface, or values whose
-     * builtin type name (as reported by get_debug_type()) equals $type.
+     * This matcher accepts instances of the specified class or interface.
+     * It also accepts values when get_debug_type() returns $type.
      *
      * @param non-empty-string $type
      */
@@ -29,8 +29,8 @@ final class Argument
     }
 
     /**
-     * Matches when the closure returns true for the value. The description
-     * names the constraint in failure messages.
+     * This matcher accepts the value when the closure returns true.
+     * The description identifies the constraint in failure messages.
      */
     public static function predicate(\Closure $predicate, string $description = 'predicate'): ArgumentMatcher
     {
@@ -38,8 +38,8 @@ final class Argument
     }
 
     /**
-     * Matches by the same deep equality a bare with() value uses; this form
-     * exists to state that comparison explicitly.
+     * This matcher uses the same deep equality as a value in with().
+     * This form states the comparison explicitly.
      */
     public static function equals(mixed $value): ArgumentMatcher
     {
@@ -47,8 +47,8 @@ final class Argument
     }
 
     /**
-     * Matches any value and records it on every call the surrounding
-     * expectation actually answers.
+     * This matcher accepts all values. It records the value when Greenlight
+     * selects the related expectation for the call.
      */
     public static function captor(): ArgumentCaptor
     {

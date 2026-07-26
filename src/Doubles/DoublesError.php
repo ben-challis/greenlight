@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * A misuse of the doubles API: doubling a type outside the supported
- * boundary, planning a method that cannot be intercepted, interacting with
- * a double in a way its kind forbids, or relying on a return value that was
- * never configured.
+ * Identifies incorrect use of the doubles API. Examples include an
+ * unsupported type or a method that Doubles cannot intercept. Other examples
+ * are a prohibited interaction or a return value without a configured
+ * result.
  *
- * These are authoring errors, not expectation failures, so the test errors
- * rather than fails.
+ * These conditions are errors in the test code, not expectation failures.
+ * Thus, Greenlight reports the test as an error.
  *
  * @internal
  */
