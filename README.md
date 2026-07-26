@@ -261,7 +261,10 @@ Iteration and debugging:
 
 `--watch` cannot be combined with `--repeat` or `--repeat-until-failure`; invalid combinations exit with code `64`.
 
-Per-test output capture keeps stdout and PHP diagnostics attached to the test that produced them. The `profile:report` command can replay a saved JSONL stream into a profile report.
+Per-test output capture records buffered output and PHP diagnostics on the test
+that produced them. Direct writes to the `STDOUT` and `STDERR` stream resources
+bypass capture. The `profile:report` command can replay a saved JSONL stream
+into a profile report.
 
 Tests and plugins can attach diagnostic data to an individual result. Greenlight
 copies the content immediately, retains it on failure by default, and keeps it
