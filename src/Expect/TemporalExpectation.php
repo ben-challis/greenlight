@@ -20,6 +20,8 @@ abstract class TemporalExpectation
 {
     private bool $negated = false;
 
+    private ?string $reason = null;
+
     /**
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
@@ -39,6 +41,29 @@ abstract class TemporalExpectation
     final public function not(): static
     {
         $this->negated = true;
+
+        return $this;
+    }
+
+    /**
+     * Adds a reason to the next matcher and is consumed by it. When that
+     * matcher fails, the failure message ends with the word "because" and
+     * the reason. An empty reason is a usage failure.
+     *
+     * @throws ExpectationFailed
+     */
+    final public function because(string $reason): static
+    {
+        $reason = \trim($reason);
+
+        if ($reason === '') {
+            throw ExpectationFailed::fromDetail(new FailureDetail(
+                'because() requires a non-empty reason.',
+                location: CallSite::capture(),
+            ));
+        }
+
+        $this->reason = $reason;
 
         return $this;
     }
@@ -260,6 +285,13 @@ abstract class TemporalExpectation
     {
         $negated = $this->negated;
         $this->negated = false;
+        $reason = $this->reason;
+        $this->reason = null;
+
+        if ($reason !== null) {
+            $applied = $matcher;
+            $matcher = static fn(Expectation $expectation): Expectation => $applied($expectation->because($reason));
+        }
 
         return $this->waitFor($matcher, $negated, CallSite::capture());
     }

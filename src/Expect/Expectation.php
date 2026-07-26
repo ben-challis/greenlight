@@ -34,6 +34,8 @@ final class Expectation
 {
     private bool $negated = false;
 
+    private ?string $reason = null;
+
     /**
      * @internal use Expect::that() instead
      *
@@ -91,8 +93,28 @@ final class Expectation
     }
 
     /**
-     * Re-anchors the chain on a new subject. Any pending not() does not carry
-     * over.
+     * Adds a reason to the next matcher in the chain and is consumed by it.
+     * When that matcher fails, the failure message ends with the word
+     * "because" and the reason. An empty reason is a usage failure.
+     *
+     * @throws ExpectationFailed
+     */
+    public function because(string $reason): self
+    {
+        $reason = \trim($reason);
+
+        if ($reason === '') {
+            $this->usageFailure('because() requires a non-empty reason.');
+        }
+
+        $this->reason = $reason;
+
+        return $this;
+    }
+
+    /**
+     * Re-anchors the chain on a new subject. Any pending not() or because()
+     * does not carry over.
      */
     public function and(mixed $value): self
     {
@@ -718,7 +740,8 @@ final class Expectation
 
     /**
      * @param non-empty-string $description sentence fragment starting with
-     *   "to", negation inserts "not" in front of it
+     *   "to", negation inserts "not" in front of it, a pending because()
+     *   reason follows it
      *
      * @throws ExpectationFailed
      */
@@ -727,6 +750,8 @@ final class Expectation
         ExpectationCounter::increment();
         $negated = $this->negated;
         $this->negated = false;
+        $reason = $this->reason;
+        $this->reason = null;
 
         if ($negated ? !$matched : $matched) {
             return $this;
@@ -735,7 +760,13 @@ final class Expectation
         $actual ??= $this->renderer->render($this->subject);
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
-            \sprintf('Expected %s %s%s.', $actual, $negated ? 'not ' : '', $description),
+            \sprintf(
+                'Expected %s %s%s%s.',
+                $actual,
+                $negated ? 'not ' : '',
+                $description,
+                $reason === null ? '' : ' because ' . $reason,
+            ),
             $negated && $expected !== null ? 'not ' . $expected : $expected,
             $actual,
             CallSite::capture(),
@@ -790,6 +821,7 @@ final class Expectation
     private function usageFailure(string $message): never
     {
         $this->negated = false;
+        $this->reason = null;
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
             $message,
