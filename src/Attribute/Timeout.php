@@ -17,8 +17,8 @@ final readonly class Timeout
     public function __construct(
         public float $seconds,
     ) {
-        if ($seconds <= 0.0) {
-            throw new \InvalidArgumentException('Timeout seconds must be greater than zero.');
+        if (!\is_finite($seconds) || $seconds <= 0.0) {
+            throw new \InvalidArgumentException('Timeout seconds must be finite and greater than zero.');
         }
     }
 }

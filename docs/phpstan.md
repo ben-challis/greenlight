@@ -25,6 +25,18 @@ parameters:
 Use `configFiles` only for custom matcher checks. The data-provider and native
 matcher rules work without it.
 
+## Attribute argument checks
+
+The extension reports constant attribute arguments that Greenlight cannot use:
+
+* `#[Retry]` requires a positive number of additional attempts.
+* `#[SkipUnless]` can transfer only scalar values or null to a worker.
+* `#[Timeout]` requires a finite number greater than zero.
+* `#[RequiresResource]` requires a canonical resource name.
+
+Errors have identifiers under `greenlight.attributeArgument.*` (`retry`,
+`skipUnless`, `timeout`, `resource`).
+
 If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
 it registers the include for you. Set only the `greenlight.configFiles`
 parameter.

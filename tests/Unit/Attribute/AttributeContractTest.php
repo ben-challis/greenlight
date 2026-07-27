@@ -91,6 +91,13 @@ final class AttributeContractTest
         Expect::that(static fn(): Timeout => new Timeout(-1.5))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class);
     }
 
+    #[Test]
+    public function timeoutRejectsNonfiniteSeconds(): void
+    {
+        Expect::that(static fn(): Timeout => new Timeout(\NAN))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class);
+        Expect::that(static fn(): Timeout => new Timeout(\INF))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class);
+    }
+
     /**
      * @param class-string $attributeClass
      */
