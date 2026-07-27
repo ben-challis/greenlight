@@ -10,7 +10,7 @@ use Greenlight\Core\ErrorTrap;
 
 /**
  * Stores failures and class durations in the system temporary directory.
- * The working directory identifies the state.
+ * The project directory identifies the state.
  *
  * @internal
  */

@@ -40,7 +40,7 @@ final readonly class CommandErrorsTest
         $project = AcceptanceProject::create($this->tempDirectory, 'command-errors');
         $result = GreenlightCli::run($project->directory, ['profile:report', '--input=nowhere.jsonl']);
         Expect::that($result->exitCode)->because('profile report with a missing input file fails cleanly')->toBe(1)
-            ->and($result->output())->toContain('Could not read')
+            ->and($result->output())->toContain('Greenlight could not read')
             ->toContain('nowhere.jsonl');
     }
 
@@ -66,7 +66,7 @@ final readonly class CommandErrorsTest
                 '--output=' . $readOnlyDirectory . '/helper.php',
             ]);
 
-            Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('Could not write');
+            Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('Greenlight could not write');
         } finally {
             \chmod($readOnlyDirectory, 0o755);
         }

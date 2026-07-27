@@ -16,6 +16,17 @@ use Greenlight\Expect\Expect;
 final class WatchTest
 {
     #[Test]
+    public function rejectsANegativeQuietPeriodWithExactGuidance(): void
+    {
+        Expect::that(
+            static fn(): Debouncer => new Debouncer(-0.1),
+        )->toThrow(
+            \InvalidArgumentException::class,
+            message: 'Set the quiet period to zero seconds or more.',
+        );
+    }
+
+    #[Test]
     public function debounceFiresOnlyAfterTheQuietPeriod(): void
     {
         $debouncer = new Debouncer(0.2);
@@ -136,6 +147,6 @@ final class WatchTest
             ->and($runs[0])->toBe([])
             ->and($runs[1])->toBe(['App\\BrokenTest'])
             ->and($runs[2])->toBe([])
-            ->and($output)->toContain('Change detected in 1 file(s).');
+            ->and($output)->toContain('Detected changes in 1 file.');
     }
 }

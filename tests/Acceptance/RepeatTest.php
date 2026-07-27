@@ -34,7 +34,7 @@ final readonly class RepeatTest
         $result = $this->run($project, [], '--repeat=2');
         Expect::that($result->exitCode)->because('repeat reports every failing iteration')->toBe(1)
             ->and($result->output())->toContain('Repeat: iteration 2 of 2')
-            ->toContain('Repeat: failed on iteration(s) 1, 2');
+            ->toContain('Repeat: failed iterations: 1, 2');
     }
 
     #[Test]
@@ -45,7 +45,7 @@ final readonly class RepeatTest
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
         Expect::that($result->exitCode)->because('repeat until failure stops at the first failing iteration')->toBe(1)
             ->and($result->output())->toContain('Repeat: iteration 3 of at most 100')
-            ->toContain('Repeat: failed on iteration(s) 3')
+            ->toContain('Repeat: failed iterations: 3')
             ->not()->toContain('Repeat: iteration 4');
     }
 
@@ -79,9 +79,9 @@ final readonly class RepeatTest
     {
         $project = $this->writeProject(passing: true);
         $result = $this->run($project, [], '--watch', '--repeat=2');
-        Expect::that($result->exitCode)->because('watch cannot be combined with repeat')->toBe(64)->and($result->output())->toContain('cannot be combined');
+        Expect::that($result->exitCode)->because('watch cannot be combined with repeat')->toBe(64)->and($result->output())->toContain('Do not use --watch with');
         $result = $this->run($project, [], '--watch', '--repeat-until-failure');
-        Expect::that($result->exitCode)->because('watch cannot be combined with repeat')->toBe(64)->and($result->output())->toContain('cannot be combined');
+        Expect::that($result->exitCode)->because('watch cannot be combined with repeat')->toBe(64)->and($result->output())->toContain('Do not use --watch with');
     }
 
     /**

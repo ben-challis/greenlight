@@ -64,7 +64,7 @@ final readonly class CoverageRunTest
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'off');
 
         Expect::that($result->exitCode)->because('missing driver warns without failing the run')->toBe(0)
-            ->and($result->output())->toContain('Coverage was requested but no worker could collect it')
+            ->and($result->output())->toContain('No worker collected the requested coverage')
             ->and(\is_dir($project->path('coverage-out')))->toBeFalse();
     }
 

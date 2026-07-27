@@ -33,7 +33,7 @@ final readonly class IdeHelperTest
 
         $result = GreenlightCli::run($root . '/tests/Fixture/ListTestsConfig', ['ide-helper', '--output=' . $target . '.none']);
         Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0)
-            ->and($result->output())->toContain('No extension matchers')
+            ->and($result->output())->toContain('The configuration has no extension matchers')
             ->and(\is_file($target . '.none'))->toBeFalse();
     }
 }

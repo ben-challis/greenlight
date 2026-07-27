@@ -15,12 +15,12 @@ final readonly class CompletionScripts
     public const array SHELLS = ['bash', 'zsh', 'fish'];
 
     private const array COMMANDS = [
-        'run' => 'Discover and execute tests (default)',
-        'list-tests' => 'List every discovered test id, one per line',
+        'run' => 'Find and run tests (default)',
+        'list-tests' => 'List each found test ID, one per line',
         'coverage:diff' => 'Compare two coverage JSON exports',
-        'profile:report' => 'Render the run profile from a saved jsonl stream',
+        'profile:report' => 'Create a run profile from a saved JSONL stream',
         'ide-helper' => 'Write the IDE autocomplete helper for extension matchers',
-        'completion' => 'Print a shell completion script to stdout',
+        'completion' => 'Print a shell completion script to standard output',
     ];
 
     private const array FLAG_VALUES = [
@@ -60,7 +60,7 @@ final readonly class CompletionScripts
         }
 
         $template = <<<'BASH'
-            # bash completion for greenlight. Load it into the current shell with:
+            # bash completion for Greenlight. Load it into the current shell with:
             #   source <(greenlight completion bash)
 
             _greenlight_completions()
@@ -70,8 +70,8 @@ final readonly class CompletionScripts
 
                 # COMP_WORDBREAKS normally contains ':' and '=', so bash splits
                 # 'coverage:diff' and '--reporter=tty' across several COMP_WORDS.
-                # Reassemble the logical word; the lead bash keeps on the line is
-                # stripped from every candidate afterwards.
+                # Reassemble the logical word. Remove from each candidate the
+                # leading part that bash keeps on the line.
                 local logical=$cur
                 while (( i > 1 )) && [[ ${COMP_WORDS[i-1]} == [:=] || $logical == [:=]* ]]; do
                     (( i-- ))
@@ -144,7 +144,7 @@ final readonly class CompletionScripts
 
         $template = <<<'ZSH'
             #compdef greenlight
-            # zsh completion for greenlight. Load it into the current shell with:
+            # zsh completion for Greenlight. Load it into the current shell with:
             #   source <(greenlight completion zsh)
 
             _greenlight()
@@ -191,7 +191,7 @@ final readonly class CompletionScripts
     private function fish(): string
     {
         $lines = [
-            '# fish completion for greenlight. Install it with:',
+            '# fish completion for Greenlight. Install it with:',
             '#   greenlight completion fish > ~/.config/fish/completions/greenlight.fish',
             '',
         ];

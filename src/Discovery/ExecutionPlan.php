@@ -39,7 +39,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
 
             if (isset($seen[$class])) {
                 throw new \InvalidArgumentException(\sprintf(
-                    'Execution plan entries must be grouped by class; "%s" appears in more than one block.',
+                    'Group execution plan entries by class. "%s" occurs in more than one block.',
                     $class,
                 ));
             }

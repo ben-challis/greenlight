@@ -20,7 +20,7 @@ final class Debouncer
     public function __construct(private readonly float $quietSeconds)
     {
         if ($quietSeconds < 0.0) {
-            throw new \InvalidArgumentException('The quiet period cannot be negative.');
+            throw new \InvalidArgumentException('Set the quiet period to zero seconds or more.');
         }
     }
 

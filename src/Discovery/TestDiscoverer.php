@@ -27,7 +27,7 @@ final readonly class TestDiscoverer
         private float $providerTimeBudgetSeconds = 5.0,
     ) {
         if ($providerTimeBudgetSeconds <= 0.0) {
-            throw new \InvalidArgumentException('Provider time budget must be greater than zero seconds.');
+            throw new \InvalidArgumentException('Set the provider time budget to a value greater than zero seconds.');
         }
 
         $this->metadataFactory = new MetadataFactory();

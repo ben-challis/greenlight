@@ -115,7 +115,7 @@ final class MetadataFactory
         foreach ($skipUnless->arguments as $index => $argument) {
             if ($argument !== null && !\is_scalar($argument)) {
                 throw DiscoveryError::invalidAttribute($where, new \InvalidArgumentException(\sprintf(
-                    '#[SkipUnless] argument %d for condition "%s" must be a scalar or null, got %s.',
+                    'Use a scalar or null for #[SkipUnless] argument %d of condition "%s". Received %s.',
                     $index + 1,
                     $skipUnless->condition,
                     \get_debug_type($argument),

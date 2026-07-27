@@ -123,12 +123,12 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/MissingProbeTest.php']);
         Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0)
-            ->and($result->output())->toContain('matched no discovered test file')
+            ->and($result->output())->toContain('did not match a discovered test file')
             ->toContain('MissingProbeTest.php')
             ->toContain('3 tests');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php']);
         Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0)
-            ->and($result->output())->toContain('matched no discovered test file')
+            ->and($result->output())->toContain('did not match a discovered test file')
             ->toContain('3 tests, 3 passed');
     }
 
@@ -138,7 +138,7 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
         Expect::that($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0)
-            ->and($result->output())->not()->toContain('matched no discovered test file');
+            ->and($result->output())->not()->toContain('did not match a discovered test file');
     }
 
     /**

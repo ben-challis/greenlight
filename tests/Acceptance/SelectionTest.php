@@ -26,7 +26,7 @@ final readonly class SelectionTest
         $result = $this->run($project, '--filter=*::breaks?ometimes');
         Expect::that($result->exitCode)->because('filter selects by method class and wildcard')->toBe(1)->and($result->output())->toContain('1 test, 0 passed, 1 errored');
         $result = $this->run($project, '--filter=nothingMatchesThis');
-        Expect::that($result->exitCode)->because('filter selects by method class and wildcard')->toBe(1)->and($result->output())->toContain('No tests found');
+        Expect::that($result->exitCode)->because('filter selects by method class and wildcard')->toBe(1)->and($result->output())->toContain('Greenlight found no tests');
     }
 
     #[Test]
@@ -48,7 +48,7 @@ final readonly class SelectionTest
         );
 
         Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1)
-            ->and($result->output())->toContain('No tests found');
+            ->and($result->output())->toContain('Greenlight found no tests');
     }
 
     #[Test]
@@ -76,7 +76,7 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=alwaysPasses', '--exclude-method=alwaysPasses');
-        Expect::that($result->exitCode)->because('exclude wins over an include filter')->toBe(1)->and($result->output())->toContain('No tests found');
+        Expect::that($result->exitCode)->because('exclude wins over an include filter')->toBe(1)->and($result->output())->toContain('Greenlight found no tests');
         $result = $this->run($project, '--group=fast', '--group=slow', '--exclude-group=slow');
         Expect::that($result->exitCode)->because('exclude wins over an include filter')->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
@@ -96,7 +96,7 @@ final readonly class SelectionTest
         $result = $this->run($project, '--filter=alwaysPasses');
         Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0)->and($result->output())->toContain('Nothing failed');
+        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0)->and($result->output())->toContain('No tests failed');
     }
 
     #[Test]
@@ -116,7 +116,7 @@ final readonly class SelectionTest
         );
         Expect::that($result->exitCode)->because('unpersistable run state warns without failing the run')->toBe(0)
             ->and($result->output())->toContain('1 test, 1 passed')
-            ->toContain('Run state was not saved');
+            ->toContain('Greenlight did not save run state');
     }
 
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult
