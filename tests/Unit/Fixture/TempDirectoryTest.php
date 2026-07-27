@@ -33,6 +33,7 @@ final class TempDirectoryTest
 
         Expect::that(\is_dir($path))->because('path creates a writable directory and memoizes it')->toBeTrue()
             ->and(\is_writable($path))->toBeTrue()
+            ->and(\realpath($path))->toBe($path)
             ->and($directory->path())->toBe($path);
 
         $directory->dispose();
