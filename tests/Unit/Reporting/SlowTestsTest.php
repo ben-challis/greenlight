@@ -59,6 +59,30 @@ final class SlowTestsTest
     }
 
     #[Test]
+    public function longRunsPruneIncrementallyWithoutLosingTheSlowestTests(): void
+    {
+        $slow = new SlowTests();
+
+        for ($i = 1; $i <= 21; ++$i) {
+            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+        }
+
+        $slow->record($this->finished('Acme\SlowTest::lateSlowest', 0.95));
+        $slow->record($this->finished('Acme\SlowTest::lateButFaster', 0.51));
+        $rendered = $slow->render(new Style(ansi: false));
+
+        Expect::that($rendered)
+            ->because('incremental pruning MUST retain the globally slowest tests')
+            ->toContain('0.950s Acme\SlowTest::lateSlowest')
+            ->toContain('0.710s Acme\SlowTest::case21')
+            ->toContain('0.680s Acme\SlowTest::case18')
+            ->not()
+            ->toContain('lateButFaster')
+            ->not()
+            ->toContain('case17');
+    }
+
+    #[Test]
     public function durationsAreColoredThroughTheStyle(): void
     {
         $slow = new SlowTests();
