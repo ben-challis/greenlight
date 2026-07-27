@@ -2,9 +2,94 @@
 
 # Integration API
 
-This reference lists public integration types for Rector and Symfony.
+This reference lists public integration types for Laravel, Rector, and Symfony.
 
 These signatures are the public API.
+
+## `LaravelPlugin`
+
+Namespace: `Greenlight\Laravel`
+
+Boots one Laravel application lazily for a test and resolves bound services.
+`#[Service]` selects an explicit binding ID. Tests MUST isolate external
+resources by `GREENLIGHT_CHANNEL`.
+
+```php
+final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L24)
+
+### `services()`
+
+```php
+[\Override]
+public function services(): array
+```
+
+PHPDoc:
+
+- `@return list<ServiceDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L65)
+
+### `resolve()`
+
+```php
+[\Override]
+public function resolve(string $type, array $attributes): ?object
+```
+
+PHPDoc:
+
+- `@param class-string $type`
+- `@param list<object> $attributes`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L81)
+
+### `beforeTest()`
+
+```php
+[\Override]
+public function beforeTest(TestContext $context): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L111)
+
+### `afterTest()`
+
+```php
+[\Override]
+public function afterTest(TestContext $context, TestResult $result): TestResult
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L114)
+
+## `Laravel\Service`
+
+Namespace: `Greenlight\Laravel`
+
+Use when the parameter type is not a unique container binding. The resolved
+service must still satisfy the declared type.
+
+```php
+#[\Attribute(\Attribute::TARGET_PARAMETER)]
+final readonly class Service
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L12)
+
+### `__construct()`
+
+```php
+public function __construct(public string $id)
+```
+
+PHPDoc:
+
+- `@param non-empty-string $id`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L17)
 
 ## `PhpUnitToGreenlightRector`
 
@@ -73,7 +158,7 @@ public function refactor(Node $node): ?Node
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L176)
 
-## `Service`
+## `Symfony\Service`
 
 Namespace: `Greenlight\Symfony`
 

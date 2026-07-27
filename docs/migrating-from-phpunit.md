@@ -11,7 +11,7 @@ Greenlight includes the `Greenlight\Rector\PhpUnitToGreenlightRector` rule for
 [Rector](https://getrector.com) 2. Install Rector as a development dependency:
 
 ```console
-composer require --dev rector/rector:^2.0
+composer require --dev rector/rector:^2.5
 ```
 
 The rule rewrites final, attribute-based PHPUnit 10+ test classes. It converts

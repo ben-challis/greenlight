@@ -57,6 +57,11 @@ export const docSections = [
         description: 'This guide explains how tests use a kernel and receive container services.',
       },
       {
+        id: 'laravel',
+        title: 'Laravel',
+        description: 'This guide explains how tests receive container services from a fresh Laravel application.',
+      },
+      {
         id: 'phpstan',
         title: 'PHPStan',
         description: 'This guide explains how PHPStan checks matchers, data providers, and extension matchers.',
@@ -134,7 +139,7 @@ export const docSections = [
       {
         id: 'api-integrations',
         title: 'Integration API',
-        description: 'This reference lists public integration types for Rector and Symfony.',
+        description: 'This reference lists public integration types for Laravel, Rector, and Symfony.',
       },
     ],
   },

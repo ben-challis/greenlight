@@ -19,6 +19,7 @@
         "ergebnis/composer-normalize": "^2.47",
         "fidry/cpu-core-counter": "^1.3",
         "justinrainbow/json-schema": "^6.10",
+        "laravel/framework": "^13.0",
         "php-cs-fixer/shim": "^3.75",
         "php-parallel-lint/php-parallel-lint": "^1.4",
         "phpstan/phpstan": "^2.2",
@@ -33,6 +34,7 @@
     "suggest": {
         "ext-pcov": "Collects line coverage quickly",
         "fidry/cpu-core-counter": "Improves the 'auto' worker count across platforms and on systems with cgroup limits",
+        "laravel/framework": "Provides the complete Laravel 13 framework that LaravelPlugin requires",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled 'extension.neon' file",
         "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled 'PhpUnitToGreenlightRector' rule",

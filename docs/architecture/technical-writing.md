@@ -100,6 +100,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | attempt | Technical noun | One execution of a test before Greenlight reports a result or starts a retry |
 | baseline diff | Technical noun | A comparison of current coverage with a saved coverage map |
 | benchmark shape | Technical noun | A generated test-suite structure that one benchmark measures |
+| binding | Technical noun | A container rule that maps an ID to a value or construction method |
 | boot latency | Technical noun | The time from worker-process creation to the start of its first test class |
 | builder | Technical noun | A mutable object that collects configuration for one part of a run |
 | capability interface | Technical noun | A plugin interface that adds one defined type of behavior |
@@ -139,6 +140,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | harness service | Technical noun | An object that the harness supplies to a test constructor |
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
+| Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
 | live window | Technical noun | The bounded terminal area that shows active test classes |
 | marketing copy | Technical noun | Promotional text that uses STE clarity principles without a controlled-vocabulary requirement |
 | matcher | Technical noun | An operation that checks an expectation |
@@ -170,6 +172,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | run subscriber | Technical noun | An orchestrator plugin that observes run events |
 | run time | Technical noun | The time when a program executes |
 | runtime | Noun modifier | Related to program execution |
+| service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |
 | scheduling unit | Technical noun | One test class or isolated test that the orchestrator can assign to a worker |
