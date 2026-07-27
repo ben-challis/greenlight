@@ -20,8 +20,23 @@ use Greenlight\Attribute\DataRow;
  *
  * @internal
  */
-final class DataSetExpander
+final readonly class DataSetExpander
 {
+    /**
+     * @var \Closure(): int
+     */
+    private \Closure $monotonicTime;
+
+    /**
+     * @param (callable(): int)|null $monotonicTime
+     */
+    public function __construct(?callable $monotonicTime = null)
+    {
+        $this->monotonicTime = $monotonicTime === null
+            ? static fn(): int => \hrtime(true)
+            : $monotonicTime(...);
+    }
+
     /**
      * Returns each data set of a test method in one key space.
      *
@@ -122,7 +137,7 @@ final class DataSetExpander
             throw DiscoveryError::providerNotPublicStatic($testClassName, $testMethod, $providerClassName, $provider);
         }
 
-        $deadline = \hrtime(true) + (int) \round($budgetSeconds * 1_000_000_000);
+        $deadline = ($this->monotonicTime)() + (int) \round($budgetSeconds * 1_000_000_000);
 
         try {
             $result = $method->invoke(null);
@@ -138,7 +153,7 @@ final class DataSetExpander
 
         try {
             foreach ($result as $key => $value) {
-                if (\hrtime(true) > $deadline) {
+                if (($this->monotonicTime)() > $deadline) {
                     throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
                 }
 
@@ -156,7 +171,7 @@ final class DataSetExpander
             throw DiscoveryError::providerThrew($providerClassName, $provider, $e);
         }
 
-        if (\hrtime(true) > $deadline) {
+        if (($this->monotonicTime)() > $deadline) {
             throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
         }
 
