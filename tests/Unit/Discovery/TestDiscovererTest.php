@@ -40,7 +40,7 @@ final class TestDiscovererTest
     {
         $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')]);
 
-        Expect::that($this->ids($plan))->toBe([
+        Expect::that($this->ids($plan))->because('discovers basic suite in file order without seed')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two',
             'Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::zulu',
@@ -50,8 +50,8 @@ final class TestDiscovererTest
             'Greenlight\Tests\Fixture\DiscoveryBasic\DeltaTest::flies',
         ]);
 
-        Expect::that($plan->seed)->toBe(null);
-        Expect::that($plan->count())->toBe(7);
+        Expect::that($plan->seed)->because('discovers basic suite in file order without seed')->toBe(null);
+        Expect::that($plan->count())->because('discovers basic suite in file order without seed')->toBe(7);
     }
 
     #[Test]
@@ -73,9 +73,9 @@ final class TestDiscovererTest
         $first = $discoverer->discover([self::fixtureDir('DiscoveryBasic')], null, 1234);
         $second = $discoverer->discover([self::fixtureDir('DiscoveryBasic')], null, 1234);
 
-        Expect::that(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))
+        Expect::that(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))->because('same seed produces byte identical plans')
             ->toBe(\json_encode($first->toWire(), \JSON_THROW_ON_ERROR));
-        Expect::that($first->seed)->toBe(1234);
+        Expect::that($first->seed)->because('same seed produces byte identical plans')->toBe(1234);
     }
 
     #[Test]
@@ -88,7 +88,7 @@ final class TestDiscovererTest
             $orders[] = \implode(',', $discoverer->discover([self::fixtureDir('DiscoveryBasic')], null, $seed)->classes());
         }
 
-        Expect::that(\count(\array_unique($orders)))->toBeGreaterThan(1);
+        Expect::that(\count(\array_unique($orders)))->because('different seeds produce different class order')->toBeGreaterThan(1);
     }
 
     #[Test]
@@ -103,7 +103,7 @@ final class TestDiscovererTest
             }
         }
 
-        Expect::that($bravoMethods)->toBe(['zulu', 'alpha', 'mike']);
+        Expect::that($bravoMethods)->because('seeded plan keeps method declaration order within class')->toBe(['zulu', 'alpha', 'mike']);
     }
 
     #[Test]
@@ -112,7 +112,7 @@ final class TestDiscovererTest
         $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')], null, 99);
         $restored = ExecutionPlan::fromWire(JsonWire::roundTrip($plan->toWire()));
 
-        Expect::that(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))
+        Expect::that(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('seeded plan survives the wire')
             ->toBe(\json_encode($plan->toWire(), \JSON_THROW_ON_ERROR));
     }
 
@@ -121,7 +121,7 @@ final class TestDiscovererTest
     {
         Expect::that(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([self::fixtureDir('DoesNotExist')]),
-        )->toThrow(DiscoveryError::class);
+        )->because('unknown directory fails loudly')->toThrow(DiscoveryError::class);
     }
 
     #[Test]
@@ -130,6 +130,6 @@ final class TestDiscovererTest
         $dir = self::fixtureDir('DiscoveryBasic');
         $plan = new TestDiscoverer()->discover([$dir, $dir]);
 
-        Expect::that($plan->count())->toBe(7);
+        Expect::that($plan->count())->because('overlapping directories do not duplicate entries')->toBe(7);
     }
 }

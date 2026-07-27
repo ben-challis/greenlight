@@ -22,25 +22,25 @@ final readonly class ReporterSmokeTest
         // Use standard output only. Extension messages on standard error
         // corrupt the document that the parser must accept as a complete unit.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit']);
-        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->exitCode)->because('JUnit produces well formed XML with one failure and one pass')->toBe(1);
 
         if ($result->stdout === '') {
             Fail::because('The JUnit reporter did not write XML to stdout.');
         }
 
         $document = new \DOMDocument();
-        Expect::that($document->loadXML($result->stdout))->toBeTrue();
+        Expect::that($document->loadXML($result->stdout))->because('JUnit produces well formed XML with one failure and one pass')->toBeTrue();
         $testcases = $document->getElementsByTagName('testcase');
-        Expect::that($testcases->length)->toBe(2);
+        Expect::that($testcases->length)->because('JUnit produces well formed XML with one failure and one pass')->toBe(2);
         $errors = $document->getElementsByTagName('error');
-        Expect::that($errors->length)->toBe(1);
+        Expect::that($errors->length)->because('JUnit produces well formed XML with one failure and one pass')->toBe(1);
         $failingClass = null;
         foreach ($testcases as $testcase) {
             if ($testcase->getAttribute('name') === 'fails') {
                 $failingClass = $testcase->getAttribute('classname');
             }
         }
-        Expect::that($failingClass)->toBe('ReporterProbe\BadReporterProbeTest');
+        Expect::that($failingClass)->because('JUnit produces well formed XML with one failure and one pass')->toBe('ReporterProbe\BadReporterProbeTest');
     }
 
     #[Test]
@@ -48,12 +48,12 @@ final readonly class ReporterSmokeTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=github']);
-        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->exitCode)->because('GitHub emits a workflow error command for the failing test')->toBe(1);
         // Use realpath(), not project->path(). The annotation contains the
         // absolute path that discovery reports after symbolic-link resolution.
         // On macOS, temporary paths can have aliases.
         $failingFile = (string) \realpath($project->path('tests/BadReporterProbeTest.php'));
-        Expect::that($result->output())->toContain('::error file=' . $failingFile)
+        Expect::that($result->output())->because('GitHub emits a workflow error command for the failing test')->toContain('::error file=' . $failingFile)
             ->toContain('ReporterProbe\BadReporterProbeTest::fails')
             ->toContain('intentional reporter probe failure')
         // Passed tests do not add an annotation.

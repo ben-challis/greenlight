@@ -16,7 +16,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("first\nsecond\n");
 
-        Expect::that($terminal->visibleLines())->toBe(['first', 'second', '']);
+        Expect::that($terminal->visibleLines())->because('plain text accumulates line by line')->toBe(['first', 'second', '']);
     }
 
     #[Test]
@@ -25,7 +25,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("wrong\rright");
 
-        Expect::that($terminal->visibleLines())->toBe(['right']);
+        Expect::that($terminal->visibleLines())->because('carriage return rewrites the current line from column zero')->toBe(['right']);
     }
 
     #[Test]
@@ -34,7 +34,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("top\nbottom\n\x1b[2A\rreplaced");
 
-        Expect::that($terminal->visibleLines())->toBe(['replaced', 'bottom', '']);
+        Expect::that($terminal->visibleLines())->because('cursor up moves the write head without touching content')->toBe(['replaced', 'bottom', '']);
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("keep\nlose\n\x1b[1A\r\x1b[2Krewritten");
 
-        Expect::that($terminal->visibleLines())->toBe(['keep', 'rewritten', '']);
+        Expect::that($terminal->visibleLines())->because('clear line erases only the current row')->toBe(['keep', 'rewritten', '']);
     }
 
     #[Test]
@@ -52,7 +52,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("keep\nalso keep\ngone\n\x1b[2A\rgo\x1b[0J");
 
-        Expect::that($terminal->visibleLines())->toBe(['keep', 'go']);
+        Expect::that($terminal->visibleLines())->because('erase to end of screen drops current tail and later rows')->toBe(['keep', 'go']);
     }
 
     #[Test]
@@ -61,7 +61,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("\x1b[32mok\x1b[0m plain");
 
-        Expect::that($terminal->visibleLines())->toBe(['ok plain']);
+        Expect::that($terminal->visibleLines())->because('SGR color codes are stripped by default')->toBe(['ok plain']);
     }
 
     #[Test]
@@ -70,7 +70,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator(retainColour: true);
         $terminal->write("\x1b[32mok\x1b[0m");
 
-        Expect::that($terminal->screen())->toBe("\x1b[32mok\x1b[0m");
+        Expect::that($terminal->screen())->because('SGR color codes can be retained on request')->toBe("\x1b[32mok\x1b[0m");
     }
 
     #[Test]
@@ -78,16 +78,16 @@ final class TerminalEmulatorTest
     {
         $terminal = new TerminalEmulator();
 
-        Expect::that($terminal->isCursorHidden())->toBeFalse();
+        Expect::that($terminal->isCursorHidden())->because('cursor visibility toggles without affecting the grid')->toBeFalse();
 
         $terminal->write("\x1b[?25lhidden");
 
-        Expect::that($terminal->isCursorHidden())->toBeTrue()
+        Expect::that($terminal->isCursorHidden())->because('cursor visibility toggles without affecting the grid')->toBeTrue()
             ->and($terminal->visibleLines())->toBe(['hidden']);
 
         $terminal->write("\x1b[?25h");
 
-        Expect::that($terminal->isCursorHidden())->toBeFalse();
+        Expect::that($terminal->isCursorHidden())->because('cursor visibility toggles without affecting the grid')->toBeFalse();
     }
 
     #[Test]
@@ -96,7 +96,7 @@ final class TerminalEmulatorTest
         $terminal = new TerminalEmulator();
         $terminal->write("one\ntwo");
 
-        Expect::that($terminal->screen())->toBe("one\ntwo");
+        Expect::that($terminal->screen())->because('screen joins visible lines with newlines')->toBe("one\ntwo");
     }
 
     #[Test]
@@ -104,7 +104,7 @@ final class TerminalEmulatorTest
     {
         Expect::that(static function (): void {
             new TerminalEmulator()->write("\x1b[5B");
-        })->toThrow(\RuntimeException::class, '/Unrecognized escape sequence/');
+        })->because('unrecognized escape sequences throw')->toThrow(\RuntimeException::class, '/Unrecognized escape sequence/');
     }
 
     #[Test]
@@ -112,6 +112,6 @@ final class TerminalEmulatorTest
     {
         Expect::that(static function (): void {
             new TerminalEmulator()->write("plain\x1b");
-        })->toThrow(\RuntimeException::class, '/Unrecognized escape sequence/');
+        })->because('unterminated escape bytes throw')->toThrow(\RuntimeException::class, '/Unrecognized escape sequence/');
     }
 }

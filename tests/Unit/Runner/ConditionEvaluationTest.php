@@ -29,7 +29,7 @@ final class ConditionEvaluationTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::that($summary->skipped)->toBe(1)
+        Expect::that($summary->skipped)->because('parameterized conditions skip with rendered arguments and run when satisfied')->toBe(1)
             ->and($summary->passed)->toBe(1)
             ->and($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped)
             ->and($byMethod['skipsWhenTheVariableDiffers']->skipReason)

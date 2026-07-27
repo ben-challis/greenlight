@@ -66,10 +66,10 @@ final class EventsTest
             ->add(Outcome::Failed)
             ->add(Outcome::Skipped);
 
-        Expect::that($summary->total())->toBe(4);
-        Expect::that($summary->passed)->toBe(2);
-        Expect::that($summary->isSuccessful())->toBeFalse();
-        Expect::that(new ResultSummary(passed: 1, skipped: 2)->isSuccessful())->toBeTrue();
+        Expect::that($summary->total())->because('run finished carries summary semantics')->toBe(4);
+        Expect::that($summary->passed)->because('run finished carries summary semantics')->toBe(2);
+        Expect::that($summary->isSuccessful())->because('run finished carries summary semantics')->toBeFalse();
+        Expect::that(new ResultSummary(passed: 1, skipped: 2)->isSuccessful())->because('run finished carries summary semantics')->toBeTrue();
     }
 
     #[Test]
@@ -79,6 +79,6 @@ final class EventsTest
 
         $readThroughInterface = static fn(Event $e): float => $e->occurredAt;
 
-        Expect::that($readThroughInterface($event))->toBe(123.5);
+        Expect::that($readThroughInterface($event))->because('events expose occurred at through the interface')->toBe(123.5);
     }
 }

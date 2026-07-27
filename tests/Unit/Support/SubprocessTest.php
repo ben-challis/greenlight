@@ -40,7 +40,7 @@ final readonly class SubprocessTest
             ));
         }
 
-        Expect::that($result->exitCode)->toBe(7)
+        Expect::that($result->exitCode)->because('run captures the result and honors its execution context')->toBe(7)
             ->and($result->stdout)->toBe($workingDirectory . "\nenvironment")
             ->and($result->stderr)->toBe('warning');
     }
@@ -60,7 +60,7 @@ final readonly class SubprocessTest
             ],
         );
 
-        Expect::that($result->stdout)->toHaveLength(131072)
+        Expect::that($result->stdout)->because('run drains large outputs from both streams')->toHaveLength(131072)
             ->and($result->stderr)->toHaveLength(131072);
     }
 

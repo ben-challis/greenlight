@@ -15,9 +15,9 @@ final class Utf8Test
     #[Test]
     public function validUtf8PassesThroughUntouched(): void
     {
-        Expect::that(Utf8::scrub('plain'))->toBe('plain');
-        Expect::that(Utf8::scrub('naïve ✓'))->toBe('naïve ✓');
-        Expect::that(Utf8::scrub(''))->toBe('');
+        Expect::that(Utf8::scrub('plain'))->because('valid utf8 passes through untouched')->toBe('plain');
+        Expect::that(Utf8::scrub('naïve ✓'))->because('valid utf8 passes through untouched')->toBe('naïve ✓');
+        Expect::that(Utf8::scrub(''))->because('valid utf8 passes through untouched')->toBe('');
     }
 
     #[Test]
@@ -25,9 +25,9 @@ final class Utf8Test
     {
         $scrubbed = Utf8::scrub("bad \xB1\x31 bytes");
 
-        Expect::that($scrubbed)->toMatch('//u');
-        Expect::that($scrubbed)->toContain('bad');
-        Expect::that($scrubbed)->toContain('1 bytes');
+        Expect::that($scrubbed)->because('invalid bytes are substituted')->toMatch('//u');
+        Expect::that($scrubbed)->because('invalid bytes are substituted')->toContain('bad');
+        Expect::that($scrubbed)->because('invalid bytes are substituted')->toContain('1 bytes');
     }
 
     #[Test]
@@ -36,7 +36,7 @@ final class Utf8Test
         $detail = ThrowableDetail::fromThrowable(new \RuntimeException("query failed: \xB1\x31\xFF"));
         $restored = ThrowableDetail::fromWire(JsonWire::roundTrip($detail->toWire()));
 
-        Expect::that($restored->class)->toBe(\RuntimeException::class);
-        Expect::that($restored->message)->toContain('query failed');
+        Expect::that($restored->class)->because('throwable with binary message survives the wire')->toBe(\RuntimeException::class);
+        Expect::that($restored->message)->because('throwable with binary message survives the wire')->toContain('query failed');
     }
 }

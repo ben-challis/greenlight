@@ -26,7 +26,7 @@ final class CapturedOutputTest
 
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip($original->toWire()));
 
-        Expect::that($restored->stdout)->toBe('some output')
+        Expect::that($restored->stdout)->because('survives a JSON round trip')->toBe('some output')
             ->and($restored->stdoutTruncated)->toBeTrue()
             ->and($restored->diagnosticsTruncated)->toBeFalse()
             ->and($restored->diagnostics)->toHaveCount(1)
@@ -46,7 +46,7 @@ final class CapturedOutputTest
 
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip($original->toWire()));
 
-        Expect::that($restored->stdout)->toMatch('//u')
+        Expect::that($restored->stdout)->because('binary bytes are scrubbed on the way to the wire')->toMatch('//u')
             ->toContain('stdout with')
             ->toContain('1')
             ->and(\preg_match('//u', $restored->diagnostics[0]->message))->toBe(1)
@@ -59,7 +59,7 @@ final class CapturedOutputTest
     {
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip(new CapturedOutput('')->toWire()));
 
-        Expect::that($restored->stdout)->toBe('')
+        Expect::that($restored->stdout)->because('an empty capture round trips')->toBe('')
             ->and($restored->diagnostics)->toBe([])
             ->and($restored->stdoutTruncated)->toBeFalse()
             ->and($restored->diagnosticsTruncated)->toBeFalse();
@@ -71,14 +71,14 @@ final class CapturedOutputTest
         $payload = new Diagnostic(DiagnosticSeverity::Notice, 'm', 'f.php', 1)->toWire();
         $payload['severity'] = 'fatal';
 
-        Expect::that(static fn(): Diagnostic => Diagnostic::fromWire($payload))
+        Expect::that(static fn(): Diagnostic => Diagnostic::fromWire($payload))->because('an unknown severity on the wire is rejected')
             ->toThrow(InvalidWirePayload::class, '/severity/');
     }
 
     #[Test]
     public function aMissingKeyOnTheWireIsRejected(): void
     {
-        Expect::that(static fn(): CapturedOutput => CapturedOutput::fromWire(['stdout' => 'x']))
+        Expect::that(static fn(): CapturedOutput => CapturedOutput::fromWire(['stdout' => 'x']))->because('a missing key on the wire is rejected')
             ->toThrow(InvalidWirePayload::class, '/diagnostics/');
     }
 

@@ -40,7 +40,7 @@ final class PlanShardTest
         }
 
         // The union of the shards is the complete execution plan.
-        Expect::that($total)->toBe(\count($plan->entries));
+        Expect::that($total)->because('shards partition the plan')->toBe(\count($plan->entries));
     }
 
     #[Test]
@@ -67,7 +67,7 @@ final class PlanShardTest
     {
         $plan = $this->plan(5);
 
-        Expect::that(PlanShard::select($plan, 1, 1))->toBe($plan);
+        Expect::that(PlanShard::select($plan, 1, 1))->because('one shard is the whole plan')->toBe($plan);
     }
 
     private function plan(int $classes): ExecutionPlan

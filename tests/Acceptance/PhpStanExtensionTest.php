@@ -46,7 +46,7 @@ final readonly class PhpStanExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->toBe(1)
+        Expect::that($probe->exitCode)->because('reflected matcher signatures are enforced')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(2)
             ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
@@ -94,7 +94,7 @@ final readonly class PhpStanExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->toBe(1)
+        Expect::that($probe->exitCode)->because('temporal matcher signatures are enforced')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(2)
             ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')

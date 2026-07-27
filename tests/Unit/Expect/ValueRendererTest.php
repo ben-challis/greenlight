@@ -15,22 +15,22 @@ final class ValueRendererTest
     {
         $renderer = new ValueRenderer();
 
-        Expect::that($renderer->render(null))->toBe('null');
-        Expect::that($renderer->render(true))->toBe('true');
-        Expect::that($renderer->render(false))->toBe('false');
-        Expect::that($renderer->render(42))->toBe('42');
-        Expect::that($renderer->render(-7))->toBe('-7');
-        Expect::that($renderer->render(1.5))->toBe('1.5');
-        Expect::that($renderer->render(1.0))->toBe('1.0');
-        Expect::that($renderer->render(\NAN))->toBe('NAN');
-        Expect::that($renderer->render(\INF))->toBe('INF');
-        Expect::that($renderer->render('abc'))->toBe("'abc'");
+        Expect::that($renderer->render(null))->because('renders scalars and null')->toBe('null');
+        Expect::that($renderer->render(true))->because('renders scalars and null')->toBe('true');
+        Expect::that($renderer->render(false))->because('renders scalars and null')->toBe('false');
+        Expect::that($renderer->render(42))->because('renders scalars and null')->toBe('42');
+        Expect::that($renderer->render(-7))->because('renders scalars and null')->toBe('-7');
+        Expect::that($renderer->render(1.5))->because('renders scalars and null')->toBe('1.5');
+        Expect::that($renderer->render(1.0))->because('renders scalars and null')->toBe('1.0');
+        Expect::that($renderer->render(\NAN))->because('renders scalars and null')->toBe('NAN');
+        Expect::that($renderer->render(\INF))->because('renders scalars and null')->toBe('INF');
+        Expect::that($renderer->render('abc'))->because('renders scalars and null')->toBe("'abc'");
     }
 
     #[Test]
     public function escapesControlCharactersInStrings(): void
     {
-        Expect::that(new ValueRenderer()->render("a\nb\tc"))->toBe("'a\\nb\\tc'");
+        Expect::that(new ValueRenderer()->render("a\nb\tc"))->because('escapes control characters in strings')->toBe("'a\\nb\\tc'");
     }
 
     #[Test]
@@ -38,8 +38,8 @@ final class ValueRendererTest
     {
         $rendered = new ValueRenderer()->render(\str_repeat('x', 500));
 
-        Expect::that($rendered)->toEndWith("...' (truncated from 500 characters)");
-        Expect::that(\strlen($rendered))->toBeLessThan(200);
+        Expect::that($rendered)->because('truncates long strings')->toEndWith("...' (truncated from 500 characters)");
+        Expect::that(\strlen($rendered))->because('truncates long strings')->toBeLessThan(200);
     }
 
     #[Test]
@@ -47,17 +47,17 @@ final class ValueRendererTest
     {
         $renderer = new ValueRenderer();
 
-        Expect::that($renderer->render([]))->toBe('[]');
-        Expect::that($renderer->render([1, 2]))->toBe('[1, 2]');
-        Expect::that($renderer->render(['a' => 1, 'b' => [true]]))->toBe("['a' => 1, 'b' => [true]]");
-        Expect::that($renderer->render([[[['deep']]]]))->toBe('[[[[...]]]]');
-        Expect::that($renderer->render(\range(1, 15)))->toBe('[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ... +5 more]');
+        Expect::that($renderer->render([]))->because('renders arrays with depth and item limits')->toBe('[]');
+        Expect::that($renderer->render([1, 2]))->because('renders arrays with depth and item limits')->toBe('[1, 2]');
+        Expect::that($renderer->render(['a' => 1, 'b' => [true]]))->because('renders arrays with depth and item limits')->toBe("['a' => 1, 'b' => [true]]");
+        Expect::that($renderer->render([[[['deep']]]]))->because('renders arrays with depth and item limits')->toBe('[[[[...]]]]');
+        Expect::that($renderer->render(\range(1, 15)))->because('renders arrays with depth and item limits')->toBe('[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ... +5 more]');
     }
 
     #[Test]
     public function rendersEnums(): void
     {
-        Expect::that(new ValueRenderer()->render(Signal::Green))->toBe(Signal::class . '::Green');
+        Expect::that(new ValueRenderer()->render(Signal::Green))->because('renders enums')->toBe(Signal::class . '::Green');
     }
 
     #[Test]
@@ -65,7 +65,7 @@ final class ValueRendererTest
     {
         $date = new \DateTimeImmutable('2024-01-02T03:04:05.123456+00:00');
 
-        Expect::that(new ValueRenderer()->render($date))
+        Expect::that(new ValueRenderer()->render($date))->because('renders date times')
             ->toBe('DateTimeImmutable(2024-01-02T03:04:05.123456+00:00)');
     }
 
@@ -74,7 +74,7 @@ final class ValueRendererTest
     {
         $rendered = new ValueRenderer()->render(new Credentials('ben', 'secret'));
 
-        Expect::that($rendered)->toBe(Credentials::class . " {user: 'ben', password: 'secret'}");
+        Expect::that($rendered)->because('renders plain objects by reflection')->toBe(Credentials::class . " {user: 'ben', password: 'secret'}");
     }
 
     #[Test]
@@ -82,7 +82,7 @@ final class ValueRendererTest
     {
         $rendered = new ValueRenderer()->render(new LateInit());
 
-        Expect::that($rendered)->toBe(LateInit::class . ' {value: (uninitialized)}');
+        Expect::that($rendered)->because('marks uninitialized properties')->toBe(LateInit::class . ' {value: (uninitialized)}');
     }
 
     #[Test]
@@ -90,7 +90,7 @@ final class ValueRendererTest
     {
         $inner = new Holder(new Holder(new Holder(new Holder(null))));
 
-        Expect::that(new ValueRenderer()->render($inner))->toContain('{...}');
+        Expect::that(new ValueRenderer()->render($inner))->because('limits object nesting depth')->toContain('{...}');
     }
 
     #[Test]
@@ -99,8 +99,8 @@ final class ValueRendererTest
         $renderer = new ValueRenderer();
         $stream = \fopen('php://memory', 'r');
 
-        Expect::that($renderer->render(static fn(): int => 1))->toBe('Closure (unrendered)');
-        Expect::that($renderer->render($stream))->toBe('resource (stream) (unrendered)');
+        Expect::that($renderer->render(static fn(): int => 1))->because('falls back to debug type for unrenderable values')->toBe('Closure (unrendered)');
+        Expect::that($renderer->render($stream))->because('falls back to debug type for unrenderable values')->toBe('resource (stream) (unrendered)');
 
         if (\is_resource($stream)) {
             \fclose($stream);
@@ -112,8 +112,8 @@ final class ValueRendererTest
     {
         $rendered = new ValueRenderer()->render("bad \xB1\x31 bytes");
 
-        Expect::that($rendered)->toMatch('//u');
-        Expect::that($rendered)->toContain('bad');
+        Expect::that($rendered)->because('scrubs invalid utf8')->toMatch('//u');
+        Expect::that($rendered)->because('scrubs invalid utf8')->toContain('bad');
     }
 }
 

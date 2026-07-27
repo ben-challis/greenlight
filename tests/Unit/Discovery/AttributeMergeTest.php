@@ -40,14 +40,14 @@ final class AttributeMergeTest
     {
         $metadata = $this->metadataByTest()[MergedTest::class . '::inheritsClassLevel'];
 
-        Expect::that($metadata->groups)->toBe(['cls-a', 'cls-b']);
-        Expect::that($metadata->skipReason)->toBe('class-wide skip');
-        Expect::that($metadata->skipUnlessCondition)->toBe(AlwaysTrue::class);
-        Expect::that($metadata->retryTimes)->toBe(2);
-        Expect::that($metadata->retryOnlyOn)->toBe(null);
-        Expect::that($metadata->timeoutSeconds)->toBe(30.0);
-        Expect::that($metadata->isolated)->toBe(true);
-        Expect::that($metadata->resources)->toBe(['postgres', 'redis']);
+        Expect::that($metadata->groups)->because('plain method on class with attributes inherits everything')->toBe(['cls-a', 'cls-b']);
+        Expect::that($metadata->skipReason)->because('plain method on class with attributes inherits everything')->toBe('class-wide skip');
+        Expect::that($metadata->skipUnlessCondition)->because('plain method on class with attributes inherits everything')->toBe(AlwaysTrue::class);
+        Expect::that($metadata->retryTimes)->because('plain method on class with attributes inherits everything')->toBe(2);
+        Expect::that($metadata->retryOnlyOn)->because('plain method on class with attributes inherits everything')->toBe(null);
+        Expect::that($metadata->timeoutSeconds)->because('plain method on class with attributes inherits everything')->toBe(30.0);
+        Expect::that($metadata->isolated)->because('plain method on class with attributes inherits everything')->toBe(true);
+        Expect::that($metadata->resources)->because('plain method on class with attributes inherits everything')->toBe(['postgres', 'redis']);
     }
 
     #[Test]
@@ -55,14 +55,14 @@ final class AttributeMergeTest
     {
         $metadata = $this->metadataByTest()[MergedTest::class . '::overridesClassLevel'];
 
-        Expect::that($metadata->groups)->toBe(['cls-a', 'cls-b', 'm']);
-        Expect::that($metadata->skipReason)->toBe('method skip');
-        Expect::that($metadata->skipUnlessCondition)->toBe(AlwaysFalse::class);
-        Expect::that($metadata->retryTimes)->toBe(5);
-        Expect::that($metadata->retryOnlyOn)->toBe(\RuntimeException::class);
-        Expect::that($metadata->timeoutSeconds)->toBe(1.5);
-        Expect::that($metadata->isolated)->toBe(true);
-        Expect::that($metadata->resources)->toBe(['postgres', 'redis', 'sandbox']);
+        Expect::that($metadata->groups)->because('method level attributes win and groups merge as union')->toBe(['cls-a', 'cls-b', 'm']);
+        Expect::that($metadata->skipReason)->because('method level attributes win and groups merge as union')->toBe('method skip');
+        Expect::that($metadata->skipUnlessCondition)->because('method level attributes win and groups merge as union')->toBe(AlwaysFalse::class);
+        Expect::that($metadata->retryTimes)->because('method level attributes win and groups merge as union')->toBe(5);
+        Expect::that($metadata->retryOnlyOn)->because('method level attributes win and groups merge as union')->toBe(\RuntimeException::class);
+        Expect::that($metadata->timeoutSeconds)->because('method level attributes win and groups merge as union')->toBe(1.5);
+        Expect::that($metadata->isolated)->because('method level attributes win and groups merge as union')->toBe(true);
+        Expect::that($metadata->resources)->because('method level attributes win and groups merge as union')->toBe(['postgres', 'redis', 'sandbox']);
     }
 
     #[Test]
@@ -70,15 +70,15 @@ final class AttributeMergeTest
     {
         $metadata = $this->metadataByTest()[PlainTest::class . '::bare'];
 
-        Expect::that($metadata->groups)->toBe([]);
-        Expect::that($metadata->skipReason)->toBe(null);
-        Expect::that($metadata->skipUnlessCondition)->toBe(null);
-        Expect::that($metadata->retryTimes)->toBe(null);
-        Expect::that($metadata->retryOnlyOn)->toBe(null);
-        Expect::that($metadata->timeoutSeconds)->toBe(null);
-        Expect::that($metadata->isolated)->toBe(false);
-        Expect::that($metadata->dataSetProvider)->toBe(null);
-        Expect::that($metadata->resources)->toBe([]);
+        Expect::that($metadata->groups)->because('bare method on bare class has defaults')->toBe([]);
+        Expect::that($metadata->skipReason)->because('bare method on bare class has defaults')->toBe(null);
+        Expect::that($metadata->skipUnlessCondition)->because('bare method on bare class has defaults')->toBe(null);
+        Expect::that($metadata->retryTimes)->because('bare method on bare class has defaults')->toBe(null);
+        Expect::that($metadata->retryOnlyOn)->because('bare method on bare class has defaults')->toBe(null);
+        Expect::that($metadata->timeoutSeconds)->because('bare method on bare class has defaults')->toBe(null);
+        Expect::that($metadata->isolated)->because('bare method on bare class has defaults')->toBe(false);
+        Expect::that($metadata->dataSetProvider)->because('bare method on bare class has defaults')->toBe(null);
+        Expect::that($metadata->resources)->because('bare method on bare class has defaults')->toBe([]);
     }
 
     #[Test]
@@ -94,11 +94,11 @@ final class AttributeMergeTest
         $inherited = $map['inheritsClassCondition'];
         $overridden = $map['overridesClassCondition'];
 
-        Expect::that($inherited->skipUnlessCondition)->toBe(EnvironmentVariableEquals::class);
-        Expect::that($inherited->skipUnlessArguments)->toBe(['GREENLIGHT_MERGE_PROBE', 'on']);
-        Expect::that($overridden->skipUnlessCondition)->toBe(PhpVersionAtLeast::class);
-        Expect::that($overridden->skipUnlessArguments)->toBe(['8.0']);
-        Expect::that($inherited->class)->toBe(ArgumentsMergeTest::class);
+        Expect::that($inherited->skipUnlessCondition)->because('skip unless arguments inherit from the class and are overridden together')->toBe(EnvironmentVariableEquals::class);
+        Expect::that($inherited->skipUnlessArguments)->because('skip unless arguments inherit from the class and are overridden together')->toBe(['GREENLIGHT_MERGE_PROBE', 'on']);
+        Expect::that($overridden->skipUnlessCondition)->because('skip unless arguments inherit from the class and are overridden together')->toBe(PhpVersionAtLeast::class);
+        Expect::that($overridden->skipUnlessArguments)->because('skip unless arguments inherit from the class and are overridden together')->toBe(['8.0']);
+        Expect::that($inherited->class)->because('skip unless arguments inherit from the class and are overridden together')->toBe(ArgumentsMergeTest::class);
     }
 
     #[Test]
@@ -145,13 +145,13 @@ final class AttributeMergeTest
     {
         $metadata = $this->metadataByTest()[PlainTest::class . '::fullyDecorated'];
 
-        Expect::that($metadata->groups)->toBe(['only-here']);
-        Expect::that($metadata->skipReason)->toBe('not today');
-        Expect::that($metadata->skipUnlessCondition)->toBe(AlwaysTrue::class);
-        Expect::that($metadata->retryTimes)->toBe(3);
-        Expect::that($metadata->retryOnlyOn)->toBe(\LogicException::class);
-        Expect::that($metadata->timeoutSeconds)->toBe(2.5);
-        Expect::that($metadata->isolated)->toBe(true);
-        Expect::that($metadata->resources)->toBe(['method-only']);
+        Expect::that($metadata->groups)->because('method level attributes apply without class level counterparts')->toBe(['only-here']);
+        Expect::that($metadata->skipReason)->because('method level attributes apply without class level counterparts')->toBe('not today');
+        Expect::that($metadata->skipUnlessCondition)->because('method level attributes apply without class level counterparts')->toBe(AlwaysTrue::class);
+        Expect::that($metadata->retryTimes)->because('method level attributes apply without class level counterparts')->toBe(3);
+        Expect::that($metadata->retryOnlyOn)->because('method level attributes apply without class level counterparts')->toBe(\LogicException::class);
+        Expect::that($metadata->timeoutSeconds)->because('method level attributes apply without class level counterparts')->toBe(2.5);
+        Expect::that($metadata->isolated)->because('method level attributes apply without class level counterparts')->toBe(true);
+        Expect::that($metadata->resources)->because('method level attributes apply without class level counterparts')->toBe(['method-only']);
     }
 }

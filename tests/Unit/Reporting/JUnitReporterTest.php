@@ -41,7 +41,7 @@ final class JUnitReporterTest
             </testsuites>
             TXT;
 
-        Expect::that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->because('canned stream renders the golden XML')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -52,13 +52,13 @@ final class JUnitReporterTest
 
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::that($document)->toBeInstanceOf(\SimpleXMLElement::class);
+        Expect::that($document)->because('XML parses and counts match the stream')->toBeInstanceOf(\SimpleXMLElement::class);
 
         if ($document === false) {
             return;
         }
 
-        Expect::that((string) $document['tests'])->toBe('6')
+        Expect::that((string) $document['tests'])->because('XML parses and counts match the stream')->toBe('6')
             ->and((string) $document['failures'])->toBe('1')
             ->and((string) $document['errors'])->toBe('1')
             ->and((string) $document['skipped'])->toBe('1')

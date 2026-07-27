@@ -46,7 +46,7 @@ final readonly class AttachmentsTest
             attachments: $retained,
         ));
 
-        Expect::that($published->attachments)->toHaveCount(5)
+        Expect::that($published->attachments)->because('stages publishes and hashes every attachment kind')->toHaveCount(5)
             ->and($published->attachments[1]->name)->toBe('response.txt')
             ->and($published->attachments[3]->name)->toBe('response.txt')
             ->and($published->attachments[3]->path)->toContain('response-2.txt');
@@ -57,9 +57,9 @@ final readonly class AttachmentsTest
                 ->and(\hash_file('sha256', $path))->toBe($attachment->sha256);
         }
 
-        Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[0]->path)))
+        Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[0]->path)))->because('stages publishes and hashes every attachment kind')
             ->toBe("{\"ok\":true}\n");
-        Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[4]->path)))
+        Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[4]->path)))->because('stages publishes and hashes every attachment kind')
             ->toBe("\x00file");
 
         $store->cleanup();
@@ -82,7 +82,7 @@ final readonly class AttachmentsTest
             attachments: $attachments->seal(),
         ));
 
-        Expect::that($published->attachments)->toHaveCount(1)
+        Expect::that($published->attachments)->because('passing attempts discard on failure attachments but keep always')->toHaveCount(1)
             ->and($published->attachments[0]->name)->toBe('kept.txt');
 
         $store->cleanup();
@@ -95,12 +95,12 @@ final readonly class AttachmentsTest
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-lazy');
         $output = $store->publicDirectory();
 
-        Expect::that(\file_exists($output))->toBeFalse();
+        Expect::that(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
 
         $id = new TestId('Example\EvidenceTest', 'passes');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
 
-        Expect::that(\file_exists($output))->toBeFalse();
+        Expect::that(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
 
         $attachments->text('discarded.txt', 'discard me');
         $published = $store->publish(new TestResult(
@@ -111,7 +111,7 @@ final readonly class AttachmentsTest
             attachments: $attachments->seal(),
         ));
 
-        Expect::that($published->attachments)->toBe([])
+        Expect::that($published->attachments)->because('output directory is created only when evidence is published')->toBe([])
             ->and(\file_exists($output))->toBeFalse();
 
         $store->cleanup();
@@ -134,20 +134,20 @@ final readonly class AttachmentsTest
         $budget = new TestArtifactBudget();
         $attachments = $store->forAttempt($id, 1, $budget);
 
-        Expect::that(static fn() => $attachments->text('../secret', 'x'))
+        Expect::that(static fn() => $attachments->text('../secret', 'x'))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
-        Expect::that(static fn() => $attachments->bytes('large.bin', '12345'))
+        Expect::that(static fn() => $attachments->bytes('large.bin', '12345'))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
 
         $attachments->text('one.txt', '1234');
 
-        Expect::that(static fn() => $attachments->text('two.txt', 'x'))
+        Expect::that(static fn() => $attachments->text('two.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
         $retry = $store->forAttempt($id, 2, $budget);
-        Expect::that(static fn() => $retry->text('retry.txt', 'x'))
+        Expect::that(static fn() => $retry->text('retry.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
         $runLimited = $store->forAttempt(new TestId('Example\EvidenceTest', 'run-limit'), 1, new TestArtifactBudget());
-        Expect::that(static fn() => $runLimited->text('other.txt', 'x'))
+        Expect::that(static fn() => $runLimited->text('other.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
 
         $source = $this->tempDirectory->path() . '/target.txt';
@@ -156,7 +156,7 @@ final readonly class AttachmentsTest
         \symlink($source, $link);
         $other = $store->forAttempt(new TestId('Example\EvidenceTest', 'symlink'), 1, new TestArtifactBudget());
 
-        Expect::that(static fn() => $other->file('link.txt', $link))
+        Expect::that(static fn() => $other->file('link.txt', $link))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
 
         $store->cleanup();
@@ -173,7 +173,7 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attachments)->toHaveCount(1)
+        Expect::that($recovered->attachments)->because('completed evidence can be recovered after a worker crash')->toHaveCount(1)
             ->and($recovered->attachments[0]->name)->toBe('last-response.txt')
             ->and(\is_file($recovered->attachments[0]->path))->toBeTrue();
 
@@ -194,7 +194,7 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attempts)->toBe(2)
+        Expect::that($recovered->attempts)->because('crash recovery restores the latest attempt without an attachment')->toBe(2)
             ->and($recovered->attachments)->toHaveCount(1)
             ->and($recovered->attachments[0]->attempt)->toBe(1);
 

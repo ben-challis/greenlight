@@ -20,18 +20,18 @@ final class WatchTest
     {
         $debouncer = new Debouncer(0.2);
 
-        Expect::that($debouncer->shouldFire(10.0))->toBeFalse();
+        Expect::that($debouncer->shouldFire(10.0))->because('debounce fires only after the quiet period')->toBeFalse();
 
         $debouncer->noteChange(10.0);
-        Expect::that($debouncer->shouldFire(10.1))->toBeFalse();
+        Expect::that($debouncer->shouldFire(10.1))->because('debounce fires only after the quiet period')->toBeFalse();
 
         // Multiple consecutive changes restart the quiet timer.
         $debouncer->noteChange(10.15);
-        Expect::that($debouncer->shouldFire(10.3))->toBeFalse()
+        Expect::that($debouncer->shouldFire(10.3))->because('debounce fires only after the quiet period')->toBeFalse()
             ->and($debouncer->shouldFire(10.4))->toBeTrue();
 
         $debouncer->reset();
-        Expect::that($debouncer->shouldFire(11.0))->toBeFalse();
+        Expect::that($debouncer->shouldFire(11.0))->because('debounce fires only after the quiet period')->toBeFalse();
     }
 
     #[Test]
@@ -132,7 +132,7 @@ final class WatchTest
         // The sequence has an initial run and one delayed run for the changes.
         // The delayed run starts with classes that initially failed. Enter
         // then causes one complete run.
-        Expect::that($runs)->toHaveCount(3)
+        Expect::that($runs)->because('loop debounces bursts forces on enter and quits on q')->toHaveCount(3)
             ->and($runs[0])->toBe([])
             ->and($runs[1])->toBe(['App\\BrokenTest'])
             ->and($runs[2])->toBe([])

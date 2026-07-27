@@ -25,7 +25,7 @@ final readonly class SequentialFallbackTest
             ['run', '--workers=4', '--reporter=plain'],
             phpArguments: ['-d', 'disable_functions=proc_open'],
         );
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('disabled proc open falls back to in process')->toBe(0)
             ->and($result->output())->toContain('7 tests, 7 passed')
             ->not()->toContain('proc_open');
     }

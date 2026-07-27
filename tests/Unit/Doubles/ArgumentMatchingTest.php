@@ -26,7 +26,7 @@ final class ArgumentMatchingTest
             $plan->expects('add')->with(Argument::type('int'), Argument::type('int'))->once()->andReturns(5);
         });
 
-        Expect::that($calculator->add(2, 3))->toBe(5);
+        Expect::that($calculator->add(2, 3))->because('type matches builtin values')->toBe(5);
 
         $doubles->dispose();
     }
@@ -77,7 +77,7 @@ final class ArgumentMatchingTest
                 ->andReturns(3);
         });
 
-        Expect::that($calculator->add(2, 1))->toBe(3);
+        Expect::that($calculator->add(2, 1))->because('predicate matches when the closure returns true')->toBe(3);
 
         $doubles->dispose();
     }
@@ -125,7 +125,7 @@ final class ArgumentMatchingTest
             $plan->expects('add')->with(1, Argument::type('int'))->once()->andReturns(9);
         });
 
-        Expect::that($calculator->add(1, 8))->toBe(9);
+        Expect::that($calculator->add(1, 8))->because('bare values and matchers mix in one with')->toBe(9);
 
         $doubles->dispose();
     }
@@ -142,7 +142,7 @@ final class ArgumentMatchingTest
         $calculator->add(1, 7);
         $calculator->add(999, 7);
 
-        Expect::that($captor->values())->toEqual([1, 999])
+        Expect::that($captor->values())->because('a captor in with collects values in call order')->toEqual([1, 999])
             ->and($captor->value())->toBe(999);
 
         $doubles->dispose();
@@ -151,7 +151,7 @@ final class ArgumentMatchingTest
     #[Test]
     public function aCaptorWithoutCapturesRefusesToProduceAValue(): void
     {
-        Expect::that(static fn(): mixed => Argument::captor()->value())
+        Expect::that(static fn(): mixed => Argument::captor()->value())->because('a captor without captures refuses to produce a value')
             ->toThrow(DoublesError::class, '/captured/');
     }
 
@@ -174,7 +174,7 @@ final class ArgumentMatchingTest
             ));
         }
 
-        Expect::that($captor->values())->toEqual([9, 8]);
+        Expect::that($captor->values())->because('capture argument records every matched call')->toEqual([9, 8]);
 
         $doubles->dispose();
     }
@@ -197,7 +197,7 @@ final class ArgumentMatchingTest
             ));
         }
 
-        Expect::that($captor->value())->toBe(42);
+        Expect::that($captor->value())->because('capture argument works alongside with constraints')->toBe(42);
 
         $doubles->dispose();
     }
@@ -209,7 +209,7 @@ final class ArgumentMatchingTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->captureArgument(-1);
-        }))->toThrow(DoublesError::class, '/-1/');
+        }))->because('capture argument rejects negative positions')->toThrow(DoublesError::class, '/-1/');
     }
 
     #[Test]
@@ -226,7 +226,7 @@ final class ArgumentMatchingTest
         $calculator->add(1, 10);
         $calculator->add(2, 20);
 
-        Expect::that($first->values())->toEqual([10])
+        Expect::that($first->values())->because('captors only see calls their own expectation matched')->toEqual([10])
             ->and($second->values())->toEqual([20]);
 
         $doubles->dispose();

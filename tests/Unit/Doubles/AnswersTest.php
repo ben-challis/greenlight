@@ -21,7 +21,7 @@ final class AnswersTest
             $plan->expects('add')->times(3)->andReturnsSequence(1, 2, 3);
         });
 
-        Expect::that($calculator->add(0, 0))->toBe(1)
+        Expect::that($calculator->add(0, 0))->because('a sequence returns its values in order')->toBe(1)
             ->and($calculator->add(0, 0))->toBe(2)
             ->and($calculator->add(0, 0))->toBe(3);
 
@@ -36,7 +36,7 @@ final class AnswersTest
             $plan->expects('add')->atLeast(1)->andReturnsSequence(5);
         });
 
-        Expect::that($calculator->add(0, 0))->toBe(5)
+        Expect::that($calculator->add(0, 0))->because('a matched call after sequence exhaustion is an authoring error')->toBe(5)
             ->and(static fn(): int => $calculator->add(0, 0))
             ->toThrow(DoublesError::class, '/add/');
     }
@@ -48,7 +48,7 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturnsSequence();
-        }))->toThrow(DoublesError::class, '/at least one value/');
+        }))->because('an empty sequence is rejected')->toThrow(DoublesError::class, '/at least one value/');
     }
 
     #[Test]
@@ -59,7 +59,7 @@ final class AnswersTest
             $plan->expects('add')->once()->andReturnsUsing(static fn(int $a, int $b): int => $a + $b);
         });
 
-        Expect::that($calculator->add(19, 23))->toBe(42);
+        Expect::that($calculator->add(19, 23))->because('and() returns using receives the call arguments')->toBe(42);
 
         $doubles->dispose();
     }
@@ -71,7 +71,7 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andReturnsSequence(2, 3);
-        }))->toThrow(DoublesError::class, '/add/');
+        }))->because('a second answer kind on one expectation is rejected')->toThrow(DoublesError::class, '/add/');
     }
 
     #[Test]
@@ -81,7 +81,7 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andReturnsUsing(static fn(): int => 2);
-        }))->toThrow(DoublesError::class, '/add/');
+        }))->because('a callback after a return value is rejected')->toThrow(DoublesError::class, '/add/');
     }
 
     #[Test]
@@ -91,7 +91,7 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturnsSequence(1)->andReturns(2);
-        }))->toThrow(DoublesError::class, '/add/');
+        }))->because('a return value after a sequence is rejected')->toThrow(DoublesError::class, '/add/');
     }
 
     #[Test]
@@ -101,7 +101,7 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andThrows(new \RuntimeException('boom'));
-        }))->toThrow(DoublesError::class, '/add/');
+        }))->because('a throwable after a return value is rejected')->toThrow(DoublesError::class, '/add/');
     }
 
     #[Test]
@@ -111,7 +111,7 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andThrows(new \RuntimeException('boom'))->andReturns(1);
-        }))->toThrow(DoublesError::class, '/add/');
+        }))->because('a return value after a throwable is rejected')->toThrow(DoublesError::class, '/add/');
     }
 
     #[Test]
@@ -122,7 +122,7 @@ final class AnswersTest
             $plan->expects('add')->times(2)->andReturnsSequence(10, 20);
         });
 
-        Expect::that($calculator->add(1, 1))->toBe(10)
+        Expect::that($calculator->add(1, 1))->because('a sequence with times stays consistent')->toBe(10)
             ->and($calculator->add(2, 2))->toBe(20);
 
         $doubles->dispose();

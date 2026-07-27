@@ -29,9 +29,9 @@ final class Psr4ViolationTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryPsr4Violation');
 
-        Expect::that($message)->toContain('not autoloadable');
-        Expect::that($message)->toContain(MismatchTest::class);
-        Expect::that($message)->toContain('MismatchTest.php');
+        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('not autoloadable');
+        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain(MismatchTest::class);
+        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('MismatchTest.php');
     }
 
     #[Test]
@@ -39,8 +39,8 @@ final class Psr4ViolationTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryClassNameMismatch');
 
-        Expect::that($message)->toContain('SomethingElseTest');
-        Expect::that($message)->toContain('WrongNameTest');
+        Expect::that($message)->because('class name not matching file name produces a typed error')->toContain('SomethingElseTest');
+        Expect::that($message)->because('class name not matching file name produces a typed error')->toContain('WrongNameTest');
     }
 
     #[Test]
@@ -48,7 +48,7 @@ final class Psr4ViolationTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryNoClass');
 
-        Expect::that($message)->toContain('does not declare any class');
-        Expect::that($message)->toContain('NothingHereTest.php');
+        Expect::that($message)->because('file without any declaration produces a typed error')->toContain('does not declare any class');
+        Expect::that($message)->because('file without any declaration produces a typed error')->toContain('NothingHereTest.php');
     }
 }

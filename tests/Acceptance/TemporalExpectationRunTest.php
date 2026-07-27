@@ -78,7 +78,7 @@ final readonly class TemporalExpectationRunTest
             '--reporter=plain',
         ]);
 
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('a worker polls real asynchronous external state')->toBe(0)
             ->and($result->output())->toContain('1 test, 1 passed, 1 expectation');
     }
 }

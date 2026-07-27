@@ -22,7 +22,7 @@ final class ResultPolicyTest
         $policy = new ResultPolicy(failOnDeprecation: true);
         $result = $policy->apply($this->passedWithDeprecation());
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed)
+        Expect::that($result->outcome)->because('a policy flip preserves the rest of the result')->toBe(Outcome::Failed)
             ->and($result->expectations)->toBe(5)
             ->and($result->attempts)->toBe(2)
             ->and($result->durationSeconds)->toBe(0.25)
@@ -38,7 +38,7 @@ final class ResultPolicyTest
         $policy = new ResultPolicy(failOnDeprecation: true, ignoreDeprecations: ['rusty']);
         $before = $this->passedWithDeprecation();
 
-        Expect::that($policy->apply($before))->toBe($before);
+        Expect::that($policy->apply($before))->because('an ignored deprecation leaves the result untouched')->toBe($before);
     }
 
     private function passedWithDeprecation(): TestResult
