@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\RunFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 
@@ -67,5 +68,33 @@ final class JUnitReporterTest
             ->and($document->xpath('//failure'))->toHaveCount(1)
             ->and($document->xpath('//error'))->toHaveCount(1)
             ->and($document->xpath('//skipped'))->toHaveCount(1);
+    }
+
+    #[Test]
+    public function testDurationsProvideTheTotalWithoutARunFinishedEvent(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+
+        foreach (CannedStream::events() as $event) {
+            if (!$event instanceof RunFinished) {
+                $reporter->onEvent($event);
+            }
+        }
+
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('JUnit output without RunFinished MUST remain valid')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        if ($document === false) {
+            return;
+        }
+
+        Expect::that((string) $document['time'])
+            ->because('test durations provide the total when RunFinished is absent')
+            ->toBe('0.527000');
     }
 }
