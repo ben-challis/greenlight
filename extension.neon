@@ -8,6 +8,7 @@ parameters:
         configFiles: []
 
 rules:
+    - Greenlight\PhpStan\AttributeArgumentRule
     - Greenlight\PhpStan\DataProviderSignatureRule
     - Greenlight\PhpStan\LifecycleMethodRule
     - Greenlight\PhpStan\TestMethodRule
