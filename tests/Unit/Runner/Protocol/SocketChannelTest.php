@@ -14,6 +14,35 @@ use Greenlight\Runner\Protocol\SocketChannel;
 final class SocketChannelTest
 {
     #[Test]
+    public function peerEofRejectsAnIncompleteFrame(): void
+    {
+        [$stream, $peer] = $this->socketPair();
+        $channel = new SocketChannel($stream);
+
+        try {
+            \fwrite($peer, \pack('N', 10) . 'abc');
+            \fclose($peer);
+
+            Expect::that($channel->poll())
+                ->because('the first poll reads the incomplete frame')
+                ->toBeNull();
+
+            Expect::that(static fn(): mixed => $channel->poll())
+                ->because('peer EOF MUST reject an incomplete frame')
+                ->toThrow(
+                    ProtocolError::class,
+                    message: 'Malformed frame: peer closed the connection with an incomplete frame.',
+                );
+        } finally {
+            $channel->close();
+
+            if (\is_resource($peer)) {
+                \fclose($peer);
+            }
+        }
+    }
+
+    #[Test]
     public function anExternallyClosedStreamEndsPollingAndRejectsWrites(): void
     {
         [$stream, $peer] = $this->socketPair();

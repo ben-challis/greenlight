@@ -24,6 +24,11 @@ final class FrameBuffer
         $this->buffer .= $bytes;
     }
 
+    public function hasPendingBytes(): bool
+    {
+        return $this->buffer !== '';
+    }
+
     /**
      * @return non-empty-string|null the next complete frame body, or null when more bytes are needed
      *
