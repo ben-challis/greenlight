@@ -44,6 +44,35 @@ final class AttachmentReporterTest
     }
 
     #[Test]
+    public function plainReporterRendersAttachmentsFromSuccessfulTestsOnce(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new PlainReporter($output);
+        $fixture = $this->result();
+        $passed = new TestResult(
+            $fixture->id,
+            Outcome::Passed,
+            0.1,
+            0,
+            attachments: $fixture->attachments,
+        );
+
+        $reporter->onEvent(new TestFinished($passed, 1.0));
+        $reporter->finish();
+
+        Expect::that(\substr_count(
+            $output->buffer(),
+            'build/greenlight-artifacts/run-1/response.json',
+        ))
+            ->because('successful attachment metadata MUST be rendered exactly once')
+            ->toBe(1)
+            ->and($output->buffer())
+            ->because('reporters MUST NOT inline attachment content')
+            ->not()
+            ->toContain('secret response body');
+    }
+
+    #[Test]
     public function ttyReporterDoesNotRetainSuccessfulResultsUntilFinish(): void
     {
         $output = new BufferOutput();
