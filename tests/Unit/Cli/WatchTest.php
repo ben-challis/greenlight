@@ -12,6 +12,7 @@ use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
+use Greenlight\Core\GracefulShutdown;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -166,6 +167,53 @@ final readonly class WatchTest
         });
 
         Expect::that($events)->toBe(['baseline', 'run', 'ready', 'key']);
+    }
+
+    #[Test]
+    public function loopStopsAfterTheCurrentRunWhenShutdownIsRequested(): void
+    {
+        $detector = new class implements ChangeDetector, Fake {
+            public int $polls = 0;
+
+            #[\Override]
+            public function poll(): array
+            {
+                ++$this->polls;
+
+                return [];
+            }
+        };
+        $keys = new class implements KeyInput, Fake {
+            #[\Override]
+            public function poll(): ?string
+            {
+                Fail::because('Watch mode MUST not poll for keys after a shutdown request.');
+            }
+        };
+        $shutdown = new GracefulShutdown();
+        $runs = 0;
+
+        new WatchLoop(
+            $detector,
+            new Debouncer(0.0),
+            $keys,
+            new SystemWatchClock(),
+            static function (string $text): void {},
+            $shutdown,
+        )->run(static function (array $priorityClasses) use (&$runs, $shutdown): array {
+            ++$runs;
+            $shutdown->request(15);
+
+            return [];
+        });
+
+        Expect::that($runs)
+            ->because('watch mode stops after the run that receives a shutdown request')
+            ->toBe(1)
+            ->and($detector->polls)
+            ->toBe(1)
+            ->and($shutdown->exitCode())
+            ->toBe(143);
     }
 
     #[Test]
