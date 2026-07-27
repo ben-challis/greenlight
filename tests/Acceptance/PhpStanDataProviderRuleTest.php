@@ -227,4 +227,112 @@ final readonly class PhpStanDataProviderRuleTest
             ->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
             ->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
     }
+
+    #[Test]
+    public function providerKeysAndEmptyOrDuplicateRowsAreChecked(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightProviderKeyProbe;
+
+            use Greenlight\Attribute\DataRow;
+            use Greenlight\Attribute\DataSet;
+            use Greenlight\Attribute\Test;
+
+            final class GoodProviderKeyProbe
+            {
+                #[Test]
+                #[DataRow([1])]
+                #[DataRow([2], 'two')]
+                #[DataSet('rows')]
+                public function acceptsRows(int $value): void
+                {
+                    echo $value;
+                }
+
+                /**
+                 * @return iterable<int|string, array{int}>
+                 */
+                public static function rows(): iterable
+                {
+                    yield 0 => [3];
+                    yield 'four' => [4];
+                }
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightProviderKeyProbe;
+
+            use Greenlight\Attribute\DataRow;
+            use Greenlight\Attribute\DataSet;
+            use Greenlight\Attribute\Test;
+
+            final class BadProviderKeyProbe
+            {
+                #[Test]
+                #[DataRow([1], 'same')]
+                #[DataRow([2], 'same')]
+                public function duplicateLabels(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
+                #[DataRow([1])]
+                #[DataRow([2], '#0')]
+                public function duplicateGeneratedLabel(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
+                #[DataSet('invalidKeys')]
+                public function invalidProviderKeys(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
+                #[DataSet('empty')]
+                public function emptyProvider(int $value): void
+                {
+                    echo $value;
+                }
+
+                /**
+                 * @return iterable<bool, array{int}>
+                 */
+                public static function invalidKeys(): iterable
+                {
+                    throw new \LogicException();
+                }
+
+                /**
+                 * @return array{}
+                 */
+                public static function empty(): array
+                {
+                    return [];
+                }
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->because('provider keys and empty or duplicate rows are checked')->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and(\count($probe->errors))->toBe(4)
+            ->and($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
+            ->toContain('#[DataRow] key "#0" occurs more than once on duplicateGeneratedLabel()')
+            ->toContain('invalidKeys() keys must be int or string, returns bool keys')
+            ->toContain('empty() must yield at least one argument array');
+    }
 }

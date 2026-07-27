@@ -137,10 +137,14 @@ first, PHPStan reports a broken provider before a test can report the error:
   must accept zero arguments. It belongs to the test class or the provider
   class in the two-argument form.
 * The provider must return an iterable of argument arrays.
+* The provider keys must be integers or strings, and a provider with a
+  statically empty return type is invalid.
 * PHPStan can know the exact row shape from an `array{...}` return type or an
   inline `#[DataRow]` literal. In this case, the rule checks each value against
   the applicable test method parameter. It also reports rows with too few
   or too many values.
+* Constant inline row labels must be unique. An explicit label must not
+  duplicate a generated positional label such as `#0`.
 
 ```php
 #[Test]
@@ -176,8 +180,8 @@ type `iterable<array<mixed>>`. PHPStan requires only that each row is an array.
 Greenlight checks the array contents at run time.
 
 Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
-`parameters`, `returnType`, `arity`, `argument`). Thus, you can suppress a
-deliberate exception inline:
+`parameters`, `returnType`, `keyType`, `empty`, `duplicateKey`, `arity`,
+`argument`). Thus, you can suppress a deliberate exception inline:
 
 ```php
 #[DataSet('doesNotExist')] // @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)

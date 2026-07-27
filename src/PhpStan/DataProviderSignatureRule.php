@@ -17,7 +17,10 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\IntegerType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -50,7 +53,7 @@ final readonly class DataProviderSignatureRule implements Rule
     {
         $method = $node->getMethodReflection();
         $acceptor = null;
-        $errors = [];
+        $errors = $this->checkDataRowKeys($node, $scope);
 
         foreach ($node->getOriginalNode()->attrGroups as $group) {
             foreach ($group->attrs as $attribute) {
@@ -69,6 +72,48 @@ final readonly class DataProviderSignatureRule implements Rule
                 $errors = [...$errors, ...($name === DataRow::class
                     ? $this->checkDataRow($attribute, $acceptor, $method->getName(), $scope)
                     : $this->checkDataSet($attribute, $acceptor, $node->getClassReflection(), $method->getName(), $scope))];
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function checkDataRowKeys(InClassMethodNode $node, Scope $scope): array
+    {
+        $keys = [];
+        $position = 0;
+        $errors = [];
+
+        foreach ($node->getOriginalNode()->attrGroups as $group) {
+            foreach ($group->attrs as $attribute) {
+                if ($scope->resolveName($attribute->name) !== DataRow::class) {
+                    continue;
+                }
+
+                $label = $this->attributeArgument($attribute, 1, 'label');
+                $labels = $label instanceof Node\Expr
+                    ? $scope->getType($label)->getConstantStrings()
+                    : [];
+                $key = \count($labels) === 1
+                    ? $labels[0]->getValue()
+                    : ($label instanceof Node\Expr ? null : \sprintf('#%d', $position));
+
+                if ($key !== null && isset($keys[$key])) {
+                    $errors[] = $this->error(
+                        \sprintf('#[DataRow] key "%s" occurs more than once on %s().', $key, $node->getMethodReflection()->getName()),
+                        'duplicateKey',
+                        $attribute->getStartLine(),
+                    );
+                }
+
+                if ($key !== null) {
+                    $keys[$key] = true;
+                }
+
+                ++$position;
             }
         }
 
@@ -220,6 +265,14 @@ final readonly class DataProviderSignatureRule implements Rule
             )];
         }
 
+        if ($returnType->isIterableAtLeastOnce()->no()) {
+            return [$this->error(
+                \sprintf('Data provider %s::%s() must yield at least one argument array.', $providerClass->getDisplayName(), $provider),
+                'empty',
+                $line,
+            )];
+        }
+
         $rowType = $returnType->getIterableValueType();
 
         if ($rowType->isArray()->no()) {
@@ -231,6 +284,22 @@ final readonly class DataProviderSignatureRule implements Rule
                     $rowType->describe(VerbosityLevel::typeOnly()),
                 ),
                 'returnType',
+                $line,
+            )];
+        }
+
+        $keyType = $returnType->getIterableKeyType();
+        $allowedKeyType = TypeCombinator::union(new IntegerType(), new StringType());
+
+        if ($allowedKeyType->isSuperTypeOf($keyType)->no()) {
+            return [$this->error(
+                \sprintf(
+                    'Data provider %s::%s() keys must be int or string, returns %s keys.',
+                    $providerClass->getDisplayName(),
+                    $provider,
+                    $keyType->describe(VerbosityLevel::typeOnly()),
+                ),
+                'keyType',
                 $line,
             )];
         }
