@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Core\Wire\InvalidWirePayload;
+
 /**
  * fromDecoded() examines input JSON. It returns null if a part has an
  * incorrect form. Thus, discovery parses the file again after a corrupt cache
@@ -75,6 +77,26 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
         }
 
         return new self($decoded['mtime'], $decoded['size'], $payloads, $dependencies);
+    }
+
+    /**
+     * Returns null if a stored plan entry cannot decode.
+     *
+     * @return list<PlanEntry>|null
+     */
+    public function planEntries(): ?array
+    {
+        $entries = [];
+
+        try {
+            foreach ($this->entries as $payload) {
+                $entries[] = PlanEntry::fromWire($payload);
+            }
+        } catch (\InvalidArgumentException|InvalidWirePayload) {
+            return null;
+        }
+
+        return $entries;
     }
 
     /**

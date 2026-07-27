@@ -7,7 +7,6 @@ namespace Greenlight\Discovery;
 use Greenlight\Core\AtomicFile;
 use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Wire\InvalidWirePayload;
 
 /**
  * Stores one discovery cache entry for each file. The path, mtime, size, and
@@ -86,14 +85,9 @@ final class DiscoveryCache
             }
         }
 
-        $entries = [];
+        $entries = $cached->planEntries();
 
-        try {
-            foreach ($cached->entries as $payload) {
-                $entries[] = PlanEntry::fromWire($payload);
-            }
-        } catch (\InvalidArgumentException|InvalidWirePayload) {
-            // Treat a cache payload that cannot decode as a cache miss.
+        if ($entries === null) {
             return null;
         }
 

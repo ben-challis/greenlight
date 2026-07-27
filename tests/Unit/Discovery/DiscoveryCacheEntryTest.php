@@ -47,6 +47,16 @@ final class DiscoveryCacheEntryTest
             ->toBeNull();
     }
 
+    #[Test]
+    public function anUndecodablePlanEntryBecomesACacheMiss(): void
+    {
+        $entry = new DiscoveryCacheEntry(100, 200, [[]]);
+
+        Expect::that($entry->planEntries())
+            ->because('an undecodable plan entry MUST become a cache miss')
+            ->toBeNull();
+    }
+
     /**
      * @return iterable<string, array{array<mixed>}>
      */
