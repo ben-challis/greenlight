@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Artifact;
 
 /**
- * Rejects attachment calls made outside an executor-owned test attempt.
+ * Rejects attachment calls outside a test attempt that the executor owns.
  *
  * @internal
  */

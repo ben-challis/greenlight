@@ -9,12 +9,12 @@ use Greenlight\Expect\Expectation;
 use Greenlight\Expect\TemporalExpectation;
 
 /**
- * IDE indexers do not run PHPStan plugins, so the helper duplicates the
- * Expectation declaration with configured matchers as @method annotations.
+ * IDE indexers do not run PHPStan plugins. Thus, the helper copies the
+ * Expectation declaration. It adds configured matchers as @method annotations.
  *
- * The generated file is never executed or autoloaded; it exists only to be
- * indexed. Regenerate it when matchers change. Signatures share MatcherMap
- * with the PHPStan extension.
+ * An IDE indexes the generated file but does not execute or load it. When
+ * matchers change, generate the file again. The PHPStan extension and this
+ * helper use the same MatcherMap signatures.
  *
  * @internal
  */

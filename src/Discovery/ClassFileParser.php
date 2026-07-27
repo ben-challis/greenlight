@@ -8,9 +8,9 @@ use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Extracts class-like declarations from a PHP file using the tokenizer, so
- * discovery can decide which fully qualified name to autoload without ever
- * executing an unknown file directly.
+ * Uses the tokenizer to get class-like declarations from a PHP file.
+ * Discovery can then give a fully qualified name to the autoloader.
+ * It does not execute an unknown file directly.
  *
  * @internal
  */

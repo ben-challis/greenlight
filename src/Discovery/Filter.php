@@ -7,20 +7,20 @@ namespace Greenlight\Discovery;
 use Greenlight\Core\Wildcard;
 
 /**
- * Pure, composable selection rules applied to discovered tests before
- * data-set expansion.
+ * Defines selection rules for discovered tests before data-set expansion.
+ * The rules do not change state, and callers can combine them.
  *
- * Include lists are OR-ed within a dimension and AND-ed across dimensions;
- * exclude lists always win.
+ * A test satisfies an include dimension if it matches one include value. It
+ * must satisfy each applicable dimension. An exclude value always has
+ * priority.
  *
- * accepts() applies the group, class, method, and path dimensions. Class and
- * method filters match by substring, or by shell-style wildcard when the
- * filter contains "*" or "?". Path filters match by path prefix.
+ * accepts() applies group, class, method, and path filters. Class and method
+ * filters match part of the text. A filter with "*" or "?" uses a shell wildcard.
+ * A path filter matches a path prefix.
  *
- * acceptsId() applies the id filters after data-set expansion, against the
- * rendered test id (Class::method, with the data-set label when present),
- * case insensitively, with the same substring-or-wildcard rule; exact ids
- * match the rendered id verbatim.
+ * acceptsId() applies test ID filters after data-set expansion. The comparison
+ * does not use letter case. It uses the same partial-text or wildcard rule.
+ * Exact test IDs match the complete rendered test ID.
  *
  * @internal
  */

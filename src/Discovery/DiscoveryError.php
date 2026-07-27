@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 /**
- * Raised whenever discovery cannot turn a test file into plan entries.
+ * Discovery raises this error when it cannot make plan entries from a test file.
  *
- * Discovery never silently skips a file it cannot resolve; every failure
- * mode has a named constructor whose message identifies the file, class, or
- * method involved.
+ * Discovery does not silently ignore a file that it cannot resolve. Each
+ * failure type has a named constructor. Its message identifies the applicable
+ * file, class, or method.
  *
  * @internal
  */

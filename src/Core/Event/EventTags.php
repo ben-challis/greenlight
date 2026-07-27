@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Core\Event;
 
 /**
- * The canonical stable tag per event class, shared by every surface that
- * names events outside PHP (the wire protocol, machine-readable reporters).
+ * Defines one stable tag for each event class.
  *
- * Additive only: a tag, once shipped, never changes meaning.
+ * The wire protocol and reporters for machine consumers use these tags outside PHP.
+ * Add new tags only. Do not change what a published tag identifies.
  *
- * suite-started and suite-finished are reserved: registered so the tags stay
- * stable, but no run emits them until execution gains suite boundaries.
+ * The registry contains suite-started and suite-finished as reserved tags.
+ * No run emits these tags until execution has suite boundaries.
  *
  * @internal
  */

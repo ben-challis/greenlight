@@ -10,10 +10,10 @@ use Greenlight\Coverage\FileCoverage;
 /**
  * Removes ignored lines from a merged coverage map.
  *
- * apply() scans each file once and subtracts its ignored lines from both
- * the covered and uncovered sets, so ignored code affects no total whether
- * it ran or not. Files left with no executable lines are dropped, mirroring
- * how CoverageMap::fromRaw() skips files without executable lines.
+ * apply() examines each file one time. It removes ignored lines from the
+ * covered and uncovered sets. Thus, ignored code does not change totals.
+ * The method removes files with no executable lines. CoverageMap::fromRaw()
+ * also removes these files.
  *
  * @internal
  */

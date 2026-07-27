@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 /**
- * Records only the first signal and does no work in the async handler.
- * Exit codes follow the conventional 128 plus signal number.
+ * Records only the first signal. The asynchronous handler does no other work.
+ * An exit code is 128 plus the signal number.
  *
  * @internal
  */

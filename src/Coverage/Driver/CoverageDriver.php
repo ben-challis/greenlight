@@ -7,9 +7,9 @@ namespace Greenlight\Coverage\Driver;
 use Greenlight\Coverage\RawCoverage;
 
 /**
- * Implementations must be constructible without arguments so a selector can
- * instantiate them from class names, and must only be constructed when
- * isAvailable() returns true.
+ * isAvailable() MUST return true before a selector constructs an
+ * implementation. Each implementation MUST have a constructor with no
+ * arguments. Thus, a selector can create it from its class name.
  *
  * @internal
  */

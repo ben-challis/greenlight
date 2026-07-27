@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Core\Test;
 
 /**
- * Control signal: throw from a test method, a before-hook, or a beforeTest
- * subscriber to report the test as skipped with the given reason.
+ * Reports a skipped test with the specified reason.
+ *
+ * Throw this signal from a test method, a before hook, or a beforeTest subscriber.
  */
 final class SkipTest extends \Exception
 {

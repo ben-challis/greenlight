@@ -9,15 +9,15 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Files are kept sorted by path so identical coverage always serialises
- * identically.
+ * The map sorts files by path. Thus, identical coverage always has identical
+ * serialized data.
  *
- * merge() is commutative, associative, and idempotent, which lets the
- * orchestrator fold worker payloads in as they arrive, in any order, without
- * a final end-of-run merge pass.
+ * merge() is commutative, associative, and idempotent. Thus, the orchestrator
+ * can merge worker payloads in all arrival orders. It does not require a final
+ * merge operation at the end of a run.
  *
- * The wire payload is compact: under "files", each path maps to a two-element
- * list holding the covered line list and the uncovered line list.
+ * The wire payload is compact. Under "files", each path maps to a two-item
+ * list. The covered line list is first. The uncovered line list is second.
  *
  * @internal
  */
@@ -51,9 +51,9 @@ final readonly class CoverageMap implements WireSerializable
     }
 
     /**
-     * Normalises raw driver output: dead code lines are dropped, a status of
-     * one or more becomes covered, minus one becomes uncovered, and files
-     * rejected by the path filter are discarded entirely.
+     * Converts raw driver output to a coverage map. It removes dead code
+     * lines and files that the path filter rejects. A positive status becomes
+     * covered. A status of minus one becomes uncovered.
      */
     public static function fromRaw(RawCoverage $raw, ?PathFilter $filter = null): self
     {
@@ -131,8 +131,9 @@ final readonly class CoverageMap implements WireSerializable
     }
 
     /**
-     * Total covered lines as a percentage of total executable lines. An
-     * empty map counts as fully covered: there is nothing to miss.
+     * Returns total covered lines as a percentage of executable lines.
+     *
+     * An empty map has full coverage because it has no executable lines.
      */
     public function totalPercentage(): float
     {

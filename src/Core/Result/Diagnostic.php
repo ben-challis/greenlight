@@ -9,8 +9,8 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Message and file are scrubbed to valid UTF-8 when the diagnostic crosses
- * the wire, because they originate in user code.
+ * Greenlight converts the message and file to valid UTF-8 before the
+ * diagnostic crosses the wire. These values originate in user code.
  */
 final readonly class Diagnostic implements WireSerializable
 {

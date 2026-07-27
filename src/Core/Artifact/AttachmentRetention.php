@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Artifact;
 
 /**
- * Decides whether an attachment survives a successful test attempt.
+ * Determines if Greenlight retains an attachment from a successful test attempt.
  */
 enum AttachmentRetention: string
 {

@@ -7,30 +7,31 @@ namespace Greenlight\Discovery;
 use Greenlight\Attribute\DataRow;
 
 /**
- * Invokes a #[DataSet] provider at plan time and derives one stable string
- * key per yielded data set.
+ * Invokes a #[DataSet] provider when Greenlight makes the execution plan.
+ * It makes one stable string key for each data set.
  *
- * Providers are the only code discovery executes; they must be pure and are
- * held to a per-provider time budget.
+ * Discovery executes only data providers. Providers MUST be pure. For the
+ * same inputs, a provider MUST supply the same data. A provider MUST NOT
+ * change external state. Each provider has a time limit.
  *
- * Key derivation: printable string keys are used as-is, integer keys become
- * "#<value>", and empty or non-printable string keys become the first eight
- * hex characters of the key's SHA-256 hash.
+ * Greenlight does not change a printable string key. It converts an integer
+ * key to "#<value>". For an empty or nonprintable string key, it uses the
+ * first eight hexadecimal characters of the SHA-256 hash.
  *
  * @internal
  */
 final class DataSetExpander
 {
     /**
-     * Returns every data set of a test method under one key space.
+     * Returns each data set of a test method in one key space.
      *
-     * Inline #[DataRow] attributes come first in declaration order, labelled
-     * or keyed "#<position>" by their position among the rows, then the
-     * #[DataSet] provider's yields. An empty result means the test takes no
-     * data sets.
+     * Inline #[DataRow] attributes occur first in declaration order. Their
+     * labels identify them. An attribute without a label uses "#<position>".
+     * Provider data sets occur after the attributes. An empty result means
+     * that the test has no data sets.
      *
-     * Both the planner and the worker resolve through this method, so keys
-     * can never drift between plan and execution.
+     * The planner and worker both use this method. Thus, plan keys and
+     * execution keys remain equal.
      *
      * @param \ReflectionClass<covariant object> $class
      * @param non-empty-string $testMethod
@@ -90,8 +91,7 @@ final class DataSetExpander
     }
 
     /**
-     * Returns each derived key mapped to its yielded data set, in provider
-     * order.
+     * Maps each key to its data set in provider order.
      *
      * @param \ReflectionClass<covariant object> $testClass
      * @param \ReflectionClass<covariant object> $providerClass

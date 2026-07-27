@@ -17,9 +17,9 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Test\TestMetadata;
 
 /**
- * Class-level attributes merge into each method: the method-level value wins
- * on conflict, groups merge as a union (class groups first), and isolation
- * applies when either level declares it.
+ * Merges class attributes into each method. A method value has priority in a
+ * conflict. Groups combine with class groups first. Isolation applies if the
+ * class or method declares it.
  *
  * @internal
  */
@@ -97,8 +97,8 @@ final class MetadataFactory
     }
 
     /**
-     * Condition constructor arguments cross the wire to parallel workers, so
-     * only scalars and null are allowed.
+     * Condition constructor arguments cross the wire to parallel workers.
+     * Thus, constructor arguments can contain only scalars and null.
      *
      * @return list<scalar|null>
      *

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 /**
- * Execution-time condition referenced by #[SkipUnless].
+ * A run-time condition that #[SkipUnless] references.
  *
- * Implementations may take constructor arguments supplied through
- * #[SkipUnless]; constructors must only store them. Evaluation happens in
- * isSatisfied() and must be side-effect free.
+ * Implementations can receive constructor arguments from #[SkipUnless].
+ * Constructors must only store these arguments. isSatisfied() evaluates the
+ * condition and must not cause other changes.
  */
 interface Condition
 {
