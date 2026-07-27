@@ -140,13 +140,14 @@ final readonly class CliTest
     public function listTestsWithMissingConfigFailsWithTheExactPath(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'list-tests-missing-config');
+        $projectDirectory = (string) \realpath($project->directory);
         $result = GreenlightCli::run($project->directory, ['list-tests', '--config=missing.php']);
 
         Expect::that($result->exitCode)
             ->because('list tests reports an explicitly missing configuration')
             ->toBe(1)
             ->and($result->output())
-            ->toContain('Configuration file "' . $project->path('missing.php') . '" does not exist.');
+            ->toContain('Configuration file "' . $projectDirectory . '/missing.php" does not exist.');
     }
 
     #[Test]
