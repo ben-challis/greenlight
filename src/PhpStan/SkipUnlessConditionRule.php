@@ -7,16 +7,19 @@ namespace Greenlight\PhpStan;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Core\Condition;
 use PhpParser\Node;
-use PhpParser\Node\Arg;
 use PhpParser\Node\Attribute;
-use PhpParser\Node\Expr\New_;
-use PhpParser\Node\Name\FullyQualified;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\ReflectionProvider;
+use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\VerbosityLevel;
 
 /**
  * Checks #[SkipUnless] arguments against the referenced condition constructor.
+ *
+ * @internal
  *
  * @implements Rule<Attribute>
  */
@@ -57,13 +60,79 @@ final readonly class SkipUnlessConditionRule implements Rule
             return [];
         }
 
-        $scope->invokeNodeCallback(new New_(
-            new FullyQualified($class),
-            $this->conditionArguments($node),
-            $node->getAttributes(),
-        ));
+        $arguments = $this->conditionArguments($node);
 
-        return [];
+        foreach ($arguments as $argument) {
+            $type = $scope->getType($argument);
+
+            if (!$type->isNull()->yes() && !$type->isScalar()->yes()) {
+                return [];
+            }
+        }
+
+        $classReflection = $this->reflectionProvider->getClass($class);
+        $parameters = $classReflection->hasConstructor()
+            ? $classReflection->getConstructor()->getVariants()[0]->getParameters()
+            : [];
+        $required = \count(\array_filter(
+            $parameters,
+            static fn(ParameterReflection $parameter): bool => !$parameter->isOptional() && !$parameter->isVariadic(),
+        ));
+        $variadic = $parameters !== [] && $parameters[\array_key_last($parameters)]->isVariadic();
+        $actual = \count($arguments);
+
+        if ($actual < $required) {
+            return [$this->error(
+                \sprintf(
+                    '%s constructor invoked with %d %s, %d required.',
+                    $classReflection->getDisplayName(),
+                    $actual,
+                    $actual === 1 ? 'parameter' : 'parameters',
+                    $required,
+                ),
+                'arity',
+                $node->getStartLine(),
+            )];
+        }
+
+        if (!$variadic && $actual > \count($parameters)) {
+            return [$this->error(
+                \sprintf(
+                    '%s constructor invoked with %d parameters, %d accepted.',
+                    $classReflection->getDisplayName(),
+                    $actual,
+                    \count($parameters),
+                ),
+                'arity',
+                $node->getStartLine(),
+            )];
+        }
+
+        $errors = [];
+
+        foreach ($arguments as $index => $argument) {
+            $parameter = $parameters[\min($index, \count($parameters) - 1)];
+            $argumentType = $scope->getType($argument);
+
+            if ($parameter->getType()->accepts($argumentType, $scope->isDeclareStrictTypes())->yes()) {
+                continue;
+            }
+
+            $errors[] = $this->error(
+                \sprintf(
+                    'Parameter #%d $%s of class %s constructor expects %s, %s given.',
+                    $index + 1,
+                    $parameter->getName(),
+                    $classReflection->getDisplayName(),
+                    $parameter->getType()->describe(VerbosityLevel::typeOnly()),
+                    $argumentType->describe(VerbosityLevel::typeOnly()),
+                ),
+                'argument',
+                $argument->getStartLine(),
+            );
+        }
+
+        return $errors;
     }
 
     private function conditionArgument(Attribute $attribute): ?Node\Expr
@@ -78,11 +147,10 @@ final readonly class SkipUnlessConditionRule implements Rule
     }
 
     /**
-     * Greenlight removes variadic argument names before it calls the
-     * condition constructor. Thus, the synthetic call uses positional
-     * arguments in declaration order.
+     * Greenlight removes variadic argument names before it calls the condition
+     * constructor. Thus, the rule checks arguments in declaration order.
      *
-     * @return list<Arg>
+     * @return list<Node\Expr>
      */
     private function conditionArguments(Attribute $attribute): array
     {
@@ -93,12 +161,17 @@ final readonly class SkipUnlessConditionRule implements Rule
                 continue;
             }
 
-            $arguments[] = new Arg(
-                $argument->value,
-                attributes: $argument->getAttributes(),
-            );
+            $arguments[] = $argument->value;
         }
 
         return $arguments;
+    }
+
+    private function error(string $message, string $identifier, int $line): IdentifierRuleError
+    {
+        return RuleErrorBuilder::message($message)
+            ->identifier('greenlight.skipUnlessCondition.' . $identifier)
+            ->line($line)
+            ->build();
     }
 }
