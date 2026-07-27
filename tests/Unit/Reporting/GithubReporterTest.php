@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Reporting;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\Attachment;
+use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
@@ -59,5 +62,51 @@ final class GithubReporterTest
             . '::Acme\EscapeTest::escapes: 50%25 done%0Asecond line'
             . "\n",
         );
+    }
+
+    #[Test]
+    #[DataSet('outcomesWithoutDetails')]
+    public function outcomesWithoutDetailsStillProduceAnnotations(Outcome $outcome, string $summary): void
+    {
+        $output = new BufferOutput();
+        $reporter = new GithubReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\FallbackTest', 'reports'),
+            $outcome,
+            0.001,
+            0,
+            attachments: [
+                new Attachment(
+                    'evidence.txt',
+                    AttachmentKind::Text,
+                    'text/plain',
+                    8,
+                    \str_repeat('a', 64),
+                    1,
+                    'build/evidence.txt',
+                ),
+            ],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('an outcome without structured details still produces an annotation')
+            ->toBe(
+                '::error::Acme\FallbackTest::reports: ' . $summary
+                . '.%0Aattachments:%0Aevidence.txt: build/evidence.txt'
+                . "\n",
+            );
+    }
+
+    /**
+     * @return iterable<string, array{Outcome, string}>
+     */
+    public static function outcomesWithoutDetails(): iterable
+    {
+        yield 'failed' => [Outcome::Failed, 'failed'];
+
+        yield 'errored' => [Outcome::Errored, 'errored'];
     }
 }
