@@ -84,6 +84,13 @@ final class SocketChannelTest
                     ProtocolError::class,
                     message: 'Malformed frame: peer closed the connection with an incomplete frame.',
                 );
+
+            Expect::that(static fn(): mixed => $channel->poll())
+                ->because('an incomplete frame MUST remain invalid after it is reported')
+                ->toThrow(
+                    ProtocolError::class,
+                    message: 'Malformed frame: peer closed the connection with an incomplete frame.',
+                );
         } finally {
             $channel->close();
 
