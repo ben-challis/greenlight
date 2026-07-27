@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Fixture;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 
 final class TempDirectoryTest
@@ -143,6 +144,36 @@ final class TempDirectoryTest
         $directory->dispose();
 
         Expect::that(\file_exists($path))->because('dispose removes the directory including nested files')->toBeFalse();
+    }
+
+    #[Test]
+    public function disposeRemovesASymbolicLinkWithoutChangingItsTarget(): void
+    {
+        $directory = new TempDirectory();
+        $target = new TempDirectory();
+        $sentinel = $target->path() . '/sentinel.txt';
+        $link = $directory->path() . '/linked-target';
+        \file_put_contents($sentinel, 'keep');
+
+        try {
+            if (!\symlink($target->path(), $link)) {
+                Fail::because('Expected symlink() to create the fixture link.');
+            }
+
+            $directory->dispose();
+
+            Expect::that(\is_link($link))
+                ->because('disposal MUST remove the symbolic link')
+                ->toBeFalse()
+                ->and(\is_dir($target->path()))
+                ->because('disposal MUST leave the symbolic link target unchanged')
+                ->toBeTrue()
+                ->and(\file_get_contents($sentinel))
+                ->toBe('keep');
+        } finally {
+            $directory->dispose();
+            $target->dispose();
+        }
     }
 
     #[Test]
