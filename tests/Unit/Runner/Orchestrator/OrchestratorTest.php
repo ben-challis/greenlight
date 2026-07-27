@@ -15,6 +15,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -36,6 +37,52 @@ final class OrchestratorTest
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a spawned worker that never connects fails the run instead of hanging it')
             ->toThrow(ProtocolError::class, '/did not connect within 0\.5 seconds/');
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
+    public function anInvalidHelloTokenIsRejectedBeforeALegitimateWorkerCompletesThePlan(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $script = \sprintf(
+            <<<'PHP'
+                [, , $address, $workerId, $token] = $argv;
+                $socket = stream_socket_client($address);
+                $json = json_encode([
+                    'v' => 1,
+                    't' => 'hello',
+                    'p' => [
+                        'workerId' => $workerId,
+                        'token' => 'incorrect-' . $token,
+                        'pid' => getmypid(),
+                    ],
+                ], JSON_THROW_ON_ERROR);
+                fwrite($socket, pack('N', strlen($json)) . $json);
+                fflush($socket);
+                fclose($socket);
+
+                require %s;
+
+                exit(new \Greenlight\Runner\Worker\WorkerProcess()->run($address, $workerId, $token));
+                PHP,
+            \var_export($root . '/vendor/autoload.php', true),
+        );
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, '-r', $script],
+            workingDirectory: $root,
+        );
+        $sink = new CollectingEventSink();
+
+        $summary = $orchestrator->run($this->passingPlan(), $sink, 1);
+        $results = $sink->results();
+
+        Expect::that($summary->passed)
+            ->because('a legitimate worker MUST complete the plan after an invalid hello token')
+            ->toBe(1)
+            ->and($summary->isSuccessful())->toBeTrue()
+            ->and($results)->toHaveCount(1)
+            ->and((string) $results[0]->id)
+            ->toBe(CleanTest::class . '::passesAndIsCollectable');
     }
 
     #[Test]
@@ -286,6 +333,15 @@ final class OrchestratorTest
     private function plan(): ExecutionPlan
     {
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
+
+        return new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+    }
+
+    private function passingPlan(): ExecutionPlan
+    {
+        $id = new TestId(CleanTest::class, 'passesAndIsCollectable');
 
         return new ExecutionPlan([
             new PlanEntry($id, new TestMetadata($id->class, $id->method)),
