@@ -63,6 +63,27 @@ final class TempDirectoryTest
     }
 
     #[Test]
+    public function anExistingFileBlocksANestedSubdirectoryWithTheFullTarget(): void
+    {
+        $directory = new TempDirectory();
+        $blocked = $directory->path() . '/blocked';
+        \file_put_contents($blocked, 'not a directory');
+        $target = $blocked . '/nested';
+
+        Expect::that(static fn(): string => $directory->subdirectory('blocked/nested'))
+            ->because('an existing file blocks a nested subdirectory with the full target')
+            ->toThrow(
+                \RuntimeException::class,
+                message: \sprintf(
+                    'Failed to create subdirectory "%s": mkdir(): Not a directory.',
+                    $target,
+                ),
+            );
+
+        $directory->dispose();
+    }
+
+    #[Test]
     #[DataSet('invalidSubdirectoryNames')]
     public function subdirectoryRejectsUnsafePaths(string $name, string $expectedMessage): void
     {
