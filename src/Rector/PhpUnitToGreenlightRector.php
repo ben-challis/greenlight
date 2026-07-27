@@ -7,7 +7,9 @@ namespace Greenlight\Rector;
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
 use Greenlight\Attribute\DataRow;
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
@@ -44,7 +46,7 @@ use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 /**
- * Converts a PHPUnit test class to a Greenlight one: the TestCase parent,
+ * Converts a final PHPUnit test class to Greenlight: the TestCase parent,
  * lifecycle hooks, attributes, assertions, and expectException blocks. The
  * rule converts a class only when every member has a faithful Greenlight
  * equivalent. It does not change other classes.
@@ -91,6 +93,18 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
     private const string FAIL = 'fail';
 
+    /**
+     * Converted attributes that Greenlight does not permit more than once.
+     *
+     * @var list<class-string>
+     */
+    private const array SINGLE_GREENLIGHT_ATTRIBUTES = [
+        DataSet::class,
+        Isolated::class,
+        NoExpectations::class,
+        SkipUnless::class,
+    ];
+
     private bool $dropAssertionMessages = false;
 
     /**
@@ -123,7 +137,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition(
-            'Convert PHPUnit test classes to Greenlight tests when every member has a faithful equivalent',
+            'Convert final PHPUnit test classes to Greenlight tests when every member has a faithful equivalent',
             [
                 new ConfiguredCodeSample(
                     <<<'CODE_SAMPLE'
@@ -161,7 +175,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
     public function refactor(Node $node): ?Node
     {
-        if (!$node instanceof Class_ || !$node->name instanceof Identifier || $node->isAbstract()) {
+        if (!$node instanceof Class_ || !$node->name instanceof Identifier || !$node->isFinal()) {
             return null;
         }
 
@@ -357,15 +371,60 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
      */
     private function attributesConvert(array $attrGroups, bool $onClass): bool
     {
+        $singleAttributes = [];
+
         foreach ($attrGroups as $group) {
             foreach ($group->attrs as $attribute) {
                 if (!$this->attributeConverts($attribute, $onClass)) {
                     return false;
                 }
+
+                $singleAttribute = $this->singleAttributeOutput($attribute);
+
+                if ($singleAttribute === null) {
+                    continue;
+                }
+
+                if (isset($singleAttributes[$singleAttribute])) {
+                    return false;
+                }
+
+                $singleAttributes[$singleAttribute] = true;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Returns the Greenlight attribute when the conversion can emit it only
+     * once on one declaration.
+     *
+     * @return class-string|null
+     */
+    private function singleAttributeOutput(Attribute $attribute): ?string
+    {
+        $resolved = $this->getName($attribute->name);
+
+        if (\in_array($resolved, self::SINGLE_GREENLIGHT_ATTRIBUTES, true)) {
+            return $resolved;
+        }
+
+        if (!\str_starts_with($resolved, PhpUnitAttributes::NAMESPACE_PREFIX)) {
+            return null;
+        }
+
+        $short = \substr($resolved, \strlen(PhpUnitAttributes::NAMESPACE_PREFIX));
+
+        if (isset(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS[$short])) {
+            return SkipUnless::class;
+        }
+
+        $renamed = PhpUnitAttributes::RENAMES[$short] ?? null;
+
+        return \is_string($renamed) && \in_array($renamed, self::SINGLE_GREENLIGHT_ATTRIBUTES, true)
+            ? $renamed
+            : null;
     }
 
     private function attributeConverts(Attribute $attribute, bool $onClass): bool
@@ -875,7 +934,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     private function convertAttributeGroups(array $attrGroups, bool $dropOverride): array
     {
         $converted = [];
-        $emitted = [];
 
         foreach ($attrGroups as $group) {
             $kept = [];
@@ -885,16 +943,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
                 if (!$replacement instanceof Attribute) {
                     continue;
-                }
-
-                $emittedKey = $replacement === $attribute ? null : $this->getName($replacement->name);
-
-                if ($emittedKey !== null && $emittedKey !== Group::class) {
-                    if (isset($emitted[$emittedKey])) {
-                        continue;
-                    }
-
-                    $emitted[$emittedKey] = true;
                 }
 
                 $kept[] = $replacement;

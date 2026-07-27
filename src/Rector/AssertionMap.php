@@ -8,6 +8,8 @@ namespace Greenlight\Rector;
  * Maps PHPUnit assertion method names onto Greenlight expectation chains.
  * Lookups are case-insensitive because PHP method calls are. Assertions
  * without a faithful Greenlight equivalent are deliberately absent.
+ *
+ * @internal
  */
 final class AssertionMap
 {
@@ -30,8 +32,6 @@ final class AssertionMap
         'assertnotfalse' => ['toBeFalse', 0, [], 1, true],
         'assertnull' => ['toBeNull', 0, [], 1, false],
         'assertnotnull' => ['toBeNull', 0, [], 1, true],
-        'assertempty' => ['toBeEmpty', 0, [], 1, false],
-        'assertnotempty' => ['toBeEmpty', 0, [], 1, true],
         'assertinstanceof' => ['toBeInstanceOf', 1, [0], 2, false],
         'assertnotinstanceof' => ['toBeInstanceOf', 1, [0], 2, true],
         'assertcount' => ['toHaveCount', 1, [0], 2, false],
@@ -85,7 +85,7 @@ final class AssertionMap
     /**
      * @return array<string, AssertionConversion>
      */
-    public static function entries(): array
+    private static function entries(): array
     {
         if (self::$entries === null) {
             $entries = [];
