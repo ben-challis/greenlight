@@ -74,6 +74,42 @@ final class TeamCityReporterTest
     }
 
     #[Test]
+    public function incompleteAndMultipleFailureDetailsRemainReportable(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TeamCityReporter($output);
+        $class = 'Acme\PartialResultTest';
+        $multiple = new TestId($class, 'multipleFailures');
+        $incomplete = new TestId($class, 'missingErrorDetail');
+
+        $reporter->onEvent(new TestFinished(new TestResult(
+            $multiple,
+            Outcome::Failed,
+            0.001,
+            0,
+            failures: [
+                new FailureDetail('primary failure'),
+                new FailureDetail('secondary failure'),
+            ],
+        ), 1.0));
+        $reporter->onEvent(new TestFinished(new TestResult(
+            $incomplete,
+            Outcome::Errored,
+            0.002,
+            0,
+        ), 1.1));
+
+        Expect::that($output->buffer())
+            ->because('incomplete and multiple failure details remain reportable')
+            ->toBe(
+                "##teamcity[testFailed name='{$class}::multipleFailures' message='primary failure' details='secondary failure' flowId='{$class}']\n"
+                . "##teamcity[testFinished name='{$class}::multipleFailures' duration='1' flowId='{$class}']\n"
+                . "##teamcity[testFailed name='{$class}::missingErrorDetail' message='errored' flowId='{$class}']\n"
+                . "##teamcity[testFinished name='{$class}::missingErrorDetail' duration='2' flowId='{$class}']\n",
+            );
+    }
+
+    #[Test]
     public function loadableClassesGetPhpQnLocationHints(): void
     {
         $output = new BufferOutput();
