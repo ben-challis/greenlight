@@ -31,6 +31,8 @@ use PHPStan\Type\VerbosityLevel;
  * PHPStan verifies only that each data set is an array. Greenlight validates
  * its content at run time.
  *
+ * @internal
+ *
  * @implements Rule<InClassMethodNode>
  */
 final readonly class DataProviderSignatureRule implements Rule

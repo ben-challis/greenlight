@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Core;
 
-/** Messages include the target path and each warning that PHP supplies. */
+/**
+ * Messages include the target path and each warning that PHP supplies.
+ *
+ * @internal
+ */
 final class AtomicFileError extends \RuntimeException
 {
     private function __construct(string $message, ?\Throwable $previous = null)

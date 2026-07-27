@@ -18,6 +18,8 @@ use PHPStan\Rules\RuleErrorBuilder;
  * A test method must be public, non-static, and concrete.
  * A method with required parameters must declare a data set.
  *
+ * @internal
+ *
  * @implements Rule<InClassMethodNode>
  */
 final class TestMethodRule implements Rule

@@ -23,6 +23,8 @@ use PHPStan\Type\Type;
  * exact-message arguments nullable. A call-site rule makes these arguments
  * mutually exclusive.
  *
+ * @internal
+ *
  * @implements Rule<MethodCall>
  */
 final class ToThrowMessageRule implements Rule
