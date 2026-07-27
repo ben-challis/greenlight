@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Runner\Worker;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Runner\Worker\ClassContext;
+
+final class ClassContextTest
+{
+    #[Test]
+    public function anUnloadedTestClassIsRejected(): void
+    {
+        Expect::that(static fn(): ClassContext => ClassContext::for('Missing\ExampleTest'))
+            ->because('the worker cannot execute a class that is absent from its process')
+            ->toThrow(
+                \RuntimeException::class,
+                message: 'This process cannot load test class "Missing\ExampleTest" from the execution plan.',
+            );
+    }
+
+    #[Test]
+    public function aDataSetRemovedAfterDiscoveryIsRejected(): void
+    {
+        $context = ClassContext::for(ClassContextDataProbe::class);
+
+        Expect::that(static fn(): array => $context->argumentsFor('scalarRows', null, 'accepts', 'removed'))
+            ->because('the worker rejects an execution-plan data set that no longer exists')
+            ->toThrow(
+                \RuntimeException::class,
+                message: \sprintf(
+                    'The execution plan contains data set "removed" for "%s::accepts()", '
+                    . 'but its data provider no longer returns it. Run discovery again.',
+                    ClassContextDataProbe::class,
+                ),
+            );
+    }
+
+    #[Test]
+    public function aProviderRowMustBeAnArgumentArray(): void
+    {
+        $context = ClassContext::for(ClassContextDataProbe::class);
+
+        Expect::that(static fn(): array => $context->argumentsFor('scalarRows', null, 'accepts', 'bad'))
+            ->because('the worker requires each data set to contain positional arguments')
+            ->toThrow(
+                \RuntimeException::class,
+                message: \sprintf(
+                    'Data set "bad" of "%s::accepts()" requires an argument array. Actual type: string.',
+                    ClassContextDataProbe::class,
+                ),
+            );
+    }
+}
+
+final class ClassContextDataProbe
+{
+    public function accepts(): never
+    {
+        throw new \LogicException('The class-context probe MUST NOT run.');
+    }
+
+    /**
+     * @return iterable<string, string>
+     */
+    public static function scalarRows(): iterable
+    {
+        yield 'bad' => 'not an argument array';
+    }
+}
