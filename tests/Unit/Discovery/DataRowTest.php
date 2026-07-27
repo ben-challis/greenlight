@@ -12,6 +12,7 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DataRows\InlineRowsTest;
 use Greenlight\Tests\Fixture\DataRowsConflict\DuplicateRowKeyTest;
+use Greenlight\Tests\Fixture\DataRowsDuplicateInline\DuplicateInlineRowKeyTest;
 
 final class DataRowTest
 {
@@ -46,6 +47,22 @@ final class DataRowTest
         Expect::that(
             static fn(): array => new DataSetExpander()->rowsFor($reflection, 'probe', 'rows', 5.0),
         )->because('duplicate keys between inline and provider are refused')->toThrow(DiscoveryError::class, '/twice/');
+    }
+
+    #[Test]
+    public function duplicateInlineKeysAreRefused(): void
+    {
+        $reflection = new \ReflectionClass(DuplicateInlineRowKeyTest::class);
+
+        Expect::that(
+            static fn(): array => new DataSetExpander()->rowsFor($reflection, 'probe', null, 5.0),
+        )
+            ->because('duplicate inline data-row keys are refused')
+            ->toThrow(
+                DiscoveryError::class,
+                message: 'Data sets for Greenlight\Tests\Fixture\DataRowsDuplicateInline\DuplicateInlineRowKeyTest::probe() '
+                    . 'contain key "twice" more than once. Use each key only once for the test method.',
+            );
     }
 
     #[Test]
