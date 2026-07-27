@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
-use Greenlight\Attribute\DataRow;
-use Greenlight\Attribute\DataSet;
-use Greenlight\Attribute\Test;
+use Greenlight\Attribute\After;
+use Greenlight\Attribute\Before;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassMethodNode;
@@ -15,12 +14,12 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * A test method must be public, non-static, and concrete.
- * A method with required parameters must declare a data set.
+ * A lifecycle hook must be public, non-static, concrete, and callable without
+ * arguments.
  *
  * @implements Rule<InClassMethodNode>
  */
-final class TestMethodRule implements Rule
+final class LifecycleMethodRule implements Rule
 {
     #[\Override]
     public function getNodeType(): string
@@ -33,18 +32,15 @@ final class TestMethodRule implements Rule
     {
         $method = $node->getOriginalNode();
         $line = null;
-        $hasDataSet = false;
 
         foreach ($method->attrGroups as $group) {
             foreach ($group->attrs as $attribute) {
                 $name = $scope->resolveName($attribute->name);
 
-                if ($name === Test::class) {
+                if ($name === Before::class || $name === After::class) {
                     $line = $attribute->getStartLine();
-                }
 
-                if ($name === DataRow::class || $name === DataSet::class) {
-                    $hasDataSet = true;
+                    break 2;
                 }
             }
         }
@@ -62,7 +58,7 @@ final class TestMethodRule implements Rule
 
         if (!$method->isPublic()) {
             $errors[] = $this->error(
-                \sprintf('Test method %s cannot run because it is not public.', $methodName),
+                \sprintf('Lifecycle hook %s cannot run because it is not public.', $methodName),
                 'visibility',
                 $line,
             );
@@ -70,7 +66,7 @@ final class TestMethodRule implements Rule
 
         if ($method->isStatic()) {
             $errors[] = $this->error(
-                \sprintf('Test method %s cannot run because it is static.', $methodName),
+                \sprintf('Lifecycle hook %s cannot run because it is static.', $methodName),
                 'static',
                 $line,
             );
@@ -78,19 +74,16 @@ final class TestMethodRule implements Rule
 
         if ($method->isAbstract()) {
             $errors[] = $this->error(
-                \sprintf('Test method %s cannot run because it is abstract.', $methodName),
+                \sprintf('Lifecycle hook %s cannot run because it is abstract.', $methodName),
                 'abstract',
                 $line,
             );
         }
 
-        if (!$hasDataSet && $this->hasRequiredParameter($method)) {
+        if ($this->hasRequiredParameter($method)) {
             $errors[] = $this->error(
-                \sprintf(
-                    'Test method %s has required parameters but no #[DataRow] or #[DataSet] attribute.',
-                    $methodName,
-                ),
-                'dataSet',
+                \sprintf('Lifecycle hook %s must accept zero arguments.', $methodName),
+                'parameters',
                 $line,
             );
         }
@@ -109,7 +102,7 @@ final class TestMethodRule implements Rule
     private function error(string $message, string $identifier, int $line): IdentifierRuleError
     {
         return RuleErrorBuilder::message($message)
-            ->identifier('greenlight.testMethod.' . $identifier)
+            ->identifier('greenlight.lifecycleMethod.' . $identifier)
             ->line($line)
             ->build();
     }

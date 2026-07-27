@@ -25,12 +25,26 @@ final readonly class PhpStanTestMethodRuleTest
 
             namespace GreenlightTestMethodProbe;
 
+            use Greenlight\Attribute\DataRow;
             use Greenlight\Attribute\Test;
 
             final class GoodTestMethodProbe
             {
                 #[Test]
                 public function testMethod(): void {}
+
+                #[Test]
+                #[DataRow([1])]
+                public function testMethodWithDataSet(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
+                public function testMethodWithOptionalParameter(int $value = 1): void
+                {
+                    echo $value;
+                }
             }
 
             abstract class GoodAbstractProbe
@@ -54,6 +68,12 @@ final readonly class PhpStanTestMethodRuleTest
 
                 #[Test]
                 public static function staticTest(): void {}
+
+                #[Test]
+                public function testWithoutDataSet(int $value): void
+                {
+                    echo $value;
+                }
             }
 
             abstract class BadAbstractTestMethodProbe
@@ -66,9 +86,10 @@ final readonly class PhpStanTestMethodRuleTest
 
         Expect::that($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(3)
+            ->and(\count($probe->errors))->toBe(4)
             ->and($probe->messages())->toContain('protectedTest() cannot run because it is not public')
             ->toContain('staticTest() cannot run because it is static')
-            ->toContain('abstractTest() cannot run because it is abstract');
+            ->toContain('abstractTest() cannot run because it is abstract')
+            ->toContain('testWithoutDataSet() has required parameters but no #[DataRow] or #[DataSet] attribute');
     }
 }

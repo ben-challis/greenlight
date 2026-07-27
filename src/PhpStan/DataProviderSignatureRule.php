@@ -11,6 +11,7 @@ use PhpParser\Node\Attribute;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassMethodNode;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
@@ -20,9 +21,9 @@ use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * A data provider must be a public static method. It must be in the test class
- * or the specified provider class. It must return an iterable of argument
- * arrays.
+ * A data provider must be a public, static, concrete method that accepts zero
+ * arguments. It must be in the test class or the specified provider class. It
+ * must return an iterable of argument arrays.
  *
  * PHPStan can know the exact form of an array{...} return type or an inline
  * #[DataRow] literal. In these forms, PHPStan compares each value to its
@@ -157,7 +158,7 @@ final readonly class DataProviderSignatureRule implements Rule
         $provider = $providerNames[0]->getValue();
         $line = $attribute->getStartLine();
 
-        if (!$providerClass->hasMethod($provider)) {
+        if (!$providerClass->hasNativeMethod($provider)) {
             return [$this->error(
                 \sprintf(
                     'Data provider %s() for %s() does not exist on %s.',
@@ -170,7 +171,7 @@ final readonly class DataProviderSignatureRule implements Rule
             )];
         }
 
-        $providerMethod = $providerClass->getMethod($provider, $scope);
+        $providerMethod = $providerClass->getNativeMethod($provider);
 
         if (!$providerMethod->isStatic() || !$providerMethod->isPublic()) {
             return [$this->error(
@@ -180,10 +181,26 @@ final readonly class DataProviderSignatureRule implements Rule
             )];
         }
 
+        if ($this->isAbstract($providerMethod)) {
+            return [$this->error(
+                \sprintf('Data provider %s::%s() must be concrete.', $providerClass->getDisplayName(), $provider),
+                'provider',
+                $line,
+            )];
+        }
+
         $providerAcceptor = $this->singleAcceptor($providerMethod->getVariants());
 
         if (!$providerAcceptor instanceof ParametersAcceptor) {
             return [];
+        }
+
+        if ($this->requiredParameterCount($providerAcceptor) > 0) {
+            return [$this->error(
+                \sprintf('Data provider %s::%s() must accept zero arguments.', $providerClass->getDisplayName(), $provider),
+                'parameters',
+                $line,
+            )];
         }
 
         $returnType = $providerAcceptor->getReturnType();
@@ -229,6 +246,21 @@ final readonly class DataProviderSignatureRule implements Rule
         }
 
         return $errors;
+    }
+
+    private function isAbstract(ExtendedMethodReflection $method): bool
+    {
+        $abstract = $method->isAbstract();
+
+        return \is_bool($abstract) ? $abstract : $abstract->yes();
+    }
+
+    private function requiredParameterCount(ParametersAcceptor $acceptor): int
+    {
+        return \count(\array_filter(
+            $acceptor->getParameters(),
+            static fn($parameter): bool => !$parameter->isOptional(),
+        ));
     }
 
     /**
