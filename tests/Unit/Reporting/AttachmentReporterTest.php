@@ -73,6 +73,35 @@ final class AttachmentReporterTest
     }
 
     #[Test]
+    public function plainReporterWritesSuccessfulAttachmentsWithoutRetainingTheResult(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new PlainReporter($output);
+        $failed = $this->result();
+        $result = new TestResult(
+            $failed->id,
+            Outcome::Passed,
+            0.1,
+            0,
+            attachments: $failed->attachments,
+        );
+        $reference = \WeakReference::create($result);
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        unset($result);
+        \gc_collect_cycles();
+
+        Expect::that($output->buffer())
+            ->because('successful attachments are written before the result is released')
+            ->toContain('PASS Example\AttachmentTest::fails')
+            ->toContain('response.json')
+            ->toContain('build/greenlight-artifacts/run-1/response.json')
+            ->and($reference->get())
+            ->because('the plain reporter does not retain successful results')
+            ->toBeNull();
+    }
+
+    #[Test]
     public function ttyReporterDoesNotRetainSuccessfulResultsUntilFinish(): void
     {
         $output = new BufferOutput();
