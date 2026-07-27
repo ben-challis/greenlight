@@ -134,6 +134,17 @@ Method-level test metadata such as `#[Group]`, `#[Skip]`, `#[DataRow]`, and
 unused attribute with `greenlight.testAttribute.noEffect`. Lifecycle and
 coverage attributes do not require `#[Test]`.
 
+## Test constructor checks
+
+A concrete class that contains or inherits a test must have a public
+constructor. Each required constructor parameter must have one class or
+interface type. A scalar, untyped, union, intersection, or `object` parameter
+must have a default value. Greenlight can then resolve supported service types
+at run time.
+
+Errors have identifiers under `greenlight.testConstructor.*` (`visibility`,
+`parameter`).
+
 ## Lifecycle hook checks
 
 The extension reports a `#[Before]` or `#[After]` method that Greenlight cannot
