@@ -9,8 +9,8 @@ use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Stores failures and class timings under the system temp directory, keyed
- * by working directory.
+ * Stores failures and class durations in the system temporary directory.
+ * The working directory identifies the state.
  *
  * @internal
  */
@@ -28,9 +28,11 @@ final readonly class RunState
     }
 
     /**
-     * The failed test ids of the previous run, or null when no usable state
-     * exists (never ran, or the file is unreadable or corrupt). An empty
-     * list is real state: the previous run passed everything.
+     * Returns failed test IDs from the previous run.
+     *
+     * Returns null if no usable state exists. This occurs before the first run
+     * or when the file is unreadable or corrupt. An empty list means that all
+     * tests passed in the previous run.
      *
      * @return list<non-empty-string>|null
      */
@@ -79,8 +81,9 @@ final readonly class RunState
     }
 
     /**
-     * Recorded class durations from the previous run, advisory only: a
-     * missing or corrupt file reads as no data.
+     * Returns recorded class durations from the previous run.
+     *
+     * This data is advisory. A missing or corrupt file gives no data.
      *
      * @return array<non-empty-string, float>
      */
@@ -104,7 +107,7 @@ final readonly class RunState
     }
 
     /**
-     * Returns false when state cannot be persisted.
+     * Returns false when Greenlight cannot store the state.
      *
      * @param list<non-empty-string> $failedTests
      * @param array<non-empty-string, float> $classSeconds

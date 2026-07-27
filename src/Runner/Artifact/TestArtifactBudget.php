@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Artifact;
 
 /**
- * Tracks one test's attachment budget across all retry attempts.
+ * Tracks the attachment budget of one test across all test attempts.
  *
  * @internal
  */

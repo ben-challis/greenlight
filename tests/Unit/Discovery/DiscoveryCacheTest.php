@@ -26,8 +26,8 @@ final class DiscoveryCacheTest
             $cold = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             Expect::that($cold->count())->toBe(2);
 
-            // Prove the second discovery reads the cache, not the file: plant
-            // an extra entry in the cached payload without touching the file.
+            // Add an entry to the cached payload without a file change. The entry
+            // shows that the second discovery reads the discovery cache.
             $cacheFile = $this->cacheFile($directory);
             $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
             \assert(\is_array($decoded) && \is_array($decoded['files']));
@@ -45,8 +45,8 @@ final class DiscoveryCacheTest
             $warm = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             Expect::that($warm->count())->toBe(3);
 
-            // Touching the file (content change, so size shifts) must force a
-            // re-parse that drops the planted entry.
+            // Change the file content and size. Discovery MUST parse the file again
+            // and remove the added entry.
             \file_put_contents($directory . '/CachedProbeTest.php', \str_replace(
                 'public function two(): void {}',
                 "public function two(): void {}\n\n    // changed",
@@ -56,7 +56,7 @@ final class DiscoveryCacheTest
             $reparsed = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             Expect::that($reparsed->count())->toBe(2);
 
-            // A corrupt cache file falls back to parsing.
+            // A corrupt discovery cache causes discovery to parse the file.
             \file_put_contents($cacheFile, 'not json');
             $recovered = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             Expect::that($recovered->count())->toBe(2);
@@ -169,9 +169,9 @@ final class DiscoveryCacheTest
     #[Test]
     public function persistWritesThroughATempFileAndLeavesNoneBehind(): void
     {
-        // A class name distinct from the other tests in this file: they may
-        // share a worker process, and the discoverer rejects a class it has
-        // already autoloaded from a different fixture directory.
+        // Use a class name that other tests in this file do not use. The tests
+        // can share a worker. Discovery rejects a class that the autoloader
+        // loaded from a different fixture directory.
         $className = 'PersistProbeTest';
         $directory = $this->writeFixture($className);
         $cacheFile = $this->cacheFile($directory);
@@ -207,9 +207,9 @@ final class DiscoveryCacheTest
             }
         });
 
-        // A non-empty directory squatting on the cache path makes the
-        // temp-file write succeed but the final rename fail, exercising the
-        // failure branch that must remove the temp file.
+        // Put a nonempty directory at the discovery-cache path. The temporary
+        // file write succeeds, but the final rename fails. This exercises the
+        // failure path that MUST remove the temporary file.
         \mkdir($cacheFile);
         \file_put_contents($cacheFile . '/occupant.txt', 'keep');
 

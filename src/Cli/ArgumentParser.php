@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * A minimal owned argument parser.
+ * A small Greenlight argument parser.
  *
- * Long options use --name or --name=value; short aliases are single letters
- * (-h) and never take values. The first bare word is the command.
+ * Long options use --name or --name=value. Short aliases use one letter (-h)
+ * and do not take values. The first word without a prefix is the command.
  *
  * @internal
  */

@@ -8,7 +8,7 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Worker-visible coordinates for a run's private attachment staging area.
+ * Identifies the private attachment staging area of a run for a worker.
  *
  * @internal
  */

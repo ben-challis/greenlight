@@ -56,8 +56,8 @@ final readonly class RepeatTest
         $state = $project->path('repeat-state');
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
         Expect::that($result->exitCode)->toBe(1);
-        // The recorded state must keep the flake even though earlier
-        // iterations passed, so --failed replays exactly that test.
+        // The recorded state MUST keep the intermittent failure after earlier
+        // iterations pass. Thus, --failed runs only that test again.
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--failed');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('failsOnTheThirdRun')

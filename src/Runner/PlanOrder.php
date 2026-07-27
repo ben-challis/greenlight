@@ -9,13 +9,13 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 
 /**
- * Places priority classes first, then known classes longest first, followed
- * by classes without timings.
+ * Puts priority classes first. Then, it puts classes with known durations in
+ * longest-first order. Classes without durations occur last.
  *
  * Entry order within a class never changes.
  *
- * Seeded runs must not pass durations; reordering by cached durations would
- * change the order a seed reproduces.
+ * A run with a seed must not supply durations. An order from cached durations
+ * would change the order that the seed reproduces.
  *
  * @internal
  */

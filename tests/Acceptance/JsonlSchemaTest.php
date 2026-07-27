@@ -11,7 +11,7 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use JsonSchema\Validator;
 
-/** Suite events use the canned stream because real runs do not emit them. */
+/** Uses a predefined stream for suite events because runs do not emit them. */
 final readonly class JsonlSchemaTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -128,7 +128,7 @@ final readonly class JsonlSchemaTest
             }
             PHP);
 
-        // recycleAfterTests: 1 forces worker-recycled events into the stream.
+        // recycleAfterTests: 1 adds worker-recycled events to the stream.
         $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 

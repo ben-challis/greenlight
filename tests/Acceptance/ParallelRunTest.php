@@ -16,7 +16,7 @@ use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 
-/** Crash and hang fixtures must never run in-process. */
+/** Crash and hang fixtures MUST NOT run in the orchestrator process. */
 final readonly class ParallelRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -24,8 +24,8 @@ final readonly class ParallelRunTest
     #[Test]
     public function parallelResultsMatchSequentialResults(): void
     {
-        // An isolated project, so this comparison run cannot
-        // race another acceptance test's use of the same working directory.
+        // An isolated project prevents a conflict with another acceptance
+        // test in the same directory.
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'parallel');
         $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
@@ -129,8 +129,8 @@ final readonly class ParallelRunTest
     public function leakDetectionWarnsWhenXdebugDevelopModeIsActive(): void
     {
         if (!\extension_loaded('xdebug')) {
-            // The warning triggers on xdebug develop mode, an environment
-            // property the test cannot create without the extension.
+            // Xdebug develop mode causes the warning. The test cannot create
+            // this environment property without the extension.
             throw new SkipTest('xdebug is not loaded');
         }
 

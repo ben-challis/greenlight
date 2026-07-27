@@ -7,11 +7,11 @@ namespace Greenlight\Reporting;
 use Greenlight\Core\Event\Event;
 
 /**
- * Fans one event stream out to many reporters.
+ * Sends one event stream to multiple reporters.
  *
- * onEvent() and finish() invoke the reporters in construction order, so every
- * reporter sees events and the finish signal in the same order.
- * tick() reaches only the reporters that opt into Ticking.
+ * onEvent() and finish() invoke reporters in construction order. Thus, all
+ * reporters receive events and the finish signal in the same order. tick()
+ * invokes only reporters that implement Ticking.
  *
  * @internal
  */

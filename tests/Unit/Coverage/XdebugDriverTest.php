@@ -18,8 +18,8 @@ final class XdebugDriverTest
     public function collectsRealLineCoverageOverTheFixture(): void
     {
         if (!XdebugDriver::isAvailable()) {
-            // This integration test needs xdebug running with "coverage" in
-            // its mode, an environment property the test cannot change.
+            // This integration test requires Xdebug with "coverage" in its mode.
+            // The test cannot change this environment property.
             throw new SkipTest('xdebug with coverage mode is not available');
         }
 

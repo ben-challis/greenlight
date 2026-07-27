@@ -10,13 +10,13 @@ use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Resolves the 'auto' worker count to the available CPU count.
+ * Converts the 'auto' worker count to the available CPU count.
  *
- * When the consuming project has fidry/cpu-core-counter installed, count()
- * uses its detection because it understands cgroup limits and more platforms.
- * Otherwise a small built-in probe answers.
+ * If the consumer has fidry/cpu-core-counter, count() uses it. That package
+ * supports cgroup limits and more platforms. Otherwise, a small built-in
+ * probe supplies the count.
  *
- * When the platform gives no answer, a conservative default is used.
+ * If the platform gives no count, the method uses a conservative default.
  *
  * @internal
  */

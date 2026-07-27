@@ -7,10 +7,12 @@ namespace Greenlight\Cli;
 use Greenlight\Core\GracefulShutdown;
 
 /**
- * Without ext-pcntl, PHP keeps its default hard-exit behaviour. The first
- * signal requests a normal drain; a second terminates immediately.
+ * Without ext-pcntl, PHP uses its default immediate-exit behavior. The first
+ * signal requests a normal drain. A second signal terminates the process
+ * immediately.
  *
- * Workers ignore SIGINT so in-flight tests are not misreported as crashes.
+ * Workers ignore SIGINT. Thus, the orchestrator does not report active tests
+ * as crashes.
  *
  * @internal
  */

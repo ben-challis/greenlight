@@ -47,15 +47,15 @@ final readonly class CommandErrorsTest
     #[Test]
     public function ideHelperWithAnUnwritableOutputPathFailsCleanly(): void
     {
-        // Root bypasses directory write permissions, so chmod 0555 cannot
-        // provoke the write failure.
+        // Root ignores directory write permissions. Thus, chmod 0555 cannot
+        // cause the required write failure.
         if (\function_exists('posix_getuid') && \posix_getuid() === 0) {
             throw new SkipTest('An unwritable directory cannot be staged when running as root.');
         }
 
-        // A config without any matchers configured skips writing entirely
-        // (IdeHelperTest covers that path), so this needs the shipped
-        // PhpStanExtension fixture, whose config has matchers to render.
+        // A configuration without matchers does not write a file.
+        // IdeHelperTest verifies that path. This test uses PhpStanExtension,
+        // which has matchers that the helper can render.
         $fixture = \dirname(__DIR__) . '/Fixture/PhpStanExtension';
         $readOnlyDirectory = $this->tempDirectory->subdirectory('ide-helper-read-only');
         \chmod($readOnlyDirectory, 0o555);

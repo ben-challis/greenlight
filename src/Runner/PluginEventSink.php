@@ -9,10 +9,11 @@ use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Feeds orchestrator-side run subscribers before forwarding each event.
+ * Sends each event to orchestrator run subscribers before it sends the event
+ * to the next sink.
  *
- * Subscriber throwables bubble: an orchestrator-side plugin failure fails
- * the run loudly rather than being swallowed.
+ * A throwable from a subscriber propagates. Thus, an orchestrator plugin
+ * failure fails the run.
  *
  * @internal
  */

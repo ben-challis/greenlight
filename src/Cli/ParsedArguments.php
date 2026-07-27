@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * The outcome of parsing argv: at most one command word plus the options that
- * were present.
+ * Contains at most one command word and the options from argv.
  *
- * A null entry in an option's value list means the option was given without
- * a value (allowed for flags and optional-value options).
+ * A null entry in an option value list means that the option had no value.
+ * Flags and options with optional values permit this form.
  *
  * @internal
  */
@@ -29,9 +28,10 @@ final readonly class ParsedArguments
     }
 
     /**
-     * The last value given for the option, which is null when the option was
-     * present without a value or absent entirely. Use has() to tell those
-     * apart.
+     * Returns the last value for the option.
+     *
+     * Returns null if the option was absent or had no value. Use has() to
+     * distinguish these conditions.
      */
     public function value(string $name): ?string
     {
@@ -41,7 +41,7 @@ final readonly class ParsedArguments
     }
 
     /**
-     * All non-null values given for a repeatable option, in order.
+     * Returns all non-null values for a repeatable option in input order.
      *
      * @return list<string>
      */

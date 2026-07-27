@@ -9,10 +9,10 @@ use Greenlight\Config\Configuration;
 use Greenlight\Discovery\Filter;
 
 /**
- * The single mapping from a resolved Configuration to a discovery Filter.
+ * Makes the discovery Filter from a resolved Configuration.
  *
- * Both runners and the CLI listing path derive their Filter here, so the
- * selection a listing prints is the selection a run executes.
+ * Both runners and the CLI list command use this method. Thus, a list command
+ * and a run use the same selection.
  *
  * @internal
  */

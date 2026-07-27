@@ -13,7 +13,7 @@ use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Test\TestId;
 
 /**
- * Per-attempt attachment collector backed by the run's private staging store.
+ * Collects attachments for one test attempt in the private staging store of a run.
  *
  * @internal
  */
@@ -103,7 +103,7 @@ final class StagedAttachments implements Attachments
     }
 
     /**
-     * Metadata visible to retry deciders before retention is applied.
+     * Returns metadata that retry deciders can use before the retention decision.
      *
      * @return list<StagedAttachment>
      */
@@ -113,8 +113,10 @@ final class StagedAttachments implements Attachments
     }
 
     /**
-     * Seals the attempt. Retention is decided when the terminal result is
-     * published, after retries and scope teardown have finished.
+     * Seals the test attempt.
+     *
+     * Greenlight makes the retention decision when it publishes the terminal
+     * result. This occurs after retries and scope teardown.
      *
      * @return list<StagedAttachment>
      */

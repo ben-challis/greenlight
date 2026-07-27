@@ -61,8 +61,8 @@ final class ExpectTest
         Expect::install([new EvenNumbersExtension()]);
 
         try {
-            // Dispatched through __call directly: static analysis only knows
-            // the matchers declared in configured greenlight.php files.
+            // Dispatch directly through __call. Static analysis knows only the
+            // matchers in configured greenlight.php files.
             Expect::that(4)->__call('toBeEven', []);
             Expect::that(3)->not()->__call('toBeEven', []);
         } finally {

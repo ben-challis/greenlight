@@ -53,8 +53,8 @@ final readonly class SeedOrderTest
     public function anActiveSeedIsAnnouncedInTheRunHeader(): void
     {
         $project = $this->writeProject();
-        // Stdout only: extension noise on stderr could contain "seed:"
-        // and break the negative assertion below.
+        // Use standard output only. Extension messages on standard error can
+        // contain "seed:" and invalidate the negative assertion.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=7']);
         Expect::that($result->exitCode)->toBe(0)->and($result->stdout)->toContain('seed: 7');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
@@ -73,8 +73,8 @@ final readonly class SeedOrderTest
     }
 
     /**
-     * Reads --list-tests to avoid booting six classes per seed. Uses stdout
-     * so extension noise on stderr cannot affect the order.
+     * Reads --list-tests to prevent the start of six classes for each seed.
+     * Uses standard output so extension messages cannot change the order.
      *
      * @return list<string>
      */

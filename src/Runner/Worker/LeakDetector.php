@@ -7,18 +7,18 @@ namespace Greenlight\Runner\Worker;
 use Greenlight\Core\Test\TestId;
 
 /**
- * Verifies in debug mode that test instances do not leak.
+ * In debug mode, verifies that PHP can collect test instances.
  *
- * watch() tracks every test instance through a weak reference. sweep() runs
- * after each test, forces a collection cycle, and names any instance that
- * survived its own test.
+ * watch() tracks each test instance through a weak reference. sweep() runs
+ * after each test and forces a collection cycle. It identifies an instance
+ * that remains after its test.
  *
- * Each leak is reported once.
+ * The detector reports each leak one time.
  *
- * environmentWarning() names environments the detector cannot see through:
- * xdebug develop mode keeps a caught exception's stack frames, including
- * $this of every frame, alive until shutdown, so any test that throws and
- * catches is reported as a leak.
+ * environmentWarning() identifies environments that prevent correct detection.
+ * Xdebug develop mode retains the stack frames of a caught
+ * exception until shutdown. These frames include $this. Thus, the detector
+ * reports a leak for a test that throws and catches an exception.
  *
  * @internal
  */
@@ -61,8 +61,8 @@ final class LeakDetector
             }
         }
 
-        // Collected instances need no further watching, and leaked instances
-        // are reported once; either way the watch list resets.
+        // Collected instances require no more checks. The detector reports a
+        // leaked instance one time. Clear the watch list in both conditions.
         $this->watched = [];
 
         return $leaks;

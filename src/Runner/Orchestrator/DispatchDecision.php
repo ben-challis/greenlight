@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 /**
- * One atomic scheduling decision for an idle worker.
+ * One indivisible dispatch decision for an idle worker.
  *
  * @internal
  */

@@ -26,7 +26,7 @@ use Greenlight\Core\Test\TestId;
 use Greenlight\Reporting\Reporter;
 
 /**
- * Fixed timestamps and durations keep reporter golden output deterministic.
+ * Fixed timestamps and durations give deterministic reporter reference output.
  */
 final class CannedStream
 {

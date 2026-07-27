@@ -55,7 +55,8 @@ final readonly class SelectionTest
     public function excludeGroupRemovesGroupedTestsFromARun(): void
     {
         $project = $this->writeProject();
-        // The full project is 5 tests; excluding the slow group drops one.
+        // The complete project has five tests. Exclusion of the slow group
+        // removes one test.
         $result = $this->run($project, '--exclude-group=slow');
         Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('4 tests,');
         $result = $this->run($project, '--group=fast', '--exclude-group=slow');
@@ -103,10 +104,10 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
 
-        // TMPDIR points at a regular file rather than a missing directory:
-        // observability agents (ddtrace) create a missing TMPDIR for their
-        // sockets, but nothing can create entries under a file, so the state
-        // write fails on every platform.
+        // TMPDIR identifies a regular file, not a missing directory.
+        // Observability agents can create a missing TMPDIR for their sockets.
+        // No process can create an entry under a file. Thus, the state write
+        // fails on each platform.
         $project->writeFile('not-a-directory', '');
         $result = GreenlightCli::run(
             $project->directory,

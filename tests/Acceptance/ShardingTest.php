@@ -17,8 +17,8 @@ final readonly class ShardingTest
     #[Test]
     public function shardsReconstituteTheFullListExactlyOnce(): void
     {
-        // An isolated project, so these listings cannot race
-        // another acceptance test's use of the same working directory.
+        // An isolated project prevents a conflict with another acceptance
+        // test in the same directory.
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sharding');
         $all = $this->listTests($project);
         $union = [];

@@ -7,11 +7,11 @@ namespace Greenlight\Reporting;
 use Greenlight\Core\Event\TestFinished;
 
 /**
- * Collects the slowest tests of a run for the human-facing reporters.
+ * Collects the slowest tests of a run for human-readable reporters.
  *
- * Only tests over the threshold are reported, so fast suites get no extra
- * noise. The default footer caps at five lines; extended mode (--profile)
- * keeps twenty-five.
+ * Reporters show only tests above the threshold. Thus, fast suites have no
+ * additional output. The default footer has a limit of five lines. --profile
+ * increases the limit to 25.
  *
  * @internal
  */
@@ -49,8 +49,7 @@ final class SlowTests
     }
 
     /**
-     * The rendered block, or an empty string when nothing crossed the
-     * threshold.
+     * Returns the block or an empty string if no test is above the threshold.
      */
     public function render(Style $style): string
     {

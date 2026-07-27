@@ -45,8 +45,8 @@ final class SymfonyPluginTest
     #[Test]
     public function resolvesPrivateServicesThroughTheTestContainer(): void
     {
-        // VisitCounter is private and unreferenced; only the test container
-        // keeps it reachable.
+        // VisitCounter is private and has no reference. Only the test container
+        // keeps it available.
         Expect::that($this->plugin()->resolve(VisitCounter::class, []))
             ->toBeInstanceOf(VisitCounter::class);
     }
@@ -94,8 +94,9 @@ final class SymfonyPluginTest
     #[Test]
     public function aKernelWithoutTheTestContainerFailsAtBoot(): void
     {
-        // The prod environment compiles without framework.test; the boot
-        // validation rejects it before any resolution can degrade silently.
+        // The prod environment compiles without framework.test. Boot validation
+        // rejects it before service resolution can silently use a less strict
+        // path.
         $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'prod', debug: true);
 
         Expect::that(static function () use ($plugin): void {

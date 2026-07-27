@@ -45,7 +45,8 @@ final class HarnessScopesTest
             ));
         }
 
-        // Realise the lazy proxy so state from the factory result holds.
+        // Initialize the lazy proxy so it contains state from the factory
+        // result.
         Expect::that($resolver->consulted)->toBe(false)
             ->and($resolved->getArrayCopy())->toBe($registered->getArrayCopy());
     }

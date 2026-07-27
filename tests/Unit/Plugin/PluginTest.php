@@ -58,7 +58,8 @@ final class PluginTest
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
-                // Deliberately bypasses withOutcome(): no provenance.
+                // Bypass withOutcome() intentionally to omit the transformation
+                // source.
                 return new TestResult($result->id, Outcome::Skipped, $result->durationSeconds, 0);
             }
         };
@@ -115,13 +116,13 @@ final class PluginTest
             $byMethod[$result->id->method] = $result;
         }
 
-        // The passing test errors, naming the plugin.
+        // The passed test becomes an error that names the plugin.
         Expect::that($byMethod['passes']->outcome)->toBe(Outcome::Errored)
             ->and($byMethod['passes']->error?->message)->toContain('failed in afterTest')
             ->toContain('plugin exploded');
 
-        // The already-errored test keeps its original error; the plugin
-        // failure is recorded as a failure detail instead of vanishing.
+        // The test keeps its original error. Greenlight records the plugin
+        // failure as a failure detail.
         $errored = $byMethod['explodes'];
         Expect::that($errored->outcome)->toBe(Outcome::Errored)
             ->and($errored->error?->message)->toContain('intentional boom')
@@ -222,7 +223,8 @@ final class PluginTest
 
         $this->runSuite('Lifecycle/Order', [$late, $early]);
 
-        // Construction precedes beforeTest, so the first entry is the fixture's own.
+        // Construction occurs before beforeTest(). Thus, the first entry comes
+        // from the fixture.
         Expect::that(\array_slice(TraceLog::drain(), 1, 2))->toBe(['early', 'late']);
     }
 
@@ -244,8 +246,8 @@ final class PluginTest
         Expect::install([new EvenNumbersExtension()]);
 
         try {
-            // Dispatch uses __call because static analysis cannot resolve
-            // dynamic matchers.
+            // Dispatch uses __call because static analysis cannot resolve dynamic
+            // matchers.
             Expect::that(4)->__call('toBeEven', []);
             Expect::that(3)->not()->__call('toBeEven', []);
 

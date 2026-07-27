@@ -7,7 +7,7 @@ namespace Greenlight\Runner\Protocol;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Each message carries a stable short type tag; class names never appear on
+ * Each message contains a stable short type tag. Class names do not occur on
  * the wire.
  *
  * @internal

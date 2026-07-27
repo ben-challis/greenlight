@@ -16,13 +16,13 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 
 /**
- * Shows a bounded live region for in-flight classes and throttles repaints to
- * one every 50ms.
+ * Shows a bounded live window for active test classes. It updates the window no
+ * more than one time in 50 ms.
  *
- * In bounded mode a cleanly passing class prints nothing permanent; only
- * classes containing failures or skips append a line, the moment they
- * finish. --verbose restores a permanent line per class. Without cursor
- * support, every class is appended instead.
+ * In bounded mode, a passed test class produces no permanent line. A class
+ * with failures or skipped tests adds a line when it completes. --verbose
+ * adds a permanent line for each class. Without cursor support, each class
+ * adds a line.
  *
  * @internal
  */
@@ -109,8 +109,10 @@ final class TtyReporter implements Reporter, Ticking
     }
 
     /**
-     * At most ten lines, leaving headroom on short terminals, never fewer
-     * than three (counter, one class, overflow).
+     * Returns from three to ten lines.
+     *
+     * The three lines are the counter, one class, and overflow. The upper
+     * limit leaves space on short terminals.
      */
     public static function windowCapacity(int $terminalRows): int
     {
@@ -125,8 +127,8 @@ final class TtyReporter implements Reporter, Ticking
             $this->plannedTests = $event->plannedTests;
 
             if ($this->header instanceof RunHeader) {
-                // The window's own leading blank line provides the gap in
-                // cursor mode; append-only output needs it written here.
+                // The first blank line of the window gives the space in cursor
+                // mode. Write the space here for append-only output.
                 $this->output->write($this->header->render($event->workers, $this->style) . ($this->cursor ? "\n" : "\n\n"));
             }
 
@@ -296,9 +298,9 @@ final class TtyReporter implements Reporter, Ticking
         $scrollback = [];
 
         if ($permanent) {
-            // The first permanent line opens the scrollback block with a
-            // blank line so it never butts against the header; later lines
-            // stack directly under it.
+            // Add a blank line before the first permanent line. Thus, the
+            // scrollback block does not touch the header. Add later lines
+            // directly below it.
             if (!$this->scrollbackStarted) {
                 $scrollback[] = '';
             }
@@ -307,8 +309,8 @@ final class TtyReporter implements Reporter, Ticking
             $scrollback[] = $this->finalLine($class, $state);
         }
 
-        // A permanent line has to land now, so it rides its frame past the
-        // throttle; a clean pass just waits for the next scheduled repaint.
+        // Write a permanent line immediately, without the update limit. A
+        // passed class waits for the next scheduled update.
         $this->redraw($scrollback, force: $scrollback !== []);
     }
 
@@ -347,8 +349,9 @@ final class TtyReporter implements Reporter, Ticking
 
         $this->lastDrawAt = $this->lastEventAt;
         $this->spinnerFrame = ($this->spinnerFrame + 1) % \count(self::SPINNER);
-        // The leading blank line separates the window from the permanent
-        // scrollback (header, failed or skipped class lines) above it.
+        // The first blank line separates the window from the permanent
+        // scrollback above it. The scrollback contains the header and lines
+        // for failed or skipped classes.
         $lines = ['', $this->counterLine(self::SPINNER[$this->spinnerFrame])];
 
         $slots = $this->windowCapacity - 1;
@@ -362,9 +365,8 @@ final class TtyReporter implements Reporter, Ticking
 
         foreach ($visible as $class => $state) {
             $mark = $state['failed'] > 0 ? $this->style->error('✗') : ' ';
-            // Dim name and count read as pending; the failure mark and the
-            // duration keep their colours so failures and slow classes stay
-            // visible.
+            // Dim the name and count to show an active class. Keep the failure
+            // mark and duration colors to show failures and slow classes.
             $lines[] = \sprintf(
                 '%s %s %s',
                 $mark,
@@ -377,12 +379,11 @@ final class TtyReporter implements Reporter, Ticking
             $lines[] = $this->style->dim(\sprintf('  … and %d more running', $overflow));
         }
 
-        // One frame, one write: reposition over the previous window and
-        // rewrite each line in place, clearing it just before its
-        // replacement lands. Blanking the whole region first and rebuilding
-        // it across separate writes lets the terminal paint the blank
-        // in-between state, which reads as flicker. Permanent scrollback
-        // lines ride the same frame, landing where the old window began.
+        // Write one complete frame. Move to the previous window and replace
+        // each line after its removal. Do not remove the complete area in a
+        // separate write. The terminal can show that empty state as a flicker.
+        // Put permanent scrollback lines in the same frame at the start of the
+        // old window.
         $frame = $this->cursorHidden ? '' : "\x1b[?25l";
         $this->cursorHidden = true;
         $frame .= $this->drawnLines > 0 ? \sprintf("\x1b[%dA", $this->drawnLines) : '';
@@ -425,7 +426,7 @@ final class TtyReporter implements Reporter, Ticking
             return;
         }
 
-        // Move to the start of the live region and clear to screen end.
+        // Move to the start of the live window and clear to the end of the screen.
         $this->output->write(\sprintf("\x1b[%dA\r\x1b[0J", $this->drawnLines));
         $this->drawnLines = 0;
     }

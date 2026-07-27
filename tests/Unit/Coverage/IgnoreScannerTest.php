@@ -51,7 +51,8 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        // Lines 10-13: the marked declaration, signature through closing brace.
+        // Lines 10-13 contain the marked declaration from its signature to its
+        // final brace.
         Expect::that($this->scan($source))->toBe([10, 11, 12, 13]);
     }
 

@@ -102,7 +102,7 @@ final class EnvironmentSandboxTest
         }
     }
 
-    /** Prevents static analysis from narrowing a mutated superglobal offset. */
+    /** Tells the analyzer that the superglobal offset remains variable after a change. */
     private function envValue(string $name): mixed
     {
         return $_ENV[$name] ?? null;
