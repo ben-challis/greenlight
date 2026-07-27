@@ -86,9 +86,10 @@ final class ProfileAggregatorTest
 
         $rendered = $aggregator->render(new Style(ansi: true));
 
-        // 78% sits in the mid band (yellow), 50% below it (red); the 2.5s
-        // class crosses the slow threshold (yellow). Cells pad outside the
-        // colour codes so escape sequences cannot break column alignment.
+        // A value of 78% is in the middle band (yellow), and 50% is in the low
+        // band (red). The 2.5-second class exceeds the slow limit (yellow).
+        // Spaces outside color codes keep column alignment unchanged when the
+        // output contains escape sequences.
         Expect::that($rendered)->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
             ->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
             ->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
@@ -125,9 +126,10 @@ final class ProfileAggregatorTest
     }
 
     /**
-     * Worker w-1 boots in 0.5s, runs two classes with a gap (busy 3.5s of a
-     * 4.5s window). Worker w-2 boots in 1.0s, runs one class (busy 1s of a
-     * 2s window) and finishes 2 seconds before w-1.
+     * Worker w-1 starts in 0.5 seconds and runs two classes with a gap. It is
+     * active for 3.5 seconds of a 4.5-second period. Worker w-2 starts in 1.0
+     * second and is active for 1 second of a 2-second period. It finishes 2
+     * seconds before w-1.
      *
      * @return list<Event>
      */

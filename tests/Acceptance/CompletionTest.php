@@ -50,7 +50,7 @@ final readonly class CompletionTest
         $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }
 
-    /** Skips only the optional syntax check when bash is unavailable. */
+    /** If Bash is not available, skips only the optional syntax check. */
     private function syntaxCheckWhenBashIsAvailable(string $script): void
     {
         $path = \getenv('PATH');

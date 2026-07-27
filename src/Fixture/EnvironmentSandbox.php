@@ -7,8 +7,8 @@ namespace Greenlight\Fixture;
 use Greenlight\Harness\Disposable;
 
 /**
- * Updates getenv(), $_ENV, and $_SERVER together. Each original value is
- * recorded once and restored on disposal.
+ * Updates getenv(), $_ENV, and $_SERVER together. It records each original
+ * value one time and restores the value during disposal.
  */
 final class EnvironmentSandbox implements Disposable
 {

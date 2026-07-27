@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Fixture;
 
 /**
- * Restores getenv(), $_ENV, and $_SERVER independently to their original
- * state.
+ * Restores the original states of getenv(), $_ENV, and $_SERVER independently.
  *
  * @internal
  */

@@ -23,15 +23,15 @@ final readonly class SchedulingTest
     public function workersAreReusedAndTheSlowClassLeadsOnceKnown(): void
     {
         $project = $this->writeProject();
-        // Cold run: no cache yet. Records durations and proves reuse:
-        // two workers cover four classes.
+        // The first run has no timing cache. It records durations and shows
+        // reuse when two workers execute four classes.
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
         Expect::that($result->exitCode)->toBe(0)
             ->and(\count($this->spawnedWorkers($events)))->toBe(2);
-        // Assert the warm run per worker. The merged stream uses arrival
-        // order, so a slow worker may report its first class after another
-        // worker has started several.
+        // Check the second run for each worker. The merged stream uses arrival
+        // order. Thus, a slow worker can report its first class after another
+        // worker starts multiple classes.
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
         $firstStarts = $this->firstClassStartedByWorker($events);

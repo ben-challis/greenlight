@@ -31,7 +31,8 @@ final readonly class WatchModeTest
             $output = $process->readStdoutUntil('Watching for changes', 20.0);
             Expect::that($output)->toContain('1 test, 1 passed');
 
-            // A synthetic change: append a comment, size changes, mtime may not.
+            // Append a comment to make a synthetic change. The size changes, but
+            // the modification time can remain equal.
             $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
 
             $output = $process->readStdoutUntil('Watching for changes', 20.0);

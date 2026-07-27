@@ -10,13 +10,13 @@ use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Wire\Utf8;
 
 /**
- * Direct writes to stream resources, such as fwrite(STDERR, ...) or
- * fwrite(STDOUT, ...), bypass userland output buffering.
+ * Direct writes to stream resources bypass output capture. Examples include
+ * fwrite(STDERR, ...) and fwrite(STDOUT, ...).
  *
- * When output is truncated, the start of the output is kept because it usually
- * contains the useful error context; the end is often repeated noise. A cut may
- * split a multibyte character, in which case the final scrub replaces the
- * dangling bytes with U+FFFD.
+ * If output is too long, Greenlight keeps the first part. This part usually
+ * contains useful error information. The final part frequently contains
+ * repeated information. A cut can divide a multibyte character. The final
+ * conversion then replaces the incomplete bytes with U+FFFD.
  *
  * @internal
  */
@@ -32,7 +32,7 @@ final class OutputCapture
     private array $diagnostics = [];
     private bool $diagnosticsTruncated = false;
 
-    /** The ob_get_level() of the buffer this capture installed, or null when inactive. */
+    /** Contains the ob_get_level() of the capture buffer, or null if inactive. */
     private ?int $bufferLevel = null;
 
     /** @var (\Closure(int, string, string, int): bool)|null */
@@ -52,8 +52,8 @@ final class OutputCapture
     }
 
     /**
-     * Captures notices, warnings, and deprecations. Masked or unsupported
-     * diagnostics return to PHP's default handling.
+     * Captures notices, warnings, and deprecations. PHP uses its default
+     * behavior for masked or unsupported diagnostics.
      *
      * @throws CaptureError when a capture window is already active
      */
@@ -88,8 +88,9 @@ final class OutputCapture
     }
 
     /**
-     * Safe to call from a finally block despite buffer-stack drift. A handler
-     * installed by user code during capture is left in place.
+     * Stops output capture safely from a finally block after buffer-stack
+     * changes. The method does not remove a handler that user code installs
+     * during output capture.
      *
      * @throws CaptureError when no capture window is active
      */
@@ -133,8 +134,9 @@ final class OutputCapture
     }
 
     /**
-     * Keeps the bounded head and returns an empty string to stop propagation.
-     * This callback must not throw because output-handler exceptions are fatal.
+     * Keeps the first part within the size limit. It returns an empty string to
+     * stop propagation. This callback MUST NOT throw because an output-handler
+     * exception is fatal.
      */
     private function appendChunk(string $chunk, int $phase): string
     {

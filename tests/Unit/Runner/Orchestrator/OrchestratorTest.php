@@ -24,8 +24,9 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aSpawnedWorkerThatNeverConnectsFailsTheRunInsteadOfHangingIt(): void
     {
-        // A process that stays alive but never dials the orchestrator socket,
-        // like a worker stuck in interpreter boot on an exhausted machine.
+        // This process remains active but does not connect to the orchestrator
+        // socket. It represents a worker that cannot complete interpreter
+        // startup on a machine without available resources.
         $orchestrator = new Orchestrator(
             workerCommand: [\PHP_BINARY, '-r', 'fwrite(STDERR, "booting, honest"); sleep(60);'],
             workingDirectory: \sys_get_temp_dir(),
@@ -40,10 +41,10 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aConnectedWorkerThatGoesSilentBeforeStartingItsAssignmentFailsTheRun(): void
     {
-        // A worker that completes the hello handshake, receives its
-        // assignment, then goes silent without ever reporting TestStarted.
-        // No test is in flight, so per-test timeouts never fire, and the channel
-        // stays open, so crash detection never fires either.
+        // This worker completes the hello handshake and receives an assignment.
+        // It then stops communication before it reports TestStarted. No test is
+        // active, so a test timeout does not occur. The open channel also
+        // prevents crash detection.
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);

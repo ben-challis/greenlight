@@ -43,8 +43,8 @@ final class DriverSelectorTest
     #[Test]
     public function defaultSelectionYieldsExactlyADriverOrAReason(): void
     {
-        // Installed extensions determine the real candidate. The fake-based
-        // tests above cover both branches deterministically.
+        // Installed extensions determine the actual candidate. The tests with
+        // fake coverage drivers check both paths with deterministic results.
         $selection = new DriverSelector()->select();
 
         if ($selection->driver instanceof CoverageDriver) {

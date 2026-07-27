@@ -16,8 +16,8 @@ final readonly class AcceptanceProject
     }
 
     /**
-     * Uses the shared DiscoveryBasic directory because copying its PSR-4
-     * classes would make them autoload from the original path.
+     * Uses the shared DiscoveryBasic directory. A copy of its PSR-4 classes
+     * would make the autoloader load them from the original path.
      */
     public static function createWithDiscoveryBasicTests(TempDirectory $workspace, string $name): self
     {
@@ -60,7 +60,8 @@ final readonly class AcceptanceProject
     }
 
     /**
-     * Keep randomizeOrder disabled. Some callers assert declaration order.
+     * Because some callers verify declaration order, keep randomizeOrder
+     * disabled.
      *
      * @param list<string> $testFiles test files to require, relative to the project root
      */

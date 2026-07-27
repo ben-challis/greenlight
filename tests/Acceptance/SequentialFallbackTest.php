@@ -17,8 +17,8 @@ final readonly class SequentialFallbackTest
     #[Test]
     public function disabledProcOpenFallsBackToInProcess(): void
     {
-        // An isolated project, so this run cannot race another
-        // acceptance test's use of the same working directory.
+        // An isolated project prevents a conflict with another acceptance
+        // test in the same directory.
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sequential-fallback');
         $result = GreenlightCli::run(
             $project->directory,

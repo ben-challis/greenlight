@@ -9,7 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\PhpStanExtension\DigestExtension;
 
 /**
- * PHPStan checks these calls through the extension; runtime dispatch uses
+ * PHPStan checks these calls through the extension. Runtime dispatch uses
  * Expectation::__call.
  */
 final class ExtensionMatcherDispatchTest

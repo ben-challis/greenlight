@@ -3,16 +3,15 @@
 declare(strict_types=1);
 
 /*
- * The flat-memory gate: generates a 10,000-test project, runs it through
- * bin/greenlight in one worker, samples PHP-visible memory via a probe plugin
- * after a warmup, and fails when late-run memory drifts more than 1 MiB above
- * the post-warmup baseline. Leaks in the framework itself have nowhere to
- * hide across ten thousand tests.
+ * Generates a 10,000-test project and runs it with bin/greenlight in one
+ * worker. A probe plugin samples PHP-visible memory after a warmup. The gate
+ * fails if late-run memory exceeds the post-warmup baseline by more than
+ * 1 MiB. Thus, the gate exposes per-test memory growth in Greenlight.
  */
 
-// Few unique methods executed many times through data sets: engine warmup
-// (per-method run-time caches) is bounded, so any remaining slope is a
-// genuine per-test lifecycle leak.
+// A small set of methods runs many times with data sets. Per-method runtime
+// caches reach their limit during engine warmup. Thus, a remaining slope
+// identifies a per-test lifecycle leak.
 const CLASS_COUNT = 20;
 const METHODS_PER_CLASS = 5;
 const ROWS_PER_METHOD = 100;

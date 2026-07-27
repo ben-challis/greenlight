@@ -134,7 +134,8 @@ final class GreenlightConfigTest
                 GreenlightConfig::create()->workers(count: 0);
             },
             'bad worker string' => static function (): void {
-                // Reflection bypasses the static 'auto'|int type to hit the runtime guard.
+                // Reflection bypasses the static 'auto'|int type and exercises the
+                // runtime guard.
                 new \ReflectionMethod(GreenlightConfig::class, 'workers')
                     ->invoke(GreenlightConfig::create(), 'many');
             },

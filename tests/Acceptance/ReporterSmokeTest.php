@@ -18,8 +18,8 @@ final readonly class ReporterSmokeTest
     public function junitProducesWellFormedXmlWithOneFailureAndOnePass(): void
     {
         $project = $this->writeProject();
-        // Stdout only: extension noise on stderr would corrupt the
-        // document the parse below must accept whole.
+        // Use standard output only. Extension messages on standard error
+        // corrupt the document that the parser must accept as a complete unit.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit']);
         Expect::that($result->exitCode)->toBe(1);
         $document = new \DOMDocument();
@@ -43,14 +43,14 @@ final readonly class ReporterSmokeTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=github']);
         Expect::that($result->exitCode)->toBe(1);
-        // realpath(), not project->path(): the annotation carries the
-        // symlink-resolved absolute path discovery reported (macOS temp
-        // dirs alias /var/folders/... to /private/var/folders/...).
+        // Use realpath(), not project->path(). The annotation contains the
+        // absolute path that discovery reports after symbolic-link resolution.
+        // On macOS, temporary paths can have aliases.
         $failingFile = (string) \realpath($project->path('tests/BadReporterProbeTest.php'));
         Expect::that($result->output())->toContain('::error file=' . $failingFile)
             ->toContain('ReporterProbe\BadReporterProbeTest::fails')
             ->toContain('intentional reporter probe failure')
-            // Passing tests add no annotation.
+        // Passed tests do not add an annotation.
             ->not()->toContain('GoodReporterProbeTest');
     }
 

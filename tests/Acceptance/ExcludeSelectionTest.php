@@ -50,10 +50,9 @@ final readonly class ExcludeSelectionTest
     public function excludePathRemovesTestsUnderThatPrefix(): void
     {
         $project = $this->writeProject();
-        // realpath(), not project->path(): discovery reports the
-        // symlink-resolved absolute path (macOS temp dirs alias
-        // /var/folders/... to /private/var/folders/...), and the
-        // prefix match is exact.
+        // Use realpath(), not project->path(). Discovery reports the absolute
+        // path after symbolic-link resolution. On macOS, temporary paths can
+        // have aliases. The prefix comparison is exact.
         $excludedFile = (string) \realpath($project->path('tests/CExcludeProbeTest.php'));
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=' . $excludedFile]);
         Expect::that($result->exitCode)->toBe(0);

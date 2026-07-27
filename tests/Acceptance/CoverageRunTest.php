@@ -74,9 +74,8 @@ final readonly class CoverageRunTest
         $project = $this->writeProject(includeOrchestrator: true);
         $outDir = $project->path('coverage-out');
 
-        // A relay environment inherited from an outer coverage-enabled
-        // suite run would suppress this run's own orchestrator collection
-        // window; clear it so the run behaves as a standalone one.
+        // A relay environment from an outer coverage run excludes orchestrator
+        // coverage from this run. Clear it to make this run independent.
         $result = $this->runIn($project, ['run', '--workers=2', '--reporter=plain'], 'coverage', [
             SubprocessCoverage::DIRECTORY_ENV => '',
             SubprocessCoverage::INCLUDE_ENV => '',
@@ -104,8 +103,8 @@ final readonly class CoverageRunTest
             }
         }
 
-        // Only the orchestrator process ever loads Orchestrator.php, so
-        // covered lines in it prove orchestrator-side collection.
+        // Only the orchestrator process loads Orchestrator.php. Thus, covered
+        // lines in that file show orchestrator coverage collection.
         Expect::that($orchestratorFile)->not()->toBeNull()
             ->and($orchestratorFile['covered'] ?? [])->not()->toHaveCount(0);
     }
@@ -179,7 +178,7 @@ final readonly class CoverageRunTest
 
         $before = $decoded['files'][$mathFile];
 
-        // Fabricate a regressed current export: move one covered line to uncovered.
+        // Make a regressed current export. Move one covered line to uncovered.
         $movedLine = $before['covered'][0];
         $decoded['files'][$mathFile]['covered'] = \array_values(\array_diff($before['covered'], [$movedLine]));
         $decoded['files'][$mathFile]['uncovered'] = [...$before['uncovered'], $movedLine];

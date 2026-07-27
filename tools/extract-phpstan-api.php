@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 /*
- * Extracts the PHPStan API sources from phpstan.phar into .phpstan-api-stubs/
- * so editors can index the symbols that src/PhpStan/ implements. PHPStan
- * itself autoloads these classes from the phar at analysis time; the
- * extracted copy exists only for IDE completion and is never executed.
+ * Extracts the PHPStan API sources from phpstan.phar into
+ * .phpstan-api-stubs/. Editors use this copy to index the symbols that
+ * src/PhpStan/ implements. PHPStan loads these classes from the PHAR during
+ * analysis. The extracted copy supports IDE completion and does not execute.
  */
 
 $root = \dirname(__DIR__);
@@ -18,7 +18,7 @@ if (!\is_file($pharPath)) {
     exit(0);
 }
 
-// A stale tree would keep classes removed upstream indexable, so start fresh.
+// Remove the stale tree so editors cannot index classes that PHPStan removed.
 if (\is_dir($target)) {
     \exec('rm -rf ' . \escapeshellarg($target));
 }

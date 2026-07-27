@@ -158,7 +158,8 @@ final class MockTest
                 ->and($failure->detail()->expected)->toContain('never');
         }
 
-        // The call failure is kept, so verification reports it again.
+        // Greenlight keeps the call failure. Thus, verification reports it
+        // again.
         Expect::that(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/Unexpected call/');
     }
@@ -215,7 +216,8 @@ final class MockTest
         try {
             $calculator->add(1, 2);
         } catch (ExpectationFailed) {
-            // Swallowed on purpose: verification must still fail the test.
+            // Ignore this exception intentionally. Verification must still
+            // fail the test.
         }
 
         Expect::that(static fn() => $doubles->dispose())
@@ -233,7 +235,7 @@ final class MockTest
         try {
             $doubles->dispose();
         } catch (ExpectationFailed) {
-            // Expected: add() was never called.
+            // Expected because code did not call add().
         }
 
         $doubles->dispose();

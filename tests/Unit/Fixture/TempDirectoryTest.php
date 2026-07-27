@@ -13,9 +13,8 @@ final class TempDirectoryTest
     #[Test]
     public function nothingExistsOnDiskBeforeFirstUse(): void
     {
-        // path() is the only method that touches the disk; if construction
-        // already created and bound a directory, disposing without ever
-        // calling path() would try to remove it and could throw.
+        // path() is the only method that accesses the disk. If construction
+        // created a directory, disposal could try to remove it and throw.
         $directory = new TempDirectory();
 
         Expect::that(static function () use ($directory): void {
@@ -99,8 +98,8 @@ final class TempDirectoryTest
         $directory = new TempDirectory();
         $directory->dispose();
 
-        // A no-op dispose() must not have bound a stale or missing path:
-        // path() afterward still creates a fresh, writable directory.
+        // A no-op dispose() MUST NOT keep a stale or missing path. A later
+        // path() call still creates a new writable directory.
         $path = $directory->path();
 
         Expect::that(\is_dir($path))->toBeTrue()

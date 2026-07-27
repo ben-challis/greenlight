@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Support;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * A start() caller owns the live handle and must call terminate() in a finally
- * block. terminate() is a no-op after wait() collects the result.
+ * The caller of start() owns the active process handle. It MUST call
+ * terminate() in a finally block. After wait() collects the result,
+ * terminate() has no effect.
  */
 final class Subprocess
 {

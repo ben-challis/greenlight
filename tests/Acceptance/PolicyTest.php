@@ -19,20 +19,22 @@ final readonly class PolicyTest
     public function deprecationAndNoticePoliciesFlipPassedTests(): void
     {
         $project = $this->writeProject();
-        // Without flags everything passes; deprecations are recorded, not fatal.
+        // Without flags, all tests pass. Greenlight records deprecations but
+        // does not make them fatal.
         $result = $this->run($project, '--filter=DiagnosticProbeTest');
         Expect::that($result->exitCode)->toBe(0)
             ->and($result->output())->toContain('3 tests, 3 passed')
-            // One matcher per test crossed the worker boundary into the summary.
+        // Each test uses one matcher. The summary contains those expectations
+        // after transfer from the worker.
             ->toContain('3 expectations');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
             ->toContain('deprecation policy failed this passed test')
             ->toContain('old api is deprecated')
-            // The flip must not drop the flipped test's verified expectations.
+        // The result change MUST NOT remove verified expectations.
             ->toContain('3 expectations')
-            // The allow-listed deprecation stays green.
+        // The deprecation in the allow list does not fail the test.
             ->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
         Expect::that($result->exitCode)->toBe(1)
@@ -52,7 +54,8 @@ final readonly class PolicyTest
             ->toContain('RiskyProbeTest::assertsNothing')
             ->not()->toContain('optedOut')
             ->not()->toContain('mocksOnly')
-            // Only the mock verification counts; the empty tests add nothing.
+        // Only the mock verification adds to the count. Tests without an
+        // expectation add nothing.
             ->and($output)->toContain('1 expectation');
         $result = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
         Expect::that($result->exitCode)->toBe(1)
