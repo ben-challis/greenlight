@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Argument;
 use Greenlight\Doubles\ArgumentCaptor;
@@ -15,9 +16,40 @@ use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Recorder;
+use Greenlight\Tests\Fixture\Doubles\Wide;
 
 final class ArgumentMatchingTest
 {
+    /**
+     * @param list<int> $expectedRest
+     * @param list<int> $actualRest
+     */
+    #[Test]
+    #[DataSet('differentArgumentCounts')]
+    public function exactArgumentMatchingRequiresTheSameArgumentCount(array $expectedRest, array $actualRest): void
+    {
+        $doubles = new Doubles();
+        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan) use ($expectedRest): void {
+            $plan->expects('variadic')
+                ->with('head', ...$expectedRest)
+                ->once()
+                ->andReturns([]);
+        });
+
+        Expect::that(static fn(): array => $wide->variadic('head', ...$actualRest))
+            ->because('exact argument matching requires the same argument count')
+            ->toThrow(ExpectationFailed::class, '/unexpected call/');
+    }
+
+    /**
+     * @return iterable<string, array{list<int>, list<int>}>
+     */
+    public static function differentArgumentCounts(): iterable
+    {
+        yield 'missing argument' => [[1, 2], [1]];
+        yield 'additional argument' => [[1], [1, 2]];
+    }
+
     #[Test]
     public function typeMatchesBuiltinValues(): void
     {
