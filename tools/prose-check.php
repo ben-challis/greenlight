@@ -16,9 +16,11 @@ const PROSE_EXCLUDED_DIRECTORY_NAMES = [
 ];
 
 const PROSE_CONTRACTIONS = [
+    "ain't",
     "aren't",
     "can't",
     "couldn't",
+    "couldn't've",
     "didn't",
     "doesn't",
     "don't",
@@ -28,11 +30,29 @@ const PROSE_CONTRACTIONS = [
     "he'd",
     "he'll",
     "he's",
+    "how'd",
+    "how'll",
+    "how's",
+    "i'd",
+    "i'll",
+    "i'm",
+    "i've",
     "isn't",
     "it'd",
     "it'll",
     "it's",
+    "let's",
+    "mightn't",
+    "might've",
+    "mustn't",
+    "must've",
+    "needn't",
+    "oughtn't",
+    "she'd",
+    "she'll",
+    "she's",
     "shouldn't",
+    "shouldn't've",
     "that's",
     "there's",
     "they'd",
@@ -45,8 +65,19 @@ const PROSE_CONTRACTIONS = [
     "we're",
     "we've",
     "weren't",
+    "what'd",
+    "what's",
+    "when's",
+    "where'd",
+    "where's",
+    "who'd",
+    "who'll",
+    "who's",
+    "why's",
     "won't",
+    "would've",
     "wouldn't",
+    "wouldn't've",
     "you'd",
     "you'll",
     "you're",
@@ -58,8 +89,18 @@ const PROSE_BRITISH_SPELLINGS = [
     'analysed',
     'analyses',
     'analysing',
+    'artefact',
+    'artefacts',
+    'authorisation',
+    'authorisations',
+    'authorise',
+    'authorised',
+    'authorises',
+    'authorising',
     'behaviour',
     'behaviours',
+    'cancelled',
+    'cancelling',
     'catalogue',
     'catalogued',
     'catalogues',
@@ -72,6 +113,14 @@ const PROSE_BRITISH_SPELLINGS = [
     'coloured',
     'colouring',
     'colours',
+    'customisation',
+    'customisations',
+    'customise',
+    'customised',
+    'customises',
+    'customising',
+    'defence',
+    'defences',
     'deserialisable',
     'deserialisation',
     'deserialised',
@@ -83,6 +132,8 @@ const PROSE_BRITISH_SPELLINGS = [
     'favourite',
     'favourites',
     'favours',
+    'grey',
+    'greys',
     'honour',
     'honoured',
     'honouring',
@@ -95,6 +146,12 @@ const PROSE_BRITISH_SPELLINGS = [
     'licenced',
     'licences',
     'licencing',
+    'localisation',
+    'localisations',
+    'localise',
+    'localised',
+    'localises',
+    'localising',
     'labelled',
     'labelling',
     'normalise',
@@ -105,6 +162,12 @@ const PROSE_BRITISH_SPELLINGS = [
     'optimised',
     'optimises',
     'optimising',
+    'organisation',
+    'organisations',
+    'organise',
+    'organised',
+    'organises',
+    'organising',
     'parameterise',
     'parameterised',
     'parameterises',
@@ -129,6 +192,10 @@ const PROSE_BRITISH_SPELLINGS = [
     'singularised',
     'singularises',
     'singularising',
+    'summarise',
+    'summarised',
+    'summarises',
+    'summarising',
     'travelling',
     'utilisation',
 ];
@@ -270,7 +337,7 @@ function proseFiles(string $root): array
             continue;
         }
 
-        if (!\in_array(\strtolower($file->getExtension()), ['astro', 'md', 'markdown', 'php'], true)) {
+        if (!\in_array(\strtolower($file->getExtension()), ['astro', 'json', 'md', 'markdown', 'neon', 'php', 'ts', 'tsx', 'yaml', 'yml'], true)) {
             continue;
         }
 
@@ -299,7 +366,7 @@ function proseRelativePath(string $root, string $path): string
 }
 
 /**
- * @return list<array{path: string, line: int, text: string}>
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
  */
 function prosePassages(string $root, string $path): array
 {
@@ -310,19 +377,99 @@ function prosePassages(string $root, string $path): array
         \proseFail(\sprintf('Cannot read "%s".', $relative));
     }
 
-    if (\str_ends_with(\strtolower($path), '.php')) {
+    $extension = \strtolower(\pathinfo($path, \PATHINFO_EXTENSION));
+
+    if ($extension === 'php') {
         return \prosePhpPassages($relative, $contents);
     }
 
-    if (\str_ends_with(\strtolower($path), '.astro')) {
+    if ($extension === 'astro') {
         return \proseAstroPassages($relative, $contents);
+    }
+
+    if (\in_array($extension, ['json', 'neon', 'ts', 'tsx', 'yaml', 'yml'], true)) {
+        return \proseStructuredPassages($relative, $contents, $extension);
     }
 
     return \proseMarkdownPassages($relative, $contents);
 }
 
 /**
- * @return list<array{path: string, line: int, text: string}>
+ * Extracts text fields and owned comments from structured text files.
+ *
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
+ */
+function proseStructuredPassages(string $path, string $contents, string $extension): array
+{
+    $passages = [];
+    $lines = \preg_split('/\R/', $contents);
+
+    foreach ($lines === false ? [] : $lines as $offset => $line) {
+        $lineNumber = $offset + 1;
+        $text = null;
+
+        if ($extension === 'json' && \preg_match(
+            '/^\s*"(?:description|label|placeholder|title)"\s*:\s*"((?:\\\\.|[^"\\\\])*)"/',
+            $line,
+            $matches,
+        ) === 1) {
+            $decoded = \json_decode('"' . $matches[1] . '"', true);
+            $text = \is_string($decoded) ? $decoded : $matches[1];
+        } elseif (\in_array($extension, ['yaml', 'yml', 'neon'], true)) {
+            if (\preg_match('/^\s*(?:description|label|name|placeholder|title)\s*:\s*(.+?)\s*$/', $line, $matches) === 1) {
+                $text = \proseStructuredScalar($matches[1]);
+            } elseif (\preg_match('/^\s*#\s+(?!@)(.+)$/', $line, $matches) === 1) {
+                $text = $matches[1];
+            }
+        } elseif (\in_array($extension, ['ts', 'tsx'], true)) {
+            if (\preg_match(
+                '/\b(?:description|label|placeholder|title)\s*:\s*([\'"`])((?:\\\\.|(?!\1).)*)\1/',
+                $line,
+                $matches,
+            ) === 1) {
+                $text = \stripcslashes($matches[2]);
+            } elseif (\preg_match('/^\s*\/\/\s+(?!@)(.+)$/', $line, $matches) === 1) {
+                $text = $matches[1];
+            }
+        }
+
+        if ($text === null || \preg_match('/[A-Za-z]/', $text) !== 1) {
+            continue;
+        }
+
+        $passages[] = [
+            'path' => $path,
+            'line' => $lineNumber,
+            'text' => \trim((string) \preg_replace('/\s+/', ' ', $text)),
+        ];
+    }
+
+    return $passages;
+}
+
+function proseStructuredScalar(string $value): ?string
+{
+    $value = \trim($value);
+
+    if (\in_array($value, ['|', '>', '|-', '>-'], true)) {
+        return null;
+    }
+
+    if (
+        \strlen($value) >= 2
+        && (($value[0] === '"' && \str_ends_with($value, '"')) || ($value[0] === "'" && \str_ends_with($value, "'")))
+    ) {
+        $quote = $value[0];
+        $value = \substr($value, 1, -1);
+
+        return $quote === '"' ? \stripcslashes($value) : \str_replace("''", "'", $value);
+    }
+
+    return (string) \preg_replace('/\s+#.*$/', '', $value);
+}
+
+/**
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
  */
 function proseMarkdownPassages(string $path, string $contents): array
 {
@@ -403,7 +550,7 @@ function proseMarkdownPassages(string $path, string $contents): array
 
 function proseCleanMarkdown(string $text): string
 {
-    $text = (string) \preg_replace('/!\[[^\]]*]\([^)]*\)/', ' LITERAL ', $text);
+    $text = (string) \preg_replace('/!\[([^\]]*)]\([^)]*\)/', ' $1 ', $text);
     $text = (string) \preg_replace('/\[[^\]]+]\([^)]*\)/', ' LITERAL ', $text);
     $text = (string) \preg_replace('/`[^`]*`/', ' LITERAL ', $text);
     $text = (string) \preg_replace('/<https?:\/\/[^>]+>/', ' LITERAL ', $text);
@@ -415,7 +562,7 @@ function proseCleanMarkdown(string $text): string
 }
 
 /**
- * @return list<array{path: string, line: int, text: string}>
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
  */
 function proseAstroPassages(string $path, string $contents): array
 {
@@ -540,7 +687,7 @@ function proseMaskAstroExpressions(string $contents): string
 }
 
 /**
- * @param list<array{path: string, line: int, text: string}> $passages
+ * @param list<array{path: string, line: int, text: string, advisory?: bool}> $passages
  * @param list<string>                                         $paragraph
  */
 function proseFlushParagraph(
@@ -567,7 +714,7 @@ function proseFlushParagraph(
 }
 
 /**
- * @return list<array{path: string, line: int, text: string}>
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
  */
 function prosePhpPassages(string $path, string $contents): array
 {
@@ -600,6 +747,17 @@ function prosePhpPassages(string $path, string $contents): array
 
             if (\str_starts_with($trimmed, '@')) {
                 \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, false);
+                $description = \prosePhpDocTagDescription($trimmed);
+
+                if ($description !== null) {
+                    $passages[] = [
+                        'path' => $path,
+                        'line' => $line + $offset,
+                        'text' => $description,
+                        'advisory' => false,
+                    ];
+                }
+
                 $inTag = true;
 
                 continue;
@@ -619,7 +777,91 @@ function prosePhpPassages(string $path, string $contents): array
         \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, false);
     }
 
+    if (
+        $path !== 'tools/prose-check.php'
+        && (\str_starts_with($path, 'src/') || \str_starts_with($path, 'tools/') || \str_starts_with($path, 'bin/'))
+    ) {
+        $passages = [...$passages, ...\prosePhpStringPassages($path, $contents)];
+    }
+
     return $passages;
+}
+
+function prosePhpDocTagDescription(string $line): ?string
+{
+    if (\preg_match('/^@param(?:-out)?\s+\S+\s+\$\S+\s+(.+)$/', $line, $matches) === 1) {
+        return $matches[1];
+    }
+
+    if (\preg_match('/^@(return|throws|var)\s+\S+\s+(.+)$/', $line, $matches) === 1) {
+        return $matches[2];
+    }
+
+    return null;
+}
+
+/**
+ * @return list<array{path: string, line: int, text: string, advisory: false}>
+ */
+function prosePhpStringPassages(string $path, string $contents): array
+{
+    $passages = [];
+
+    foreach (\token_get_all($contents) as $token) {
+        if (!\is_array($token) || $token[0] !== \T_CONSTANT_ENCAPSED_STRING) {
+            continue;
+        }
+
+        $text = \proseDecodePhpString($token[1]);
+
+        if (!\proseLooksLikeHumanString($text)) {
+            continue;
+        }
+
+        $passages[] = [
+            'path' => $path,
+            'line' => $token[2],
+            'text' => $text,
+            'advisory' => false,
+        ];
+    }
+
+    return $passages;
+}
+
+function proseDecodePhpString(string $literal): string
+{
+    if (\strlen($literal) < 2) {
+        return $literal;
+    }
+
+    $quote = $literal[0];
+    $value = \substr($literal, 1, -1);
+
+    if ($quote === "'") {
+        return \str_replace(["\\\\", "\\'"], ["\\", "'"], $value);
+    }
+
+    return \stripcslashes($value);
+}
+
+function proseLooksLikeHumanString(string $text): bool
+{
+    if (
+        \str_contains($text, '://')
+        || \str_contains($text, "\n")
+        || \str_contains($text, '->')
+        || \preg_match('/^\s*[\/^#~]/', $text) === 1
+        || \preg_match('/^\s*(?:abstract |class |declare\(|final |for \(|foreach \(|function |if \(|private |protected |public |return |static |throw |while \()/', $text) === 1
+        || \preg_match('/<[A-Za-z][^>]*>/', $text) === 1
+        || \preg_match('/^\s*[a-z0-9.+-]+\/[a-z0-9.+-]+\s*;/i', $text) === 1
+    ) {
+        return false;
+    }
+
+    $withoutPlaceholders = (string) \preg_replace('/%(?:\d+\$)?[-+0-9.\']*[bcdeEfFgGosuxX]/', ' LITERAL ', $text);
+
+    return \preg_match('/\b[A-Za-z]{2,}\b.*\b[A-Za-z]{2,}\b/s', $withoutPlaceholders) === 1;
 }
 
 /**
@@ -657,14 +899,14 @@ function proseCommentTokens(string $contents): array
 }
 
 /**
- * @param array{path: string, line: int, text: string} $passage
+ * @param array{path: string, line: int, text: string, advisory?: bool} $passage
  *
  * @return list<array{path: string, line: int, rule: string, severity: string, message: string, passage: string}>
  */
 function proseAnalyze(array $passage): array
 {
     $findings = [];
-    $text = \proseWithoutRegisteredLiterals($passage['text']);
+    $text = \proseWithoutQuotedLiterals(\proseWithoutRegisteredLiterals($passage['text']));
     $normalized = \proseNormalize($text);
 
     $add = static function (string $rule, string $severity, string $message) use (&$findings, $passage, $normalized): void {
@@ -744,6 +986,10 @@ function proseAnalyze(array $passage): array
         }
     }
 
+    if (($passage['advisory'] ?? true) === false) {
+        return $findings;
+    }
+
     if ($hasLongInstruction) {
         $add('procedural-sentence-length', 'advisory', 'An instruction can contain more than 20 words.');
     }
@@ -783,6 +1029,11 @@ function proseWithoutRegisteredLiterals(string $text): string
         ' LITERAL ',
         $text,
     );
+}
+
+function proseWithoutQuotedLiterals(string $text): string
+{
+    return (string) \preg_replace('/"[^"]*"|“[^”]*”/', ' LITERAL ', $text);
 }
 
 /**

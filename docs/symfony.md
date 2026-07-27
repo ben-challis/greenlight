@@ -144,7 +144,7 @@ in the test bootstrap, a Makefile target, or another project-level setup step.
 Channel numbers remain stable after a worker recycle. Thus, these schemas can
 remain for the complete test run.
 
-If a service cannot be split per channel, mark the classes that use it with
+If you cannot split a service per channel, mark the classes that use it with
 `#[RequiresResource]`. Configure its safe concurrency:
 
 ```php

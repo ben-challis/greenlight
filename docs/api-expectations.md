@@ -600,7 +600,8 @@ PHPDoc:
 
 ### `toBeWithin()`
 
-Passes when abs(subject - of) is not more than delta.
+Passes when the absolute difference between the numeric subject and
+`$of` is not more than `$delta`.
 
 ```php
 public function toBeWithin(float $delta, float $of): self
@@ -611,7 +612,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L653)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L654)
 
 ### `toMatch()`
 
@@ -625,7 +626,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L676)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L677)
 
 ### `toStartWith()`
 
@@ -638,7 +639,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L692)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L693)
 
 ### `toEndWith()`
 
@@ -651,7 +652,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L706)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L707)
 
 ### `toBeJson()`
 
@@ -667,7 +668,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L723)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L724)
 
 ### `toMatchJson()`
 
@@ -685,7 +686,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L742)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L743)
 
 ### `toThrow()`
 
@@ -708,7 +709,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L788)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L789)
 
 ## `ExpectationExtension`
 

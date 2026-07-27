@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 /**
- * A run-time condition that `#[SkipUnless]` references.
+ * A runtime condition that `#[SkipUnless]` references.
  *
  * Implementations can receive constructor arguments from `#[SkipUnless]`.
  * Constructors must only store these arguments. `isSatisfied()` evaluates the

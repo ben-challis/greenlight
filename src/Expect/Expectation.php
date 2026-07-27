@@ -644,7 +644,8 @@ final class Expectation
     }
 
     /**
-     * Passes when abs(subject - of) is not more than delta.
+     * Passes when the absolute difference between the numeric subject and
+     * `$of` is not more than `$delta`.
      *
      * @return self<T>
      *

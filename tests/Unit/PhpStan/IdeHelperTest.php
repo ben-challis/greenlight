@@ -23,6 +23,6 @@ final class IdeHelperTest
             ->toContain(' * @method self toHaveDigestLength(int $length)')
             ->toContain(' * @method self toBePositive()')
             ->toContain('final class Expectation {}')
-            ->toContain('Never executed or autoloaded');
+            ->toContain('The IDE does not execute or autoload');
     }
 }

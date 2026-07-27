@@ -22,7 +22,7 @@ use Greenlight\Runner\Worker\EventSink;
 final readonly class ParallelRunner
 {
     /**
-     * @param non-empty-list<non-empty-string> $workerCommand argv prefix invoking bin/greenlight
+     * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
      */
     public function __construct(
         private array $workerCommand,
@@ -32,8 +32,8 @@ final readonly class ParallelRunner
     /**
      * @param list<non-empty-string> $directories
      * @param positive-int $workerCount
-     * @param list<non-empty-string> $priorityClasses classes to run first, in the given order
-     * @param array<string, float> $classSeconds recorded class durations for longest-first ordering; ignored on seeded runs
+     * @param list<non-empty-string> $priorityClasses Classes that run first in the specified order.
+     * @param array<string, float> $classSeconds Recorded class durations for longest-first ordering. Seeded runs ignore this value.
      *
      * @throws DiscoveryError
      */

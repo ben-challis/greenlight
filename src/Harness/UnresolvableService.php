@@ -52,7 +52,7 @@ final class UnresolvableService extends \RuntimeException
     {
         return new self(\sprintf(
             'Constructor parameter $%s of "%s" has no resolvable type. '
-            . 'Test constructors may only declare harness service types.',
+            . 'A test constructor can declare only harness service types.',
             $parameter,
             $consumer,
         ));

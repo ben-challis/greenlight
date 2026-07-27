@@ -169,7 +169,7 @@ PHPDoc:
 ### `workers()`
 
 Greenlight replaces a worker after the specified number of tests only
-when recycleAfterTests has a value. Use this option for state that the
+when `$recycleAfterTests` has a value. Use this option for state that the
 memory limit cannot control.
 
 ```php

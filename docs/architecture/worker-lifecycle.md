@@ -196,8 +196,8 @@ the test as errored. It attaches the tail of the worker's captured stderr to
 the failure. The orchestrator returns the rest of the assignment to the queue
 for a replacement.
 
-The orchestrator does not return the crashed test to the queue. Otherwise, a
-test that terminates its process could terminate each replacement. The
+The orchestrator does not return the crashed test to the queue. Otherwise, the
+same test can terminate each replacement process. The
 orchestrator releases the assignment's resource slots before it returns
 untouched entries to the queue.
 
@@ -226,7 +226,7 @@ The orchestrator fails the complete run for either of these conditions:
 - A connected worker sends no message for 60 seconds when no test is active.
 
 Both conditions indicate a fault outside the suite, such as an invalid
-bootstrap or a blocked socket. A replacement worker would repeat the fault. A
+bootstrap or a blocked socket. Each replacement worker repeats the fault. A
 run-wide spawn limit also controls the total number of workers. If replacements
 repeatedly die, the orchestrator fails the run with a diagnosis.
 

@@ -148,8 +148,8 @@ Errors have identifiers under `greenlight.testConstructor.*` (`visibility`,
 ## Lifecycle hook checks
 
 The extension reports a `#[Before]` or `#[After]` method that Greenlight cannot
-run. A lifecycle hook must be public, non-static, and concrete. It must accept
-zero arguments.
+run. A lifecycle hook must be public, non-static, and concrete. It must not
+require arguments.
 
 Errors have identifiers under `greenlight.lifecycleMethod.*` (`visibility`,
 `static`, `abstract`, `parameters`).
@@ -166,11 +166,11 @@ The extension validates data providers before a test runs. If you run analysis
 first, PHPStan reports a broken provider before a test can report the error:
 
 * The `#[DataSet]` provider must exist as a public, static, concrete method. It
-  must accept zero arguments. It belongs to the test class or the provider
+  must not require arguments. It belongs to the test class or the provider
   class in the two-argument form.
 * The provider must return an iterable of argument arrays.
-* The provider keys must be integers or strings, and a provider with a
-  statically empty return type is invalid.
+* Provider keys must be integers or strings.
+* A provider with a return type that is always empty is invalid.
 * PHPStan can know the exact row shape from an `array{...}` return type or an
   inline `#[DataRow]` literal. In this case, the rule checks each value against
   the applicable test method parameter. It also reports rows with too few

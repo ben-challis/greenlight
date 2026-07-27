@@ -179,7 +179,7 @@ final class ArtifactStore
         ArtifactConfiguration $configuration,
     ): StagedAttachment {
         if (\is_link($sourcePath)) {
-            throw AttachmentError::source($sourcePath, 'Use a source path that is not a symbolic link');
+            throw AttachmentError::source($sourcePath, 'is a symbolic link. Use a source path that is not a symbolic link');
         }
 
         $source = \fopen($sourcePath, 'rb');

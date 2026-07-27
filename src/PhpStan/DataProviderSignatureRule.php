@@ -24,9 +24,9 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * A data provider must be a public, static, concrete method that accepts zero
- * arguments. It must be in the test class or the specified provider class. It
- * must return an iterable of argument arrays.
+ * A data provider must be a public, static, concrete method that does not
+ * require arguments. It must be in the test class or the specified provider
+ * class. It must return an iterable of argument arrays.
  *
  * PHPStan can know the exact form of an `array{...}` return type or an inline
  * `#[DataRow]` literal. In these forms, PHPStan compares each value to its
@@ -244,7 +244,7 @@ final readonly class DataProviderSignatureRule implements Rule
 
         if ($this->requiredParameterCount($providerAcceptor) > 0) {
             return [$this->error(
-                \sprintf('Data provider %s::%s() must accept zero arguments.', $providerClass->getDisplayName(), $provider),
+                \sprintf('Data provider %s::%s() must not require arguments.', $providerClass->getDisplayName(), $provider),
                 'parameters',
                 $line,
             )];
@@ -294,7 +294,7 @@ final readonly class DataProviderSignatureRule implements Rule
         if ($allowedKeyType->isSuperTypeOf($keyType)->no()) {
             return [$this->error(
                 \sprintf(
-                    'Data provider %s::%s() keys must be int or string, returns %s keys.',
+                    'Data provider %s::%s() keys must be int or string. The provider returns keys of type %s.',
                     $providerClass->getDisplayName(),
                     $provider,
                     $keyType->describe(VerbosityLevel::typeOnly()),

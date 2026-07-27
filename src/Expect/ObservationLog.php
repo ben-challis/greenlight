@@ -102,7 +102,7 @@ final class ObservationLog
             \array_splice($parts, 1, 0, \sprintf('... %d earlier changes omitted ...', $this->omittedGroups));
         }
 
-        $rendered = \implode('; ', $parts);
+        $rendered = \implode("\n", $parts);
 
         if (\strlen($rendered) <= self::MAX_RENDERED_BYTES) {
             return $rendered;
