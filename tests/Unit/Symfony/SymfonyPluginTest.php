@@ -207,6 +207,23 @@ final class SymfonyPluginTest
     }
 
     #[Test]
+    public function beforeTestPreservesLazyKernelBoot(): void
+    {
+        $factoryCalled = false;
+        $plugin = new SymfonyPlugin(static function () use (&$factoryCalled): KernelInterface {
+            $factoryCalled = true;
+
+            Fail::because('SymfonyPlugin::beforeTest() MUST NOT boot the kernel.');
+        });
+
+        $plugin->beforeTest($this->context());
+
+        Expect::that($factoryCalled)
+            ->because('the kernel remains lazy during beforeTest()')
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function afterTestWithoutABootedKernelIsANoOp(): void
     {
         $booted = false;
