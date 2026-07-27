@@ -43,6 +43,21 @@ final class MemorySizeTest
     }
 
     #[Test]
+    public function rejectsSizesThatOverflowTheIntegerByteCount(): void
+    {
+        $input = \PHP_INT_MAX . 'G';
+
+        Expect::that(static function () use ($input): void {
+            MemorySize::parseToBytes($input);
+        })
+            ->because('the parsed byte count MUST fit in a platform integer')
+            ->toThrow(
+                InvalidConfiguration::class,
+                '/The value does not fit in an integer byte count\./',
+            );
+    }
+
+    #[Test]
     public function formatsBytesBackToShortestExactForm(): void
     {
         Expect::that(MemorySize::format(268435456))->because('formats bytes back to shortest exact form')->toBe('256M');
