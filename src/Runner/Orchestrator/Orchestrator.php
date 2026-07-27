@@ -341,8 +341,8 @@ final class Orchestrator
     /**
      * Returns live workers without a first assignment.
      *
-     * These workers will consume queued scheduling units. Thus, the
-     * orchestrator must not start more workers for the same scheduling units.
+     * The orchestrator assigns queued scheduling units to these workers. Thus,
+     * it does not start more workers for the same units.
      */
     private function unassignedActiveCount(): int
     {
@@ -687,8 +687,8 @@ final class Orchestrator
             }
 
             // pumpChannels already drained the channel, so the EOF state is
-            // current. Do not poll here. This code would discard a returned
-            // message.
+            // current. Do not poll here because another poll discards a
+            // returned message.
             if (!$handle->channel->isEof()) {
                 continue;
             }

@@ -107,8 +107,8 @@ include connections and file handles.
 
 Default: `1` for a resource used by `#[RequiresResource]`.
 
-Limits how many class assignments in one Greenlight run can use the named
-resource at once.
+Limits how many assignments in one Greenlight run can use the named resource at
+once.
 
 ```php
 return GreenlightConfig::create()
@@ -119,9 +119,9 @@ return GreenlightConfig::create()
 Limits must be positive. Names must match `[a-z0-9][a-z0-9._-]*`. Configure
 each name only one time.
 
-A class that requires several resources waits until all of them have capacity.
-Greenlight claims the slots together, so a class never starts with only part of
-its requirement.
+An assignment that requires several resources waits until all of them have
+capacity. Greenlight claims the slots together and sends the assignment only
+after all slots are available.
 
 The limit is an in-memory scheduler gate, not a distributed lock. Separate
 Greenlight processes, worktrees, and CI shards do not share capacity.
@@ -321,8 +321,8 @@ directories.
 
 Use a channel when each worker can have a separate resource. Use
 `#[RequiresResource]` when workers share a dependency with lower safe
-concurrency. A resource limit controls the number of classes that can run. It
-does not assign a resource instance to a class.
+concurrency. A resource limit controls the number of assignments that can run.
+It does not assign a resource instance to an assignment.
 
 Two concurrent tests do not share a channel. Channel numbers are from 1 through
 the worker count. The number of worker processes during the run does not change

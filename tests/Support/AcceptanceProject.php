@@ -16,8 +16,8 @@ final readonly class AcceptanceProject
     }
 
     /**
-     * Uses the shared DiscoveryBasic directory. A copy of its PSR-4 classes
-     * would make the autoloader load them from the original path.
+     * Uses the shared DiscoveryBasic directory. Do not copy its PSR-4 classes
+     * because the autoloader loads copies from the original path.
      */
     public static function createWithDiscoveryBasicTests(TempDirectory $workspace, string $name): self
     {

@@ -14,8 +14,8 @@ use Greenlight\Coverage\Export\JsonExporter;
  * not write an empty coverage map.
  *
  * Worker processes do not write coverage files. They send coverage through
- * the worker protocol. A second collection period would close the inherited
- * process period too early.
+ * the worker protocol. A second collection period closes the inherited process
+ * period too early.
  *
  * @internal
  */

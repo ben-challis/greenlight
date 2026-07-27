@@ -168,8 +168,8 @@ Namespace: `Greenlight\Doubles`
 
 Mocks are strict. A call without a planned expectation fails the test
 immediately. Each return value needs a configured result. Stubs cause an
-error for all interactions. Spies record calls to methods that return
-nothing.
+error for all interactions. Spies record calls to methods without a return
+value.
 
 A verification failure throws one `ExpectationFailed`. It contains one
 `FailureDetail` for each unmet expectation. Thus, the reporter shows it in

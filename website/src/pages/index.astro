@@ -94,7 +94,7 @@ final class PriceTest
           <span>02</span>
           <div>
             <h3>Keep every worker busy</h3>
-            <p>Free workers take the next class. Greenlight starts known slow classes and previously failed classes early.</p>
+            <p>The orchestrator assigns one scheduling unit to each available worker. Greenlight starts known slow classes and previously failed classes early.</p>
           </div>
         </li>
         <li>
@@ -115,7 +115,7 @@ final class PriceTest
           <p><strong>Crashed worker</strong><span>The orchestrator returns the rest of the assignment to the queue and starts a replacement worker.</span></p>
           <p><strong>Hung test</strong><span>A hard timeout stops the worker. A replacement worker continues the suite.</span></p>
           <p><strong>External resources</strong><span>Use channels to select separate resources for each worker. Resource limits restrict concurrent access to shared dependencies.</span></p>
-          <p><strong>Missed mock call</strong><span>At teardown, strict doubles verify interactions and report unmet expectations.</span></p>
+          <p><strong>Missed mock call</strong><span>When the test ends, Greenlight verifies strict doubles and reports unmet expectations.</span></p>
         </div>
       </div>
       <div class="terminal-window" aria-label="Example Greenlight terminal output">

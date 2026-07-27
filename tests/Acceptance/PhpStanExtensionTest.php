@@ -90,7 +90,7 @@ final readonly class PhpStanExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('matcher subject types follow fluent chains')->toBe(1)
+        Expect::that($probe->exitCode)->because('fluent chains preserve matcher subject types')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(2)
             ->and($probe->messages())->toContain('requires subject type string, but the subject has type int');
@@ -190,7 +190,7 @@ final readonly class PhpStanExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('matcher subject types follow temporal chains')->toBe(1)
+        Expect::that($probe->exitCode)->because('temporal chains preserve matcher subject types')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(3)
             ->and($probe->messages())->toContain('requires subject type string, but the subject has type int');

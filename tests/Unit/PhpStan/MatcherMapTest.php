@@ -38,7 +38,7 @@ final class MatcherMapTest
     {
         $map = MatcherMap::fromConfigFiles([self::CONFIG, self::CONFIG]);
 
-        Expect::that($map->has('toHaveDigestLength'))->because('identical declarations across files union silently')->toBeTrue();
+        Expect::that($map->has('toHaveDigestLength'))->because('identical declarations from multiple files merge without an error')->toBeTrue();
     }
 
     #[Test]

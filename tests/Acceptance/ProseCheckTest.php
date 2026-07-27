@@ -74,6 +74,7 @@ final readonly class ProseCheckTest
             # Exclusions
 
             The value is `colour;` in this sample.
+            The other value is ``colour; `sample` `` in this sample.
 
             [reference](https://example.com/colour)
 
@@ -86,6 +87,34 @@ final readonly class ProseCheckTest
 
         $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes markdown code and links')->toBe(0);
+    }
+
+    #[Test]
+    public function closesMarkdownFencesOnlyWithTheOpeningMarker(): void
+    {
+        $root = $this->workspace('markdown-fence-marker');
+        $this->write(
+            $root,
+            'sample.md',
+            <<<'MARKDOWN'
+            # Fence marker
+
+            ```php
+            $colour = 'value;';
+            ~~~
+            $colour = 'other;';
+            ```
+
+            The reporter doesn't stop;
+
+            MARKDOWN,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('closes Markdown fences only with the opening marker')->toBe(1)
+            ->and($result->output())->toContain('sample.md:9: contraction:')
+            ->toContain('sample.md:9: semicolon:')
+            ->not()->toContain('sample.md:6:');
     }
 
     #[Test]
@@ -309,6 +338,32 @@ final readonly class ProseCheckTest
     }
 
     #[Test]
+    public function joinsScriptLineCommentParagraphs(): void
+    {
+        $root = $this->workspace('script-line-comments');
+        $this->write(
+            $root,
+            'website/scripts/status.mjs',
+            <<<'JS'
+            const template = `
+            // The template doesn't stop;
+            `;
+
+            // The orchestrator collects every selected test class from all configured directories and
+            // sends one complete assignment to every available worker before the test run begins across all active channels.
+            //
+            // One sentence. Two sentences. Three sentences. Four sentences. Five sentences. Six sentences. Seven sentences.
+            JS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('joins script line-comment paragraphs')->toBe(1)
+            ->and($result->output())->toContain('website/scripts/status.mjs:5: sentence-length:')
+            ->toContain('website/scripts/status.mjs:8: paragraph-length:')
+            ->not()->toContain('website/scripts/status.mjs:2: contraction:');
+    }
+
+    #[Test]
     public function excludesMultilineAstroExpressions(): void
     {
         $root = $this->workspace('website-expressions');
@@ -419,8 +474,10 @@ final readonly class ProseCheckTest
             {
                 /**
                  * @param string $value The reporter doesn't use colour;
+                 * @param int<1, max>|null $limit The worker doesn't use colour;
+                 * @return array{value: string, label: string} The method doesn't use colour;
                  */
-                public function report(string $value): string
+                public function report(string $value, ?int $limit): string
                 {
                     return 'The worker does not organise the data.';
                 }
@@ -434,7 +491,11 @@ final readonly class ProseCheckTest
             ->and($result->output())->toContain('src/Message.php:6: semicolon:')
             ->toContain('src/Message.php:6: contraction:')
             ->toContain('src/Message.php:6: british-spelling:')
-            ->toContain('src/Message.php:10: british-spelling:');
+            ->toContain('src/Message.php:7: contraction:')
+            ->toContain('src/Message.php:7: british-spelling:')
+            ->toContain('src/Message.php:8: contraction:')
+            ->toContain('src/Message.php:8: british-spelling:')
+            ->toContain('src/Message.php:12: british-spelling:');
     }
 
     #[Test]
@@ -725,7 +786,7 @@ final readonly class ProseCheckTest
         $this->write($root, 'packages/example/node_modules/package/README.md', $invalid);
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes dependencies at any directory depth')->toBe(0);
+        Expect::that($result->exitCode)->because('excludes dependencies at all directory depths')->toBe(0);
     }
 
     #[Test]

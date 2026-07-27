@@ -380,9 +380,11 @@ final class OrderRepositoryTest { ... }
 Class-level requirements apply to each method. Greenlight combines method-level
 requirements with them. Multiple occurrences of the same name have no effect.
 
-Greenlight assigns work by class, so it combines the requirements from every
-method and holds those resources until the class finishes. A requirement on one
-method can therefore reduce concurrency for other methods in the same class.
+Greenlight combines requirements from all non-isolated tests in a class and
+holds them until the class assignment finishes. Thus, a method requirement can
+reduce concurrency for other non-isolated tests in the class. Each isolated
+test has a separate assignment with its class-level and method-level
+requirements.
 
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.

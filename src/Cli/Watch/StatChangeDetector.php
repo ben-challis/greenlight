@@ -11,7 +11,7 @@ namespace Greenlight\Cli\Watch;
  * directories. It reports a path when its fingerprint changes. It also
  * reports new and removed paths.
  *
- * The first poll creates the initial record and reports nothing.
+ * The first poll creates the initial record and reports no changes.
  *
  * @internal
  */

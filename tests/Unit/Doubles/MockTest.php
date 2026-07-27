@@ -47,7 +47,7 @@ final class MockTest
                 'Calls to Greenlight\Tests\Fixture\Doubles\Calculator::add(): 1 time. '
                 . 'The expectation requires exactly 2 times.',
             )
-                ->and($detail->expected)->toBe('add(any arguments) exactly 2 times')
+                ->and($detail->expected)->toBe('add(all arguments) exactly 2 times')
                 ->and($detail->actual)->toBe('add(1, 2)');
 
             return;
@@ -135,7 +135,7 @@ final class MockTest
             $plan->expects('add')->with(MockPlan::any(), 7)->times(2)->andReturns(7);
         });
 
-        Expect::that($calculator->add(1, 7))->because('the any matcher accepts every value in its position')->toBe(7)
+        Expect::that($calculator->add(1, 7))->because('any() accepts each value at its position')->toBe(7)
             ->and($calculator->add(999, 7))->toBe(7);
 
         $doubles->dispose();
@@ -161,7 +161,7 @@ final class MockTest
 
         // Greenlight keeps the call failure. Thus, verification reports it
         // again.
-        Expect::that(static fn() => $doubles->dispose())->because('never means any call fails immediately')
+        Expect::that(static fn() => $doubles->dispose())->because('never() causes each call to fail immediately')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
 

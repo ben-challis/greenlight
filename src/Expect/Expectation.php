@@ -829,7 +829,7 @@ final class Expectation
                 $thrown::class,
                 $this->renderer->render($thrown->getMessage()),
             )
-            : 'a callable that threw nothing';
+            : 'a callable that did not throw';
 
         return $this->verify($matched, $description, $throwable, $actual);
     }

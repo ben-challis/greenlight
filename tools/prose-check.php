@@ -530,14 +530,38 @@ function proseJsonPassages(string $path, string $contents): array
 function proseScriptPassages(string $path, string $contents): array
 {
     $passages = [];
+    $lineParagraph = [];
+    $lineParagraphLine = 1;
+    $lastLine = null;
 
-    if (\preg_match_all('/^\s*\/\/\s+(?!@)(.+)$/m', $contents, $comments, \PREG_OFFSET_CAPTURE) !== false) {
-        foreach ($comments[1] as [$text, $offset]) {
-            $passages[] = ['path' => $path, 'line' => \proseLineAtOffset($contents, $offset), 'text' => $text];
+    foreach (\proseScriptComments($contents) as [$type, $comment, $commentOffset]) {
+        if ($type === 'line') {
+            $line = \proseLineAtOffset($contents, $commentOffset);
+            $text = \trim($comment);
+
+            if ($text === '' || \str_starts_with($text, '@')) {
+                \proseFlushParagraph($passages, $lineParagraph, $lineParagraphLine, $path, true);
+                $lastLine = null;
+
+                continue;
+            }
+
+            if ($lastLine !== null && $line !== $lastLine + 1) {
+                \proseFlushParagraph($passages, $lineParagraph, $lineParagraphLine, $path, true);
+            }
+
+            if ($lineParagraph === []) {
+                $lineParagraphLine = $line;
+            }
+
+            $lineParagraph[] = $text;
+            $lastLine = $line;
+
+            continue;
         }
-    }
 
-    foreach (\proseScriptBlockComments($contents) as [$comment, $commentOffset]) {
+        \proseFlushParagraph($passages, $lineParagraph, $lineParagraphLine, $path, true);
+        $lastLine = null;
         $lines = \preg_split('/\R/', $comment);
         $paragraph = [];
         $paragraphLine = \proseLineAtOffset($contents, $commentOffset);
@@ -560,6 +584,8 @@ function proseScriptPassages(string $path, string $contents): array
 
         \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
     }
+
+    \proseFlushParagraph($passages, $lineParagraph, $lineParagraphLine, $path, true);
 
     if (\preg_match_all('/([\'"`])((?:\\\\.|(?!\1).)*)\1/s', $contents, $strings, \PREG_OFFSET_CAPTURE) !== false) {
         foreach ($strings[2] as $index => [$encoded, $offset]) {
@@ -589,9 +615,9 @@ function proseScriptPassages(string $path, string $contents): array
 }
 
 /**
- * @return list<array{string, int}>
+ * @return list<array{string, string, int}>
  */
-function proseScriptBlockComments(string $contents): array
+function proseScriptComments(string $contents): array
 {
     $comments = [];
     $length = \strlen($contents);
@@ -623,7 +649,9 @@ function proseScriptBlockComments(string $contents): array
 
         if ($contents[$index + 1] === '/') {
             $newline = \strpos($contents, "\n", $index + 2);
-            $index = $newline === false ? $length : $newline;
+            $end = $newline === false ? $length : $newline;
+            $comments[] = ['line', \substr($contents, $index + 2, $end - $index - 2), $index + 2];
+            $index = $end;
 
             continue;
         }
@@ -638,7 +666,7 @@ function proseScriptBlockComments(string $contents): array
             break;
         }
 
-        $comments[] = [\substr($contents, $index + 2, $end - $index - 2), $index + 2];
+        $comments[] = ['block', \substr($contents, $index + 2, $end - $index - 2), $index + 2];
         $index = $end + 1;
     }
 
@@ -679,21 +707,32 @@ function proseMarkdownPassages(string $path, string $contents): array
     $passages = [];
     $paragraph = [];
     $paragraphLine = 1;
-    $inFence = false;
+    $fenceMarker = null;
+    $fenceLength = 0;
     $listItemIndent = null;
     $lines = \preg_split('/\R/', $contents);
 
     foreach ($lines === false ? [] : $lines as $offset => $line) {
         $lineNumber = $offset + 1;
 
-        if (\preg_match('/^\s*(```|~~~)/', $line) === 1) {
+        if ($fenceMarker === null && \preg_match('/^\s*(`{3,}|~{3,})/', $line, $fence) === 1) {
             \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
-            $inFence = !$inFence;
+            $fenceMarker = $fence[1][0];
+            $fenceLength = \strlen($fence[1]);
 
             continue;
         }
 
-        if ($inFence) {
+        if ($fenceMarker !== null) {
+            if (
+                \preg_match('/^\s*(`+|~+)\s*$/', $line, $fence) === 1
+                && $fence[1][0] === $fenceMarker
+                && \strlen($fence[1]) >= $fenceLength
+            ) {
+                $fenceMarker = null;
+                $fenceLength = 0;
+            }
+
             continue;
         }
 
@@ -773,13 +812,63 @@ function proseCleanMarkdown(string $text): string
 {
     $text = (string) \preg_replace('/!\[([^\]]*)]\([^)]*\)/', ' $1 ', $text);
     $text = (string) \preg_replace('/\[([^\]]+)]\([^)]*\)/', ' $1 ', $text);
-    $text = (string) \preg_replace('/`[^`]*`/', ' LITERAL ', $text);
+    $text = \proseMaskMarkdownCodeSpans($text);
     $text = (string) \preg_replace('/<https?:\/\/[^>]+>/', ' LITERAL ', $text);
     $text = (string) \preg_replace('/https?:\/\/\S+/', ' LITERAL ', $text);
     $text = (string) \preg_replace('/[*_]{1,3}/', '', $text);
     $text = (string) \preg_replace('/\s+/', ' ', $text);
 
     return \trim($text);
+}
+
+function proseMaskMarkdownCodeSpans(string $text): string
+{
+    $masked = '';
+    $length = \strlen($text);
+
+    for ($index = 0; $index < $length; ++$index) {
+        if ($text[$index] !== '`') {
+            $masked .= $text[$index];
+
+            continue;
+        }
+
+        $runLength = 1;
+
+        while ($index + $runLength < $length && $text[$index + $runLength] === '`') {
+            ++$runLength;
+        }
+
+        $delimiter = \str_repeat('`', $runLength);
+        $searchOffset = $index + $runLength;
+        $closing = false;
+
+        while (($candidate = \strpos($text, $delimiter, $searchOffset)) !== false) {
+            $beforeIsBacktick = $candidate > 0 && $text[$candidate - 1] === '`';
+            $after = $candidate + $runLength;
+            $afterIsBacktick = $after < $length && $text[$after] === '`';
+
+            if (!$beforeIsBacktick && !$afterIsBacktick) {
+                $closing = $candidate;
+
+                break;
+            }
+
+            $searchOffset = $candidate + 1;
+        }
+
+        if ($closing === false) {
+            $masked .= $delimiter;
+            $index += $runLength - 1;
+
+            continue;
+        }
+
+        $masked .= ' LITERAL ';
+        $index = $closing + $runLength - 1;
+    }
+
+    return $masked;
 }
 
 /**
@@ -1059,16 +1148,145 @@ function prosePhpPassages(string $path, string $contents): array
 
 function prosePhpDocTagDescription(string $line): ?string
 {
-    if (\preg_match('/^@param(?:-out)?\s+\S+\s+\$\S+\s+(.+)$/', $line, $matches) === 1) {
-        return $matches[1];
+    if (\preg_match('/^@param(?:-out)?\s+(.+)$/', $line, $matches) === 1) {
+        return \prosePhpDocParamDescription($matches[1]);
     }
 
-    if (\preg_match('/^@(return|throws|var)\s+\S+\s+(.+)$/', $line, $matches) === 1) {
-        return $matches[2];
+    if (\preg_match('/^@(return|throws|var)\s+(.+)$/', $line, $matches) === 1) {
+        return \prosePhpDocTypeDescription($matches[2]);
     }
 
     if (\preg_match('/^@(internal|deprecated)(?:\s+(.+))?$/', $line, $matches) === 1) {
         return $matches[2] ?? '';
+    }
+
+    return null;
+}
+
+function prosePhpDocParamDescription(string $value): ?string
+{
+    $depth = 0;
+    $quote = null;
+    $length = \strlen($value);
+
+    for ($index = 0; $index < $length; ++$index) {
+        $character = $value[$index];
+
+        if ($quote !== null) {
+            if ($character === '\\') {
+                ++$index;
+            } elseif ($character === $quote) {
+                $quote = null;
+            }
+
+            continue;
+        }
+
+        if ($character === "'" || $character === '"') {
+            $quote = $character;
+
+            continue;
+        }
+
+        if (\str_contains('<{[(', $character)) {
+            ++$depth;
+
+            continue;
+        }
+
+        if (\str_contains('>}])', $character)) {
+            $depth = \max(0, $depth - 1);
+
+            continue;
+        }
+
+        if (
+            $character !== '$'
+            || $depth !== 0
+            || ($index > 0 && !\ctype_space($value[$index - 1]))
+        ) {
+            continue;
+        }
+
+        $descriptionOffset = $index;
+
+        while ($descriptionOffset < $length && !\ctype_space($value[$descriptionOffset])) {
+            ++$descriptionOffset;
+        }
+
+        $description = \trim(\substr($value, $descriptionOffset));
+
+        return $description === '' ? null : $description;
+    }
+
+    return null;
+}
+
+function prosePhpDocTypeDescription(string $value): ?string
+{
+    $depth = 0;
+    $quote = null;
+    $length = \strlen($value);
+
+    for ($index = 0; $index < $length; ++$index) {
+        $character = $value[$index];
+
+        if ($quote !== null) {
+            if ($character === '\\') {
+                ++$index;
+            } elseif ($character === $quote) {
+                $quote = null;
+            }
+
+            continue;
+        }
+
+        if ($character === "'" || $character === '"') {
+            $quote = $character;
+
+            continue;
+        }
+
+        if (\str_contains('<{[(', $character)) {
+            ++$depth;
+
+            continue;
+        }
+
+        if (\str_contains('>}])', $character)) {
+            $depth = \max(0, $depth - 1);
+
+            continue;
+        }
+
+        if (!\ctype_space($character) || $depth !== 0) {
+            continue;
+        }
+
+        $next = $index;
+
+        while ($next < $length && \ctype_space($value[$next])) {
+            ++$next;
+        }
+
+        if ($next >= $length) {
+            return null;
+        }
+
+        $previous = $index - 1;
+
+        while ($previous >= 0 && \ctype_space($value[$previous])) {
+            --$previous;
+        }
+
+        if (
+            ($previous >= 0 && \str_contains('|&', $value[$previous]))
+            || \str_contains('|&', $value[$next])
+        ) {
+            continue;
+        }
+
+        return \trim(\substr($value, $next));
     }
 
     return null;

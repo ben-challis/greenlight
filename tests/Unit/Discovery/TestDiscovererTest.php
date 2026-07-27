@@ -134,7 +134,7 @@ final class TestDiscovererTest
 
         Expect::that(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
-        )->because('unknown directory fails loudly')->toThrow(
+        )->because('an unknown directory causes an error')->toThrow(
             DiscoveryError::class,
             message: \sprintf('Discovery directory "%s" is missing or is not a directory.', $directory),
         );

@@ -41,7 +41,7 @@ At boot, the bridge checks that the container supports the features it needs.
 The bridge reports a configuration error if the Symfony test container is not
 present. It also reports a configuration error if an active service reset has
 no `services_resetter`. The error message contains a correction. The bridge
-does not silently use weaker isolation.
+reports an error and does not use weaker isolation.
 
 ## Container services
 
@@ -157,10 +157,10 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);
 ```
 
-The limit controls how many classes that require this resource can run. It does
-not choose a service instance, and it does not coordinate another Greenlight
-process or CI shard. See [configuration](configuration.md) for the complete
-resource rules.
+The limit controls how many assignments that require this resource can run. It
+does not choose a service instance, and it does not coordinate another
+Greenlight process or CI shard. See [configuration](configuration.md) for the
+complete resource rules.
 
 ## Doubles and the container
 

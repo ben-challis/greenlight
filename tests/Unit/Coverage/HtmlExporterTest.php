@@ -148,7 +148,7 @@ final class HtmlExporterTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName('/no/such/file.php')];
 
-        Expect::that($page)->because('unreadable source falls back to line numbers only')->toContain('class="cov"')
+        Expect::that($page)->because('unreadable source shows only line numbers')->toContain('class="cov"')
             ->toContain('class="unc"')
             ->toContain('<span class="num">5</span>');
     }

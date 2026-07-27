@@ -30,7 +30,7 @@ final class LeakDetector
     private array $watched = [];
 
     /**
-     * @return non-empty-string|null a warning when the environment makes leak reports untrustworthy
+     * @return non-empty-string|null A warning if the environment can cause incorrect leak reports
      */
     public static function environmentWarning(): ?string
     {
@@ -38,7 +38,7 @@ final class LeakDetector
             return null;
         }
 
-        return 'Warning: xdebug develop mode keeps caught exceptions alive, so leak detection will report false positives. Rerun with XDEBUG_MODE=off for a trustworthy signal.';
+        return 'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports false positives. Rerun with XDEBUG_MODE=off to get correct results.';
     }
 
     public function watch(TestId $id, object $instance): void

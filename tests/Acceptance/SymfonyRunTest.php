@@ -126,8 +126,8 @@ final readonly class SymfonyRunTest
                 #[Test]
                 public function statefulServicesResetBetweenTests(): void
                 {
-                    // Without the services_resetter hook the shared counter
-                    // would still hold the previous test's visit.
+                    // Without the services_resetter hook, the shared counter
+                    // still contains the previous test's visit.
                     $this->counter->record();
 
                     Expect::that($this->counter->count())->toBe(1);

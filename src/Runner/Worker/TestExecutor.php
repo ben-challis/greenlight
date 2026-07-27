@@ -447,8 +447,8 @@ final readonly class TestExecutor
             return $shortName;
         }
 
-        // Replace invalid UTF-8 to keep a skipped result. An encoder error
-        // would change the skip-reason conversion to a worker error.
+        // Replace invalid UTF-8 to keep a skipped result. Without replacement,
+        // an encoder error changes the skip-reason conversion to a worker error.
         $rendered = \array_map(
             static fn(bool|float|int|string|null $argument): string => (string) \json_encode($argument, \JSON_INVALID_UTF8_SUBSTITUTE),
             $arguments,

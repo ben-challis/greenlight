@@ -99,8 +99,8 @@ final class ValueRendererTest
         $renderer = new ValueRenderer();
         $stream = \fopen('php://memory', 'r');
 
-        Expect::that($renderer->render(static fn(): int => 1))->because('falls back to debug type for unrenderable values')->toBe('Closure (unrendered)');
-        Expect::that($renderer->render($stream))->because('falls back to debug type for unrenderable values')->toBe('resource (stream) (unrendered)');
+        Expect::that($renderer->render(static fn(): int => 1))->because('the renderer uses the debug type for unrenderable values')->toBe('Closure (unrendered)');
+        Expect::that($renderer->render($stream))->because('the renderer uses the debug type for unrenderable values')->toBe('resource (stream) (unrendered)');
 
         if (\is_resource($stream)) {
             \fclose($stream);
@@ -112,8 +112,8 @@ final class ValueRendererTest
     {
         $rendered = new ValueRenderer()->render("bad \xB1\x31 bytes");
 
-        Expect::that($rendered)->because('scrubs invalid utf8')->toMatch('//u');
-        Expect::that($rendered)->because('scrubs invalid utf8')->toContain('bad');
+        Expect::that($rendered)->because('scrubs invalid UTF-8')->toMatch('//u');
+        Expect::that($rendered)->because('scrubs invalid UTF-8')->toContain('bad');
     }
 }
 

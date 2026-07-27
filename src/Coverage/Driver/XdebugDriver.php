@@ -23,7 +23,7 @@ final class XdebugDriver implements CoverageDriver
     public function __construct()
     {
         if (!self::isAvailable()) {
-            throw CoverageError::driverUnavailable('xdebug', 'Enable the xdebug extension and include "coverage" in xdebug.mode or the XDEBUG_MODE environment variable.');
+            throw CoverageError::driverUnavailable('xdebug', 'Enable the Xdebug extension. Add "coverage" to xdebug.mode or the XDEBUG_MODE environment variable.');
         }
     }
 

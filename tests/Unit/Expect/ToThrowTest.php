@@ -37,9 +37,9 @@ final class ToThrowTest
             static fn() => Expect::that(static fn(): int => 1)->toThrow(\DomainException::class),
         );
 
-        Expect::that($detail->message)->because('toThrow() fails when nothing is thrown')->toBe('Expected a callable that threw nothing to throw DomainException.');
-        Expect::that($detail->expected)->because('toThrow() fails when nothing is thrown')->toBe('DomainException');
-        Expect::that($detail->actual)->because('toThrow() fails when nothing is thrown')->toBe('a callable that threw nothing');
+        Expect::that($detail->message)->because('toThrow() fails when the callable does not throw')->toBe('Expected a callable that did not throw to throw DomainException.');
+        Expect::that($detail->expected)->because('toThrow() fails when the callable does not throw')->toBe('DomainException');
+        Expect::that($detail->actual)->because('toThrow() fails when the callable does not throw')->toBe('a callable that did not throw');
     }
 
     #[Test]
@@ -86,7 +86,7 @@ final class ToThrowTest
     #[Test]
     public function notToThrowPassesWhenNothingIsThrown(): void
     {
-        Expect::that(static fn(): int => 1)->because('not()->toThrow() passes when nothing is thrown')->not()->toThrow(\DomainException::class);
+        Expect::that(static fn(): int => 1)->because('not()->toThrow() passes when the callable does not throw')->not()->toThrow(\DomainException::class);
     }
 
     #[Test]

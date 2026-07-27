@@ -119,9 +119,9 @@ suite success.
 
 ## Resource assignment
 
-Discovery stores `#[RequiresResource]` names in test metadata. It groups entries
-by class and combines the requirements from all entries in that class. The
-orchestrator treats an isolated entry as a separate unit.
+Discovery stores `#[RequiresResource]` names in test metadata. The orchestrator
+groups non-isolated entries by class and combines their requirements. It treats
+each isolated entry as a separate scheduling unit.
 
 Before it sends `assign`, the orchestrator claims one slot from each required
 resource in one atomic operation. A resource without a configured limit has one
@@ -151,8 +151,8 @@ separate resource counters. Different runs require an external lock or service
 for coordination.
 
 The orchestrator controls capacity, not resource identity. A limit of two
-permits two class assignments that require the resource at the same time. It
-does not tell either class which database, account, or sandbox to use.
+permits two assignments that require the resource at the same time. It does not
+tell either assignment which database, account, or sandbox to use.
 
 ## Worker exit
 

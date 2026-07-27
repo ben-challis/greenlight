@@ -48,7 +48,7 @@ final class Psr4ViolationTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryNoClass');
 
-        Expect::that($message)->because('file without any declaration produces a typed error')->toContain('does not declare a class');
-        Expect::that($message)->because('file without any declaration produces a typed error')->toContain('NothingHereTest.php');
+        Expect::that($message)->because('a file without a declaration produces a typed error')->toContain('does not declare a class');
+        Expect::that($message)->because('a file without a declaration produces a typed error')->toContain('NothingHereTest.php');
     }
 }

@@ -16,9 +16,9 @@ $summaryFile = \getenv('GITHUB_STEP_SUMMARY');
 $summaryFile = \is_string($summaryFile) && $summaryFile !== '' ? $summaryFile : null;
 
 if (!\is_file($exportFile)) {
-    \appendGithubSummary($summaryFile, \unavailableSummary('The coverage run did not produce an export.'));
+    \appendGithubSummary($summaryFile, \unavailableSummary('Greenlight did not produce the coverage export.'));
     \fwrite(\STDERR, \sprintf(
-        "Coverage export not found at %s. Run `composer tests:coverage` first.\n",
+        "Greenlight did not find the coverage export at %s. Run `composer tests:coverage` first.\n",
         $exportFile,
     ));
     exit(1);
@@ -27,8 +27,8 @@ if (!\is_file($exportFile)) {
 $json = \file_get_contents($exportFile);
 
 if ($json === false) {
-    \appendGithubSummary($summaryFile, \unavailableSummary('The coverage export could not be read.'));
-    \fwrite(\STDERR, \sprintf("Failed to read coverage export at %s.\n", $exportFile));
+    \appendGithubSummary($summaryFile, \unavailableSummary('Greenlight did not read the coverage export.'));
+    \fwrite(\STDERR, \sprintf("Greenlight did not read the coverage export at %s.\n", $exportFile));
     exit(1);
 }
 
