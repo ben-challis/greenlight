@@ -92,6 +92,38 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function onlySuccessfulRiskyResultsAppearInTheFinalGuidance(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, color: false, cursor: false);
+
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId('App\RiskyTest', 'passes'),
+            Outcome::Passed,
+            0.01,
+            0,
+            risky: true,
+        ), 1.0));
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId('App\RiskyTest', 'fails'),
+            Outcome::Failed,
+            0.01,
+            0,
+            risky: true,
+        ), 1.1));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('only successful risky results need expectation guidance')
+            ->toEndWith(
+                "\nRisky tests: 1\n"
+                . "These tests passed without a verified expectation.\n"
+                . "Add #[NoExpectations] to accept this result. Use --fail-on-risky to fail the run.\n"
+                . "  App\\RiskyTest::passes\n",
+            );
+    }
+
+    #[Test]
     public function skippedTestsAreUnambiguousAndListedWithReasons(): void
     {
         $output = new BufferOutput();
