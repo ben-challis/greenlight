@@ -1,0 +1,27 @@
+composer.json
+  s_8c67f4b803e049::t_5a42e50a042774 25
+tests/Support/TerminalEmulator.php
+  s_8c67f4b803e049::t_1fe3b780402590 17
+.github/workflows/ci.yml
+  s_8c67f4b803e049::t_1fe3b780402590 59
+composer.lock
+  s_8c67f4b803e049::t_e8da3b397c334a 7,3927,3930-3931,3987,4752,4756,4760-4761,4766,4800,4808,8310
+website/package-lock.json
+  s_8c67f4b803e049::t_4c1a12fd7a2dbd 26-28,35,2527-2529,2533-2536,2540-2542,2546,2609-2611,2642,2789-2791,2795-2797,2800-2818,3142-3144,3366-3378,3978-3980,5594-5596,5600-5601,5604-5607,5625-5627,5631,5634-5637,6496-6498,6502-6504,6507,6513-6530,6611-6613,6617,6620,6622,6625
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "131189f04c4625394a98addc86fcedd78b68e4d5",
+  "prompts": {},
+  "sessions": {
+    "s_8c67f4b803e049": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d92c075a-3d55-404b-ba90-486e991dd305",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
