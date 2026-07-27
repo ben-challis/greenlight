@@ -11,28 +11,41 @@ use Greenlight\Core\Result\FailureDetail;
  *
  * @internal
  */
-final readonly class TemporalObservation
+abstract readonly class TemporalObservation
 {
-    private function __construct(
-        public mixed $subject,
+    protected function __construct(
         public bool $matched,
         public ?FailureDetail $failure,
         public ?\Exception $exception,
         public string $rendered,
     ) {}
 
-    public static function matched(mixed $subject, string $rendered): self
+    /**
+     * @template T
+     *
+     * @param T $subject
+     *
+     * @return TemporalValueObservation<T>
+     */
+    public static function matched(mixed $subject, string $rendered): TemporalValueObservation
     {
-        return new self($subject, true, null, null, $rendered);
+        return new TemporalValueObservation($subject, true, null, $rendered);
     }
 
-    public static function failed(mixed $subject, FailureDetail $failure, string $rendered): self
+    /**
+     * @template T
+     *
+     * @param T $subject
+     *
+     * @return TemporalValueObservation<T>
+     */
+    public static function failed(mixed $subject, FailureDetail $failure, string $rendered): TemporalValueObservation
     {
-        return new self($subject, false, $failure, null, $rendered);
+        return new TemporalValueObservation($subject, false, $failure, $rendered);
     }
 
-    public static function threw(\Exception $exception, string $rendered): self
+    public static function threw(\Exception $exception, string $rendered): TemporalExceptionObservation
     {
-        return new self(null, false, null, $exception, $rendered);
+        return new TemporalExceptionObservation($exception, $rendered);
     }
 }

@@ -62,10 +62,10 @@ final class DigestMatchers implements ExpectationExtension
     public function matchers(): array
     {
         return [
-            'toBeValidUuid' => static fn(mixed $subject): bool => \is_string($subject)
-                && \preg_match('/^[0-9a-f-]{36}$/', $subject) === 1,
-            'toHaveDigestLength' => static fn(mixed $subject, int $length): bool => \is_string($subject)
-                && \strlen($subject) === $length,
+            'toBeValidUuid' => static fn(string $subject): bool =>
+                \preg_match('/^[0-9a-f-]{36}$/', $subject) === 1,
+            'toHaveDigestLength' => static fn(string $subject, int $length): bool =>
+                \strlen($subject) === $length,
         ];
     }
 }
@@ -77,7 +77,14 @@ The extension checks calls against those closure signatures:
 Expect::that($id)->toBeValidUuid();     // checked: name, arguments, types
 Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
 Expect::that($hash)->toHaveDigestLength('six'); // fails analysis: expects int
+Expect::that(123)->toBeValidUuid();      // fails analysis: expects a string subject
 ```
+
+The first closure parameter declares the accepted subject type. PHPStan gets
+this type from `that()`, `and()`, and temporal probes.
+
+Each custom matcher returns the same typed chain. Thus, later custom matchers
+receive the same subject type.
 
 The same checks apply to temporal expectations:
 
@@ -89,6 +96,9 @@ Expect::eventually(fn(): string => $hash)
 
 If configuration files register one matcher name with different signatures,
 analysis fails. PHPStan does not select one signature.
+
+Subject-type errors use the `greenlight.extensionMatcher.subjectType`
+identifier. Matcher argument errors keep the PHPStan error identifier.
 
 To give an IDE the same signatures, generate the helper file:
 

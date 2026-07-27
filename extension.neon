@@ -14,9 +14,19 @@ rules:
     - Greenlight\PhpStan\ToThrowMessageRule
 
 services:
-    -
-        class: Greenlight\PhpStan\ExpectationMethodsExtension
+    greenlight.matcherMapProvider:
+        class: Greenlight\PhpStan\MatcherMapProvider
         arguments:
             configFiles: %greenlight.configFiles%
+    greenlight.expectationMethodsExtension:
+        class: Greenlight\PhpStan\ExpectationMethodsExtension
+        arguments:
+            matcherMap: @greenlight.matcherMapProvider
         tags:
             - phpstan.broker.methodsClassReflectionExtension
+    greenlight.extensionMatcherSubjectRule:
+        class: Greenlight\PhpStan\ExtensionMatcherSubjectRule
+        arguments:
+            matcherMap: @greenlight.matcherMapProvider
+        tags:
+            - phpstan.rules.rule

@@ -42,10 +42,17 @@ final class EventuallyExpectation extends TemporalExpectation
         );
     }
 
+    /**
+     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param non-empty-string|null $reason
+     *
+     * @return Expectation<T>
+     */
     #[\Override]
     protected function waitFor(
         \Closure $matcher,
         bool $negated,
+        ?string $reason,
         ?SourceLocation $location,
     ): Expectation {
         $startedAt = $this->clock->now();
@@ -74,7 +81,7 @@ final class EventuallyExpectation extends TemporalExpectation
         }
 
         while (true) {
-            $last = $this->observe($matcher, $negated, $this->retryOnExceptions);
+            $last = $this->observe($matcher, $negated, $reason, $this->retryOnExceptions);
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
 
@@ -84,6 +91,10 @@ final class EventuallyExpectation extends TemporalExpectation
             }
 
             if ($last->matched && $observedAt <= $deadline) {
+                if (!$last instanceof TemporalValueObservation) {
+                    throw new \LogicException('A matched temporal observation must contain a subject.');
+                }
+
                 return $this->immediate($last->subject);
             }
 

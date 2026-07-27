@@ -22,7 +22,7 @@ final readonly class IdeHelperTest
 
         $result = GreenlightCli::run($root . '/tests/Fixture/PhpStanExtension', ['ide-helper', '--output=' . $target]);
         Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0)
-            ->and($result->output())->toContain('2 matchers');
+            ->and($result->output())->toContain('3 matchers');
 
         $helper = (string) \file_get_contents($target);
         Expect::that($helper)->because('writes a lintable helper and skips when nothing is configured')->toContain('@method self toHaveDigestLength(int $length)')

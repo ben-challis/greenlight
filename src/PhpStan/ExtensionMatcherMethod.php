@@ -10,8 +10,9 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\FunctionVariant;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\TrinaryLogic;
+use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\Generic\TemplateTypeMap;
-use PHPStan\Type\ObjectType;
+use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
 
 /** @internal */
@@ -80,13 +81,16 @@ final readonly class ExtensionMatcherMethod implements MethodReflection
             ? null
             : $this->parameters[\count($this->parameters) - 1];
 
+        $subject = $this->declaringClass->getActiveTemplateTypeMap()->getType('T')
+            ?? new MixedType();
+
         return [
             new FunctionVariant(
                 TemplateTypeMap::createEmpty(),
                 null,
                 $parameters,
                 $lastParameter?->isVariadic() ?? false,
-                new ObjectType(Expectation::class),
+                new GenericObjectType(Expectation::class, [$subject]),
             ),
         ];
     }

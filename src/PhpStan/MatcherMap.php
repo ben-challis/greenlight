@@ -101,21 +101,36 @@ final readonly class MatcherMap
      */
     public function parameters(string $name): array
     {
-        if (!isset($this->matchers[$name])) {
-            throw new \LogicException(\sprintf('No extension matcher named "%s" is known.', $name));
-        }
+        $matcher = $this->matcher($name);
 
-        return \array_slice($this->matchers[$name]->getParameters(), 1);
+        return \array_slice($matcher->getParameters(), 1);
+    }
+
+    /**
+     * Returns the subject parameter for an extension matcher.
+     */
+    public function subjectParameter(string $name): ?\ReflectionParameter
+    {
+        return $this->matcher($name)->getParameters()[0] ?? null;
     }
 
     private static function signature(\ReflectionFunction $matcher): string
     {
         $parts = \array_map(
             static fn(\ReflectionParameter $parameter): string => self::parameterSignature($parameter, 'default'),
-            \array_slice($matcher->getParameters(), 1),
+            $matcher->getParameters(),
         );
 
         return '(' . \implode(', ', $parts) . ')';
+    }
+
+    private function matcher(string $name): \ReflectionFunction
+    {
+        if (!isset($this->matchers[$name])) {
+            throw new \LogicException(\sprintf('No extension matcher named "%s" is known.', $name));
+        }
+
+        return $this->matchers[$name];
     }
 
     /**
