@@ -41,6 +41,93 @@ final class ResultPolicyTest
         Expect::that($policy->apply($before))->because('an ignored deprecation leaves the result untouched')->toBe($before);
     }
 
+    #[Test]
+    public function aNonPassingResultIsNeverRewritten(): void
+    {
+        $before = new TestResult(
+            new TestId('App\ProbeTest', 'fails'),
+            Outcome::Failed,
+            durationSeconds: 0.1,
+            memoryDeltaBytes: 0,
+            output: new CapturedOutput('', [
+                new Diagnostic(DiagnosticSeverity::Notice, 'a notice', '/src/a.php', 3),
+            ]),
+            risky: true,
+        );
+        $policy = new ResultPolicy(failOnDeprecation: true, failOnNotice: true, failOnRisky: true);
+
+        Expect::that($policy->apply($before))
+            ->because('a result policy changes only passed tests')
+            ->toBe($before);
+    }
+
+    #[Test]
+    public function theNoticePolicyDoesNotMakeWarningsFatal(): void
+    {
+        $before = new TestResult(
+            new TestId('App\ProbeTest', 'notices'),
+            Outcome::Passed,
+            durationSeconds: 0.1,
+            memoryDeltaBytes: 0,
+            output: new CapturedOutput('', [
+                new Diagnostic(DiagnosticSeverity::Warning, 'a warning', '/src/a.php', 2),
+                new Diagnostic(DiagnosticSeverity::Notice, 'a notice', '/src/a.php', 3),
+            ]),
+        );
+
+        $result = new ResultPolicy(failOnNotice: true)->apply($before);
+
+        Expect::that($result->outcome)
+            ->because('the notice policy does not make warnings fatal')
+            ->toBe(Outcome::Failed)
+            ->and($result->failures)
+            ->toHaveCount(1)
+            ->and($result->failures[0]->message)
+            ->toBe('The notice policy changed this test from passed to failed: a notice at /src/a.php:3');
+    }
+
+    #[Test]
+    public function theRiskyPolicyFailsAPassedResultWithoutExpectations(): void
+    {
+        $before = new TestResult(
+            new TestId('App\ProbeTest', 'risky'),
+            Outcome::Passed,
+            durationSeconds: 0.1,
+            memoryDeltaBytes: 0,
+            risky: true,
+        );
+
+        $result = new ResultPolicy(failOnRisky: true)->apply($before);
+
+        Expect::that($result->outcome)
+            ->because('the risky policy fails a passed result without expectations')
+            ->toBe(Outcome::Failed)
+            ->and($result->transformations[0]->transformedBy)
+            ->toBe('fail-on-risky policy')
+            ->and($result->failures[0]->message)
+            ->toBe('The fail-on-risky policy changed this test from passed to failed because it verified no expectations.');
+    }
+
+    #[Test]
+    public function theWirePayloadPreservesSettingsAndDropsEmptyIgnorePatterns(): void
+    {
+        $restored = ResultPolicy::fromWire([
+            'failOnDeprecation' => true,
+            'failOnNotice' => true,
+            'ignoreDeprecations' => ['legacy *', ''],
+            'failOnRisky' => true,
+        ]);
+
+        Expect::that($restored->toWire())
+            ->because('the wire payload preserves policy settings and drops empty ignore patterns')
+            ->toBe([
+                'failOnDeprecation' => true,
+                'failOnNotice' => true,
+                'ignoreDeprecations' => ['legacy *'],
+                'failOnRisky' => true,
+            ]);
+    }
+
     private function passedWithDeprecation(): TestResult
     {
         return new TestResult(
