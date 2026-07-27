@@ -77,6 +77,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/PhpStan/.*
+    - name: Rector
+      collectors:
+        - type: directory
+          value: src/Rector/.*
     - name: Symfony
       collectors:
         - type: directory
@@ -97,6 +101,12 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^PhpParser\\/
+    - name: RectorFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Rector\\/
+        - type: classNameRegex
+          value: /^Symplify\\RuleDocGenerator\\/
 
   ruleset:
     Core: []
@@ -115,8 +125,10 @@ deptrac:
     Runner: [Core, Attribute, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Core, Attribute, Config, Expect, PhpStanFramework, PhpParserFramework]
+    Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
     PhpStanFramework: []
     SymfonyFramework: []
     CpuCoreCounter: []
     PhpParserFramework: []
+    RectorFramework: []
