@@ -23,7 +23,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Reports method attributes that have no effect without #[Test].
+ * Reports method attributes that have no effect without `#[Test]`.
  *
  * @implements Rule<InClassMethodNode>
  */

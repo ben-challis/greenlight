@@ -40,6 +40,40 @@ public function processNode(Node $node, Scope $scope): array
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/PhpStan/AttributeArgumentRule.php#L32)
 
+## `TestAttributePlacementRule`
+
+Namespace: `Greenlight\PhpStan`
+
+Reports method attributes that have no effect without `#[Test]`.
+
+```php
+final class TestAttributePlacementRule implements Rule
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/PhpStan/TestAttributePlacementRule.php#L30)
+
+PHPDoc:
+
+- `@implements Rule<InClassMethodNode>`
+
+### `getNodeType()`
+
+```php
+[\Override]
+public function getNodeType(): string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/PhpStan/TestAttributePlacementRule.php#L48)
+
+### `processNode()`
+
+```php
+[\Override]
+public function processNode(Node $node, Scope $scope): array
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/PhpStan/TestAttributePlacementRule.php#L54)
+
 ## `PhpUnitToGreenlightRector`
 
 Namespace: `Greenlight\Rector`
