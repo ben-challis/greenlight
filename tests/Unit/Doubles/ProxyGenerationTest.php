@@ -14,6 +14,7 @@ use Greenlight\Tests\Fixture\Doubles\CacheBeta;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Clock;
 use Greenlight\Tests\Fixture\Doubles\ProxyFileProbe;
+use Greenlight\Tests\Fixture\Doubles\SelfConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
@@ -104,6 +105,24 @@ final class ProxyGenerationTest
         $clock = $doubles->stub(Clock::class);
 
         Expect::that($clock)->because('class doubles never run the doubled constructor')->toBeInstanceOf(Clock::class);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function selfConstantDefaultsResolveAgainstTheDoubledType(): void
+    {
+        $doubles = new Doubles();
+        $double = $doubles->mock(SelfConstantDefault::class, static function (MockPlan $plan): void {
+            $plan->expects('mode')->andReturns('answered');
+        });
+        $parameter = new \ReflectionMethod($double, 'mode')->getParameters()[0];
+
+        Expect::that($parameter->getDefaultValue())
+            ->because('self constant defaults resolve against the doubled type')
+            ->toBe('fast')
+            ->and($double->mode())
+            ->toBe('answered');
 
         $doubles->dispose();
     }
