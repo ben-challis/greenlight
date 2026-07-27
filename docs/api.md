@@ -19,4 +19,4 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 - [Fixtures and harness API](api-fixtures-harness.md) — This reference lists fixtures and harness service contracts. (6 types)
 - [Plugin API](api-plugins.md) — This reference lists plugin capabilities and lifecycle callback contracts. (7 types)
 - [Reporter API](api-reporting.md) — This reference lists reporter and output contracts. (2 types)
-- [Integration API](api-integrations.md) — This reference lists public integration types for PHPStan, Rector, and Symfony. (6 types)
+- [Integration API](api-integrations.md) — This reference lists public integration types for PHPStan, Rector, and Symfony. (3 types)
