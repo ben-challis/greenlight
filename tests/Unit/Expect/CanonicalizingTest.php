@@ -68,4 +68,49 @@ final class CanonicalizingTest
     {
         Expect::that([1, 2])->because('not()->toEqual() canonicalizing')->not()->toEqualCanonicalizing([1, 2, 3]);
     }
+
+    #[Test]
+    public function toEqualCanonicalizingOrdersCyclicObjectsByState(): void
+    {
+        $alpha = new CanonicalNode('alpha');
+        $alpha->next = $alpha;
+        $beta = new CanonicalNode('beta');
+        $beta->next = $beta;
+
+        Expect::that([$beta, $alpha])
+            ->because('canonical object ordering terminates on cycles')
+            ->toEqualCanonicalizing([$alpha, $beta]);
+    }
+
+    #[Test]
+    public function toEqualCanonicalizingOrdersIdentityOnlyValues(): void
+    {
+        $firstClosure = static fn(): string => 'first';
+        $secondClosure = static fn(): string => 'second';
+        $firstStream = \fopen('php://memory', 'r');
+        $secondStream = \fopen('php://memory', 'r');
+
+        if ($firstStream === false || $secondStream === false) {
+            throw new \RuntimeException('Could not open in-memory streams.');
+        }
+
+        try {
+            Expect::that([$secondClosure, $firstClosure])
+                ->because('canonical closure ordering uses object identity')
+                ->toEqualCanonicalizing([$firstClosure, $secondClosure]);
+            Expect::that([$secondStream, $firstStream])
+                ->because('canonical resource ordering uses resource identity')
+                ->toEqualCanonicalizing([$firstStream, $secondStream]);
+        } finally {
+            \fclose($firstStream);
+            \fclose($secondStream);
+        }
+    }
+}
+
+final class CanonicalNode
+{
+    public ?CanonicalNode $next = null;
+
+    public function __construct(public readonly string $name) {}
 }
