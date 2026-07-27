@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Config;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\CoverageBuilder;
@@ -107,64 +108,94 @@ final class GreenlightConfigTest
         Expect::that($configuration->randomSeed)->because('randomize order without seed still enables randomization')->toBe(null);
     }
 
+    /**
+     * @param \Closure(): void $callable
+     */
     #[Test]
-    public function rejectsInvalidInput(): void
+    #[DataSet('invalidInputs')]
+    public function rejectsInvalidInput(\Closure $callable): void
     {
-        $invalid = [
-            'empty paths' => static function (): void {
-                GreenlightConfig::create()->paths([]);
-            },
-            'empty path string' => static function (): void {
-                GreenlightConfig::create()->paths(['']);
-            },
-            'empty suite name' => static function (): void {
-                GreenlightConfig::create()->suite('', static fn(SuiteBuilder $suite) => $suite->in('tests'));
-            },
-            'duplicate suite' => static function (): void {
-                GreenlightConfig::create()
-                    ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'))
-                    ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'));
-            },
-            'suite without paths' => static function (): void {
-                GreenlightConfig::create()
-                    ->suite('unit', static function (SuiteBuilder $suite): void {})
-                    ->build();
-            },
-            'zero workers' => static function (): void {
-                GreenlightConfig::create()->workers(count: 0);
-            },
-            'bad worker string' => static function (): void {
-                // Reflection bypasses the static 'auto'|int type and exercises the
-                // runtime guard.
-                new \ReflectionMethod(GreenlightConfig::class, 'workers')
-                    ->invoke(GreenlightConfig::create(), 'many');
-            },
-            'zero recycleAfterTests' => static function (): void {
-                GreenlightConfig::create()->workers(recycleAfterTests: 0);
-            },
-            'bad memory string surfaces at build' => static function (): void {
-                GreenlightConfig::create()->workers(recycleAboveMemory: 'lots')->build();
-            },
-            'empty artifact directory' => static function (): void {
-                GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory(''));
-            },
-            'zero artifact count' => static function (): void {
-                GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0));
-            },
-            'invalid resource name' => static function (): void {
-                GreenlightConfig::create()->resourceLimit('Postgres');
-            },
-            'zero resource limit' => static function (): void {
-                GreenlightConfig::create()->resourceLimit('postgres', 0);
-            },
-            'duplicate resource limit' => static function (): void {
-                GreenlightConfig::create()->resourceLimit('postgres')->resourceLimit('postgres', 2);
-            },
-        ];
+        Expect::that($callable)->toThrow(InvalidConfiguration::class);
+    }
 
-        foreach ($invalid as $callable) {
-            Expect::that($callable)->toThrow(InvalidConfiguration::class);
-        }
+    /**
+     * @return iterable<string, array{\Closure(): void}>
+     */
+    public static function invalidInputs(): iterable
+    {
+        yield 'empty paths' => [static function (): void {
+            GreenlightConfig::create()->paths([]);
+        }];
+
+        yield 'empty path string' => [static function (): void {
+            GreenlightConfig::create()->paths(['']);
+        }];
+
+        yield 'empty suite name' => [static function (): void {
+            GreenlightConfig::create()->suite('', static fn(SuiteBuilder $suite) => $suite->in('tests'));
+        }];
+
+        yield 'duplicate suite' => [static function (): void {
+            GreenlightConfig::create()
+                ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'))
+                ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'));
+        }];
+
+        yield 'suite without paths' => [static function (): void {
+            GreenlightConfig::create()
+                ->suite('unit', static function (SuiteBuilder $suite): void {})
+                ->build();
+        }];
+
+        yield 'empty suite path' => [static function (): void {
+            GreenlightConfig::create()->suite('unit', static fn(SuiteBuilder $suite) => $suite->in(''));
+        }];
+
+        yield 'empty suite tag' => [static function (): void {
+            GreenlightConfig::create()->suite(
+                'unit',
+                static fn(SuiteBuilder $suite) => $suite->in('tests')->tag(''),
+            );
+        }];
+
+        yield 'zero workers' => [static function (): void {
+            GreenlightConfig::create()->workers(count: 0);
+        }];
+
+        yield 'bad worker string' => [static function (): void {
+            // Reflection bypasses the static 'auto'|int type and exercises the
+            // runtime guard.
+            new \ReflectionMethod(GreenlightConfig::class, 'workers')
+                ->invoke(GreenlightConfig::create(), 'many');
+        }];
+
+        yield 'zero recycleAfterTests' => [static function (): void {
+            GreenlightConfig::create()->workers(recycleAfterTests: 0);
+        }];
+
+        yield 'bad memory string surfaces at build' => [static function (): void {
+            GreenlightConfig::create()->workers(recycleAboveMemory: 'lots')->build();
+        }];
+
+        yield 'empty artifact directory' => [static function (): void {
+            GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory(''));
+        }];
+
+        yield 'zero artifact count' => [static function (): void {
+            GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0));
+        }];
+
+        yield 'invalid resource name' => [static function (): void {
+            GreenlightConfig::create()->resourceLimit('Postgres');
+        }];
+
+        yield 'zero resource limit' => [static function (): void {
+            GreenlightConfig::create()->resourceLimit('postgres', 0);
+        }];
+
+        yield 'duplicate resource limit' => [static function (): void {
+            GreenlightConfig::create()->resourceLimit('postgres')->resourceLimit('postgres', 2);
+        }];
     }
 
     #[Test]
