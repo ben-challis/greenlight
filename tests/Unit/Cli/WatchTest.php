@@ -9,6 +9,7 @@ use Greenlight\Cli\Watch\ChangeDetector;
 use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\StatChangeDetector;
+use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Doubles\Fake;
@@ -74,6 +75,56 @@ final class WatchTest
             @\unlink($dir . '/B.php');
             @\rmdir($dir);
         }
+    }
+
+    #[Test]
+    public function loopRecordsTheBaselineBeforeTheInitialRunAndReadyOutput(): void
+    {
+        $events = [];
+        $record = static function (string $event) use (&$events): void {
+            $events[] = $event;
+        };
+
+        $detector = new readonly class ($record) implements ChangeDetector, Fake {
+            /** @param \Closure(string): void $record */
+            public function __construct(private \Closure $record) {}
+
+            #[\Override]
+            public function poll(): array
+            {
+                ($this->record)('baseline');
+
+                return [];
+            }
+        };
+        $keys = new readonly class ($record) implements KeyInput, Fake {
+            /** @param \Closure(string): void $record */
+            public function __construct(private \Closure $record) {}
+
+            #[\Override]
+            public function poll(): string
+            {
+                ($this->record)('key');
+
+                return 'q';
+            }
+        };
+
+        new WatchLoop(
+            $detector,
+            new Debouncer(0.0),
+            $keys,
+            new SystemWatchClock(),
+            static function (string $text) use ($record): void {
+                $record('ready');
+            },
+        )->run(static function (array $priorityClasses) use ($record): array {
+            $record('run');
+
+            return [];
+        });
+
+        Expect::that($events)->toBe(['baseline', 'run', 'ready', 'key']);
     }
 
     #[Test]

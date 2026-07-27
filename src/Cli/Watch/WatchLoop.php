@@ -46,6 +46,7 @@ final readonly class WatchLoop
      */
     public function run(\Closure $runOnce, ?int $maxIterations = null): void
     {
+        $this->detector->poll();
         $failedClasses = $runOnce([]);
         $iterations = 1;
         ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
