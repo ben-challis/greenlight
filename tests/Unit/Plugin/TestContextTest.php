@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
@@ -48,6 +49,21 @@ final class TestContextTest
                 UnresolvableService::class,
                 message: 'No harness service is registered for type "ArrayObject", required by "plugin context for Fixture\\PluginTest". '
                 . 'Constructor injection resolves exact types only.',
+            );
+    }
+
+    #[Test]
+    public function attachmentsAreUnavailableWithoutAnActiveAttempt(): void
+    {
+        $context = $this->context(new HarnessScopes(new HarnessRegistry()));
+
+        Expect::that(static function () use ($context): void {
+            $context->attachments->text('note.txt', 'body');
+        })
+            ->because('a plugin context without an active attempt MUST reject attachments')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachments are not available outside an active test attempt.',
             );
     }
 
