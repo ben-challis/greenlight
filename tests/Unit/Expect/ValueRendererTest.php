@@ -7,6 +7,10 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ValueRenderer;
+use Greenlight\Tests\Fixture\Expect\Credentials;
+use Greenlight\Tests\Fixture\Expect\Holder;
+use Greenlight\Tests\Fixture\Expect\LateInit;
+use Greenlight\Tests\Fixture\Expect\Signal;
 
 final class ValueRendererTest
 {
@@ -115,37 +119,4 @@ final class ValueRendererTest
         Expect::that($rendered)->because('scrubs invalid UTF-8')->toMatch('//u');
         Expect::that($rendered)->because('scrubs invalid UTF-8')->toContain('bad');
     }
-}
-
-enum Signal
-{
-    case Green;
-}
-
-final class Credentials
-{
-    public function __construct(
-        public string $user,
-        private readonly string $password,
-    ) {}
-
-    public function password(): string
-    {
-        return $this->password;
-    }
-}
-
-final class LateInit
-{
-    public string $value;
-
-    public function init(): void
-    {
-        $this->value = 'set';
-    }
-}
-
-final class Holder
-{
-    public function __construct(public ?Holder $inner) {}
 }

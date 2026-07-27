@@ -6,16 +6,16 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\ExpectationCounter;
-use Greenlight\Doubles\Fake;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
-use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Expect\PendingEventually;
-use Greenlight\Expect\PollingClock;
 use Greenlight\Expect\TemporalExpectation;
+use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
+use Greenlight\Tests\Fixture\Expect\TransientProbeFailure;
 
 final class TemporalExpectationTest
 {
@@ -511,41 +511,5 @@ final class TemporalExpectationTest
         \ksort($signatures);
 
         return $signatures;
-    }
-}
-
-final class FakePollingClock implements PollingClock, Fake
-{
-    public float $time = 0.0;
-
-    /**
-     * @var list<float>
-     */
-    public array $sleeps = [];
-
-    #[\Override]
-    public function now(): float
-    {
-        return $this->time;
-    }
-
-    #[\Override]
-    public function sleep(float $seconds): void
-    {
-        $this->sleeps[] = $seconds;
-        $this->time += $seconds;
-    }
-}
-
-final class TransientProbeFailure extends \RuntimeException {}
-
-final class PositiveNumbersExtension implements ExpectationExtension
-{
-    #[\Override]
-    public function matchers(): array
-    {
-        return [
-            'toBePositive' => static fn(mixed $subject): bool => \is_int($subject) && $subject > 0,
-        ];
     }
 }

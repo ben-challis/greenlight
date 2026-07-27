@@ -32,6 +32,7 @@ use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TemporalRetry\TemporalRetryTest;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe;
+use Greenlight\Tests\Fixture\Runner\UnsupportedConstructorProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final class WorkerTest
@@ -399,15 +400,5 @@ final class WorkerTest
         return new HarnessRegistry([
             new ServiceDefinition(InjectedProbe::class, Scope::PerTest, static fn(): InjectedProbe => new InjectedProbe()),
         ]);
-    }
-}
-
-final readonly class UnsupportedConstructorProbe
-{
-    public function __construct(public string $value) {}
-
-    public function neverRuns(): never
-    {
-        throw new \LogicException('The unsupported-constructor probe MUST NOT run.');
     }
 }
