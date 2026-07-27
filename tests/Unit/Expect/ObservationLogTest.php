@@ -11,6 +11,31 @@ use Greenlight\Expect\ObservationLog;
 final class ObservationLogTest
 {
     #[Test]
+    public function compressesRepeatsAndKeepsTheFirstAndLatestChanges(): void
+    {
+        $log = new ObservationLog(1.0);
+        $log->record(0.5, 'same');
+        $log->record(1.1, 'same');
+        $log->record(1.2, 'first change');
+        $log->record(1.3, 'second change');
+        $log->record(1.4, 'third change');
+        $log->record(1.5, 'fourth change');
+
+        Expect::that($log->count())
+            ->because('the observation count includes compressed and omitted values')
+            ->toBe(6)
+            ->and($log->render())
+            ->because('the history keeps the first observation and the latest three value groups')
+            ->toBe(
+                "+0.0ms same (×2)\n"
+                . "... 1 earlier changes omitted ...\n"
+                . "+300.0ms second change\n"
+                . "+400.0ms third change\n"
+                . '+500.0ms fourth change',
+            );
+    }
+
+    #[Test]
     public function renderedHistoryIsBoundedWithATruncationMarker(): void
     {
         $log = new ObservationLog(0.0);
