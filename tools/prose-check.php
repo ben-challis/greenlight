@@ -132,6 +132,10 @@ const PROSE_BRITISH_SPELLINGS = [
     'favourite',
     'favourites',
     'favours',
+    'fulfil',
+    'fulfilled',
+    'fulfilling',
+    'fulfils',
     'grey',
     'greys',
     'honour',
@@ -337,7 +341,7 @@ function proseFiles(string $root): array
             continue;
         }
 
-        if (!\in_array(\strtolower($file->getExtension()), ['astro', 'json', 'md', 'markdown', 'neon', 'php', 'ts', 'tsx', 'yaml', 'yml'], true)) {
+        if (!\in_array(\strtolower($file->getExtension()), ['astro', 'js', 'json', 'md', 'markdown', 'mjs', 'neon', 'php', 'ts', 'tsx', 'yaml', 'yml'], true)) {
             continue;
         }
 
@@ -387,7 +391,7 @@ function prosePassages(string $root, string $path): array
         return \proseAstroPassages($relative, $contents);
     }
 
-    if (\in_array($extension, ['json', 'neon', 'ts', 'tsx', 'yaml', 'yml'], true)) {
+    if (\in_array($extension, ['js', 'json', 'mjs', 'neon', 'ts', 'tsx', 'yaml', 'yml'], true)) {
         return \proseStructuredPassages($relative, $contents, $extension);
     }
 
@@ -401,36 +405,47 @@ function prosePassages(string $root, string $path): array
  */
 function proseStructuredPassages(string $path, string $contents, string $extension): array
 {
-    $passages = [];
-    $lines = \preg_split('/\R/', $contents);
+    if ($extension === 'json') {
+        return \proseJsonPassages($path, $contents);
+    }
 
-    foreach ($lines === false ? [] : $lines as $offset => $line) {
+    if (\in_array($extension, ['js', 'mjs', 'ts', 'tsx'], true)) {
+        return \proseScriptPassages($path, $contents);
+    }
+
+    $passages = [];
+    $splitLines = \preg_split('/\R/', $contents);
+    $lines = $splitLines === false ? [] : $splitLines;
+    $counter = \count($lines);
+
+    for ($offset = 0; $offset < $counter; ++$offset) {
+        $line = $lines[$offset];
         $lineNumber = $offset + 1;
         $text = null;
 
-        if ($extension === 'json' && \preg_match(
-            '/^\s*"(?:description|label|placeholder|title)"\s*:\s*"((?:\\\\.|[^"\\\\])*)"/',
-            $line,
-            $matches,
-        ) === 1) {
-            $decoded = \json_decode('"' . $matches[1] . '"', true);
-            $text = \is_string($decoded) ? $decoded : $matches[1];
-        } elseif (\in_array($extension, ['yaml', 'yml', 'neon'], true)) {
-            if (\preg_match('/^\s*(?:description|label|name|placeholder|title)\s*:\s*(.+?)\s*$/', $line, $matches) === 1) {
-                $text = \proseStructuredScalar($matches[1]);
-            } elseif (\preg_match('/^\s*#\s+(?!@)(.+)$/', $line, $matches) === 1) {
-                $text = $matches[1];
+        if (\preg_match('/^(\s*)(?:description|label|name|placeholder|title)\s*:\s*(.+?)\s*$/', $line, $matches) === 1) {
+            if (\in_array(\trim($matches[2]), ['|', '>', '|-', '>-'], true)) {
+                $indent = \strlen($matches[1]);
+                $block = [];
+
+                while (isset($lines[$offset + 1])) {
+                    $next = $lines[$offset + 1];
+                    $nextIndent = \strlen($next) - \strlen(\ltrim($next));
+
+                    if (\trim($next) !== '' && $nextIndent <= $indent) {
+                        break;
+                    }
+
+                    ++$offset;
+                    $block[] = \trim($next);
+                }
+
+                $text = \implode(' ', $block);
+            } else {
+                $text = \proseStructuredScalar($matches[2]);
             }
-        } elseif (\in_array($extension, ['ts', 'tsx'], true)) {
-            if (\preg_match(
-                '/\b(?:description|label|placeholder|title)\s*:\s*([\'"`])((?:\\\\.|(?!\1).)*)\1/',
-                $line,
-                $matches,
-            ) === 1) {
-                $text = \stripcslashes($matches[2]);
-            } elseif (\preg_match('/^\s*\/\/\s+(?!@)(.+)$/', $line, $matches) === 1) {
-                $text = $matches[1];
-            }
+        } elseif (\preg_match('/^\s*#\s+(?!@)(.+)$/', $line, $matches) === 1) {
+            $text = $matches[1];
         }
 
         if ($text === null || \preg_match('/[A-Za-z]/', $text) !== 1) {
@@ -445,6 +460,103 @@ function proseStructuredPassages(string $path, string $contents, string $extensi
     }
 
     return $passages;
+}
+
+/**
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
+ */
+function proseJsonPassages(string $path, string $contents): array
+{
+    $passages = [];
+    $pattern = '/"(description|label|placeholder|title)"\s*:\s*"((?:\\\\.|[^"\\\\])*)"/s';
+
+    if (\preg_match_all($pattern, $contents, $matches, \PREG_OFFSET_CAPTURE) !== false) {
+        foreach ($matches[2] as $match) {
+            [$encoded, $offset] = $match;
+            $decoded = \json_decode('"' . $encoded . '"', true);
+            $text = \is_string($decoded) ? $decoded : $encoded;
+
+            if (\preg_match('/[A-Za-z]/', $text) !== 1) {
+                continue;
+            }
+
+            $passages[] = [
+                'path' => $path,
+                'line' => \proseLineAtOffset($contents, $offset),
+                'text' => \trim((string) \preg_replace('/\s+/', ' ', $text)),
+            ];
+        }
+    }
+
+    if (\preg_match('/"suggest"\s*:\s*\{(.*?)\}/s', $contents, $suggest, \PREG_OFFSET_CAPTURE) === 1) {
+        $body = $suggest[1][0];
+        $bodyOffset = $suggest[1][1];
+
+        if (\preg_match_all('/"[^"]+"\s*:\s*"((?:\\\\.|[^"\\\\])*)"/s', $body, $values, \PREG_OFFSET_CAPTURE) !== false) {
+            foreach ($values[1] as $match) {
+                [$encoded, $offset] = $match;
+                $decoded = \json_decode('"' . $encoded . '"', true);
+                $text = \is_string($decoded) ? $decoded : $encoded;
+
+                if (!\proseLooksLikeHumanString($text)) {
+                    continue;
+                }
+
+                $passages[] = [
+                    'path' => $path,
+                    'line' => \proseLineAtOffset($contents, $bodyOffset + $offset),
+                    'text' => $text,
+                ];
+            }
+        }
+    }
+
+    return $passages;
+}
+
+/**
+ * @return list<array{path: string, line: int, text: string, advisory?: bool}>
+ */
+function proseScriptPassages(string $path, string $contents): array
+{
+    $passages = [];
+
+    if (\preg_match_all('/^\s*\/\/\s+(?!@)(.+)$/m', $contents, $comments, \PREG_OFFSET_CAPTURE) !== false) {
+        foreach ($comments[1] as [$text, $offset]) {
+            $passages[] = ['path' => $path, 'line' => \proseLineAtOffset($contents, $offset), 'text' => $text];
+        }
+    }
+
+    if (\preg_match_all('/([\'"`])((?:\\\\.|(?!\1).)*)\1/s', $contents, $strings, \PREG_OFFSET_CAPTURE) !== false) {
+        foreach ($strings[2] as $index => [$encoded, $offset]) {
+            $matchOffset = $strings[0][$index][1];
+            $lineStart = \strrpos(\substr($contents, 0, $matchOffset), "\n");
+            $linePrefix = \substr($contents, $lineStart === false ? 0 : $lineStart + 1, $matchOffset - ($lineStart === false ? 0 : $lineStart + 1));
+
+            if (\preg_match('/\b(?:code|sample)\w*\s*=\s*$/i', $linePrefix) === 1) {
+                continue;
+            }
+
+            $text = \stripcslashes($encoded);
+
+            if (\preg_match('/\s/', $text) !== 1 || !\proseLooksLikeHumanString($text)) {
+                continue;
+            }
+
+            $passages[] = [
+                'path' => $path,
+                'line' => \proseLineAtOffset($contents, $offset),
+                'text' => \trim((string) \preg_replace('/\s+/', ' ', $text)),
+            ];
+        }
+    }
+
+    return $passages;
+}
+
+function proseLineAtOffset(string $contents, int $offset): int
+{
+    return \substr_count(\substr($contents, 0, $offset), "\n") + 1;
 }
 
 function proseStructuredScalar(string $value): ?string
@@ -477,6 +589,7 @@ function proseMarkdownPassages(string $path, string $contents): array
     $paragraph = [];
     $paragraphLine = 1;
     $inFence = false;
+    $listItemIndent = null;
     $lines = \preg_split('/\R/', $contents);
 
     foreach ($lines === false ? [] : $lines as $offset => $line) {
@@ -505,6 +618,7 @@ function proseMarkdownPassages(string $path, string $contents): array
 
         if ($isBoundary) {
             \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+            $listItemIndent = null;
 
             continue;
         }
@@ -514,6 +628,7 @@ function proseMarkdownPassages(string $path, string $contents): array
             $paragraphLine = $lineNumber;
             $paragraph[] = (string) \preg_replace('/^\s*#{1,6}\s+/', '', $line);
             \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+            $listItemIndent = null;
 
             continue;
         }
@@ -523,6 +638,7 @@ function proseMarkdownPassages(string $path, string $contents): array
             $paragraphLine = $lineNumber;
             $paragraph[] = \str_replace('|', ' ', \trim($line, " \t|"));
             \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+            $listItemIndent = null;
 
             continue;
         }
@@ -531,9 +647,23 @@ function proseMarkdownPassages(string $path, string $contents): array
             \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
             $paragraphLine = $lineNumber;
             $paragraph[] = (string) \preg_replace('/^\s*(?:[-*+]|\d+[.)])\s+/', '', $line);
-            \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+            \preg_match('/^(\s*)/', $line, $indentMatch);
+            $listItemIndent = \strlen($indentMatch[1] ?? '') + 1;
 
             continue;
+        }
+
+        $indent = \strlen($line) - \strlen(\ltrim($line));
+
+        if ($listItemIndent !== null && $indent >= $listItemIndent) {
+            $paragraph[] = $trimmed;
+
+            continue;
+        }
+
+        if ($listItemIndent !== null) {
+            \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+            $listItemIndent = null;
         }
 
         if ($paragraph === []) {
@@ -551,7 +681,7 @@ function proseMarkdownPassages(string $path, string $contents): array
 function proseCleanMarkdown(string $text): string
 {
     $text = (string) \preg_replace('/!\[([^\]]*)]\([^)]*\)/', ' $1 ', $text);
-    $text = (string) \preg_replace('/\[[^\]]+]\([^)]*\)/', ' LITERAL ', $text);
+    $text = (string) \preg_replace('/\[([^\]]+)]\([^)]*\)/', ' $1 ', $text);
     $text = (string) \preg_replace('/`[^`]*`/', ' LITERAL ', $text);
     $text = (string) \preg_replace('/<https?:\/\/[^>]+>/', ' LITERAL ', $text);
     $text = (string) \preg_replace('/https?:\/\/\S+/', ' LITERAL ', $text);
@@ -566,6 +696,29 @@ function proseCleanMarkdown(string $text): string
  */
 function proseAstroPassages(string $path, string $contents): array
 {
+    $passages = [];
+
+    if (\preg_match('/\A---\R(.*?)\R---\R/s', $contents, $frontmatter, \PREG_OFFSET_CAPTURE) === 1) {
+        $frontmatterText = $frontmatter[1][0];
+        $frontmatterLine = \proseLineAtOffset($contents, $frontmatter[1][1]) - 1;
+
+        foreach (\proseScriptPassages($path, $frontmatterText) as $passage) {
+            $passage['line'] += $frontmatterLine;
+            $passages[] = $passage;
+        }
+    }
+
+    if (\preg_match_all('#<script\b[^>]*>(.*?)</script>#is', $contents, $scripts, \PREG_OFFSET_CAPTURE) !== false) {
+        foreach ($scripts[1] as [$script, $offset]) {
+            $scriptLine = \proseLineAtOffset($contents, $offset) - 1;
+
+            foreach (\proseScriptPassages($path, $script) as $passage) {
+                $passage['line'] += $scriptLine;
+                $passages[] = $passage;
+            }
+        }
+    }
+
     $contents = (string) \preg_replace_callback(
         '/\A---\R.*?\R---\R/s',
         static fn(array $matches): string => \str_repeat("\n", \substr_count($matches[0], "\n")),
@@ -578,7 +731,6 @@ function proseAstroPassages(string $path, string $contents): array
     );
     $contents = \proseMaskAstroExpressions($contents);
     $lines = \preg_split('/\R/', $contents);
-    $passages = [];
     $paragraph = [];
     $paragraphLine = 1;
 
@@ -732,6 +884,20 @@ function prosePhpPassages(string $path, string $contents): array
         $paragraph = [];
         $paragraphLine = $line;
         $inTag = false;
+        $tagDescription = null;
+        $tagLine = $line;
+        $flushTagDescription = static function (?string $tagDescription, int $tagLine) use (&$passages, $path): void {
+            if ($tagDescription === null) {
+                return;
+            }
+
+            $passages[] = [
+                'path' => $path,
+                'line' => $tagLine,
+                'text' => \trim((string) \preg_replace('/\s+/', ' ', $tagDescription)),
+                'advisory' => false,
+            ];
+        };
 
         foreach ($lines as $offset => $commentLine) {
             $clean = (string) \preg_replace('/^\s*(?:\/\*\*?|\/\/|#|\*(?!\/))\s?/', '', $commentLine);
@@ -740,6 +906,8 @@ function prosePhpPassages(string $path, string $contents): array
 
             if ($trimmed === '') {
                 \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, false);
+                $flushTagDescription($tagDescription, $tagLine);
+                $tagDescription = null;
                 $inTag = false;
 
                 continue;
@@ -747,16 +915,9 @@ function prosePhpPassages(string $path, string $contents): array
 
             if (\str_starts_with($trimmed, '@')) {
                 \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, false);
-                $description = \prosePhpDocTagDescription($trimmed);
-
-                if ($description !== null) {
-                    $passages[] = [
-                        'path' => $path,
-                        'line' => $line + $offset,
-                        'text' => $description,
-                        'advisory' => false,
-                    ];
-                }
+                $flushTagDescription($tagDescription, $tagLine);
+                $tagDescription = \prosePhpDocTagDescription($trimmed);
+                $tagLine = $line + $offset;
 
                 $inTag = true;
 
@@ -764,6 +925,10 @@ function prosePhpPassages(string $path, string $contents): array
             }
 
             if ($inTag) {
+                if ($tagDescription !== null) {
+                    $tagDescription .= ' ' . $trimmed;
+                }
+
                 continue;
             }
 
@@ -775,13 +940,17 @@ function prosePhpPassages(string $path, string $contents): array
         }
 
         \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, false);
+        $flushTagDescription($tagDescription, $tagLine);
     }
 
     if (
         $path !== 'tools/prose-check.php'
         && (\str_starts_with($path, 'src/') || \str_starts_with($path, 'tools/') || \str_starts_with($path, 'bin/'))
     ) {
-        $passages = [...$passages, ...\prosePhpStringPassages($path, $contents)];
+        $passages = [
+            ...$passages,
+            ...\prosePhpStringPassages($path, $contents),
+        ];
     }
 
     return $passages;
@@ -806,27 +975,97 @@ function prosePhpDocTagDescription(string $line): ?string
 function prosePhpStringPassages(string $path, string $contents): array
 {
     $passages = [];
+    $tokens = \token_get_all($contents);
+    $counter = \count($tokens);
 
-    foreach (\token_get_all($contents) as $token) {
-        if (!\is_array($token) || $token[0] !== \T_CONSTANT_ENCAPSED_STRING) {
+    for ($index = 0; $index < $counter; ++$index) {
+        $token = $tokens[$index];
+
+        if (\is_array($token) && $token[0] === \T_CONSTANT_ENCAPSED_STRING) {
+            \proseAddPhpStringPassage($passages, $path, $token[2], \proseDecodePhpString($token[1]));
+
             continue;
         }
 
-        $text = \proseDecodePhpString($token[1]);
+        $isHeredoc = \is_array($token) && $token[0] === \T_START_HEREDOC;
+        $isInterpolated = $token === '"';
 
-        if (!\proseLooksLikeHumanString($text)) {
+        if (!$isHeredoc && !$isInterpolated) {
             continue;
         }
 
-        $passages[] = [
-            'path' => $path,
-            'line' => $token[2],
-            'text' => $text,
-            'advisory' => false,
-        ];
+        $line = $isHeredoc ? $token[2] : \proseTokenLine($tokens, $index);
+        $text = '';
+
+        for (++$index; $index < \count($tokens); ++$index) {
+            $part = $tokens[$index];
+
+            if ($isHeredoc && \is_array($part) && $part[0] === \T_END_HEREDOC) {
+                break;
+            }
+
+            if ($isInterpolated && $part === '"') {
+                break;
+            }
+
+            if (\is_array($part) && $part[0] === \T_ENCAPSED_AND_WHITESPACE) {
+                $text .= $part[1];
+
+                continue;
+            }
+
+            if (\is_array($part) && \in_array($part[0], [\T_VARIABLE, \T_STRING_VARNAME], true)) {
+                $text .= ' LITERAL ';
+            }
+        }
+
+        \proseAddPhpStringPassage($passages, $path, $line, $text);
     }
 
     return $passages;
+}
+
+/**
+ * @param list<array{path: string, line: int, text: string, advisory: false}> $passages
+ */
+function proseAddPhpStringPassage(array &$passages, string $path, int $line, string $text): void
+{
+    if (
+        \str_contains($text, '<?php')
+        || \substr_count($text, ';') > 2
+        || \preg_match('/^\s*(?:if\b|public\b|private\b|protected\b|function\b|class\b|declare\b)/', $text) === 1
+    ) {
+        return;
+    }
+
+    $text = \trim((string) \preg_replace('/\s+/', ' ', $text));
+
+    if (!\proseLooksLikeHumanString($text)) {
+        return;
+    }
+
+    $passages[] = [
+        'path' => $path,
+        'line' => $line,
+        'text' => $text,
+        'advisory' => false,
+    ];
+}
+
+/**
+ * @param list<array{int, string, int}|string> $tokens
+ */
+function proseTokenLine(array $tokens, int $index): int
+{
+    for (; $index >= 0; --$index) {
+        $token = $tokens[$index];
+
+        if (\is_array($token)) {
+            return $token[2] + \substr_count($token[1], "\n");
+        }
+    }
+
+    return 1;
 }
 
 function proseDecodePhpString(string $literal): string
@@ -859,7 +1098,7 @@ function proseLooksLikeHumanString(string $text): bool
         return false;
     }
 
-    $withoutPlaceholders = (string) \preg_replace('/%(?:\d+\$)?[-+0-9.\']*[bcdeEfFgGosuxX]/', ' LITERAL ', $text);
+    $withoutPlaceholders = (string) \preg_replace('/%(?:\d+\$)?[-+0-9.\']*[bcdeEfFgGosuxX]/', ' X ', $text);
 
     return \preg_match('/\b[A-Za-z]{2,}\b.*\b[A-Za-z]{2,}\b/s', $withoutPlaceholders) === 1;
 }
@@ -906,7 +1145,8 @@ function proseCommentTokens(string $contents): array
 function proseAnalyze(array $passage): array
 {
     $findings = [];
-    $text = \proseWithoutQuotedLiterals(\proseWithoutRegisteredLiterals($passage['text']));
+    $text = \str_replace(["\u{2019}", "\u{02BC}"], "'", $passage['text']);
+    $text = \proseWithoutQuotedLiterals(\proseWithoutRegisteredLiterals($text));
     $normalized = \proseNormalize($text);
 
     $add = static function (string $rule, string $severity, string $message) use (&$findings, $passage, $normalized): void {

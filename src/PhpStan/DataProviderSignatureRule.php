@@ -255,7 +255,7 @@ final readonly class DataProviderSignatureRule implements Rule
         if ($returnType->isIterable()->no()) {
             return [$this->error(
                 \sprintf(
-                    'Data provider %s::%s() must return an iterable of argument arrays, returns %s.',
+                    'Data provider %s::%s() must return an iterable of argument arrays. It returns %s.',
                     $providerClass->getDisplayName(),
                     $provider,
                     $returnType->describe(VerbosityLevel::typeOnly()),
@@ -278,7 +278,7 @@ final readonly class DataProviderSignatureRule implements Rule
         if ($rowType->isArray()->no()) {
             return [$this->error(
                 \sprintf(
-                    'Data provider %s::%s() must yield arrays of arguments, yields %s.',
+                    'Data provider %s::%s() must yield argument arrays. It yields %s.',
                     $providerClass->getDisplayName(),
                     $provider,
                     $rowType->describe(VerbosityLevel::typeOnly()),
@@ -373,12 +373,12 @@ final readonly class DataProviderSignatureRule implements Rule
             if ($parameter->getType()->accepts($valueType, true)->no()) {
                 $errors[] = $this->error(
                     \sprintf(
-                        '%s argument #%d of %s() expects %s, %s given.',
+                        '%s argument #%d for %s() has type %s, but the parameter requires %s.',
                         $source,
                         $position + 1,
                         $methodName,
-                        $parameter->getType()->describe(VerbosityLevel::typeOnly()),
                         $valueType->describe(VerbosityLevel::typeOnly()),
+                        $parameter->getType()->describe(VerbosityLevel::typeOnly()),
                     ),
                     'argument',
                     $line,

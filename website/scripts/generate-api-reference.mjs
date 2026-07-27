@@ -78,7 +78,7 @@ const sections = [
   {
     id: 'api-integrations',
     title: 'Integration API',
-    description: 'This reference lists public integration types for PHPStan, Rector, and Symfony.',
+    description: 'This reference lists public integration types for Rector and Symfony.',
     prefixes: ['Greenlight\\PhpStan\\', 'Greenlight\\Rector\\', 'Greenlight\\Symfony\\'],
   },
 ];
@@ -503,10 +503,17 @@ function memberName(tokens, kind) {
     return tokens.find((token) => token.kind === 'variable')?.value;
   }
 
-  const marker = kind === 'case' ? 'case' : 'const';
-  const markerIndex = tokens.findIndex((token) => token.value === marker);
+  if (kind === 'case') {
+    const markerIndex = tokens.findIndex((token) => token.value === 'case');
 
-  return tokens.slice(markerIndex + 1).find((token) => token.kind === 'word')?.value;
+    return tokens.slice(markerIndex + 1).find((token) => token.kind === 'word')?.value;
+  }
+
+  const markerIndex = tokens.findIndex((token) => token.value === 'const');
+  const equalsIndex = tokens.findIndex((token, index) => index > markerIndex && token.value === '=');
+  const declaration = tokens.slice(markerIndex + 1, equalsIndex === -1 ? undefined : equalsIndex);
+
+  return declaration.findLast((token) => token.kind === 'word')?.value;
 }
 
 function normalizeSignature(signature, baseIndent) {

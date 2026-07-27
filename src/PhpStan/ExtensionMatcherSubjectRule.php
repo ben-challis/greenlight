@@ -83,7 +83,7 @@ final readonly class ExtensionMatcherSubjectRule implements Rule
     private function error(string $matcher, Type $accepted, Type $subject, int $line): IdentifierRuleError
     {
         return RuleErrorBuilder::message(\sprintf(
-            'Extension matcher %s() expects subject type %s, %s given.',
+            'Extension matcher %s() requires subject type %s, but the subject has type %s.',
             $matcher,
             $accepted->describe(VerbosityLevel::typeOnly()),
             $subject->describe(VerbosityLevel::typeOnly()),

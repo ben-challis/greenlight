@@ -60,7 +60,7 @@ final class TestConstructorRule implements Rule
 
         if (!$constructor->isPublic()) {
             $errors[] = $this->error(
-                \sprintf('Test class %s cannot be instantiated because its constructor is not public.', $class->getDisplayName()),
+                \sprintf('Greenlight cannot instantiate test class %s because its constructor is not public.', $class->getDisplayName()),
                 'visibility',
                 $line,
             );
@@ -79,7 +79,7 @@ final class TestConstructorRule implements Rule
 
             $errors[] = $this->error(
                 \sprintf(
-                    'Constructor parameter $%s of test class %s cannot be resolved. '
+                    'Greenlight cannot resolve constructor parameter $%s of test class %s. '
                     . 'Use one class or interface type, or give the parameter a default value.',
                     $parameter->getName(),
                     $class->getDisplayName(),
