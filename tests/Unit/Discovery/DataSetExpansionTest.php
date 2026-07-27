@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Discovery\DataSetExpander;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Tests\Fixture\DiscoveryDataSets\InvalidKeyProvider;
+use Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest;
 
 final class DataSetExpansionTest
 {
@@ -77,6 +80,26 @@ final class DataSetExpansionTest
         ];
 
         Expect::that($this->keysFor($plan, 'withAwkwardKeys'))->because('non printable and empty keys become stable hash prefixes')->toBe($expected);
+    }
+
+    #[Test]
+    public function providerKeysMustBeStringsOrIntegers(): void
+    {
+        $expander = new DataSetExpander();
+
+        Expect::that(static fn(): array => $expander->rowsFor(
+            new \ReflectionClass(ProviderKeysTest::class),
+            'withStringKeys',
+            'rows',
+            5.0,
+            InvalidKeyProvider::class,
+        ))
+            ->because('provider keys must be strings or integers')
+            ->toThrow(
+                DiscoveryError::class,
+                message: 'Data-set provider ' . InvalidKeyProvider::class . '::rows() '
+                    . 'produced a key of type bool. Use string or integer keys.',
+            );
     }
 
     #[Test]
