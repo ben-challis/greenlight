@@ -7,13 +7,17 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ClassFileParser;
 use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\SomewhereElse\MismatchTest;
 
-final class Psr4ViolationTest
+final readonly class Psr4ViolationTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     private function discoveryErrorMessage(string $fixture): string
     {
         try {
@@ -63,6 +67,36 @@ final class Psr4ViolationTest
             ->toThrow(
                 DiscoveryError::class,
                 matching: '/Greenlight cannot read test file ".*\/MissingTest\.php"/',
+            );
+    }
+
+    #[Test]
+    public function incompleteClassDeclarationsProduceATypedDiscoveryError(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('incomplete-declaration');
+
+        if ($directory === '') {
+            Fail::because('Expected the incomplete class fixture directory to be non-empty.');
+        }
+
+        $file = $directory . '/IncompleteTest.php';
+        \file_put_contents($file, "<?php\n\nclass");
+        $resolvedFile = \realpath($file);
+
+        if (!\is_string($resolvedFile)) {
+            Fail::because('Expected the incomplete class fixture to have a canonical path.');
+        }
+
+        Expect::that(
+            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
+        )
+            ->because('an incomplete class declaration is not mistaken for a test class')
+            ->toThrow(
+                DiscoveryError::class,
+                message: \sprintf(
+                    'Test file "%s" does not declare a class, interface, trait, or enum.',
+                    $resolvedFile,
+                ),
             );
     }
 }
