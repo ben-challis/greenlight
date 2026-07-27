@@ -70,6 +70,9 @@ final class FileCoverageTest
     public function nonPositiveLineNumbersAreRejected(): void
     {
         Expect::that(static fn(): FileCoverage => new FileCoverage('/src/A.php', [0], []))->because('nonpositive line numbers are rejected')
-            ->toThrow(\InvalidArgumentException::class, '/must be positive/');
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Use positive coverage line numbers. Actual value: 0.',
+            );
     }
 }

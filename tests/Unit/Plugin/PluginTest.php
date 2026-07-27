@@ -67,7 +67,7 @@ final class PluginTest
         [, $results] = $this->runSuite('Lifecycle/Order', [$rogue]);
 
         Expect::that($results[0]->outcome)->because('unattributed outcome changes error the test naming the plugin')->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)->toContain('without withOutcome() provenance');
+            ->and($results[0]->error?->message)->toContain('without a new transformation-log entry from withOutcome()');
     }
 
     #[Test]
@@ -90,7 +90,7 @@ final class PluginTest
         [, $results] = $this->runSuite('Lifecycle/Order', [$broken]);
 
         Expect::that($results[0]->outcome)->because('throwing before test errors the test naming the plugin')->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)->toContain('failed in beforeTest')
+            ->and($results[0]->error?->message)->toContain('caused an error during beforeTest()')
             ->toContain('plugin exploded');
     }
 
@@ -118,7 +118,7 @@ final class PluginTest
 
         // The passed test becomes an error that names the plugin.
         Expect::that($byMethod['passes']->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
-            ->and($byMethod['passes']->error?->message)->toContain('failed in afterTest')
+            ->and($byMethod['passes']->error?->message)->toContain('caused an error during afterTest()')
             ->toContain('plugin exploded');
 
         // The test keeps its original error. Greenlight records the plugin
@@ -126,7 +126,7 @@ final class PluginTest
         $errored = $byMethod['explodes'];
         Expect::that($errored->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
             ->and($errored->error?->message)->toContain('intentional boom')
-            ->and($errored->failures[0]->message ?? '')->toContain('failed in afterTest')
+            ->and($errored->failures[0]->message ?? '')->toContain('caused an error during afterTest()')
             ->toContain('plugin exploded');
     }
 

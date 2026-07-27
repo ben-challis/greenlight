@@ -14,7 +14,7 @@ $pharPath = $root . '/vendor/phpstan/phpstan/phpstan.phar';
 $target = $root . '/.phpstan-api-stubs';
 
 if (!\is_file($pharPath)) {
-    echo "phpstan.phar is not installed; skipping the PHPStan API stub extraction.\n";
+    echo "The tool cannot extract the PHPStan API stubs because phpstan.phar is not installed.\n";
     exit(0);
 }
 
@@ -26,5 +26,5 @@ if (\is_dir($target)) {
 $phar = new Phar($pharPath);
 $phar->extractTo($target, 'src/', true);
 
-echo \sprintf("Extracted the PHPStan API sources to %s for IDE indexing.\n", $target);
+echo \sprintf("Greenlight extracted the PHPStan API sources to %s. Editors can index these sources.\n", $target);
 exit(0);

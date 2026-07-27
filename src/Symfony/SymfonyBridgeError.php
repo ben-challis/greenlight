@@ -15,10 +15,10 @@ final class SymfonyBridgeError extends \RuntimeException
     public static function testContainerUnavailable(string $environment): self
     {
         return new self(\sprintf(
-            'The kernel booted in the "%s" environment without Symfony\'s test container, '
-            . 'so container services cannot reach tests. Enable framework.test for this '
-            . 'environment (framework-bundle\'s standard test config, usually APP_ENV=test), '
-            . 'or point SymfonyPlugin at an environment that has it.',
+            'The kernel started in the "%s" environment without the Symfony test container. '
+            . 'Container services cannot reach tests. Enable framework.test for this environment. '
+            . 'The standard FrameworkBundle test configuration usually uses APP_ENV=test. '
+            . 'You can also configure SymfonyPlugin to use an environment that provides the test container.',
             $environment,
         ));
     }
@@ -26,11 +26,10 @@ final class SymfonyBridgeError extends \RuntimeException
     public static function resetterUnavailable(string $environment): self
     {
         return new self(\sprintf(
-            'The kernel booted in the "%s" environment without services_resetter, so state '
-            . 'cannot be reset between tests and the kernel-per-worker strategy would run '
-            . 'unisolated. Enable framework-bundle\'s test configuration so services_resetter '
-            . 'exists, or pass resetBetweenTests: false to SymfonyPlugin to deliberately waive '
-            . 'resets (unsafe with any stateful service).',
+            'The kernel started in the "%s" environment without services_resetter. '
+            . 'Symfony cannot reset service state between tests. Tests on the same worker can share state. '
+            . 'Enable the FrameworkBundle test configuration. To accept this risk, pass resetBetweenTests: false to SymfonyPlugin. '
+            . 'Use this option only if services do not keep state.',
             $environment,
         ));
     }
@@ -38,9 +37,9 @@ final class SymfonyBridgeError extends \RuntimeException
     public static function unknownServiceId(string $id, string $type): self
     {
         return new self(\sprintf(
-            'The Symfony container has no service "%s", requested for a parameter of type "%s". '
-            . 'Check the id for typos; private services are reachable through the test '
-            . 'container, so an unknown id means the compiled container never had it.',
+            'The Symfony container has no service "%s" for the parameter of type "%s". '
+            . 'Check the service ID. The test container exposes private services. '
+            . 'The compiled container does not define the requested service.',
             $id,
             $type,
         ));
@@ -49,7 +48,7 @@ final class SymfonyBridgeError extends \RuntimeException
     public static function serviceTypeMismatch(string $id, string $type, string $actual): self
     {
         return new self(\sprintf(
-            'The Symfony service "%s" is an instance of "%s", but the parameter declares "%s".',
+            'Symfony service "%s" has type "%s". The parameter requires type "%s".',
             $id,
             $actual,
             $type,
@@ -59,8 +58,8 @@ final class SymfonyBridgeError extends \RuntimeException
     public static function notAKernel(string $class): self
     {
         return new self(\sprintf(
-            '"%s" does not implement Symfony\Component\HttpKernel\KernelInterface, '
-            . 'so SymfonyPlugin cannot boot it.',
+            'Class "%s" does not implement Symfony\Component\HttpKernel\KernelInterface. '
+            . 'SymfonyPlugin cannot use this class as a kernel.',
             $class,
         ));
     }

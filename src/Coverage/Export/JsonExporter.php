@@ -58,7 +58,7 @@ final readonly class JsonExporter implements CoverageExporter
         }
 
         if (!\is_array($document)) {
-            throw CoverageError::invalidJson('the top level must be an object.');
+            throw CoverageError::invalidJson('use an object at the top level.');
         }
 
         if (($document['v'] ?? null) !== self::VERSION) {
@@ -68,14 +68,14 @@ final readonly class JsonExporter implements CoverageExporter
         $rawFiles = $document['files'] ?? null;
 
         if (!\is_array($rawFiles)) {
-            throw CoverageError::invalidJson('"files" must be an object.');
+            throw CoverageError::invalidJson('use an object for "files".');
         }
 
         $files = [];
 
         foreach ($rawFiles as $path => $entry) {
             if (!\is_string($path) || $path === '' || !\is_array($entry)) {
-                throw CoverageError::invalidJson('every "files" entry must map a file path to an object.');
+                throw CoverageError::invalidJson('map each file path in "files" to an object.');
             }
 
             $files[] = new FileCoverage(
@@ -98,14 +98,14 @@ final readonly class JsonExporter implements CoverageExporter
         $value = $entry[$key] ?? null;
 
         if (!\is_array($value) || !\array_is_list($value)) {
-            throw CoverageError::invalidJson(\sprintf('"%s" for file "%s" must be a list of line numbers.', $key, $path));
+            throw CoverageError::invalidJson(\sprintf('use a list of line numbers for "%s" in file "%s".', $key, $path));
         }
 
         $lines = [];
 
         foreach ($value as $line) {
             if (!\is_int($line) || $line < 1) {
-                throw CoverageError::invalidJson(\sprintf('"%s" for file "%s" must contain positive integers only.', $key, $path));
+                throw CoverageError::invalidJson(\sprintf('use only positive integers in "%s" for file "%s".', $key, $path));
             }
 
             $lines[] = $line;

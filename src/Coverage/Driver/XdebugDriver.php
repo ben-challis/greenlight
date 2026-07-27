@@ -37,7 +37,7 @@ final class XdebugDriver implements CoverageDriver
     public function start(): void
     {
         if ($this->collecting) {
-            throw new \LogicException('Xdebug collection window is already open; stop() must be called first.');
+            throw new \LogicException('The Xdebug collection window is already open. Call stop() before start().');
         }
 
         \xdebug_start_code_coverage(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
@@ -48,7 +48,7 @@ final class XdebugDriver implements CoverageDriver
     public function stop(): RawCoverage
     {
         if (!$this->collecting) {
-            throw new \LogicException('Xdebug collection window is not open; start() must be called first.');
+            throw new \LogicException('The Xdebug collection window is not open. Call start() before stop().');
         }
 
         $collected = \xdebug_get_code_coverage();

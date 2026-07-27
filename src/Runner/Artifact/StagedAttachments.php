@@ -166,7 +166,7 @@ final class StagedAttachments implements Attachments
             $this->store->discard($attachment);
 
             throw AttachmentError::limit(\sprintf(
-                'Attachments for this test exceed the %d byte limit',
+                'Attachments for this test exceed the limit of %d bytes',
                 $this->configuration->maxTestBytes,
             ));
         }
@@ -184,7 +184,7 @@ final class StagedAttachments implements Attachments
 
         if ($this->budget->attachments >= $this->configuration->maxAttachmentsPerTest) {
             throw AttachmentError::limit(\sprintf(
-                'This test exceeds the %d attachment limit',
+                'This test has reached the limit of %d attachments',
                 $this->configuration->maxAttachmentsPerTest,
             ));
         }

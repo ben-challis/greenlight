@@ -60,7 +60,7 @@ final readonly class WorkerProcess
         });
 
         if ($stream === false) {
-            \fwrite(\STDERR, \sprintf("Worker could not connect to %s: %s\n", $address, $errorMessage));
+            \fwrite(\STDERR, \sprintf("The worker did not connect to %s: %s\n", $address, $errorMessage));
 
             return 1;
         }

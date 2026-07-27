@@ -136,7 +136,7 @@ function median(array $samples): float
 function generateShape(string $shape, int $scale, string $project): int
 {
     if (!\mkdir($project . '/tests/gl', 0o777, true) || !\mkdir($project . '/tests/pu', 0o777, true)) {
-        \fwrite(\STDERR, "Could not create the benchmark project directory.\n");
+        \fwrite(\STDERR, "Greenlight did not create the benchmark project directory.\n");
         exit(1);
     }
 
@@ -333,7 +333,7 @@ function install(string $project): void
     ), $output, $exit);
 
     if ($exit !== 0) {
-        \fwrite(\STDERR, "composer install of phpunit/paratest failed:\n" . \implode("\n", $output) . "\n");
+        \fwrite(\STDERR, "Composer did not install PHPUnit and ParaTest:\n" . \implode("\n", $output) . "\n");
         exit(1);
     }
 }

@@ -48,9 +48,10 @@ final readonly class PolicyTest
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=RiskyProbeTest');
         $output = $result->output();
-        $riskyBlock = \substr($output, (int) \strpos($output, 'Risky:'));
+        $riskyBlock = \substr($output, (int) \strpos($output, 'Risky tests:'));
         Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(0)
-            ->and($riskyBlock)->toContain('Risky: 1 passed without verifying any expectation')
+            ->and($riskyBlock)->toContain('Risky tests: 1')
+            ->and($riskyBlock)->toContain('These tests passed without a verified expectation.')
             ->toContain('RiskyProbeTest::assertsNothing')
             ->not()->toContain('optedOut')
             ->not()->toContain('mocksOnly')

@@ -34,7 +34,7 @@ final class OrchestratorTest
         );
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a spawned worker that never connects fails the run instead of hanging it')
-            ->toThrow(ProtocolError::class, '/never connected within 0\.5s/');
+            ->toThrow(ProtocolError::class, '/did not connect within 0\.5 seconds/');
     }
 
     #[Test]
@@ -61,7 +61,7 @@ final class OrchestratorTest
         );
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a connected worker that goes silent before starting its assignment fails the run')
-            ->toThrow(ProtocolError::class, '/sent nothing for 0\.5s/');
+            ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
     }
 
     #[Test]
@@ -116,7 +116,7 @@ final class OrchestratorTest
         );
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a recycling worker with a mismatched summary fails the run')
-            ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream tallies/');
+            ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream totals/');
     }
 
     #[Test]

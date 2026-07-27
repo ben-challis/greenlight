@@ -78,7 +78,7 @@ final class SymfonyPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, [new Service('fixture.missing')]);
-        })->because('an unknown explicit ID fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/no service "fixture\.missing".*Check the id for typos/s');
+        })->because('an unknown explicit ID fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/no service "fixture\.missing".*Check the service ID/s');
     }
 
     #[Test]
@@ -88,7 +88,7 @@ final class SymfonyPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(VisitCounter::class, [new Service('fixture.named_greeter')]);
-        })->because('an explicit ID of the wrong type fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/is an instance of .* but the parameter declares/');
+        })->because('an explicit ID of the wrong type fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/has type .* The parameter requires type/');
     }
 
     #[Test]

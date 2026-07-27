@@ -67,8 +67,36 @@ final class JsonExporterTest
         Expect::that(static fn(): CoverageMap => JsonExporter::import('not json'))->because('import rejects malformed documents')
             ->toThrow(CoverageError::class)
             ->and(static fn(): CoverageMap => JsonExporter::import('{"v":2,"files":{}}'))
-            ->toThrow(CoverageError::class, '/schema version/')
-            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"/a.php":{"covered":["x"],"uncovered":[]}}}'))
-            ->toThrow(CoverageError::class, '/positive integers/');
+            ->toThrow(CoverageError::class, '/schema version/');
+    }
+
+    #[Test]
+    public function importReportsEachInvalidDocumentShapeExactly(): void
+    {
+        Expect::that(static fn(): CoverageMap => JsonExporter::import('"invalid"'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use an object at the top level.',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":"invalid"}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use an object for "files".',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"":{}}}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: map each file path in "files" to an object.',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"/a.php":{"covered":{"line":1},"uncovered":[]}}}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use a list of line numbers for "covered" in file "/a.php".',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"/a.php":{"covered":[0],"uncovered":[]}}}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use only positive integers in "covered" for file "/a.php".',
+            );
     }
 }

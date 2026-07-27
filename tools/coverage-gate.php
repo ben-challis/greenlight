@@ -16,7 +16,7 @@ $summaryFile = \getenv('GITHUB_STEP_SUMMARY');
 $summaryFile = \is_string($summaryFile) && $summaryFile !== '' ? $summaryFile : null;
 
 if (!\is_file($exportFile)) {
-    \appendGithubSummary($summaryFile, \unavailableSummary('The coverage export was not produced.'));
+    \appendGithubSummary($summaryFile, \unavailableSummary('The coverage run did not produce an export.'));
     \fwrite(\STDERR, \sprintf(
         "Coverage export not found at %s. Run `composer tests:coverage` first.\n",
         $exportFile,
@@ -226,6 +226,6 @@ function appendGithubSummary(?string $summaryFile, string $summary): void
     }
 
     if (@\file_put_contents($summaryFile, $summary, \FILE_APPEND | \LOCK_EX) === false) {
-        \fwrite(\STDERR, "Warning: Could not write the GitHub Actions job summary.\n");
+        \fwrite(\STDERR, "Warning: Greenlight did not write the GitHub Actions job summary.\n");
     }
 }
