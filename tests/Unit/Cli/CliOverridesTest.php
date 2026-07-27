@@ -99,6 +99,16 @@ final class CliOverridesTest
     }
 
     #[Test]
+    public function emptyFilterPatternsAreRejectedExactly(): void
+    {
+        Expect::that(static function (): void {
+            CliOverrides::fromArguments(new ParsedArguments(null, ['filter' => ['']]));
+        })
+            ->because('an empty filter cannot select tests')
+            ->toThrow(CliError::class, message: '--filter requires a pattern.');
+    }
+
+    #[Test]
     public function workersAutoIsKeptAsTheAutoMarker(): void
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['workers' => ['auto']]));
