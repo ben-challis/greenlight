@@ -16,6 +16,24 @@ use Greenlight\Runner\Orchestrator\WorkerHandle;
 final class WorkerHandleTest
 {
     #[Test]
+    public function aClosedProcessHandleIsNotRunning(): void
+    {
+        $process = $this->stream();
+        \fclose($process);
+        $handle = new WorkerHandle(
+            'worker-1',
+            1,
+            $process,
+            $this->stream(),
+            $this->stream(),
+        );
+
+        Expect::that($handle->isRunning())
+            ->because('a closed worker process handle cannot be running')
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function unfinishedReturnsOnlyEntriesEligibleForCrashReassignment(): void
     {
         $handle = $this->handle();
