@@ -19,6 +19,8 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * Validates constant attribute values whose domains PHP types cannot express.
  *
+ * @internal
+ *
  * @implements Rule<Attribute>
  */
 final class AttributeArgumentRule implements Rule

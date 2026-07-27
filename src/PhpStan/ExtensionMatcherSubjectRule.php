@@ -22,6 +22,8 @@ use PHPStan\Type\VerbosityLevel;
 /**
  * Checks the chain subject against an extension matcher's first parameter.
  *
+ * @internal
+ *
  * @implements Rule<MethodCall>
  */
 final readonly class ExtensionMatcherSubjectRule implements Rule

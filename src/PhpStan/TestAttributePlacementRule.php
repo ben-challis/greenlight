@@ -25,6 +25,8 @@ use PHPStan\Rules\RuleErrorBuilder;
 /**
  * Reports method attributes that have no effect without `#[Test]`.
  *
+ * @internal
+ *
  * @implements Rule<InClassMethodNode>
  */
 final class TestAttributePlacementRule implements Rule
