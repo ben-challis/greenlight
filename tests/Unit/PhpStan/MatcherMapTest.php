@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\PhpStan;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
+use Greenlight\Tests\Fixture\PhpStan\MatcherTypeShapes;
 
 final class MatcherMapTest
 {
@@ -60,5 +62,26 @@ final class MatcherMapTest
                 \LogicException::class,
                 message: 'No extension matcher named "toBeMissing" is known.',
             );
+    }
+
+    #[Test]
+    #[DataSet('matcherTypes')]
+    public function matcherTypesRenderForGeneratedSignatures(string $method, string $expected): void
+    {
+        $parameter = new \ReflectionMethod(MatcherTypeShapes::class, $method)->getParameters()[0];
+
+        Expect::that(MatcherMap::typeName($parameter->getType()))
+            ->because('matcher types render for generated signatures')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function matcherTypes(): iterable
+    {
+        yield 'untyped' => ['untyped', 'mixed'];
+        yield 'union' => ['union', 'string|int'];
+        yield 'intersection' => ['intersection', 'Countable&Iterator'];
     }
 }
