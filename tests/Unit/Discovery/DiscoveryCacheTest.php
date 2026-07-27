@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Discovery;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
@@ -65,6 +66,54 @@ final class DiscoveryCacheTest
             @\unlink($directory . '/CachedProbeTest.php');
             @\rmdir($directory);
         }
+    }
+
+    #[Test]
+    #[DataSet('structurallyInvalidCacheDocuments')]
+    public function structurallyInvalidCacheDocumentsAreRebuilt(string $document): void
+    {
+        $className = 'ShapeProbe' . \bin2hex(\random_bytes(6)) . 'Test';
+        $directory = $this->writeFixture($className);
+        $cacheFile = $this->cacheFile($directory);
+        $loader = static function (string $class) use ($directory, $className): void {
+            if ($class === 'GreenlightDiscoCache\\' . $className) {
+                require_once $directory . '/' . $className . '.php';
+            }
+        };
+        \spl_autoload_register($loader);
+        \file_put_contents($cacheFile, $document);
+
+        try {
+            $plan = new TestDiscoverer()->discover(
+                [$directory],
+                cache: DiscoveryCache::forDirectories([$directory]),
+            );
+            $rewritten = (string) \file_get_contents($cacheFile);
+
+            Expect::that($plan->count())
+                ->because('an invalid cache document becomes a cache miss')
+                ->toBe(2)
+                ->and($rewritten)
+                ->toContain('"version":3')
+                ->toContain($className . '.php');
+        } finally {
+            \spl_autoload_unregister($loader);
+            @\unlink($cacheFile);
+            @\unlink($directory . '/' . $className . '.php');
+            @\rmdir($directory);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function structurallyInvalidCacheDocuments(): iterable
+    {
+        yield 'scalar document' => ['null'];
+        yield 'wrong version' => ['{"version":2,"files":{}}'];
+        yield 'files is not a map' => ['{"version":3,"files":"invalid"}'];
+        yield 'file path is not a string' => ['{"version":3,"files":{"0":{}}}'];
+        yield 'file entry is not a map' => ['{"version":3,"files":{"/project/Test.php":"invalid"}}'];
     }
 
     #[Test]
