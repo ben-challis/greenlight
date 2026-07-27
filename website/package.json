@@ -6,8 +6,10 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
-    "check": "astro check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
+    "api:check": "node scripts/generate-api-reference.mjs --check",
+    "api:generate": "node scripts/generate-api-reference.mjs",
+    "build": "npm run api:check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
+    "check": "npm run api:check && astro check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
     "dev": "astro dev",
     "preview": "astro preview"
   },

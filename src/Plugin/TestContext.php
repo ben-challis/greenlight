@@ -13,9 +13,9 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\UnresolvableService;
 
 /**
- * service() is available during beforeTest() and the test. The per-test
- * service scope closes before afterTest(), so service() throws during
- * afterTest().
+ * `service()` is available during `beforeTest()` and the test. The per-test
+ * service scope closes before `afterTest()`, so `service()` throws during
+ * `afterTest()`.
  */
 final readonly class TestContext
 {
@@ -52,7 +52,7 @@ final readonly class TestContext
     }
 
     /**
-     * Stops the current attempt during beforeTest(). Code after the call does
+     * Stops the current attempt during `beforeTest()`. Code after the call does
      * not run.
      *
      * @param non-empty-string $reason

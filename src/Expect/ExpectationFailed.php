@@ -10,7 +10,7 @@ use Greenlight\Core\Result\SourceLocation;
 /**
  * Identifies one or more failed expectations.
  *
- * Contains structured FailureDetail values. The runner uses them to report
+ * Contains structured `FailureDetail` values. The runner uses them to report
  * the expected value, actual value, and call site. It does not have to parse
  * the message.
  */

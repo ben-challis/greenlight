@@ -19,7 +19,7 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
 /**
- * For compatibility, the toThrow() signature keeps the pattern and
+ * For compatibility, the `toThrow()` signature keeps the pattern and
  * exact-message arguments nullable. A call-site rule makes these arguments
  * mutually exclusive.
  *

@@ -69,6 +69,76 @@ export const docSections = [
     ],
   },
   {
+    title: 'API reference',
+    items: [
+      {
+        id: 'api',
+        title: 'Public code API',
+        description: 'This reference lists the public Greenlight PHP API.',
+      },
+      {
+        id: 'api-attributes',
+        title: 'Attributes and conditions',
+        description: 'This reference lists the attributes and conditions that control test discovery and execution.',
+      },
+      {
+        id: 'api-configuration',
+        title: 'Configuration API',
+        description: 'This reference lists the builders that configure Greenlight runs.',
+      },
+      {
+        id: 'api-artifacts',
+        title: 'Artifact API',
+        description: 'This reference lists attachment values, retention rules, and attachment operations.',
+      },
+      {
+        id: 'api-events',
+        title: 'Event API',
+        description: 'This reference lists the events that plugins and reporters receive during a run.',
+      },
+      {
+        id: 'api-results',
+        title: 'Result API',
+        description: 'This reference lists test outcomes, diagnostics, failure details, and result values.',
+      },
+      {
+        id: 'api-test-contracts',
+        title: 'Test contracts API',
+        description: 'This reference lists test metadata, skip signals, conditions, and wire contracts.',
+      },
+      {
+        id: 'api-expectations',
+        title: 'Expectations API',
+        description: 'This reference lists immediate and temporal expectation types.',
+      },
+      {
+        id: 'api-doubles',
+        title: 'Doubles API',
+        description: 'This reference lists double factories, argument matchers, captors, and mock plans.',
+      },
+      {
+        id: 'api-fixtures-harness',
+        title: 'Fixtures and harness',
+        description: 'This reference lists fixtures and harness service contracts.',
+      },
+      {
+        id: 'api-plugins',
+        title: 'Plugin API',
+        description: 'This reference lists plugin capabilities and lifecycle callback contracts.',
+      },
+      {
+        id: 'api-reporting',
+        title: 'Reporter API',
+        description: 'This reference lists reporter and output contracts.',
+      },
+      {
+        id: 'api-integrations',
+        title: 'Integration API',
+        description: 'This reference lists public integration types for PHPStan, Rector, and Symfony.',
+      },
+    ],
+  },
+  {
     title: 'Evidence',
     items: [
       {

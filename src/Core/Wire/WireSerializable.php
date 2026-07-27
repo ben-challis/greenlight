@@ -9,7 +9,7 @@ namespace Greenlight\Core\Wire;
  *
  * A JSON encode and decode operation must preserve the payload. Keys are
  * strings. Values are scalars, null, or nested arrays of these types. Do not
- * use PHP serialize().
+ * use PHP `serialize()`.
  */
 interface WireSerializable
 {

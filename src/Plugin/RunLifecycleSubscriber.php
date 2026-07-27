@@ -9,7 +9,7 @@ use Greenlight\Core\Event\Event;
 /**
  * Observes the orchestrator event stream.
  *
- * onRunEvent() receives run, worker, suite, class, and test events in the
+ * `onRunEvent()` receives run, worker, suite, class, and test events in the
  * order that they arrive.
  *
  * The subscriber only observes events and cannot change results.

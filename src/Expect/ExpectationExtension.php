@@ -6,7 +6,7 @@ namespace Greenlight\Expect;
 
 use Greenlight\Plugin\Plugin;
 
-/** Supplies extension matchers through Expectation::__call(). */
+/** Supplies extension matchers through `Expectation::__call()`. */
 interface ExpectationExtension extends Plugin
 {
     /**

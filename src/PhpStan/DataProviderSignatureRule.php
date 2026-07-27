@@ -28,8 +28,8 @@ use PHPStan\Type\VerbosityLevel;
  * arguments. It must be in the test class or the specified provider class. It
  * must return an iterable of argument arrays.
  *
- * PHPStan can know the exact form of an array{...} return type or an inline
- * #[DataRow] literal. In these forms, PHPStan compares each value to its
+ * PHPStan can know the exact form of an `array{...}` return type or an inline
+ * `#[DataRow]` literal. In these forms, PHPStan compares each value to its
  * parameter. It also reports too few or too many values. For other forms,
  * PHPStan verifies only that each data set is an array. Greenlight validates
  * its content at run time.

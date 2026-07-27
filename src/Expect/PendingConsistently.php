@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Collects poll options until for() sets the duration.
+ * Collects poll options until `for()` sets the duration.
  *
  * @template T
  */

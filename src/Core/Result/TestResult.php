@@ -11,7 +11,7 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * A plugin does not change a result object. It uses withOutcome() to produce
+ * A plugin does not change a result object. It uses `withOutcome()` to produce
  * a replacement and record the source of the change.
  *
  * The expectations value counts each matcher in a chain separately. It counts

@@ -19,7 +19,7 @@ final class Argument
 
     /**
      * This matcher accepts instances of the specified class or interface.
-     * It also accepts values when get_debug_type() returns $type.
+     * It also accepts values when `get_debug_type()` returns `$type`.
      *
      * @param non-empty-string $type
      */
@@ -38,7 +38,7 @@ final class Argument
     }
 
     /**
-     * This matcher uses the same deep equality as a value in with().
+     * This matcher uses the same deep equality as a value in `with()`.
      * This form states the comparison explicitly.
      */
     public static function equals(mixed $value): ArgumentMatcher

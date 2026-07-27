@@ -20,11 +20,11 @@ use Symfony\Contracts\Service\ResetInterface;
  * stays active for the worker lifetime.
  *
  * The container must expose Symfony's test container. If the configuration
- * does not disable resets, the container must expose services_resetter. If a
+ * does not disable resets, the container must expose `services_resetter`. If a
  * service keeps state between tests, do not disable resets.
  *
- * #[Service] selects an explicit ID instead of a type-based search. Isolate
- * external resources with GREENLIGHT_CHANNEL.
+ * `#[Service]` selects an explicit ID instead of a type-based search. Isolate
+ * external resources with `GREENLIGHT_CHANNEL`.
  */
 final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
 {
