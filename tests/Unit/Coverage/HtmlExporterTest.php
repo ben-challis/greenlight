@@ -9,10 +9,13 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\Coverage\Adder;
 
-final class HtmlExporterTest
+final readonly class HtmlExporterTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function producesAnIndexPlusOnePagePerFile(): void
     {
@@ -137,6 +140,32 @@ final class HtmlExporterTest
         Expect::that($page)->because('file page syntax highlights PHP source')->toContain('<span class="tk">return</span>')
             ->toContain('<span class="tk">function</span>')
             ->not()->toContain('<script');
+    }
+
+    #[Test]
+    public function filePageHighlightsAndEscapesStringTokens(): void
+    {
+        $fixture = $this->tempDirectory->path() . '/StringTokens.php';
+        \file_put_contents($fixture, <<<'PHP'
+            <?php
+
+            $quoted = '<tag>&';
+            $heredoc = <<<TEXT
+            <inside>&
+            TEXT;
+            PHP);
+        $map = new CoverageMap([
+            new FileCoverage($fixture, [3], []),
+        ]);
+
+        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
+
+        Expect::that($page)
+            ->because('PHP string and heredoc tokens are highlighted without becoming HTML')
+            ->toContain('<span class="ts">&#039;&lt;tag&gt;&amp;&#039;</span>')
+            ->toContain('<span class="ts">&lt;inside&gt;&amp;</span>')
+            ->not()->toContain('<tag>')
+            ->not()->toContain('<inside>');
     }
 
     #[Test]
