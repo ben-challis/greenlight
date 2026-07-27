@@ -26,8 +26,6 @@ composer require --dev greenlight/greenlight
 Greenlight reads `greenlight.php` from the project root. This file returns a
 typed builder.
 
-Greenlight does not use an XML, YAML, or JSON configuration format.
-
 Create this minimum configuration:
 
 ```php
