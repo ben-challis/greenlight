@@ -75,8 +75,9 @@ public function subdirectory(string $name): string
 PHPDoc:
 
 - `@param string $name A relative path of plain segments. The path can contain separators but cannot contain traversal segments.`
+- `@return non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L44)
 
 ### `dispose()`
 
@@ -85,7 +86,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L67)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L69)
 
 ## `Disposable`
 
