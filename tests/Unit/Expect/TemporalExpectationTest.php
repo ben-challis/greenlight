@@ -21,7 +21,7 @@ final class TemporalExpectationTest
     #[Test]
     public function temporalAndImmediateExpectationsExposeTheSameNativeMatchers(): void
     {
-        Expect::that($this->matcherSignatures(Expectation::class))
+        Expect::that($this->matcherSignatures(Expectation::class))->because('temporal and immediate expectations expose the same native matchers')
             ->toEqual($this->matcherSignatures(TemporalExpectation::class));
     }
 
@@ -42,7 +42,7 @@ final class TemporalExpectationTest
                 ->toBe('ready');
         });
 
-        Expect::that($calls)->toBe(3)
+        Expect::that($calls)->because('eventually() stops at the first matching observation')->toBe(3)
             ->and($clock->sleeps)->toEqual([0.010, 0.010]);
     }
 
@@ -64,7 +64,7 @@ final class TemporalExpectationTest
             );
         });
 
-        Expect::that($detail->message)->toContain('Eventually expectation did not pass within 0.030s')
+        Expect::that($detail->message)->because('eventually() failure keeps the final diff and bounded history')->toContain('Eventually expectation did not pass within 0.030s')
             ->toContain('Observations:')
             ->and($detail->expected)->toBe('99')
             ->and($detail->actual)->toBe('4')
@@ -91,7 +91,7 @@ final class TemporalExpectationTest
             },
         );
 
-        Expect::that($calls)->toBe(3);
+        Expect::that($calls)->because('eventually() negation waits until the negated matcher passes')->toBe(3);
     }
 
     #[Test]
@@ -104,7 +104,7 @@ final class TemporalExpectationTest
             static fn() => Expect::eventually(
                 static fn(): never => throw new TransientProbeFailure('not ready'),
             )->within(0.100)->toBe('ready'),
-        ))->toThrow(TransientProbeFailure::class, message: 'not ready');
+        ))->because('probe exceptions propagate unless explicitly retryable')->toThrow(TransientProbeFailure::class, message: 'not ready');
 
         $calls = 0;
         ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
@@ -121,7 +121,7 @@ final class TemporalExpectationTest
                 ->toBe('ready');
         });
 
-        Expect::that($calls)->toBe(3);
+        Expect::that($calls)->because('probe exceptions propagate unless explicitly retryable')->toBe(3);
     }
 
     #[Test]
@@ -141,9 +141,9 @@ final class TemporalExpectationTest
                     ->within(0.100)
                     ->toMatch('/invalid');
             });
-        })->toThrow(\InvalidArgumentException::class);
+        })->because('errors and matcher misuse are never retried')->toThrow(\InvalidArgumentException::class);
 
-        Expect::that($calls)->toBe(1);
+        Expect::that($calls)->because('errors and matcher misuse are never retried')->toBe(1);
 
         Expect::that(static function () use ($clock, &$calls): void {
             ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
@@ -156,9 +156,9 @@ final class TemporalExpectationTest
                     ->within(0.100)
                     ->toBe('unreachable');
             });
-        })->toThrow(\Error::class, message: 'programming error');
+        })->because('errors and matcher misuse are never retried')->toThrow(\Error::class, message: 'programming error');
 
-        Expect::that($calls)->toBe(2);
+        Expect::that($calls)->because('errors and matcher misuse are never retried')->toBe(2);
     }
 
     #[Test]
@@ -182,7 +182,7 @@ final class TemporalExpectationTest
             },
         );
 
-        Expect::that($calls)->toBe(4);
+        Expect::that($calls)->because('consistently() samples through the whole period')->toBe(4);
     }
 
     #[Test]
@@ -203,7 +203,7 @@ final class TemporalExpectationTest
             });
         });
 
-        Expect::that($calls)->toBe(3)
+        Expect::that($calls)->because('consistently() fails on the first violation')->toBe(3)
             ->and($detail->message)->toContain('stopped passing')
             ->and($detail->expected)->toBe("'stable'")
             ->and($detail->actual)->toBe("'changed'");
@@ -221,7 +221,7 @@ final class TemporalExpectationTest
         );
         $count = ExpectationCounter::count();
 
-        Expect::that($count)->toBe(1);
+        Expect::that($count)->because('a temporal matcher counts as one expectation')->toBe(1);
     }
 
     #[Test]
@@ -260,23 +260,23 @@ final class TemporalExpectationTest
             ExpectationRuntime::leaveAttempt();
         }
 
-        Expect::that($detail->message)->toContain('test timeout expired')
+        Expect::that($detail->message)->because('the outer test deadline truncates an eventually wait')->toContain('test timeout expired')
             ->toContain('requested 1.000s wait');
     }
 
     #[Test]
     public function pollingDurationsAndExceptionTypesAreValidated(): void
     {
-        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->within(0.0))
+        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->within(0.0))->because('polling durations and exception types are validated')
             ->toThrow(\InvalidArgumentException::class);
-        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->pollEvery(0.0009))
+        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->pollEvery(0.0009))->because('polling durations and exception types are validated')
             ->toThrow(\InvalidArgumentException::class);
-        Expect::that(static fn() => Expect::consistently(static fn(): int => 1)->for(\NAN))
+        Expect::that(static fn() => Expect::consistently(static fn(): int => 1)->for(\NAN))->because('polling durations and exception types are validated')
             ->toThrow(\InvalidArgumentException::class);
         Expect::that(static function (): void {
             new \ReflectionMethod(PendingEventually::class, 'retryOnException')
                 ->invoke(Expect::eventually(static fn(): int => 1), \Error::class);
-        })->toThrow(\InvalidArgumentException::class);
+        })->because('polling durations and exception types are validated')->toThrow(\InvalidArgumentException::class);
 
         $probed = false;
         Expect::that(static function () use (&$probed): void {
@@ -288,11 +288,11 @@ final class TemporalExpectationTest
                 ->within(0.100);
             new \ReflectionMethod(EventuallyExpectation::class, 'toThrow')
                 ->invoke($eventually, \RuntimeException::class, '/x/', 'x');
-        })->toThrow(
+        })->because('polling durations and exception types are validated')->toThrow(
             ExpectationFailed::class,
             matching: '/^toThrow\(\) accepts either matching: or message:, not both\./',
         );
-        Expect::that($probed)->toBeFalse();
+        Expect::that($probed)->because('polling durations and exception types are validated')->toBeFalse();
     }
 
     #[Test]
@@ -311,7 +311,7 @@ final class TemporalExpectationTest
             );
         });
 
-        Expect::that($detail->message)
+        Expect::that($detail->message)->because('eventually() carries the reason into the failure')
             ->toContain('Eventually expectation did not pass within 0.030s')
             ->toContain("Last failure: Expected 'pending' to be 'done' because the job must finish.");
     }
@@ -331,7 +331,7 @@ final class TemporalExpectationTest
             );
         });
 
-        Expect::that($detail->message)
+        Expect::that($detail->message)->because('consistently() carries the reason into the failure')
             ->toContain('Consistently expectation failed on its first observation.')
             ->toContain('Last failure: Expected 1 to be 0 because the queue must stay empty.');
     }
@@ -343,7 +343,7 @@ final class TemporalExpectationTest
             static fn() => Expect::eventually(static fn(): bool => true)->within(0.030)->because('   '),
         );
 
-        Expect::that($detail->message)->toBe('because() requires a non-empty reason.');
+        Expect::that($detail->message)->because('temporal because requires a non empty reason')->toBe('because() requires a non-empty reason.');
     }
 
     #[Test]
@@ -363,7 +363,7 @@ final class TemporalExpectationTest
             });
         });
 
-        Expect::that($detail->message)->toContain('(×2)')
+        Expect::that($detail->message)->because('observation history collapses repeats and bounds changes')->toContain('(×2)')
             ->toContain('earlier changes omitted');
     }
 

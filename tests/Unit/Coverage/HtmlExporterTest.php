@@ -23,7 +23,7 @@ final class HtmlExporterTest
 
         $pages = new HtmlExporter()->export($map);
 
-        Expect::that(\array_keys($pages))->toBe([
+        Expect::that(\array_keys($pages))->because('produces an index plus one page per file')->toBe([
             HtmlExporter::INDEX_FILE_NAME,
             HtmlExporter::pageName('/src/A.php'),
             HtmlExporter::pageName('/src/B.php'),
@@ -39,7 +39,7 @@ final class HtmlExporterTest
 
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
-        Expect::that($index)->toContain('/src/A.php')
+        Expect::that($index)->because('index lists every file with its percentage and the total')->toContain('/src/A.php')
             ->toContain('75.00%')
             ->toContain(HtmlExporter::pageName('/src/A.php'))
             ->toContain('<th>Total</th>')
@@ -55,7 +55,7 @@ final class HtmlExporterTest
 
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
-        Expect::that($index)->toContain('class="cards"')
+        Expect::that($index)->because('index shows summary cards and coverage bars')->toContain('class="cards"')
             ->toContain('Total coverage')
             ->toContain('class="bar"')
             ->toContain('width:75.00%');
@@ -72,7 +72,7 @@ final class HtmlExporterTest
 
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
-        Expect::that($index)->toContain('class="hi"')
+        Expect::that($index)->because('index tints percentages by coverage level')->toContain('class="hi"')
             ->toContain('class="mid"')
             ->toContain('class="lo"');
     }
@@ -88,7 +88,7 @@ final class HtmlExporterTest
         $index = $pages[HtmlExporter::INDEX_FILE_NAME];
         $filePage = $pages[HtmlExporter::pageName('/proj/src/A.php')];
 
-        Expect::that($index)->toContain('>src/A.php<')
+        Expect::that($index)->because('paths are shown relative to the project root')->toContain('>src/A.php<')
             ->not()->toContain('/proj/src/A.php')
             ->toContain(HtmlExporter::pageName('/proj/src/A.php'))
             ->and($filePage)->toContain('<h1>src/A.php</h1>');
@@ -103,7 +103,7 @@ final class HtmlExporterTest
 
         $index = new HtmlExporter('/proj')->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
-        Expect::that($index)->toContain('/elsewhere/src/A.php');
+        Expect::that($index)->because('paths outside the project root stay absolute')->toContain('/elsewhere/src/A.php');
     }
 
     #[Test]
@@ -117,7 +117,7 @@ final class HtmlExporterTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
 
-        Expect::that($page)->toContain('class="cov"')
+        Expect::that($page)->because('file page colors source lines by coverage status')->toContain('class="cov"')
             ->toContain('class="unc"')
             ->toContain('return</span> <span class="tv">$a</span> + <span class="tv">$b</span>;')
             ->not()->toContain('<script');
@@ -134,7 +134,7 @@ final class HtmlExporterTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
 
-        Expect::that($page)->toContain('<span class="tk">return</span>')
+        Expect::that($page)->because('file page syntax highlights PHP source')->toContain('<span class="tk">return</span>')
             ->toContain('<span class="tk">function</span>')
             ->not()->toContain('<script');
     }
@@ -148,7 +148,7 @@ final class HtmlExporterTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName('/no/such/file.php')];
 
-        Expect::that($page)->toContain('class="cov"')
+        Expect::that($page)->because('unreadable source falls back to line numbers only')->toContain('class="cov"')
             ->toContain('class="unc"')
             ->toContain('<span class="num">5</span>');
     }

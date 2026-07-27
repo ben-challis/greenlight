@@ -34,11 +34,11 @@ final class XdebugDriverTest
         $map = CoverageMap::fromRaw($raw, new PathFilter([$fixtureDir]));
         $file = $map->files()[$fixtureFile] ?? null;
 
-        Expect::that($sum)->toBe(42)
+        Expect::that($sum)->because('collects real line coverage over the fixture')->toBe(42)
             ->and($file)->not()->toBeNull();
         \assert($file !== null);
 
-        Expect::that($file->coveredLines)->toContain(Adder::ADD_RETURN_LINE)
+        Expect::that($file->coveredLines)->because('collects real line coverage over the fixture')->toContain(Adder::ADD_RETURN_LINE)
             ->and($file->uncoveredLines)->not()->toContain(Adder::ADD_RETURN_LINE);
     }
 }

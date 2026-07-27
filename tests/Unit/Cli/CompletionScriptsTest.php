@@ -38,7 +38,7 @@ final class CompletionScriptsTest
         }
 
         $script = (string) $this->scripts()->render('fish');
-        Expect::that($script)
+        Expect::that($script)->because('generates flag candidates from the option spec list')
             ->toContain('-l only-in-the-spec-table -r')
             ->toContain('-l watch');
     }
@@ -60,7 +60,7 @@ final class CompletionScriptsTest
     #[Test]
     public function returnsNullForAnUnknownShell(): void
     {
-        Expect::that($this->scripts()->render('powershell'))->toBeNull();
+        Expect::that($this->scripts()->render('powershell'))->because('returns null for an unknown shell')->toBeNull();
     }
 
     private function scripts(): CompletionScripts

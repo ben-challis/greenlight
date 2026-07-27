@@ -17,9 +17,9 @@ final class BecauseTest
             static fn() => Expect::that(false)->because('the retry flag must stay enabled')->toBeTrue(),
         );
 
-        Expect::that($detail->message)->toBe('Expected false to be true because the retry flag must stay enabled.');
-        Expect::that($detail->expected)->toBe('true');
-        Expect::that($detail->actual)->toBe('false');
+        Expect::that($detail->message)->because('because() adds the reason to the failure message')->toBe('Expected false to be true because the retry flag must stay enabled.');
+        Expect::that($detail->expected)->because('because() adds the reason to the failure message')->toBe('true');
+        Expect::that($detail->actual)->because('because() adds the reason to the failure message')->toBe('false');
     }
 
     #[Test]
@@ -35,7 +35,7 @@ final class BecauseTest
             static fn() => Expect::that(1)->because('the first matcher consumes this reason')->toBe(1)->toBe(2),
         );
 
-        Expect::that($detail->message)->toBe('Expected 1 to be 2.');
+        Expect::that($detail->message)->because('because() is consumed by the next matcher')->toBe('Expected 1 to be 2.');
     }
 
     #[Test]
@@ -46,12 +46,12 @@ final class BecauseTest
         $notFirst = FailureProbe::detailOf(
             static fn() => Expect::that(1)->not()->because('the id must change')->toBe(1),
         );
-        Expect::that($notFirst->message)->toBe($expected);
+        Expect::that($notFirst->message)->because('because() combines with negation in any order')->toBe($expected);
 
         $becauseFirst = FailureProbe::detailOf(
             static fn() => Expect::that(1)->because('the id must change')->not()->toBe(1),
         );
-        Expect::that($becauseFirst->message)->toBe($expected);
+        Expect::that($becauseFirst->message)->because('because() combines with negation in any order')->toBe($expected);
     }
 
     #[Test]
@@ -61,7 +61,7 @@ final class BecauseTest
             static fn() => Expect::that(1)->because('the reason stays with the first subject')->and(2)->toBe(3),
         );
 
-        Expect::that($detail->message)->toBe('Expected 2 to be 3.');
+        Expect::that($detail->message)->because('and() does not carry a pending reason')->toBe('Expected 2 to be 3.');
     }
 
     #[Test]
@@ -71,7 +71,7 @@ final class BecauseTest
             static fn() => Expect::that(false)->because('  the flag must stay enabled  ')->toBeTrue(),
         );
 
-        Expect::that($detail->message)->toBe('Expected false to be true because the flag must stay enabled.');
+        Expect::that($detail->message)->because('because() trims the reason')->toBe('Expected false to be true because the flag must stay enabled.');
     }
 
     #[Test]
@@ -81,11 +81,11 @@ final class BecauseTest
             Expect::that(true)->because(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         });
 
-        Expect::that($empty->message)->toBe('because() requires a non-empty reason.');
+        Expect::that($empty->message)->because('an empty reason is a usage failure')->toBe('because() requires a non-empty reason.');
 
         $blank = FailureProbe::detailOf(static fn() => Expect::that(true)->because('   '));
 
-        Expect::that($blank->message)->toBe('because() requires a non-empty reason.');
+        Expect::that($blank->message)->because('an empty reason is a usage failure')->toBe('because() requires a non-empty reason.');
     }
 
     #[Test]
@@ -95,7 +95,7 @@ final class BecauseTest
             static fn() => Expect::that(42)->because('the reason applies to matcher failures only')->toContain('x'),
         );
 
-        Expect::that($detail->message)->toBe('toContain() requires a string or iterable subject, got int.');
+        Expect::that($detail->message)->because('a usage failure ignores the pending reason')->toBe('toContain() requires a string or iterable subject, got int.');
     }
 
     #[Test]
@@ -121,7 +121,7 @@ final class BecauseTest
             Expect::install([]);
         }
 
-        Expect::that($detail->message)
+        Expect::that($detail->message)->because('extension matchers carry the reason')
             ->toBe('Expected 2 to satisfy the extension matcher toBeOdd because the id must be odd.');
     }
 }

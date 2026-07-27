@@ -25,7 +25,7 @@ final class ScopeContainerTest
         $first = $container->get($definition);
         $second = $container->get($definition);
 
-        Expect::that($second)->toBe($first);
+        Expect::that($second)->because('reuses the service within the scope')->toBe($first);
     }
 
     #[Test]
@@ -40,7 +40,7 @@ final class ScopeContainerTest
         $container->get($definition);
         $failures = $container->dispose();
 
-        Expect::that($failures)->toBe([])->and(TraceLog::drain())->toBe([]);
+        Expect::that($failures)->because('an untouched lazy service is never constructed nor disposed')->toBe([])->and(TraceLog::drain())->toBe([]);
     }
 
     #[Test]
@@ -66,7 +66,7 @@ final class ScopeContainerTest
         $probe->touch();
         $container->dispose();
 
-        Expect::that(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
+        Expect::that(TraceLog::drain())->because('touched services dispose in reverse creation order')->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
     }
 
     #[Test]
@@ -91,7 +91,7 @@ final class ScopeContainerTest
         $probe->touch();
         $failures = $container->dispose();
 
-        Expect::that($failures)->toHaveCount(1)
+        Expect::that($failures)->because('disposal failures are collected not thrown')->toHaveCount(1)
             ->and($failures[0]->getMessage())->toBe('disposal broke');
     }
 }

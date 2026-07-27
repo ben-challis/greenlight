@@ -33,7 +33,7 @@ final class OrchestratorTest
             connectDeadlineSeconds: 0.5,
         );
 
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a spawned worker that never connects fails the run instead of hanging it')
             ->toThrow(ProtocolError::class, '/never connected within 0\.5s/');
     }
 
@@ -60,7 +60,7 @@ final class OrchestratorTest
             progressDeadlineSeconds: 0.5,
         );
 
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a connected worker that goes silent before starting its assignment fails the run')
             ->toThrow(ProtocolError::class, '/sent nothing for 0\.5s/');
     }
 
@@ -115,7 +115,7 @@ final class OrchestratorTest
             workingDirectory: \sys_get_temp_dir(),
         );
 
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a recycling worker with a mismatched summary fails the run')
             ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream tallies/');
     }
 
@@ -134,8 +134,8 @@ final class OrchestratorTest
 
         $summary = $orchestrator->run($this->resourcePlan(), new CollectingEventSink(), 2);
 
-        Expect::that($summary->passed)->toBe(2);
-        Expect::that($summary->isSuccessful())->toBeTrue();
+        Expect::that($summary->passed)->because('resource wait starts a new progress window before assignment')->toBe(2);
+        Expect::that($summary->isSuccessful())->because('resource wait starts a new progress window before assignment')->toBeTrue();
     }
 
     private function plan(): ExecutionPlan

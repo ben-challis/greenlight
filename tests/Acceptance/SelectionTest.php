@@ -20,13 +20,13 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=alwaysPasses');
-        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
+        Expect::that($result->exitCode)->because('filter selects by method class and wildcard')->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
         $result = $this->run($project, '--filter=SelectionProbeTest');
-        Expect::that($result->output())->toContain('3 tests,');
+        Expect::that($result->output())->because('filter selects by method class and wildcard')->toContain('3 tests,');
         $result = $this->run($project, '--filter=*::breaks?ometimes');
-        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('1 test, 0 passed, 1 errored');
+        Expect::that($result->exitCode)->because('filter selects by method class and wildcard')->toBe(1)->and($result->output())->toContain('1 test, 0 passed, 1 errored');
         $result = $this->run($project, '--filter=nothingMatchesThis');
-        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('No tests found');
+        Expect::that($result->exitCode)->because('filter selects by method class and wildcard')->toBe(1)->and($result->output())->toContain('No tests found');
     }
 
     #[Test]
@@ -38,7 +38,7 @@ final readonly class SelectionTest
             '--test-id=SelectionProbe\SelectionProbeTest::alsoPasses',
         );
 
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(0)
             ->and($result->output())->toContain('1 test, 1 passed')
             ->not()->toContain('alwaysPasses');
 
@@ -47,7 +47,7 @@ final readonly class SelectionTest
             '--test-id=SelectionProbe\SelectionProbeTest::also',
         );
 
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1)
             ->and($result->output())->toContain('No tests found');
     }
 
@@ -58,9 +58,9 @@ final readonly class SelectionTest
         // The complete project has five tests. Exclusion of the slow group
         // removes one test.
         $result = $this->run($project, '--exclude-group=slow');
-        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('4 tests,');
+        Expect::that($result->exitCode)->because('exclude group removes grouped tests from a run')->toBe(1)->and($result->output())->toContain('4 tests,');
         $result = $this->run($project, '--group=fast', '--exclude-group=slow');
-        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
+        Expect::that($result->exitCode)->because('exclude group removes grouped tests from a run')->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
 
     #[Test]
@@ -68,7 +68,7 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $result = $this->run($project, '--exclude-method=*Passes');
-        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('3 tests,');
+        Expect::that($result->exitCode)->because('exclude method with a wildcard removes matching methods')->toBe(1)->and($result->output())->toContain('3 tests,');
     }
 
     #[Test]
@@ -76,9 +76,9 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=alwaysPasses', '--exclude-method=alwaysPasses');
-        Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('No tests found');
+        Expect::that($result->exitCode)->because('exclude wins over an include filter')->toBe(1)->and($result->output())->toContain('No tests found');
         $result = $this->run($project, '--group=fast', '--group=slow', '--exclude-group=slow');
-        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
+        Expect::that($result->exitCode)->because('exclude wins over an include filter')->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
 
     #[Test]
@@ -86,17 +86,17 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('previous run');
+        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(64)->and($result->output())->toContain('previous run');
         $result = $this->run($project);
-        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(1);
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(1)
             ->and($result->output())->toContain('1 test, 0 passed, 1 errored')
             ->toContain('breaksSometimes');
         $result = $this->run($project, '--filter=alwaysPasses');
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('Nothing failed');
+        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0)->and($result->output())->toContain('Nothing failed');
     }
 
     #[Test]
@@ -114,7 +114,7 @@ final readonly class SelectionTest
             ['run', '--reporter=plain', '--filter=alwaysPasses'],
             ['TMPDIR' => $project->directory . '/not-a-directory'],
         );
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('unpersistable run state warns without failing the run')->toBe(0)
             ->and($result->output())->toContain('1 test, 1 passed')
             ->toContain('Run state was not saved');
     }

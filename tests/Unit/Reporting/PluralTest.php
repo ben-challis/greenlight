@@ -13,7 +13,7 @@ final class PluralTest
     #[Test]
     public function countPluralisesRegularNouns(): void
     {
-        Expect::that(Plural::count(1, 'test'))->toBe('1 test')
+        Expect::that(Plural::count(1, 'test'))->because('count pluralizes regular nouns')->toBe('1 test')
             ->and(Plural::count(2, 'test'))->toBe('2 tests')
             ->and(Plural::count(0, 'expectation'))->toBe('0 expectations')
             ->and(Plural::count(1, 'expectation'))->toBe('1 expectation')
@@ -23,7 +23,7 @@ final class PluralTest
     #[Test]
     public function countUsesTheIrregularPluralWhenGiven(): void
     {
-        Expect::that(Plural::count(1, 'class', 'classes'))->toBe('1 class')
+        Expect::that(Plural::count(1, 'class', 'classes'))->because('count uses the irregular plural when given')->toBe('1 class')
             ->and(Plural::count(3, 'class', 'classes'))->toBe('3 classes');
     }
 }

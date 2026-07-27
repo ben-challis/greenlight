@@ -18,13 +18,13 @@ final class ConfigLoaderTest
         $builder = new ConfigLoader()->loadFromDirectory(self::fixtureDir('Valid'));
         $configuration = $builder->build();
 
-        Expect::that($configuration->paths)->toBe(['tests/Unit', 'tests/Acceptance']);
-        Expect::that($configuration->workers->fixed)->toBe(4);
-        Expect::that($configuration->recycleAfterTests)->toBe(100);
-        Expect::that($configuration->recycleAboveMemoryBytes)->toBe(134217728);
-        Expect::that($configuration->stopAfterFailures)->toBe(1);
-        Expect::that($configuration->randomSeed)->toBe(4242);
-        Expect::that($configuration->suites)->toHaveCount(2);
+        Expect::that($configuration->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
+        Expect::that($configuration->workers->fixed)->because('loads a valid configuration file from a directory')->toBe(4);
+        Expect::that($configuration->recycleAfterTests)->because('loads a valid configuration file from a directory')->toBe(100);
+        Expect::that($configuration->recycleAboveMemoryBytes)->because('loads a valid configuration file from a directory')->toBe(134217728);
+        Expect::that($configuration->stopAfterFailures)->because('loads a valid configuration file from a directory')->toBe(1);
+        Expect::that($configuration->randomSeed)->because('loads a valid configuration file from a directory')->toBe(4242);
+        Expect::that($configuration->suites)->because('loads a valid configuration file from a directory')->toHaveCount(2);
     }
 
     #[Test]
@@ -50,7 +50,7 @@ final class ConfigLoaderTest
     {
         Expect::that(static function (): void {
             new ConfigLoader()->loadFile(self::fixtureDir('Empty') . '/greenlight.php');
-        })->toThrow(ConfigFileError::class);
+        })->because('missing explicit file is reported')->toThrow(ConfigFileError::class);
     }
 
     #[Test]

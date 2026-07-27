@@ -25,7 +25,7 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('two workers occupy channels one and two')->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
@@ -37,7 +37,7 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('the in process runner is channel one')->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1]);
     }
@@ -51,7 +51,7 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('recycled workers reuse freed channels')->toBe(0)
             ->and(\count($this->spawnedWorkers($events)))->toBeGreaterThan(2)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);

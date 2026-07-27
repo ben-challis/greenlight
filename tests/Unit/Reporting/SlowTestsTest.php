@@ -21,7 +21,7 @@ final class SlowTestsTest
         $slow = new SlowTests();
         $slow->record($this->finished('Acme\FastTest::quick', 0.4));
 
-        Expect::that($slow->render(new Style(ansi: false)))->toBe('');
+        Expect::that($slow->render(new Style(ansi: false)))->because('fast runs render nothing')->toBe('');
     }
 
     #[Test]
@@ -39,7 +39,7 @@ final class SlowTestsTest
             static fn(string $line): bool => $line !== '',
         ));
 
-        Expect::that($lines[0])->toBe('Slowest tests:')
+        Expect::that($lines[0])->because('renders slowest first and caps at five')->toBe('Slowest tests:')
             ->and(\count($lines))->toBe(6)
             ->and($lines[1])->toBe('  0.580s Acme\SlowTest::case08')
             ->and($lines[5])->toBe('  0.540s Acme\SlowTest::case04')
@@ -55,7 +55,7 @@ final class SlowTestsTest
             $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
         }
 
-        Expect::that($slow->render(new Style(ansi: false)))->toContain('case01');
+        Expect::that($slow->render(new Style(ansi: false)))->because('extended mode keeps more entries')->toContain('case01');
     }
 
     #[Test]
@@ -64,7 +64,7 @@ final class SlowTestsTest
         $slow = new SlowTests();
         $slow->record($this->finished('Acme\SlowTest::crawls', 1.5));
 
-        Expect::that($slow->render(new Style(ansi: true)))->toContain("\x1b[33m1.500s\x1b[0m");
+        Expect::that($slow->render(new Style(ansi: true)))->because('durations are colored through the style')->toContain("\x1b[33m1.500s\x1b[0m");
     }
 
     /**

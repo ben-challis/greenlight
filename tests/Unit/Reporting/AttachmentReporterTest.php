@@ -63,11 +63,11 @@ final class AttachmentReporterTest
         unset($result);
         \gc_collect_cycles();
 
-        Expect::that($reference->get())->toBeNull();
+        Expect::that($reference->get())->because('TTY reporter does not retain successful results until finish')->toBeNull();
 
         $reporter->finish();
 
-        Expect::that($output->buffer())->toContain('Retained attachments from successful tests:')
+        Expect::that($output->buffer())->because('TTY reporter does not retain successful results until finish')->toContain('Retained attachments from successful tests:')
             ->toContain('response.json');
     }
 
@@ -78,7 +78,7 @@ final class AttachmentReporterTest
         $jsonl = new JsonLinesReporter($json);
         $jsonl->onEvent(new TestFinished($this->result(), 1.0));
 
-        Expect::that($json->buffer())->toContain('"path":"build/greenlight-artifacts/run-1/response.json"')
+        Expect::that($json->buffer())->because('machine reporters expose paths without embedding storage state')->toContain('"path":"build/greenlight-artifacts/run-1/response.json"')
             ->not()->toContain('"storageKey"');
 
         $xml = new BufferOutput();
@@ -86,7 +86,7 @@ final class AttachmentReporterTest
         $junit->onEvent(new TestFinished($this->result(), 1.0));
         $junit->finish();
 
-        Expect::that($xml->buffer())->toContain('[[ATTACHMENT|build/greenlight-artifacts/run-1/response.json]]');
+        Expect::that($xml->buffer())->because('machine reporters expose paths without embedding storage state')->toContain('[[ATTACHMENT|build/greenlight-artifacts/run-1/response.json]]');
     }
 
     #[Test]
@@ -98,7 +98,7 @@ final class AttachmentReporterTest
         $github->onEvent(new TestFinished($this->result(), 1.0));
         $github->finish();
 
-        Expect::that($githubOutput->buffer())->toContain('response.json')
+        Expect::that($githubOutput->buffer())->because('ci reporters link and publish the artifact directory')->toContain('response.json')
             ->toContain('::notice::Greenlight attachments');
 
         $teamCityOutput = new BufferOutput();
@@ -107,7 +107,7 @@ final class AttachmentReporterTest
         $teamCity->onEvent(new TestFinished($this->result(), 1.0));
         $teamCity->finish();
 
-        Expect::that($teamCityOutput->buffer())->toContain("##teamcity[testMetadata")
+        Expect::that($teamCityOutput->buffer())->because('ci reporters link and publish the artifact directory')->toContain("##teamcity[testMetadata")
             ->toContain("type='artifact'")
             ->toContain("##teamcity[publishArtifacts 'build/greenlight-artifacts/run-1']");
     }

@@ -15,7 +15,7 @@ final readonly class ChannelAllocatorTest
     {
         $allocator = new ChannelAllocator(4);
 
-        Expect::that($allocator->allocate())->toBe(1)
+        Expect::that($allocator->allocate())->because('allocates the lowest free channel first')->toBe(1)
             ->and($allocator->allocate())->toBe(2)
             ->and($allocator->allocate())->toBe(3)
             ->and($allocator->allocate())->toBe(4);
@@ -31,7 +31,7 @@ final readonly class ChannelAllocatorTest
 
         $allocator->release(2);
 
-        Expect::that($allocator->allocate())->toBe(2);
+        Expect::that($allocator->allocate())->because('released channels are reused')->toBe(2);
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final readonly class ChannelAllocatorTest
 
         Expect::that(static function () use ($allocator): void {
             $allocator->allocate();
-        })->toThrow(\LogicException::class, matching: '/channels are in use/');
+        })->because('never hands out more than the bound')->toThrow(\LogicException::class, matching: '/channels are in use/');
     }
 
     #[Test]
@@ -74,6 +74,6 @@ final readonly class ChannelAllocatorTest
 
         Expect::that(static function () use ($allocator): void {
             $allocator->release(1);
-        })->toThrow(\LogicException::class, matching: '/not allocated/');
+        })->because('releasing an unallocated channel fails loudly')->toThrow(\LogicException::class, matching: '/not allocated/');
     }
 }

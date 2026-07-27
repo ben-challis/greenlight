@@ -25,12 +25,12 @@ final class ArgumentParserTest
             '--seed=123',
         ]);
 
-        Expect::that($parsed->command)->toBe('run');
-        Expect::that($parsed->value('workers'))->toBe('4');
-        Expect::that($parsed->has('bail'))->toBeTrue();
-        Expect::that($parsed->value('bail'))->toBe(null);
-        Expect::that($parsed->values('group'))->toBe(['slow', 'io']);
-        Expect::that($parsed->value('seed'))->toBe('123');
+        Expect::that($parsed->command)->because('parses command options and repeated values')->toBe('run');
+        Expect::that($parsed->value('workers'))->because('parses command options and repeated values')->toBe('4');
+        Expect::that($parsed->has('bail'))->because('parses command options and repeated values')->toBeTrue();
+        Expect::that($parsed->value('bail'))->because('parses command options and repeated values')->toBe(null);
+        Expect::that($parsed->values('group'))->because('parses command options and repeated values')->toBe(['slow', 'io']);
+        Expect::that($parsed->value('seed'))->because('parses command options and repeated values')->toBe('123');
     }
 
     #[Test]
@@ -38,15 +38,15 @@ final class ArgumentParserTest
     {
         $parsed = self::parser()->parse(['--bail=3']);
 
-        Expect::that($parsed->command)->toBe(null);
-        Expect::that($parsed->value('bail'))->toBe('3');
+        Expect::that($parsed->command)->because('optional value options accept a value')->toBe(null);
+        Expect::that($parsed->value('bail'))->because('optional value options accept a value')->toBe('3');
     }
 
     #[Test]
     public function shortAliasesMapToTheirLongOptions(): void
     {
-        Expect::that(self::parser()->parse(['-h'])->has('help'))->toBeTrue();
-        Expect::that(self::parser()->parse(['-V'])->has('version'))->toBeTrue();
+        Expect::that(self::parser()->parse(['-h'])->has('help'))->because('short aliases map to their long options')->toBeTrue();
+        Expect::that(self::parser()->parse(['-V'])->has('version'))->because('short aliases map to their long options')->toBeTrue();
     }
 
     #[Test]

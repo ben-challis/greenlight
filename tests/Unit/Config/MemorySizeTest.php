@@ -45,9 +45,9 @@ final class MemorySizeTest
     #[Test]
     public function formatsBytesBackToShortestExactForm(): void
     {
-        Expect::that(MemorySize::format(268435456))->toBe('256M');
-        Expect::that(MemorySize::format(1073741824))->toBe('1G');
-        Expect::that(MemorySize::format(524288))->toBe('512K');
-        Expect::that(MemorySize::format(1000))->toBe('1000B');
+        Expect::that(MemorySize::format(268435456))->because('formats bytes back to shortest exact form')->toBe('256M');
+        Expect::that(MemorySize::format(1073741824))->because('formats bytes back to shortest exact form')->toBe('1G');
+        Expect::that(MemorySize::format(524288))->because('formats bytes back to shortest exact form')->toBe('512K');
+        Expect::that(MemorySize::format(1000))->because('formats bytes back to shortest exact form')->toBe('1000B');
     }
 }

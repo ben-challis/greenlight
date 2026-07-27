@@ -186,7 +186,7 @@ final readonly class PhpStanDataProviderRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->toBe(1)
+        Expect::that($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(8)
             ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')

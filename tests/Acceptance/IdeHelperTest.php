@@ -21,18 +21,18 @@ final readonly class IdeHelperTest
         $target = $this->tempDirectory->path() . '/ide-helper.php';
 
         $result = GreenlightCli::run($root . '/tests/Fixture/PhpStanExtension', ['ide-helper', '--output=' . $target]);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0)
             ->and($result->output())->toContain('2 matchers');
 
         $helper = (string) \file_get_contents($target);
-        Expect::that($helper)->toContain('@method self toHaveDigestLength(int $length)')
+        Expect::that($helper)->because('writes a lintable helper and skips when nothing is configured')->toContain('@method self toHaveDigestLength(int $length)')
             ->toContain('abstract class TemporalExpectation');
 
         $lint = Subprocess::run($root, [\PHP_BINARY, '-l', $target]);
-        Expect::that($lint->exitCode)->toBe(0);
+        Expect::that($lint->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
 
         $result = GreenlightCli::run($root . '/tests/Fixture/ListTestsConfig', ['ide-helper', '--output=' . $target . '.none']);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0)
             ->and($result->output())->toContain('No extension matchers')
             ->and(\is_file($target . '.none'))->toBeFalse();
     }

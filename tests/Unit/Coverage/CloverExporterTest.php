@@ -31,7 +31,7 @@ final class CloverExporterTest
         $projectMetrics = $xml->xpath('/coverage/project/metrics');
         \assert($projectMetrics !== null && isset($projectMetrics[0]));
 
-        Expect::that((string) $xml['generated'])->toBe('1234')
+        Expect::that((string) $xml['generated'])->because('document carries per file and project statement metrics')->toBe('1234')
             ->and(\count($files))->toBe(2)
             ->and((string) $files[0]['name'])->toBe('/src/A.php')
             ->and(\count($firstFileLines))->toBe(3)
@@ -54,7 +54,7 @@ final class CloverExporterTest
         $projectMetrics = $xml->xpath('/coverage/project/metrics');
         \assert($projectMetrics !== null && isset($projectMetrics[0]));
 
-        Expect::that((string) $projectMetrics[0]['files'])->toBe('0')
+        Expect::that((string) $projectMetrics[0]['files'])->because('empty map still produces a parsable document')->toBe('0')
             ->and((string) $projectMetrics[0]['statements'])->toBe('0');
     }
 }

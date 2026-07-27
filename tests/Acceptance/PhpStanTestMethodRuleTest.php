@@ -64,7 +64,7 @@ final readonly class PhpStanTestMethodRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->toBe(1)
+        Expect::that($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(3)
             ->and($probe->messages())->toContain('protectedTest() cannot run because it is not public')

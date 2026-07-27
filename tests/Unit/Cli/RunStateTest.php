@@ -52,10 +52,10 @@ final class RunStateTest
         $file = $this->stateFileFor($directory);
         \file_put_contents($file, 'not json at all');
 
-        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->toBeNull();
+        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": "not a list"}');
-        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->toBeNull();
+        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         @\unlink($file);
     }

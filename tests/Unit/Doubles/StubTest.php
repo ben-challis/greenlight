@@ -19,7 +19,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that($stub)->toBeInstanceOf(Stubbable::class);
+        Expect::that($stub)->because('satisfies the type without running anything')->toBeInstanceOf(Stubbable::class);
 
         $doubles->dispose();
     }
@@ -30,7 +30,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that(static fn(): string => $stub->name())
+        Expect::that(static fn(): string => $stub->name())->because('any call is an authoring error')
             ->toThrow(DoublesError::class, '/must never be interacted with/');
 
         $doubles->dispose();
@@ -44,7 +44,7 @@ final class StubTest
 
         Expect::that(static function () use ($stub): void {
             $stub->touch();
-        })->toThrow(DoublesError::class, '/must never be interacted with/');
+        })->because('even void calls are authoring errors')->toThrow(DoublesError::class, '/must never be interacted with/');
 
         $doubles->dispose();
     }

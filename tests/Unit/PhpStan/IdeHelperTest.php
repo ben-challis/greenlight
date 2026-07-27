@@ -18,7 +18,7 @@ final class IdeHelperTest
 
         $rendered = IdeHelper::render($map);
 
-        Expect::that($rendered)->toContain('namespace Greenlight\Expect;')
+        Expect::that($rendered)->because('renders one method annotation per matcher with reflected signatures')->toContain('namespace Greenlight\Expect;')
             ->toContain(' * @method self toBeHexadecimal()')
             ->toContain(' * @method self toHaveDigestLength(int $length)')
             ->toContain('final class Expectation {}')

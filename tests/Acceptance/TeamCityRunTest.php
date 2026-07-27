@@ -26,7 +26,7 @@ final readonly class TeamCityRunTest
         $output = $result->output();
         $class = AlphaTest::class;
         $file = (string) \realpath(\dirname(__DIR__) . '/Fixture/DiscoveryBasic/AlphaTest.php');
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('parallel run emits location hints and flow IDs')->toBe(0)
             ->and($output)->toContain(
                 "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']",
             )

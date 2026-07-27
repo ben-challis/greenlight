@@ -18,7 +18,7 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([])->select();
 
-        Expect::that($selection->driver)->toBeNull()
+        Expect::that($selection->driver)->because('empty candidate list yields no driver and a reason')->toBeNull()
             ->and($selection->reason)->toBe('No coverage driver is available: no drivers are configured.');
     }
 
@@ -27,7 +27,7 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([UnavailableFakeDriver::class, AvailableFakeDriver::class])->select();
 
-        Expect::that($selection->driver)->toBeInstanceOf(AvailableFakeDriver::class)
+        Expect::that($selection->driver)->because('an available candidate is selected with no reason')->toBeInstanceOf(AvailableFakeDriver::class)
             ->and($selection->reason)->toBeNull();
     }
 
@@ -36,7 +36,7 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([UnavailableFakeDriver::class])->select();
 
-        Expect::that($selection->driver)->toBeNull()
+        Expect::that($selection->driver)->because('no available candidate yields no driver and a named reason')->toBeNull()
             ->and($selection->reason)->toBe('No coverage driver is available: tried UnavailableFakeDriver. Install pcov, or enable xdebug with "coverage" in xdebug.mode or the XDEBUG_MODE environment variable.');
     }
 

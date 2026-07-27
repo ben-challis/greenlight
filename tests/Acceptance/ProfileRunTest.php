@@ -30,7 +30,7 @@ final readonly class ProfileRunTest
         $output = $result->stdoutLines();
         $live = $result->stdout;
 
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('live profile and offline report agree')->toBe(0)
             ->and($live)->toContain('Profile:')
             ->toContain('spawned, 0 recycled')
             ->toContain('Boot latency:')
@@ -50,7 +50,7 @@ final readonly class ProfileRunTest
         // line.
         $liveBlock = \substr($live, (int) \strpos($live, 'Profile:'));
 
-        Expect::that($report->exitCode)->toBe(0)
+        Expect::that($report->exitCode)->because('live profile and offline report agree')->toBe(0)
             ->and($offline . "\n")->toBe($liveBlock . "\n");
     }
 }

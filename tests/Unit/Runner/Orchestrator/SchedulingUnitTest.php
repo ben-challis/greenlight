@@ -14,7 +14,7 @@ final class SchedulingUnitTest
     #[Test]
     public function itCannotBeEmpty(): void
     {
-        Expect::that(static fn(): SchedulingUnit => new SchedulingUnit(new ExecutionPlan([]), false))
+        Expect::that(static fn(): SchedulingUnit => new SchedulingUnit(new ExecutionPlan([]), false))->because('a scheduling unit cannot be empty')
             ->toThrow(\InvalidArgumentException::class, '/cannot be empty/');
     }
 }

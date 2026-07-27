@@ -21,7 +21,7 @@ final readonly class AcceptanceProjectTest
         $project = AcceptanceProject::create($this->workspace, 'project');
         $project->writeFile('nested/example.txt', 'contents');
 
-        Expect::that($project->directory)->toBe($this->workspace->path() . '/project')
+        Expect::that($project->directory)->because('creates a project and writes nested files')->toBe($this->workspace->path() . '/project')
             ->and($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt')
             ->and(\file_get_contents($project->path('nested/example.txt')))->toBe('contents');
     }
@@ -62,7 +62,7 @@ final readonly class AcceptanceProjectTest
             ));
         }
 
-        Expect::that(\file_get_contents($project->path('loaded.txt')))->toBe('firstsecond')
+        Expect::that(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond')
             ->and($configuration->paths)->toBe([$testsDirectory])
             ->and($configuration->workers->fixed)->toBe(3)
             ->and($configuration->randomizeOrder)->toBeFalse();
@@ -82,7 +82,7 @@ final readonly class AcceptanceProjectTest
             ));
         }
 
-        Expect::that($builder->build()->paths)->toBe([
+        Expect::that($builder->build()->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
             \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic',
         ]);
     }

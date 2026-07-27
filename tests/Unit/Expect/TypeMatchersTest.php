@@ -12,8 +12,8 @@ final class TypeMatchersTest
     #[Test]
     public function toBeInstanceOfPasses(): void
     {
-        Expect::that(new \ArrayObject())->toBeInstanceOf(\ArrayObject::class);
-        Expect::that(new \ArrayObject())->toBeInstanceOf(\Traversable::class);
+        Expect::that(new \ArrayObject())->because('toBeInstanceOf() passes')->toBeInstanceOf(\ArrayObject::class);
+        Expect::that(new \ArrayObject())->because('toBeInstanceOf() passes')->toBeInstanceOf(\Traversable::class);
     }
 
     #[Test]
@@ -23,8 +23,8 @@ final class TypeMatchersTest
             static fn() => Expect::that(new \stdClass())->toBeInstanceOf(\ArrayObject::class),
         );
 
-        Expect::that($detail->message)->toBe('Expected stdClass {} to be an instance of ArrayObject.');
-        Expect::that($detail->expected)->toBe('ArrayObject');
+        Expect::that($detail->message)->because('toBeInstanceOf() fails')->toBe('Expected stdClass {} to be an instance of ArrayObject.');
+        Expect::that($detail->expected)->because('toBeInstanceOf() fails')->toBe('ArrayObject');
     }
 
     #[Test]
@@ -34,19 +34,19 @@ final class TypeMatchersTest
             static fn() => Expect::that(42)->toBeInstanceOf(\ArrayObject::class),
         );
 
-        Expect::that($detail->message)->toBe('Expected 42 to be an instance of ArrayObject.');
+        Expect::that($detail->message)->because('toBeInstanceOf() fails on non objects')->toBe('Expected 42 to be an instance of ArrayObject.');
     }
 
     #[Test]
     public function notToBeInstanceOf(): void
     {
-        Expect::that(new \stdClass())->not()->toBeInstanceOf(\ArrayObject::class);
+        Expect::that(new \stdClass())->because('not()->toBe() instance of')->not()->toBeInstanceOf(\ArrayObject::class);
     }
 
     #[Test]
     public function toBeTruePasses(): void
     {
-        Expect::that(true)->toBeTrue();
+        Expect::that(true)->because('toBeTrue() passes')->toBeTrue();
     }
 
     #[Test]
@@ -54,20 +54,20 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that(1)->toBeTrue());
 
-        Expect::that($detail->message)->toBe('Expected 1 to be true.');
+        Expect::that($detail->message)->because('toBeTrue() fails on truthy non booleans')->toBe('Expected 1 to be true.');
     }
 
     #[Test]
     public function notToBeTrue(): void
     {
-        Expect::that(false)->not()->toBeTrue();
-        Expect::that('yes')->not()->toBeTrue();
+        Expect::that(false)->because('not()->toBe() true')->not()->toBeTrue();
+        Expect::that('yes')->because('not()->toBe() true')->not()->toBeTrue();
     }
 
     #[Test]
     public function toBeFalsePasses(): void
     {
-        Expect::that(false)->toBeFalse();
+        Expect::that(false)->because('toBeFalse() passes')->toBeFalse();
     }
 
     #[Test]
@@ -75,19 +75,19 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that(0)->toBeFalse());
 
-        Expect::that($detail->message)->toBe('Expected 0 to be false.');
+        Expect::that($detail->message)->because('toBeFalse() fails on falsy non booleans')->toBe('Expected 0 to be false.');
     }
 
     #[Test]
     public function notToBeFalse(): void
     {
-        Expect::that(true)->not()->toBeFalse();
+        Expect::that(true)->because('not()->toBe() false')->not()->toBeFalse();
     }
 
     #[Test]
     public function toBeNullPasses(): void
     {
-        Expect::that(null)->toBeNull();
+        Expect::that(null)->because('toBeNull() passes')->toBeNull();
     }
 
     #[Test]
@@ -95,20 +95,20 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that('')->toBeNull());
 
-        Expect::that($detail->message)->toBe("Expected '' to be null.");
+        Expect::that($detail->message)->because('toBeNull() fails')->toBe("Expected '' to be null.");
     }
 
     #[Test]
     public function notToBeNull(): void
     {
-        Expect::that(0)->not()->toBeNull();
+        Expect::that(0)->because('not()->toBe() null')->not()->toBeNull();
     }
 
     #[Test]
     public function toBeArrayPasses(): void
     {
-        Expect::that([])->toBeArray();
-        Expect::that(['a' => 1])->toBeArray();
+        Expect::that([])->because('toBeArray() passes')->toBeArray();
+        Expect::that(['a' => 1])->because('toBeArray() passes')->toBeArray();
     }
 
     #[Test]
@@ -116,21 +116,21 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that('a')->toBeArray());
 
-        Expect::that($detail->message)->toBe('Expected string to be an array.');
-        Expect::that($detail->expected)->toBe('array');
+        Expect::that($detail->message)->because('toBeArray() fails')->toBe('Expected string to be an array.');
+        Expect::that($detail->expected)->because('toBeArray() fails')->toBe('array');
     }
 
     #[Test]
     public function notToBeArray(): void
     {
-        Expect::that('a')->not()->toBeArray();
+        Expect::that('a')->because('not()->toBe() array')->not()->toBeArray();
     }
 
     #[Test]
     public function toBeStringPasses(): void
     {
-        Expect::that('')->toBeString();
-        Expect::that('a')->toBeString();
+        Expect::that('')->because('toBeString() passes')->toBeString();
+        Expect::that('a')->because('toBeString() passes')->toBeString();
     }
 
     #[Test]
@@ -138,21 +138,21 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that(1)->toBeString());
 
-        Expect::that($detail->message)->toBe('Expected int to be a string.');
-        Expect::that($detail->expected)->toBe('string');
+        Expect::that($detail->message)->because('toBeString() fails')->toBe('Expected int to be a string.');
+        Expect::that($detail->expected)->because('toBeString() fails')->toBe('string');
     }
 
     #[Test]
     public function notToBeString(): void
     {
-        Expect::that(1)->not()->toBeString();
+        Expect::that(1)->because('not()->toBe() string')->not()->toBeString();
     }
 
     #[Test]
     public function toBeIntPasses(): void
     {
-        Expect::that(0)->toBeInt();
-        Expect::that(-5)->toBeInt();
+        Expect::that(0)->because('toBeInt() passes')->toBeInt();
+        Expect::that(-5)->because('toBeInt() passes')->toBeInt();
     }
 
     #[Test]
@@ -160,21 +160,21 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that('1')->toBeInt());
 
-        Expect::that($detail->message)->toBe('Expected string to be an int.');
-        Expect::that($detail->expected)->toBe('int');
+        Expect::that($detail->message)->because('toBeInt() fails')->toBe('Expected string to be an int.');
+        Expect::that($detail->expected)->because('toBeInt() fails')->toBe('int');
     }
 
     #[Test]
     public function notToBeInt(): void
     {
-        Expect::that(1.0)->not()->toBeInt();
+        Expect::that(1.0)->because('not()->toBe() int')->not()->toBeInt();
     }
 
     #[Test]
     public function toBeFloatPasses(): void
     {
-        Expect::that(1.5)->toBeFloat();
-        Expect::that(\NAN)->toBeFloat();
+        Expect::that(1.5)->because('toBeFloat() passes')->toBeFloat();
+        Expect::that(\NAN)->because('toBeFloat() passes')->toBeFloat();
     }
 
     #[Test]
@@ -182,21 +182,21 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that(1)->toBeFloat());
 
-        Expect::that($detail->message)->toBe('Expected int to be a float.');
-        Expect::that($detail->expected)->toBe('float');
+        Expect::that($detail->message)->because('toBeFloat() fails')->toBe('Expected int to be a float.');
+        Expect::that($detail->expected)->because('toBeFloat() fails')->toBe('float');
     }
 
     #[Test]
     public function notToBeFloat(): void
     {
-        Expect::that(1)->not()->toBeFloat();
+        Expect::that(1)->because('not()->toBe() float')->not()->toBeFloat();
     }
 
     #[Test]
     public function toBeBoolPasses(): void
     {
-        Expect::that(true)->toBeBool();
-        Expect::that(false)->toBeBool();
+        Expect::that(true)->because('toBeBool() passes')->toBeBool();
+        Expect::that(false)->because('toBeBool() passes')->toBeBool();
     }
 
     #[Test]
@@ -204,21 +204,21 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that(0)->toBeBool());
 
-        Expect::that($detail->message)->toBe('Expected int to be a bool.');
-        Expect::that($detail->expected)->toBe('bool');
+        Expect::that($detail->message)->because('toBeBool() fails')->toBe('Expected int to be a bool.');
+        Expect::that($detail->expected)->because('toBeBool() fails')->toBe('bool');
     }
 
     #[Test]
     public function notToBeBool(): void
     {
-        Expect::that(0)->not()->toBeBool();
+        Expect::that(0)->because('not()->toBe() bool')->not()->toBeBool();
     }
 
     #[Test]
     public function toBeCallablePasses(): void
     {
-        Expect::that(static fn() => null)->toBeCallable();
-        Expect::that('strlen')->toBeCallable();
+        Expect::that(static fn() => null)->because('toBeCallable() passes')->toBeCallable();
+        Expect::that('strlen')->because('toBeCallable() passes')->toBeCallable();
     }
 
     #[Test]
@@ -226,21 +226,21 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that(42)->toBeCallable());
 
-        Expect::that($detail->message)->toBe('Expected int to be callable.');
-        Expect::that($detail->expected)->toBe('callable');
+        Expect::that($detail->message)->because('toBeCallable() fails')->toBe('Expected int to be callable.');
+        Expect::that($detail->expected)->because('toBeCallable() fails')->toBe('callable');
     }
 
     #[Test]
     public function notToBeCallable(): void
     {
-        Expect::that(42)->not()->toBeCallable();
+        Expect::that(42)->because('not()->toBe() callable')->not()->toBeCallable();
     }
 
     #[Test]
     public function toBeIterablePasses(): void
     {
-        Expect::that([])->toBeIterable();
-        Expect::that(new \ArrayObject())->toBeIterable();
+        Expect::that([])->because('toBeIterable() passes')->toBeIterable();
+        Expect::that(new \ArrayObject())->because('toBeIterable() passes')->toBeIterable();
     }
 
     #[Test]
@@ -248,13 +248,13 @@ final class TypeMatchersTest
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that('abc')->toBeIterable());
 
-        Expect::that($detail->message)->toBe('Expected string to be iterable.');
-        Expect::that($detail->expected)->toBe('iterable');
+        Expect::that($detail->message)->because('toBeIterable() fails')->toBe('Expected string to be iterable.');
+        Expect::that($detail->expected)->because('toBeIterable() fails')->toBe('iterable');
     }
 
     #[Test]
     public function notToBeIterable(): void
     {
-        Expect::that('abc')->not()->toBeIterable();
+        Expect::that('abc')->because('not()->toBe() iterable')->not()->toBeIterable();
     }
 }

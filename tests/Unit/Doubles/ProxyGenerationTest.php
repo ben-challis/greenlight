@@ -25,7 +25,7 @@ final class ProxyGenerationTest
         $first = $doubles->spy(Calculator::class);
         $second = $doubles->spy(Calculator::class);
 
-        Expect::that($second::class)->toBe($first::class);
+        Expect::that($second::class)->because('the same type reuses the generated class')->toBe($first::class);
 
         $doubles->dispose();
     }
@@ -37,7 +37,7 @@ final class ProxyGenerationTest
         $alpha = $doubles->spy(CacheAlpha::class);
         $beta = $doubles->spy(CacheBeta::class);
 
-        Expect::that($alpha::class)->not()->toBe($beta::class);
+        Expect::that($alpha::class)->because('different signatures generate different classes')->not()->toBe($beta::class);
 
         $doubles->dispose();
     }
@@ -88,7 +88,7 @@ final class ProxyGenerationTest
 
         $files = \glob($directory . '/*.php');
 
-        Expect::that($files === false ? [] : $files)->toHaveCount(1);
+        Expect::that($files === false ? [] : $files)->because('the proxy file is written once and reused')->toHaveCount(1);
 
         $doubles->dispose();
         $this->removeDirectory($directory);
@@ -102,7 +102,7 @@ final class ProxyGenerationTest
         $doubles = new Doubles();
         $clock = $doubles->stub(Clock::class);
 
-        Expect::that($clock)->toBeInstanceOf(Clock::class);
+        Expect::that($clock)->because('class doubles never run the doubled constructor')->toBeInstanceOf(Clock::class);
 
         $doubles->dispose();
     }
@@ -123,7 +123,7 @@ final class ProxyGenerationTest
         $wide->byReference($items);
         $wide->returnsVoid();
 
-        Expect::that($wide->unionType('text'))->toBe('answered')
+        Expect::that($wide->unionType('text'))->because('wide signatures round trip through the proxy')->toBe('answered')
             ->and($wide->nullable('x'))->toBeNull()
             ->and($wide->variadic('head', 1, 2))->toBe(['head']);
 
@@ -138,7 +138,7 @@ final class ProxyGenerationTest
             $plan->expects('returnsNever');
         });
 
-        Expect::that(static fn() => $wide->returnsNever())
+        Expect::that(static fn() => $wide->returnsNever())->because('an unconfigured never returning method is an authoring error')
             ->toThrow(DoublesError::class, '/no configured answer/');
 
         $doubles->dispose();
@@ -152,7 +152,7 @@ final class ProxyGenerationTest
             $plan->expects('returnsNever')->andThrows(new \DomainException('halt'));
         });
 
-        Expect::that(static fn() => $wide->returnsNever())
+        Expect::that(static fn() => $wide->returnsNever())->because('a configured never returning method throws its plan')
             ->toThrow(\DomainException::class, '/halt/');
 
         $doubles->dispose();

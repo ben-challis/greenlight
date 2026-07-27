@@ -47,7 +47,7 @@ final class ProfileAggregatorTest
 
             TEXT;
 
-        Expect::that($aggregator->render(new Style(ansi: false)))->toBe($expected);
+        Expect::that($aggregator->render(new Style(ansi: false)))->because('derives utilization boot latency and spread from a canned stream')->toBe($expected);
     }
 
     #[Test]
@@ -71,7 +71,7 @@ final class ProfileAggregatorTest
 
         $rendered = $aggregator->render(new Style(ansi: false));
 
-        Expect::that($rendered)->toContain("    12.000s  Acme\\SlowTest\n")
+        Expect::that($rendered)->because('slowest durations right align across widths')->toContain("    12.000s  Acme\\SlowTest\n")
             ->toContain("     1.000s  Acme\\QuickTest\n");
     }
 
@@ -90,7 +90,7 @@ final class ProfileAggregatorTest
         // band (red). The 2.5-second class exceeds the slow limit (yellow).
         // Spaces outside color codes keep column alignment unchanged when the
         // output contains escape sequences.
-        Expect::that($rendered)->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
+        Expect::that($rendered)->because('utilization bands and slow durations color with ANSI')->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
             ->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
             ->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
     }
@@ -112,7 +112,7 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: true)))
+        Expect::that($aggregator->render(new Style(ansi: true)))->because('fully busy workers color green')
             ->toContain("0.500s  \x1b[32m100%\x1b[0m\n");
     }
 
@@ -122,7 +122,7 @@ final class ProfileAggregatorTest
         $aggregator = new ProfileAggregator();
         $aggregator->onEvent(new WorkerSpawned('w-1', 11, 100.0));
 
-        Expect::that($aggregator->render(new Style(ansi: false)))->toBe('');
+        Expect::that($aggregator->render(new Style(ansi: false)))->because('without a finished run nothing renders')->toBe('');
     }
 
     /**

@@ -30,9 +30,9 @@ final class FailTest
             static fn() => Fail::because('The result was unusable.'),
         );
 
-        Expect::that($detail->message)->toBe('The result was unusable.');
-        Expect::that($detail->expected)->toBeNull();
-        Expect::that($detail->actual)->toBeNull();
+        Expect::that($detail->message)->because('carries structured failure detail')->toBe('The result was unusable.');
+        Expect::that($detail->expected)->because('carries structured failure detail')->toBeNull();
+        Expect::that($detail->actual)->because('carries structured failure detail')->toBeNull();
     }
 
     #[Test]
@@ -41,8 +41,8 @@ final class FailTest
         $line = __LINE__ + 1;
         $detail = FailureProbe::detailOf(static fn() => Fail::because('Stopped here.'));
 
-        Expect::that($detail->location?->file)->toBe(__FILE__);
-        Expect::that($detail->location?->line)->toBe($line);
+        Expect::that($detail->location?->file)->because('failure location points at the call site')->toBe(__FILE__);
+        Expect::that($detail->location?->line)->because('failure location points at the call site')->toBe($line);
     }
 
     #[Test]
@@ -57,6 +57,6 @@ final class FailTest
 
         $count = ExpectationCounter::count();
 
-        Expect::that($count)->toBe(1);
+        Expect::that($count)->because('counts as an expectation')->toBe(1);
     }
 }

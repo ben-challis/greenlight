@@ -32,12 +32,12 @@ final readonly class JsonlSchemaTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
         $lines = $result->stdoutLines();
         $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v2.schema.json'];
         $seenTags = [];
         $violations = [];
-        Expect::that($lines)->not()->toBeEmpty();
+        Expect::that($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();
         foreach ($lines as $line) {
             $decoded = \json_decode($line, flags: \JSON_THROW_ON_ERROR);
             $validator = new Validator();
@@ -70,7 +70,7 @@ final readonly class JsonlSchemaTest
                 $seenTags[$assoc['event']] = true;
             }
         }
-        Expect::that($violations)->toBe([]);
+        Expect::that($violations)->because('every emitted line validates against the shipped schema')->toBe([]);
         foreach (self::PRODUCIBLE_TAGS as $tag) {
             Expect::that($seenTags)->toHaveKey($tag);
         }

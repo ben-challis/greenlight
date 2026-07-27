@@ -27,7 +27,7 @@ final readonly class SchedulingTest
         // reuse when two workers execute four classes.
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('workers are reused and the slow class leads once known')->toBe(0)
             ->and(\count($this->spawnedWorkers($events)))->toBe(2);
         // Check the second run for each worker. The merged stream uses arrival
         // order. Thus, a slow worker can report its first class after another
@@ -35,7 +35,7 @@ final readonly class SchedulingTest
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
         $firstStarts = $this->firstClassStartedByWorker($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('workers are reused and the slow class leads once known')->toBe(0)
             ->and(\count($this->spawnedWorkers($events)))->toBe(2)
             ->and(\array_values($firstStarts))->toContain('SchedulingProbe\SlowTest');
     }
