@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 /**
- * Allocates the lowest free slot and reuses released slots. Exhaustion or an
- * invalid release throws.
+ * Allocates the lowest free channel and reuses a released channel. The allocator
+ * throws an error if no channel is free or a release is invalid.
  *
  * @internal
  */

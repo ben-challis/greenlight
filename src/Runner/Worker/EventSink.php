@@ -7,10 +7,10 @@ namespace Greenlight\Runner\Worker;
 use Greenlight\Core\Event\Event;
 
 /**
- * Where execution events go.
+ * A destination for execution events.
  *
- * In a single process this is a direct consumer; with a process pool it
- * becomes the wire back to the orchestrator.
+ * In a single process, this is a direct consumer. With a worker pool, it sends
+ * events to the orchestrator through the worker protocol.
  *
  * @internal
  */

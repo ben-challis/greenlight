@@ -68,8 +68,8 @@ use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
- * Exit codes: 0 success, 1 test or run failure, 64 invalid command-line
- * usage.
+ * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
+ * invalid command-line use.
  *
  * @internal
  */
@@ -170,8 +170,9 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
-        // Internal worker entry, spawned by the orchestrator. Bypasses the
-        // normal parser; undocumented and carries no compatibility promise.
+        // The orchestrator starts this internal worker entry. It does not use
+        // the normal parser. No documentation or compatibility guarantee
+        // applies to it.
         if (($argv[0] ?? null) === '__worker') {
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 ($this->err)("__worker requires <address> <workerId> <token>.\n");
@@ -182,9 +183,9 @@ final readonly class Application
             return new WorkerProcess()->run($argv[1], $argv[2], $argv[3]);
         }
 
-        // A coverage-enabled run exports the relay variables to everything it
-        // spawns; a CLI process that inherits them reports its own coverage
-        // back through the shared directory.
+        // A run with coverage exports the relay variables to each child
+        // process. A CLI process that inherits them reports its coverage
+        // through the shared directory.
         $dump = SubprocessCoverage::begin();
 
         if (!$dump instanceof SubprocessCoverage) {
@@ -203,8 +204,8 @@ final readonly class Application
      */
     private function dispatch(array $argv, string $workingDirectory, ?string $binPath): int
     {
-        // Handled before parsing because the shell name is a positional
-        // argument the parser does not model.
+        // Process this command before the parse operation. The parser does not
+        // model the shell name as a positional argument.
         if (($argv[0] ?? null) === 'completion') {
             return $this->completionCommand(\array_slice($argv, 1));
         }
@@ -212,7 +213,7 @@ final readonly class Application
         try {
             $arguments = $this->parser()->parse($argv);
         } catch (CliError $error) {
-            // Parsing failed, so flags are only known from the raw argv.
+            // The parse operation failed. Thus, only raw argv identifies flags.
             $this->printError($error->getMessage(), \in_array('--no-ansi', $argv, true));
 
             return self::EXIT_USAGE;
@@ -354,16 +355,16 @@ final readonly class Application
         $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
         $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
 
-        // --repeat=1 is the ordinary single run; the loop, its banners, and
-        // its summary only appear when more than one iteration is possible.
+        // --repeat=1 specifies one standard run. Show the loop, banners, and
+        // summary only when more than one iteration is possible.
         if (($overrides->repeat === null || $overrides->repeat === 1) && !$overrides->repeatUntilFailure) {
             $failedTap = new FailedTestsTap(new ReporterSink($reporter));
 
             return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
         }
 
-        // --repeat-until-failure without an explicit --repeat cannot loop
-        // forever; 100 iterations is the safety limit.
+        // Without an explicit --repeat, --repeat-until-failure has a limit of
+        // 100 iterations.
         $limit = $overrides->repeat ?? 100;
         $bounded = $overrides->repeat !== null;
         $failedIterations = [];
@@ -417,8 +418,8 @@ final readonly class Application
             return self::EXIT_OK;
         }
 
-        // Every test that failed in any iteration is recorded, so a follow-up
-        // --failed run replays the flakes even when a later iteration passed.
+        // Record each test that fails in an iteration. Thus, a later --failed
+        // run includes it even if it passes in another iteration.
         $this->persistRunState($state, $failedTests, $lastClassSeconds);
 
         ($this->out)(\sprintf("Repeat: failed on iteration(s) %s\n", \implode(', ', $failedIterations)));
@@ -427,7 +428,7 @@ final readonly class Application
     }
 
     /**
-     * The reporter must be fresh; finish() is called exactly once.
+     * Use a new reporter. This method calls finish() exactly one time.
      *
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
@@ -454,9 +455,9 @@ final readonly class Application
         $shared = null;
 
         if ($coverageSettings instanceof CoverageSettings) {
-            // The pool path collects orchestrator coverage unless this process
-            // inherited relay variables. A second driver window would close
-            // the inherited whole-process window early.
+            // The worker-pool path collects orchestrator coverage unless this
+            // process inherits relay variables. A second driver period would
+            // close the inherited process period too early.
             if ($workers !== 1 && $realBin !== false && !SubprocessCoverage::requested()) {
                 $orchestratorCollector = CoverageCollector::create($coverageSettings);
                 $orchestratorCollector?->start();
@@ -481,8 +482,8 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        // Merged before any early return so the relay variables are restored
-        // and the shared directory is removed even for interrupted or empty
+        // Merge before an early return. Thus, this operation restores relay
+        // variables and removes the shared directory for interrupted or empty
         // runs.
         $coverage = $run->coverage;
 
@@ -502,8 +503,8 @@ final readonly class Application
             }
         }
 
-        // Filtered only after every source is merged, so ignore markers apply
-        // to worker, orchestrator, and relayed coverage alike.
+        // Apply the filter after all source maps merge. Thus, exclusion markers
+        // apply to worker, orchestrator, and relayed coverage.
         if ($coverage instanceof CoverageMap) {
             $coverage = new IgnoreFilter()->apply($coverage);
         }
@@ -545,8 +546,9 @@ final readonly class Application
     }
 
     /**
-     * Warns when run state cannot be saved; persistence failure does not
-     * change the exit code.
+     * Gives a warning when Greenlight cannot save run state.
+     *
+     * A storage failure does not change the exit code.
      *
      * @param list<non-empty-string> $failedTests
      * @param array<non-empty-string, float> $classSeconds
@@ -559,7 +561,7 @@ final readonly class Application
     }
 
     /**
-     * Warns when an exclude-path prefix matches no discovered test files.
+     * Gives a warning when an exclude-path prefix matches no discovered test files.
      * Discovery reports enumeration errors separately.
      */
     private function warnWhenExcludePathsMatchNothing(Configuration $resolved, string $workingDirectory, bool $noAnsiFlag): void
@@ -909,7 +911,7 @@ final readonly class Application
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
     }
 
-    /** Uses LINES, then tput, then 24. Probed once when the reporter is built. */
+    /** Uses LINES, then tput, then 24. The reporter probes it one time when built. */
     private function terminalRows(): int
     {
         $linesEnv = \getenv('LINES');
@@ -963,7 +965,7 @@ final readonly class Application
     }
 
     /**
-     * Completion flags share the parser's OptionSpec list.
+     * The completion flags and parser use the same OptionSpec list.
      *
      * @param list<string> $rest the arguments after the completion command word
      */
@@ -1099,9 +1101,8 @@ final readonly class Application
     }
 
     /**
-     * Discovers the same selection a run would execute: the full filter set
-     * from the resolved configuration, then the shard slice when one was
-     * requested.
+     * Discovers the selection that a run executes. It applies all filters from
+     * the resolved configuration. If requested, it then applies the shard.
      *
      * @throws DiscoveryError
      */
@@ -1121,8 +1122,8 @@ final readonly class Application
 
     private function printTestList(ExecutionPlan $plan): int
     {
-        // Plan order, not alphabetical: the listing previews the order a run
-        // would execute, including seeded shuffles.
+        // Use plan order, not alphabetical order. The list shows the execution
+        // order, which includes changes from a seed.
         foreach ($plan->entries as $entry) {
             ($this->out)($entry->id . "\n");
         }
@@ -1204,10 +1205,10 @@ final readonly class Application
     }
 
     /**
-     * Discovery reports symlink-resolved absolute file paths, so prefixes are
-     * resolved against the working directory and canonicalized before the
-     * prefix match; a prefix that does not exist on disk keeps its
-     * uncanonicalized absolute form.
+     * Discovery reports absolute file paths after it resolves symbolic links.
+     * This method resolves prefixes against the working directory. If a prefix
+     * exists, it converts the prefix to its canonical form before comparison.
+     * A prefix that does not exist keeps its absolute noncanonical form.
      *
      * @param list<non-empty-string> $prefixes
      *
@@ -1232,9 +1233,10 @@ final readonly class Application
     }
 
     /**
-     * Worker processes are spawned with proc_open over core stream sockets,
-     * so no extension is required; hosts that put proc_open in
-     * disable_functions get an in-process sequential run instead.
+     * Greenlight starts worker processes with proc_open and core stream
+     * sockets. This operation does not require an extension. If
+     * disable_functions contains proc_open, Greenlight uses a sequential
+     * in-process run.
      */
     private function canSpawnWorkers(): bool
     {
@@ -1242,8 +1244,9 @@ final readonly class Application
     }
 
     /**
-     * Configured top-level and suite paths, resolved against the working
-     * directory and deduplicated.
+     * Returns unique configured top-level and suite paths.
+     *
+     * The method resolves the paths against the working directory.
      *
      * @return list<non-empty-string>
      */
@@ -1274,8 +1277,7 @@ final readonly class Application
     }
 
     /**
-     * The single option table: the parser accepts exactly these options and
-     * the completion scripts offer exactly these flags.
+     * Defines the options that the parser accepts and the completion scripts offer.
      *
      * @return list<OptionSpec>
      */

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * Interactive output (live window and cursor control) requires a TTY without
- * --no-ansi and without a truthy CI variable. Colour also requires NO_COLOR
- * to be unset or empty.
+ * Interactive output requires a TTY, no --no-ansi flag, and no truthy CI
+ * variable. Interactive output includes the live window and cursor control.
+ * Color also requires an unset or empty NO_COLOR variable.
  *
  * @internal
  */

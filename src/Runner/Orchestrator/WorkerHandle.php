@@ -11,8 +11,8 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * Assignment state supports crash attribution, resource release, progress
- * deadlines, and summary cross-checking.
+ * Contains assignment state for crash attribution, resource release,
+ * progress deadlines, and summary validation.
  *
  * @internal
  */
@@ -109,7 +109,7 @@ final class WorkerHandle
     }
 
     /**
-     * Drains piped worker output into the bounded diagnostics buffer.
+     * Moves piped worker output to the bounded diagnostics buffer.
      */
     public function drainPipes(): void
     {
@@ -142,9 +142,10 @@ final class WorkerHandle
     }
 
     /**
-     * Entries of the current assignment that have not finished, excluding
-     * the one in flight (used for crash reassignment: crashed tests are
-     * never retried automatically).
+     * Returns incomplete entries in the current assignment.
+     *
+     * The result excludes the active entry. Crash reassignment uses this
+     * result because Greenlight does not automatically retry a crashed test.
      *
      * @return list<TestId>
      */

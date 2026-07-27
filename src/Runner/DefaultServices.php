@@ -17,8 +17,8 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\PluginRegistry;
 
 /**
- * GREENLIGHT_CHANNEL is the source of truth for TestChannel. Duplicate
- * service types are configuration errors.
+ * GREENLIGHT_CHANNEL supplies the TestChannel value. Duplicate service types
+ * are configuration errors.
  *
  * @internal
  */

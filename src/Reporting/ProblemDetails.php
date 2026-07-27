@@ -10,11 +10,11 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 
 /**
- * Shared plain-text rendering of a failing or errored result.
+ * Produces shared plain text for a failed or errored result.
  *
- * render() emits expectation failures with expected and actual, throwable
- * details with the bounded stack, retry attempts, and outcome transformation
- * provenance.
+ * render() writes expected and actual values for expectation failures. It
+ * writes throwable details with the bounded stack. It also writes test
+ * attempts and the transformation log.
  *
  * @internal
  */

@@ -9,8 +9,9 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: last-gasp report of an unhandled framework error
- * before an orderly abnormal exit. Not a test failure.
+ * Reports an unhandled framework error from a worker to the orchestrator.
+ * The worker sends this message before an orderly abnormal exit. This error
+ * is not a test failure.
  *
  * @internal
  */

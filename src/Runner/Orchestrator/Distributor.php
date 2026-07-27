@@ -7,7 +7,8 @@ namespace Greenlight\Runner\Orchestrator;
 use Greenlight\Discovery\ExecutionPlan;
 
 /**
- * Produces pooled units per class and single-entry units for isolated tests.
+ * Produces one pooled scheduling unit for each test class. It produces a
+ * one-entry scheduling unit for each isolated test.
  *
  * @internal
  */

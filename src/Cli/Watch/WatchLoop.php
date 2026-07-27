@@ -7,19 +7,18 @@ namespace Greenlight\Cli\Watch;
 use Greenlight\Core\GracefulShutdown;
 
 /**
- * The watch mode loop: an initial run, then re-runs on debounced filesystem
- * changes.
+ * Controls watch mode. It starts with one run and then runs after groups of file changes.
  *
- * run() performs the initial run, then polls for changes and keys. Enter
- * forces an immediate full re-run, q quits.
+ * run() starts the first run and then polls for changes and keys. Enter starts
+ * a complete run immediately. q stops watch mode.
  *
- * Each iteration is an ordinary run producing ordinary reporter output; the
- * loop only decides when to run and hands the previous iteration's failed
- * classes to the runner so they execute first.
+ * Each iteration is a standard run with standard reporter output. The loop
+ * only determines when to run. It gives failed classes from the previous
+ * iteration to the runner. The runner executes these classes first.
  *
- * When the injected GracefulShutdown flag reports a request, run() returns
- * after the current iteration instead of waiting for the next change, so the
- * caller can restore the terminal and exit with the signal's exit code.
+ * If GracefulShutdown reports a request, run() returns after the current
+ * iteration. It does not wait for another change. The caller can then restore
+ * the terminal and use the signal exit code.
  *
  * @internal
  */
@@ -40,10 +39,10 @@ final readonly class WatchLoop
     ) {}
 
     /**
-     * @param \Closure(array<string>): list<non-empty-string> $runOnce
-     *        runs the suite with the given classes first and returns the
-     *        classes that failed
-     * @param int<1, max>|null $maxIterations loop bound for tests; null runs until q
+     * @param \Closure(array<string>): list<non-empty-string> $runOnce Runs the
+     *        suite with the specified classes first and returns failed classes
+     * @param int<1, max>|null $maxIterations Test loop limit. A null value runs
+     *        until q.
      */
     public function run(\Closure $runOnce, ?int $maxIterations = null): void
     {

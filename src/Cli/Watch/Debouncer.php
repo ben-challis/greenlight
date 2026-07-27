@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Watch;
 
 /**
- * Debounces changes with a quiet period.
+ * Combines multiple changes in one quiet period.
  *
- * noteChange() starts (or restarts) the quiet timer, and shouldFire() lets
- * the pending run fire only once no further change has arrived for the
- * configured period. Bursts such as a branch switch coalesce into one run.
+ * noteChange() starts the quiet timer again. shouldFire() permits one run
+ * after the configured period has no new changes. Thus, a group of changes,
+ * such as a branch switch, causes one run.
  *
  * @internal
  */

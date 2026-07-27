@@ -7,10 +7,10 @@ namespace Greenlight\Reporting\Output;
 use Greenlight\Reporting\ReportingError;
 
 /**
- * Destination for rendered reporter text.
+ * A destination for reporter text.
  *
- * write() sends the text through verbatim: nothing is appended, escaped,
- * or buffered on the way to the destination.
+ * write() sends the exact text to the destination. It does not add, escape,
+ * or buffer text.
  */
 interface Output
 {

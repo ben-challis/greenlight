@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * Raised when a frame, envelope, or message violates the protocol: oversized
- * or truncated frames, unknown versions or type tags, or bookkeeping
- * mismatches between a worker's summary and the event stream.
+ * Greenlight raises this error when a frame, envelope, or message violates
+ * the worker protocol. Causes include an oversized or truncated frame and
+ * an unknown version or type tag. A difference between a worker summary and
+ * the event stream also causes this error.
  *
  * @internal
  */

@@ -84,9 +84,9 @@ final readonly class InProcessRunner
             $collector = $coverageSettings instanceof CoverageSettings ? CoverageCollector::create($coverageSettings) : null;
             $collector?->start();
 
-            // A single in-process worker is always channel 1. Setting the
-            // variable, rather than relying on its absence, overrides any value
-            // inherited from an outer Greenlight run spawning this one.
+            // A single in-process worker always uses channel 1. Set the
+            // variable to replace a value inherited from an outer Greenlight
+            // run.
             \putenv('GREENLIGHT_CHANNEL=1');
 
             $outcome = new Worker(

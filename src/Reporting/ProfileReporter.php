@@ -8,10 +8,10 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Renders the run profile after the main reporter's summary.
+ * Writes the run profile after the primary reporter summary.
  *
- * Added to the reporter set by --profile. The aggregation itself is reusable
- * offline via ProfileAggregator over a saved jsonl stream.
+ * --profile adds this reporter. ProfileAggregator can also process a saved
+ * JSONL stream.
  *
  * @internal
  */

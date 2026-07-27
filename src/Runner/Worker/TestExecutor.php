@@ -28,13 +28,19 @@ use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 /**
- * Each attempt covers constructor injection, beforeTest subscribers,
- * before-hooks in declaration order, the test method, after-hooks in reverse
- * declaration order, which always run, per-test scope teardown, and timeout
- * accounting. afterTest subscribers run with the provenance guard; see
- * applyAfterSubscribers() for the exact behaviour.
+ * Each test attempt has these operations:
  *
- * Every reference to the test instance is dropped when the attempt ends.
+ * - Constructor injection
+ * - beforeTest subscribers
+ * - Before hooks in declaration order
+ * - The test method
+ * - After hooks in reverse declaration order
+ * - Test-scope teardown
+ * - Timeout enforcement
+ *
+ * After hooks always run. afterTest subscribers use the guard for the
+ * transformation log in applyAfterSubscribers(). Greenlight removes each reference to the
+ * test instance when the test attempt ends.
  *
  * @internal
  */
@@ -231,9 +237,9 @@ final readonly class TestExecutor
             if ($disposalFailures !== [] && !$cause instanceof \Throwable && $skipReason === null) {
                 $cause = $disposalFailures[0];
 
-                // A disposal that throws expectation failures is a verification
-                // step (auto-verified doubles); it fails the test with diffs
-                // rather than erroring it.
+                // An ExpectationFailed from disposal is a verification step.
+                // Automatic double verification uses this path. It fails the
+                // test with differences instead of an error.
                 if ($cause instanceof ExpectationFailed) {
                     $failures = $cause->details;
                 } else {
@@ -278,9 +284,9 @@ final readonly class TestExecutor
             expectations: ExpectationCounter::count(),
         );
 
-        // The counter includes double verification, which ran at scope close
-        // above; a passed test with zero verified expectations is risky
-        // unless it declared the intent with #[NoExpectations].
+        // The counter includes double verification from scope close. A passed
+        // test with no verified expectations is a risky test unless it has
+        // #[NoExpectations].
         if ($result->outcome === Outcome::Passed && !$metadata->noExpectations && $result->expectations === 0) {
             $result = $result->asRisky();
         }
@@ -294,14 +300,16 @@ final readonly class TestExecutor
     }
 
     /**
-     * Runs afterTest subscribers with the provenance guard: an outcome change
-     * that did not grow the transformation log is unattributable and errors
-     * the test naming the plugin.
+     * Runs afterTest subscribers with the guard for the transformation log.
+ *
+     * A change without a new transformation-log entry has no source. This
+     * condition causes a test error that identifies the plugin.
      *
-     * A throwing subscriber errors a passing test naming the plugin. On a
-     * test that already failed or errored, the original outcome and error are
-     * kept so the plugin failure cannot mask them, and the plugin failure is
-     * appended as a failure detail so it still surfaces in reports.
+     * A throwable from a subscriber causes an error in a passed test and
+     * identifies the plugin. For a failed or errored test, Greenlight keeps
+     * the original outcome and error. It adds the plugin failure as a failure
+     * detail. Thus, reports show the plugin failure without loss of the
+     * original error.
      */
     private function applyAfterSubscribers(TestContext $context, TestResult $result): TestResult
     {
@@ -432,8 +440,8 @@ final readonly class TestExecutor
             return $shortName;
         }
 
-        // Substituting invalid UTF-8 keeps a skip a skip: a throwing encoder
-        // would escalate the reason rendering into a worker error.
+        // Replace invalid UTF-8 to keep a skipped result. An encoder error
+        // would change the skip-reason conversion to a worker error.
         $rendered = \array_map(
             static fn(bool|float|int|string|null $argument): string => (string) \json_encode($argument, \JSON_INVALID_UTF8_SUBSTITUTE),
             $arguments,

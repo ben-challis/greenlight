@@ -8,10 +8,10 @@ use Greenlight\Config\WorkerCount;
 use Greenlight\Core\Test\ResourceName;
 
 /**
- * The settings the command line can override, already validated and typed.
+ * Contains validated typed settings that the command line can override.
  *
- * A null field (or an empty group list) means the flag was absent and the
- * config file value stands.
+ * A null field or empty group list means that the flag was absent. The value
+ * from the configuration file remains in effect.
  *
  * @internal
  */

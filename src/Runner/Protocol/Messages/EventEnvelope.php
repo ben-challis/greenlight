@@ -9,7 +9,7 @@ use Greenlight\Runner\Protocol\EventRegistry;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: one execution event.
+ * Sends one execution event from a worker to the orchestrator.
  *
  * @internal
  */

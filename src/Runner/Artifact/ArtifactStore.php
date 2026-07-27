@@ -14,7 +14,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 
 /**
- * Owns private run staging, cross-worker quotas, publication, and cleanup.
+ * Controls private run staging, quotas for all workers, publication, and cleanup.
  *
  * @internal
  */
@@ -364,8 +364,8 @@ final class ArtifactStore
     }
 
     /**
-     * Recovers atomically completed evidence for a worker that died before
-     * emitting TestFinished.
+     * Recovers evidence that completed atomically from a worker that stopped
+     * before TestFinished.
      */
     public function recover(TestResult $result): TestResult
     {
@@ -409,7 +409,7 @@ final class ArtifactStore
                     $attachments[] = StagedAttachment::fromWire($map);
                 }
             } catch (\Throwable) {
-                // A partial or corrupt sidecar is not completed evidence.
+                // A partial or corrupt sidecar is not complete evidence.
             }
         }
 

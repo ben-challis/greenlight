@@ -8,8 +8,8 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * First message from a worker after connecting; authenticates with the
- * per-run token.
+ * The first message from a worker after connection. It authenticates the
+ * worker with the token for the run.
  *
  * @internal
  */

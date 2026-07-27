@@ -8,13 +8,17 @@ use Greenlight\Config\Configuration;
 use Greenlight\Core\Result\ResultPolicy;
 
 /**
- * Precedence is fixed: built-in defaults, then the config file, then
- * command-line flags. The first two are already collapsed into the incoming
- * Configuration, so resolve() only decides flag-by-flag whether the command
- * line wins.
+ * Applies settings in this order:
  *
- * When randomization is enabled but neither source supplies a seed, resolve()
- * chooses one once.
+ * 1. Built-in defaults
+ * 2. The configuration file
+ * 3. Command-line flags
+ *
+ * The input Configuration already combines the first two sources. resolve()
+ * determines if each command-line flag replaces a configuration value.
+ *
+ * If random order is active and neither source supplies a seed, resolve()
+ * selects one seed.
  *
  * @internal
  */

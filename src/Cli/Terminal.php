@@ -7,8 +7,8 @@ namespace Greenlight\Cli;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Answers whether a stream is attached to an interactive terminal. The probe
- * never leaks engine warnings to host error handlers.
+ * Determines whether a stream is attached to an interactive terminal. The probe
+ * does not send engine warnings to host error handlers.
  *
  * @internal
  */

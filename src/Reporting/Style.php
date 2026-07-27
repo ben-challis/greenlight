@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 /**
- * Duration colours escalate at one and five seconds.
+ * Duration colors change at one second and five seconds.
  *
  * Without ANSI support, every method returns its text unchanged.
  *

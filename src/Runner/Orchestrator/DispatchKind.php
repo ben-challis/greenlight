@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 /**
- * The action an idle worker should take.
+ * The action for an idle worker.
  *
  * @internal
  */
