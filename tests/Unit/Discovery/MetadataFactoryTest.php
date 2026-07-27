@@ -11,6 +11,7 @@ use Greenlight\Discovery\MetadataFactory;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongCaptureTypeTest;
+use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongGroupTypeTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\AbstractMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\NonPublicMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\StaticMethodTest;
@@ -54,6 +55,43 @@ final class MetadataFactoryTest
             ->toBeInstanceOf(\TypeError::class);
     }
 
+    #[Test]
+    public function invalidGroupArgumentsAreWrappedWithTheirLocationAndCause(): void
+    {
+        $class = $this->wrongGroupTypeClass();
+        $capture = new class {
+            public ?DiscoveryError $error = null;
+        };
+        $attempt = static function () use ($capture, $class): array {
+            try {
+                return new MetadataFactory()->forClass(new \ReflectionClass($class));
+            } catch (DiscoveryError $error) {
+                $capture->error = $error;
+
+                throw $error;
+            }
+        };
+
+        Expect::that($attempt)
+            ->because('discovery wraps invalid group arguments with their method location')
+            ->toThrow(
+                DiscoveryError::class,
+                matching: '/^Attribute on '
+                    . \preg_quote($class . '::neverDiscovered()', '/')
+                    . ' is invalid:/',
+            );
+
+        $error = $capture->error;
+
+        if (!$error instanceof DiscoveryError) {
+            Fail::because('Expected discovery to throw the captured DiscoveryError.');
+        }
+
+        Expect::that($error->getPrevious())
+            ->because('the discovery error preserves the invalid group cause')
+            ->toBeInstanceOf(\TypeError::class);
+    }
+
     /**
      * @param class-string $class
      */
@@ -93,5 +131,13 @@ final class MetadataFactoryTest
     private function wrongCaptureTypeClass(): string
     {
         return WrongCaptureTypeTest::class;
+    }
+
+    /**
+     * @return class-string
+     */
+    private function wrongGroupTypeClass(): string
+    {
+        return WrongGroupTypeTest::class;
     }
 }
