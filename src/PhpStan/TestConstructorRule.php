@@ -93,10 +93,8 @@ final class TestConstructorRule implements Rule
     private function containsTest(ClassReflection $class): bool
     {
         foreach ($class->getNativeReflection()->getMethods() as $method) {
-            foreach ($class->getNativeMethod($method->getName())->getAttributes() as $attribute) {
-                if ($attribute->getName() === Test::class) {
-                    return true;
-                }
+            if ($method->getAttributes(Test::class) !== []) {
+                return true;
             }
         }
 
