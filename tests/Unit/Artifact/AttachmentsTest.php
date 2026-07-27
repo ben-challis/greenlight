@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
@@ -17,6 +18,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 final readonly class AttachmentsTest
@@ -118,6 +120,58 @@ final readonly class AttachmentsTest
             ->and(\file_exists($output))->toBeFalse();
 
         $store->cleanup();
+    }
+
+    /**
+     * @param \Closure(StagedAttachments): void $write
+     */
+    #[Test]
+    #[DataSet('invalidAttachmentWrites')]
+    public function invalidAttachmentWritesGiveExactGuidance(\Closure $write, string $message): void
+    {
+        $root = $this->tempDirectory->subdirectory('invalid-writes');
+        $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-invalid');
+        $attachments = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'invalid'),
+            1,
+            new TestArtifactBudget(),
+        );
+
+        try {
+            Expect::that(static fn() => $write($attachments))
+                ->because('an invalid attachment write gives exact guidance')
+                ->toThrow(AttachmentError::class, message: $message);
+        } finally {
+            $store->cleanup();
+        }
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(StagedAttachments): void, string}>
+     */
+    public static function invalidAttachmentWrites(): iterable
+    {
+        yield 'sealed attempt' => [
+            static function (StagedAttachments $attachments): void {
+                $attachments->seal();
+                $attachments->text('late.txt', 'too late');
+            },
+            'Attachments cannot be added after the test attempt has finished.',
+        ];
+
+        yield 'invalid media type' => [
+            static fn(StagedAttachments $attachments) => $attachments->text('evidence.txt', 'body', 'invalid'),
+            'Attachment media type "invalid" is invalid.',
+        ];
+
+        yield 'cyclic JSON value' => [
+            static function (StagedAttachments $attachments): void {
+                $value = [];
+                $value['self'] = &$value;
+                $attachments->value('cyclic.json', $value);
+            },
+            'Attachment value cannot be encoded as JSON: Recursion detected.',
+        ];
     }
 
     #[Test]
