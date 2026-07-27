@@ -1,0 +1,92 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Core;
+
+use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\AttachmentKind;
+use Greenlight\Core\Artifact\AttachmentRetention;
+use Greenlight\Core\Artifact\StagedAttachment;
+use Greenlight\Core\Wire\InvalidWirePayload;
+use Greenlight\Expect\Expect;
+
+final class StagedAttachmentValidationTest
+{
+    #[Test]
+    public function rejectsAnEmptyStorageKeyAtConstruction(): void
+    {
+        Expect::that(static fn(): StagedAttachment => new StagedAttachment(
+            'artifact',
+            AttachmentKind::Text,
+            'text/plain',
+            1,
+            \str_repeat('a', 64),
+            1,
+            'artifact.txt',
+        ))
+            ->because('a staged attachment MUST identify its private storage coordinate')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Attachment storage key is invalid.',
+            );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[Test]
+    #[DataSet('invalidStorageKeyPayloads')]
+    public function wireDecodingRequiresAStorageKey(array $payload): void
+    {
+        Expect::that(static fn(): StagedAttachment => StagedAttachment::fromWire($payload))
+            ->because('a staged attachment wire payload MUST contain its private storage coordinate')
+            ->toThrow(InvalidWirePayload::class);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>}>
+     */
+    public static function invalidStorageKeyPayloads(): iterable
+    {
+        $payload = self::wirePayload();
+
+        unset($payload['storageKey']);
+        yield 'missing' => [$payload];
+
+        yield 'empty' => [[...self::wirePayload(), 'storageKey' => '']];
+    }
+
+    #[Test]
+    public function wireDecodingNormalizesNumericBounds(): void
+    {
+        $staged = StagedAttachment::fromWire([
+            ...self::wirePayload(),
+            'sizeBytes' => -1,
+            'attempt' => 0,
+        ]);
+
+        Expect::that([$staged->sizeBytes, $staged->attempt, $staged->storageKey])
+            ->because('staged attachment wire decoding preserves its numeric bounds and coordinate')
+            ->toBe([0, 1, 'test/attempt-1/01-artifact.txt']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function wirePayload(): array
+    {
+        return [
+            'name' => 'artifact',
+            'kind' => AttachmentKind::Text->value,
+            'mediaType' => 'text/plain',
+            'sizeBytes' => 1,
+            'sha256' => \str_repeat('a', 64),
+            'attempt' => 1,
+            'path' => 'artifact.txt',
+            'retention' => AttachmentRetention::Always->value,
+            'storageKey' => 'test/attempt-1/01-artifact.txt',
+        ];
+    }
+}
