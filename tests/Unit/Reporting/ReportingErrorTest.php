@@ -26,4 +26,12 @@ final class ReportingErrorTest
                 self::class,
             ));
     }
+
+    #[Test]
+    public function reportsTheMissingXmlWriterExtensionExactly(): void
+    {
+        Expect::that(ReportingError::xmlUnavailable()->getMessage())
+            ->because('JUnit output names the required PHP extension')
+            ->toBe('The XMLWriter extension is required for JUnit output. Enable ext-xmlwriter.');
+    }
 }
