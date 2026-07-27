@@ -87,6 +87,56 @@ final class ResultPolicyTest
     }
 
     #[Test]
+    public function diagnosticFailuresAggregateBeforeTheRiskyPolicy(): void
+    {
+        $before = new TestResult(
+            new TestId('App\ProbeTest', 'multipleDiagnostics'),
+            Outcome::Passed,
+            durationSeconds: 0.25,
+            memoryDeltaBytes: 0,
+            attempts: 2,
+            output: new CapturedOutput('', [
+                new Diagnostic(DiagnosticSeverity::Deprecation, 'old api', '/src/old.php', 4),
+                new Diagnostic(DiagnosticSeverity::Warning, 'warning only', '/src/warning.php', 5),
+                new Diagnostic(DiagnosticSeverity::Notice, 'notice too', '/src/notice.php', 6),
+            ]),
+            risky: true,
+            expectations: 5,
+        );
+        $policy = new ResultPolicy(
+            failOnDeprecation: true,
+            failOnNotice: true,
+            failOnRisky: true,
+        );
+
+        $result = $policy->apply($before);
+
+        Expect::that($result->outcome)
+            ->because('diagnostic failures aggregate before the risky policy')
+            ->toBe(Outcome::Failed)
+            ->and($result->failures)
+            ->toHaveCount(2)
+            ->and($result->failures[0]->message)
+            ->toBe(
+                'The deprecation policy changed this test from passed to failed: old api at /src/old.php:4',
+            )
+            ->and($result->failures[1]->message)
+            ->toBe(
+                'The notice policy changed this test from passed to failed: notice too at /src/notice.php:6',
+            )
+            ->and($result->transformations)
+            ->toHaveCount(1)
+            ->and($result->transformations[0]->transformedBy)
+            ->toBe('fail-on-diagnostic policy')
+            ->and($result->expectations)
+            ->toBe(5)
+            ->and($result->attempts)
+            ->toBe(2)
+            ->and($result->durationSeconds)
+            ->toBe(0.25);
+    }
+
+    #[Test]
     public function theRiskyPolicyFailsAPassedResultWithoutExpectations(): void
     {
         $before = new TestResult(
