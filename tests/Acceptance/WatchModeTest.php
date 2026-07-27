@@ -47,6 +47,34 @@ final readonly class WatchModeTest
         }
     }
 
+    #[Test]
+    public function watchStartsAndQuitsWhenShellExecIsDisabled(): void
+    {
+        $project = $this->writeProject();
+        $process = GreenlightCli::start(
+            $project->directory,
+            ['run', '--watch', '--reporter=plain'],
+            phpArguments: ['-d', 'disable_functions=shell_exec'],
+        );
+
+        try {
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+            Expect::that($output)
+                ->because('watch mode starts when PHP disables shell_exec')
+                ->toContain('1 test, 1 passed');
+
+            $process->write('q');
+            $result = $process->wait(10.0);
+
+            Expect::that($result->exitCode)
+                ->because('watch mode exits cleanly when PHP disables shell_exec')
+                ->toBe(0);
+        } finally {
+            $process->terminate();
+        }
+    }
+
     private function writeProject(): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'watch');
