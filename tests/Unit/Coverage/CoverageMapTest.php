@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Coverage\CoverageMap;
@@ -46,6 +47,20 @@ final class CoverageMapTest
         $map = CoverageMap::fromRaw(new RawCoverage(['/src/A.php' => [3 => -2]]));
 
         Expect::that($map->isEmpty())->because('from raw drops files with no executable lines')->toBeTrue();
+    }
+
+    #[Test]
+    public function fromRawDropsInvalidLineNumbers(): void
+    {
+        $map = CoverageMap::fromRaw(new RawCoverage([
+            '/src/A.php' => [-1 => 1, 0 => -1, 1 => 1],
+        ]));
+
+        Expect::that($map->files()['/src/A.php']->coveredLines)
+            ->because('raw coverage drops non-positive line numbers')
+            ->toBe([1])
+            ->and($map->files()['/src/A.php']->uncoveredLines)
+            ->toBe([]);
     }
 
     #[Test]
@@ -144,15 +159,40 @@ final class CoverageMapTest
         Expect::that($restored->isEmpty())->because('empty map survives a JSON round trip')->toBeTrue();
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     #[Test]
-    public function malformedWirePayloadsAreRejected(): void
+    #[DataSet('malformedWirePayloads')]
+    public function malformedWirePayloadsAreRejected(array $payload, string $message): void
     {
-        Expect::that(static fn(): CoverageMap => CoverageMap::fromWire([]))->because('malformed wire payloads are rejected')
-            ->toThrow(InvalidWirePayload::class)
-            ->and(static fn(): CoverageMap => CoverageMap::fromWire(['files' => ['/src/A.php' => [[1]]]]))
-            ->toThrow(InvalidWirePayload::class, '/two-element list/')
-            ->and(static fn(): CoverageMap => CoverageMap::fromWire(['files' => ['/src/A.php' => [['one'], []]]]))
-            ->toThrow(InvalidWirePayload::class, '/positive line numbers/');
+        Expect::that(static fn(): CoverageMap => CoverageMap::fromWire($payload))
+            ->because('malformed coverage-map wire payloads are rejected')
+            ->toThrow(InvalidWirePayload::class, $message);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, mixed>, non-empty-string}>
+     */
+    public static function malformedWirePayloads(): iterable
+    {
+        yield 'missing files' => [[], '/missing the "files" key/'];
+        yield 'empty file path' => [
+            ['files' => ['' => [[], []]]],
+            '/non-empty file paths/',
+        ];
+        yield 'wrong file shape' => [
+            ['files' => ['/src/A.php' => [[1]]]],
+            '/two-element list/',
+        ];
+        yield 'line set is not a list' => [
+            ['files' => ['/src/A.php' => [['line' => 1], []]]],
+            '/list of line numbers/',
+        ];
+        yield 'invalid line number' => [
+            ['files' => ['/src/A.php' => [['one'], []]]],
+            '/positive line numbers/',
+        ];
     }
 
     private function sampleA(): CoverageMap
