@@ -159,6 +159,18 @@ final class DataSetExpansionTest
     }
 
     #[Test]
+    public function providerThatFinishesSlowlyExceedsTheConfiguredBudget(): void
+    {
+        $message = $this->discoveryErrorMessage('DiscoveryProviderSlowCompletion', 0.005);
+
+        Expect::that($message)
+            ->because('provider that finishes slowly exceeds the configured budget')
+            ->toContain('time budget')
+            ->and($message)
+            ->toContain('finishesSlowly');
+    }
+
+    #[Test]
     public function slowProviderPassesUnderAGenerousBudget(): void
     {
         $plan = new TestDiscoverer(5.0)->discover([$this->fixtureDir('DiscoveryProviderSlow')]);
