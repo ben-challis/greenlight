@@ -12,6 +12,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Tests\Fixture\Discovery\FakeMonotonicClock;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\InvalidKeyProvider;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest;
 
@@ -188,6 +189,27 @@ final class DataSetExpansionTest
 
         Expect::that($message)->because('slow provider exceeds the configured budget')->toContain('time budget');
         Expect::that($message)->because('slow provider exceeds the configured budget')->toContain('dawdles');
+    }
+
+    #[Test]
+    public function providerThatFinishesSlowlyExceedsTheConfiguredBudget(): void
+    {
+        $clock = new FakeMonotonicClock(0, 0, 0, 6_000_000_000);
+        $expander = new DataSetExpander($clock);
+
+        Expect::that(static fn(): array => $expander->rowsFor(
+            new \ReflectionClass(ProviderKeysTest::class),
+            'withStringKeys',
+            'stringKeys',
+            5.0,
+        ))
+            ->because('provider that finishes slowly exceeds the configured budget')
+            ->toThrow(
+                DiscoveryError::class,
+                message: 'Data-set provider ' . ProviderKeysTest::class . '::stringKeys() '
+                    . 'exceeded the 5.000-second discovery time budget. Providers run during plan creation. '
+                    . 'Keep them pure and fast.',
+            );
     }
 
     #[Test]
