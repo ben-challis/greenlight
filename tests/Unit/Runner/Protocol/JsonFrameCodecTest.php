@@ -13,6 +13,41 @@ use Greenlight\Runner\Protocol\ProtocolError;
 final class JsonFrameCodecTest
 {
     #[Test]
+    public function encodingSubstitutesInvalidUtf8AtTheProtocolBoundary(): void
+    {
+        $codec = new JsonFrameCodec();
+        $frame = $codec->encode(['message' => "query failed: \xB1\x31\xFF row 1"]);
+        $body = \substr($frame, 4);
+
+        if ($body === '') {
+            Fail::because('Expected the encoded frame to contain a JSON body.');
+        }
+
+        $length = \unpack('Nlength', $frame)['length'] ?? null;
+        $decoded = $codec->decode($body);
+        $message = $decoded['message'] ?? null;
+
+        if (!\is_string($message)) {
+            Fail::because('Expected the decoded frame to contain a string message.');
+        }
+
+        Expect::that($length)
+            ->because('the frame prefix MUST contain the substituted JSON body length')
+            ->toBe(\strlen($body))
+            ->and($message)
+            ->because('the substituted protocol value remains a string')
+            ->toBeString();
+
+        Expect::that(\preg_match('//u', $message))
+            ->because('the protocol value MUST contain valid UTF-8')
+            ->toBe(1)
+            ->and($message)
+            ->because('UTF-8 substitution preserves readable surrounding text')
+            ->toStartWith('query failed: ')
+            ->toEndWith(' row 1');
+    }
+
+    #[Test]
     public function unsupportedPayloadValuesProduceAProtocolError(): void
     {
         $stream = \fopen('php://memory', 'r');
