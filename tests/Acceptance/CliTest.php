@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -152,6 +153,35 @@ final readonly class CliTest
         Expect::that($result->exitCode)->because('unknown options are usage errors')->toBe(64);
         Expect::that($result->output())->because('unknown options are usage errors')->toContain('greenlight: Unknown option "--frobnicate"');
         Expect::that($result->output())->because('unknown options are usage errors')->not()->toContain("\x1b[");
+    }
+
+    /**
+     * @param list<string> $arguments
+     */
+    #[Test]
+    #[DataSet('invalidWorkerEntries')]
+    public function invalidInternalWorkerEntriesAreUsageErrors(array $arguments): void
+    {
+        $result = $this->runCli($arguments);
+
+        Expect::that($result->exitCode)
+            ->because('an invalid internal worker entry MUST stop before connection')
+            ->toBe(64)
+            ->and($result->stderr)
+            ->toBe('__worker requires <address> <workerId> <token>.')
+            ->and($result->stdout)
+            ->toBe('');
+    }
+
+    /**
+     * @return iterable<string, array{list<string>}>
+     */
+    public static function invalidWorkerEntries(): iterable
+    {
+        yield 'missing arguments' => [['__worker']];
+        yield 'empty address' => [['__worker', '', 'worker-1', 'secret-token']];
+        yield 'empty worker ID' => [['__worker', 'tcp://127.0.0.1:1', '', 'secret-token']];
+        yield 'empty token' => [['__worker', 'tcp://127.0.0.1:1', 'worker-1', '']];
     }
 
     /**
