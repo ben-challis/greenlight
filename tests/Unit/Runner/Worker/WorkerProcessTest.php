@@ -46,6 +46,83 @@ final class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function assignmentSetupFailuresAreReportedToTheOrchestrator(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $missingConfig = \sys_get_temp_dir()
+            . '/greenlight-missing-config-' . \bin2hex(\random_bytes(6)) . '.php';
+        $server = Subprocess::start($root, [
+            \PHP_BINARY,
+            '-r',
+            <<<'PHP'
+            require $argv[1];
+
+            $missingConfig = $argv[2];
+            $socketPath = '/tmp/greenlight-worker-' . bin2hex(random_bytes(6)) . '.sock';
+            register_shutdown_function(static fn() => @unlink($socketPath));
+            $server = stream_socket_server('unix://' . $socketPath);
+
+            if (!is_resource($server)) {
+                exit(2);
+            }
+
+            fwrite(STDOUT, 'unix://' . $socketPath . "\n");
+            fflush(STDOUT);
+
+            $connection = stream_socket_accept($server, 2.0);
+
+            if (!is_resource($connection)) {
+                exit(3);
+            }
+
+            $channel = new Greenlight\Runner\Protocol\SocketChannel($connection);
+
+            if (!$channel->receive(2.0) instanceof Greenlight\Runner\Protocol\Messages\Hello) {
+                exit(4);
+            }
+
+            $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                new Greenlight\Discovery\ExecutionPlan([]),
+                configFile: $missingConfig,
+            ));
+            $fatal = $channel->receive(2.0);
+
+            if (!$fatal instanceof Greenlight\Runner\Protocol\Messages\Fatal) {
+                exit(5);
+            }
+
+            fwrite(STDOUT, $fatal->detail->class . "\n" . $fatal->detail->message . "\n");
+            PHP,
+            $root . '/vendor/autoload.php',
+            $missingConfig,
+        ]);
+
+        try {
+            $address = \trim($server->readStdoutUntil("\n", 2.0));
+
+            if ($address === '') {
+                Fail::because('Worker protocol server did not publish its address.');
+            }
+
+            $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+            $serverResult = $server->wait(2.0);
+
+            Expect::that($workerExit)
+                ->because('an assignment setup failure MUST stop the worker abnormally')
+                ->toBe(1)
+                ->and($serverResult->exitCode)
+                ->because('the orchestrator fixture MUST receive the worker fatal message')
+                ->toBe(0)
+                ->and($serverResult->stdout)
+                ->toContain("Greenlight\\Config\\ConfigFileError\n")
+                ->toContain('Configuration file "' . $missingConfig . '" does not exist.');
+        } finally {
+            $server->terminate();
+        }
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     public function itKeepsPollingAfterAnIdleReceiveTimesOut(): void
     {
         [$workerExit, $serverExit] = $this->runScenario('idle-then-drain');
