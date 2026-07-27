@@ -14,9 +14,13 @@ use Greenlight\Cli\Watch\WatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
+use Greenlight\Fixture\TempDirectory;
 
-final class WatchTest
+final readonly class WatchTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function rejectsANegativeQuietPeriodWithExactGuidance(): void
     {
@@ -75,6 +79,43 @@ final class WatchTest
             @\unlink($dir . '/B.php');
             @\rmdir($dir);
         }
+    }
+
+    #[Test]
+    public function statDetectorIgnoresMissingDirectoriesAndNonPhpFiles(): void
+    {
+        $root = $this->tempDirectory->path();
+
+        if ($root === '') {
+            Fail::because('Expected the temporary watch directory path to be non-empty.');
+        }
+
+        $directory = $this->tempDirectory->subdirectory('stat-change-detector/nested');
+        $ignoredFile = $directory . '/notes.txt';
+        $watchedFile = $directory . '/NestedTest.php';
+        \file_put_contents($ignoredFile, 'first');
+        \file_put_contents($watchedFile, '<?php // first');
+
+        $detector = new StatChangeDetector([
+            $root . '/missing',
+            $root,
+        ]);
+
+        Expect::that($detector->poll())
+            ->because('the first poll only records PHP files from directories that exist')
+            ->toBe([]);
+
+        \file_put_contents($ignoredFile, 'second and larger');
+
+        Expect::that($detector->poll())
+            ->because('changes to non-PHP files are ignored')
+            ->toBe([]);
+
+        \file_put_contents($watchedFile, '<?php // second and larger');
+
+        Expect::that($detector->poll())
+            ->because('nested PHP files are watched')
+            ->toBe([$watchedFile]);
     }
 
     #[Test]
