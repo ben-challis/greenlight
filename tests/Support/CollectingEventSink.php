@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Support;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Doubles\Fake;
 use Greenlight\Runner\Worker\EventSink;
 
-final class CollectingEventSink implements EventSink
+final class CollectingEventSink implements EventSink, Fake
 {
     /**
      * @var list<Event>

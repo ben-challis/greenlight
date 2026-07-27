@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Fixture\Coverage;
 
 use Greenlight\Coverage\Driver\CoverageDriver;
 use Greenlight\Coverage\RawCoverage;
+use Greenlight\Doubles\Fake;
 
-final class AvailableFakeDriver implements CoverageDriver
+final class AvailableFakeDriver implements CoverageDriver, Fake
 {
     #[\Override]
     public static function isAvailable(): bool

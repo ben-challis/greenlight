@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\ExpectationCounter;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
@@ -513,7 +514,7 @@ final class TemporalExpectationTest
     }
 }
 
-final class FakePollingClock implements PollingClock
+final class FakePollingClock implements PollingClock, Fake
 {
     public float $time = 0.0;
 
