@@ -29,4 +29,13 @@ final class ReportingError extends \RuntimeException
     {
         return new self('The XMLWriter extension is required for JUnit output. Enable ext-xmlwriter.');
     }
+
+    public static function junitFileWriteFailed(string $path, string $reason): self
+    {
+        return new self(\sprintf(
+            'Greenlight could not write JUnit output to "%s": %s.',
+            $path,
+            \rtrim($reason, '.'),
+        ));
+    }
 }

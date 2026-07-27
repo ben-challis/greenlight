@@ -61,6 +61,9 @@ jobs:
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
     runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+      id-token: "write"
     # The suite does not use Xdebug. Coverage acceptance tests set
     # XDEBUG_MODE=coverage for each process that they start.
     env:
@@ -77,6 +80,9 @@ jobs:
         # "locked" ignores SYMFONY_REQUIRE. The lowest jobs and the Symfony
         # 6.4 job remove Laravel because Laravel 13 requires Symfony >= 7.4.
         include:
+          - php-version: "8.4"
+            dependencies: "locked"
+            analytics: true
           - php-version: "8.4"
             dependencies: "lowest"
             symfony-version: "6.4.*"
@@ -143,7 +149,22 @@ jobs:
       # proc_open return type and ReflectionClass variance. Consequently, all PHPStan
       # reports in these jobs are false.
       - name: "Tests"
+        if: "matrix.analytics != true"
         run: "composer tests"
+
+      - name: "Tests with JUnit output"
+        if: "matrix.analytics == true"
+        run: "php bin/greenlight run --log-junit=build/test-results/greenlight.junit.xml"
+
+      - name: "Upload test results to Codecov"
+        if: "${{ !cancelled() && matrix.analytics == true }}"
+        continue-on-error: true
+        uses: "codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3" # v1.2.1
+        with:
+          disable_search: true
+          fail_ci_if_error: false
+          files: "build/test-results/greenlight.junit.xml"
+          use_oidc: true
 
   memory:
     name: "Flat-memory gate (10,000 tests, one worker)"

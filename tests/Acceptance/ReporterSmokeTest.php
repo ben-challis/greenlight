@@ -44,6 +44,29 @@ final readonly class ReporterSmokeTest
     }
 
     #[Test]
+    public function logJunitWritesXmlToAFileAndKeepsPlainOutput(): void
+    {
+        $project = $this->writeProject();
+        $report = $project->path('build/test-results/greenlight.junit.xml');
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--log-junit=' . $report]);
+
+        Expect::that($result->exitCode)->because('log JUnit writes XML to a file and keeps plain output')->toBe(1)
+            ->and($result->stdout)->toContain('PASS ReporterProbe\GoodReporterProbeTest::passes')
+            ->toContain('ERROR ReporterProbe\BadReporterProbeTest::fails')
+            ->not()->toContain('<?xml');
+
+        $xml = \file_get_contents($report);
+
+        if ($xml === false || $xml === '') {
+            Fail::because('Greenlight did not write a nonempty JUnit file.');
+        }
+
+        $document = new \DOMDocument();
+        Expect::that($document->loadXML($xml))->because('log JUnit writes XML to a file and keeps plain output')->toBeTrue()
+            ->and($document->getElementsByTagName('testcase')->length)->toBe(2);
+    }
+
+    #[Test]
     public function githubEmitsAWorkflowErrorCommandForTheFailingTest(): void
     {
         $project = $this->writeProject();

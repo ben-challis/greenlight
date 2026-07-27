@@ -42,12 +42,14 @@ use Greenlight\PhpStan\MatcherMapError;
 use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\JsonLinesReporter;
+use Greenlight\Reporting\JUnitFileReporter;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\ProfileAggregator;
 use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\ReportingError;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\SummaryFormat;
@@ -131,6 +133,7 @@ final readonly class Application
           --seed=<n>         Randomize class order with this seed
           --reporter=<name>  Select tty, plain, junit, jsonl, github, or teamcity.
                              You can repeat this option.
+          --log-junit=<path> Write JUnit XML to a file.
           --artifacts-dir=<path> Persistent directory for retained test attachments
           --watch            Run tests again after file changes. Enter runs all tests.
                              q quits.
@@ -513,7 +516,10 @@ final readonly class Application
             $coverage = new IgnoreFilter()->apply($coverage);
         }
 
-        $reporter->finish();
+        if (!$this->finishReporter($reporter, $arguments)) {
+            return self::EXIT_FAILURE;
+        }
+
         $this->persistRunState($state, $failedTap->failedTests(), $failedTap->classSeconds());
 
         $interruptExit = $shutdown->exitCode();
@@ -685,7 +691,10 @@ final readonly class Application
                     return $priorityClasses;
                 }
 
-                $reporter->finish();
+                if (!$this->finishReporter($reporter, $arguments)) {
+                    return $priorityClasses;
+                }
+
                 $this->persistRunState(RunState::forWorkingDirectory($workingDirectory), $failedTap->failedTests(), $failedTap->classSeconds());
 
                 return $tap->failedClasses();
@@ -908,11 +917,34 @@ final readonly class Application
             };
         }
 
+        if ($arguments->has('log-junit')) {
+            $path = $arguments->value('log-junit');
+
+            if ($path === null || $path === '') {
+                throw CliError::optionRequiresValue('log-junit');
+            }
+
+            $reporters[] = new JUnitFileReporter($this->absolutePath($path, $workingDirectory));
+        }
+
         if ($profile) {
             $reporters[] = new ProfileReporter($output, new Style($capabilities->color));
         }
 
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
+    }
+
+    private function finishReporter(Reporter $reporter, ParsedArguments $arguments): bool
+    {
+        try {
+            $reporter->finish();
+        } catch (ReportingError $error) {
+            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+            return false;
+        }
+
+        return true;
     }
 
     /** Uses LINES, then tput, then 24. The reporter probes it one time when built. */
@@ -1311,6 +1343,7 @@ final readonly class Application
             new OptionSpec('fail-on-risky'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
+            new OptionSpec('log-junit', OptionValue::Required),
             new OptionSpec('artifacts-dir', OptionValue::Required),
             new OptionSpec('baseline', OptionValue::Required),
             new OptionSpec('current', OptionValue::Required),
