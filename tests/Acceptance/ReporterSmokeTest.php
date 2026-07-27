@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
@@ -22,6 +23,11 @@ final readonly class ReporterSmokeTest
         // corrupt the document that the parser must accept as a complete unit.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit']);
         Expect::that($result->exitCode)->toBe(1);
+
+        if ($result->stdout === '') {
+            Fail::because('The JUnit reporter did not write XML to stdout.');
+        }
+
         $document = new \DOMDocument();
         Expect::that($document->loadXML($result->stdout))->toBeTrue();
         $testcases = $document->getElementsByTagName('testcase');
