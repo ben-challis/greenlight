@@ -13,6 +13,7 @@ rules:
     - Greenlight\PhpStan\LifecycleMethodRule
     - Greenlight\PhpStan\SkipUnlessConditionRule
     - Greenlight\PhpStan\TestAttributePlacementRule
+    - Greenlight\PhpStan\TestConstructorRule
     - Greenlight\PhpStan\TestMethodRule
     - Greenlight\PhpStan\ToThrowMessageRule
 
