@@ -180,6 +180,34 @@ final class WorkerTest
     }
 
     #[Test]
+    public function unloadablePlanClassErrorsItsEntryWithoutEscapingTheWorker(): void
+    {
+        $id = new TestId('Missing\ExampleTest', 'neverRuns');
+        $plan = new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+        $sink = new CollectingEventSink();
+
+        $outcome = new Worker($this->registry())->run($plan, $sink);
+        $result = $sink->results()[0];
+
+        Expect::that($outcome->summary->errored)
+            ->because('an unloadable plan class MUST become a contained test error')
+            ->toBe(1)
+            ->and($result->outcome)
+            ->toBe(Outcome::Errored)
+            ->and($result->error?->message)
+            ->toBe('This process cannot load test class "Missing\ExampleTest" from the execution plan.')
+            ->and($sink->sequence())
+            ->toBe([
+                'TestClassStarted',
+                'TestStarted',
+                'TestFinished',
+                'TestClassFinished',
+            ]);
+    }
+
+    #[Test]
     public function dataSetArgumentsReachTheMethodPerKey(): void
     {
         [$summary, $results] = $this->runFixture('DataSets');
