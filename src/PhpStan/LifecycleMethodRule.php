@@ -17,6 +17,8 @@ use PHPStan\Rules\RuleErrorBuilder;
  * A lifecycle hook must be public, non-static, concrete, and callable without
  * arguments.
  *
+ * @internal
+ *
  * @implements Rule<InClassMethodNode>
  */
 final class LifecycleMethodRule implements Rule
