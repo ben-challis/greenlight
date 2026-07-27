@@ -13,6 +13,7 @@ parameters:
     excludePaths:
         analyse:
             - tests/Fixture/DiscoveryAttributeArgumentsInvalid
+            - tests/Fixture/DiscoveryInvalidMethods
             - tests/Fixture/DiscoveryResourceInvalid
     greenlight:
         configFiles:
