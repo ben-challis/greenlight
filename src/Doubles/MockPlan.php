@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Defines the mock plan that Doubles::mock() supplies to its closure.
+ * Defines the mock plan that `Doubles::mock()` supplies to its closure.
  *
  * Use the fluent methods to declare call patterns. The default cardinality is
  * at least one call. The verifier checks each declared pattern when the test
@@ -19,7 +19,7 @@ final readonly class MockPlan
     public function __construct(private DoubleState $state) {}
 
     /**
-     * Returns the with() wildcard that accepts all values in its position.
+     * Returns the `with()` wildcard that accepts all values in its position.
      */
     public static function any(): Any
     {

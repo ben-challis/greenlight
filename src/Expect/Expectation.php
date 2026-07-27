@@ -11,24 +11,24 @@ use Greenlight\Core\Test\ExpectationCounter;
 /**
  * A fluent matcher chain for one subject value.
  *
- * Use Expect::that() to create an instance.
+ * Use `Expect::that()` to create an instance.
  *
- * A failed matcher throws ExpectationFailed immediately.
+ * A failed matcher throws `ExpectationFailed` immediately.
  *
- * toEqual() uses these rules for deep equality:
+ * `toEqual()` uses these rules for deep equality:
  *
- * - Integers and floats use numeric value. Thus, 1 equals 1.0. NAN does not
+ * - Integers and floats use numeric value. Thus, `1` equals `1.0`. `NAN` does not
  *   equal a value, even itself.
  *
- * - Other scalar values and null use strict equality. Thus, '1' does not
- *   equal 1.
+ * - Other scalar values and `null` use strict equality. Thus, `'1'` does not
+ *   equal `1`.
  *
  * - Arrays are equal when they contain the same keys and recursively equal
  *   values. Key order has no effect.
  *
  * - Enum cases, closures, and resources use identity.
  *
- * - DateTimeInterface instances are equal at the same instant and
+ * - `DateTimeInterface` instances are equal at the same instant and
  *   microsecond. The timezone has no effect.
  *
  * - Other objects are equal when they have the same class and recursively
@@ -54,7 +54,7 @@ final class Expectation
     ) {}
 
     /**
-     * Dispatches extension matchers. If an ExpectationExtension provides the
+     * Dispatches extension matchers. If an `ExpectationExtension` provides the
      * requested matcher, this method gives it the subject and arguments.
      *
      * An extension cannot replace a native matcher. PHP calls the native
@@ -122,8 +122,8 @@ final class Expectation
     }
 
     /**
-     * Sets a new subject for the chain. The chain does not apply not() and
-     * because() modifiers to the new subject.
+     * Sets a new subject for the chain. The chain does not apply `not()` and
+     * `because()` modifiers to the new subject.
      */
     public function and(mixed $value): self
     {
@@ -160,7 +160,7 @@ final class Expectation
     }
 
     /**
-     * Uses the toEqual() rules but ignores list-element order at all levels.
+     * Uses the `toEqual()` rules but ignores list-element order at all levels.
      * Associative arrays keep their keys.
      *
      * @throws ExpectationFailed
@@ -190,7 +190,7 @@ final class Expectation
 
     /**
      * Passes when the haystack contains the subject by identity (===). This
-     * matcher is the reverse of toContain(). The check consumes a Traversable
+     * matcher is the reverse of `toContain()`. The check consumes a `Traversable`
      * haystack.
      *
      * @param iterable<mixed> $haystack
@@ -340,7 +340,7 @@ final class Expectation
     /**
      * For a string subject, checks for a string needle. For an iterable
      * subject, checks for the value by identity (===). The check consumes a
-     * Traversable subject.
+     * `Traversable` subject.
      *
      * @throws ExpectationFailed
      */
@@ -386,8 +386,8 @@ final class Expectation
     }
 
     /**
-     * The subject must be Countable or Traversable. The count consumes a
-     * Traversable subject.
+     * The subject must be `Countable` or `Traversable`. The count consumes a
+     * `Traversable` subject.
      *
      * @throws ExpectationFailed
      */
@@ -414,8 +414,8 @@ final class Expectation
 
     /**
      * Passes when the subject is an empty string or contains no elements.
-     * The subject must be a string, array, Countable, or iterable. The check
-     * consumes a Traversable subject.
+     * The subject must be a string, array, `Countable`, or iterable. The check
+     * consumes a `Traversable` subject.
      *
      * @throws ExpectationFailed
      */
@@ -439,8 +439,8 @@ final class Expectation
 
     /**
      * For a valid UTF-8 string, measures the number of code points. For other
-     * strings, measures the number of bytes. Array and Countable subjects use
-     * count().
+     * strings, measures the number of bytes. Array and `Countable` subjects use
+     * `count()`.
      *
      * @throws ExpectationFailed
      */
@@ -467,9 +467,9 @@ final class Expectation
     }
 
     /**
-     * The subject must be an array or an ArrayAccess implementation. The
-     * matcher uses array_key_exists() for arrays and offsetExists() for
-     * ArrayAccess.
+     * The subject must be an array or an `ArrayAccess` implementation. The
+     * matcher uses `array_key_exists()` for arrays and `offsetExists()` for
+     * `ArrayAccess`.
      *
      * @throws ExpectationFailed
      */
@@ -495,7 +495,7 @@ final class Expectation
 
     /**
      * Each subset key must exist in the subject with an equal value. Equality
-     * uses the toEqual() rules. A nested array is also a subset. The
+     * uses the `toEqual()` rules. A nested array is also a subset. The
      * related nested subject array can contain extra keys. The failure
      * identifies the first different key by its dot-separated path.
      *
@@ -696,7 +696,7 @@ final class Expectation
      * The message must satisfy the optional regular expression or exact-text
      * constraint.
      *
-     * With not(), a throwable that does not satisfy both conditions makes the
+     * With `not()`, a throwable that does not satisfy both conditions makes the
      * matcher pass.
      *
      * @param class-string<\Throwable> $throwable
@@ -754,7 +754,7 @@ final class Expectation
 
     /**
      * @param non-empty-string $description Sentence fragment that starts with
-     *   "to". Negation puts "not" before it. A pending because() reason
+     *   "to". Negation puts "not" before it. A pending `because()` reason
      *   follows it.
      *
      * @throws ExpectationFailed
@@ -827,7 +827,7 @@ final class Expectation
 
     /**
      * Reports a matcher that cannot process the subject type. The failure
-     * ignores negation. Thus, not() cannot make incorrect use pass.
+     * ignores negation. Thus, `not()` cannot make incorrect use pass.
      *
      * @param non-empty-string $message
      *

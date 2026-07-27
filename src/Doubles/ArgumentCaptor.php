@@ -8,7 +8,7 @@ namespace Greenlight\Doubles;
  * A captor records the argument in its position. It records the argument when
  * Greenlight selects the related expectation for the call.
  *
- * matches() always accepts the value and does not record it. Only the
+ * `matches()` always accepts the value and does not record it. Only the
  * expectation selected for the call can record an argument. Thus, checks of
  * candidate expectations cannot add values to a captor.
  */
