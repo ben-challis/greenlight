@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Discovery\ClassFileParser;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
@@ -50,5 +51,18 @@ final class Psr4ViolationTest
 
         Expect::that($message)->because('a file without a declaration produces a typed error')->toContain('does not declare a class');
         Expect::that($message)->because('a file without a declaration produces a typed error')->toContain('NothingHereTest.php');
+    }
+
+    #[Test]
+    public function unreadableClassFileProducesATypedErrorNamingTheFile(): void
+    {
+        $missing = \dirname(__DIR__, 2) . '/Fixture/MissingTest.php';
+
+        Expect::that(static fn(): array => ClassFileParser::declarationsIn($missing))
+            ->because('an unreadable class file produces a typed error naming the file')
+            ->toThrow(
+                DiscoveryError::class,
+                matching: '/Greenlight cannot read test file ".*\/MissingTest\.php"/',
+            );
     }
 }
