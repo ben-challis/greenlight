@@ -34,7 +34,7 @@
     "suggest": {
         "ext-pcov": "Collects line coverage quickly",
         "fidry/cpu-core-counter": "Improves worker core detection for auto with cgroup limits and more platforms",
-        "laravel/framework": "Enables container service injection into application-aware Laravel tests through the LaravelPlugin bridge",
+        "laravel/framework": "Provides the complete Laravel 13 framework that LaravelPlugin requires",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled extension.neon",
         "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the SymfonyPlugin bridge"

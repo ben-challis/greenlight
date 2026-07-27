@@ -5,8 +5,12 @@ supplies these services together with the built-in Greenlight harness services.
 
 The bridge boots a fresh application for each test that uses it. The bridge is
 in the `Greenlight\Laravel` namespace and is part of Greenlight. Register it to
-activate it. Laravel remains a development dependency of your application.
-Greenlight does not require Laravel.
+activate it. Your Laravel application includes `laravel/framework` as an
+application dependency. Greenlight does not require Laravel.
+
+`LaravelPlugin` requires `laravel/framework` 13. It does not support
+applications that install individual `illuminate/*` components. A standard
+Laravel 13 application already has the required package.
 
 ## Setup
 
@@ -31,14 +35,18 @@ new LaravelPlugin(static fn(): Application => Application::configure(basePath: _
     ->create());
 ```
 
-The plugin sets `APP_ENV` before each boot. The default value is `testing`.
-Pass `env:` to select another environment. Laravel loads `.env` without a
-change to variables that already exist, so the plugin value wins. When a
-`.env.testing` file exists, Laravel prefers it over `.env`.
+The plugin sets `APP_ENV` while the application is active. The default value is
+`testing`. Pass `env:` to select another environment. Laravel loads `.env`
+without a change to variables that already exist, so the plugin value wins.
+When a `.env.testing` file exists, Laravel prefers it over `.env`.
+
+The plugin restores the previous `APP_ENV` value after it discards the
+application. If you disable refreshes, the selected value stays active for the
+worker lifetime.
 
 The application boots when a test first requests a container service. A worker
 does not boot Laravel when its tests do not use the container. Greenlight tests
-the bridge with `laravel/framework` 13.
+the bridge with each `laravel/framework` 13 release.
 
 ## Container services
 
@@ -98,20 +106,22 @@ application in its own container.
 
 ## State between tests
 
-The bridge discards the application after each test.
+The bridge discards the application after each test. Configuration changes,
+facade roots, singleton state, and container registrations cannot reach the
+next test.
 
-Each test that uses container services receives a fresh boot. This is the same
-isolation model as Laravel's own test harness. Configuration changes, facade
-roots, singleton state, and container registrations from one test cannot reach
-the next test. The bridge also clears Laravel's static facade and container
-references after each test.
+This scope is smaller than the isolation in Laravel's `TestCase`. Laravel's
+test harness resets framework static state for its helpers and fakes. The
+bridge does not supply these features.
 
-Laravel installs global error and exception handlers during boot. The bridge
-restores the previous handlers immediately after boot, so Greenlight keeps
-ownership of test diagnostics.
+Laravel normally installs process-global diagnostic handlers during boot. The
+bridge disables this Laravel bootstrapper, so Greenlight keeps ownership of
+test diagnostics. The bridge also clears Laravel framework state that can
+retain a discarded application.
 
-Static state outside the container remains the test suite's responsibility. An
-example is `Carbon::setTestNow()`. Reset such state in an `#[After]` hook.
+Static state outside the application container remains the test suite's
+responsibility. An example is `Carbon::setTestNow()`. Reset such state in an
+`#[After]` hook.
 
 For a container that has no stateful services, pass `refreshBetweenTests:
 false` to the plugin. The application then boots once for each worker and no

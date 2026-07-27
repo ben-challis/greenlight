@@ -74,10 +74,15 @@ jobs:
         dependencies:
           - "lowest"
           - "locked"
-        # Run Symfony version jobs only with "highest". "locked" ignores
-        # SYMFONY_REQUIRE. laravel/framework requires Symfony >= 7.4, so
-        # "lowest" resolves Symfony 7.4 and the 6.4 job removes Laravel first.
+        # "locked" ignores SYMFONY_REQUIRE. The lowest jobs and the Symfony
+        # 6.4 job remove Laravel because Laravel 13 requires Symfony >= 7.4.
         include:
+          - php-version: "8.4"
+            dependencies: "lowest"
+            symfony-version: "6.4.*"
+          - php-version: "8.5"
+            dependencies: "lowest"
+            symfony-version: "6.4.*"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "6.4.*"
