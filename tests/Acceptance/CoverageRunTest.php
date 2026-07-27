@@ -69,6 +69,21 @@ final readonly class CoverageRunTest
     }
 
     #[Test]
+    public function unknownExportFormatFailsWithExactGuidance(): void
+    {
+        $project = $this->writeProject(exportFormat: 'sarif');
+        $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('an unknown coverage export format MUST fail the run')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain('Unknown coverage export format "sarif".')
+            ->and(\is_dir($project->path('coverage-out')))
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function orchestratorProcessCoverageIsMergedIntoTheExport(): void
     {
         $project = $this->writeProject(includeOrchestrator: true);
@@ -213,13 +228,22 @@ final readonly class CoverageRunTest
         );
     }
 
-    private function writeProject(bool $includeOrchestrator = false): AcceptanceProject
-    {
+    private function writeProject(
+        bool $includeOrchestrator = false,
+        ?string $exportFormat = null,
+    ): AcceptanceProject {
         $root = \dirname(__DIR__, 2);
         $project = AcceptanceProject::create($this->tempDirectory, 'coverage');
         $orchestratorInclude = $includeOrchestrator
             ? \sprintf("\n        ->include(%s)", \var_export($root . '/src/Runner/Orchestrator', true))
             : '';
+        $exports = $exportFormat === null
+            ? "\n        ->export('json', 'coverage-out/coverage.json')"
+                . "\n        ->export('lcov', 'coverage-out/lcov.info')"
+            : \sprintf(
+                "\n        ->export(%s, 'coverage-out/coverage.unknown')",
+                \var_export($exportFormat, true),
+            );
 
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
@@ -232,14 +256,13 @@ final readonly class CoverageRunTest
             return GreenlightConfig::create()
                 ->paths([%s])
                 ->coverage(fn($coverage) => $coverage
-                    ->include(%s)%s
-                    ->export('json', 'coverage-out/coverage.json')
-                    ->export('lcov', 'coverage-out/lcov.info'));
+                    ->include(%s)%s%s);
 
             PHP,
             \var_export($root . '/tests/Fixture/CoverageSuite', true),
             \var_export($root . '/tests/Fixture/CoverageLib', true),
             $orchestratorInclude,
+            $exports,
         ));
 
         return $project;
