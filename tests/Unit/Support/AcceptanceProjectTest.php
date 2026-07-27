@@ -46,7 +46,7 @@ final readonly class AcceptanceProjectTest
 
         if (!$builder instanceof GreenlightConfig) {
             Fail::because(\sprintf(
-                'Expected generated config "%s" to return GreenlightConfig, got %s.',
+                'Expected generated configuration "%s" to return GreenlightConfig, got %s.',
                 $project->path('greenlight.php'),
                 \get_debug_type($builder),
             ));
@@ -76,7 +76,7 @@ final readonly class AcceptanceProjectTest
 
         if (!$builder instanceof GreenlightConfig) {
             Fail::because(\sprintf(
-                'Expected generated config "%s" to return GreenlightConfig, got %s.',
+                'Expected generated configuration "%s" to return GreenlightConfig, got %s.',
                 $project->path('greenlight.php'),
                 \get_debug_type($builder),
             ));

@@ -28,13 +28,13 @@ final class ConfigFileError extends \RuntimeException
 
     public static function notFound(string $path): self
     {
-        return new self(\sprintf('Config file "%s" does not exist.', $path));
+        return new self(\sprintf('Configuration file "%s" does not exist.', $path));
     }
 
     public static function didNotReturnBuilder(string $file, mixed $returned): self
     {
         return new self(\sprintf(
-            'Config file "%s" must return a %s instance, got %s. End the file with "return GreenlightConfig::create()->...;".',
+            'Configuration file "%s" must return a %s instance, got %s. End the file with "return GreenlightConfig::create()->...;".',
             $file,
             GreenlightConfig::class,
             \get_debug_type($returned),
@@ -44,7 +44,7 @@ final class ConfigFileError extends \RuntimeException
     public static function threw(string $file, \Throwable $cause): self
     {
         return new self(\sprintf(
-            'Config file "%s" threw %s: %s',
+            'Configuration file "%s" threw %s: %s',
             $file,
             $cause::class,
             $cause->getMessage(),

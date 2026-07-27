@@ -84,7 +84,7 @@ final class ConfigLoaderTest
         }
 
         Fail::because(
-            'Expected ConfigLoader::loadFromDirectory() to wrap the config RuntimeException in ConfigFileError.',
+            'Expected ConfigLoader::loadFromDirectory() to wrap the configuration RuntimeException in ConfigFileError.',
         );
     }
 

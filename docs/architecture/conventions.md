@@ -69,7 +69,7 @@ from another throwable, preserve that text and its punctuation.
 An error message **MUST** enclose an interpolated identifier in double quotes:
 
 ```php
-'Config file "%s" does not exist.'
+'Configuration file "%s" does not exist.'
 ```
 
 The PHP string literal itself **SHOULD** stay single-quoted.

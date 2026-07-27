@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 const PROSE_EXCLUDED_DIRECTORIES = [
+    '.claude/worktrees',
     '.git',
     '.phpstan-api-stubs',
     'tests/Fixture',
@@ -71,6 +72,11 @@ const PROSE_BRITISH_SPELLINGS = [
     'coloured',
     'colouring',
     'colours',
+    'deserialisable',
+    'deserialisation',
+    'deserialised',
+    'deserialises',
+    'deserialising',
     'favour',
     'favoured',
     'favouring',
