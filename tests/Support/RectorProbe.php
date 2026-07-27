@@ -9,8 +9,8 @@ use Greenlight\Fixture\TempDirectory;
 /**
  * Runs the bundled PhpUnitToGreenlightRector against one PHPUnit-style test
  * class in an isolated project directory and reports the result. This
- * repository does not install PHPUnit, so the probe supplies attribute and
- * TestCase stubs that mirror the shapes of a real suite.
+ * repository does not install PHPUnit, so the probe supplies the source
+ * symbols that Rector must resolve.
  */
 final readonly class RectorProbe
 {
@@ -100,7 +100,7 @@ final readonly class RectorProbe
                 %s;
 
             PHP,
-            \var_export($root . '/tests/Fixture/RectorMigration/phpunit-stubs.php', true),
+            \var_export($root . '/tests/Fixture/RectorMigration/phpunit-10-plus-stubs.php', true),
             \var_export($directory . '/tests', true),
             \var_export($directory . '/rector-cache', true),
             $rule,

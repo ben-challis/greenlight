@@ -8,9 +8,15 @@ describes the concepts behind the conversion.
 ## Convert tests automatically
 
 Greenlight includes the `Greenlight\Rector\PhpUnitToGreenlightRector` rule for
-[Rector](https://getrector.com) 2. The rule rewrites attribute-based PHPUnit
-10+ test classes. It converts the `TestCase` parent, hooks, attributes,
-assertions, `expectException()` blocks, `markTestSkipped()`, and `fail()`.
+[Rector](https://getrector.com) 2. Install Rector as a development dependency:
+
+```console
+composer require --dev rector/rector:^2.0
+```
+
+The rule rewrites final, attribute-based PHPUnit 10+ test classes. It converts
+the `TestCase` parent, hooks, attributes, assertions, `expectException()`
+blocks, `markTestSkipped()`, and `fail()`.
 
 Register the rule in a `rector.php` file that selects your test directories:
 
@@ -28,17 +34,22 @@ return RectorConfig::configure()
     ->withRules([PhpUnitToGreenlightRector::class]);
 ```
 
-The rule converts a class only when each member has a faithful Greenlight
-equivalent. All other classes remain valid PHPUnit code, so a suite can move
-in steps. Converted classes run with Greenlight. The remaining classes
-continue to run with PHPUnit.
+The rule converts a final class only when each member has a faithful Greenlight
+equivalent. All other classes remain valid PHPUnit code, so a suite can move in
+steps. Converted classes run with Greenlight. The remaining classes continue
+to run with PHPUnit.
 
 A class does not convert when it uses:
 
+* a non-final test class
 * test doubles such as `createMock()`, which you convert manually to
   [strict doubles](test-doubles.md)
 * `#[Depends]`, `setUpBeforeClass()`, `tearDownAfterClass()`, or traits
 * assertions without a Greenlight matcher, for example file or XML assertions
+* `assertEmpty()` or `assertNotEmpty()`, because Greenlight uses different
+  empty-value rules
+* multiple data providers or multiple requirements on one declaration
+* `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
 A custom failure message on an assertion has no Greenlight equivalent. By
@@ -55,6 +66,11 @@ Two conversions change the code shape. An `expectException()` block becomes a
 `toThrow()` expectation over an arrow function, and the earlier statements do
 not move. `expectExceptionMessage()` finds a substring, so the rule writes a
 quoted `matching:` pattern and not an exact `message:` constraint.
+
+The rule preserves each repeated `#[TestWith]` row. It converts
+`#[RunInSeparateProcess]` and `#[RunTestsInSeparateProcesses]` to `#[Isolated]`.
+It rejects class-process and global-state options that have different
+Greenlight behavior.
 
 The rule removes coverage metadata attributes, for example `#[CoversClass]`,
 because coverage configuration belongs in `greenlight.php`. Rector's printer
@@ -103,7 +119,6 @@ $this->assertTrue($open, 'Order must stay open');         Expect::that($open)->b
 $this->assertInstanceOf(Response::class, $r);             Expect::that($r)->toBeInstanceOf(Response::class);
 $this->assertCount(3, $items);                            Expect::that($items)->toHaveCount(3);
 $this->expectException(DomainException::class);           Expect::that($fn)->toThrow(DomainException::class);
-$this->assertEmpty($items);                               Expect::that($items)->toBeEmpty();
 $this->assertGreaterThanOrEqual(3, $n);                   Expect::that($n)->toBeGreaterThanOrEqual(3);
 $this->assertIsArray($value);                             Expect::that($value)->toBeArray();
 $this->assertContains($needle, $haystack);                Expect::that($haystack)->toContain($needle);
@@ -128,6 +143,9 @@ These differences are important:
 * Arrays compare by keys and recursively equal values.
 * Objects compare by exact class and all properties, with private properties.
 * Unlike types do not use loose equality. Thus, `'1'` does not equal `1`.
+* PHPUnit `assertEmpty()` uses PHP `empty()` semantics.
+* Greenlight `toBeEmpty()` accepts strings, arrays, `Countable`, and iterables.
+* Convert `assertEmpty()` and `assertNotEmpty()` manually.
 * `->not()` applies only to the next matcher.
 * `->because()` replaces the PHPUnit `$message` argument and applies only to
   the next matcher.

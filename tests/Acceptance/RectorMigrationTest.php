@@ -27,12 +27,14 @@ final readonly class RectorMigrationTest
     use PHPUnit\Framework\Attributes\Group;
     use PHPUnit\Framework\Attributes\RequiresPhpExtension;
     use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+    use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
     use PHPUnit\Framework\Attributes\Test;
     use PHPUnit\Framework\Attributes\TestWith;
     use PHPUnit\Framework\TestCase;
 
     #[CoversClass('App\Price')]
     #[Group('pricing')]
+    #[RunTestsInSeparateProcesses]
     final class ProbeTest extends TestCase
     {
         private array $rates = [];
@@ -79,7 +81,7 @@ final readonly class RectorMigrationTest
                 $this->markTestSkipped('no smtp server');
             }
 
-            $this->assertNotEmpty(\getenv('GREENLIGHT_PROBE_SMTP'));
+            $this->assertTrue(true);
         }
 
         #[DoesNotPerformAssertions]
@@ -260,6 +262,187 @@ final readonly class RectorMigrationTest
             PHP_WRAP,
         ];
 
+        yield 'non-final test hierarchy' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\TestCase;
+
+            class BaseTest extends TestCase
+            {
+                public function testBase(): void
+                {
+                    $this->assertTrue(true);
+                }
+            }
+
+            final class ChildTest extends BaseTest
+            {
+                public function testChild(): void
+                {
+                    $this->assertTrue(true);
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
+        yield 'multiple data providers' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\Attributes\DataProvider;
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                #[DataProvider('positive')]
+                #[DataProvider('negative')]
+                public function testValues(int $value): void
+                {
+                    $this->assertIsInt($value);
+                }
+
+                public static function positive(): iterable
+                {
+                    yield [1];
+                }
+
+                public static function negative(): iterable
+                {
+                    yield [-1];
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
+        yield 'multiple extension requirements' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\Attributes\RequiresPhpExtension;
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                #[RequiresPhpExtension('json')]
+                #[RequiresPhpExtension('spl')]
+                public function testExtensions(): void
+                {
+                    $this->assertTrue(true);
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
+        yield 'class process isolation' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\Attributes\RunClassInSeparateProcess;
+            use PHPUnit\Framework\TestCase;
+
+            #[RunClassInSeparateProcess]
+            final class ProbeTest extends TestCase
+            {
+                public function testSomething(): void
+                {
+                    $this->assertTrue(true);
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
+        yield 'preserved process state' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\Attributes\PreserveGlobalState;
+            use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                #[RunInSeparateProcess]
+                #[PreserveGlobalState(true)]
+                public function testSomething(): void
+                {
+                    $this->assertTrue(true);
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
+        yield 'PHP empty semantics' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                public function testEmptyScalar(): void
+                {
+                    $this->assertEmpty(false);
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
+        yield 'existing non-repeatable Greenlight attribute' => [
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use Greenlight\Attribute\Isolated;
+            use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                #[Isolated]
+                #[RunInSeparateProcess]
+                public function testSomething(): void
+                {
+                    $this->assertTrue(true);
+                }
+            }
+
+            PHP_WRAP,
+        ];
+
         yield 'assertion message without opting in' => [self::MESSAGED];
     }
 
@@ -276,6 +459,132 @@ final readonly class RectorMigrationTest
         Expect::that($probe->changed)->toBeTrue()
             ->and($probe->code)->toContain("\Greenlight\Expect\Expect::that('a')->toBe('a');")
             ->not()->toContain('values must match');
+    }
+
+    #[Test]
+    public function preservesEachInlineDataRow(): void
+    {
+        $probe = RectorProbe::convert(
+            $this->tempDirectory,
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\Attributes\TestWith;
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                #[TestWith([1])]
+                #[TestWith([2])]
+                public function testRows(int $value): void
+                {
+                    $this->assertGreaterThan(0, $value);
+                }
+            }
+
+            PHP_WRAP,
+            name: 'inline-rows',
+        );
+
+        Expect::that($probe->changed)->toBeTrue()
+            ->and(\substr_count($probe->code, '#[\Greenlight\Attribute\DataRow'))->toBe(2)
+            ->and($probe->code)->toContain('#[\Greenlight\Attribute\DataRow([1])]')
+            ->toContain('#[\Greenlight\Attribute\DataRow([2])]');
+
+        $this->writeGreenlightConfig($probe->directory);
+        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+
+        Expect::that($run->exitCode)->toBe(0)
+            ->and($run->stdout)->toContain('2 tests, 2 passed');
+    }
+
+    #[Test]
+    public function convertsEverySupportedAssertionAndTheResultRunsGreen(): void
+    {
+        $probe = RectorProbe::convert(
+            $this->tempDirectory,
+            <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                public function testAssertions(): void
+                {
+                    $this->assertSame(1, 1);
+                    $this->assertNotSame(1, '1');
+                    $this->assertEquals(['a' => 1], ['a' => 1]);
+                    $this->assertNotEquals(['a' => 1], ['a' => 2]);
+                    $this->assertEqualsCanonicalizing([1, 2], [2, 1]);
+                    $this->assertNotEqualsCanonicalizing([1, 2], [1, 3]);
+                    $this->assertEqualsWithDelta(0.3, 0.1 + 0.2, 0.001);
+                    $this->assertTrue(true);
+                    $this->assertNotTrue(1);
+                    $this->assertFalse(false);
+                    $this->assertNotFalse(0);
+                    $this->assertNull(null);
+                    $this->assertNotNull(false);
+                    $this->assertInstanceOf(\stdClass::class, new \stdClass());
+                    $this->assertNotInstanceOf(\stdClass::class, new \ArrayObject());
+                    $this->assertCount(2, [1, 2]);
+                    $this->assertNotCount(1, [1, 2]);
+                    $this->assertGreaterThan(1, 2);
+                    $this->assertGreaterThanOrEqual(2, 2);
+                    $this->assertLessThan(2, 1);
+                    $this->assertLessThanOrEqual(1, 1);
+                    $this->assertIsArray([]);
+                    $this->assertIsNotArray(new \ArrayObject());
+                    $this->assertIsString('');
+                    $this->assertIsNotString(1);
+                    $this->assertIsInt(1);
+                    $this->assertIsNotInt(1.0);
+                    $this->assertIsFloat(1.0);
+                    $this->assertIsNotFloat(1);
+                    $this->assertIsBool(true);
+                    $this->assertIsNotBool(1);
+                    $this->assertIsCallable(static fn(): null => null);
+                    $this->assertIsNotCallable(null);
+                    $this->assertIsIterable([]);
+                    $this->assertIsNotIterable(1);
+                    $this->assertContains(1, [1]);
+                    $this->assertNotContains(2, [1]);
+                    $this->assertStringContainsString('ell', 'hello');
+                    $this->assertStringNotContainsString('bye', 'hello');
+                    $this->assertArrayHasKey('a', ['a' => 1]);
+                    $this->assertArrayNotHasKey('b', ['a' => 1]);
+                    $this->assertMatchesRegularExpression('/ell/', 'hello');
+                    $this->assertDoesNotMatchRegularExpression('/bye/', 'hello');
+                    $this->assertStringStartsWith('hel', 'hello');
+                    $this->assertStringStartsNotWith('bye', 'hello');
+                    $this->assertStringEndsWith('llo', 'hello');
+                    $this->assertStringEndsNotWith('bye', 'hello');
+                    $this->assertJson('{"a":1}');
+                    $this->assertJsonStringEqualsJsonString('{"a":1}', '{"a":1}');
+                }
+            }
+
+            PHP_WRAP,
+            name: 'assertions',
+        );
+
+        Expect::that($probe->changed)->toBeTrue()
+            ->and($probe->code)->not()->toContain('->assert')
+            ->not()->toContain('::assert');
+
+        $this->writeGreenlightConfig($probe->directory);
+        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+
+        Expect::that($run->exitCode)->toBe(0)
+            ->and($run->stdout)->toContain('1 test, 1 passed');
     }
 
     private function writeGreenlightConfig(string $directory): void

@@ -17,6 +17,8 @@ use Greenlight\Condition\OperatingSystemFamily;
  * drops it as inert metadata. An attribute that is absent from every list
  * rejects the class, because it changes behavior that Greenlight cannot
  * replicate.
+ *
+ * @internal
  */
 final class PhpUnitAttributes
 {
@@ -32,7 +34,6 @@ final class PhpUnitAttributes
         'Group' => Group::class,
         'Ticket' => Group::class,
         'RunInSeparateProcess' => Isolated::class,
-        'RunClassInSeparateProcess' => Isolated::class,
         'RunTestsInSeparateProcesses' => Isolated::class,
         'DoesNotPerformAssertions' => NoExpectations::class,
     ];
@@ -78,7 +79,6 @@ final class PhpUnitAttributes
         'UsesTrait',
         'TestDox',
         'DisableReturnValueGenerationForTestDoubles',
-        'PreserveGlobalState',
     ];
 
     /**

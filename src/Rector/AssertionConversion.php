@@ -9,6 +9,8 @@ namespace Greenlight\Rector;
  * The entry selects the subject argument, the matcher arguments, and the
  * negation. Arguments beyond the arity form the PHPUnit failure message,
  * which has no Greenlight equivalent.
+ *
+ * @internal
  */
 final readonly class AssertionConversion
 {
