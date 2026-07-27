@@ -21,7 +21,7 @@ final class RunHeaderTest
     }
 
     #[Test]
-    public function coloursTheNameGreenAndTheSeedDim(): void
+    public function colorsTheNameGreenAndTheSeedDim(): void
     {
         $header = new RunHeader('0.4.0', 'greenlight.php', 123456, phpVersion: '8.3.1');
 

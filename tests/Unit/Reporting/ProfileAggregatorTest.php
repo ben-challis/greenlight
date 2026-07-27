@@ -21,7 +21,7 @@ use Greenlight\Reporting\Style;
 final class ProfileAggregatorTest
 {
     #[Test]
-    public function derivesUtilisationBootLatencyAndSpreadFromACannedStream(): void
+    public function derivesUtilizationBootLatencyAndSpreadFromACannedStream(): void
     {
         $aggregator = new ProfileAggregator();
 
@@ -76,7 +76,7 @@ final class ProfileAggregatorTest
     }
 
     #[Test]
-    public function utilisationBandsAndSlowDurationsColourWithAnsi(): void
+    public function utilizationBandsAndSlowDurationsColorWithAnsi(): void
     {
         $aggregator = new ProfileAggregator();
 
@@ -96,7 +96,7 @@ final class ProfileAggregatorTest
     }
 
     #[Test]
-    public function fullyBusyWorkersColourGreen(): void
+    public function fullyBusyWorkersColorGreen(): void
     {
         $aggregator = new ProfileAggregator();
 

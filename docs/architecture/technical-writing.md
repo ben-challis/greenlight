@@ -75,9 +75,9 @@ Do not rewrite these items only to comply with this policy:
 Rewrite the technical prose around these items. A human-readable string remains
 in scope when its source representation is a PHP string.
 
-Do not rename a public identifier to change its spelling. For example, preserve
-an existing identifier that contains `colour`. Use `color` in the related
-prose.
+The checker excludes code identifiers. Use American English spelling in all
+repository-owned identifiers. Update each reference when you correct an
+identifier.
 
 ## Technical-term register
 
@@ -135,6 +135,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
 | live window | Technical noun | The bounded terminal area that shows active test classes |
+| marketing copy | Technical noun | Promotional text that uses STE clarity principles without a controlled-vocabulary requirement |
 | matcher | Technical noun | An operation that checks an expectation |
 | matcher map | Technical noun | The configured names and signatures of extension matchers |
 | memory gate | Technical noun | A repository check that detects memory growth across a long test run |
@@ -210,14 +211,12 @@ Use `run time` as a noun. Use `runtime` only as a modifier.
 Review technical prose as follows:
 
 1. Confirm that the text preserves its technical meaning.
-2. Confirm that each general word is approved for its use.
+2. Confirm that the approved vocabulary includes each general word.
 3. Confirm that each project term is in the register.
 4. Run `composer prose:check`.
 5. Run `composer prose:review`.
 6. Review each advisory message and correct each applicable problem.
 
-The checker baseline records existing mechanical findings during the rollout.
-Do not add a new finding to the baseline.
-
-Use `php tools/prose-check.php baseline --prune` after you remove findings. The
-command must not accept new findings.
+The mandatory check has no baseline. It must report zero errors. The advisory
+review can report approved nouns, exact literals, and marketing copy. Record the
+reason when you retain an advisory candidate.

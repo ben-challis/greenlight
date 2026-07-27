@@ -16,7 +16,7 @@ final readonly class PhpStanDataProviderRuleTest
     #[Test]
     public function providerAndRowShapesAreCheckedAgainstTheSignature(): void
     {
-        $probe = PhpStanProbe::analyse(
+        $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
             <?php

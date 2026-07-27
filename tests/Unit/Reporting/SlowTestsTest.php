@@ -59,7 +59,7 @@ final class SlowTestsTest
     }
 
     #[Test]
-    public function durationsAreColouredThroughTheStyle(): void
+    public function durationsAreColoredThroughTheStyle(): void
     {
         $slow = new SlowTests();
         $slow->record($this->finished('Acme\SlowTest::crawls', 1.5));

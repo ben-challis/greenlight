@@ -16,7 +16,7 @@ final readonly class PhpStanTestMethodRuleTest
     #[Test]
     public function testMethodsMustBePublicNonStaticAndConcrete(): void
     {
-        $probe = PhpStanProbe::analyse(
+        $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
             <?php

@@ -18,7 +18,7 @@ use Greenlight\Tests\Support\CollectingEventSink;
 final class ConditionEvaluationTest
 {
     #[Test]
-    public function parameterisedConditionsSkipWithRenderedArgumentsAndRunWhenSatisfied(): void
+    public function parameterizedConditionsSkipWithRenderedArgumentsAndRunWhenSatisfied(): void
     {
         \putenv('GREENLIGHT_STDLIB_NOPE');
         [$summary, $results] = $this->runFixture('ConditionArguments');

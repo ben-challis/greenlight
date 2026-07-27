@@ -2,14 +2,6 @@
 
 declare(strict_types=1);
 
-const PROSE_BLOCKING_RULES = [
-    'semicolon',
-    'contraction',
-    'british-spelling',
-    'sentence-length',
-    'paragraph-length',
-];
-
 const PROSE_EXCLUDED_DIRECTORIES = [
     '.git',
     '.phpstan-api-stubs',
@@ -79,6 +71,16 @@ const PROSE_BRITISH_SPELLINGS = [
     'coloured',
     'colouring',
     'colours',
+    'favour',
+    'favoured',
+    'favouring',
+    'favourite',
+    'favourites',
+    'favours',
+    'honour',
+    'honoured',
+    'honouring',
+    'honours',
     'initialise',
     'initialised',
     'initialises',
@@ -87,10 +89,24 @@ const PROSE_BRITISH_SPELLINGS = [
     'licenced',
     'licences',
     'licencing',
+    'labelled',
+    'labelling',
+    'normalise',
+    'normalised',
+    'normalises',
+    'normalising',
     'optimise',
     'optimised',
     'optimises',
     'optimising',
+    'parameterise',
+    'parameterised',
+    'parameterises',
+    'parameterising',
+    'pluralise',
+    'pluralised',
+    'pluralises',
+    'pluralising',
     'prioritise',
     'prioritised',
     'prioritises',
@@ -103,6 +119,10 @@ const PROSE_BRITISH_SPELLINGS = [
     'serialised',
     'serialises',
     'serialising',
+    'singularise',
+    'singularised',
+    'singularises',
+    'singularising',
     'travelling',
     'utilisation',
 ];
@@ -121,17 +141,31 @@ const PROSE_DISCOURAGED_WORDS = [
     'using',
 ];
 
+const PROSE_REGISTERED_LITERALS = [
+    'dev-main',
+];
+
 const PROSE_ALLOWED_ING_WORDS = [
     'anything',
     'during',
     'everything',
+    'marketing',
+    'meaning',
     'missing',
     'nothing',
     'opening',
     'remaining',
+    'running',
+    'scheduling',
     'something',
+    'spelling',
+    'staging',
     'string',
+    'substring',
+    'testing',
+    'timing',
     'warning',
+    'writing',
 ];
 
 const PROSE_IMPERATIVE_VERBS = [
@@ -170,22 +204,16 @@ function proseFail(string $message): never
 /**
  * @param list<string> $arguments
  *
- * @return array{command: string, operation: ?string, root: string, baseline: string}
+ * @return array{command: string, root: string}
  */
 function proseArguments(array $arguments): array
 {
     \array_shift($arguments);
     $command = 'check';
-    $operation = null;
     $root = \dirname(__DIR__);
-    $baseline = null;
 
     if (isset($arguments[0]) && !\str_starts_with($arguments[0], '--')) {
         $command = \array_shift($arguments);
-    }
-
-    if ($command === 'baseline' && isset($arguments[0]) && \in_array($arguments[0], ['--create', '--prune'], true)) {
-        $operation = \array_shift($arguments);
     }
 
     foreach ($arguments as $argument) {
@@ -195,21 +223,11 @@ function proseArguments(array $arguments): array
             continue;
         }
 
-        if (\str_starts_with($argument, '--baseline-dir=')) {
-            $baseline = \substr($argument, \strlen('--baseline-dir='));
-
-            continue;
-        }
-
         \proseFail(\sprintf('Unknown prose-check option "%s".', $argument));
     }
 
-    if (!\in_array($command, ['check', 'review', 'baseline'], true)) {
+    if (!\in_array($command, ['check', 'review'], true)) {
         \proseFail(\sprintf('Unknown prose-check command "%s".', $command));
-    }
-
-    if ($command === 'baseline' && $operation === null) {
-        \proseFail('The baseline command requires --create or --prune.');
     }
 
     $resolvedRoot = \realpath($root);
@@ -220,9 +238,7 @@ function proseArguments(array $arguments): array
 
     return [
         'command' => $command,
-        'operation' => $operation,
         'root' => $resolvedRoot,
-        'baseline' => $baseline ?? $resolvedRoot . '/tools/prose-baseline',
     ];
 }
 
@@ -397,8 +413,17 @@ function proseCleanMarkdown(string $text): string
  */
 function proseAstroPassages(string $path, string $contents): array
 {
-    $contents = (string) \preg_replace('/\A---\R.*?\R---\R/s', '', $contents);
-    $contents = (string) \preg_replace('#<(?:script|style|code|pre)\b[^>]*>.*?</(?:script|style|code|pre)>#is', ' LITERAL ', $contents);
+    $contents = (string) \preg_replace_callback(
+        '/\A---\R.*?\R---\R/s',
+        static fn(array $matches): string => \str_repeat("\n", \substr_count($matches[0], "\n")),
+        $contents,
+    );
+    $contents = (string) \preg_replace_callback(
+        '#<(?:script|style|code|pre)\b[^>]*>.*?</(?:script|style|code|pre)>#is',
+        static fn(array $matches): string => ' LITERAL ' . \str_repeat("\n", \substr_count($matches[0], "\n")),
+        $contents,
+    );
+    $contents = \proseMaskAstroExpressions($contents);
     $lines = \preg_split('/\R/', $contents);
     $passages = [];
     $paragraph = [];
@@ -442,6 +467,70 @@ function proseAstroPassages(string $path, string $contents): array
     \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, false);
 
     return $passages;
+}
+
+function proseMaskAstroExpressions(string $contents): string
+{
+    $masked = '';
+    $depth = 0;
+    $quote = null;
+    $escaped = false;
+    $length = \strlen($contents);
+
+    for ($index = 0; $index < $length; ++$index) {
+        $character = $contents[$index];
+
+        if ($depth === 0) {
+            if ($character === '{') {
+                $depth = 1;
+                $masked .= ' ';
+
+                continue;
+            }
+
+            $masked .= $character;
+
+            continue;
+        }
+
+        if ($character === "\n" || $character === "\r") {
+            $masked .= $character;
+
+            continue;
+        }
+
+        $masked .= ' ';
+
+        if ($escaped) {
+            $escaped = false;
+
+            continue;
+        }
+
+        if ($quote !== null) {
+            if ($character === '\\') {
+                $escaped = true;
+            } elseif ($character === $quote) {
+                $quote = null;
+            }
+
+            continue;
+        }
+
+        if (\in_array($character, ["'", '"', '`'], true)) {
+            $quote = $character;
+
+            continue;
+        }
+
+        if ($character === '{') {
+            ++$depth;
+        } elseif ($character === '}') {
+            --$depth;
+        }
+    }
+
+    return $masked;
 }
 
 /**
@@ -569,7 +658,7 @@ function proseCommentTokens(string $contents): array
 function proseAnalyze(array $passage): array
 {
     $findings = [];
-    $text = $passage['text'];
+    $text = \proseWithoutRegisteredLiterals($passage['text']);
     $normalized = \proseNormalize($text);
 
     $add = static function (string $rule, string $severity, string $message) use (&$findings, $passage, $normalized): void {
@@ -674,6 +763,20 @@ function proseAnalyze(array $passage): array
     }
 
     return $findings;
+}
+
+function proseWithoutRegisteredLiterals(string $text): string
+{
+    $literals = \array_map(
+        static fn(string $literal): string => \preg_quote($literal, '/'),
+        PROSE_REGISTERED_LITERALS,
+    );
+
+    return (string) \preg_replace(
+        '/(?<![A-Za-z0-9])(?:' . \implode('|', $literals) . ')(?![A-Za-z0-9])/u',
+        ' LITERAL ',
+        $text,
+    );
 }
 
 /**
@@ -783,269 +886,6 @@ function proseFindings(string $root): array
 }
 
 /**
- * @param list<array{path: string, line: int, rule: string, severity: string, message: string, passage: string}> $findings
- *
- * @return array<string, array{fingerprint: string, path: string, rule: string, passage: string, count: int, line: int, message: string}>
- */
-function proseAggregate(array $findings): array
-{
-    $entries = [];
-
-    foreach ($findings as $finding) {
-        if ($finding['severity'] !== 'blocking') {
-            continue;
-        }
-
-        $identity = \proseFindingIdentity($finding['path'], $finding['rule'], $finding['passage']);
-
-        if (!isset($entries[$identity])) {
-            $entries[$identity] = [
-                'fingerprint' => '',
-                'path' => $finding['path'],
-                'rule' => $finding['rule'],
-                'passage' => $finding['passage'],
-                'count' => 0,
-                'line' => $finding['line'],
-                'message' => $finding['message'],
-            ];
-        }
-
-        ++$entries[$identity]['count'];
-    }
-
-    $fingerprinted = [];
-
-    foreach ($entries as $entry) {
-        $fingerprint = \hash(
-            'sha256',
-            $entry['path'] . "\0" . $entry['rule'] . "\0" . $entry['passage'] . "\0" . $entry['count'],
-        );
-        $entry['fingerprint'] = $fingerprint;
-        $fingerprinted[$fingerprint] = $entry;
-    }
-
-    \ksort($fingerprinted);
-
-    return $fingerprinted;
-}
-
-function proseFindingIdentity(string $path, string $rule, string $passage): string
-{
-    return \hash('sha256', $path . "\0" . $rule . "\0" . $passage);
-}
-
-function proseShard(string $path): string
-{
-    if (\str_starts_with($path, 'docs/architecture/')) {
-        return 'docs-architecture';
-    }
-
-    if (\str_starts_with($path, 'docs/')) {
-        return 'docs-guides';
-    }
-
-    if (\str_starts_with($path, 'website/')) {
-        return 'website';
-    }
-
-    if (\preg_match('#^src/([^/]+)/#', $path, $matches) === 1) {
-        return 'src-' . \strtolower($matches[1]);
-    }
-
-    if (\str_starts_with($path, 'tests/')) {
-        return 'tests';
-    }
-
-    if (\str_starts_with($path, 'tools/')) {
-        return 'tools';
-    }
-
-    return 'root';
-}
-
-/**
- * @return list<string>
- */
-function proseExpectedShards(string $root): array
-{
-    $shards = ['root', 'docs-guides', 'docs-architecture', 'website', 'tests', 'tools'];
-    $source = $root . '/src';
-
-    if (\is_dir($source)) {
-        foreach (new DirectoryIterator($source) as $entry) {
-            if ($entry->isDot() || !$entry->isDir()) {
-                continue;
-            }
-
-            $shards[] = 'src-' . \strtolower($entry->getFilename());
-        }
-    }
-
-    $shards = \array_values(\array_unique($shards));
-    \sort($shards);
-
-    return $shards;
-}
-
-/**
- * @param array<string, array{fingerprint: string, path: string, rule: string, passage: string, count: int, line: int, message: string}> $entries
- */
-function proseWriteBaseline(string $root, string $directory, array $entries): void
-{
-    if (!\is_dir($directory) && !\mkdir($directory, 0o777, true) && !\is_dir($directory)) {
-        \proseFail(\sprintf('Cannot create baseline directory "%s".', $directory));
-    }
-
-    $byShard = [];
-
-    foreach (\proseExpectedShards($root) as $shard) {
-        $byShard[$shard] = [];
-    }
-
-    foreach ($entries as $entry) {
-        $byShard[\proseShard($entry['path'])][] = [
-            'fingerprint' => $entry['fingerprint'],
-            'path' => $entry['path'],
-            'rule' => $entry['rule'],
-            'passage' => $entry['passage'],
-            'count' => $entry['count'],
-        ];
-    }
-
-    \ksort($byShard);
-
-    $existingFiles = \glob($directory . '/*.json');
-
-    foreach ($existingFiles === false ? [] : $existingFiles as $file) {
-        \unlink($file);
-    }
-
-    foreach ($byShard as $shard => $values) {
-        \usort(
-            $values,
-            static fn(array $left, array $right): int => [
-                $left['path'],
-                $left['rule'],
-                $left['passage'],
-            ] <=> [
-                $right['path'],
-                $right['rule'],
-                $right['passage'],
-            ],
-        );
-
-        $json = \json_encode($values, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR);
-        \file_put_contents($directory . '/' . $shard . '.json', $json . "\n");
-    }
-}
-
-/**
- * @return array<string, array{fingerprint: string, path: string, rule: string, passage: string, count: int}>
- */
-function proseReadBaseline(string $directory): array
-{
-    $entries = [];
-
-    $baselineFiles = \glob($directory . '/*.json');
-
-    foreach ($baselineFiles === false ? [] : $baselineFiles as $file) {
-        $contents = \file_get_contents($file);
-
-        if (!\is_string($contents)) {
-            \proseFail(\sprintf('Cannot read baseline file "%s".', $file));
-        }
-
-        $values = \json_decode($contents, true, flags: \JSON_THROW_ON_ERROR);
-
-        if (!\is_array($values)) {
-            \proseFail(\sprintf('Use an array in baseline file "%s".', $file));
-        }
-
-        foreach ($values as $value) {
-            if (!\is_array($value) || !isset(
-                $value['fingerprint'],
-                $value['path'],
-                $value['rule'],
-                $value['passage'],
-                $value['count'],
-            )
-                || !\is_string($value['fingerprint'])
-                || !\is_string($value['path'])
-                || !\is_string($value['rule'])
-                || !\is_string($value['passage'])
-                || !\is_int($value['count'])
-            ) {
-                \proseFail(\sprintf('Baseline file "%s" contains an invalid entry.', $file));
-            }
-
-            $entries[$value['fingerprint']] = [
-                'fingerprint' => $value['fingerprint'],
-                'path' => $value['path'],
-                'rule' => $value['rule'],
-                'passage' => $value['passage'],
-                'count' => $value['count'],
-            ];
-        }
-    }
-
-    \ksort($entries);
-
-    return $entries;
-}
-
-/**
- * @param array<string, array{fingerprint: string, path: string, rule: string, passage: string, count: int, line: int, message: string}> $current
- * @param array<string, array{fingerprint: string, path: string, rule: string, passage: string, count: int}> $baseline
- *
- * @return array{
- *     new: list<array{fingerprint: string, path: string, rule: string, passage: string, count: int, line: int, message: string}>,
- *     stale: list<array{fingerprint: string, path: string, rule: string, passage: string, count: int}>
- * }
- */
-function proseCompareBaseline(array $current, array $baseline): array
-{
-    $new = [];
-    $stale = [];
-    $currentByIdentity = [];
-    $baselineByIdentity = [];
-
-    foreach ($current as $entry) {
-        $currentByIdentity[\proseFindingIdentity($entry['path'], $entry['rule'], $entry['passage'])] = $entry;
-    }
-
-    foreach ($baseline as $entry) {
-        $baselineByIdentity[\proseFindingIdentity($entry['path'], $entry['rule'], $entry['passage'])] = $entry;
-    }
-
-    foreach ($currentByIdentity as $identity => $entry) {
-        if (!isset($baselineByIdentity[$identity])) {
-            $new[] = $entry;
-
-            continue;
-        }
-
-        if ($entry['count'] > $baselineByIdentity[$identity]['count']) {
-            $new[] = $entry;
-        }
-
-        if ($entry['count'] < $baselineByIdentity[$identity]['count']) {
-            $stale[] = $baselineByIdentity[$identity];
-        }
-    }
-
-    foreach ($baselineByIdentity as $identity => $entry) {
-        if (!isset($currentByIdentity[$identity])) {
-            $stale[] = $entry;
-        }
-    }
-
-    \usort($new, static fn(array $left, array $right): int => [$left['path'], $left['rule']] <=> [$right['path'], $right['rule']]);
-    \usort($stale, static fn(array $left, array $right): int => [$left['path'], $left['rule']] <=> [$right['path'], $right['rule']]);
-
-    return ['new' => $new, 'stale' => $stale];
-}
-
-/**
  * @param array{path: string, line: int, rule: string, message: string, ...} $finding
  */
 function prosePrintFinding(array $finding, string $suffix = ''): void
@@ -1073,50 +913,13 @@ if ($options['command'] === 'review') {
     exit(0);
 }
 
-$current = \proseAggregate($findings);
+$hasBlockingFinding = false;
 
-if ($options['command'] === 'baseline' && $options['operation'] === '--create') {
-    $baselineFiles = \glob($options['baseline'] . '/*.json');
-
-    if ($baselineFiles !== false && $baselineFiles !== []) {
-        \proseFail('The prose baseline already exists.');
+foreach ($findings as $finding) {
+    if ($finding['severity'] === 'blocking') {
+        \prosePrintFinding($finding);
+        $hasBlockingFinding = true;
     }
-
-    \proseWriteBaseline($options['root'], $options['baseline'], $current);
-    echo \sprintf("Created prose baseline with %d finding groups.\n", \count($current));
-
-    exit(0);
 }
 
-$baseline = \proseReadBaseline($options['baseline']);
-$comparison = \proseCompareBaseline($current, $baseline);
-
-if ($options['command'] === 'baseline' && $options['operation'] === '--prune') {
-    if ($comparison['new'] !== []) {
-        foreach ($comparison['new'] as $finding) {
-            \prosePrintFinding($finding, ' [new finding]');
-        }
-
-        \proseFail('Baseline pruning refused new prose findings.');
-    }
-
-    \proseWriteBaseline($options['root'], $options['baseline'], $current);
-    echo \sprintf("Pruned prose baseline to %d finding groups.\n", \count($current));
-
-    exit(0);
-}
-
-foreach ($comparison['new'] as $finding) {
-    \prosePrintFinding($finding, ' [new finding]');
-}
-
-foreach ($comparison['stale'] as $finding) {
-    echo \sprintf(
-        '%s:1: %s: stale baseline finding for "%s"',
-        $finding['path'],
-        $finding['rule'],
-        $finding['passage'],
-    ) . "\n";
-}
-
-exit($comparison['new'] === [] && $comparison['stale'] === [] ? 0 : 1);
+exit($hasBlockingFinding ? 1 : 0);

@@ -131,14 +131,14 @@ Therefore, a percentage edit cannot change the imported coverage.
 
 The file uses UTF-8 JSON, unescaped slashes, and a newline at its end.
 
-## Versioning
+## Versions
 
 Version `1` **MAY** receive additive fields.
 
 Readers **MUST** ignore unknown keys.
 
-Each change to the meaning or shape of an existing field **MUST** use a new
-`v` value.
+If version 1 defines a field, a change to its definition or shape **MUST** use a
+new `v` value.
 
 Greenlight **MAY** add per-test coverage maps later as an optional extension.
 This extension **MUST** use an additive key and separate documentation.

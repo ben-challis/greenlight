@@ -56,7 +56,7 @@ final class PcovDriver implements CoverageDriver
         \pcov\clear();
         $this->collecting = false;
 
-        return new RawCoverage($this->normalise($collected));
+        return new RawCoverage($this->normalize($collected));
     }
 
     /**
@@ -64,7 +64,7 @@ final class PcovDriver implements CoverageDriver
      *
      * @return array<string, array<int, int>>
      */
-    private function normalise(array $collected): array
+    private function normalize(array $collected): array
     {
         $lines = [];
 

@@ -149,10 +149,10 @@ final class FilterTest
         Expect::that($filter->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
         Expect::that($filter->acceptsId('Acme\\BravoTest::beta'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
 
-        $labelled = new Filter(includeIds: ['*[edge case]']);
+        $labeled = new Filter(includeIds: ['*[edge case]']);
 
-        Expect::that($labelled->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
-        Expect::that($labelled->acceptsId('Acme\\BravoTest::alpha[other]'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
+        Expect::that($labeled->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
+        Expect::that($labeled->acceptsId('Acme\\BravoTest::alpha[other]'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
     }
 
     #[Test]

@@ -102,10 +102,9 @@ final readonly class RuntimeMessageTest
     }
 
     #[Test]
-    public function proseCheckReportsTheNewExactDiagnostics(): void
+    public function proseCheckReportsExactDiagnosticsAndRejectsRemovedOptions(): void
     {
         $root = $this->tempDirectory->subdirectory('prose-check/project');
-        $baseline = $this->tempDirectory->path() . '/prose-check/baseline';
         \file_put_contents(
             $root . '/sample.md',
             "# Sample\n\n"
@@ -118,29 +117,24 @@ final readonly class RuntimeMessageTest
             $script,
             'check',
             '--root=' . $root,
-            '--baseline-dir=' . $baseline,
         ]);
 
         Expect::that($sentence->exitCode)->toBe(1)
             ->and($sentence->stdout)->toContain(
-                'sample.md:3: sentence-length: Write no more than 25 words in a descriptive sentence. Found 27 words. [new finding]',
+                'sample.md:3: sentence-length: Write no more than 25 words in a descriptive sentence. Found 27 words.',
             );
 
         \file_put_contents($root . '/sample.md', "# Sample\n\nThe worker stops.\n");
-        \mkdir($baseline);
-        \file_put_contents($baseline . '/root.json', '"invalid"');
-        $invalidBaseline = Subprocess::run($root, [
+        $removedOption = Subprocess::run($root, [
             \PHP_BINARY,
             $script,
             'check',
             '--root=' . $root,
-            '--baseline-dir=' . $baseline,
+            '--baseline-dir=' . $root . '/baseline',
         ]);
 
-        Expect::that($invalidBaseline->exitCode)->toBe(1)
-            ->and($invalidBaseline->stderr)->toContain(
-                \sprintf('Use an array in baseline file "%s/root.json".', $baseline),
-            );
+        Expect::that($removedOption->exitCode)->toBe(1)
+            ->and($removedOption->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
     }
 
     #[Test]

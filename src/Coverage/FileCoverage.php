@@ -33,11 +33,11 @@ final readonly class FileCoverage
         array $coveredLines,
         array $uncoveredLines,
     ) {
-        $covered = $this->normaliseLines($coveredLines);
+        $covered = $this->normalizeLines($coveredLines);
         $coveredSet = \array_fill_keys($covered, true);
         $uncovered = [];
 
-        foreach ($this->normaliseLines($uncoveredLines) as $line) {
+        foreach ($this->normalizeLines($uncoveredLines) as $line) {
             if (!isset($coveredSet[$line])) {
                 $uncovered[] = $line;
             }
@@ -91,7 +91,7 @@ final readonly class FileCoverage
      *
      * @return list<positive-int>
      */
-    private function normaliseLines(array $lines): array
+    private function normalizeLines(array $lines): array
     {
         $set = [];
 

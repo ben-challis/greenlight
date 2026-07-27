@@ -27,7 +27,7 @@ final class TtyReporterTest
     public function interleavedClassesFinalizeInPlaceWithAnsi(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: true, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', 4242, phpVersion: '8.4.0'));
+        $reporter = new TtyReporter($output, color: true, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', 4242, phpVersion: '8.4.0'));
 
         // Two classes are active at the same time, as with multiple workers.
         // Timestamps differ by at least 0.05 seconds. Thus, the redraw limit
@@ -59,7 +59,7 @@ final class TtyReporterTest
     public function withoutAnsiOnlyFinalizedLinesAreWritten(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $reporter = new TtyReporter($output, color: false, cursor: false);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
@@ -78,7 +78,7 @@ final class TtyReporterTest
     public function zeroResultCategoriesAreOmittedFromTheSummary(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $reporter = new TtyReporter($output, color: false, cursor: false);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
@@ -95,7 +95,7 @@ final class TtyReporterTest
     public function skippedTestsAreUnambiguousAndListedWithReasons(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $reporter = new TtyReporter($output, color: false, cursor: false);
 
         $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.0));
         $reporter->onEvent(new TestFinished($this->skipped('App\GammaTest', 'one', 'xdebug not loaded'), 1.1));
@@ -121,7 +121,7 @@ final class TtyReporterTest
     public function workersLineOmitsZeroRecycledAndDisappearsWhenNoneSpawned(): void
     {
         $spawned = new BufferOutput();
-        $reporter = new TtyReporter($spawned, colour: false, cursor: false);
+        $reporter = new TtyReporter($spawned, color: false, cursor: false);
         $reporter->onEvent(new WorkerSpawned('w-1', 101, 1.0));
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
@@ -130,7 +130,7 @@ final class TtyReporterTest
             ->not()->toContain('recycled');
 
         $inProcess = new BufferOutput();
-        $reporter = new TtyReporter($inProcess, colour: false, cursor: false);
+        $reporter = new TtyReporter($inProcess, color: false, cursor: false);
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
@@ -138,17 +138,17 @@ final class TtyReporterTest
     }
 
     #[Test]
-    public function slowDurationsAreColouredOnClassLines(): void
+    public function slowDurationsAreColoredOnClassLines(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: true, cursor: true, verbose: true);
+        $reporter = new TtyReporter($output, color: true, cursor: true, verbose: true);
 
         $reporter->onEvent(new TestClassStarted('App\SlowTest', 1.0));
         $reporter->onEvent(new TestFinished($this->result('App\SlowTest', 'one', Outcome::Passed, 1.5), 1.1));
         $reporter->onEvent(new TestClassFinished('App\SlowTest', 1.2));
         $reporter->finish();
 
-        $terminal = new TerminalEmulator(retainColour: true);
+        $terminal = new TerminalEmulator(retainColor: true);
         $terminal->write($output->buffer());
 
         Expect::that($terminal->screen())->because('slow durations are colored on class lines')->toContain("(1 test, \x1b[33m1.500s\x1b[0m)");
@@ -158,14 +158,14 @@ final class TtyReporterTest
     public function verboseRestoresAPermanentLinePerClass(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: true, cursor: true, verbose: true);
+        $reporter = new TtyReporter($output, color: true, cursor: true, verbose: true);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
         $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.2));
         $reporter->finish();
 
-        $terminal = new TerminalEmulator(retainColour: true);
+        $terminal = new TerminalEmulator(retainColor: true);
         $terminal->write($output->buffer());
 
         Expect::that($terminal->screen())->because('verbose restores a permanent line per class')->toContain("\x1b[32m✓\x1b[0m App\AlphaTest (1 test, 0.010s)");
@@ -175,7 +175,7 @@ final class TtyReporterTest
     public function aBlankLineSeparatesPermanentLinesFromTheLiveWindow(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new RunStarted('run-1', 2, 1, 1.0));
         $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.0));
@@ -198,7 +198,7 @@ final class TtyReporterTest
     public function theFirstPermanentLineGetsAGapAndLaterOnesStack(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', null, phpVersion: '8.4.0'));
+        $reporter = new TtyReporter($output, color: false, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', null, phpVersion: '8.4.0'));
 
         $reporter->onEvent(new RunStarted('run-1', 4, 1, 1.0));
         $reporter->onEvent(new TestClassStarted('App\GammaTest', 1.0));
@@ -222,11 +222,11 @@ final class TtyReporterTest
     }
 
     #[Test]
-    public function noColourKeepsTheLiveWindowWithoutColourCodes(): void
+    public function noColorKeepsTheLiveWindowWithoutColorCodes(): void
     {
         // In the NO_COLOR case, cursor control remains and color is absent.
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new RunStarted('run-1', 2, 1, 1.0));
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
@@ -248,7 +248,7 @@ final class TtyReporterTest
         // On a non-TTY, --reporter=tty uses output that only adds new lines.
         // Unavailable live output MUST NOT hide information.
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $reporter = new TtyReporter($output, color: false, cursor: false);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Passed), 1.1));
@@ -263,13 +263,13 @@ final class TtyReporterTest
     public function theWindowShowsACounterAndInFlightClassesWithElapsedTime(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: true, cursor: true);
+        $reporter = new TtyReporter($output, color: true, cursor: true);
 
         $reporter->onEvent(new RunStarted('run-1', 4, 2, 10.0));
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 10.0));
         $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Failed), 11.5));
 
-        $terminal = new TerminalEmulator(retainColour: true);
+        $terminal = new TerminalEmulator(retainColor: true);
         $terminal->write($output->buffer());
 
         // The counter shows completed and planned tests with a red failure
@@ -288,7 +288,7 @@ final class TtyReporterTest
         $output = new BufferOutput();
         // Eight terminal rows limit the window to three lines. These lines are
         // the counter, one class, and the overflow.
-        $reporter = new TtyReporter($output, colour: false, cursor: true, terminalRows: 8);
+        $reporter = new TtyReporter($output, color: false, cursor: true, terminalRows: 8);
 
         $reporter->onEvent(new RunStarted('run-1', 9, 3, 1.0));
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
@@ -318,7 +318,7 @@ final class TtyReporterTest
     public function tickAdvancesInFlightDurationsWithoutEvents(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new RunStarted('run-1', 1, 1, 1.0));
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
@@ -335,7 +335,7 @@ final class TtyReporterTest
     public function tickWithoutCursorSupportWritesNothing(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $reporter = new TtyReporter($output, color: false, cursor: false);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->tick(2.0);
@@ -347,7 +347,7 @@ final class TtyReporterTest
     public function tickWithNoClassesInFlightWritesNothing(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new RunStarted('run-1', 1, 1, 1.0));
         $reporter->tick(2.0);
@@ -359,7 +359,7 @@ final class TtyReporterTest
     public function redrawsInsideTheThrottleWindowAreSkipped(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $before = $output->buffer();
@@ -377,7 +377,7 @@ final class TtyReporterTest
     public function repaintsRewriteLinesInPlaceWithoutBlankingTheWindow(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $before = \strlen($output->buffer());
@@ -396,7 +396,7 @@ final class TtyReporterTest
     public function classFinalizationRepaintsInOneFrameWithoutBlanking(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.05));
@@ -417,7 +417,7 @@ final class TtyReporterTest
     public function theCursorIsHiddenWhileLiveAndRestoredAtFinish(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
 
@@ -433,7 +433,7 @@ final class TtyReporterTest
     public function classFinalizationBypassesTheThrottle(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: true);
+        $reporter = new TtyReporter($output, color: false, cursor: true);
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestFinished($this->result('App\AlphaTest', 'one', Outcome::Failed), 1.01));
