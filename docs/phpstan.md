@@ -143,6 +143,12 @@ zero arguments.
 Errors have identifiers under `greenlight.lifecycleMethod.*` (`visibility`,
 `static`, `abstract`, `parameters`).
 
+## Conditional skip checks
+
+For `#[SkipUnless]`, PHPStan checks the transferred arguments against the
+constructor of the referenced condition. It reports invalid argument counts
+and types before a worker evaluates the condition.
+
 ## Data provider checks
 
 The extension validates data providers before a test runs. If you run analysis

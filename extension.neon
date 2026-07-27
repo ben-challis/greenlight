@@ -11,6 +11,7 @@ rules:
     - Greenlight\PhpStan\AttributeArgumentRule
     - Greenlight\PhpStan\DataProviderSignatureRule
     - Greenlight\PhpStan\LifecycleMethodRule
+    - Greenlight\PhpStan\SkipUnlessConditionRule
     - Greenlight\PhpStan\TestAttributePlacementRule
     - Greenlight\PhpStan\TestMethodRule
     - Greenlight\PhpStan\ToThrowMessageRule
