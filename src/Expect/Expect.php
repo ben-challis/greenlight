@@ -21,6 +21,13 @@ final class Expect
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /**
+     * @template T
+     *
+     * @param T $value
+     *
+     * @return Expectation<T>
+     */
     public static function that(mixed $value): Expectation
     {
         return new Expectation($value, new ValueRenderer(), self::$extensions);

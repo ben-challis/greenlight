@@ -34,6 +34,8 @@ use Greenlight\Core\Test\ExpectationCounter;
  * - Other objects are equal when they have the same class and recursively
  *   equal properties. This rule includes private and inherited properties.
  *   The comparison safely processes cyclic structures.
+ *
+ * @template T
  */
 final class Expectation
 {
@@ -45,6 +47,7 @@ final class Expectation
     /**
      * @internal Use Expect::that() instead.
      *
+     * @param T $subject
      * @param list<ExpectationExtension> $extensions
      */
     public function __construct(
@@ -61,6 +64,8 @@ final class Expectation
      * method directly.
      *
      * @param array<int, mixed> $arguments
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -89,6 +94,8 @@ final class Expectation
      * Inverts the next matcher in the chain. That matcher consumes the
      * inversion. Negation does not apply to subject type checks. A matcher
      * fails if it cannot process the subject type.
+     *
+     * @return self<T>
      */
     public function not(): self
     {
@@ -105,6 +112,8 @@ final class Expectation
      * reason. An empty reason causes a usage failure.
      *
      * @param non-empty-string $reason
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -124,6 +133,12 @@ final class Expectation
     /**
      * Sets a new subject for the chain. The chain does not apply `not()` and
      * `because()` modifiers to the new subject.
+     *
+     * @template TNext
+     *
+     * @param TNext $value
+     *
+     * @return self<TNext>
      */
     public function and(mixed $value): self
     {
@@ -132,6 +147,8 @@ final class Expectation
 
     /**
      * Passes when the subject and expected value are identical (===).
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -148,6 +165,8 @@ final class Expectation
      * Passes when the subject and expected value satisfy the rules for deep
      * equality on this class.
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toEqual(mixed $expected): self
@@ -163,6 +182,8 @@ final class Expectation
      * Uses the `toEqual()` rules but ignores list-element order at all levels.
      * Associative arrays keep their keys.
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toEqualCanonicalizing(mixed $expected): self
@@ -176,6 +197,8 @@ final class Expectation
 
     /**
      * Passes when the subject is identical (===) to one of the options.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -195,6 +218,8 @@ final class Expectation
      *
      * @param iterable<mixed> $haystack
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeIn(iterable $haystack): self
@@ -211,6 +236,8 @@ final class Expectation
     /**
      * @param class-string $class
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeInstanceOf(string $class): self
@@ -223,6 +250,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeTrue(): self
@@ -231,6 +260,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeFalse(): self
@@ -239,6 +270,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeNull(): self
@@ -247,6 +280,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeArray(): self
@@ -260,6 +295,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeString(): self
@@ -273,6 +310,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeInt(): self
@@ -286,6 +325,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeFloat(): self
@@ -299,6 +340,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeBool(): self
@@ -312,6 +355,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeCallable(): self
@@ -325,6 +370,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeIterable(): self
@@ -341,6 +388,8 @@ final class Expectation
      * For a string subject, checks for a string needle. For an iterable
      * subject, checks for the value by identity (===). The check consumes a
      * `Traversable` subject.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -389,6 +438,8 @@ final class Expectation
      * The subject must be `Countable` or `Traversable`. The count consumes a
      * `Traversable` subject.
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toHaveCount(int $count): self
@@ -417,6 +468,8 @@ final class Expectation
      * The subject must be a string, array, `Countable`, or iterable. The check
      * consumes a `Traversable` subject.
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeEmpty(): self
@@ -441,6 +494,8 @@ final class Expectation
      * For a valid UTF-8 string, measures the number of code points. For other
      * strings, measures the number of bytes. Array and `Countable` subjects use
      * `count()`.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -470,6 +525,8 @@ final class Expectation
      * The subject must be an array or an `ArrayAccess` implementation. The
      * matcher uses `array_key_exists()` for arrays and `offsetExists()` for
      * `ArrayAccess`.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -501,6 +558,8 @@ final class Expectation
      *
      * @param array<array-key, mixed> $subset
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toContainSubset(array $subset): self
@@ -529,6 +588,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeGreaterThan(int|float $bound): self
@@ -541,6 +602,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeGreaterThanOrEqual(int|float $bound): self
@@ -553,6 +616,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeLessThan(int|float $bound): self
@@ -565,6 +630,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeLessThanOrEqual(int|float $bound): self
@@ -578,6 +645,8 @@ final class Expectation
 
     /**
      * Passes when abs(subject - of) is not more than delta.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -599,6 +668,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws \InvalidArgumentException when the pattern is not a valid regular expression
      * @throws ExpectationFailed
      */
@@ -614,6 +685,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toStartWith(string $prefix): self
@@ -626,6 +699,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toEndWith(string $suffix): self
@@ -640,6 +715,8 @@ final class Expectation
     /**
      * The subject must be a string. The matcher passes when the string
      * contains valid JSON.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -657,6 +734,8 @@ final class Expectation
      * decodes the subject and expected JSON. It then applies deep equality to
      * the results. Object-key order has no effect. Invalid subject JSON causes
      * an expectation failure. Invalid expected JSON causes a usage error.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -700,6 +779,8 @@ final class Expectation
      * matcher pass.
      *
      * @param class-string<\Throwable> $throwable
+     *
+     * @return self<T>
      *
      * @throws \InvalidArgumentException when the match pattern is not a valid regular expression
      * @throws ExpectationFailed
@@ -756,6 +837,8 @@ final class Expectation
      * @param non-empty-string $description Sentence fragment that starts with
      *   "to". Negation puts "not" before it. A pending `because()` reason
      *   follows it.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */

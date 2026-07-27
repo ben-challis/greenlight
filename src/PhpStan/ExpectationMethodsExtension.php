@@ -23,15 +23,9 @@ use PHPStan\Reflection\MethodsClassReflectionExtension;
  *
  * @internal
  */
-final class ExpectationMethodsExtension implements MethodsClassReflectionExtension
+final readonly class ExpectationMethodsExtension implements MethodsClassReflectionExtension
 {
-    private ?MatcherMap $map = null;
-
-    /**
-     * @param list<string> $configFiles Relative paths use the directory from
-     *   which PHPStan runs
-     */
-    public function __construct(private readonly array $configFiles) {}
+    public function __construct(private MatcherMapProvider $matcherMap) {}
 
     #[\Override]
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
@@ -42,7 +36,7 @@ final class ExpectationMethodsExtension implements MethodsClassReflectionExtensi
             EventuallyExpectation::class,
             ConsistentlyExpectation::class,
         ], true)
-            && $this->map()->has($methodName);
+            && $this->matcherMap->get()->has($methodName);
     }
 
     #[\Override]
@@ -51,12 +45,7 @@ final class ExpectationMethodsExtension implements MethodsClassReflectionExtensi
         return new ExtensionMatcherMethod(
             $classReflection,
             $methodName,
-            $this->map()->parameters($methodName),
+            $this->matcherMap->get()->parameters($methodName),
         );
-    }
-
-    private function map(): MatcherMap
-    {
-        return $this->map ??= MatcherMap::fromConfigFiles($this->configFiles);
     }
 }

@@ -21,6 +21,7 @@ final class MatcherMapTest
 
         $lengthParameters = $map->parameters('toHaveDigestLength');
         $lengthType = $lengthParameters[0]->getType();
+        $subjectType = $map->subjectParameter('toHaveDigestLength')?->getType();
 
         Expect::that($map->has('toBeHexadecimal'))->because('collects matchers with subject stripped')->toBeTrue()
             ->and($map->has('toHaveDigestLength'))->toBeTrue()
@@ -28,7 +29,8 @@ final class MatcherMapTest
             ->and($map->parameters('toBeHexadecimal'))->toBe([])
             ->and(\count($lengthParameters))->toBe(1)
             ->and($lengthParameters[0]->getName())->toBe('length')
-            ->and($lengthType instanceof \ReflectionNamedType ? $lengthType->getName() : null)->toBe('int');
+            ->and($lengthType instanceof \ReflectionNamedType ? $lengthType->getName() : null)->toBe('int')
+            ->and($subjectType instanceof \ReflectionNamedType ? $subjectType->getName() : null)->toBe('string');
     }
 
     #[Test]

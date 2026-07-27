@@ -39,15 +39,22 @@ final class ConsistentlyExpectation extends TemporalExpectation
         );
     }
 
+    /**
+     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param non-empty-string|null $reason
+     *
+     * @return Expectation<T>
+     */
     #[\Override]
     protected function waitFor(
         \Closure $matcher,
         bool $negated,
+        ?string $reason,
         ?SourceLocation $location,
     ): Expectation {
         $startedAt = $this->clock->now();
         $observations = new ObservationLog($startedAt);
-        $last = $this->observe($matcher, $negated);
+        $last = $this->observe($matcher, $negated, $reason);
         $observedAt = $this->clock->now();
         $observations->record($observedAt, $last->rendered);
         ExpectationCounter::increment();
@@ -84,7 +91,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
 
         while (true) {
             $this->sleepUntil(\min($this->clock->now() + $this->intervalSeconds, $deadline));
-            $last = $this->observe($matcher, $negated);
+            $last = $this->observe($matcher, $negated, $reason);
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
 
@@ -114,6 +121,10 @@ final class ConsistentlyExpectation extends TemporalExpectation
                         null,
                         $location,
                     );
+                }
+
+                if (!$last instanceof TemporalValueObservation) {
+                    throw new \LogicException('A matched temporal observation must contain a subject.');
                 }
 
                 return $this->immediate($last->subject);
