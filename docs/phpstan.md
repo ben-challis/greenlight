@@ -96,6 +96,14 @@ To give an IDE the same signatures, generate the helper file:
 vendor/bin/greenlight ide-helper
 ```
 
+## Test method checks
+
+The extension reports a `#[Test]` method that Greenlight cannot run. A test
+method must be public, non-static, and concrete.
+
+Errors have identifiers under `greenlight.testMethod.*` (`visibility`,
+`static`, `abstract`).
+
 ## Data provider checks
 
 The extension validates data providers before a test runs. If you run analysis
@@ -147,6 +155,5 @@ Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
 exception inline:
 
 ```php
-// @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
-#[DataSet('doesNotExist')]
+#[DataSet('doesNotExist')] // @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
 ```
