@@ -48,4 +48,17 @@ final class MatcherMapTest
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([self::CONFIG, self::CONFLICTING_CONFIG]),
         )->because('conflicting signatures are refused')->toThrow(MatcherMapError::class);
     }
+
+    #[Test]
+    public function anUnknownMatcherNameFailsLoudly(): void
+    {
+        $map = MatcherMap::fromConfigFiles([]);
+
+        Expect::that(static fn(): array => $map->parameters('toBeMissing'))
+            ->because('an unknown matcher name fails loudly')
+            ->toThrow(
+                \LogicException::class,
+                message: 'No extension matcher named "toBeMissing" is known.',
+            );
+    }
 }
