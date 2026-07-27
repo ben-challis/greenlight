@@ -101,7 +101,17 @@ final class BecauseTest
     #[Test]
     public function extensionMatchersCarryTheReason(): void
     {
-        Expect::install([new OddNumbersExtension()]);
+        Expect::install([
+            new class implements ExpectationExtension {
+                #[\Override]
+                public function matchers(): array
+                {
+                    return [
+                        'toBeOdd' => static fn(mixed $subject): bool => \is_int($subject) && $subject % 2 === 1,
+                    ];
+                }
+            },
+        ]);
 
         try {
             $detail = FailureProbe::detailOf(
@@ -113,16 +123,5 @@ final class BecauseTest
 
         Expect::that($detail->message)
             ->toBe('Expected 2 to satisfy the extension matcher toBeOdd because the id must be odd.');
-    }
-}
-
-final class OddNumbersExtension implements ExpectationExtension
-{
-    #[\Override]
-    public function matchers(): array
-    {
-        return [
-            'toBeOdd' => static fn(mixed $subject): bool => \is_int($subject) && $subject % 2 === 1,
-        ];
     }
 }
