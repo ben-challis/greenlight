@@ -105,6 +105,23 @@ final class LaravelPluginTest
     }
 
     #[Test]
+    public function beforeTestPreservesLazyApplicationBoot(): void
+    {
+        $factoryCalled = false;
+        $plugin = new LaravelPlugin(static function () use (&$factoryCalled): Application {
+            $factoryCalled = true;
+
+            Fail::because('LaravelPlugin::beforeTest() MUST NOT boot the application.');
+        });
+
+        $plugin->beforeTest($this->context());
+
+        Expect::that($factoryCalled)
+            ->because('the application remains lazy during beforeTest()')
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function anUnknownExplicitIdFailsLoudly(): void
     {
         $plugin = $this->plugin();
