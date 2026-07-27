@@ -17,6 +17,8 @@ use PHPStan\Type\TypeCombinator;
 /**
  * Checks whether Greenlight can construct a class that contains tests.
  *
+ * @internal
+ *
  * @implements Rule<InClassNode>
  */
 final class TestConstructorRule implements Rule
