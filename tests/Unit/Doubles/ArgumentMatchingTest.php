@@ -131,6 +131,14 @@ final class ArgumentMatchingTest
     }
 
     #[Test]
+    public function anyDiagnosticsNameTheConstraint(): void
+    {
+        Expect::that(Argument::any()->describe())
+            ->because('any() diagnostics identify the argument constraint')
+            ->toBe('any()');
+    }
+
+    #[Test]
     public function aCaptorInWithCollectsValuesInCallOrder(): void
     {
         $doubles = new Doubles();
