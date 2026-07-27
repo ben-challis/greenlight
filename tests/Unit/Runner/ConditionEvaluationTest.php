@@ -19,6 +19,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Tests\Fixture\Condition\ThrowingCondition;
 use Greenlight\Tests\Fixture\Lifecycle\ConditionArguments\ConditionArgumentsTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 
@@ -94,6 +95,11 @@ final class ConditionEvaluationTest
                 \stdClass::class,
                 Condition::class,
             ),
+        ];
+
+        yield 'throws while evaluating' => [
+            ThrowingCondition::class,
+            'condition evaluation failed',
         ];
     }
 
