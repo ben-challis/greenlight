@@ -128,6 +128,10 @@ final class SocketChannel
         }
 
         if ($this->eof) {
+            if ($this->buffer->hasPendingBytes()) {
+                throw ProtocolError::malformedFrame('peer closed the connection with an incomplete frame');
+            }
+
             return null;
         }
 
@@ -158,6 +162,10 @@ final class SocketChannel
         $body = $this->buffer->next();
 
         if ($body === null) {
+            if ($this->eof && $this->buffer->hasPendingBytes()) {
+                throw ProtocolError::malformedFrame('peer closed the connection with an incomplete frame');
+            }
+
             return null;
         }
 
