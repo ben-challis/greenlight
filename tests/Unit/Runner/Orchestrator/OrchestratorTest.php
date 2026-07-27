@@ -160,6 +160,57 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
+    public function aWorkerFatalMessageFailsTheRunWithItsDiagnostic(): void
+    {
+        $script = <<<'PHP'
+            [, , $address, $workerId, $token] = $argv;
+            $socket = stream_socket_client($address);
+
+            $send = static function (array $message) use ($socket): void {
+                $json = json_encode($message, JSON_THROW_ON_ERROR);
+                fwrite($socket, pack('N', strlen($json)) . $json);
+                fflush($socket);
+            };
+
+            $send([
+                'v' => 1,
+                't' => 'hello',
+                'p' => [
+                    'workerId' => $workerId,
+                    'token' => $token,
+                    'pid' => getmypid(),
+                ],
+            ]);
+            $send([
+                'v' => 1,
+                't' => 'fatal',
+                'p' => [
+                    'detail' => [
+                        'class' => 'RuntimeException',
+                        'message' => 'fixture worker failed',
+                        'file' => '/fixture/worker.php',
+                        'line' => 42,
+                        'stackFrames' => [],
+                    ],
+                ],
+            ]);
+            sleep(60);
+            PHP;
+
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, '-r', $script],
+            workingDirectory: \sys_get_temp_dir(),
+        );
+
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a worker fatal message fails the run with its diagnostic')
+            ->toThrow(
+                ProtocolError::class,
+                '/reported a fatal Greenlight error: fixture worker failed \(\/fixture\/worker\.php:42\)/',
+            );
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
     public function aRecyclingWorkerWithAMismatchedSummaryFailsTheRun(): void
     {
         $script = <<<'PHP'
