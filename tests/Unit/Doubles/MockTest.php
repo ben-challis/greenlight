@@ -43,11 +43,12 @@ final class MockTest
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            Expect::that($detail->message)->toContain('add')
-                ->toContain('exactly 2 times')
-                ->toContain('1 time')
-                ->and($detail->expected)->toContain('exactly 2 times')
-                ->and($detail->actual)->toContain('add(1, 2)');
+            Expect::that($detail->message)->toBe(
+                'Calls to Greenlight\Tests\Fixture\Doubles\Calculator::add(): 1 time. '
+                . 'The expectation requires exactly 2 times.',
+            )
+                ->and($detail->expected)->toBe('add(any arguments) exactly 2 times')
+                ->and($detail->actual)->toBe('add(1, 2)');
 
             return;
         }
@@ -79,10 +80,10 @@ final class MockTest
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            Expect::that($detail->message)->toContain('Unexpected call')
+            Expect::that($detail->message)->toContain('unexpected call')
                 ->toContain('add')
                 ->and($detail->actual)->toBe('add(4, 5)')
-                ->and($detail->expected)->toContain('no call to add() was expected');
+                ->and($detail->expected)->toContain('no calls to add()');
 
             return;
         }
@@ -154,14 +155,14 @@ final class MockTest
 
             Fail::because('Expected add(1, 1) to fail because add() was configured with never().');
         } catch (ExpectationFailed $failure) {
-            Expect::that($failure->detail()->message)->toContain('Unexpected call')
+            Expect::that($failure->detail()->message)->toContain('unexpected call')
                 ->and($failure->detail()->expected)->toContain('never');
         }
 
         // Greenlight keeps the call failure. Thus, verification reports it
         // again.
         Expect::that(static fn() => $doubles->dispose())->because('never means any call fails immediately')
-            ->toThrow(ExpectationFailed::class, '/Unexpected call/');
+            ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
 
     #[Test]
@@ -175,7 +176,7 @@ final class MockTest
         $calculator->add(1, 1);
 
         Expect::that(static fn(): int => $calculator->add(1, 1))->because('calls beyond the allowed count fail immediately')
-            ->toThrow(ExpectationFailed::class, '/Unexpected call/');
+            ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
 
     #[Test]
@@ -221,7 +222,7 @@ final class MockTest
         }
 
         Expect::that(static fn() => $doubles->dispose())->because('a swallowed unexpected call still fails verification')
-            ->toThrow(ExpectationFailed::class, '/Unexpected call/');
+            ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
 
     #[Test]

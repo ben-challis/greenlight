@@ -80,7 +80,7 @@ final class Expectation
         }
 
         throw new \BadMethodCallException(\sprintf(
-            'No matcher named %s exists natively or in any registered expectation extension.',
+            'Greenlight has no native or registered extension matcher named %s.',
             $name,
         ));
     }
@@ -349,7 +349,7 @@ final class Expectation
         if (\is_string($this->subject)) {
             if (!\is_string($needle)) {
                 $this->usageFailure(\sprintf(
-                    'toContain() on a string subject requires a string needle, got %s.',
+                    'toContain() requires a string needle for a string subject. The needle type is %s.',
                     \get_debug_type($needle),
                 ));
             }
@@ -380,7 +380,7 @@ final class Expectation
         }
 
         $this->usageFailure(\sprintf(
-            'toContain() requires a string or iterable subject, got %s.',
+            'toContain() requires a string or iterable subject. The subject type is %s.',
             \get_debug_type($this->subject),
         ));
     }
@@ -399,7 +399,7 @@ final class Expectation
             $actualCount = \iterator_count($this->subject);
         } else {
             $this->usageFailure(\sprintf(
-                'toHaveCount() requires a countable or traversable subject, got %s.',
+                'toHaveCount() requires a countable or traversable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -429,7 +429,7 @@ final class Expectation
             $empty = \iterator_count($this->subject) === 0;
         } else {
             $this->usageFailure(\sprintf(
-                'toBeEmpty() requires a string, array, Countable or iterable subject, got %s.',
+                'toBeEmpty() requires a string, array, Countable, or iterable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -453,7 +453,7 @@ final class Expectation
             $actualLength = \count($this->subject);
         } else {
             $this->usageFailure(\sprintf(
-                'toHaveLength() requires a string, array or Countable subject, got %s.',
+                'toHaveLength() requires a string, array, or Countable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -481,7 +481,7 @@ final class Expectation
             $hasKey = $this->subject->offsetExists($key);
         } else {
             $this->usageFailure(\sprintf(
-                'toHaveKey() requires an array or ArrayAccess subject, got %s.',
+                'toHaveKey() requires an array or ArrayAccess subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -507,7 +507,7 @@ final class Expectation
     {
         if (!\is_array($this->subject)) {
             $this->usageFailure(\sprintf(
-                'toContainSubset() requires an array subject, got %s.',
+                'toContainSubset() requires an array subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -667,7 +667,7 @@ final class Expectation
         try {
             $decodedExpected = \json_decode($expected, true, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            $this->usageFailure('toMatchJson() requires valid JSON as the expected value.');
+            $this->usageFailure('Pass valid JSON as the expected value to toMatchJson().');
         }
 
         $renderedExpected = $this->renderer->render($decodedExpected);
@@ -707,7 +707,7 @@ final class Expectation
     public function toThrow(string $throwable, ?string $matching = null, ?string $message = null): self
     {
         if ($matching !== null && $message !== null) {
-            $this->usageFailure('toThrow() accepts either matching: or message:, not both.');
+            $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
         }
 
         if ($matching !== null) {
@@ -716,7 +716,7 @@ final class Expectation
 
         if (!\is_callable($this->subject)) {
             $this->usageFailure(\sprintf(
-                'toThrow() requires a callable subject, got %s.',
+                'toThrow() requires a callable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -797,7 +797,7 @@ final class Expectation
     {
         if (!\is_string($this->subject)) {
             $this->usageFailure(\sprintf(
-                '%s() requires a string subject, got %s.',
+                '%s() requires a string subject. The subject type is %s.',
                 $matcher,
                 \get_debug_type($this->subject),
             ));
@@ -816,7 +816,7 @@ final class Expectation
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
             $this->usageFailure(\sprintf(
-                '%s() requires an int or float subject, got %s.',
+                '%s() requires an int or float subject. The subject type is %s.',
                 $matcher,
                 \get_debug_type($this->subject),
             ));
@@ -853,7 +853,7 @@ final class Expectation
     {
         if (ErrorTrap::run(static fn(): int|false => \preg_match($pattern, ''), $warning) === false) {
             throw new \InvalidArgumentException(\sprintf(
-                '%s() received an invalid regular expression: %s%s',
+                'The pattern for %s() is an invalid regular expression: %s%s',
                 $matcher,
                 $pattern,
                 $warning === null ? '' : ' (' . $warning . ')',

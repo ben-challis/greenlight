@@ -42,7 +42,8 @@ final class JsonMatchersTest
             static fn() => Expect::that([])->toBeJson(),
         );
 
-        Expect::that($detail->message)->because('toBeJson() guards the subject type')->toBe('toBeJson() requires a string subject, got array.');
+        Expect::that($detail->message)->because('toBeJson() guards the subject type')
+            ->toBe('toBeJson() requires a string subject. The subject type is array.');
     }
 
     #[Test]
@@ -93,7 +94,8 @@ final class JsonMatchersTest
             static fn() => Expect::that(1)->toMatchJson('{}'),
         );
 
-        Expect::that($detail->message)->because('toMatchJson() guards the subject type')->toBe('toMatchJson() requires a string subject, got int.');
+        Expect::that($detail->message)->because('toMatchJson() guards the subject type')
+            ->toBe('toMatchJson() requires a string subject. The subject type is int.');
     }
 
     #[Test]
@@ -103,6 +105,7 @@ final class JsonMatchersTest
             static fn() => Expect::that('{}')->toMatchJson('{oops'),
         );
 
-        Expect::that($detail->message)->because('toMatchJson() guards the expected value')->toBe('toMatchJson() requires valid JSON as the expected value.');
+        Expect::that($detail->message)->because('toMatchJson() guards the expected value')
+            ->toBe('Pass valid JSON as the expected value to toMatchJson().');
     }
 }

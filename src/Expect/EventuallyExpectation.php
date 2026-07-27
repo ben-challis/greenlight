@@ -63,7 +63,7 @@ final class EventuallyExpectation extends TemporalExpectation
             ExpectationCounter::increment();
             $this->failure(
                 \sprintf(
-                    'The test timeout expired before the eventually expectation could wait for %.3fs.',
+                    'No time remains for the requested %.3f-second eventually() wait.',
                     $this->withinSeconds,
                 ),
                 $observations,
@@ -94,12 +94,12 @@ final class EventuallyExpectation extends TemporalExpectation
             if ($observedAt >= $deadline) {
                 $summary = $truncatedByTest
                     ? \sprintf(
-                        'The test timeout expired before the eventually expectation could complete its requested %.3fs wait after %d observations.',
-                        $this->withinSeconds,
+                        'The test time limit stopped the eventually() expectation after %d observations. The requested wait was %.3f seconds.',
                         $observations->count(),
+                        $this->withinSeconds,
                     )
                     : \sprintf(
-                        'Eventually expectation did not pass within %.3fs after %d observations.',
+                        'The eventually() expectation did not pass within %.3f seconds after %d observations.',
                         $this->withinSeconds,
                         $observations->count(),
                     );

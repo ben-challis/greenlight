@@ -39,14 +39,19 @@ final class StringMatchersTest
             static fn() => Expect::that(123)->toMatch('/\d+/'),
         );
 
-        Expect::that($detail->message)->because('toMatch() guards the subject type')->toBe('toMatch() requires a string subject, got int.');
+        Expect::that($detail->message)->because('toMatch() guards the subject type')
+            ->toBe('toMatch() requires a string subject. The subject type is int.');
     }
 
     #[Test]
     public function toMatchRejectsInvalidPatterns(): void
     {
         Expect::that(static fn() => Expect::that('abc')->toMatch('not a pattern'))->because('toMatch() rejects invalid patterns')
-            ->toThrow(\InvalidArgumentException::class, matching: '/invalid regular expression/');
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'The pattern for toMatch() is an invalid regular expression: not a pattern '
+                    . '(preg_match(): Delimiter must not be alphanumeric, backslash, or NUL byte)',
+            );
     }
 
     #[Test]
@@ -79,7 +84,8 @@ final class StringMatchersTest
             static fn() => Expect::that(['green'])->toStartWith('green'),
         );
 
-        Expect::that($detail->message)->because('toStartWith() guards the subject type')->toBe('toStartWith() requires a string subject, got array.');
+        Expect::that($detail->message)->because('toStartWith() guards the subject type')
+            ->toBe('toStartWith() requires a string subject. The subject type is array.');
     }
 
     #[Test]
@@ -111,7 +117,8 @@ final class StringMatchersTest
             static fn() => Expect::that(null)->toEndWith('x'),
         );
 
-        Expect::that($detail->message)->because('toEndWith() guards the subject type')->toBe('toEndWith() requires a string subject, got null.');
+        Expect::that($detail->message)->because('toEndWith() guards the subject type')
+            ->toBe('toEndWith() requires a string subject. The subject type is null.');
     }
 
     #[Test]
@@ -159,6 +166,7 @@ final class StringMatchersTest
             static fn() => Expect::that(42)->toHaveLength(2),
         );
 
-        Expect::that($detail->message)->because('toHaveLength() guards the subject type')->toBe('toHaveLength() requires a string, array or Countable subject, got int.');
+        Expect::that($detail->message)->because('toHaveLength() guards the subject type')
+            ->toBe('toHaveLength() requires a string, array, or Countable subject. The subject type is int.');
     }
 }

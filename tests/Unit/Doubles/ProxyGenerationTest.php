@@ -131,15 +131,36 @@ final class ProxyGenerationTest
     }
 
     #[Test]
-    public function anUnconfiguredNeverReturningMethodIsAnAuthoringError(): void
+    public function aNeverReturningMethodRejectsAConfiguredReturnValue(): void
     {
         $doubles = new Doubles();
         $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
-            $plan->expects('returnsNever');
+            $plan->expects('returnsNever')->andReturns(null);
         });
 
-        Expect::that(static fn() => $wide->returnsNever())->because('an unconfigured never returning method is an authoring error')
-            ->toThrow(DoublesError::class, '/no configured answer/');
+        Expect::that(static fn() => $wide->returnsNever())->because('a never returning method requires andThrows()')
+            ->toThrow(
+                DoublesError::class,
+                message: 'Greenlight\Tests\Fixture\Doubles\Wide::returnsNever() declares never. '
+                    . 'Configure it with andThrows().',
+            );
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function aStaticInterfaceMethodExplainsThatDoublesCannotInterceptIt(): void
+    {
+        $doubles = new Doubles();
+        $double = $doubles->mock(StaticMethodFixture::class);
+        $proxyClass = $double::class;
+
+        Expect::that(static fn(): string => $proxyClass::lookup())
+            ->toThrow(
+                DoublesError::class,
+                message: 'Greenlight\Tests\Unit\Doubles\StaticMethodFixture::lookup() is static. '
+                    . 'Doubles cannot intercept static methods.',
+            );
 
         $doubles->dispose();
     }
@@ -168,4 +189,9 @@ final class ProxyGenerationTest
 
         @\rmdir($directory);
     }
+}
+
+interface StaticMethodFixture
+{
+    public static function lookup(): string;
 }

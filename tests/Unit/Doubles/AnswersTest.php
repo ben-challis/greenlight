@@ -38,7 +38,11 @@ final class AnswersTest
 
         Expect::that($calculator->add(0, 0))->because('a matched call after sequence exhaustion is an authoring error')->toBe(5)
             ->and(static fn(): int => $calculator->add(0, 0))
-            ->toThrow(DoublesError::class, '/add/');
+            ->toThrow(
+                DoublesError::class,
+                message: 'The return sequence for add() has no value after 1 time. '
+                    . 'Add values or use a stricter call count.',
+            );
     }
 
     #[Test]

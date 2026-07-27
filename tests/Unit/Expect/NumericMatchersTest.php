@@ -51,7 +51,8 @@ final class NumericMatchersTest
             static fn() => Expect::that('3')->toBeGreaterThan(2),
         );
 
-        Expect::that($detail->message)->because('toBeGreaterThan() guards the subject type')->toBe('toBeGreaterThan() requires an int or float subject, got string.');
+        Expect::that($detail->message)->because('toBeGreaterThan() guards the subject type')
+            ->toBe('toBeGreaterThan() requires an int or float subject. The subject type is string.');
     }
 
     #[Test]
@@ -86,7 +87,8 @@ final class NumericMatchersTest
             static fn() => Expect::that('3')->toBeGreaterThanOrEqual(2),
         );
 
-        Expect::that($detail->message)->because('toBeGreaterThanOrEqual() guards the subject type')->toBe('toBeGreaterThanOrEqual() requires an int or float subject, got string.');
+        Expect::that($detail->message)->because('toBeGreaterThanOrEqual() guards the subject type')
+            ->toBe('toBeGreaterThanOrEqual() requires an int or float subject. The subject type is string.');
     }
 
     #[Test]
@@ -119,7 +121,8 @@ final class NumericMatchersTest
             static fn() => Expect::that(null)->toBeLessThan(2),
         );
 
-        Expect::that($detail->message)->because('toBeLessThan() guards the subject type')->toBe('toBeLessThan() requires an int or float subject, got null.');
+        Expect::that($detail->message)->because('toBeLessThan() guards the subject type')
+            ->toBe('toBeLessThan() requires an int or float subject. The subject type is null.');
     }
 
     #[Test]
@@ -154,7 +157,8 @@ final class NumericMatchersTest
             static fn() => Expect::that(null)->toBeLessThanOrEqual(2),
         );
 
-        Expect::that($detail->message)->because('toBeLessThanOrEqual() guards the subject type')->toBe('toBeLessThanOrEqual() requires an int or float subject, got null.');
+        Expect::that($detail->message)->because('toBeLessThanOrEqual() guards the subject type')
+            ->toBe('toBeLessThanOrEqual() requires an int or float subject. The subject type is null.');
     }
 
     #[Test]
@@ -189,6 +193,7 @@ final class NumericMatchersTest
             static fn() => Expect::that('1.0')->toBeWithin(0.1, 1.0),
         );
 
-        Expect::that($detail->message)->because('toBeWithin() guards the subject type')->toBe('toBeWithin() requires an int or float subject, got string.');
+        Expect::that($detail->message)->because('toBeWithin() guards the subject type')
+            ->toBe('toBeWithin() requires an int or float subject. The subject type is string.');
     }
 }

@@ -126,14 +126,14 @@ final readonly class CallHandler
         $declared = $this->state->expectationsFor($method);
 
         $expected = $declared === []
-            ? \sprintf('no call to %s() was expected', $method)
+            ? \sprintf('no calls to %s()', $method)
             : \implode('; ', \array_map(
                 fn(MethodExpectation $expectation): string => $expectation->describePlan($this->renderer),
                 $declared,
             ));
 
         return new FailureDetail(
-            \sprintf('Unexpected call to %s::%s() on a mock.', $this->state->type, $method),
+            \sprintf('The mock received an unexpected call to %s::%s().', $this->state->type, $method),
             $expected,
             MethodExpectation::renderCall($this->renderer, $method, $arguments),
         );

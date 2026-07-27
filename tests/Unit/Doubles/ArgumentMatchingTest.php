@@ -152,7 +152,7 @@ final class ArgumentMatchingTest
     public function aCaptorWithoutCapturesRefusesToProduceAValue(): void
     {
         Expect::that(static fn(): mixed => Argument::captor()->value())->because('a captor without captures refuses to produce a value')
-            ->toThrow(DoublesError::class, '/captured/');
+            ->toThrow(DoublesError::class, '/captor has no value/');
     }
 
     #[Test]
