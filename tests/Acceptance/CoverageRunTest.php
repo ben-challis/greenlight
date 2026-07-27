@@ -166,6 +166,23 @@ final readonly class CoverageRunTest
     }
 
     #[Test]
+    public function failedMultiFileExportNamesTheFirstTarget(): void
+    {
+        $project = $this->writeProject(exportFormat: 'html');
+        $project->writeFile('coverage-out/coverage.unknown', 'not a directory');
+        $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('a failed multi-file coverage export MUST fail the run')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain('Greenlight could not write the coverage export to')
+            ->toContain('coverage-out/coverage.unknown/index.html')
+            ->not()
+            ->toContain('html → coverage-out/coverage.unknown');
+    }
+
+    #[Test]
     public function coverageDiffFailsOnRegressionsAndPassesWhenEqual(): void
     {
         $project = $this->writeProject();
