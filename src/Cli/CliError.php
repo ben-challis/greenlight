@@ -14,12 +14,12 @@ final class CliError extends \RuntimeException
 
     public static function unknownOption(string $option): self
     {
-        return new self(\sprintf('Unknown option "%s". Run greenlight --help for the available options.', $option));
+        return new self(\sprintf('Unknown option "%s". Use greenlight --help to list options.', $option));
     }
 
     public static function bareDoubleDash(): self
     {
-        return new self('Unexpected bare "--".');
+        return new self('"--" requires an option name.');
     }
 
     public static function optionTakesNoValue(string $name): self
@@ -29,12 +29,12 @@ final class CliError extends \RuntimeException
 
     public static function optionRequiresValue(string $name): self
     {
-        return new self(\sprintf('Option --%s requires a value, use --%s=<value>.', $name, $name));
+        return new self(\sprintf('Option --%s requires a value. Use --%s=<value>.', $name, $name));
     }
 
     public static function shortOptionRequiresValue(string $short, string $name): self
     {
-        return new self(\sprintf('Option -%s requires a value, use --%s=<value>.', $short, $name));
+        return new self(\sprintf('Option -%s requires a value. Use --%s=<value>.', $short, $name));
     }
 
     public static function unexpectedArgument(string $argument): self
@@ -44,30 +44,30 @@ final class CliError extends \RuntimeException
 
     public static function duplicateOption(string $name): self
     {
-        return new self(\sprintf('Option --%s cannot be given more than once.', $name));
+        return new self(\sprintf('Specify option --%s only once.', $name));
     }
 
     public static function emptyGroupName(): self
     {
-        return new self('--group requires a non-empty group name.');
+        return new self('--group requires a group name.');
     }
 
     public static function emptyFilterPattern(): self
     {
-        return new self('--filter requires a non-empty pattern.');
+        return new self('--filter requires a pattern.');
     }
 
     public static function malformedShard(string $raw): self
     {
-        return new self(\sprintf('--shard must look like <n>/<m>, for example 1/4, got "%s".', $raw));
+        return new self(\sprintf('--shard requires <n>/<m>, such as 1/4. Received "%s".', $raw));
     }
 
     public static function shardOutOfRange(string $raw, int $count): self
     {
-        $message = \sprintf('--shard needs 1 <= n <= m, got "%s".', $raw);
+        $message = \sprintf('--shard requires 1 <= n <= m. Received "%s".', $raw);
 
         if ($count >= 1) {
-            $message .= \sprintf(' With %d shards, n must be between 1 and %d.', $count, $count);
+            $message .= \sprintf(' Valid n values for %d shards are 1 through %d.', $count, $count);
         }
 
         return new self($message);
@@ -75,31 +75,31 @@ final class CliError extends \RuntimeException
 
     public static function invalidSeed(string $raw): self
     {
-        return new self(\sprintf('--seed must be a non-negative integer, got "%s".', $raw));
+        return new self(\sprintf('--seed requires a nonnegative integer. Received "%s".', $raw));
     }
 
     public static function notAPositiveInteger(string $flag, string $raw): self
     {
-        return new self(\sprintf('%s must be a positive integer, got "%s".', $flag, $raw));
+        return new self(\sprintf('%s requires a positive integer. Received "%s".', $flag, $raw));
     }
 
     public static function malformedResourceLimit(string $raw): self
     {
         return new self(\sprintf(
-            '--resource-limit must look like <name>=<limit>, for example postgres=2, got "%s".',
+            '--resource-limit requires <name>=<limit>, such as postgres=2. Received "%s".',
             $raw,
         ));
     }
 
     public static function duplicateResourceLimit(string $name): self
     {
-        return new self(\sprintf('Resource limit "%s" cannot be overridden more than once.', $name));
+        return new self(\sprintf('Set resource limit "%s" only once.', $name));
     }
 
     public static function unknownReporter(string $name): self
     {
         return new self(\sprintf(
-            'Unknown reporter "%s". Available: tty, plain, junit, jsonl, github, teamcity.',
+            'Unknown reporter "%s". Select tty, plain, junit, jsonl, github, or teamcity.',
             $name,
         ));
     }

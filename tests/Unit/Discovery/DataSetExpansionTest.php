@@ -104,7 +104,7 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderInvalid');
 
-        Expect::that($message)->because('non static provider is rejected')->toContain('must be public and static');
+        Expect::that($message)->because('non static provider is rejected')->toContain('Declare the provider as public and static');
         Expect::that($message)->because('non static provider is rejected')->toContain('instanceProvider');
     }
 
@@ -113,7 +113,7 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderNotIterable');
 
-        Expect::that($message)->because('non iterable provider is rejected')->toContain('must return an iterable');
+        Expect::that($message)->because('non iterable provider is rejected')->toContain('Return an iterable from the provider');
         Expect::that($message)->because('non iterable provider is rejected')->toContain('string');
     }
 
@@ -148,7 +148,7 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderEmpty');
 
-        Expect::that($message)->because('empty provider is rejected')->toContain('yielded no data sets');
+        Expect::that($message)->because('empty provider is rejected')->toContain('produced no data sets');
     }
 
     #[Test]

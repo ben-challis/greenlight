@@ -108,7 +108,7 @@ final readonly class CliTest
         $result = $this->runCli(['run'], 'tests/Fixture/RunEmptyConfig');
 
         Expect::that($result->exitCode)->because('run with no tests exits one')->toBe(1);
-        Expect::that($result->output())->because('run with no tests exits one')->toContain('No tests found');
+        Expect::that($result->output())->because('run with no tests exits one')->toContain('Greenlight found no tests');
     }
 
     #[Test]

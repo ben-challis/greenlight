@@ -29,7 +29,7 @@ final class Psr4ViolationTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryPsr4Violation');
 
-        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('not autoloadable');
+        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('The autoloader cannot load class');
         Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain(MismatchTest::class);
         Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('MismatchTest.php');
     }
@@ -48,7 +48,7 @@ final class Psr4ViolationTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryNoClass');
 
-        Expect::that($message)->because('file without any declaration produces a typed error')->toContain('does not declare any class');
+        Expect::that($message)->because('file without any declaration produces a typed error')->toContain('does not declare a class');
         Expect::that($message)->because('file without any declaration produces a typed error')->toContain('NothingHereTest.php');
     }
 }

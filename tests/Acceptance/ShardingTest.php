@@ -42,7 +42,7 @@ final readonly class ShardingTest
             Expect::that($result->exitCode)->toBe(64)->and($result->output())->toContain('greenlight: --shard');
         }
         $result = GreenlightCli::run($project->directory, ['list-tests', '--shard=4/3']);
-        Expect::that($result->output())->because('malformed shard specs are usage errors')->toContain('n must be between 1 and 3');
+        Expect::that($result->output())->because('malformed shard specs are usage errors')->toContain('Valid n values for 3 shards are 1 through 3.');
     }
 
     /**

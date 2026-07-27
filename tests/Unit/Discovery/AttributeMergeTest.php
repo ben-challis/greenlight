@@ -109,11 +109,10 @@ final class AttributeMergeTest
         try {
             new TestDiscoverer()->discover([$dir]);
         } catch (DiscoveryError $error) {
-            $message = $error->getMessage();
-            Expect::that($message)
-                ->toContain('NonScalarArgumentTest')
-                ->toContain('neverDiscovered')
-                ->toContain('array');
+            Expect::that($error->getMessage())->toBe(
+                'Attribute on Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\NonScalarArgumentTest::neverDiscovered() is invalid: '
+                . 'Use a scalar or null for #[SkipUnless] argument 1 of condition "Greenlight\Condition\EnvironmentVariableEquals". Received array.',
+            );
 
             return;
         }

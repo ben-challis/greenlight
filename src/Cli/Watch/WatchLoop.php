@@ -48,7 +48,7 @@ final readonly class WatchLoop
     {
         $failedClasses = $runOnce([]);
         $iterations = 1;
-        ($this->out)("\nWatching for changes. Enter re-runs everything, q quits.\n");
+        ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
 
         while ($maxIterations === null || $iterations < $maxIterations) {
             if ($this->shutdown?->requested() === true) {
@@ -65,7 +65,8 @@ final readonly class WatchLoop
             $changes = $this->detector->poll();
 
             if ($changes !== []) {
-                ($this->out)(\sprintf("Change detected in %d file(s).\n", \count($changes)));
+                $count = \count($changes);
+                ($this->out)(\sprintf("Detected changes in %d %s.\n", $count, $count === 1 ? 'file' : 'files'));
                 $this->debouncer->noteChange($this->clock->now());
             }
 
@@ -73,7 +74,7 @@ final readonly class WatchLoop
                 $this->debouncer->reset();
                 $failedClasses = $runOnce($runNow ? [] : $failedClasses);
                 ++$iterations;
-                ($this->out)("\nWatching for changes. Enter re-runs everything, q quits.\n");
+                ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
 
                 continue;
             }

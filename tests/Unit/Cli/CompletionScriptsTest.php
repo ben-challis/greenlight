@@ -27,6 +27,22 @@ final class CompletionScriptsTest
     }
 
     #[Test]
+    public function rendersExactCommandDescriptionsWhenTheShellSupportsThem(): void
+    {
+        foreach (['zsh', 'fish'] as $shell) {
+            $script = (string) $this->scripts()->render($shell);
+
+            Expect::that($script)
+                ->toContain('Find and run tests (default)')
+                ->toContain('List each found test ID, one per line')
+                ->toContain('Compare two coverage JSON exports')
+                ->toContain('Create a run profile from a saved JSONL stream')
+                ->toContain('Write the IDE autocomplete helper for extension matchers')
+                ->toContain('Print a shell completion script to standard output');
+        }
+    }
+
+    #[Test]
     public function generatesFlagCandidatesFromTheOptionSpecList(): void
     {
         foreach (['bash', 'zsh'] as $shell) {

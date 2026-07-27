@@ -115,7 +115,7 @@ final class CliOverridesTest
             CliOverrides::fromArguments(new ParsedArguments(null, ['shard' => ['632/13']]));
         } catch (CliError $error) {
             Expect::that($error->getMessage())->toBe(
-                '--shard needs 1 <= n <= m, got "632/13". With 13 shards, n must be between 1 and 13.',
+                '--shard requires 1 <= n <= m. Received "632/13". Valid n values for 13 shards are 1 through 13.',
             );
 
             return;
@@ -130,7 +130,7 @@ final class CliOverridesTest
         try {
             CliOverrides::fromArguments(new ParsedArguments(null, ['shard' => ['1/0']]));
         } catch (CliError $error) {
-            Expect::that($error->getMessage())->toBe('--shard needs 1 <= n <= m, got "1/0".');
+            Expect::that($error->getMessage())->toBe('--shard requires 1 <= n <= m. Received "1/0".');
 
             return;
         }

@@ -52,7 +52,10 @@ final class ExecutionPlanTest
                 self::entry('App\BarTest', 'c'),
                 self::entry('App\FooTest', 'b'),
             ]),
-        )->because('rejects entries not grouped by class')->toThrow(\InvalidArgumentException::class);
+        )->because('rejects entries not grouped by class')->toThrow(
+            \InvalidArgumentException::class,
+            message: 'Group execution plan entries by class. "App\FooTest" occurs in more than one block.',
+        );
     }
 
     #[Test]
