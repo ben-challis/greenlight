@@ -13,6 +13,7 @@ use Greenlight\Tests\Fixture\Doubles\CacheAlpha;
 use Greenlight\Tests\Fixture\Doubles\CacheBeta;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Clock;
+use Greenlight\Tests\Fixture\Doubles\DestructorProbe;
 use Greenlight\Tests\Fixture\Doubles\ProxyFileProbe;
 use Greenlight\Tests\Fixture\Doubles\SelfConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
@@ -105,6 +106,22 @@ final class ProxyGenerationTest
         $clock = $doubles->stub(Clock::class);
 
         Expect::that($clock)->because('class doubles never run the doubled constructor')->toBeInstanceOf(Clock::class);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function classDoublesNeverRunTheDoubledDestructor(): void
+    {
+        DestructorProbe::$calls = 0;
+        $doubles = new Doubles();
+        $double = $doubles->stub(DestructorProbe::class);
+
+        unset($double);
+
+        Expect::that(DestructorProbe::$calls)
+            ->because('class doubles suppress the doubled destructor')
+            ->toBe(0);
 
         $doubles->dispose();
     }
