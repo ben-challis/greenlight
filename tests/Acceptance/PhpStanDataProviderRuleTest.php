@@ -34,7 +34,7 @@ final readonly class PhpStanDataProviderRuleTest
                 /**
                  * @return iterable<string, array{int, int, int}>
                  */
-                public static function sums(): iterable
+                public static function sums(int $unused = 1): iterable
                 {
                     yield 'ones' => [1, 1, 2];
                 }
@@ -85,7 +85,7 @@ final readonly class PhpStanDataProviderRuleTest
             use Greenlight\Attribute\DataSet;
             use Greenlight\Attribute\Test;
 
-            final class SharedBadProviders
+            abstract class SharedBadProviders
             {
                 /**
                  * @return iterable<string, array{int}>
@@ -94,6 +94,11 @@ final readonly class PhpStanDataProviderRuleTest
                 {
                     yield 'one' => [1];
                 }
+
+                /**
+                 * @return iterable<string, array{int}>
+                 */
+                abstract public static function abstractProvider(): iterable;
             }
 
             final class BadProviderProbe
@@ -134,8 +139,22 @@ final readonly class PhpStanDataProviderRuleTest
                 }
 
                 #[Test]
+                #[DataSet('requiredArgument')]
+                public function providerMustAcceptZeroArguments(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
                 #[DataSet(SharedBadProviders::class, 'notStatic')]
                 public function externalInstanceProvider(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
+                #[DataSet(SharedBadProviders::class, 'abstractProvider')]
+                public function providerMustBeConcrete(int $value): void
                 {
                     echo $value;
                 }
@@ -182,19 +201,29 @@ final readonly class PhpStanDataProviderRuleTest
                 {
                     yield 'wrong' => ['text'];
                 }
+
+                /**
+                 * @return iterable<string, array{int}>
+                 */
+                public static function requiredArgument(int $value): iterable
+                {
+                    yield 'value' => [$value];
+                }
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(8)
+            ->and(\count($probe->errors))->toBe(10)
             ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
             ->toContain('notStatic() must be public and static')
             ->toContain('notIterable() must return an iterable of argument arrays, returns string')
             ->toContain('scalarRows() must yield arrays of arguments, yields int')
             ->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
+            ->toContain('requiredArgument() must accept zero arguments')
             ->toContain('SharedBadProviders::notStatic() must be public and static')
+            ->toContain('SharedBadProviders::abstractProvider() must be concrete')
             ->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
             ->toContain('#[DataRow] argument #1 of wrongInlineType() expects int, string given');
     }
