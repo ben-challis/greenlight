@@ -119,6 +119,11 @@ attribute. Without a data set, Greenlight calls the method with no arguments.
 Errors have identifiers under `greenlight.testMethod.*` (`visibility`,
 `static`, `abstract`, `dataSet`).
 
+Method-level test metadata such as `#[Group]`, `#[Skip]`, `#[DataRow]`, and
+`#[NoExpectations]` has no effect without `#[Test]`. The extension reports the
+unused attribute with `greenlight.testAttribute.noEffect`. Lifecycle and
+coverage attributes do not require `#[Test]`.
+
 ## Lifecycle hook checks
 
 The extension reports a `#[Before]` or `#[After]` method that Greenlight cannot
