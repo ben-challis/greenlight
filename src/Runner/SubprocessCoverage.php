@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 use Greenlight\Core\ErrorTrap;
+use Greenlight\Coverage\Driver\DriverSelector;
 use Greenlight\Coverage\Export\JsonExporter;
 
 /**
@@ -36,7 +37,7 @@ final readonly class SubprocessCoverage
         return \is_string($directory) && $directory !== '';
     }
 
-    public static function begin(): ?self
+    public static function begin(?DriverSelector $selector = null): ?self
     {
         $directory = \getenv(self::DIRECTORY_ENV);
 
@@ -55,7 +56,7 @@ final readonly class SubprocessCoverage
             }
         }
 
-        $collector = CoverageCollector::create(new CoverageSettings($paths));
+        $collector = CoverageCollector::create(new CoverageSettings($paths), selector: $selector);
 
         if (!$collector instanceof CoverageCollector) {
             return null;

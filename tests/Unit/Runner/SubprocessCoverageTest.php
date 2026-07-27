@@ -6,17 +6,24 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\Driver\DriverSelector;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\SharedCoverageDirectory;
 use Greenlight\Runner\SubprocessCoverage;
+use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
+use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
+use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
 
-final class SubprocessCoverageTest
+final readonly class SubprocessCoverageTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function openExportsTheRelayVariablesAndDrainRestoresThem(): void
     {
@@ -97,6 +104,104 @@ final class SubprocessCoverageTest
         try {
             Expect::that(SubprocessCoverage::requested())->toBeFalse()
                 ->and(SubprocessCoverage::begin())->toBeNull();
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
+    #[Test]
+    public function beginWritesFilteredCoverageToTheRelayDirectory(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $directory = $this->tempDirectory->subdirectory('filtered-relay');
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $sandbox->set(
+            SubprocessCoverage::INCLUDE_ENV,
+            \PATH_SEPARATOR . '/project/src' . \PATH_SEPARATOR,
+        );
+
+        try {
+            $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
+
+            if (!$relay instanceof SubprocessCoverage) {
+                Fail::because('Expected the available fake driver to start subprocess coverage.');
+            }
+
+            Expect::that(RecordingFakeDriver::started())
+                ->because('subprocess coverage starts the selected driver')
+                ->toBeTrue();
+
+            $relay->write();
+
+            Expect::that(RecordingFakeDriver::started())
+                ->because('writing subprocess coverage stops the selected driver')
+                ->toBeFalse();
+
+            $dumps = \glob($directory . '/*.json');
+
+            if (!\is_array($dumps) || \count($dumps) !== 1) {
+                Fail::because('Expected subprocess coverage to write exactly one JSON dump.');
+            }
+
+            $json = \file_get_contents($dumps[0]);
+
+            if (!\is_string($json)) {
+                Fail::because('Expected to read the subprocess coverage JSON dump.');
+            }
+
+            $files = JsonExporter::import($json)->files();
+
+            Expect::that(\array_keys($files))
+                ->because('empty include segments are ignored and the configured path filters the dump')
+                ->toBe(['/project/src/Included.php'])
+                ->and($files['/project/src/Included.php']->coveredLines)
+                ->toBe([10])
+                ->and($files['/project/src/Included.php']->uncoveredLines)
+                ->toBe([11]);
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
+    #[Test]
+    public function emptyCoverageDoesNotWriteARelayFile(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $directory = $this->tempDirectory->subdirectory('empty-relay');
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+
+        try {
+            $relay = SubprocessCoverage::begin(new DriverSelector([AvailableFakeDriver::class]));
+
+            if (!$relay instanceof SubprocessCoverage) {
+                Fail::because('Expected the available fake driver to start subprocess coverage.');
+            }
+
+            $relay->write();
+
+            Expect::that(\glob($directory . '/*.json'))
+                ->because('subprocess coverage does not write an empty map')
+                ->toBe([]);
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
+    #[Test]
+    public function unavailableCoverageDriverDoesNotStartARelay(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $directory = $this->tempDirectory->subdirectory('unavailable-relay');
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+
+        try {
+            Expect::that(SubprocessCoverage::begin(new DriverSelector([UnavailableFakeDriver::class])))
+                ->because('a missing coverage driver does not fail a subprocess run')
+                ->toBeNull()
+                ->and(\glob($directory . '/*.json'))
+                ->toBe([]);
         } finally {
             $sandbox->dispose();
         }
