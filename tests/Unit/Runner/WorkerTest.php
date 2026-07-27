@@ -26,6 +26,7 @@ use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Tests\Fixture\LeakSuite\LeakyTest;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Injection\InjectedProbe;
+use Greenlight\Tests\Fixture\Lifecycle\PerTestDisposeFails\FailingPerTestDisposal;
 use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
@@ -254,6 +255,25 @@ final class WorkerTest
         Expect::that($results[0]->outcome)->because('class scope teardown failure is attributed to the last test')->toBe(Outcome::Passed)
             ->and($results[1]->outcome)->toBe(Outcome::Errored)
             ->and($results[1]->error?->message)->toBe('disposal broke');
+    }
+
+    #[Test]
+    public function perTestScopeTeardownFailureErrorsTheCurrentTest(): void
+    {
+        $registry = $this->registry();
+        $registry->register(new ServiceDefinition(
+            FailingPerTestDisposal::class,
+            Scope::PerTest,
+            static fn(): FailingPerTestDisposal => new FailingPerTestDisposal(),
+        ));
+
+        [, $results] = $this->runFixture('PerTestDisposeFails', $registry);
+
+        Expect::that($results[0]->outcome)
+            ->because('a per-test teardown failure is attributed to the current test')
+            ->toBe(Outcome::Errored)
+            ->and($results[0]->error?->message)
+            ->toBe('per-test disposal broke');
     }
 
     #[Test]
