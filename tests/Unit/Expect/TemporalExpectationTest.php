@@ -48,6 +48,32 @@ final class TemporalExpectationTest
     }
 
     #[Test]
+    public function eventuallyReusesAOneShotIterableAcrossRetries(): void
+    {
+        $clock = new FakePollingClock();
+        $values = ['pending', 'ready'];
+        $calls = 0;
+        $haystack = (static function (): \Generator {
+            yield 'ready';
+        })();
+
+        ExpectationRuntime::withClock($clock, static function () use (&$calls, $values, $haystack): void {
+            Expect::eventually(static function () use (&$calls, $values): string {
+                return $values[$calls++];
+            })
+                ->pollEvery(0.010)
+                ->within(0.100)
+                ->toBeIn($haystack);
+        });
+
+        Expect::that($calls)
+            ->because('eventually() reuses a one-shot iterable across retries')
+            ->toBe(2)
+            ->and($clock->sleeps)
+            ->toEqual([0.010]);
+    }
+
+    #[Test]
     public function eventuallyFailureKeepsTheFinalDiffAndBoundedHistory(): void
     {
         $clock = new FakePollingClock();
