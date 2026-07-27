@@ -221,7 +221,7 @@ final readonly class ResourceSchedulingTest
             $recorded = \json_decode((string) \file_get_contents($state), true, 8, \JSON_THROW_ON_ERROR);
 
             if (!\is_array($recorded)) {
-                throw new \RuntimeException('Machine resource probe state must be an object.');
+                throw new \RuntimeException('Machine resource probe state requires a JSON object.');
             }
 
             Expect::that($firstResult->exitCode)->toBe(0);

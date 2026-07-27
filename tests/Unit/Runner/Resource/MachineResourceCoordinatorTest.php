@@ -65,7 +65,7 @@ final readonly class MachineResourceCoordinatorTest
 
         try {
             Expect::that(fn(): MachineResourceCoordinator => $this->coordinator(['sandbox' => 2], 'definition'))
-                ->toThrow(ResourceCoordinationError::class, matching: '/active with limit 1.+configured 2/');
+                ->toThrow(ResourceCoordinationError::class, matching: '/active limit 1.+configured limit 2/');
         } finally {
             $first->close();
         }
@@ -103,7 +103,7 @@ final readonly class MachineResourceCoordinatorTest
             }
 
             Expect::that(fn(): MachineResourceCoordinator => $this->coordinator(['sandbox' => 1], 'nested'))
-                ->toThrow(ResourceCoordinationError::class, matching: '/already held by an outer Greenlight run/');
+                ->toThrow(ResourceCoordinationError::class, matching: '/outer Greenlight run holds/');
         } finally {
             MachineResourceEnvironment::set($inherited);
             $outer->close();

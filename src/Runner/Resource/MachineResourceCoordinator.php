@@ -9,7 +9,7 @@ use Greenlight\Discovery\ExecutionPlan;
 
 /**
  * Coordinates named capacity between local Greenlight processes with advisory
- * file locks. It acquires all required slots as one permit without a wait.
+ * file locks. It returns immediately if a required slot is unavailable.
  *
  * @internal
  */
@@ -103,7 +103,7 @@ final class MachineResourceCoordinator
     public function tryAcquire(array $resources): MachineResourcePermit|false
     {
         if ($this->closed) {
-            throw new \LogicException('Machine resource coordination has already closed.');
+            throw new \LogicException('Machine resource coordination is closed.');
         }
 
         $required = [];
@@ -142,7 +142,7 @@ final class MachineResourceCoordinator
         $id = \spl_object_id($permit);
 
         if (($this->permits[$id] ?? null) !== $permit) {
-            throw new \LogicException('The machine resource permit is unknown or has already been released.');
+            throw new \LogicException('Machine resource coordination does not own this permit.');
         }
 
         unset($this->permits[$id]);

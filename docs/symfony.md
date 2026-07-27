@@ -160,8 +160,8 @@ return GreenlightConfig::create()
 
 The limit controls how many assignments that require this resource can run. It
 does not choose a service instance. The machine-scoped form coordinates
-Greenlight processes on the same host. Use `resourceLimit()` when only one run
-needs the gate.
+Greenlight processes on the same machine. Use `resourceLimit()` to control only
+one run.
 
 See [configuration](configuration.md) for the complete resource rules.
 

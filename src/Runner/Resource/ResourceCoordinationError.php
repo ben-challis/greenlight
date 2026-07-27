@@ -50,7 +50,7 @@ final class ResourceCoordinationError extends \RuntimeException
     public static function invalidDefinition(string $resource, string $namespace): self
     {
         return new self(\sprintf(
-            'Machine resource "%s" has an invalid active definition in coordination namespace "%s". Stop the active Greenlight runs and try again.',
+            'Machine resource "%s" has an invalid active definition in coordination namespace "%s". Stop all Greenlight runs that use this namespace. Then try again.',
             $resource,
             $namespace,
         ));
@@ -59,7 +59,7 @@ final class ResourceCoordinationError extends \RuntimeException
     public static function conflictingLimit(string $resource, string $namespace, int $active, int $configured): self
     {
         return new self(\sprintf(
-            'Machine resource "%s" is active with limit %d in coordination namespace "%s", but this run configured %d. Concurrent Greenlight runs must use the same limit.',
+            'Machine resource "%s" has active limit %d in coordination namespace "%s". This run configured limit %d. Use the same limit for concurrent Greenlight runs.',
             $resource,
             $active,
             $namespace,
@@ -70,7 +70,7 @@ final class ResourceCoordinationError extends \RuntimeException
     public static function definitionBusy(string $resource, string $namespace): self
     {
         return new self(\sprintf(
-            'Machine resource "%s" could not join coordination namespace "%s" because its definition remained busy.',
+            'Machine resource "%s" could not get the definition lock in coordination namespace "%s".',
             $resource,
             $namespace,
         ));
@@ -79,7 +79,7 @@ final class ResourceCoordinationError extends \RuntimeException
     public static function nestedAcquisition(string $resource, string $namespace): self
     {
         return new self(\sprintf(
-            'Machine resource "%s" in coordination namespace "%s" is already held by an outer Greenlight run. Nested acquisition is not supported.',
+            'An outer Greenlight run holds machine resource "%s" in coordination namespace "%s". A nested run cannot get the same resource.',
             $resource,
             $namespace,
         ));

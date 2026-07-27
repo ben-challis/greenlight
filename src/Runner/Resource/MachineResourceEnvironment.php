@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Resource;
 
 /**
- * Propagates held machine resources to nested Greenlight processes.
+ * Passes held machine resource keys to nested Greenlight processes.
  *
  * @internal
  */

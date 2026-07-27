@@ -33,7 +33,7 @@ execution. Both paths emit the same event model. Reporters consume events and
 do not access runner state.
 
 The orchestrator controls all decisions that affect more than one worker. These
-decisions include assignments, run-scoped resource capacity, machine resource
+decisions include assignments, run-scoped resource limits, machine resource
 permits, bail, hard timeouts, and crash containment. They also include summary
 totals, artifact publication, and the final coverage merge.
 

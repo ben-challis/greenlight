@@ -213,8 +213,8 @@ final readonly class Worker
      * @param non-empty-list<PlanEntry> $entries
      * @param \Closure(): bool|null $drainRequested
      *
-     * @return MachineResourcePermit|false|null False after a drain request
-     *   interrupts the wait.
+     * @return MachineResourcePermit|false|null Returns false when a drain
+     *   request interrupts the wait.
      */
     private function acquireMachinePermit(array $entries, ?\Closure $drainRequested): MachineResourcePermit|false|null
     {

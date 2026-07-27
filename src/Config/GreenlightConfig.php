@@ -183,8 +183,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Limits simultaneous class assignments across Greenlight processes on
-     * the same machine.
+     * Limits the number of concurrent class assignments across Greenlight
+     * processes on the same machine.
      *
      * @throws InvalidConfiguration
      */
@@ -196,7 +196,7 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the namespace used to coordinate machine-scoped resource limits.
+     * Sets the coordination namespace for machine-scoped resource limits.
      *
      * @throws InvalidConfiguration
      */
@@ -401,14 +401,14 @@ final class GreenlightConfig
 
         if ($limit < 1) {
             throw new InvalidConfiguration(\sprintf(
-                'Resource "%s" must have a limit of at least 1, got %d.',
+                'Resource "%s" requires a limit of 1 or more. Received %d.',
                 $name,
                 $limit,
             ));
         }
 
         if (\array_key_exists($name, $this->resourceLimits) || \array_key_exists($name, $this->machineResourceLimits)) {
-            throw new InvalidConfiguration(\sprintf('Resource limit "%s" is declared twice.', $name));
+            throw new InvalidConfiguration(\sprintf('Configure resource limit "%s" only once.', $name));
         }
 
         $target[$name] = $limit;

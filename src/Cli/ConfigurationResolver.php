@@ -58,7 +58,7 @@ final class ConfigurationResolver
 
         if ($machineResourceLimits !== [] && $resourceCoordinationNamespace === null) {
             throw new InvalidConfiguration(
-                'Machine resource limits require a coordination namespace. Configure one or pass --resource-coordination-namespace.',
+                'Machine resource limits require a coordination namespace. Use resourceCoordinationNamespace() or --resource-coordination-namespace to configure one.',
             );
         }
 

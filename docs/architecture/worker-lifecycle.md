@@ -119,10 +119,10 @@ suite success.
 
 ## Resource assignment
 
-Run-scoped limits use counters in the orchestrator. Machine-scoped limits add a
-permit from the file-lock coordinator. A permit holds one slot file for each
-required machine resource. `ResourceLease` owns both types of capacity. Thus,
-each completion and containment path releases them together.
+Run-scoped resource limits use counters in the orchestrator. Machine-scoped
+resource limits add a machine resource permit. The permit holds one slot file
+for each required machine resource. `ResourceLease` owns both types of
+capacity. Each completion and containment path releases them together.
 
 Discovery stores `#[RequiresResource]` names in test metadata. The orchestrator
 groups non-isolated entries by class and combines their requirements. It treats
@@ -135,14 +135,14 @@ releases the slots if the worker recycles, crashes, reaches a timeout, or does
 not receive the assignment. Retries remain in the same assignment and retain
 the slots.
 
-The orchestrator does not block when it calls `flock` for machine permits.
-Another process can release a permit without a local event. Thus, the
+The orchestrator uses `LOCK_NB` when it calls `flock()` for machine resource
+permits. Another process can release a permit without a local event. The
 orchestrator checks idle workers on each 200 ms event-loop tick.
 
 The `assign` message contains the coordination keys for the class. The worker
-puts them in an internal environment variable while the class runs. A nested
-Greenlight process rejects the same machine resource. This behavior prevents a
-deadlock with the outer test.
+sets them in an internal environment variable while the class runs. A nested
+Greenlight process rejects the same machine resource. This prevents a deadlock
+with the outer test.
 
 If the oldest unit waits, the orchestrator reserves one slot from each required
 resource. A later unit can pass it only in one of these conditions:
@@ -162,9 +162,9 @@ Parallel resource assignment occurs only in the orchestrator. The `assign`
 message already contains test metadata and coordination keys. Thus, resource
 assignment requires no additional protocol message.
 
-Each run has separate run-scoped counters. Processes, worktrees, and
-same-machine shards can share machine-scoped capacity through one coordination
-namespace. See [machine resource coordination](resource-coordination.md).
+Each run has separate run-scoped counters. Processes, worktrees, and shards on
+the same machine can share capacity through one coordination namespace. See
+[machine resource coordination](resource-coordination.md).
 
 The orchestrator controls capacity, not resource identity. A limit of two
 permits two assignments that require the resource at the same time. It does not

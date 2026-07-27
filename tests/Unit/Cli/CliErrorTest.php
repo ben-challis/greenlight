@@ -61,7 +61,7 @@ final class CliErrorTest
             '--workers requires a positive integer. Received "0".',
             '--resource-limit requires <name>=<limit>, such as postgres=2. Received "postgres".',
             'Set resource limit "postgres" only once.',
-            '--resource-coordination-namespace requires a valid resource name. Received "Bad".',
+            '--resource-coordination-namespace requires a name that matches [a-z0-9][a-z0-9._-]*. Received "Bad".',
             'Unknown reporter "verbose". Select tty, plain, junit, jsonl, github, or teamcity.',
         ]);
     }

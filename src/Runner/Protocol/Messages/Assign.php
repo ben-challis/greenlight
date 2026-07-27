@@ -24,8 +24,8 @@ final readonly class Assign implements Message
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
      * @param non-empty-string|null $configFile The worker loads this file to instantiate plugins. Null disables plugins.
-     * @param list<non-empty-string> $machineResourceLeases Coordination keys
-     *   for this assignment.
+     * @param list<non-empty-string> $machineResourceLeases Machine resource
+     *   coordination keys for this assignment.
      */
     public function __construct(
         public ExecutionPlan $slice,
