@@ -454,6 +454,30 @@ final readonly class AttachmentsTest
     }
 
     #[Test]
+    public function corruptRecoveryMetadataDoesNotHideCompletedEvidence(): void
+    {
+        $root = $this->tempDirectory->subdirectory('corrupt-recovery');
+        $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-corrupt');
+        $id = new TestId('Example\EvidenceTest', 'crashes');
+        $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attachments->text('completed.txt', 'complete before crash');
+        $testDirectory = $store->session()->stagingDirectory . '/' . ArtifactStore::testDirectory($id);
+        \file_put_contents($testDirectory . '/broken.meta.json', '{"name":');
+
+        $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
+
+        Expect::that($recovered->attachments)
+            ->because('corrupt recovery metadata MUST NOT hide completed evidence')
+            ->toHaveCount(1)
+            ->and($recovered->attachments[0]->name)
+            ->toBe('completed.txt')
+            ->and(\is_file($recovered->attachments[0]->path))
+            ->toBeTrue();
+
+        $store->cleanup();
+    }
+
+    #[Test]
     public function crashRecoveryRestoresTheLatestAttemptWithoutAnAttachment(): void
     {
         $root = $this->tempDirectory->subdirectory('attempt-recovery');
