@@ -1,0 +1,28 @@
+src/Laravel/LaravelPlugin.php
+  s_8c67f4b803e049::t_c0de8036cb8734 21-22
+docs/api-integrations.md
+  s_8c67f4b803e049::t_bc6555b99abcc8 9-93
+  s_8c67f4b803e049::t_6c429ebd257889 5,161
+docs/api.md
+  s_8c67f4b803e049::t_6230207896d23f 22
+website/scripts/generate-api-reference.mjs
+  s_8c67f4b803e049::t_c72148d903358c 81-82,133,141-150,762
+website/src/lib/docs.ts
+  s_8c67f4b803e049::t_1d256feb2c3830 142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6b0e2e32c79ee2172debf0c43202f785a07fea0f",
+  "prompts": {},
+  "sessions": {
+    "s_8c67f4b803e049": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d92c075a-3d55-404b-ba90-486e991dd305",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
