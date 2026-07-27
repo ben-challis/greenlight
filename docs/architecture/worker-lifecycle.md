@@ -91,6 +91,8 @@ the definition and data-set key.
 
 The `assign` payload stores `definition` and `dataSetKey` for each plan entry.
 It does not send a derived `TestId` or a second declaration identity.
+The optional `machineResourceLeases` field gives the coordination keys for the
+assignment. If the field is absent, the assignment supplies no keys.
 
 ## Worker startup and assignment
 
@@ -261,6 +263,7 @@ It treats each isolated entry as a separate isolated scheduling unit.
 It can batch small classes only when their combined resource sets are
 identical. It does not batch a class that contains an isolated or
 `#[AllowParallel]` entry.
+
 Run-scoped limits use counters in the orchestrator. Machine-scoped limits add a
 permit from the file-lock coordinator. A permit holds one slot file for each
 required machine resource. `ResourceLease` owns both types of capacity. Thus,

@@ -11,7 +11,6 @@ use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionContext;
-use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
@@ -23,6 +22,8 @@ use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
 use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransport;
+use Greenlight\Execution\Resource\MachineResourceCoordinator;
+use Greenlight\Execution\Resource\ResourceCoordinationError;
 use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
@@ -85,13 +86,14 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         ExecutionContext $context,
     ): ExecutionOutcome {
         $cleanup = null;
-        $machineResources = MachineResourceCoordinator::openForPlan(
-            $plan,
-            $this->workers->machineResourceLimits,
-            $this->workers->resourceCoordinationNamespace,
-        );
+        $machineResources = null;
 
         try {
+            $machineResources = MachineResourceCoordinator::openForPlan(
+                $plan,
+                $this->workers->machineResourceLimits,
+                $this->workers->resourceCoordinationNamespace,
+            );
             $execution = $context->execution;
             $transport = $this->transport ?? NativeWorkerTransport::listen(
                 $this->workerCommand,
@@ -116,20 +118,22 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                     artifactConfiguration: $execution->artifacts,
                     integrationFixtures: $context->fixtures,
                     resourceLimits: \array_replace($this->workers->resourceLimits, $this->workers->machineResourceLimits),
-                    machineResources: $machineResources,
                     initialWorkerAssignment: WorkerPluginRuntime::requiresInitialBootstrapBarrier($execution->plugins)
                         ? InitialWorkerAssignment::AfterAllReady
                         : InitialWorkerAssignment::Progressive,
                     generatedCodeDirectory: $context->storage->generatedCodeDirectory,
                     temporaryDirectory: $context->storage->temporaryDirectory,
+                    machineResources: $machineResources,
                 ),
             );
 
             $summary = $orchestrator->run($plan, $sink, $this->workerCount, $context->classSeconds);
         } catch (WireCommunicationFailed $failure) {
             throw ExecutionFailed::processPool($failure);
+        } catch (ResourceCoordinationError $failure) {
+            throw ExecutionFailed::resourceCoordination($failure);
         } finally {
-            $machineResources->close();
+            $machineResources?->close();
 
             if ($cleanup !== null) {
                 $this->emergencyCleanups?->unregister($cleanup);

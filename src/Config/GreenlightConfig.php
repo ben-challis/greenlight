@@ -466,9 +466,7 @@ final class GreenlightConfig
     public function build(): Configuration
     {
         if ($this->machineResourceLimits !== [] && $this->resourceCoordinationNamespace === null) {
-            throw new InvalidConfiguration(
-                'Machine resource limits require a coordination namespace. Call resourceCoordinationNamespace().',
-            );
+            throw InvalidConfiguration::missingResourceCoordinationNamespace('Call resourceCoordinationNamespace().');
         }
 
         return new Configuration(

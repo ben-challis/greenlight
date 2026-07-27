@@ -95,7 +95,7 @@ final class CliErrorTest
         ];
         yield 'invalid resource coordination namespace' => [
             static fn(): CliError => CliError::invalidResourceCoordinationNamespace('Bad'),
-            '--resource-coordination-namespace requires a valid resource name. Received "Bad".',
+            '--resource-coordination-namespace requires a name that matches [a-z0-9][a-z0-9._-]*. Received "Bad".',
         ];
         yield 'unknown reporter' => [
             static fn(): CliError => CliError::unknownReporter('verbose', ['plain', 'custom']),

@@ -220,6 +220,10 @@
                 "stopAfterFailures": {
                     "type": ["integer", "null"],
                     "minimum": 1
+                },
+                "machineResourceLeases": {
+                    "type": "array",
+                    "items": {"type": "string", "minLength": 1}
                 }
             }
         },

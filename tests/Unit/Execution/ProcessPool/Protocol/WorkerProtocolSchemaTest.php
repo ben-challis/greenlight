@@ -109,6 +109,7 @@ final class WorkerProtocolSchemaTest
             ['artifactSession'],
             ['artifactConfiguration'],
             ['stopAfterFailures'],
+            ['machineResourceLeases'],
             ['policy', 'failOnWarning'],
         ]);
         $eventPayload = $this->withoutPaths($this->messages()['event']->toWire(), [
@@ -293,6 +294,7 @@ final class WorkerProtocolSchemaTest
                 new ArtifactSession('/tmp/greenlight-staging', 'build/greenlight-artifacts/run-1'),
                 new ArtifactConfiguration(maxRunAttachments: 100),
                 stopAfterFailures: 3,
+                machineResourceLeases: ['coordination-key'],
             ),
             'drain' => new Drain(),
             'event' => new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),

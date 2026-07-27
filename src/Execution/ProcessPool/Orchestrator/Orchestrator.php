@@ -531,7 +531,7 @@ final class Orchestrator
                 $this->configuration->artifactStore?->session(),
                 $this->configuration->artifactConfiguration,
                 $this->remainingFailureAllowance(),
-                $lease->machinePermit?->coordinationKeys ?? [],
+                $lease->machinePermit->coordinationKeys ?? [],
             ));
             $handle->lastProgressAt = $this->monotonicTime();
             $handle->timing->assigned($handle->lastProgressAt);

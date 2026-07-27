@@ -74,8 +74,8 @@ final class ConfigurationResolver
             ?? $configuration->workers->resourceCoordinationNamespace;
 
         if ($machineResourceLimits !== [] && $resourceCoordinationNamespace === null) {
-            throw new InvalidConfiguration(
-                'Machine resource limits require a coordination namespace. Use resourceCoordinationNamespace() or --resource-coordination-namespace to configure one.',
+            throw InvalidConfiguration::missingResourceCoordinationNamespace(
+                'Use resourceCoordinationNamespace() or --resource-coordination-namespace to configure one.',
             );
         }
 

@@ -12,10 +12,11 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\Execution\Resource\MachineResourceEnvironment;
 use Greenlight\Execution\Resource\MachineResourcePermit;
-use Greenlight\Execution\Plugin\WorkerPluginRuntime;
+use Greenlight\Execution\Resource\ResourceCoordinationError;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Result\Outcome;
@@ -55,6 +56,7 @@ final readonly class Worker
      * @param \Closure(): bool|null $drainRequested polled between tests
      * @param \Closure(TestId, positive-int): void|null $attemptStarted reports retry progress for crash containment
      *
+     * @throws ResourceCoordinationError
      * @throws WorkerError
      */
     public function run(
@@ -226,16 +228,20 @@ final readonly class Worker
             }
         }
 
-        $permit = false;
+        $required = \array_values($resources);
 
-        while (($permit = $this->machineResources->tryAcquire(\array_values($resources))) === false) {
+        while (true) {
+            $permit = $this->machineResources->tryAcquire($required);
+
+            if ($permit instanceof MachineResourcePermit) {
+                return $permit;
+            }
+
             if ($drainRequested instanceof \Closure && $drainRequested()) {
                 return false;
             }
 
             \usleep(50_000);
         }
-
-        return $permit;
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Resource;
 
-use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Coordinates named capacity between local Greenlight processes with advisory

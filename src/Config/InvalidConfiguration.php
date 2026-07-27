@@ -141,6 +141,12 @@ final class InvalidConfiguration extends \InvalidArgumentException
         return new self($previous->getMessage(), $previous->getCode(), $previous);
     }
 
+    /** @internal */
+    public static function missingResourceCoordinationNamespace(string $guidance): self
+    {
+        return new self('Machine resource limits require a coordination namespace. ' . $guidance);
+    }
+
     public static function invalidResourceLimit(string $name, int $limit): self
     {
         return new self(\sprintf('Resource "%s" must have a limit of at least 1, got %d.', $name, $limit));

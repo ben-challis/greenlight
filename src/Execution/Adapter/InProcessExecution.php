@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Adapter;
 
+use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\Artifact\PublishingEventSink;
 use Greenlight\Execution\ExecutionAdapter;
-use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Execution\ExecutionContext;
-use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
+use Greenlight\Execution\Resource\MachineResourceCoordinator;
+use Greenlight\Execution\Resource\ResourceCoordinationError;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\ResultPolicyPlugin;
@@ -74,11 +75,15 @@ final readonly class InProcessExecution implements ExecutionAdapter
             ),
             ...($execution->policy->isNoOp() ? [] : [new ResultPolicyPlugin($execution->policy)]),
         ]);
-        $machineResources = MachineResourceCoordinator::openForPlan(
-            $plan,
-            $this->workers?->machineResourceLimits ?? [],
-            $this->workers?->resourceCoordinationNamespace,
-        );
+        try {
+            $machineResources = MachineResourceCoordinator::openForPlan(
+                $plan,
+                $this->workers->machineResourceLimits ?? [],
+                $this->workers?->resourceCoordinationNamespace,
+            );
+        } catch (ResourceCoordinationError $error) {
+            throw ExecutionFailed::resourceCoordination($error);
+        }
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
 
@@ -152,6 +157,8 @@ final readonly class InProcessExecution implements ExecutionAdapter
             }
 
             return new ExecutionOutcome($outcome->summary, $coverage, $outcome->leaks);
+        } catch (ResourceCoordinationError $error) {
+            throw ExecutionFailed::resourceCoordination($error);
         } finally {
             $channelEnvironment->restore();
             $machineResources->close();

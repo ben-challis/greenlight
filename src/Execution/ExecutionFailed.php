@@ -40,6 +40,11 @@ final class ExecutionFailed extends \RuntimeException
         return new self($previous->getMessage(), $previous);
     }
 
+    public static function resourceCoordination(\RuntimeException $previous): self
+    {
+        return new self($previous->getMessage(), $previous);
+    }
+
     public static function plugin(PluginRuntimeError $previous): self
     {
         return new self($previous->getMessage(), $previous);

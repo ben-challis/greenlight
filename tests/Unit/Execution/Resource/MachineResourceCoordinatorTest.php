@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\Resource;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Execution\Resource\MachineResourceCoordinator;
 use Greenlight\Execution\Resource\MachineResourceEnvironment;
 use Greenlight\Execution\Resource\MachineResourcePermit;
 use Greenlight\Execution\Resource\ResourceCoordinationError;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 use function Greenlight\expect;
 
