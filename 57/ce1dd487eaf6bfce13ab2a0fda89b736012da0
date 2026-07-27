@@ -1,0 +1,382 @@
+src/Expect/TemporalExpectation.php
+  s_8c67f4b803e049::t_75870a19d28c50 31,81-82,91,97,103,109,117-118,129-130,137,143,149,155,161,167,173,179,185,191,197,203,209,215,221,229-230,237,243,249,255,261,267,273,279,285,291,299-300,327-329,338,342-345,350,355-356,358-359,364,393-396,412-416
+src/PhpStan/MatcherMap.php
+  s_8c67f4b803e049::t_75870a19d28c50 104-107,109-114,121,127-134
+  s_8c67f4b803e049::t_898a4bf523731d 135
+tests/Acceptance/PhpStanDataProviderRuleTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 143,221-224,228-336
+src/PhpStan/TestConstructorRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-113
+src/Core/Result/Outcome.php
+  s_8c67f4b803e049::t_75870a19d28c50 8
+.github/workflows/ci.yml
+  s_8c67f4b803e049::t_75870a19d28c50 142-143
+docs/api-artifacts.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-268
+tests/Acceptance/PhpStanTestConstructorRuleTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-115
+tests/Acceptance/ResourceSchedulingTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 124-126
+tests/Unit/Config/ConfigLoaderTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 63
+tests/Unit/Discovery/Psr4ViolationTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 51-52
+src/Plugin/TestLifecycleSubscriber.php
+  s_8c67f4b803e049::t_75870a19d28c50 13-14,20-21
+src/Runner/Orchestrator/Orchestrator.php
+  s_8c67f4b803e049::t_75870a19d28c50 106,109-110,344-345,690-691
+bin/greenlight
+  s_8c67f4b803e049::t_75870a19d28c50 8
+src/Expect/ConsistentlyExpectation.php
+  s_8c67f4b803e049::t_75870a19d28c50 42-47,52,57,94,126-127
+  s_8c67f4b803e049::t_3707134419957f 128-129
+docs/api-results.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-574
+src/PhpStan/AttributeArgumentRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-190
+src/Runner/CoverageSettings.php
+  s_8c67f4b803e049::t_75870a19d28c50 17-18
+src/Runner/Protocol/Messages/Assign.php
+  s_8c67f4b803e049::t_75870a19d28c50 24,26
+src/Config/GreenlightConfig.php
+  s_8c67f4b803e049::t_75870a19d28c50 11,107-108,134,252,263
+src/Plugin/Plugin.php
+  s_8c67f4b803e049::t_75870a19d28c50 11-12
+src/Runner/Worker/TestExecutor.php
+  s_8c67f4b803e049::t_75870a19d28c50 31,34-35,37,40,42-49,309-311,450-451
+docs/api-attributes.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-560
+src/Expect/TemporalExceptionObservation.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-18
+tests/Unit/Condition/ConditionsTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 73,81
+tests/Unit/Coverage/HtmlExporterTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 151
+tools/memory-gate.php
+  s_8c67f4b803e049::t_75870a19d28c50 112-114,158,193,213
+src/Expect/Expect.php
+  s_8c67f4b803e049::t_75870a19d28c50 8-11,23-29,76
+src/Runner/PlanOrder.php
+  s_8c67f4b803e049::t_75870a19d28c50 17-18
+website/src/lib/docs.ts
+  s_8c67f4b803e049::t_37abc1cbd739c8 142
+  s_8c67f4b803e049::t_75870a19d28c50 77-141,143-145
+  s_8c67f4b803e049::t_38aba625fe97db 76
+src/Expect/TemporalValueObservation.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-29
+tests/Unit/Capture/OutputCaptureTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 231
+src/PhpStan/TestAttributePlacementRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-105
+src/PhpStan/TestMethodRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 21-22
+src/Core/Result/TestResult.php
+  s_8c67f4b803e049::t_75870a19d28c50 14,77-78,91,98-99,119-120,128-129
+composer.json
+  s_8c67f4b803e049::t_75870a19d28c50 36,39-41
+src/Doubles/Argument.php
+  s_8c67f4b803e049::t_75870a19d28c50 22,41
+CONTRIBUTING.md
+  s_8c67f4b803e049::t_75870a19d28c50 17-18
+docs/plugins.md
+  s_8c67f4b803e049::t_75870a19d28c50 228-232
+src/Plugin/RetryPlugin.php
+  s_8c67f4b803e049::t_75870a19d28c50 13,15
+docs/api-test-contracts.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-345
+src/Discovery/DiscoveryError.php
+  s_8c67f4b803e049::t_75870a19d28c50 10-12
+src/Attribute/Retry.php
+  s_8c67f4b803e049::t_75870a19d28c50 8-10
+src/Fixture/EnvironmentSandbox.php
+  s_8c67f4b803e049::t_75870a19d28c50 10
+src/Symfony/Service.php
+  s_8c67f4b803e049::t_75870a19d28c50 8
+src/PhpStan/IdeHelper.php
+  s_8c67f4b803e049::t_75870a19d28c50 48-49
+tests/Unit/Doubles/AnswersTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 66
+tests/Unit/Reporting/JsonlSchemaTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 124
+tests/Unit/Discovery/ExecutionPlanTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 96,103
+src/Symfony/SymfonyBridgeError.php
+  s_8c67f4b803e049::t_75870a19d28c50 19
+docs/attributes.md
+  s_8c67f4b803e049::t_75870a19d28c50 383-387
+tests/Unit/Capture/CapturedOutputTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 49,62
+docs/api-expectations.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-905
+docs/api.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-21
+  s_8c67f4b803e049::t_bc6555b99abcc8 22
+src/Attribute/After.php
+  s_8c67f4b803e049::t_75870a19d28c50 7-10
+website/scripts/generate-api-reference.mjs
+  s_8c67f4b803e049::t_d835fc149813b3 133,141-150
+  s_8c67f4b803e049::t_75870a19d28c50 1-80,83-132,134-140,151-761,763-826
+  s_8c67f4b803e049::t_8a6c1391e7ade8 762
+  s_8c67f4b803e049::t_d086403eca7c27 81-82
+src/Runner/ParallelRunner.php
+  s_8c67f4b803e049::t_75870a19d28c50 25,35-36
+tests/Acceptance/PhpStanAttributeArgumentRuleTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-73
+src/Core/Test/SkipTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 10-11
+tests/Unit/Tools/RuntimeMessageTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 30,36
+website/src/components/RunPreview.astro
+  s_8c67f4b803e049::t_75870a19d28c50 3
+docs/symfony.md
+  s_8c67f4b803e049::t_75870a19d28c50 44,147,160-163
+src/Expect/ArraySubset.php
+  s_8c67f4b803e049::t_75870a19d28c50 14-16
+tests/Acceptance/PolicyTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 25,31,33,40-41,64
+tests/Unit/Expect/TemporalExpectationTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 70,235
+src/Core/Test/TestChannel.php
+  s_8c67f4b803e049::t_75870a19d28c50 13
+src/Config/ConfigFileError.php
+  s_8c67f4b803e049::t_75870a19d28c50 23,37,40
+src/PhpStan/SkipUnlessConditionRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-182
+tests/Unit/PhpStan/MatcherMapTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 24,32-33,41
+src/Expect/TemporalObservation.php
+  s_8c67f4b803e049::t_75870a19d28c50 14,16,23-30,32,35-42,44,47,49
+tests/Unit/Core/Utf8Test.php
+  s_8c67f4b803e049::t_75870a19d28c50 18-20
+src/Plugin/RunLifecycleSubscriber.php
+  s_8c67f4b803e049::t_75870a19d28c50 12
+website/src/components/TerminalOutput.astro
+  s_8c67f4b803e049::t_75870a19d28c50 12
+docs/architecture/technical-writing.md
+  s_8c67f4b803e049::t_75870a19d28c50 22-28,32,98,166,195
+docs/api-events.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-487
+src/Cli/Watch/StatChangeDetector.php
+  s_8c67f4b803e049::t_75870a19d28c50 14
+src/Core/Wire/WireSerializable.php
+  s_8c67f4b803e049::t_75870a19d28c50 12
+src/Doubles/ArgumentCaptor.php
+  s_8c67f4b803e049::t_75870a19d28c50 11
+src/Expect/ExpectationFailed.php
+  s_8c67f4b803e049::t_75870a19d28c50 13
+tests/Unit/Expect/StringMatchersTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 142
+tests/Unit/Expect/ToThrowTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 40-42,89
+docs/api-integrations.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-4,6-75,77-165
+  s_8c67f4b803e049::t_bc6555b99abcc8 5,76
+src/Reporting/Output/Output.php
+  s_8c67f4b803e049::t_75870a19d28c50 12
+tests/Acceptance/JsonlSchemaTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 64
+tests/Unit/Runner/Orchestrator/ChannelAllocatorTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 46,77
+website/scripts/check-built-site.mjs
+  s_8c67f4b803e049::t_75870a19d28c50 53
+src/Doubles/MethodExpectation.php
+  s_8c67f4b803e049::t_75870a19d28c50 16,28,313
+src/Plugin/TestContext.php
+  s_8c67f4b803e049::t_75870a19d28c50 16-18,55
+src/PhpStan/ExtensionMatcherSubjectRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-95
+tests/Unit/Discovery/TestDiscovererTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 137
+tests/Unit/Coverage/IgnoreFilterTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 77
+src/Core/Result/ResultPolicy.php
+  s_8c67f4b803e049::t_75870a19d28c50 65,80
+docs/api-fixtures-harness.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-219
+tests/Acceptance/PhpStanTestAttributePlacementRuleTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-78
+src/Doubles/ArgumentMatcher.php
+  s_8c67f4b803e049::t_75870a19d28c50 8,10,12,15
+src/Cli/Application.php
+  s_8c67f4b803e049::t_75870a19d28c50 463-464
+src/Doubles/Doubles.php
+  s_8c67f4b803e049::t_75870a19d28c50 16-17,19-21,23-24,106-107,137,205
+website/src/pages/index.astro
+  s_8c67f4b803e049::t_75870a19d28c50 97,118
+src/Expect/EventuallyExpectation.php
+  s_8c67f4b803e049::t_75870a19d28c50 45-50,55,84,94-97
+src/Expect/PendingConsistently.php
+  s_8c67f4b803e049::t_75870a19d28c50 8
+src/PhpStan/ExtensionMatcherMethod.php
+  s_8c67f4b803e049::t_75870a19d28c50 13,15,84-86,93
+src/Condition/OperatingSystemFamily.php
+  s_8c67f4b803e049::t_75870a19d28c50 9
+src/Config/ArtifactBuilder.php
+  s_8c67f4b803e049::t_75870a19d28c50 73-75
+tests/Acceptance/ParallelRunTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 134,139,143
+tests/Unit/Fixture/TempDirectoryTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 16-17
+src/Plugin/HarnessProvider.php
+  s_8c67f4b803e049::t_75870a19d28c50 12
+src/Core/Condition.php
+  s_8c67f4b803e049::t_75870a19d28c50 8,10-11
+tests/Unit/Artifact/AttachmentsTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 140,142,150,156,162,174,178
+src/Expect/PendingEventually.php
+  s_8c67f4b803e049::t_75870a19d28c50 8
+src/PhpStan/DataProviderSignatureRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 20-21,23,27-29,31-32,37-38,56,81-122,247,258,268-275,281,291-306,376,381
+src/Core/Result/DiagnosticSeverity.php
+  s_8c67f4b803e049::t_75870a19d28c50 8-9
+src/Core/Test/ExpectationCounter.php
+  s_8c67f4b803e049::t_75870a19d28c50 17-18
+docs/configuration.md
+  s_8c67f4b803e049::t_75870a19d28c50 43,51,71,76-79,106,110-111,122-124,134,182,200,214,240,251,257,266,290,296,305,324-325,374,432,436,440,453,459,465,476,492,498,507,516,522,526,530,534,541,548,563,578,585,611,617,621,625,634,640,644,648,652,673,677,683,687,691
+tests/Unit/Coverage/JsonExporterTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 61
+tests/Unit/Harness/HarnessScopesTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 125
+src/Coverage/Driver/XdebugDriver.php
+  s_8c67f4b803e049::t_75870a19d28c50 26
+src/Attribute/DataRow.php
+  s_8c67f4b803e049::t_75870a19d28c50 11
+tools/prose-check.php
+  s_8c67f4b803e049::t_75870a19d28c50 10,20,23,25,35-42,47-56,58-60,62-63,75-83,85,87,99-106,109-110,123-130,142-147,160-165,176-181,206-209,351-354,383,394-396,400,404-407,412-703,710-712,718,720-721,726-735,751,761,771,780-781,786-798,813-815,824-873,875,879-901,912-933,1032,1059,1077-1090,1099-1100,1108-1111,1118-1121,1133-1345,1351-1428,1464,1471-1472,1552-1555,1597-1600
+  s_8c67f4b803e049::t_23f1a1fa6cc910 1601
+docs/attachments.md
+  s_8c67f4b803e049::t_75870a19d28c50 45,79,92-94
+src/Expect/Expectation.php
+  s_8c67f4b803e049::t_75870a19d28c50 14,16,18,20,23-24,31,37-38,50,60,68-69,97-98,116-117,134-141,151-152,168-169,182,185-186,201-202,216,221-222,239-240,253-254,263-264,273-274,283-284,298-299,313-314,328-329,343-344,358-359,373-374,390-392,438-441,468-471,495-498,525-529,555,561-562,591-592,605-606,619-620,633-634,647-650,672-673,689-690,703-704,720-721,739-740,779,784-785,832,839,842-843,914
+src/Core/ErrorTrap.php
+  s_8c67f4b803e049::t_75870a19d28c50 10-12
+src/PhpStan/LifecycleMethodRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 20-21,87
+docs/architecture/mutation-testing.md
+  s_8c67f4b803e049::t_75870a19d28c50 11-15,36
+tests/Unit/Doubles/StubTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 33
+tests/Acceptance/PhpStanLifecycleMethodRuleTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 87
+website/package.json
+  s_8c67f4b803e049::t_75870a19d28c50 9-12
+.github/ISSUE_TEMPLATE/bug.yml
+  s_8c67f4b803e049::t_75870a19d28c50 54
+docs/api-configuration.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-389
+src/Runner/SubprocessCoverage.php
+  s_8c67f4b803e049::t_75870a19d28c50 17-18
+src/Reporting/Reporter.php
+  s_8c67f4b803e049::t_75870a19d28c50 13
+tests/Unit/Expect/BecauseTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 28,49,54
+src/Attribute/Timeout.php
+  s_8c67f4b803e049::t_75870a19d28c50 20-21
+docs/architecture/compatibility.md
+  s_8c67f4b803e049::t_75870a19d28c50 108-109
+tests/Acceptance/PhpStanSkipUnlessConditionRuleTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-88
+src/Expect/Equality.php
+  s_8c67f4b803e049::t_75870a19d28c50 38-39
+tests/Support/AcceptanceProject.php
+  s_8c67f4b803e049::t_75870a19d28c50 19-20
+src/PhpStan/MatcherMapProvider.php
+  s_8c67f4b803e049::t_75870a19d28c50 1-26
+docs/api-doubles.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-334
+src/Expect/ExpectationExtension.php
+  s_8c67f4b803e049::t_75870a19d28c50 9
+README.md
+  s_8c67f4b803e049::t_75870a19d28c50 11-12,107-108,113-115
+docs/phpstan.md
+  s_8c67f4b803e049::t_75870a19d28c50 25-36,61-62,74-77,89,92-97,109-111,129-144,148-149,154-159,166,169-170,175-176,212-213
+src/PhpStan/ExpectationMethodsExtension.php
+  s_8c67f4b803e049::t_75870a19d28c50 23-24,26,28,39,48
+src/PhpStan/ToThrowMessageRule.php
+  s_8c67f4b803e049::t_75870a19d28c50 22,26
+  s_8c67f4b803e049::t_b9c8e10e0c31dc 27
+src/Runner/Artifact/ArtifactStore.php
+  s_8c67f4b803e049::t_75870a19d28c50 182
+docs/api-reporting.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-77
+src/Runner/InProcessRunner.php
+  s_8c67f4b803e049::t_75870a19d28c50 31-32
+docs/architecture/worker-lifecycle.md
+  s_8c67f4b803e049::t_75870a19d28c50 122-124,154-155,199-200,229,263
+tests/Acceptance/IdeHelperTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 25
+src/Runner/Worker/LeakDetector.php
+  s_8c67f4b803e049::t_75870a19d28c50 33,41
+tests/Acceptance/PhpStanExtensionTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 56-98,146-197
+tests/Acceptance/SymfonyRunTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 129-130
+phpstan.dist.neon
+  s_8c67f4b803e049::t_75870a19d28c50 13-16
+tests/Unit/Attribute/AttributeContractTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 94-100
+tests/Unit/Cli/PrecedenceMatrixTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 132-134
+tests/Unit/Core/TestMetadataTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 141,148
+docs/api-plugins.md
+  s_8c67f4b803e049::t_75870a19d28c50 1-218
+src/Symfony/SymfonyPlugin.php
+  s_8c67f4b803e049::t_75870a19d28c50 23,26-27
+src/Core/AtomicFileError.php
+  s_8c67f4b803e049::t_75870a19d28c50 7-11
+tests/Unit/Expect/ValueRendererTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 102-103,115-116
+src/Plugin/RetryDecider.php
+  s_8c67f4b803e049::t_75870a19d28c50 11,13-14,16-17
+src/Doubles/CallHandler.php
+  s_8c67f4b803e049::t_75870a19d28c50 130
+SECURITY.md
+  s_8c67f4b803e049::t_75870a19d28c50 15-16
+tests/Unit/PhpStan/IdeHelperTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 24,26
+tests/Acceptance/ProseCheckTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 21-36,77,79,92-152,186,194-197,209-365,406-419,463-647,789
+src/Expect/ObservationLog.php
+  s_8c67f4b803e049::t_75870a19d28c50 105
+tests/Unit/Doubles/MockTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 50,138,164
+tools/coverage-gate.php
+  s_8c67f4b803e049::t_75870a19d28c50 19,21,30-31
+website/src/styles/global.css
+  s_8c67f4b803e049::t_75870a19d28c50 1199-1202
+tests/Unit/Symfony/SymfonyPluginTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 81,91,98-99,185
+src/Rector/PhpUnitToGreenlightRector.php
+  s_8c67f4b803e049::t_75870a19d28c50 50,362-363,891
+src/Doubles/MockPlan.php
+  s_8c67f4b803e049::t_75870a19d28c50 8,22
+tests/Acceptance/SequentialFallbackTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 28
+tests/Fixture/PhpStanExtension/DigestExtension.php
+  s_8c67f4b803e049::t_75870a19d28c50 15-17
+extension.neon
+  s_8c67f4b803e049::t_75870a19d28c50 11,14-16,21-22,25-28,31-36
+src/Attribute/DataSet.php
+  s_8c67f4b803e049::t_75870a19d28c50 25-26
+src/Harness/UnresolvableService.php
+  s_8c67f4b803e049::t_75870a19d28c50 55
+tests/Acceptance/ListingTest.php
+  s_8c67f4b803e049::t_75870a19d28c50 23-24,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "57ce1dd487eaf6bfce13ab2a0fda89b736012da0",
+  "prompts": {},
+  "sessions": {
+    "s_8c67f4b803e049": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d92c075a-3d55-404b-ba90-486e991dd305",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
