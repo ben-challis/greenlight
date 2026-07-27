@@ -73,7 +73,7 @@ final readonly class SubprocessTest
                 \PHP_BINARY,
                 '-r',
                 <<<'PHP'
-                fwrite(STDOUT, ini_get('ddtrace.disable'));
+                fwrite(STDOUT, get_cfg_var('ddtrace.disable'));
                 PHP,
             ],
         );
