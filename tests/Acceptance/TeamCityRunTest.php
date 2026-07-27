@@ -18,17 +18,15 @@ final readonly class TeamCityRunTest
     #[Test]
     public function parallelRunEmitsLocationHintsAndFlowIds(): void
     {
-        // An isolated project, so this run cannot race another
-        // acceptance test's use of the same working directory. DiscoveryBasic
-        // itself stays the single shared copy under tests/Fixture (see
-        // AcceptanceProject::createWithDiscoveryBasicTests), so the location hints
-        // still resolve to that fixture's real file.
+        // An isolated project prevents a conflict with another acceptance
+        // test in the same directory. DiscoveryBasic remains the single shared
+        // copy in tests/Fixture. Thus, location hints identify its actual file.
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'teamcity');
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=teamcity']);
         $output = $result->output();
         $class = AlphaTest::class;
         $file = (string) \realpath(\dirname(__DIR__) . '/Fixture/DiscoveryBasic/AlphaTest.php');
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('parallel run emits location hints and flow IDs')->toBe(0)
             ->and($output)->toContain(
                 "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']",
             )

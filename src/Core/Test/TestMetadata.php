@@ -9,8 +9,8 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Class-level attributes are already merged in; method-level wins on
- * conflict.
+ * Contains class attributes and method attributes. A method attribute replaces
+ * a class attribute when they conflict.
  */
 final readonly class TestMetadata implements WireSerializable
 {

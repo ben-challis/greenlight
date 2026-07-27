@@ -9,6 +9,7 @@ parameters:
 
 rules:
     - Greenlight\PhpStan\DataProviderSignatureRule
+    - Greenlight\PhpStan\TestMethodRule
     - Greenlight\PhpStan\ToThrowMessageRule
 
 services:

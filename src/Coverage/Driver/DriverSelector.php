@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Driver;
 
 /**
- * The default order prefers pcov over Xdebug because pcov collects line
- * coverage much faster.
+ * The default order selects pcov before Xdebug because pcov collects line
+ * coverage more quickly.
  *
- * When nothing is available, select() returns a selection carrying a reason
- * string suitable for direct display to the user.
+ * If no driver is available, select() returns a selection with a reason for
+ * the user.
  *
  * @internal
  */
@@ -29,7 +29,7 @@ final readonly class DriverSelector
         }
 
         if ($this->candidates === []) {
-            return DriverSelection::unavailable('No coverage driver is available: no drivers are configured.');
+            return DriverSelection::unavailable('No coverage driver is configured.');
         }
 
         $names = \array_map(
@@ -42,7 +42,8 @@ final readonly class DriverSelector
         );
 
         return DriverSelection::unavailable(\sprintf(
-            'No coverage driver is available: tried %s. Install pcov, or enable xdebug with "coverage" in xdebug.mode or the XDEBUG_MODE environment variable.',
+            'No coverage driver is available. Greenlight tried %s. Install pcov or enable Xdebug coverage mode. '
+            . 'Set xdebug.mode to "coverage", or set the XDEBUG_MODE environment variable.',
             \implode(', ', $names),
         ));
     }

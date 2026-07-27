@@ -9,8 +9,8 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
 
 /**
- * Snapshot of the config file API. Update it only for an intentional API
- * change.
+ * Records the configuration-file API. Update this list only for an intentional
+ * API change.
  */
 final class GreenlightConfigApiTest
 {
@@ -26,7 +26,7 @@ final class GreenlightConfigApiTest
 
         \sort($methods);
 
-        Expect::that($methods)->toBe([
+        Expect::that($methods)->because('public method list is exactly the documented surface')->toBe([
             'artifacts',
             'build',
             'coverage',
@@ -51,6 +51,6 @@ final class GreenlightConfigApiTest
     {
         $constructor = new \ReflectionMethod(GreenlightConfig::class, '__construct');
 
-        Expect::that($constructor->isPrivate())->toBeTrue();
+        Expect::that($constructor->isPrivate())->because('builder cannot be constructed directly')->toBeTrue();
     }
 }

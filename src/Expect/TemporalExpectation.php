@@ -9,7 +9,7 @@ use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * Contains the matcher dispatch and probe handling shared by eventual and
+ * Contains the matcher dispatch and probe operations for eventual and
  * consistent expectations.
  *
  * @internal
@@ -19,6 +19,9 @@ use Greenlight\Core\Test\ExpectationCounter;
 abstract class TemporalExpectation
 {
     private bool $negated = false;
+
+    /** @var non-empty-string|null */
+    private ?string $reason = null;
 
     /**
      * @param \Closure(): T $probe
@@ -39,6 +42,33 @@ abstract class TemporalExpectation
     final public function not(): static
     {
         $this->negated = true;
+
+        return $this;
+    }
+
+    /**
+     * Sets a reason for the next matcher. The next matcher consumes the
+     * reason.
+     *
+     * If the matcher fails, the failure message ends with "because" and the
+     * reason. An empty reason causes a usage failure.
+     *
+     * @param non-empty-string $reason
+     *
+     * @throws ExpectationFailed
+     */
+    final public function because(string $reason): static
+    {
+        $reason = \trim($reason);
+
+        if ($reason === '') {
+            throw ExpectationFailed::fromDetail(new FailureDetail(
+                'because() requires a non-empty reason.',
+                location: CallSite::capture(),
+            ));
+        }
+
+        $this->reason = $reason;
 
         return $this;
     }
@@ -233,7 +263,7 @@ abstract class TemporalExpectation
     {
         if ($matching !== null && $message !== null) {
             throw ExpectationFailed::fromDetail(new FailureDetail(
-                'toThrow() accepts either matching: or message:, not both.',
+                'Specify matching: or message: for toThrow(). Do not specify both.',
                 location: CallSite::capture(),
             ));
         }
@@ -260,6 +290,13 @@ abstract class TemporalExpectation
     {
         $negated = $this->negated;
         $this->negated = false;
+        $reason = $this->reason;
+        $this->reason = null;
+
+        if ($reason !== null) {
+            $applied = $matcher;
+            $matcher = static fn(Expectation $expectation): Expectation => $applied($expectation->because($reason));
+        }
 
         return $this->waitFor($matcher, $negated, CallSite::capture());
     }
@@ -341,7 +378,7 @@ abstract class TemporalExpectation
                 ++$stalled;
 
                 if ($stalled >= 10_000) {
-                    throw new \LogicException('The polling clock did not advance while sleeping.');
+                    throw new \LogicException('The polling clock did not advance during sleep.');
                 }
             } else {
                 $stalled = 0;

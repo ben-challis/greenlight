@@ -9,33 +9,41 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Test\ExpectationCounter;
 
 /**
- * A fluent chain of matchers anchored on a single subject value.
+ * A fluent matcher chain for one subject value.
  *
- * Create instances via Expect::that().
+ * Use Expect::that() to create an instance.
  *
  * A failed matcher throws ExpectationFailed immediately.
  *
- * toEqual() deep-equality semantics:
+ * toEqual() uses these rules for deep equality:
  *
- * - ints and floats compare by numeric value, so 1 equals 1.0; NAN equals
- *   nothing, including itself
- * - all other scalars and null compare strictly, so '1' does not equal 1
- * - arrays are equal when they hold the same keys, in any order, with
- *   recursively equal values
- * - enum cases compare by identity
- * - DateTimeInterface instances are equal when they denote the same instant
- *   at microsecond precision; the timezone is ignored
- * - other objects are equal when they share the exact class and every
- *   property, including private and inherited ones, is recursively equal;
- *   cyclic structures are compared without recursing forever
- * - closures and resources compare by identity
+ * - Integers and floats use numeric value. Thus, 1 equals 1.0. NAN does not
+ *   equal a value, even itself.
+ *
+ * - Other scalar values and null use strict equality. Thus, '1' does not
+ *   equal 1.
+ *
+ * - Arrays are equal when they contain the same keys and recursively equal
+ *   values. Key order has no effect.
+ *
+ * - Enum cases, closures, and resources use identity.
+ *
+ * - DateTimeInterface instances are equal at the same instant and
+ *   microsecond. The timezone has no effect.
+ *
+ * - Other objects are equal when they have the same class and recursively
+ *   equal properties. This rule includes private and inherited properties.
+ *   The comparison safely processes cyclic structures.
  */
 final class Expectation
 {
     private bool $negated = false;
 
+    /** @var non-empty-string|null */
+    private ?string $reason = null;
+
     /**
-     * @internal use Expect::that() instead
+     * @internal Use Expect::that() instead.
      *
      * @param list<ExpectationExtension> $extensions
      */
@@ -46,12 +54,11 @@ final class Expectation
     ) {}
 
     /**
-     * Dispatches extension matchers: an ExpectationExtension that provides a
-     * matcher named like the called method is evaluated against the subject
-     * with the given arguments.
+     * Dispatches extension matchers. If an ExpectationExtension provides the
+     * requested matcher, this method gives it the subject and arguments.
      *
-     * Extensions cannot shadow native matchers, which always win by existing
-     * as real methods.
+     * An extension cannot replace a native matcher. PHP calls the native
+     * method directly.
      *
      * @param array<int, mixed> $arguments
      *
@@ -73,15 +80,15 @@ final class Expectation
         }
 
         throw new \BadMethodCallException(\sprintf(
-            'No matcher named %s exists natively or in any registered expectation extension.',
+            'Greenlight has no native or registered extension matcher named %s.',
             $name,
         ));
     }
 
     /**
-     * Inverts the next matcher in the chain and is consumed by it. Subject
-     * type guards are not inverted: a matcher applied to a subject it cannot
-     * work on fails regardless of negation.
+     * Inverts the next matcher in the chain. That matcher consumes the
+     * inversion. Negation does not apply to subject type checks. A matcher
+     * fails if it cannot process the subject type.
      */
     public function not(): self
     {
@@ -91,8 +98,32 @@ final class Expectation
     }
 
     /**
-     * Re-anchors the chain on a new subject. Any pending not() does not carry
-     * over.
+     * Sets a reason for the next matcher in the chain. The next matcher
+     * consumes the reason.
+     *
+     * If the matcher fails, the failure message ends with "because" and the
+     * reason. An empty reason causes a usage failure.
+     *
+     * @param non-empty-string $reason
+     *
+     * @throws ExpectationFailed
+     */
+    public function because(string $reason): self
+    {
+        $reason = \trim($reason);
+
+        if ($reason === '') {
+            $this->usageFailure('because() requires a non-empty reason.');
+        }
+
+        $this->reason = $reason;
+
+        return $this;
+    }
+
+    /**
+     * Sets a new subject for the chain. The chain does not apply not() and
+     * because() modifiers to the new subject.
      */
     public function and(mixed $value): self
     {
@@ -100,7 +131,7 @@ final class Expectation
     }
 
     /**
-     * Identity: passes when the subject is the expected value (===).
+     * Passes when the subject and expected value are identical (===).
      *
      * @throws ExpectationFailed
      */
@@ -114,7 +145,8 @@ final class Expectation
     }
 
     /**
-     * Deep equality; the exact semantics are documented on this class.
+     * Passes when the subject and expected value satisfy the rules for deep
+     * equality on this class.
      *
      * @throws ExpectationFailed
      */
@@ -128,8 +160,8 @@ final class Expectation
     }
 
     /**
-     * Deep equality like toEqual(), except that the order of list elements is
-     * irrelevant, recursively. Associative arrays keep their keys.
+     * Uses the toEqual() rules but ignores list-element order at all levels.
+     * Associative arrays keep their keys.
      *
      * @throws ExpectationFailed
      */
@@ -143,7 +175,7 @@ final class Expectation
     }
 
     /**
-     * Passes when the subject is identical (===) to any of the options.
+     * Passes when the subject is identical (===) to one of the options.
      *
      * @throws ExpectationFailed
      */
@@ -157,8 +189,9 @@ final class Expectation
     }
 
     /**
-     * Membership by identity (===) in the haystack, the mirror of
-     * toContain(). Traversable haystacks are consumed by the check.
+     * Passes when the haystack contains the subject by identity (===). This
+     * matcher is the reverse of toContain(). The check consumes a Traversable
+     * haystack.
      *
      * @param iterable<mixed> $haystack
      *
@@ -305,9 +338,9 @@ final class Expectation
     }
 
     /**
-     * Substring check for string subjects (the needle must then be a string),
-     * membership check by identity (===) for iterable subjects. Traversable
-     * subjects are consumed by the check.
+     * For a string subject, checks for a string needle. For an iterable
+     * subject, checks for the value by identity (===). The check consumes a
+     * Traversable subject.
      *
      * @throws ExpectationFailed
      */
@@ -316,7 +349,7 @@ final class Expectation
         if (\is_string($this->subject)) {
             if (!\is_string($needle)) {
                 $this->usageFailure(\sprintf(
-                    'toContain() on a string subject requires a string needle, got %s.',
+                    'toContain() requires a string needle for a string subject. The needle type is %s.',
                     \get_debug_type($needle),
                 ));
             }
@@ -347,14 +380,14 @@ final class Expectation
         }
 
         $this->usageFailure(\sprintf(
-            'toContain() requires a string or iterable subject, got %s.',
+            'toContain() requires a string or iterable subject. The subject type is %s.',
             \get_debug_type($this->subject),
         ));
     }
 
     /**
-     * The subject must be countable or traversable. Traversable subjects are
-     * consumed by the count.
+     * The subject must be Countable or Traversable. The count consumes a
+     * Traversable subject.
      *
      * @throws ExpectationFailed
      */
@@ -366,7 +399,7 @@ final class Expectation
             $actualCount = \iterator_count($this->subject);
         } else {
             $this->usageFailure(\sprintf(
-                'toHaveCount() requires a countable or traversable subject, got %s.',
+                'toHaveCount() requires a countable or traversable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -380,9 +413,9 @@ final class Expectation
     }
 
     /**
-     * Passes when the subject is the empty string or holds zero elements.
-     * The subject must be a string, array, Countable or iterable; Traversable
-     * subjects are consumed by the check.
+     * Passes when the subject is an empty string or contains no elements.
+     * The subject must be a string, array, Countable, or iterable. The check
+     * consumes a Traversable subject.
      *
      * @throws ExpectationFailed
      */
@@ -396,7 +429,7 @@ final class Expectation
             $empty = \iterator_count($this->subject) === 0;
         } else {
             $this->usageFailure(\sprintf(
-                'toBeEmpty() requires a string, array, Countable or iterable subject, got %s.',
+                'toBeEmpty() requires a string, array, Countable, or iterable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -405,9 +438,9 @@ final class Expectation
     }
 
     /**
-     * String subjects measure their UTF-8 code point count, or the byte count
-     * when the string is not valid UTF-8. Array and Countable subjects
-     * measure count().
+     * For a valid UTF-8 string, measures the number of code points. For other
+     * strings, measures the number of bytes. Array and Countable subjects use
+     * count().
      *
      * @throws ExpectationFailed
      */
@@ -420,7 +453,7 @@ final class Expectation
             $actualLength = \count($this->subject);
         } else {
             $this->usageFailure(\sprintf(
-                'toHaveLength() requires a string, array or Countable subject, got %s.',
+                'toHaveLength() requires a string, array, or Countable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -434,8 +467,9 @@ final class Expectation
     }
 
     /**
-     * The subject must be an array (checked with array_key_exists) or an
-     * ArrayAccess implementation (checked with offsetExists).
+     * The subject must be an array or an ArrayAccess implementation. The
+     * matcher uses array_key_exists() for arrays and offsetExists() for
+     * ArrayAccess.
      *
      * @throws ExpectationFailed
      */
@@ -447,7 +481,7 @@ final class Expectation
             $hasKey = $this->subject->offsetExists($key);
         } else {
             $this->usageFailure(\sprintf(
-                'toHaveKey() requires an array or ArrayAccess subject, got %s.',
+                'toHaveKey() requires an array or ArrayAccess subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -460,10 +494,10 @@ final class Expectation
     }
 
     /**
-     * Every key in the subset must exist in the subject array with an equal
-     * value (toEqual() semantics); nested arrays match as subsets too, so
-     * they may hold extra keys. The failure names the first differing key by
-     * its dot-joined path.
+     * Each subset key must exist in the subject with an equal value. Equality
+     * uses the toEqual() rules. A nested array is also a subset. The
+     * related nested subject array can contain extra keys. The failure
+     * identifies the first different key by its dot-separated path.
      *
      * @param array<array-key, mixed> $subset
      *
@@ -473,7 +507,7 @@ final class Expectation
     {
         if (!\is_array($this->subject)) {
             $this->usageFailure(\sprintf(
-                'toContainSubset() requires an array subject, got %s.',
+                'toContainSubset() requires an array subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -543,7 +577,7 @@ final class Expectation
     }
 
     /**
-     * Passes when abs(subject - of) <= delta.
+     * Passes when abs(subject - of) is not more than delta.
      *
      * @throws ExpectationFailed
      */
@@ -604,7 +638,8 @@ final class Expectation
     }
 
     /**
-     * The subject must be a string; passes when it is valid JSON.
+     * The subject must be a string. The matcher passes when the string
+     * contains valid JSON.
      *
      * @throws ExpectationFailed
      */
@@ -618,10 +653,10 @@ final class Expectation
     }
 
     /**
-     * The subject must be a string holding valid JSON that decodes to a
-     * structure deeply equal to the decoded expected JSON, so object key
-     * order is irrelevant. A subject that is not valid JSON fails with a
-     * message saying so; expected values that are not valid JSON are misuse.
+     * The subject must be a string that contains valid JSON. The matcher
+     * decodes the subject and expected JSON. It then applies deep equality to
+     * the results. Object-key order has no effect. Invalid subject JSON causes
+     * an expectation failure. Invalid expected JSON causes a usage error.
      *
      * @throws ExpectationFailed
      */
@@ -632,7 +667,7 @@ final class Expectation
         try {
             $decodedExpected = \json_decode($expected, true, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            $this->usageFailure('toMatchJson() requires valid JSON as the expected value.');
+            $this->usageFailure('Pass valid JSON as the expected value to toMatchJson().');
         }
 
         $renderedExpected = $this->renderer->render($decodedExpected);
@@ -656,22 +691,23 @@ final class Expectation
     }
 
     /**
-     * The subject must be a callable; it is invoked with no arguments. Passes
-     * when it throws an instance of the given class whose message satisfies
-     * the optional regular expression or exact-message constraint.
+     * The subject must be callable. The matcher calls it with no arguments.
+     * It passes when the subject throws an instance of the specified class.
+     * The message must satisfy the optional regular expression or exact-text
+     * constraint.
      *
-     * Under not(), any throwable that does not satisfy both conditions is
-     * swallowed and counts as a pass.
+     * With not(), a throwable that does not satisfy both conditions makes the
+     * matcher pass.
      *
      * @param class-string<\Throwable> $throwable
      *
-     * @throws \InvalidArgumentException when the matching pattern is not a valid regular expression
+     * @throws \InvalidArgumentException when the match pattern is not a valid regular expression
      * @throws ExpectationFailed
      */
     public function toThrow(string $throwable, ?string $matching = null, ?string $message = null): self
     {
         if ($matching !== null && $message !== null) {
-            $this->usageFailure('toThrow() accepts either matching: or message:, not both.');
+            $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
         }
 
         if ($matching !== null) {
@@ -680,7 +716,7 @@ final class Expectation
 
         if (!\is_callable($this->subject)) {
             $this->usageFailure(\sprintf(
-                'toThrow() requires a callable subject, got %s.',
+                'toThrow() requires a callable subject. The subject type is %s.',
                 \get_debug_type($this->subject),
             ));
         }
@@ -717,8 +753,9 @@ final class Expectation
     }
 
     /**
-     * @param non-empty-string $description sentence fragment starting with
-     *   "to", negation inserts "not" in front of it
+     * @param non-empty-string $description Sentence fragment that starts with
+     *   "to". Negation puts "not" before it. A pending because() reason
+     *   follows it.
      *
      * @throws ExpectationFailed
      */
@@ -727,6 +764,8 @@ final class Expectation
         ExpectationCounter::increment();
         $negated = $this->negated;
         $this->negated = false;
+        $reason = $this->reason;
+        $this->reason = null;
 
         if ($negated ? !$matched : $matched) {
             return $this;
@@ -735,7 +774,13 @@ final class Expectation
         $actual ??= $this->renderer->render($this->subject);
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
-            \sprintf('Expected %s %s%s.', $actual, $negated ? 'not ' : '', $description),
+            \sprintf(
+                'Expected %s %s%s%s.',
+                $actual,
+                $negated ? 'not ' : '',
+                $description,
+                $reason === null ? '' : ' because ' . $reason,
+            ),
             $negated && $expected !== null ? 'not ' . $expected : $expected,
             $actual,
             CallSite::capture(),
@@ -743,7 +788,8 @@ final class Expectation
     }
 
     /**
-     * The subject narrowed to string, or a usage failure naming the matcher.
+     * Returns the string subject or causes a usage failure that identifies the
+     * matcher.
      *
      * @throws ExpectationFailed
      */
@@ -751,7 +797,7 @@ final class Expectation
     {
         if (!\is_string($this->subject)) {
             $this->usageFailure(\sprintf(
-                '%s() requires a string subject, got %s.',
+                '%s() requires a string subject. The subject type is %s.',
                 $matcher,
                 \get_debug_type($this->subject),
             ));
@@ -761,8 +807,8 @@ final class Expectation
     }
 
     /**
-     * The subject narrowed to int|float, or a usage failure naming the
-     * matcher.
+     * Returns the int|float subject or causes a usage failure that identifies
+     * the matcher.
      *
      * @throws ExpectationFailed
      */
@@ -770,7 +816,7 @@ final class Expectation
     {
         if (!\is_int($this->subject) && !\is_float($this->subject)) {
             $this->usageFailure(\sprintf(
-                '%s() requires an int or float subject, got %s.',
+                '%s() requires an int or float subject. The subject type is %s.',
                 $matcher,
                 \get_debug_type($this->subject),
             ));
@@ -780,8 +826,8 @@ final class Expectation
     }
 
     /**
-     * A matcher applied to a subject it cannot work on. Reported as a plain
-     * failure that ignores negation, so not() cannot turn misuse into a pass.
+     * Reports a matcher that cannot process the subject type. The failure
+     * ignores negation. Thus, not() cannot make incorrect use pass.
      *
      * @param non-empty-string $message
      *
@@ -790,6 +836,7 @@ final class Expectation
     private function usageFailure(string $message): never
     {
         $this->negated = false;
+        $this->reason = null;
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
             $message,
@@ -806,7 +853,7 @@ final class Expectation
     {
         if (ErrorTrap::run(static fn(): int|false => \preg_match($pattern, ''), $warning) === false) {
             throw new \InvalidArgumentException(\sprintf(
-                '%s() received an invalid regular expression: %s%s',
+                'The pattern for %s() is an invalid regular expression: %s%s',
                 $matcher,
                 $pattern,
                 $warning === null ? '' : ' (' . $warning . ')',

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Core\Artifact;
 
 /**
- * Attaches structured values, text, binary bytes, and files to one test attempt.
+ * Adds structured values, text, binary data, and files to one test attempt.
  *
- * Implementations copy input immediately. Attachment content is persisted out
- * of band; test results carry metadata and published paths only.
+ * Implementations copy input immediately. The attachment store saves content
+ * separately. Test results contain only metadata and published paths.
  */
 interface Attachments
 {

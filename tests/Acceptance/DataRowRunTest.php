@@ -15,7 +15,7 @@ final class DataRowRunTest
     public function inlineRowsRunAndFilterByLabel(): void
     {
         $result = $this->run('--workers=2');
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('inline rows run and filter by label')->toBe(0)
             ->and($result->output())->toContain('4 tests, 4 passed')
             ->toContain('addsUp[small]')
             ->toContain('addsUp[#1]')
@@ -23,7 +23,7 @@ final class DataRowRunTest
             ->toContain('acceptsWord[from provider]');
 
         $result = $this->run('--filter=*[from attribute]');
-        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
+        Expect::that($result->exitCode)->because('inline rows run and filter by label')->toBe(0)->and($result->output())->toContain('1 test, 1 passed');
     }
 
     private function run(string ...$flags): ProcessResult

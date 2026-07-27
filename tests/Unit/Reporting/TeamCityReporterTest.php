@@ -47,7 +47,7 @@ final class TeamCityReporterTest
             ##teamcity[testSuiteFinished name='Acme\NetworkTest' flowId='Acme\NetworkTest']
             TXT;
 
-        Expect::that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->because('canned stream renders the golden service messages')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -67,7 +67,7 @@ final class TeamCityReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())->toBe(
+        Expect::that($output->buffer())->because('values are escaped per service message rules')->toBe(
             "##teamcity[testFailed name='Acme\EscapeTest::escapes' message='pipe || quote |' bracket |[x|]|nnext' flowId='Acme\EscapeTest']\n"
             . "##teamcity[testFinished name='Acme\EscapeTest::escapes' duration='1' flowId='Acme\EscapeTest']\n",
         );
@@ -86,7 +86,7 @@ final class TeamCityReporterTest
         $reporter->onEvent(new TestStarted(new TestId($class, 'one'), 1.1));
         $reporter->onEvent(new TestStarted(new TestId($class, 'two', 'large input'), 1.2));
 
-        Expect::that($output->buffer())->toBe(
+        Expect::that($output->buffer())->because('loadable classes get php_qn location hints')->toBe(
             "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']\n"
             . "##teamcity[testStarted name='{$class}::one' locationHint='php_qn://{$file}::\\{$class}::one' flowId='{$class}']\n"
             . "##teamcity[testStarted name='{$class}::two|[large input|]' locationHint='php_qn://{$file}::\\{$class}::two' flowId='{$class}']\n",
@@ -104,7 +104,7 @@ final class TeamCityReporterTest
         $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
         $reporter->onEvent(new TestStarted(new TestId($class, 'haunts'), 1.1));
 
-        Expect::that($output->buffer())->toBe(
+        Expect::that($output->buffer())->because('unloadable classes omit the location hint')->toBe(
             "##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n"
             . "##teamcity[testStarted name='{$class}::haunts' flowId='{$class}']\n",
         );
@@ -131,7 +131,7 @@ final class TeamCityReporterTest
         $reporter->onEvent(new TestClassFinished($alpha, 1.07, 'w-1'));
         $reporter->finish();
 
-        Expect::that($output->buffer())->toBe(
+        Expect::that($output->buffer())->because('interleaved classes keep distinct flows')->toBe(
             "##teamcity[testSuiteStarted name='{$alpha}' flowId='{$alpha}']\n"
             . "##teamcity[testSuiteStarted name='{$beta}' flowId='{$beta}']\n"
             . "##teamcity[testStarted name='{$alpha}::first' flowId='{$alpha}']\n"

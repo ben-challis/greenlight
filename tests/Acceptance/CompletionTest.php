@@ -19,7 +19,7 @@ final readonly class CompletionTest
     public function printsAScriptPerShellAndRejectsUnknownShells(): void
     {
         $result = $this->run('bash');
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0)
             ->and($result->stdout)->toContain('_greenlight_completions')
             ->toContain('coverage:diff')
             ->toContain('--detect-leaks')
@@ -28,29 +28,29 @@ final readonly class CompletionTest
         $bashScript = $result->stdout;
 
         $result = $this->run('zsh');
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0)
             ->and($result->stdout)->toContain('compdef _greenlight greenlight')
             ->toContain('--detect-leaks')
             ->toContain('teamcity');
 
         $result = $this->run('fish');
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0)
             ->and($result->stdout)->toContain('complete -c greenlight')
             ->toContain('-l detect-leaks')
             ->toContain('teamcity');
 
         $result = $this->run('powershell');
-        Expect::that($result->exitCode)->toBe(64)
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64)
             ->and($result->stderr)->toContain('Unknown shell');
 
         $result = $this->run();
-        Expect::that($result->exitCode)->toBe(64)
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64)
             ->and($result->stderr)->toContain('requires a shell argument');
 
         $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }
 
-    /** Skips only the optional syntax check when bash is unavailable. */
+    /** If Bash is not available, skips only the optional syntax check. */
     private function syntaxCheckWhenBashIsAvailable(string $script): void
     {
         $path = \getenv('PATH');

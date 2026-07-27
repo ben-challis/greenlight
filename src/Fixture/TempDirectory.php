@@ -8,8 +8,9 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Disposable;
 
 /**
- * Creates its unique root lazily. Nested paths cannot escape that root, and
- * disposal removes symlinks without following them.
+ * Creates one root directory on first use. A path inside it cannot escape the
+ * root.
+ * Disposal removes a symbolic link and leaves its target unchanged.
  */
 final class TempDirectory implements Disposable
 {
@@ -35,7 +36,8 @@ final class TempDirectory implements Disposable
     }
 
     /**
-     * @param string $name a relative path of plain segments; separators are allowed, traversal is not
+     * @param string $name A relative path of plain segments. The path can
+     *   contain separators but cannot contain traversal segments.
      */
     public function subdirectory(string $name): string
     {

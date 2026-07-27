@@ -14,7 +14,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 
 /**
- * Owns private run staging, cross-worker quotas, publication, and cleanup.
+ * Controls private run staging, quotas for all workers, publication, and cleanup.
  *
  * @internal
  */
@@ -45,7 +45,7 @@ final class ArtifactStore
         if (!\str_starts_with($configured, '/')
             && \in_array('..', \explode('/', $configured), true)
         ) {
-            throw AttachmentError::storage('Relative attachment output directory must stay inside the working directory');
+            throw AttachmentError::storage('Keep a relative attachment output directory inside the working directory');
         }
 
         if (\str_starts_with($configured, '/') && ($resolved = \realpath($configured)) !== false) {
@@ -132,7 +132,7 @@ final class ArtifactStore
             $stream = \fopen($part, 'xb');
 
             if ($stream === false) {
-                throw AttachmentError::storage('Failed to create attachment staging file');
+                throw AttachmentError::storage('Greenlight did not create the attachment staging file');
             }
 
             try {
@@ -179,7 +179,7 @@ final class ArtifactStore
         ArtifactConfiguration $configuration,
     ): StagedAttachment {
         if (\is_link($sourcePath)) {
-            throw AttachmentError::source($sourcePath, 'must not be a symbolic link');
+            throw AttachmentError::source($sourcePath, 'Use a source path that is not a symbolic link');
         }
 
         $source = \fopen($sourcePath, 'rb');
@@ -207,7 +207,7 @@ final class ArtifactStore
                 $destination = \fopen($part, 'xb');
 
                 if ($destination === false) {
-                    throw AttachmentError::storage('Failed to create attachment staging file');
+                    throw AttachmentError::storage('Greenlight did not create the attachment staging file');
                 }
 
                 $hash = \hash_init('sha256');
@@ -330,7 +330,7 @@ final class ArtifactStore
             if (\file_exists($destination) || \is_link($destination)
                 || \file_exists($part) || \is_link($part)
             ) {
-                throw AttachmentError::storage('Attachment output would overwrite an existing file');
+                throw AttachmentError::storage('An attachment output path already exists');
             }
 
             if (\filesize($source) !== $attachment->sizeBytes || \hash_file('sha256', $source) !== $attachment->sha256) {
@@ -364,8 +364,8 @@ final class ArtifactStore
     }
 
     /**
-     * Recovers atomically completed evidence for a worker that died before
-     * emitting TestFinished.
+     * Recovers evidence that completed atomically from a worker that stopped
+     * before TestFinished.
      */
     public function recover(TestResult $result): TestResult
     {
@@ -409,7 +409,7 @@ final class ArtifactStore
                     $attachments[] = StagedAttachment::fromWire($map);
                 }
             } catch (\Throwable) {
-                // A partial or corrupt sidecar is not completed evidence.
+                // A partial or corrupt sidecar is not complete evidence.
             }
         }
 
@@ -460,7 +460,7 @@ final class ArtifactStore
 
         if ($size > $configuration->maxAttachmentBytes) {
             throw AttachmentError::limit(\sprintf(
-                'Attachment size %d exceeds the %d byte limit',
+                'Attachment size %d exceeds the limit of %d bytes',
                 $size,
                 $configuration->maxAttachmentBytes,
             ));
@@ -508,14 +508,14 @@ final class ArtifactStore
         $this->updateQuota(function (int $count, int $used) use ($bytes): array {
             if ($count + 1 > $this->configuration->maxRunAttachments) {
                 throw AttachmentError::limit(\sprintf(
-                    'This run exceeds the %d attachment limit',
+                    'This run has reached the limit of %d attachments',
                     $this->configuration->maxRunAttachments,
                 ));
             }
 
             if ($used + $bytes > $this->configuration->maxRunBytes) {
                 throw AttachmentError::limit(\sprintf(
-                    'Attachments for this run exceed the %d byte limit',
+                    'Attachments for this run exceed the limit of %d bytes',
                     $this->configuration->maxRunBytes,
                 ));
             }
@@ -618,7 +618,7 @@ final class ArtifactStore
         if (\file_put_contents($part, $encoded . "\n", \LOCK_EX) === false) {
             @\unlink($part);
 
-            throw AttachmentError::storage('Failed to write attachment recovery metadata');
+            throw AttachmentError::storage('Greenlight did not write attachment recovery metadata');
         }
 
         \chmod($part, 0o600);
@@ -656,7 +656,7 @@ final class ArtifactStore
         if (!\rename($part, $path)) {
             @\unlink($part);
 
-            throw AttachmentError::storage('Failed to record the current test attempt');
+            throw AttachmentError::storage('Greenlight did not finalize the current test attempt record');
         }
     }
 
@@ -702,7 +702,7 @@ final class ArtifactStore
         }
 
         if (!\unlink($path)) {
-            throw AttachmentError::storage('Failed to remove ' . $description);
+            throw AttachmentError::storage('Greenlight did not remove ' . $description);
         }
     }
 

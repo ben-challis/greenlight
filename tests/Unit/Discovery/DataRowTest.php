@@ -20,7 +20,7 @@ final class DataRowTest
     {
         $rows = new DataSetExpander()->rowsFor(new \ReflectionClass(InlineRowsTest::class), 'addsUp', null, 5.0);
 
-        Expect::that(\array_keys($rows))->toBe(['small', '#1'])
+        Expect::that(\array_keys($rows))->because('inline rows expand with labels and positions')->toBe(['small', '#1'])
             ->and($rows['small'])->toBe([1, 2, 3])
             ->and($rows['#1'])->toBe([10, 20, 30]);
     }
@@ -35,7 +35,7 @@ final class DataRowTest
             5.0,
         );
 
-        Expect::that(\array_keys($rows))->toBe(['from attribute', 'from provider']);
+        Expect::that(\array_keys($rows))->because('inline rows and provider rows share one key space')->toBe(['from attribute', 'from provider']);
     }
 
     #[Test]
@@ -45,7 +45,7 @@ final class DataRowTest
 
         Expect::that(
             static fn(): array => new DataSetExpander()->rowsFor($reflection, 'probe', 'rows', 5.0),
-        )->toThrow(DiscoveryError::class, '/twice/');
+        )->because('duplicate keys between inline and provider are refused')->toThrow(DiscoveryError::class, '/twice/');
     }
 
     #[Test]
@@ -58,7 +58,7 @@ final class DataRowTest
 
         $ids = \array_map(static fn($entry): string => (string) $entry->id, $plan->entries);
 
-        Expect::that($ids)->toBe([
+        Expect::that($ids)->because('discoverer expands inline rows into the plan')->toBe([
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::addsUp[small]',
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::addsUp[#1]',
         ]);

@@ -18,13 +18,13 @@ final class EnvironmentSandboxTest
 
         $sandbox->set($name, 'value');
 
-        Expect::that(\getenv($name))->toBe('value')
+        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBe('value')
             ->and($this->envValue($name))->toBe('value')
             ->and($this->serverValue($name))->toBe('value');
 
         $sandbox->dispose();
 
-        Expect::that(\getenv($name))->toBeFalse()
+        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBeFalse()
             ->and($this->envHas($name))->toBeFalse()
             ->and($this->serverHas($name))->toBeFalse();
     }
@@ -102,7 +102,7 @@ final class EnvironmentSandboxTest
         }
     }
 
-    /** Prevents static analysis from narrowing a mutated superglobal offset. */
+    /** Tells the analyzer that the superglobal offset remains variable after a change. */
     private function envValue(string $name): mixed
     {
         return $_ENV[$name] ?? null;

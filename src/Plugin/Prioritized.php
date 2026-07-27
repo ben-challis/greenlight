@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 /**
- * Optional ordering for subscribers: lower runs earlier, default 0, stable
- * within equal priorities.
+ * Controls order within each plugin capability. Lower values run earlier.
+ * The default value is zero. Equal values keep their original order.
  */
 interface Prioritized
 {

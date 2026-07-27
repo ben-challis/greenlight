@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Diff;
 
 /**
- * Omits files whose percentage is unchanged and which gained no uncovered
- * lines.
+ * Omits files with no percentage change and no new uncovered lines.
  *
  * @internal
  */

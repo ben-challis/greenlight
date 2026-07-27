@@ -25,7 +25,7 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('two workers occupy channels one and two')->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
@@ -37,7 +37,7 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('the in process runner is channel one')->toBe(0)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1]);
     }
@@ -45,14 +45,13 @@ final readonly class ChannelTest
     #[Test]
     public function recycledWorkersReuseFreedChannels(): void
     {
-        // Recycling after every test forces replacement workers; more
-        // workers are spawned than channels exist, yet the occupied set
-        // never leaves {1, 2}.
+        // Replacement after each test starts more workers than channels. The
+        // set of occupied channels remains within {1, 2}.
         $project = $this->writeProject(recycleAfterTests: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('recycled workers reuse freed channels')->toBe(0)
             ->and(\count($this->spawnedWorkers($events)))->toBeGreaterThan(2)
             ->and(\count($channels))->toBe(4)
             ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
@@ -108,9 +107,9 @@ final readonly class ChannelTest
         $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
-        // Each class records its channel and waits for every expected marker.
-        // This prevents one worker from draining its queue before the other
-        // starts, without relying on a fixed delay.
+        // Each class records its channel and waits for all expected markers.
+        // This makes both workers start before one completes its queue. The
+        // test does not use a fixed delay.
         $template = <<<'PHP'
             <?php
 

@@ -15,11 +15,32 @@ use Greenlight\Tests\Fixture\Coverage\Adder;
 final class XdebugDriverTest
 {
     #[Test]
+    public function reportsInvalidCollectionStateExactly(): void
+    {
+        $driver = new \ReflectionClass(XdebugDriver::class)->newInstanceWithoutConstructor();
+
+        Expect::that(static fn(): mixed => $driver->stop())
+            ->toThrow(
+                \LogicException::class,
+                message: 'The Xdebug collection window is not open. Call start() before stop().',
+            );
+
+        $collecting = new \ReflectionProperty(XdebugDriver::class, 'collecting');
+        $collecting->setValue($driver, true);
+
+        Expect::that(static fn() => $driver->start())
+            ->toThrow(
+                \LogicException::class,
+                message: 'The Xdebug collection window is already open. Call stop() before start().',
+            );
+    }
+
+    #[Test]
     public function collectsRealLineCoverageOverTheFixture(): void
     {
         if (!XdebugDriver::isAvailable()) {
-            // This integration test needs xdebug running with "coverage" in
-            // its mode, an environment property the test cannot change.
+            // This integration test requires Xdebug with "coverage" in its mode.
+            // The test cannot change this environment property.
             throw new SkipTest('xdebug with coverage mode is not available');
         }
 
@@ -34,11 +55,11 @@ final class XdebugDriverTest
         $map = CoverageMap::fromRaw($raw, new PathFilter([$fixtureDir]));
         $file = $map->files()[$fixtureFile] ?? null;
 
-        Expect::that($sum)->toBe(42)
+        Expect::that($sum)->because('collects real line coverage over the fixture')->toBe(42)
             ->and($file)->not()->toBeNull();
         \assert($file !== null);
 
-        Expect::that($file->coveredLines)->toContain(Adder::ADD_RETURN_LINE)
+        Expect::that($file->coveredLines)->because('collects real line coverage over the fixture')->toContain(Adder::ADD_RETURN_LINE)
             ->and($file->uncoveredLines)->not()->toContain(Adder::ADD_RETURN_LINE);
     }
 }

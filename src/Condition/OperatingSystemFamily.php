@@ -6,7 +6,7 @@ namespace Greenlight\Condition;
 
 use Greenlight\Core\Condition;
 
-/** Compares case-insensitively with PHP_OS_FAMILY. */
+/** Compares the value to PHP_OS_FAMILY without case sensitivity. */
 final readonly class OperatingSystemFamily implements Condition
 {
     public function __construct(private string $family) {}

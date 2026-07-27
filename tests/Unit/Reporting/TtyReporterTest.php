@@ -29,9 +29,9 @@ final class TtyReporterTest
         $output = new BufferOutput();
         $reporter = new TtyReporter($output, colour: true, cursor: true, header: new RunHeader('dev-main', 'greenlight.php', 4242, phpVersion: '8.4.0'));
 
-        // Two classes in flight at once, exactly what multiple workers produce.
-        // Timestamps stay at least 0.05s apart so the redraw throttle never
-        // swallows one of these events.
+        // Two classes are active at the same time, as with multiple workers.
+        // Timestamps differ by at least 0.05 seconds. Thus, the redraw limit
+        // does not omit these events.
         $reporter->onEvent(new RunStarted('run-1', 2, 2, 1.0));
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->onEvent(new TestClassStarted('App\BetaTest', 1.05));
@@ -46,9 +46,10 @@ final class TtyReporterTest
         $terminal->write($output->buffer());
         $screen = $terminal->screen();
 
-        Expect::that($screen)->toContain('Greenlight dev-main')
+        Expect::that($screen)->because('interleaved classes finalize in place with ANSI')->toContain('Greenlight dev-main')
             ->toContain('PHP 8.4.0 | config: greenlight.php | workers: 2 | seed: 4242')
-            // Only the failing class earns a permanent line; the pass just counts.
+            // Only the failed class has a permanent line. The passed class
+            // changes only the count.
             ->not()->toContain('✓ App\AlphaTest')
             ->toContain('✗ App\BetaTest (1 test, 1 failed, 0.010s)')
             ->toContain('2 tests, 1 passed, 1 failed, 0 expectations');
@@ -68,7 +69,7 @@ final class TtyReporterTest
 
         $buffer = $output->buffer();
 
-        Expect::that($buffer)->not()->toContain("\x1b[")
+        Expect::that($buffer)->because('without ANSI only finalized lines are written')->not()->toContain("\x1b[")
             ->toContain("✓ App\AlphaTest (1 test, 0.010s)\n")
             ->toContain('1 test, 1 passed, 0 expectations');
     }
@@ -85,7 +86,7 @@ final class TtyReporterTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($output->buffer())->not()->toContain('failed')
+        Expect::that($output->buffer())->because('zero result categories are omitted from the summary')->not()->toContain('failed')
             ->not()->toContain('errored')
             ->not()->toContain('skipped');
     }
@@ -108,8 +109,9 @@ final class TtyReporterTest
 
         $buffer = $output->buffer();
 
-        // A fully skipped class reads "skipped", a mixed one counts them.
-        Expect::that($buffer)->toContain('− App\GammaTest (1 test, skipped, 0.010s)')
+        // A class with only skipped tests reads "skipped". A mixed class shows
+        // the number of skipped tests.
+        Expect::that($buffer)->because('skipped tests are unambiguous and listed with reasons')->toContain('− App\GammaTest (1 test, skipped, 0.010s)')
             ->toContain('✓ App\DeltaTest (2 tests, 1 skipped, 0.020s)')
             ->toContain('3 tests, 1 passed, 2 skipped, 0 expectations')
             ->toContain("Skipped:\n  App\GammaTest::one (xdebug not loaded)\n  App\DeltaTest::two (no reason given)");
@@ -124,7 +126,7 @@ final class TtyReporterTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($spawned->buffer())->toContain("Workers: 1 spawned\n")
+        Expect::that($spawned->buffer())->because('workers line omits zero recycled and disappears when none spawned')->toContain("Workers: 1 spawned\n")
             ->not()->toContain('recycled');
 
         $inProcess = new BufferOutput();
@@ -132,7 +134,7 @@ final class TtyReporterTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($inProcess->buffer())->not()->toContain('Workers:');
+        Expect::that($inProcess->buffer())->because('workers line omits zero recycled and disappears when none spawned')->not()->toContain('Workers:');
     }
 
     #[Test]
@@ -149,7 +151,7 @@ final class TtyReporterTest
         $terminal = new TerminalEmulator(retainColour: true);
         $terminal->write($output->buffer());
 
-        Expect::that($terminal->screen())->toContain("(1 test, \x1b[33m1.500s\x1b[0m)");
+        Expect::that($terminal->screen())->because('slow durations are colored on class lines')->toContain("(1 test, \x1b[33m1.500s\x1b[0m)");
     }
 
     #[Test]
@@ -166,7 +168,7 @@ final class TtyReporterTest
         $terminal = new TerminalEmulator(retainColour: true);
         $terminal->write($output->buffer());
 
-        Expect::that($terminal->screen())->toContain("\x1b[32m✓\x1b[0m App\AlphaTest (1 test, 0.010s)");
+        Expect::that($terminal->screen())->because('verbose restores a permanent line per class')->toContain("\x1b[32m✓\x1b[0m App\AlphaTest (1 test, 0.010s)");
     }
 
     #[Test]
@@ -184,12 +186,12 @@ final class TtyReporterTest
         $terminal = new TerminalEmulator();
         $terminal->write($output->buffer());
 
-        // The permanent skip line is followed by a blank line, then the
-        // live window starts underneath it.
+        // A blank line occurs after the permanent skip line. The live window
+        // starts below the blank line.
         $lines = $terminal->visibleLines();
         $skipLine = $this->indexOfLine($lines, '− App\GammaTest (1 test, skipped, 0.010s)');
 
-        Expect::that($lines[$skipLine + 1] ?? null)->toBe('');
+        Expect::that($lines[$skipLine + 1] ?? null)->because('a blank line separates permanent lines from the live window')->toBe('');
     }
 
     #[Test]
@@ -213,17 +215,16 @@ final class TtyReporterTest
         $gammaLine = $this->indexOfLine($lines, '− App\GammaTest (1 test, skipped, 0.010s)');
         $deltaLine = $this->indexOfLine($lines, '− App\DeltaTest (1 test, skipped, 0.010s)');
 
-        // The first permanent line opens with a blank line so it never butts
-        // against the header; the second stacks directly under the first,
-        // without a gap.
-        Expect::that($lines[$gammaLine - 1] ?? null)->toBe('')
+        // A blank line separates the first permanent line from the header. The
+        // second permanent line occurs directly below the first.
+        Expect::that($lines[$gammaLine - 1] ?? null)->because('the first permanent line gets a gap and later ones stack')->toBe('')
             ->and($deltaLine)->toBe($gammaLine + 1);
     }
 
     #[Test]
     public function noColourKeepsTheLiveWindowWithoutColourCodes(): void
     {
-        // The NO_COLOR matrix row: cursor control stays, colour goes.
+        // In the NO_COLOR case, cursor control remains and color is absent.
         $output = new BufferOutput();
         $reporter = new TtyReporter($output, colour: false, cursor: true);
 
@@ -235,7 +236,7 @@ final class TtyReporterTest
 
         $buffer = $output->buffer();
 
-        Expect::that($buffer)->toContain("\x1b[0J")
+        Expect::that($buffer)->because('no color keeps the live window without color codes')->toContain("\x1b[0J")
             ->not()->toContain("\x1b[32m")
             ->not()->toContain("\x1b[31m")
             ->not()->toContain("\x1b[33m");
@@ -244,8 +245,8 @@ final class TtyReporterTest
     #[Test]
     public function withoutCursorEveryClassStillAppendsALine(): void
     {
-        // --reporter=tty on a non-TTY degrades to append-only output; nothing
-        // may become invisible just because the live window is unavailable.
+        // On a non-TTY, --reporter=tty uses output that only adds new lines.
+        // Unavailable live output MUST NOT hide information.
         $output = new BufferOutput();
         $reporter = new TtyReporter($output, colour: false, cursor: false);
 
@@ -254,7 +255,7 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.2));
         $reporter->finish();
 
-        Expect::that($output->buffer())->toContain("✓ App\AlphaTest (1 test, 0.010s)\n")
+        Expect::that($output->buffer())->because('without cursor every class still appends a line')->toContain("✓ App\AlphaTest (1 test, 0.010s)\n")
             ->not()->toContain("\x1b[");
     }
 
@@ -271,11 +272,13 @@ final class TtyReporterTest
         $terminal = new TerminalEmulator(retainColour: true);
         $terminal->write($output->buffer());
 
-        // Counter: done/planned plus a red failure count.
-        Expect::that($terminal->screen())->toContain("1/4 tests, \x1b[31m1 failed\x1b[0m")
-            // In-flight line: failure mark, dim name and running count so the
-            // line reads as pending, elapsed since class start (1.5s crosses
-            // the slow threshold, so it renders yellow).
+        // The counter shows completed and planned tests with a red failure
+        // count.
+        Expect::that($terminal->screen())->because('the window shows a counter and in flight classes with elapsed time')->toContain("1/4 tests, \x1b[31m1 failed\x1b[0m")
+            // The active line has a failure mark, dim class name, and active
+            // count. These items show that no result is available. The elapsed
+            // time is 1.5 seconds, which exceeds the slow limit and appears
+            // yellow.
             ->toContain("\x1b[31m✗\x1b[0m \x1b[2mApp\AlphaTest (1)\x1b[0m \x1b[33m1.500s\x1b[0m");
     }
 
@@ -283,7 +286,8 @@ final class TtyReporterTest
     public function inFlightClassesBeyondCapacityCollapseIntoAnOverflowLine(): void
     {
         $output = new BufferOutput();
-        // 8 terminal rows clamp the window to 3 lines: counter + 1 class + overflow.
+        // Eight terminal rows limit the window to three lines. These lines are
+        // the counter, one class, and the overflow.
         $reporter = new TtyReporter($output, colour: false, cursor: true, terminalRows: 8);
 
         $reporter->onEvent(new RunStarted('run-1', 9, 3, 1.0));
@@ -295,8 +299,9 @@ final class TtyReporterTest
         $terminal->write($output->buffer());
         $screen = $terminal->screen();
 
-        // Oldest class stays visible; the rest collapse into the overflow line.
-        Expect::that($screen)->toContain('App\AlphaTest (0)')
+        // The oldest class remains visible. The overflow line represents the
+        // other classes.
+        Expect::that($screen)->because('in flight classes beyond capacity collapse into an overflow line')->toContain('App\AlphaTest (0)')
             ->toContain('… and 2 more running')
             ->not()->toContain('App\BetaTest');
     }
@@ -304,7 +309,7 @@ final class TtyReporterTest
     #[Test]
     public function windowCapacityClampsToTerminalHeightWithAFloor(): void
     {
-        Expect::that(TtyReporter::windowCapacity(50))->toBe(10)
+        Expect::that(TtyReporter::windowCapacity(50))->because('window capacity clamps to terminal height with a floor')->toBe(10)
             ->and(TtyReporter::windowCapacity(12))->toBe(7)
             ->and(TtyReporter::windowCapacity(6))->toBe(3);
     }
@@ -322,7 +327,7 @@ final class TtyReporterTest
         $terminal = new TerminalEmulator();
         $terminal->write($output->buffer());
 
-        Expect::that($terminal->screen())->toContain('App\AlphaTest (0)')
+        Expect::that($terminal->screen())->because('tick advances in flight durations without events')->toContain('App\AlphaTest (0)')
             ->toContain('2.500s');
     }
 
@@ -335,7 +340,7 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
         $reporter->tick(2.0);
 
-        Expect::that($output->buffer())->toBe('');
+        Expect::that($output->buffer())->because('tick without cursor support writes nothing')->toBe('');
     }
 
     #[Test]
@@ -347,7 +352,7 @@ final class TtyReporterTest
         $reporter->onEvent(new RunStarted('run-1', 1, 1, 1.0));
         $reporter->tick(2.0);
 
-        Expect::that($output->buffer())->toBe('');
+        Expect::that($output->buffer())->because('tick with no classes in flight writes nothing')->toBe('');
     }
 
     #[Test]
@@ -361,11 +366,11 @@ final class TtyReporterTest
 
         $reporter->tick(1.01);
 
-        Expect::that($output->buffer())->toBe($before);
+        Expect::that($output->buffer())->because('redraws inside the throttle window are skipped')->toBe($before);
 
         $reporter->tick(1.2);
 
-        Expect::that($output->buffer())->not()->toBe($before);
+        Expect::that($output->buffer())->because('redraws inside the throttle window are skipped')->not()->toBe($before);
     }
 
     #[Test]
@@ -380,10 +385,10 @@ final class TtyReporterTest
         $reporter->tick(1.2);
         $frame = \substr($output->buffer(), $before);
 
-        // The repaint repositions over the previous three-line window and
-        // clears each line right before rewriting it; blanking the whole
-        // region first is what makes terminals flash mid-frame.
-        Expect::that($frame)->toContain("\x1b[3A\r\x1b[2K")
+        // Repaint moves over the previous three-line window. It clears each
+        // line immediately before it writes the line again. A separate clear
+        // of the complete area causes a terminal flash.
+        Expect::that($frame)->because('repaints rewrite lines in place without blanking the window')->toContain("\x1b[3A\r\x1b[2K")
             ->not()->toContain("\x1b[0J");
     }
 
@@ -401,9 +406,9 @@ final class TtyReporterTest
         $reporter->onEvent(new TestClassFinished('App\AlphaTest', 1.25));
         $frame = \substr($output->buffer(), $before);
 
-        // The permanent line rides the same frame as the window repaint; a
-        // separate erase-then-rebuild would flash the region blank.
-        Expect::that($frame)->toContain("\x1b[4A\r\x1b[2K")
+        // The permanent line and window repaint use the same frame. A separate
+        // erase and rebuild operation causes a blank flash.
+        Expect::that($frame)->because('class finalization repaints in one frame without blanking')->toContain("\x1b[4A\r\x1b[2K")
             ->toContain('✗ App\AlphaTest (1 test, 1 failed')
             ->not()->toContain("\x1b[0J");
     }
@@ -416,12 +421,12 @@ final class TtyReporterTest
 
         $reporter->onEvent(new TestClassStarted('App\AlphaTest', 1.0));
 
-        Expect::that($output->buffer())->toContain("\x1b[?25l")
+        Expect::that($output->buffer())->because('the cursor is hidden while live and restored at finish')->toContain("\x1b[?25l")
             ->not()->toContain("\x1b[?25h");
 
         $reporter->finish();
 
-        Expect::that($output->buffer())->toContain("\x1b[?25h");
+        Expect::that($output->buffer())->because('the cursor is hidden while live and restored at finish')->toContain("\x1b[?25h");
     }
 
     #[Test]
@@ -437,7 +442,7 @@ final class TtyReporterTest
         $terminal = new TerminalEmulator();
         $terminal->write($output->buffer());
 
-        Expect::that($terminal->screen())->toContain('✗ App\AlphaTest (1 test, 1 failed');
+        Expect::that($terminal->screen())->because('class finalization bypasses the throttle')->toContain('✗ App\AlphaTest (1 test, 1 failed');
     }
 
     /**

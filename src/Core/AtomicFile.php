@@ -7,13 +7,13 @@ namespace Greenlight\Core;
 use Random\RandomException;
 
 /**
- * Atomic file writes for state files shared between processes.
+ * Writes shared state files as atomic operations.
  *
- * write() puts the contents in a uniquely named temp file in the target's
- * directory, then renames it over the target, so concurrent writers of the
- * same file cannot interleave partial writes. Failure leaves no temp file
- * behind and throws AtomicFileError carrying the underlying warning; callers
- * for whom the write is advisory catch and discard it.
+ * write() puts the content in a temporary file with a unique name in the
+ * target directory. It then renames the file to the target name. Thus,
+ * concurrent processes cannot combine partial writes to the same file.
+ * A failure removes the temporary file and throws AtomicFileError with the
+ * applicable warning. A caller can catch this error if the write is advisory.
  *
  * @internal
  */

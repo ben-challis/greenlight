@@ -24,26 +24,27 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aSpawnedWorkerThatNeverConnectsFailsTheRunInsteadOfHangingIt(): void
     {
-        // A process that stays alive but never dials the orchestrator socket,
-        // like a worker stuck in interpreter boot on an exhausted machine.
+        // This process remains active but does not connect to the orchestrator
+        // socket. It represents a worker that cannot complete interpreter
+        // startup on a machine without available resources.
         $orchestrator = new Orchestrator(
             workerCommand: [\PHP_BINARY, '-r', 'fwrite(STDERR, "booting, honest"); sleep(60);'],
             workingDirectory: \sys_get_temp_dir(),
             connectDeadlineSeconds: 0.5,
         );
 
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
-            ->toThrow(ProtocolError::class, '/never connected within 0\.5s/');
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a spawned worker that never connects fails the run instead of hanging it')
+            ->toThrow(ProtocolError::class, '/did not connect within 0\.5 seconds/');
     }
 
     #[Test]
     #[Timeout(30.0)]
     public function aConnectedWorkerThatGoesSilentBeforeStartingItsAssignmentFailsTheRun(): void
     {
-        // A worker that completes the hello handshake, receives its
-        // assignment, then goes silent without ever reporting TestStarted.
-        // No test is in flight, so per-test timeouts never fire, and the channel
-        // stays open, so crash detection never fires either.
+        // This worker completes the hello handshake and receives an assignment.
+        // It then stops communication before it reports TestStarted. No test is
+        // active, so a test timeout does not occur. The open channel also
+        // prevents crash detection.
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
@@ -59,8 +60,8 @@ final class OrchestratorTest
             progressDeadlineSeconds: 0.5,
         );
 
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
-            ->toThrow(ProtocolError::class, '/sent nothing for 0\.5s/');
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a connected worker that goes silent before starting its assignment fails the run')
+            ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
     }
 
     #[Test]
@@ -114,8 +115,8 @@ final class OrchestratorTest
             workingDirectory: \sys_get_temp_dir(),
         );
 
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))
-            ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream tallies/');
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a recycling worker with a mismatched summary fails the run')
+            ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream totals/');
     }
 
     #[Test]
@@ -133,8 +134,8 @@ final class OrchestratorTest
 
         $summary = $orchestrator->run($this->resourcePlan(), new CollectingEventSink(), 2);
 
-        Expect::that($summary->passed)->toBe(2);
-        Expect::that($summary->isSuccessful())->toBeTrue();
+        Expect::that($summary->passed)->because('resource wait starts a new progress window before assignment')->toBe(2);
+        Expect::that($summary->isSuccessful())->because('resource wait starts a new progress window before assignment')->toBeTrue();
     }
 
     private function plan(): ExecutionPlan

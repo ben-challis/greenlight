@@ -10,12 +10,13 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Wire\InvalidWirePayload;
 
 /**
- * Per-file cache keyed by path, mtime, size, and external provider files.
- * Entries are unfiltered, so changing filters does not require parsing again.
+ * Stores one discovery cache entry for each file. The path, mtime, size, and
+ * external provider files identify an entry. Entries do not contain filter
+ * results. Thus, a filter change does not require another parse operation.
  *
- * A missing or stale file, corrupt cache, or version mismatch falls back to
- * parsing. If a data-set provider changes output without a file change, the
- * stale keys fail worker-side revalidation.
+ * Discovery parses the file after a cache miss, stale file, corrupt cache, or
+ * version mismatch. A data provider can change output without a file change.
+ * In this case, worker validation rejects stale keys.
  *
  * @internal
  */
@@ -53,7 +54,9 @@ final class DiscoveryCache
     }
 
     /**
-     * Cached unfiltered entries for a file, or null on any doubt.
+     * Returns cached entries without filter results.
+     *
+     * Returns null if the cache entry is not valid.
      *
      * @param non-empty-string $file
      *
@@ -90,7 +93,7 @@ final class DiscoveryCache
                 $entries[] = PlanEntry::fromWire($payload);
             }
         } catch (\InvalidArgumentException|InvalidWirePayload) {
-            // Undecodable cached payload; treat as a miss and re-parse.
+            // Treat a cache payload that cannot decode as a cache miss.
             return null;
         }
 
@@ -177,7 +180,8 @@ final class DiscoveryCache
     }
 
     /**
-     * Writes files touched during this discovery and prunes older entries.
+     * Writes entries for files that this discovery reads and removes older entries.
+     *
      * Returns false on write failure.
      */
     public function persist(): bool

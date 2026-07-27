@@ -9,8 +9,8 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 
 /**
- * Discovery does not invoke test methods. Data-set providers are the only
- * user callables it invokes.
+ * Discovery does not invoke test methods. It invokes only user callables that
+ * are data providers.
  *
  * @internal
  */
@@ -27,7 +27,7 @@ final readonly class TestDiscoverer
         private float $providerTimeBudgetSeconds = 5.0,
     ) {
         if ($providerTimeBudgetSeconds <= 0.0) {
-            throw new \InvalidArgumentException('Provider time budget must be greater than zero seconds.');
+            throw new \InvalidArgumentException('Set the provider time budget to a value greater than zero seconds.');
         }
 
         $this->metadataFactory = new MetadataFactory();
@@ -35,9 +35,9 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Default order is file path order; a seed shuffles the class order
-     * deterministically. Methods always keep declaration order within a
-     * class, and data sets keep provider order within a method.
+     * The default order is file path order. A seed changes the class order in
+     * a deterministic way. Methods remain in declaration order in a class.
+     * Data sets remain in provider order in a method.
      *
      * @param list<non-empty-string> $directories absolute paths to scan
      *
@@ -86,8 +86,8 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Fisher-Yates with a seeded engine, so the same seed always yields the
-     * same class order regardless of global random state.
+     * Uses Fisher-Yates with a seeded engine. Thus, the same seed always
+     * produces the same class order without dependence on global random state.
      *
      * @param list<non-empty-string> $classes
      *
@@ -106,8 +106,9 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Every entry a file declares, unfiltered, so the result is cacheable
-     * regardless of the run's filters.
+     * Returns all entries that a file declares. The result does not contain
+     * filter decisions. Thus, the cache can use the result with all run
+     * filters.
      *
      * @param non-empty-string $file
      *
@@ -172,13 +173,14 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Resolves the class declared in a file without executing the file:
-     * token parsing yields the expected fully qualified name, autoloading
-     * then loads exactly that class, and reflection confirms the class
-     * really came from this file.
+     * Resolves the class in a file without direct execution of the file.
      *
-     * Returns null when the file declares a non-class type of the expected
-     * name, which is not a discovery error.
+     * The token parser supplies the expected fully qualified name. The
+     * autoloader then loads only that class. Reflection confirms that the
+     * class originates in this file.
+     *
+     * Returns null if the file declares a non-class type with the expected
+     * name. This condition is not a discovery error.
      *
      * @param non-empty-string $file
      *
@@ -221,8 +223,9 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * The file set a discover() call would scan, so callers can check path
-     * filters against the paths the filter actually matches.
+     * Returns the files that a discover() call examines.
+     *
+     * Callers can compare path filters to the paths that the filter matches.
      *
      * @param list<non-empty-string> $directories absolute paths to scan
      *

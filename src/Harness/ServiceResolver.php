@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Resolvers run in registration order and return null to pass. A returned
- * object must satisfy the requested type.
+ * Greenlight calls service resolvers in registration order. If a resolver
+ * returns null, Greenlight calls the next resolver. A nonnull result must have
+ * the requested type.
  *
- * Objects supplied this way are not tracked by harness scopes: Greenlight
- * never disposes them, so their lifecycle belongs to whatever produced them.
+ * Objects from a service resolver do not belong to a harness service scope.
+ * Greenlight does not dispose them. The source of an object controls its
+ * lifetime.
  */
 interface ServiceResolver
 {

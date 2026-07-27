@@ -13,7 +13,7 @@ use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Test\TestId;
 
 /**
- * Per-attempt attachment collector backed by the run's private staging store.
+ * Collects attachments for one test attempt in the private staging store of a run.
  *
  * @internal
  */
@@ -103,7 +103,7 @@ final class StagedAttachments implements Attachments
     }
 
     /**
-     * Metadata visible to retry deciders before retention is applied.
+     * Returns metadata that retry deciders can use before the retention decision.
      *
      * @return list<StagedAttachment>
      */
@@ -113,8 +113,10 @@ final class StagedAttachments implements Attachments
     }
 
     /**
-     * Seals the attempt. Retention is decided when the terminal result is
-     * published, after retries and scope teardown have finished.
+     * Seals the test attempt.
+     *
+     * Greenlight makes the retention decision when it publishes the terminal
+     * result. This occurs after retries and scope teardown.
      *
      * @return list<StagedAttachment>
      */
@@ -164,7 +166,7 @@ final class StagedAttachments implements Attachments
             $this->store->discard($attachment);
 
             throw AttachmentError::limit(\sprintf(
-                'Attachments for this test exceed the %d byte limit',
+                'Attachments for this test exceed the limit of %d bytes',
                 $this->configuration->maxTestBytes,
             ));
         }
@@ -182,7 +184,7 @@ final class StagedAttachments implements Attachments
 
         if ($this->budget->attachments >= $this->configuration->maxAttachmentsPerTest) {
             throw AttachmentError::limit(\sprintf(
-                'This test exceeds the %d attachment limit',
+                'This test has reached the limit of %d attachments',
                 $this->configuration->maxAttachmentsPerTest,
             ));
         }

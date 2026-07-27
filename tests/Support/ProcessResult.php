@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 /**
- * output() and outputLines() combine stdout and stderr in that order.
- * stdoutLines() excludes extension noise written to stderr.
+ * output() and outputLines() combine standard output and standard error in that
+ * order. stdoutLines() excludes extension messages from standard error.
  */
 final readonly class ProcessResult
 {

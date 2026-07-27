@@ -13,15 +13,15 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Writes JUnit XML for the whole run at finish().
+ * Writes JUnit XML for the complete run in finish().
  *
- * The document has one testsuite per test class in order of first appearance
- * and one testcase per test, with failure, error, and skipped elements
- * carrying messages and details.
+ * The document has one testsuite for each test class in order of first
+ * occurrence. It has one testcase for each test. Failure, error, and skipped
+ * elements contain messages and details.
  *
- * Each testcase is rendered to its XML fragment as its event arrives; live
- * TestResult objects (which may carry large captured-output payloads) are
- * never retained, only the rendered strings and bounded per-class counters.
+ * The reporter converts each testcase to XML when its event arrives. It does
+ * not retain TestResult objects, which can contain large output capture
+ * payloads. It retains only XML text and bounded counters for each class.
  *
  * @internal
  */
@@ -138,8 +138,8 @@ final class JUnitReporter implements Reporter
         $writer->setIndent(true);
         $writer->setIndentString('  ');
 
-        // Dummy ancestors put the fragment at document depth without
-        // indenting text nodes; their lines are stripped below.
+        // Temporary ancestors put the fragment at the document depth without
+        // text-node indentation. The code below removes their lines.
         $writer->startElement('testsuites');
         $writer->startElement('testsuite');
 

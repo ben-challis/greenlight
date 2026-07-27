@@ -68,8 +68,8 @@ use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
 /**
- * Exit codes: 0 success, 1 test or run failure, 64 invalid command-line
- * usage.
+ * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
+ * invalid command-line use.
  *
  * @internal
  */
@@ -88,60 +88,64 @@ final readonly class Application
           greenlight [command] [options]
 
         Commands:
-          run            Discover and execute tests (default)
-          list-tests     List every discovered test id, one per line
+          run            Find and run tests (default)
+          list-tests     List each found test ID, one per line
           coverage:diff  Compare two coverage JSON exports (--baseline, --current)
-          profile:report Render the run profile from a saved jsonl stream (--input)
+          profile:report Create a run profile from a saved JSONL stream (--input)
           ide-helper     Write the IDE autocomplete helper for extension matchers
                          (--output, default _greenlight_ide_helper.php)
           completion     Print a shell completion script for bash, zsh, or fish
-                         to stdout, e.g. source <(greenlight completion bash)
+                         to standard output, for example:
+                         source <(greenlight completion bash)
 
         Options:
-          --config=<path>    Use this config file instead of ./greenlight.php
-          --workers=<n|auto> Worker process count
+          --config=<path>    Use this configuration file instead of ./greenlight.php
+          --workers=<n|auto> Set the worker process count
           --resource-limit=<name>=<n>
-                             Override a named resource concurrency limit;
-                             repeatable
+                             Set a named resource limit. You can repeat this option.
           --bail[=<n>]       Stop after <n> failures (default 1)
-          --group=<name>     Only run this group; repeatable
-          --filter=<pattern> Only run tests whose id matches; substring, or
-                             full match with * wildcards; repeatable
-          --test-id=<id>     Only run this exact id; repeatable
-          --exclude-group=<name>     Skip tests in this group; repeatable
-          --exclude-class=<pattern>  Skip classes matching this pattern;
-                             substring or * wildcards; repeatable
-          --exclude-method=<pattern> Skip methods matching this pattern;
-                             substring or * wildcards; repeatable
-          --exclude-path=<prefix>    Skip test files under this path prefix;
-                             relative prefixes are resolved against the
-                             working directory; repeatable
-          --failed           Only re-run tests that failed in the previous run
-          --list-tests       Print the selected test ids instead of running
+          --group=<name>     Run only this group. You can repeat this option.
+          --filter=<pattern> Run only tests with a matching test ID. Use a
+                             substring or a full match with * wildcards.
+                             You can repeat this option.
+          --test-id=<id>     Run only this exact test ID. You can repeat this option.
+          --exclude-group=<name>     Skip tests in this group. You can repeat this option.
+          --exclude-class=<pattern>  Skip classes that match this pattern.
+                             Use a substring or * wildcards. You can repeat this option.
+          --exclude-method=<pattern> Skip methods that match this pattern.
+                             Use a substring or * wildcards. You can repeat this option.
+          --exclude-path=<prefix>    Skip test files under this path prefix.
+                             Greenlight resolves relative prefixes against the
+                             working directory. You can repeat this option.
+          --failed           Run only tests that failed in the previous run
+          --list-tests       Print the selected test IDs. Do not run the tests.
           --list-groups      Print each selected group and its test count
           --list-suites      Print the configured suites
-          --repeat=<n>       Run the selected tests n times in fresh runs;
-                             any failing iteration fails the command
+          --repeat=<n>       Run the selected tests n times in separate runs.
+                             A failed iteration fails the command.
           --repeat-until-failure  Repeat until an iteration fails, up to
                              --repeat times (default at most 100)
-          --shard=<n>/<m>    Run the nth of m disjoint slices of the plan; whole
-                             classes, stable across machines, no coordination
+          --shard=<n>/<m>    Run shard n of m. Shards are disjoint and contain
+                             whole classes. They are stable across machines and
+                             need no coordination.
           --seed=<n>         Randomize class order with this seed
-          --reporter=<name>  Output format: tty, plain, junit, jsonl, github, teamcity; repeatable
+          --reporter=<name>  Select tty, plain, junit, jsonl, github, or teamcity.
+                             You can repeat this option.
           --artifacts-dir=<path> Persistent directory for retained test attachments
-          --watch            Re-run on file changes; Enter re-runs everything, q quits
-          --detect-leaks     Verify every test instance is collected; leaks fail the run
+          --watch            Run tests again after file changes. Enter runs all tests.
+                             q quits.
+          --detect-leaks     Verify collection of each test instance. Leaks fail the run.
           --verbose          Print a permanent line per completed class in
                              interactive output
-          --no-ansi          Disable colours and the live progress window;
-                             plain append-only output
+          --no-ansi          Disable colors and the live progress window.
+                             Use plain append-only output.
           --fail-on-deprecation  Fail passed tests that captured a deprecation
           --fail-on-notice   Fail passed tests that captured a notice
           --fail-on-risky    Fail passed tests that verified no expectations
-          --profile          Append a run profile (worker utilisation, boot latency,
-                             makespan spread, slowest classes) after the summary
-                             and extend the slowest-tests list
-          --dry-run          Print the resolved configuration without executing
+          --profile          Add a run profile after the summary. It contains worker
+                             utilization, boot latency, makespan spread, and slow classes.
+                             It also extends the slow-test list.
+          --dry-run          Print the resolved configuration. Do not run tests.
           -h, --help         Show this help
           -V, --version      Show the version
 
@@ -170,8 +174,9 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
-        // Internal worker entry, spawned by the orchestrator. Bypasses the
-        // normal parser; undocumented and carries no compatibility promise.
+        // The orchestrator starts this internal worker entry. It does not use
+        // the normal parser. No documentation or compatibility guarantee
+        // applies to it.
         if (($argv[0] ?? null) === '__worker') {
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 ($this->err)("__worker requires <address> <workerId> <token>.\n");
@@ -182,9 +187,9 @@ final readonly class Application
             return new WorkerProcess()->run($argv[1], $argv[2], $argv[3]);
         }
 
-        // A coverage-enabled run exports the relay variables to everything it
-        // spawns; a CLI process that inherits them reports its own coverage
-        // back through the shared directory.
+        // A run with coverage exports the relay variables to each child
+        // process. A CLI process that inherits them reports its coverage
+        // through the shared directory.
         $dump = SubprocessCoverage::begin();
 
         if (!$dump instanceof SubprocessCoverage) {
@@ -203,8 +208,8 @@ final readonly class Application
      */
     private function dispatch(array $argv, string $workingDirectory, ?string $binPath): int
     {
-        // Handled before parsing because the shell name is a positional
-        // argument the parser does not model.
+        // Process this command before the parse operation. The parser does not
+        // model the shell name as a positional argument.
         if (($argv[0] ?? null) === 'completion') {
             return $this->completionCommand(\array_slice($argv, 1));
         }
@@ -212,7 +217,7 @@ final readonly class Application
         try {
             $arguments = $this->parser()->parse($argv);
         } catch (CliError $error) {
-            // Parsing failed, so flags are only known from the raw argv.
+            // The parse operation failed. Thus, only raw argv identifies flags.
             $this->printError($error->getMessage(), \in_array('--no-ansi', $argv, true));
 
             return self::EXIT_USAGE;
@@ -252,7 +257,7 @@ final readonly class Application
             return $this->ideHelperCommand($arguments, $workingDirectory);
         }
 
-        $this->printError(\sprintf("Unknown command '%s'. Run greenlight --help for the available commands.", $command), $arguments->has('no-ansi'));
+        $this->printError(\sprintf("Unknown command '%s'. Use greenlight --help to list commands.", $command), $arguments->has('no-ansi'));
 
         return self::EXIT_USAGE;
     }
@@ -273,7 +278,7 @@ final readonly class Application
         }
 
         if ($arguments->has('watch') && ($overrides->repeat !== null || $overrides->repeatUntilFailure)) {
-            $this->printError('--watch cannot be combined with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
+            $this->printError('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
         }
@@ -325,13 +330,13 @@ final readonly class Application
 
         if ($arguments->has('failed')) {
             if ($previousFailures === null) {
-                $this->printError('--failed needs a previous run to have recorded state for this project; run once without it first.', $arguments->has('no-ansi'));
+                $this->printError('--failed requires state from a previous run. Run Greenlight once without --failed.', $arguments->has('no-ansi'));
 
                 return self::EXIT_USAGE;
             }
 
             if ($previousFailures === []) {
-                ($this->out)("Nothing failed in the previous run; nothing to re-run.\n");
+                ($this->out)("No tests failed in the previous run. There are no tests to run again.\n");
 
                 return self::EXIT_OK;
             }
@@ -354,16 +359,16 @@ final readonly class Application
         $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
         $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
 
-        // --repeat=1 is the ordinary single run; the loop, its banners, and
-        // its summary only appear when more than one iteration is possible.
+        // --repeat=1 specifies one standard run. Show the loop, banners, and
+        // summary only when more than one iteration is possible.
         if (($overrides->repeat === null || $overrides->repeat === 1) && !$overrides->repeatUntilFailure) {
             $failedTap = new FailedTestsTap(new ReporterSink($reporter));
 
             return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
         }
 
-        // --repeat-until-failure without an explicit --repeat cannot loop
-        // forever; 100 iterations is the safety limit.
+        // Without an explicit --repeat, --repeat-until-failure has a limit of
+        // 100 iterations.
         $limit = $overrides->repeat ?? 100;
         $bounded = $overrides->repeat !== null;
         $failedIterations = [];
@@ -417,17 +422,17 @@ final readonly class Application
             return self::EXIT_OK;
         }
 
-        // Every test that failed in any iteration is recorded, so a follow-up
-        // --failed run replays the flakes even when a later iteration passed.
+        // Record each test that fails in an iteration. Thus, a later --failed
+        // run includes it even if it passes in another iteration.
         $this->persistRunState($state, $failedTests, $lastClassSeconds);
 
-        ($this->out)(\sprintf("Repeat: failed on iteration(s) %s\n", \implode(', ', $failedIterations)));
+        ($this->out)(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
 
         return self::EXIT_FAILURE;
     }
 
     /**
-     * The reporter must be fresh; finish() is called exactly once.
+     * Use a new reporter. This method calls finish() exactly one time.
      *
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
@@ -454,9 +459,9 @@ final readonly class Application
         $shared = null;
 
         if ($coverageSettings instanceof CoverageSettings) {
-            // The pool path collects orchestrator coverage unless this process
-            // inherited relay variables. A second driver window would close
-            // the inherited whole-process window early.
+            // The worker-pool path collects orchestrator coverage unless this
+            // process inherits relay variables. A second driver period would
+            // close the inherited process period too early.
             if ($workers !== 1 && $realBin !== false && !SubprocessCoverage::requested()) {
                 $orchestratorCollector = CoverageCollector::create($coverageSettings);
                 $orchestratorCollector?->start();
@@ -481,8 +486,8 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        // Merged before any early return so the relay variables are restored
-        // and the shared directory is removed even for interrupted or empty
+        // Merge before an early return. Thus, this operation restores relay
+        // variables and removes the shared directory for interrupted or empty
         // runs.
         $coverage = $run->coverage;
 
@@ -502,8 +507,8 @@ final readonly class Application
             }
         }
 
-        // Filtered only after every source is merged, so ignore markers apply
-        // to worker, orchestrator, and relayed coverage alike.
+        // Apply the filter after all source maps merge. Thus, exclusion markers
+        // apply to worker, orchestrator, and relayed coverage.
         if ($coverage instanceof CoverageMap) {
             $coverage = new IgnoreFilter()->apply($coverage);
         }
@@ -514,13 +519,13 @@ final readonly class Application
         $interruptExit = $shutdown->exitCode();
 
         if ($interruptExit !== null) {
-            ($this->err)("Interrupted. The summary covers only the tests that completed before shutdown.\n");
+            ($this->err)("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
             return $interruptExit;
         }
 
         if ($run->plannedTests === 0) {
-            ($this->err)("No tests found. A misconfigured run must not pass.\n");
+            ($this->err)("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
             return self::EXIT_FAILURE;
         }
@@ -529,7 +534,7 @@ final readonly class Application
 
         if ($coverageConfig instanceof CoverageConfiguration) {
             if (!$coverage instanceof CoverageMap) {
-                ($this->err)("Coverage was requested but no worker could collect it. Is pcov or xdebug (mode=coverage) available?\n");
+                ($this->err)("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
             } elseif (!$this->writeCoverage($coverageConfig, $coverage, $workingDirectory, $this->stdoutStyle($arguments->has('no-ansi')))) {
                 return self::EXIT_FAILURE;
             }
@@ -545,8 +550,9 @@ final readonly class Application
     }
 
     /**
-     * Warns when run state cannot be saved; persistence failure does not
-     * change the exit code.
+     * Gives a warning when Greenlight cannot save run state.
+     *
+     * A storage failure does not change the exit code.
      *
      * @param list<non-empty-string> $failedTests
      * @param array<non-empty-string, float> $classSeconds
@@ -554,12 +560,12 @@ final readonly class Application
     private function persistRunState(RunState $state, array $failedTests, array $classSeconds): void
     {
         if (!$state->record($failedTests, $classSeconds)) {
-            ($this->err)("Run state was not saved; --failed and longest-first scheduling start cold next run.\n");
+            ($this->err)("Greenlight did not save run state. On the next run, --failed and longest-first scheduling have no prior data.\n");
         }
     }
 
     /**
-     * Warns when an exclude-path prefix matches no discovered test files.
+     * Gives a warning when an exclude-path prefix matches no discovered test files.
      * Discovery reports enumeration errors separately.
      */
     private function warnWhenExcludePathsMatchNothing(Configuration $resolved, string $workingDirectory, bool $noAnsiFlag): void
@@ -576,7 +582,7 @@ final readonly class Application
 
         foreach ($resolved->excludePaths as $prefix) {
             if (!\array_any($files, static fn(string $file): bool => \str_starts_with($file, $prefix))) {
-                ($this->err)($this->stderrStyle($noAnsiFlag)->warn(\sprintf('Warning: --exclude-path "%s" matched no discovered test file.', $prefix)) . "\n");
+                ($this->err)($this->stderrStyle($noAnsiFlag)->warn(\sprintf('Warning: --exclude-path "%s" did not match a discovered test file.', $prefix)) . "\n");
             }
         }
     }
@@ -752,7 +758,7 @@ final readonly class Application
                 try {
                     AtomicFile::write($target, \reset($files));
                 } catch (AtomicFileError $error) {
-                    ($this->err)(\sprintf("Could not write coverage export to \"%s\": %s\n", $target, $error->getMessage()));
+                    ($this->err)(\sprintf("Greenlight could not write the coverage export to \"%s\": %s\n", $target, $error->getMessage()));
 
                     return false;
                 }
@@ -763,7 +769,7 @@ final readonly class Application
                     try {
                         AtomicFile::write($target . '/' . $name, $content);
                     } catch (AtomicFileError $error) {
-                        ($this->err)(\sprintf("Could not write coverage export to \"%s\": %s\n", $target . '/' . $name, $error->getMessage()));
+                        ($this->err)(\sprintf("Greenlight could not write the coverage export to \"%s\": %s\n", $target . '/' . $name, $error->getMessage()));
 
                         return false;
                     }
@@ -806,7 +812,7 @@ final readonly class Application
             $json = ErrorTrap::run(static fn(): string|false => \file_get_contents($absolute), $warning);
 
             if ($json === false) {
-                $this->printError(\sprintf('Could not read the %s coverage export at "%s"%s.', $label, $path, $warning === null ? '' : ': ' . $warning), $arguments->has('no-ansi'));
+                $this->printError(\sprintf('Greenlight could not read the %s coverage export at "%s"%s.', $label, $path, $warning === null ? '' : ': ' . $warning), $arguments->has('no-ansi'));
 
                 return self::EXIT_FAILURE;
             }
@@ -909,7 +915,7 @@ final readonly class Application
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
     }
 
-    /** Uses LINES, then tput, then 24. Probed once when the reporter is built. */
+    /** Uses LINES, then tput, then 24. The reporter probes it one time when built. */
     private function terminalRows(): int
     {
         $linesEnv = \getenv('LINES');
@@ -937,7 +943,7 @@ final readonly class Application
         }
 
         if ($map->names() === []) {
-            ($this->out)("No extension matchers are configured; nothing to generate.\n");
+            ($this->out)("The configuration has no extension matchers. There is no helper to generate.\n");
 
             return self::EXIT_OK;
         }
@@ -948,13 +954,13 @@ final readonly class Application
         try {
             AtomicFile::write($path, IdeHelper::render($map));
         } catch (AtomicFileError $error) {
-            ($this->err)(\sprintf("Could not write \"%s\": %s\n", $path, $error->getMessage()));
+            ($this->err)(\sprintf("Greenlight could not write \"%s\": %s\n", $path, $error->getMessage()));
 
             return self::EXIT_FAILURE;
         }
 
         ($this->out)(\sprintf(
-            "Wrote %s with %d matchers. Gitignore it and regenerate after changing matchers.\n",
+            "Wrote %s with %d matchers. Add it to .gitignore. Generate it again after matcher changes.\n",
             $path,
             \count($map->names()),
         ));
@@ -963,7 +969,7 @@ final readonly class Application
     }
 
     /**
-     * Completion flags share the parser's OptionSpec list.
+     * The completion flags and parser use the same OptionSpec list.
      *
      * @param list<string> $rest the arguments after the completion command word
      */
@@ -980,7 +986,7 @@ final readonly class Application
         $script = new CompletionScripts($this->optionSpecs())->render($shell);
 
         if ($script === null) {
-            ($this->err)(\sprintf("Unknown shell \"%s\". Available: %s.\n", $shell, \implode(', ', CompletionScripts::SHELLS)));
+            ($this->err)(\sprintf("Unknown shell \"%s\". Select one of: %s.\n", $shell, \implode(', ', CompletionScripts::SHELLS)));
 
             return self::EXIT_USAGE;
         }
@@ -990,13 +996,13 @@ final readonly class Application
         return self::EXIT_OK;
     }
 
-    /** Recreates a run profile from a saved jsonl event stream. */
+    /** Creates a run profile from a saved JSONL event stream. */
     private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         $input = $arguments->value('input');
 
         if ($input === null || $input === '') {
-            ($this->err)("profile:report requires --input=<path to a jsonl stream>.\n");
+            ($this->err)("profile:report requires --input=<path to a JSONL stream>.\n");
 
             return self::EXIT_USAGE;
         }
@@ -1005,7 +1011,7 @@ final readonly class Application
         $raw = ErrorTrap::run(static fn(): string|false => \file_get_contents($path), $warning);
 
         if (!\is_string($raw)) {
-            ($this->err)(\sprintf("Could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
+            ($this->err)(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
 
             return self::EXIT_FAILURE;
         }
@@ -1020,13 +1026,13 @@ final readonly class Application
             try {
                 $decoded = \json_decode($line, true, 32, \JSON_THROW_ON_ERROR);
             } catch (\JsonException) {
-                ($this->err)("The input is not a jsonl event stream: a line is not valid JSON.\n");
+                ($this->err)("The input is not a JSONL event stream. A line is not valid JSON.\n");
 
                 return self::EXIT_FAILURE;
             }
 
             if (!\is_array($decoded) || !\is_string($decoded['event'] ?? null) || !\is_array($decoded['data'] ?? null)) {
-                ($this->err)("The input is not a jsonl event stream: a line is missing the event envelope.\n");
+                ($this->err)("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
 
                 return self::EXIT_FAILURE;
             }
@@ -1048,7 +1054,7 @@ final readonly class Application
             try {
                 $aggregator->onEvent($class::fromWire($data));
             } catch (InvalidWirePayload $error) {
-                $this->printError(\sprintf('Could not decode a "%s" event: %s', $decoded['event'], $error->getMessage()), $arguments->has('no-ansi'));
+                $this->printError(\sprintf('Greenlight could not decode a "%s" event: %s', $decoded['event'], $error->getMessage()), $arguments->has('no-ansi'));
 
                 return self::EXIT_FAILURE;
             }
@@ -1061,7 +1067,7 @@ final readonly class Application
         )->colour));
 
         if ($report === '') {
-            ($this->err)("The stream contains no finished run to profile.\n");
+            ($this->err)("The stream has no finished run to profile.\n");
 
             return self::EXIT_FAILURE;
         }
@@ -1099,9 +1105,8 @@ final readonly class Application
     }
 
     /**
-     * Discovers the same selection a run would execute: the full filter set
-     * from the resolved configuration, then the shard slice when one was
-     * requested.
+     * Discovers the selection that a run executes. It applies all filters from
+     * the resolved configuration. If requested, it then applies the shard.
      *
      * @throws DiscoveryError
      */
@@ -1121,8 +1126,8 @@ final readonly class Application
 
     private function printTestList(ExecutionPlan $plan): int
     {
-        // Plan order, not alphabetical: the listing previews the order a run
-        // would execute, including seeded shuffles.
+        // Use plan order, not alphabetical order. The list shows the execution
+        // order, which includes changes from a seed.
         foreach ($plan->entries as $entry) {
             ($this->out)($entry->id . "\n");
         }
@@ -1204,10 +1209,10 @@ final readonly class Application
     }
 
     /**
-     * Discovery reports symlink-resolved absolute file paths, so prefixes are
-     * resolved against the working directory and canonicalized before the
-     * prefix match; a prefix that does not exist on disk keeps its
-     * uncanonicalized absolute form.
+     * Discovery reports absolute file paths after it resolves symbolic links.
+     * This method resolves prefixes against the working directory. If a prefix
+     * exists, it converts the prefix to its canonical form before comparison.
+     * A prefix that does not exist keeps its absolute noncanonical form.
      *
      * @param list<non-empty-string> $prefixes
      *
@@ -1232,9 +1237,10 @@ final readonly class Application
     }
 
     /**
-     * Worker processes are spawned with proc_open over core stream sockets,
-     * so no extension is required; hosts that put proc_open in
-     * disable_functions get an in-process sequential run instead.
+     * Greenlight starts worker processes with proc_open and core stream
+     * sockets. This operation does not require an extension. If
+     * disable_functions contains proc_open, Greenlight uses a sequential
+     * in-process run.
      */
     private function canSpawnWorkers(): bool
     {
@@ -1242,8 +1248,9 @@ final readonly class Application
     }
 
     /**
-     * Configured top-level and suite paths, resolved against the working
-     * directory and deduplicated.
+     * Returns unique configured top-level and suite paths.
+     *
+     * The method resolves the paths against the working directory.
      *
      * @return list<non-empty-string>
      */
@@ -1274,8 +1281,7 @@ final readonly class Application
     }
 
     /**
-     * The single option table: the parser accepts exactly these options and
-     * the completion scripts offer exactly these flags.
+     * Defines the options that the parser accepts and the completion scripts offer.
      *
      * @return list<OptionSpec>
      */

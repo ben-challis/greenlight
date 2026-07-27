@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * Encodes length-prefixed JSON frames: a 4-byte big-endian unsigned length
- * followed by that many bytes of JSON.
+ * Encodes JSON frames with a length prefix. The prefix is a four-byte, unsigned,
+ * big-endian length. The JSON body contains that number of bytes.
  *
- * Invalid UTF-8 is substituted at encode time as defence in depth behind
- * capture-side scrubbing.
+ * Output capture already replaces invalid UTF-8. The encoder repeats this
+ * protection.
  *
  * @internal
  */
@@ -25,7 +25,7 @@ final readonly class JsonFrameCodec implements FrameCodec
         try {
             $json = \json_encode($envelope, \JSON_THROW_ON_ERROR | \JSON_INVALID_UTF8_SUBSTITUTE);
         } catch (\JsonException $e) {
-            throw ProtocolError::malformedFrame('payload cannot be JSON encoded: ' . $e->getMessage());
+            throw ProtocolError::malformedFrame('Greenlight cannot encode the payload as JSON: ' . $e->getMessage());
         }
 
         $length = \strlen($json);

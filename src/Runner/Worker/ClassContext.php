@@ -10,18 +10,18 @@ use Greenlight\Discovery\DataSetExpander;
 use Greenlight\Discovery\DiscoveryError;
 
 /**
- * Holds per-class execution state: the reflection, hook lists, and the
- * class's expanded data sets.
+ * Contains the execution state for one test class. This state includes
+ * reflection, hook lists, and expanded data sets.
  *
- * Providers run once per class and their expanded data sets are cached for
- * the class scope's lifetime.
+ * Data providers run one time for each class. The class scope stores their
+ * expanded data sets.
  *
  * @internal
  */
 final class ClassContext
 {
     /**
-     * Resolved data sets cached per test method.
+     * Resolved data sets for each test method.
      *
      * @var array<string, array<string, mixed>>
      */
@@ -46,7 +46,7 @@ final class ClassContext
     {
         if (!\class_exists($class)) {
             throw new \RuntimeException(\sprintf(
-                'Test class "%s" from the plan is not loadable in this process.',
+                'This process cannot load test class "%s" from the execution plan.',
                 $class,
             ));
         }
@@ -73,12 +73,14 @@ final class ClassContext
     }
 
     /**
-     * Positional arguments for one data-set key, resolved from the method's
-     * #[DataRow] attributes and #[DataSet] provider.
+     * Returns positional arguments for one data-set key.
      *
-     * The key came from the plan; a key the method's data sets no longer
-     * include means the code changed between planning and execution, and
-     * that is an error.
+     * The method gets them from #[DataRow] attributes and the #[DataSet] data
+     * provider.
+ *
+     * The execution plan supplies the key. If the method data sets do not
+     * contain it, the code changed after discovery. This condition is an
+     * error.
      *
      * @param non-empty-string|null $provider
      * @param non-empty-string|null $providerClass
@@ -104,8 +106,8 @@ final class ClassContext
 
         if (!\array_key_exists($key, $sets)) {
             throw new \RuntimeException(\sprintf(
-                'Data set "%s" of "%s::%s()" is in the plan but the method\'s data sets no longer include it. '
-                . 'Re-run discovery.',
+                'The execution plan contains data set "%s" for "%s::%s()", but its data provider no longer returns it. '
+                . 'Run discovery again.',
                 $key,
                 $this->reflection->getName(),
                 $testMethod,
@@ -116,7 +118,7 @@ final class ClassContext
 
         if (!\is_array($value)) {
             throw new \RuntimeException(\sprintf(
-                'Data set "%s" of "%s::%s()" must be an array of arguments, got %s.',
+                'Data set "%s" of "%s::%s()" requires an argument array. Actual type: %s.',
                 $key,
                 $this->reflection->getName(),
                 $testMethod,

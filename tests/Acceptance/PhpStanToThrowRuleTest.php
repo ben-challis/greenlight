@@ -70,7 +70,7 @@ final readonly class PhpStanToThrowRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->toBe(1)
+        Expect::that($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(5)
             ->and($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');

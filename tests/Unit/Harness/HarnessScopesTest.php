@@ -45,8 +45,9 @@ final class HarnessScopesTest
             ));
         }
 
-        // Realise the lazy proxy so state from the factory result holds.
-        Expect::that($resolver->consulted)->toBe(false)
+        // Initialize the lazy proxy so it contains state from the factory
+        // result.
+        Expect::that($resolver->consulted)->because('registered services win over fallback resolvers')->toBe(false)
             ->and($resolved->getArrayCopy())->toBe($registered->getArrayCopy());
     }
 
@@ -73,7 +74,7 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test', [$marker]);
 
-        Expect::that($resolved)->toBeInstanceOf(\ArrayObject::class)
+        Expect::that($resolved)->because('fallback resolvers receive the type and attributes')->toBeInstanceOf(\ArrayObject::class)
             ->and($resolver->type)->toBe(\ArrayObject::class)
             ->and($resolver->attributes)->toBe([$marker]);
     }
@@ -104,7 +105,7 @@ final class HarnessScopesTest
 
         $scopes = new HarnessScopes(new HarnessRegistry(), [$passing, $answering]);
 
-        Expect::that($scopes->resolve(\ArrayObject::class, 'test'))->toBe($answer);
+        Expect::that($scopes->resolve(\ArrayObject::class, 'test'))->because('resolvers are consulted in order until one answers')->toBe($answer);
     }
 
     #[Test]
@@ -121,7 +122,7 @@ final class HarnessScopesTest
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
-        })->toThrow(UnresolvableService::class, matching: '/is not that type/');
+        })->because('a resolver answering with the wrong type fails loudly')->toThrow(UnresolvableService::class, matching: '/is not that type/');
     }
 
     #[Test]
@@ -138,7 +139,7 @@ final class HarnessScopesTest
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
-        })->toThrow(UnresolvableService::class, matching: '/none of the 1 fallback resolver/');
+        })->because('an unanswered type names the consulted resolvers')->toThrow(UnresolvableService::class, matching: '/none of the 1 fallback resolver/');
     }
 
     #[Test]
@@ -148,6 +149,6 @@ final class HarnessScopesTest
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
-        })->toThrow(UnresolvableService::class, matching: '/exact types only\.$/');
+        })->because('without resolvers the original message stands')->toThrow(UnresolvableService::class, matching: '/exact types only\.$/');
     }
 }

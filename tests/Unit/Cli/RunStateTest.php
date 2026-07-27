@@ -52,10 +52,10 @@ final class RunStateTest
         $file = $this->stateFileFor($directory);
         \file_put_contents($file, 'not json at all');
 
-        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->toBeNull();
+        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": "not a list"}');
-        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->toBeNull();
+        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         @\unlink($file);
     }
@@ -82,9 +82,9 @@ final class RunStateTest
         $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
         $file = $this->stateFileFor($directory);
 
-        // A non-empty directory squatting on the target path makes the
-        // temp-file write succeed but the final rename fail, exercising the
-        // failure branch that must remove the temp file.
+        // Put a nonempty directory at the target path. The temporary-file write
+        // succeeds, but the final rename fails. This exercises the failure path
+        // that MUST remove the temporary file.
         \mkdir($file);
         \file_put_contents($file . '/occupant.txt', 'keep');
 

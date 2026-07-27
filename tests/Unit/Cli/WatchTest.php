@@ -16,22 +16,33 @@ use Greenlight\Expect\Expect;
 final class WatchTest
 {
     #[Test]
+    public function rejectsANegativeQuietPeriodWithExactGuidance(): void
+    {
+        Expect::that(
+            static fn(): Debouncer => new Debouncer(-0.1),
+        )->toThrow(
+            \InvalidArgumentException::class,
+            message: 'Set the quiet period to zero seconds or more.',
+        );
+    }
+
+    #[Test]
     public function debounceFiresOnlyAfterTheQuietPeriod(): void
     {
         $debouncer = new Debouncer(0.2);
 
-        Expect::that($debouncer->shouldFire(10.0))->toBeFalse();
+        Expect::that($debouncer->shouldFire(10.0))->because('debounce fires only after the quiet period')->toBeFalse();
 
         $debouncer->noteChange(10.0);
-        Expect::that($debouncer->shouldFire(10.1))->toBeFalse();
+        Expect::that($debouncer->shouldFire(10.1))->because('debounce fires only after the quiet period')->toBeFalse();
 
-        // A burst restarts the quiet timer.
+        // Multiple consecutive changes restart the quiet timer.
         $debouncer->noteChange(10.15);
-        Expect::that($debouncer->shouldFire(10.3))->toBeFalse()
+        Expect::that($debouncer->shouldFire(10.3))->because('debounce fires only after the quiet period')->toBeFalse()
             ->and($debouncer->shouldFire(10.4))->toBeTrue();
 
         $debouncer->reset();
-        Expect::that($debouncer->shouldFire(11.0))->toBeFalse();
+        Expect::that($debouncer->shouldFire(11.0))->because('debounce fires only after the quiet period')->toBeFalse();
     }
 
     #[Test]
@@ -46,7 +57,8 @@ final class WatchTest
 
             Expect::that($detector->poll())->toBe([]);
 
-            // Same second, so a size change proves the fingerprint works.
+            // Both changes occur in the same second. Thus, a size change shows
+            // that the fingerprint operates correctly.
             \file_put_contents($dir . '/A.php', '<?php // a changed');
             Expect::that($detector->poll())->toBe([$dir . '/A.php']);
             Expect::that($detector->poll())->toBe([]);
@@ -66,7 +78,7 @@ final class WatchTest
     #[Test]
     public function loopDebouncesBurstsForcesOnEnterAndQuitsOnQ(): void
     {
-        // Scripted world: each tick advances virtual time by 0.1s.
+        // Each scripted tick increases virtual time by 0.1 seconds.
         $clock = new class implements WatchClock {
             public float $time = 0.0;
 
@@ -83,7 +95,7 @@ final class WatchTest
             }
         };
 
-        // Two rapid changes (a burst), then quiet, then nothing.
+        // Make two rapid changes, then no changes.
         $detector = new class implements ChangeDetector {
             public int $tick = 0;
 
@@ -99,7 +111,7 @@ final class WatchTest
             }
         };
 
-        // Enter after the debounced run, then q.
+        // Send Enter after the delayed run, and then send q.
         $keys = new class implements KeyInput {
             public int $tick = 0;
 
@@ -128,12 +140,13 @@ final class WatchTest
             $output .= $text;
         })->run($runOnce, maxIterations: 10);
 
-        // Initial run, one debounced run for the burst (with failed-first
-        // classes from the initial run), and one forced full run from Enter.
-        Expect::that($runs)->toHaveCount(3)
+        // The sequence has an initial run and one delayed run for the changes.
+        // The delayed run starts with classes that initially failed. Enter
+        // then causes one complete run.
+        Expect::that($runs)->because('loop debounces bursts forces on enter and quits on q')->toHaveCount(3)
             ->and($runs[0])->toBe([])
             ->and($runs[1])->toBe(['App\\BrokenTest'])
             ->and($runs[2])->toBe([])
-            ->and($output)->toContain('Change detected in 1 file(s).');
+            ->and($output)->toContain('Detected changes in 1 file.');
     }
 }

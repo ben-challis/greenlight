@@ -38,13 +38,13 @@ final readonly class ProseCheckTest
         $this->write($root, 'sample.md', "# Sample\n\n" . $invalid . "\n");
 
         $invalidResult = $this->run('check', $root, $baseline);
-        Expect::that($invalidResult->exitCode)->toBe(1)
+        Expect::that($invalidResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(1)
             ->and($invalidResult->output())->toContain($rule);
 
         $this->write($root, 'sample.md', "# Sample\n\n" . $valid . "\n");
 
         $validResult = $this->run('check', $root, $baseline);
-        Expect::that($validResult->exitCode)->toBe(0)
+        Expect::that($validResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(0)
             ->and($validResult->output())->not()->toContain($rule);
     }
 
@@ -70,7 +70,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('excludes markdown code and links')->toBe(0);
     }
 
     #[Test]
@@ -91,7 +91,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('checks markdown headings and tables')->toBe(1)
             ->and($result->output())->toContain('sample.md:1: british-spelling:')
             ->toContain('sample.md:5: contraction:');
     }
@@ -117,14 +117,14 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('checks website copy and uses the website shard')->toBe(1)
             ->and($result->output())->toContain('website/src/pages/index.astro:')
             ->toContain('british-spelling')
             ->toContain('contraction');
 
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->toBe(0);
+        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('checks website copy and uses the website shard')->toBe(0);
         $websiteBaseline = (string) \file_get_contents($baseline . '/website.json');
-        Expect::that($websiteBaseline)->toContain('website/src/pages/index.astro')
+        Expect::that($websiteBaseline)->because('checks website copy and uses the website shard')->toContain('website/src/pages/index.astro')
             ->not()->toContain('codeSample');
     }
 
@@ -144,14 +144,13 @@ final readonly class ProseCheckTest
              * @param non-empty-string $colour;
              * @phpstan-type Colour = array{colour: string};
              */
-            // @phpstan-ignore colour;
-            final class TagOnly {}
+            final class TagOnly {} // @phpstan-ignore colour (test fixture: tests that the checker excludes machine directives)
 
             PHP,
         );
 
         $excludedResult = $this->run('check', $root, $baseline);
-        Expect::that($excludedResult->exitCode)->toBe(0);
+        Expect::that($excludedResult->exitCode)->because('excludes PHPDoc tags and machine directives but checks narrative comments')->toBe(0);
 
         $this->write(
             $root,
@@ -166,7 +165,7 @@ final readonly class ProseCheckTest
         );
 
         $includedResult = $this->run('check', $root, $baseline);
-        Expect::that($includedResult->exitCode)->toBe(1)
+        Expect::that($includedResult->exitCode)->because('excludes PHPDoc tags and machine directives but checks narrative comments')->toBe(1)
             ->and($includedResult->output())->toContain('src/Narrative.php:3:')
             ->toContain('british-spelling')
             ->toContain('semicolon');
@@ -196,7 +195,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('joins consecutive line comments and does not create delimiter text')->toBe(1)
             ->and($result->output())->toContain('paragraph-length')
             ->not()->toContain('valid description. /');
     }
@@ -225,7 +224,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('review', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('review reports advisories without failure')->toBe(0)
             ->and($result->output())->toContain('procedural-sentence-length')
             ->toContain('passive-voice')
             ->toContain('verbal-ing')
@@ -247,7 +246,7 @@ final readonly class ProseCheckTest
         $checked = $this->run('check', $root, $baseline);
         $reviewed = $this->run('review', $root, $baseline);
 
-        Expect::that($checked->exitCode)->toBe(0)
+        Expect::that($checked->exitCode)->because('reports long instructions without blocking them')->toBe(0)
             ->and($reviewed->exitCode)->toBe(0)
             ->and($reviewed->output())->toContain('procedural-sentence-length');
     }
@@ -263,7 +262,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('review', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('does not report approved normative tokens as discouraged words')->toBe(0)
             ->and($result->output())->not()->toContain('discouraged-word');
     }
 
@@ -279,7 +278,7 @@ final readonly class ProseCheckTest
         $firstPosition = \strpos($first->output(), 'a-first.md:');
         $lastPosition = \strpos($first->output(), 'z-last.md:');
 
-        Expect::that($first->exitCode)->toBe(1)
+        Expect::that($first->exitCode)->because('output is deterministic and sorted by path')->toBe(1)
             ->and($second->exitCode)->toBe(1)
             ->and($second->output())->toBe($first->output())
             ->and($first->output())->toMatch('/^a-first\.md:\d+: contraction:/m')
@@ -299,7 +298,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('excludes shared fixture directories')->toBe(0);
     }
 
     #[Test]
@@ -313,7 +312,7 @@ final readonly class ProseCheckTest
         $this->write($root, 'packages/example/node_modules/package/README.md', $invalid);
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('excludes dependencies at any directory depth')->toBe(0);
     }
 
     #[Test]
@@ -327,7 +326,7 @@ final readonly class ProseCheckTest
         $matchedBaselineFiles = \glob($baseline . '/*');
         $baselineFiles = $matchedBaselineFiles === false ? [] : $matchedBaselineFiles;
 
-        Expect::that($created->exitCode)->toBe(0)
+        Expect::that($created->exitCode)->because('creates an initial baseline that allows existing findings')->toBe(0)
             ->and($baselineFiles)->not()->toBeEmpty()
             ->and($checked->exitCode)->toBe(0);
     }
@@ -341,7 +340,7 @@ final readonly class ProseCheckTest
         $created = $this->run('baseline', $root, $baseline, '--create');
         $repeated = $this->run('baseline', $root, $baseline, '--create');
 
-        Expect::that($created->exitCode)->toBe(0)
+        Expect::that($created->exitCode)->because('refuses to replace an existing baseline')->toBe(0)
             ->and($repeated->exitCode)->toBe(1)
             ->and($repeated->output())->toContain('already exists');
     }
@@ -351,7 +350,7 @@ final readonly class ProseCheckTest
     {
         [$root, $baseline] = $this->workspace('baseline-new');
         $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->toBe(0);
+        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('new findings fail against an existing baseline')->toBe(0);
 
         $this->write(
             $root,
@@ -360,7 +359,7 @@ final readonly class ProseCheckTest
         );
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('new findings fail against an existing baseline')->toBe(1)
             ->and(\strtolower($result->output()))->toContain('new')
             ->and($result->output())->toContain('british-spelling');
     }
@@ -370,7 +369,7 @@ final readonly class ProseCheckTest
     {
         [$root, $baseline] = $this->workspace('baseline-stale');
         $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->toBe(0);
+        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('stale findings fail until the baseline is pruned')->toBe(0);
 
         $this->write($root, 'sample.md', "The worker does not stop.\n");
 
@@ -378,7 +377,7 @@ final readonly class ProseCheckTest
         $pruned = $this->run('baseline', $root, $baseline, '--prune');
         $checked = $this->run('check', $root, $baseline);
 
-        Expect::that($stale->exitCode)->toBe(1)
+        Expect::that($stale->exitCode)->because('stale findings fail until the baseline is pruned')->toBe(1)
             ->and(\strtolower($stale->output()))->toContain('stale')
             ->and($pruned->exitCode)->toBe(0)
             ->and($checked->exitCode)->toBe(0);
@@ -390,7 +389,7 @@ final readonly class ProseCheckTest
         [$root, $baseline] = $this->workspace('baseline-duplicates');
         $duplicate = "The worker doesn't stop.\n\nThe worker doesn't stop.\n";
         $this->write($root, 'sample.md', $duplicate);
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->toBe(0);
+        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('baseline fingerprints include duplicate finding counts')->toBe(0);
         $baselineJson = (string) \file_get_contents($baseline . '/root.json');
         $expectedFingerprint = \hash(
             'sha256',
@@ -400,7 +399,7 @@ final readonly class ProseCheckTest
         $this->write($root, 'sample.md', "The worker doesn't stop.\n");
 
         $result = $this->run('check', $root, $baseline);
-        Expect::that($baselineJson)->toContain($expectedFingerprint)
+        Expect::that($baselineJson)->because('baseline fingerprints include duplicate finding counts')->toContain($expectedFingerprint)
             ->toContain('"count": 2')
             ->and($result->exitCode)->toBe(1)
             ->and(\strtolower($result->output()))->toContain('stale');
@@ -411,7 +410,7 @@ final readonly class ProseCheckTest
     {
         [$root, $baseline] = $this->workspace('baseline-prune-refusal');
         $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->toBe(0);
+        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('prune refuses to add new findings')->toBe(0);
         $before = $this->baselineContents($baseline);
 
         $this->write(
@@ -424,7 +423,7 @@ final readonly class ProseCheckTest
         $after = $this->baselineContents($baseline);
         $checked = $this->run('check', $root, $baseline);
 
-        Expect::that($pruned->exitCode)->toBe(1)
+        Expect::that($pruned->exitCode)->because('prune refuses to add new findings')->toBe(1)
             ->and(\strtolower($pruned->output()))->toContain('new')
             ->and($after)->toBe($before)
             ->and($checked->exitCode)->toBe(1);

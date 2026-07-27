@@ -11,16 +11,17 @@ use Greenlight\Expect\ValueRenderer;
 use Greenlight\Harness\Disposable;
 
 /**
- * Mocks are strict: a call that matches no planned expectation fails the
- * test immediately, and every return value must be configured. Stubs error
- * on any interaction. Spies record calls to methods that return nothing.
+ * Mocks are strict. A call without a planned expectation fails the test
+ * immediately. Each return value needs a configured result. Stubs cause an
+ * error for all interactions. Spies record calls to methods that return
+ * nothing.
  *
- * Verification failures throw a single ExpectationFailed carrying one
- * FailureDetail per unmet expectation, so they render exactly like Expect
- * failures.
+ * A verification failure throws one ExpectationFailed. It contains one
+ * FailureDetail for each unmet expectation. Thus, the reporter shows it in
+ * the same format as an Expect failure.
  *
- * Interfaces and non-final classes are supported. Class constructors never
- * run. Partial mocks and static interception are not supported.
+ * Doubles supports interfaces and non-final classes. Class constructors do
+ * not run. Doubles does not support partial mocks or static interception.
  */
 final class Doubles implements Disposable
 {
@@ -29,8 +30,8 @@ final class Doubles implements Disposable
     private readonly ValueRenderer $renderer;
 
     /**
-     * States are kept for verification and never reference the proxies, so
-     * doubles stay collectable the moment the test drops them.
+     * The factory stores states for verification. The states do not refer to
+     * the proxy objects. Thus, PHP can collect a double after the test releases it.
      *
      * @var list<DoubleState>
      */
@@ -42,10 +43,10 @@ final class Doubles implements Disposable
     private \WeakMap $doubles;
 
     /**
-     * @param non-empty-string|null $proxyDirectory where generated proxy classes
-     *   are cached; defaults to a per-project directory under the system temp
-     *   dir, keyed by a hash of the working directory, so the project tree
-     *   stays untouched
+     * @param non-empty-string|null $proxyDirectory Directory for generated
+     *   proxy classes. The default is a project directory in the system
+     *   temporary directory. A hash of the current working directory
+     *   identifies it.
      */
     public function __construct(?string $proxyDirectory = null)
     {
@@ -69,8 +70,8 @@ final class Doubles implements Disposable
     }
 
     /**
-     * A strict double: every planned expectation is verified at test end and
-     * any call matching no expectation fails the test immediately.
+     * Creates a strict double. Verification checks each planned expectation
+     * at test end. A call without an expectation fails the test immediately.
      *
      * @template T of object
      *
@@ -85,10 +86,9 @@ final class Doubles implements Disposable
     }
 
     /**
-     * An inert placeholder: it satisfies the type so a collaborator slot can
-     * be filled, and it errors the test on any interaction. When a test needs
-     * a collaborator that actually answers, that is a mock with explicit
-     * expectations.
+     * Creates an inert double that satisfies the specified type. All
+     * interactions cause a test error. Use a mock with explicit expectations
+     * when a collaborator must supply results.
      *
      * @template T of object
      *
@@ -102,10 +102,9 @@ final class Doubles implements Disposable
     }
 
     /**
-     * A recording double: every call is recorded with its arguments. Only
-     * methods that return nothing can be spied on; a call to a
-     * value-returning method errors the test. Read the recording back with
-     * callsTo() and assert on it with Expect.
+     * Creates a spy that records each call and its arguments. A call to a
+     * method that returns a value causes a test error. Use callsTo() to get the
+     * calls. Use Expect to check them.
      *
      * @template T of object
      *
@@ -119,8 +118,8 @@ final class Doubles implements Disposable
     }
 
     /**
-     * The recorded calls to one method of a double created by this factory,
-     * in call order, each entry the argument list of one call.
+     * Gets the calls to one method of a double from this factory. The result
+     * uses call order. Each entry contains the arguments for one call.
      *
      * @return list<list<mixed>>
      */
@@ -134,8 +133,8 @@ final class Doubles implements Disposable
     }
 
     /**
-     * Verifies mocks and clears tracked state when the per-test scope closes.
-     * Unmet expectations become one ExpectationFailed with all details.
+     * Verifies mocks and clears their state when the test scope closes.
+     * One ExpectationFailed contains the details for all unmet expectations.
      */
     #[\Override]
     public function dispose(): void
@@ -210,11 +209,11 @@ final class Doubles implements Disposable
 
         return new FailureDetail(
             \sprintf(
-                '%s::%s() was expected %s but was called %s.',
+                'Calls to %s::%s(): %s. The expectation requires %s.',
                 $state->type,
                 $expectation->method,
-                $expectation->describeExpectedCount(),
                 MethodExpectation::timesPhrase($expectation->actualCalls),
+                $expectation->describeExpectedCount(),
             ),
             $expectation->describePlan($this->renderer),
             $actual,

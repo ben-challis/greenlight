@@ -27,11 +27,11 @@ final class ResourceSchedulerTest
 
         $first = $this->assigned($scheduler);
 
-        Expect::that($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Wait);
+        Expect::that($scheduler->dispatch(true)->kind)->because('unconfigured resources are exclusive')->toBe(DispatchKind::Wait);
 
         $scheduler->release($first);
 
-        Expect::that($this->assigned($scheduler)->unit->plan->classes())->toBe(['SecondTest']);
+        Expect::that($this->assigned($scheduler)->unit->plan->classes())->because('unconfigured resources are exclusive')->toBe(['SecondTest']);
     }
 
     #[Test]
@@ -46,7 +46,7 @@ final class ResourceSchedulerTest
         $this->assigned($scheduler);
         $this->assigned($scheduler);
 
-        Expect::that($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Wait);
+        Expect::that($scheduler->dispatch(true)->kind)->because('configured limits permit that many concurrent leases')->toBe(DispatchKind::Wait);
     }
 
     #[Test]
@@ -62,12 +62,12 @@ final class ResourceSchedulerTest
         $holdingB = $this->assigned($scheduler);
         $disjoint = $this->assigned($scheduler);
 
-        Expect::that($disjoint->unit->plan->classes())->toBe(['DisjointTest']);
-        Expect::that($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Wait);
+        Expect::that($disjoint->unit->plan->classes())->because('oldest blocked unit reserves its resources but disjoint work can bypass it')->toBe(['DisjointTest']);
+        Expect::that($scheduler->dispatch(true)->kind)->because('oldest blocked unit reserves its resources but disjoint work can bypass it')->toBe(DispatchKind::Wait);
 
         $scheduler->release($holdingB);
 
-        Expect::that($this->assigned($scheduler)->unit->plan->classes())->toBe(['NeedsBothTest']);
+        Expect::that($this->assigned($scheduler)->unit->plan->classes())->because('oldest blocked unit reserves its resources but disjoint work can bypass it')->toBe(['NeedsBothTest']);
     }
 
     #[Test]
@@ -82,8 +82,8 @@ final class ResourceSchedulerTest
 
         $this->assigned($scheduler);
 
-        Expect::that($this->assigned($scheduler)->unit->plan->classes())->toBe(['FirstNeedsATest']);
-        Expect::that($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Wait);
+        Expect::that($this->assigned($scheduler)->unit->plan->classes())->because('work can use capacity beyond the oldest blocked unit reservation')->toBe(['FirstNeedsATest']);
+        Expect::that($scheduler->dispatch(true)->kind)->because('work can use capacity beyond the oldest blocked unit reservation')->toBe(DispatchKind::Wait);
     }
 
     #[Test]
@@ -92,8 +92,8 @@ final class ResourceSchedulerTest
         $isolated = $this->unit('IsolatedTest', ['database'], isolated: true);
         $scheduler = new ResourceScheduler([], [$isolated], []);
 
-        Expect::that($scheduler->dispatch(false)->kind)->toBe(DispatchKind::Drain);
-        Expect::that($this->assigned($scheduler, fresh: true)->unit)->toBe($isolated);
+        Expect::that($scheduler->dispatch(false)->kind)->because('isolated units need a fresh worker and run after the pooled queue')->toBe(DispatchKind::Drain);
+        Expect::that($this->assigned($scheduler, fresh: true)->unit)->because('isolated units need a fresh worker and run after the pooled queue')->toBe($isolated);
     }
 
     #[Test]
@@ -104,8 +104,8 @@ final class ResourceSchedulerTest
 
         $scheduler->requeue($isolated);
 
-        Expect::that($scheduler->dispatch(false)->kind)->toBe(DispatchKind::Drain);
-        Expect::that($this->assigned($scheduler, fresh: true)->unit)->toBe($isolated);
+        Expect::that($scheduler->dispatch(false)->kind)->because('requeued isolated units still need a fresh worker')->toBe(DispatchKind::Drain);
+        Expect::that($this->assigned($scheduler, fresh: true)->unit)->because('requeued isolated units still need a fresh worker')->toBe($isolated);
     }
 
     #[Test]
@@ -115,7 +115,7 @@ final class ResourceSchedulerTest
         $lease = $this->assigned($scheduler);
         $scheduler->release($lease);
 
-        Expect::that(static fn() => $scheduler->release($lease))
+        Expect::that(static fn() => $scheduler->release($lease))->because('released leases cannot be released twice')
             ->toThrow(\LogicException::class, matching: '/already been released/');
     }
 

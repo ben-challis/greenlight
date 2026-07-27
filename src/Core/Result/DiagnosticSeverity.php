@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Core\Result;
 
 /**
- * Only notices, warnings, and deprecations are captured. Other levels keep
- * PHP's default handling.
+ * Greenlight captures only notices, warnings, and deprecations. PHP handles
+ * other levels with its default process.
  */
 enum DiagnosticSeverity: string
 {
@@ -15,8 +15,9 @@ enum DiagnosticSeverity: string
     case Deprecation = 'deprecation';
 
     /**
-     * Maps an error level from the engine to a diagnostic severity, or null
-     * when the level is not a capturable diagnostic.
+     * Maps an engine error level to a diagnostic severity.
+     *
+     * Returns null if Greenlight cannot capture the diagnostic.
      */
     public static function fromErrorLevel(int $level): ?self
     {

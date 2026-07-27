@@ -6,17 +6,17 @@ namespace Greenlight\Expect;
 
 use Greenlight\Plugin\Plugin;
 
-/** Contributes matchers dispatched through Expectation::__call. */
+/** Supplies extension matchers through Expectation::__call(). */
 interface ExpectationExtension extends Plugin
 {
     /**
-     * Matcher name (as it would appear on the expectation chain) mapped to its
-     * predicate.
+     * Maps each expectation-chain matcher name to its predicate.
      *
-     * The predicate receives the subject followed by the matcher arguments,
-     * declared with real native parameter types, and must return true for the
-     * expectation to hold; anything else fails it. Concrete matchers narrow
-     * their parameters, so no closure signature covers them all.
+     * The predicate receives the subject and then the matcher arguments.
+     * Native parameter types declare the arguments. The predicate must return
+     * true for the expectation to hold. All other results fail it. Each
+     * matcher can use narrower parameters. Thus, one closure signature cannot
+     * describe all matchers.
      *
      * @return array<non-empty-string, \Closure>
      */

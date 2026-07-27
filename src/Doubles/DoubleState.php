@@ -7,11 +7,11 @@ namespace Greenlight\Doubles;
 use Greenlight\Core\Result\FailureDetail;
 
 /**
- * Mutable per-double bookkeeping: the planned expectations, every recorded
- * call, and failures raised at call time.
+ * Contains the mutable state for one double. This state includes planned
+ * expectations, recorded calls, and call failures.
  *
- * Deliberately holds no reference to the proxy object, so keeping states for
- * verification never keeps a double alive.
+ * The state does not refer to the proxy object. Thus, the verification state
+ * does not keep a double alive.
  *
  * @internal
  */
@@ -28,8 +28,8 @@ final class DoubleState
     public array $recordedCalls = [];
 
     /**
-     * Call-time failures are thrown immediately and also kept here, so a
-     * test that swallows the throw still fails at verification.
+     * The call handler immediately throws call failures and also stores them
+     * here. Thus, verification fails if a test catches the throwable.
      *
      * @var list<FailureDetail>
      */

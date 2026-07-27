@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-/** Passes arguments directly to PHP without shell parsing. */
+/** Passes arguments directly to PHP and does not ask a shell to parse them. */
 final class GreenlightCli
 {
     private function __construct() {}

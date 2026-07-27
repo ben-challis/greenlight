@@ -19,7 +19,7 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($map, $map);
 
-        Expect::that($report->fileDeltas)->toBe([])
+        Expect::that($report->fileDeltas)->because('comparing a map against itself reports no changes')->toBe([])
             ->and($report->totalDelta())->toBe(0.0)
             ->and($report->hasRegressions())->toBeFalse();
     }
@@ -33,7 +33,7 @@ final class BaselineDiffTest
         $report = BaselineDiff::between($baseline, $current);
         $delta = $report->fileDeltas['/src/A.php'];
 
-        Expect::that($delta->baselinePercentage)->toBe(100.0)
+        Expect::that($delta->baselinePercentage)->because('reports per file and total percentage deltas')->toBe(100.0)
             ->and($delta->currentPercentage)->toBe(50.0)
             ->and($delta->delta())->toBeWithin(0.001, -50.0)
             ->and($report->baselinePercentage)->toBe(100.0)
@@ -50,7 +50,7 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->fileDeltas['/src/A.php']->newlyUncoveredLines)->toBe([2, 5]);
+        Expect::that($report->fileDeltas['/src/A.php']->newlyUncoveredLines)->because('newly uncovered lines are lines uncovered now but not before')->toBe([2, 5]);
     }
 
     #[Test]
@@ -61,7 +61,7 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that(\array_keys($report->fileDeltas))->toBe(['/src/Gone.php', '/src/New.php'])
+        Expect::that(\array_keys($report->fileDeltas))->because('files only in one map appear with a null side')->toBe(['/src/Gone.php', '/src/New.php'])
             ->and($report->fileDeltas['/src/Gone.php']->currentPercentage)->toBeNull()
             ->and($report->fileDeltas['/src/New.php']->baselinePercentage)->toBeNull()
             ->and($report->fileDeltas['/src/New.php']->newlyUncoveredLines)->toBe([2]);
@@ -75,7 +75,7 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->totalDelta())->toBeWithin(0.001, 50.0)
+        Expect::that($report->totalDelta())->because('improved coverage is not a regression')->toBeWithin(0.001, 50.0)
             ->and($report->hasRegressions())->toBeFalse();
     }
 }

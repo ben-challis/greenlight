@@ -46,7 +46,7 @@ final class PlainReporterTest
               Acme\NetworkTest::pings (Requires ext-redis.)
             TXT;
 
-        Expect::that($output->buffer())->toBe($expected . "\n");
+        Expect::that($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -55,7 +55,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output, new RunHeader('0.4.0', 'greenlight.php', 7, phpVersion: '8.3.1')));
 
-        Expect::that($output->buffer())
+        Expect::that($output->buffer())->because('header line precedes the run line when provided')
             ->toStartWith("Greenlight 0.4.0\nPHP 8.3.1 | config: greenlight.php | workers: 2 | seed: 7\nRun run-1: 6 tests, 2 workers\n");
     }
 
@@ -68,7 +68,7 @@ final class PlainReporterTest
         $second = new BufferOutput();
         CannedStream::feed(new PlainReporter($second));
 
-        Expect::that($first->buffer())->toBe($second->buffer());
+        Expect::that($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
     }
 
     #[Test]
@@ -77,6 +77,6 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output));
 
-        Expect::that($output->buffer())->not()->toContain("\e");
+        Expect::that($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
     }
 }

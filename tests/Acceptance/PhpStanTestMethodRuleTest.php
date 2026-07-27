@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Acceptance;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\PhpStanProbe;
+
+final readonly class PhpStanTestMethodRuleTest
+{
+    public function __construct(private TempDirectory $tempDirectory) {}
+
+    #[Test]
+    public function testMethodsMustBePublicNonStaticAndConcrete(): void
+    {
+        $probe = PhpStanProbe::analyse(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightTestMethodProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class GoodTestMethodProbe
+            {
+                #[Test]
+                public function testMethod(): void {}
+            }
+
+            abstract class GoodAbstractProbe
+            {
+                abstract public function helper(): void;
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightTestMethodProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class BadTestMethodProbe
+            {
+                #[Test]
+                protected function protectedTest(): void {}
+
+                #[Test]
+                public static function staticTest(): void {}
+            }
+
+            abstract class BadAbstractTestMethodProbe
+            {
+                #[Test]
+                abstract public function abstractTest(): void;
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and(\count($probe->errors))->toBe(3)
+            ->and($probe->messages())->toContain('protectedTest() cannot run because it is not public')
+            ->toContain('staticTest() cannot run because it is static')
+            ->toContain('abstractTest() cannot run because it is abstract');
+    }
+}

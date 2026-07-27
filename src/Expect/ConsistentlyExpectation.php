@@ -54,7 +54,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
 
         if (!$last->matched) {
             $this->failure(
-                'Consistently expectation failed on its first observation.',
+                'The consistently() expectation failed on the first observation.',
                 $observations,
                 $last,
                 $last->failure,
@@ -72,7 +72,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
         if ($deadline <= $observedAt) {
             $this->failure(
                 \sprintf(
-                    'The test timeout expired before the consistently expectation could observe for %.3fs.',
+                    'No time remains for the requested %.3f-second consistently() observation period.',
                     $this->forSeconds,
                 ),
                 $observations,
@@ -91,7 +91,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
             if (!$last->matched) {
                 $this->failure(
                     \sprintf(
-                        'Consistently expectation stopped passing after %.3fs and %d observations.',
+                        'The consistently() expectation failed after %.3f seconds and %d observations.',
                         \max(0.0, $observedAt - $stableStartedAt),
                         $observations->count(),
                     ),
@@ -106,7 +106,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
                 if ($truncatedByTest) {
                     $this->failure(
                         \sprintf(
-                            'The test timeout expired before the consistently expectation could complete its requested %.3fs observation period.',
+                            'The test time limit ended the consistently() expectation early. The requested observation period was %.3f seconds.',
                             $this->forSeconds,
                         ),
                         $observations,

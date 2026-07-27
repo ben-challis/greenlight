@@ -13,14 +13,13 @@ final class TempDirectoryTest
     #[Test]
     public function nothingExistsOnDiskBeforeFirstUse(): void
     {
-        // path() is the only method that touches the disk; if construction
-        // already created and bound a directory, disposing without ever
-        // calling path() would try to remove it and could throw.
+        // path() is the only method that accesses the disk. If construction
+        // created a directory, disposal could try to remove it and throw.
         $directory = new TempDirectory();
 
         Expect::that(static function () use ($directory): void {
             $directory->dispose();
-        })->not()->toThrow(\Throwable::class);
+        })->because('nothing exists on disk before first use')->not()->toThrow(\Throwable::class);
     }
 
     #[Test]
@@ -30,7 +29,7 @@ final class TempDirectoryTest
 
         $path = $directory->path();
 
-        Expect::that(\is_dir($path))->toBeTrue()
+        Expect::that(\is_dir($path))->because('path creates a writable directory and memoizes it')->toBeTrue()
             ->and(\is_writable($path))->toBeTrue()
             ->and($directory->path())->toBe($path);
 
@@ -43,7 +42,7 @@ final class TempDirectoryTest
         $first = new TempDirectory();
         $second = new TempDirectory();
 
-        Expect::that($first->path())->not()->toBe($second->path());
+        Expect::that($first->path())->because('two instances get distinct paths')->not()->toBe($second->path());
 
         $first->dispose();
         $second->dispose();
@@ -56,7 +55,7 @@ final class TempDirectoryTest
 
         $nested = $directory->subdirectory('a/b');
 
-        Expect::that($nested)->toBe($directory->path() . '/a/b')
+        Expect::that($nested)->because('subdirectory creates nested directories')->toBe($directory->path() . '/a/b')
             ->and(\is_dir($nested))->toBeTrue();
 
         $directory->dispose();
@@ -67,7 +66,7 @@ final class TempDirectoryTest
     {
         $directory = new TempDirectory();
 
-        Expect::that(static fn(): string => $directory->subdirectory('../escape'))
+        Expect::that(static fn(): string => $directory->subdirectory('../escape'))->because('subdirectory rejects traversal and absolute paths')
             ->toThrow(\InvalidArgumentException::class)
             ->and(static fn(): string => $directory->subdirectory('a/../b'))
             ->toThrow(\InvalidArgumentException::class)
@@ -90,7 +89,7 @@ final class TempDirectoryTest
 
         $directory->dispose();
 
-        Expect::that(\file_exists($path))->toBeFalse();
+        Expect::that(\file_exists($path))->because('dispose removes the directory including nested files')->toBeFalse();
     }
 
     #[Test]
@@ -99,11 +98,11 @@ final class TempDirectoryTest
         $directory = new TempDirectory();
         $directory->dispose();
 
-        // A no-op dispose() must not have bound a stale or missing path:
-        // path() afterward still creates a fresh, writable directory.
+        // A no-op dispose() MUST NOT keep a stale or missing path. A later
+        // path() call still creates a new writable directory.
         $path = $directory->path();
 
-        Expect::that(\is_dir($path))->toBeTrue()
+        Expect::that(\is_dir($path))->because('dispose without use is a no-op')->toBeTrue()
             ->and(\is_writable($path))->toBeTrue();
 
         $directory->dispose();

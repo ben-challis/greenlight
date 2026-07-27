@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 /**
- * The resource slots held by one assigned scheduling unit.
+ * Contains the resource slots for one assigned scheduling unit.
  *
  * @internal
  */

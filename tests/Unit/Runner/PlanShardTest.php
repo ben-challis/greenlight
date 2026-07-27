@@ -30,7 +30,8 @@ final class PlanShardTest
 
             foreach ($shard->entries as $entry) {
                 $id = (string) $entry->id;
-                // Disjoint: no id may appear in two shards.
+                // The shards do not overlap. A test ID MUST NOT occur in two
+                // shards.
                 Expect::that($seen)->not()->toHaveKey($id);
                 $seen[$id] = true;
             }
@@ -38,8 +39,8 @@ final class PlanShardTest
             $total += \count($shard->entries);
         }
 
-        // Complete: the union is exactly the plan.
-        Expect::that($total)->toBe(\count($plan->entries));
+        // The union of the shards is the complete execution plan.
+        Expect::that($total)->because('shards partition the plan')->toBe(\count($plan->entries));
     }
 
     #[Test]
@@ -66,7 +67,7 @@ final class PlanShardTest
     {
         $plan = $this->plan(5);
 
-        Expect::that(PlanShard::select($plan, 1, 1))->toBe($plan);
+        Expect::that(PlanShard::select($plan, 1, 1))->because('one shard is the whole plan')->toBe($plan);
     }
 
     private function plan(int $classes): ExecutionPlan

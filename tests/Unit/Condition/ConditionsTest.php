@@ -21,14 +21,14 @@ final class ConditionsTest
     #[Test]
     public function extensionLoadedChecksTheLoadedExtensionList(): void
     {
-        Expect::that(new ExtensionLoaded('json')->isSatisfied())->toBeTrue()
+        Expect::that(new ExtensionLoaded('json')->isSatisfied())->because('extension loaded checks the loaded extension list')->toBeTrue()
             ->and(new ExtensionLoaded('greenlight_no_such_extension')->isSatisfied())->toBeFalse();
     }
 
     #[Test]
     public function extensionMissingIsTheInverseOfExtensionLoaded(): void
     {
-        Expect::that(new ExtensionMissing('json')->isSatisfied())->toBeFalse()
+        Expect::that(new ExtensionMissing('json')->isSatisfied())->because('extension missing is the inverse of extension loaded')->toBeFalse()
             ->and(new ExtensionMissing('greenlight_no_such_extension')->isSatisfied())->toBeTrue();
     }
 
@@ -62,7 +62,7 @@ final class ConditionsTest
     #[Test]
     public function operatingSystemFamilyComparesCaseInsensitively(): void
     {
-        Expect::that(new OperatingSystemFamily(\PHP_OS_FAMILY)->isSatisfied())->toBeTrue()
+        Expect::that(new OperatingSystemFamily(\PHP_OS_FAMILY)->isSatisfied())->because('operating system family compares case insensitively')->toBeTrue()
             ->and(new OperatingSystemFamily(\strtolower(\PHP_OS_FAMILY))->isSatisfied())->toBeTrue()
             ->and(new OperatingSystemFamily('NotAnOperatingSystem')->isSatisfied())->toBeFalse();
     }
@@ -70,7 +70,7 @@ final class ConditionsTest
     #[Test]
     public function phpVersionAtLeastComparesAgainstTheRunningVersion(): void
     {
-        Expect::that(new PhpVersionAtLeast('8.0')->isSatisfied())->toBeTrue()
+        Expect::that(new PhpVersionAtLeast('8.0')->isSatisfied())->because('PHP version at least compares against the running version')->toBeTrue()
             ->and(new PhpVersionAtLeast(\PHP_VERSION)->isSatisfied())->toBeTrue()
             ->and(new PhpVersionAtLeast('99.0')->isSatisfied())->toBeFalse();
     }
@@ -78,7 +78,7 @@ final class ConditionsTest
     #[Test]
     public function phpVersionLessThanComparesAgainstTheRunningVersion(): void
     {
-        Expect::that(new PhpVersionLessThan('99.0')->isSatisfied())->toBeTrue()
+        Expect::that(new PhpVersionLessThan('99.0')->isSatisfied())->because('PHP version less than compares against the running version')->toBeTrue()
             ->and(new PhpVersionLessThan('8.0')->isSatisfied())->toBeFalse()
             ->and(new PhpVersionLessThan(\PHP_VERSION)->isSatisfied())->toBeFalse();
     }
@@ -86,14 +86,14 @@ final class ConditionsTest
     #[Test]
     public function functionAvailableChecksCallableFunctions(): void
     {
-        Expect::that(new FunctionAvailable('strlen')->isSatisfied())->toBeTrue()
+        Expect::that(new FunctionAvailable('strlen')->isSatisfied())->because('function available checks callable functions')->toBeTrue()
             ->and(new FunctionAvailable('greenlight_no_such_function')->isSatisfied())->toBeFalse();
     }
 
     #[Test]
     public function classAvailableChecksAutoloadableClasses(): void
     {
-        Expect::that(new ClassAvailable(\stdClass::class)->isSatisfied())->toBeTrue()
+        Expect::that(new ClassAvailable(\stdClass::class)->isSatisfied())->because('class available checks autoloadable classes')->toBeTrue()
             ->and(new ClassAvailable('Greenlight\NoSuchClassAnywhere')->isSatisfied())->toBeFalse();
     }
 }

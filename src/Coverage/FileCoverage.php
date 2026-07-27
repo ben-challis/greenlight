@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Coverage;
 
 /**
- * Both sets are stored as sorted unique lists and are disjoint; when a line
- * appears in both inputs, covered wins. That rule makes merge() commutative,
- * associative, and idempotent.
+ * The class stores both sets as sorted unique lists with no common members.
+ * If a line is in both inputs, the covered input has priority. This rule
+ * makes merge() commutative, associative, and idempotent.
  *
  * @internal
  */
@@ -58,8 +58,9 @@ final readonly class FileCoverage
     }
 
     /**
-     * Covered lines as a percentage of executable lines. A file with no
-     * executable lines counts as fully covered: there is nothing to miss.
+     * Returns covered lines as a percentage of executable lines.
+     *
+     * A file with no executable lines has full coverage.
      */
     public function percentage(): float
     {
@@ -96,7 +97,7 @@ final readonly class FileCoverage
 
         foreach ($lines as $line) {
             if ($line < 1) {
-                throw new \InvalidArgumentException(\sprintf('Coverage line numbers must be positive, got %d.', $line));
+                throw new \InvalidArgumentException(\sprintf('Use positive coverage line numbers. Actual value: %d.', $line));
             }
 
             $set[$line] = true;

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Core\Wire;
 
 /**
- * Scrubs strings to valid UTF-8 so they can enter a wire payload.
+ * Converts strings to valid UTF-8 for a wire payload.
  *
- * Wire payloads are JSON, and JSON requires valid UTF-8. Strings that
- * originate in user code (exception messages, rendered values) can contain
- * arbitrary bytes, so they are scrubbed at capture: scrub() replaces invalid
- * sequences with U+FFFD.
+ * JSON wire payloads require valid UTF-8. Strings from user code can contain
+ * invalid bytes. For example, exception messages and rendered values can
+ * contain these bytes. scrub() replaces each invalid sequence with U+FFFD.
  *
  * @internal
  */

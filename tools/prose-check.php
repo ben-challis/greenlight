@@ -617,7 +617,7 @@ function proseAnalyze(array $passage): array
             $add(
                 'sentence-length',
                 'blocking',
-                \sprintf('Write no more than 25 words in a descriptive sentence; found %d.', $wordCount),
+                \sprintf('Write no more than 25 words in a descriptive sentence. Found %d words.', $wordCount),
             );
         }
 
@@ -958,7 +958,7 @@ function proseReadBaseline(string $directory): array
         $values = \json_decode($contents, true, flags: \JSON_THROW_ON_ERROR);
 
         if (!\is_array($values)) {
-            \proseFail(\sprintf('Baseline file "%s" must contain an array.', $file));
+            \proseFail(\sprintf('Use an array in baseline file "%s".', $file));
         }
 
         foreach ($values as $value) {

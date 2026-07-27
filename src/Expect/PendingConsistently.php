@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Collects polling options until for() sets the duration.
+ * Collects poll options until for() sets the duration.
  *
  * @template T
  */
@@ -34,7 +34,7 @@ final class PendingConsistently
     {
         if (!\is_finite($seconds) || $seconds < 0.001) {
             throw new \InvalidArgumentException(
-                'Polling interval seconds must be finite and at least 0.001.',
+                'Use a finite polling interval of at least 0.001 seconds.',
             );
         }
 
@@ -50,7 +50,7 @@ final class PendingConsistently
     {
         if (!\is_finite($seconds) || $seconds <= 0.0) {
             throw new \InvalidArgumentException(
-                'Consistency duration seconds must be finite and greater than 0.000.',
+                'Use a finite consistency duration greater than 0.000 seconds.',
             );
         }
 

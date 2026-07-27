@@ -13,12 +13,12 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Emits GitHub Actions workflow commands for test failures and errors.
+ * Writes GitHub Actions workflow commands for test failures and errors.
  *
- * Only failures and errors produce output, so annotations land on the PR
- * diff and passing tests add no log noise.
+ * Only failures and errors produce output. Thus, annotations occur on the
+ * pull request diff, and passed tests do not add log output.
  *
- * Messages and properties are escaped per the workflow-command encoding rules.
+ * The reporter escapes messages and properties with the workflow-command rules.
  *
  * @internal
  */

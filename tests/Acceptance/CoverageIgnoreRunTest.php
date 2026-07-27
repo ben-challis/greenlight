@@ -26,7 +26,7 @@ final readonly class CoverageIgnoreRunTest
             ['XDEBUG_MODE' => 'coverage'],
         );
 
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('ignored lines are excluded from totals and exports')->toBe(0)
             ->and($result->output())->toContain('Coverage: 100.00%');
 
         $json = \file_get_contents($outDir . '/coverage.json');
@@ -48,7 +48,7 @@ final readonly class CoverageIgnoreRunTest
             }
         }
 
-        Expect::that($gadget)->not()->toBeNull()
+        Expect::that($gadget)->because('ignored lines are excluded from totals and exports')->not()->toBeNull()
             ->and($gadget['uncovered'] ?? null)->toBe([])
             ->and($gadget['covered'] ?? [])->not()->toHaveCount(0);
     }

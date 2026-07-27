@@ -19,7 +19,7 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-class=BExcludeProbeTest']);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('exclude class removes only the matching class')->toBe(0);
         $lines = $result->outputLines();
         $this->assertIds($lines, present: [
             'ExcludeProbe\AExcludeProbeTest::one',
@@ -28,7 +28,7 @@ final readonly class ExcludeSelectionTest
             'ExcludeProbe\BExcludeProbeTest::one',
         ]);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-class=BExcludeProbeTest']);
-        Expect::that($result->exitCode)->toBe(0)->and($result->output())->toContain('2 tests, 2 passed');
+        Expect::that($result->exitCode)->because('exclude class removes only the matching class')->toBe(0)->and($result->output())->toContain('2 tests, 2 passed');
     }
 
     #[Test]
@@ -36,7 +36,7 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-class=*BExcludeProbeTest']);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('exclude class accepts a wildcard')->toBe(0);
         $lines = $result->outputLines();
         $this->assertIds($lines, present: [
             'ExcludeProbe\AExcludeProbeTest::one',
@@ -50,13 +50,12 @@ final readonly class ExcludeSelectionTest
     public function excludePathRemovesTestsUnderThatPrefix(): void
     {
         $project = $this->writeProject();
-        // realpath(), not project->path(): discovery reports the
-        // symlink-resolved absolute path (macOS temp dirs alias
-        // /var/folders/... to /private/var/folders/...), and the
-        // prefix match is exact.
+        // Use realpath(), not project->path(). Discovery reports the absolute
+        // path after symbolic-link resolution. On macOS, temporary paths can
+        // have aliases. The prefix comparison is exact.
         $excludedFile = (string) \realpath($project->path('tests/CExcludeProbeTest.php'));
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=' . $excludedFile]);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('exclude path removes tests under that prefix')->toBe(0);
         $lines = $result->outputLines();
         $this->assertIds($lines, present: [
             'ExcludeProbe\AExcludeProbeTest::one',
@@ -71,7 +70,7 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('exclude path resolves a relative prefix against the working directory')->toBe(0);
         $lines = $result->outputLines();
         $this->assertIds($lines, present: [
             'ExcludeProbe\AExcludeProbeTest::one',
@@ -107,7 +106,7 @@ final readonly class ExcludeSelectionTest
             'tests/nested/DExcludeProbeTest.php',
         ]);
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/nested']);
-        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('exclude path resolves a relative directory prefix')->toBe(0);
         $lines = $result->outputLines();
         $this->assertIds($lines, present: [
             'ExcludeProbe\AExcludeProbeTest::one',
@@ -123,13 +122,13 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/MissingProbeTest.php']);
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($result->output())->toContain('matched no discovered test file')
+        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0)
+            ->and($result->output())->toContain('did not match a discovered test file')
             ->toContain('MissingProbeTest.php')
             ->toContain('3 tests');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php']);
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($result->output())->toContain('matched no discovered test file')
+        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0)
+            ->and($result->output())->toContain('did not match a discovered test file')
             ->toContain('3 tests, 3 passed');
     }
 
@@ -138,8 +137,8 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($result->output())->not()->toContain('matched no discovered test file');
+        Expect::that($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0)
+            ->and($result->output())->not()->toContain('did not match a discovered test file');
     }
 
     /**

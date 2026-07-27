@@ -70,8 +70,8 @@ final class ProtocolTest
         $codec = new JsonFrameCodec();
         $buffer = new FrameBuffer();
 
-        // Feed all frames as one concatenated byte stream, in 3-byte chunks,
-        // to prove reassembly across arbitrary boundaries.
+        // Send all frames as one byte stream in three-byte parts. This shows
+        // that reassembly operates across arbitrary boundaries.
         $stream = '';
 
         foreach ($messages as $message) {
@@ -88,7 +88,7 @@ final class ProtocolTest
             }
         }
 
-        Expect::that($received)->toHaveCount(\count($messages));
+        Expect::that($received)->because('every message survives the framed round trip')->toHaveCount(\count($messages));
 
         foreach ($messages as $i => $original) {
             Expect::that($received[$i]::class)->toBe($original::class);
@@ -111,7 +111,7 @@ final class ProtocolTest
             artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
         )->toWire());
 
-        Expect::that($assign->slice->seed)->toBe(42)
+        Expect::that($assign->slice->seed)->because('assign carries the plan intact')->toBe(42)
             ->and($assign->recycleAfterTests)->toBe(10)
             ->and($assign->recycleAboveMemoryBytes)->toBeNull()
             ->and($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging')
@@ -127,23 +127,23 @@ final class ProtocolTest
     {
         $codec = new JsonFrameCodec(maxFrameBytes: 64);
 
-        Expect::that(static fn(): string => $codec->encode(['pad' => \str_repeat('x', 100)]))
+        Expect::that(static fn(): string => $codec->encode(['pad' => \str_repeat('x', 100)]))->because('oversized frames are rejected on both sides')
             ->toThrow(ProtocolError::class, matching: '/exceeds the 64 byte limit/');
 
         $buffer = new FrameBuffer(maxFrameBytes: 64);
         $buffer->feed(\pack('N', 1000));
 
-        Expect::that(static fn(): ?string => $buffer->next())
+        Expect::that(static fn(): ?string => $buffer->next())->because('oversized frames are rejected on both sides')
             ->toThrow(ProtocolError::class, matching: '/exceeds the 64 byte limit/');
     }
 
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unsupported protocol version 9/');
     }
 
@@ -159,6 +159,6 @@ final class ProtocolTest
             Fail::because('Expected FrameBuffer::next() to return the complete encoded frame.');
         }
 
-        Expect::that($codec->decode($body)['message'])->toContain('bad');
+        Expect::that($codec->decode($body)['message'])->because('binary bytes in messages survive encoding')->toContain('bad');
     }
 }

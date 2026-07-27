@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Collects polling options until within() sets the deadline.
+ * Collects poll options until within() sets the deadline.
  *
  * @template T
  */
@@ -83,7 +83,7 @@ final class PendingEventually
     {
         if (!\is_finite($seconds) || $seconds <= 0.0 || $seconds < $minimum) {
             throw new \InvalidArgumentException(\sprintf(
-                '%s seconds must be finite and at least %.3f.',
+                'Set %s to a finite value of at least %.3f seconds.',
                 $label,
                 $minimum,
             ));

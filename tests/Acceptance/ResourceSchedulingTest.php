@@ -27,9 +27,9 @@ final readonly class ResourceSchedulingTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain'], $environment);
         $counters = $this->counters($state);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($counters['postgres'])->toBe(2);
-        Expect::that($counters['global'])->toBeGreaterThanOrEqual(3);
+        Expect::that($result->exitCode)->because('limits a resource without serializing disjoint work')->toBe(0);
+        Expect::that($counters['postgres'])->because('limits a resource without serializing disjoint work')->toBe(2);
+        Expect::that($counters['global'])->because('limits a resource without serializing disjoint work')->toBeGreaterThanOrEqual(3);
 
         \file_put_contents($state, '{}');
         $environment['RESOURCE_PROBE_TARGET'] = '2';
@@ -41,9 +41,9 @@ final readonly class ResourceSchedulingTest
         );
         $counters = $this->counters($state);
 
-        Expect::that($overridden->exitCode)->toBe(0);
-        Expect::that($counters['postgres'])->toBe(1);
-        Expect::that($counters['global'])->toBeGreaterThanOrEqual(2);
+        Expect::that($overridden->exitCode)->because('limits a resource without serializing disjoint work')->toBe(0);
+        Expect::that($counters['postgres'])->because('limits a resource without serializing disjoint work')->toBe(1);
+        Expect::that($counters['global'])->because('limits a resource without serializing disjoint work')->toBeGreaterThanOrEqual(2);
     }
 
     #[Test]
@@ -121,9 +121,9 @@ final readonly class ResourceSchedulingTest
             ['RESOURCE_CRASH_MARKER' => $marker],
         );
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->output())->toContain('2 tests, 1 passed, 1 errored');
-        Expect::that((string) \file_get_contents($marker))->toBe('ran');
+        Expect::that($result->exitCode)->because('a crashed worker releases its lease for waiting work')->toBe(1);
+        Expect::that($result->output())->because('a crashed worker releases its lease for waiting work')->toContain('2 tests, 1 passed, 1 errored');
+        Expect::that((string) \file_get_contents($marker))->because('a crashed worker releases its lease for waiting work')->toBe('ran');
     }
 
     private function concurrencyProject(): AcceptanceProject

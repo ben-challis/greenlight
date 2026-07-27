@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * Mutable fluent builder for attachment output and safety limits.
+ * Collects the configuration for attachment output and safety limits.
  */
 final class ArtifactBuilder
 {

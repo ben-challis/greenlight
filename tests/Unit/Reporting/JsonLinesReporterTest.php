@@ -21,11 +21,11 @@ final class JsonLinesReporterTest
         $buffer = $output->buffer();
         $events = CannedStream::events();
 
-        Expect::that($buffer)->toEndWith("\n");
+        Expect::that($buffer)->because('every event becomes one versioned line')->toEndWith("\n");
 
         $lines = \explode("\n", \rtrim($buffer, "\n"));
 
-        Expect::that($lines)->toHaveCount(\count($events));
+        Expect::that($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
 
         $tags = JsonLinesReporter::tags();
 
@@ -82,7 +82,7 @@ final class JsonLinesReporterTest
 
         $lines = \explode("\n", $output->buffer());
 
-        Expect::that($lines[0])->toBe(
+        Expect::that($lines[0])->because('first line matches the documented envelope shape')->toBe(
             '{"v":2,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
         );
     }
@@ -108,7 +108,13 @@ final class JsonLinesReporterTest
             }
         };
 
-        Expect::that(static fn() => $reporter->onEvent($event))
-            ->toThrow(ReportingError::class, '/no stable tag/');
+        Expect::that(static fn() => $reporter->onEvent($event))->because('an unmapped event is rejected')
+            ->toThrow(
+                ReportingError::class,
+                message: \sprintf(
+                    'Event "%s" has no stable tag. Add the event to the tag map before Greenlight writes it.',
+                    $event::class,
+                ),
+            );
     }
 }

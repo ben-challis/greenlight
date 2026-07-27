@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 /**
- * Raised whenever discovery cannot turn a test file into plan entries.
+ * Discovery raises this error when it cannot make plan entries from a test file.
  *
- * Discovery never silently skips a file it cannot resolve; every failure
- * mode has a named constructor whose message identifies the file, class, or
- * method involved.
+ * Discovery does not silently ignore a file that it cannot resolve. Each
+ * failure type has a named constructor. Its message identifies the applicable
+ * file, class, or method.
  *
  * @internal
  */
@@ -22,13 +22,13 @@ final class DiscoveryError extends \RuntimeException
 
     public static function directoryNotFound(string $directory): self
     {
-        return new self(\sprintf('Discovery directory "%s" does not exist or is not a directory.', $directory));
+        return new self(\sprintf('Discovery directory "%s" is missing or is not a directory.', $directory));
     }
 
     public static function unreadableFile(string $file, ?string $reason = null): self
     {
         return new self(\sprintf(
-            'Test file "%s" could not be read%s.',
+            'Greenlight cannot read test file "%s"%s.',
             $file,
             $reason === null ? '' : ': ' . $reason,
         ));
@@ -36,13 +36,13 @@ final class DiscoveryError extends \RuntimeException
 
     public static function noClassInFile(string $file): self
     {
-        return new self(\sprintf('Test file "%s" does not declare any class, interface, trait, or enum.', $file));
+        return new self(\sprintf('Test file "%s" does not declare a class, interface, trait, or enum.', $file));
     }
 
     public static function classNameMismatch(string $file, string $declared, string $expected): self
     {
         return new self(\sprintf(
-            'Test file "%s" declares "%s" but its file name requires a declaration named "%s". Rename the class or the file so they agree.',
+            'Test file "%s" declares "%s". Its file name requires "%s". Rename the class or file so the names match.',
             $file,
             $declared,
             $expected,
@@ -52,7 +52,7 @@ final class DiscoveryError extends \RuntimeException
     public static function classNotAutoloadable(string $file, string $class): self
     {
         return new self(\sprintf(
-            'Class "%s" declared in "%s" is not autoloadable. The namespace probably does not match the PSR-4 mapping for that path.',
+            'The autoloader cannot load class "%s" from "%s". Check that the namespace matches the PSR-4 mapping for this path.',
             $class,
             $file,
         ));
@@ -61,22 +61,22 @@ final class DiscoveryError extends \RuntimeException
     public static function classLoadedFromOtherFile(string $file, string $class, string $actualFile): self
     {
         return new self(\sprintf(
-            'Class "%s" declared in "%s" was autoloaded from "%s" instead. Two files must not declare the same class.',
+            'The autoloader loaded class "%s" from "%s". It expected the class in "%s". Only one file can declare a class.',
             $class,
-            $file,
             $actualFile,
+            $file,
         ));
     }
 
     public static function testMethodNotRunnable(string $class, string $method, string $why): self
     {
-        return new self(\sprintf('Test method %s::%s() cannot run: %s.', $class, $method, $why));
+        return new self(\sprintf('Greenlight cannot run test method %s::%s() because %s.', $class, $method, $why));
     }
 
     public static function invalidAttribute(string $where, \Throwable $cause): self
     {
         return new self(
-            \sprintf('Invalid attribute on %s: %s', $where, $cause->getMessage()),
+            \sprintf('Attribute on %s is invalid: %s', $where, $cause->getMessage()),
             $cause,
         );
     }
@@ -84,21 +84,21 @@ final class DiscoveryError extends \RuntimeException
     public static function providerClassMissing(string $class, string $method, string $providerClass): self
     {
         return new self(\sprintf(
-            'Data-set provider class "%s" referenced by %s::%s() does not exist.',
-            $providerClass,
+            'Test method %s::%s() references missing data-set provider class "%s".',
             $class,
             $method,
+            $providerClass,
         ));
     }
 
     public static function providerMissing(string $class, string $method, string $providerClass, string $provider): self
     {
         return new self(\sprintf(
-            'Data-set provider "%s" referenced by %s::%s() does not exist on %s.',
-            $provider,
+            'Test method %s::%s() references data-set provider %s::%s(), but the provider does not exist.',
             $class,
             $method,
             $providerClass,
+            $provider,
         ));
     }
 
@@ -109,18 +109,18 @@ final class DiscoveryError extends \RuntimeException
         string $provider,
     ): self {
         return new self(\sprintf(
-            'Data-set provider %s::%s() referenced by %s::%s() must be public and static.',
-            $providerClass,
-            $provider,
+            'Test method %s::%s() references data-set provider %s::%s(). Declare the provider as public and static.',
             $class,
             $method,
+            $providerClass,
+            $provider,
         ));
     }
 
     public static function providerNotIterable(string $class, string $provider, string $actualType): self
     {
         return new self(\sprintf(
-            'Data-set provider %s::%s() must return an iterable, got %s.',
+            'Data-set provider %s::%s() returned %s. Return an iterable from the provider.',
             $class,
             $provider,
             $actualType,
@@ -144,7 +144,7 @@ final class DiscoveryError extends \RuntimeException
     public static function providerTooSlow(string $class, string $provider, float $budgetSeconds): self
     {
         return new self(\sprintf(
-            'Data-set provider %s::%s() exceeded the discovery time budget of %.3f seconds. Providers run at plan time and must be pure and fast.',
+            'Data-set provider %s::%s() exceeded the %.3f-second discovery time budget. Providers run during plan creation. Keep them pure and fast.',
             $class,
             $provider,
             $budgetSeconds,
@@ -154,7 +154,7 @@ final class DiscoveryError extends \RuntimeException
     public static function providerYieldedNothing(string $class, string $provider): self
     {
         return new self(\sprintf(
-            'Data-set provider %s::%s() yielded no data sets. A provider must produce at least one.',
+            'Data-set provider %s::%s() produced no data sets. Produce at least one data set.',
             $class,
             $provider,
         ));
@@ -163,7 +163,7 @@ final class DiscoveryError extends \RuntimeException
     public static function providerKeyInvalid(string $class, string $provider, string $keyType): self
     {
         return new self(\sprintf(
-            'Data-set provider %s::%s() yielded a key of type %s. Keys must be strings or integers.',
+            'Data-set provider %s::%s() produced a key of type %s. Use string or integer keys.',
             $class,
             $provider,
             $keyType,
@@ -173,7 +173,7 @@ final class DiscoveryError extends \RuntimeException
     public static function duplicateDataSetKey(string $class, string $method, string $key): self
     {
         return new self(\sprintf(
-            'Data sets for %s::%s() produced the key "%s" more than once. Keys must be unique per test method.',
+            'Data sets for %s::%s() contain key "%s" more than once. Use each key only once for the test method.',
             $class,
             $method,
             $key,

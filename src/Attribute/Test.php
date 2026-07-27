@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
-/** Output capture is enabled by default. */
+/** Greenlight captures test output by default. */
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class Test
 {

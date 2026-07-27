@@ -42,6 +42,6 @@ final class LeakTest
             static fn(\WeakReference $reference): bool => $reference->get() !== null,
         ));
 
-        Expect::that($survivors)->toBe([]);
+        Expect::that($survivors)->because('every double is collectable after dispose and unset')->toBe([]);
     }
 }

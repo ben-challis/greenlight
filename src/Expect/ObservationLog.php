@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Keeps a bounded, rendered history of polling attempts.
+ * Keeps a bounded history of rendered poll attempts.
  *
  * @internal
  */

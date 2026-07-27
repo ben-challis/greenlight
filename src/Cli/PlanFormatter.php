@@ -18,7 +18,7 @@ final class PlanFormatter
     {
         $lines = [];
         $lines[] = 'Run plan';
-        $lines[] = '  config file: ' . $configFile;
+        $lines[] = '  configuration file: ' . $configFile;
         $lines[] = '  test paths: ' . \implode(', ', $configuration->paths);
 
         if ($configuration->suites === []) {
@@ -80,12 +80,9 @@ final class PlanFormatter
                 $exports[] = $export->format . ' -> ' . $export->target;
             }
 
-            $lines[] = \sprintf(
-                '  coverage: include %s; driver %s; exports %s',
-                $configuration->coverage->includePaths === [] ? '(nothing)' : \implode(', ', $configuration->coverage->includePaths),
-                $configuration->coverage->driver ?? '(auto)',
-                $exports === [] ? '(none)' : \implode(', ', $exports),
-            );
+            $lines[] = '  coverage include paths: ' . ($configuration->coverage->includePaths === [] ? '(none)' : \implode(', ', $configuration->coverage->includePaths));
+            $lines[] = '  coverage driver: ' . ($configuration->coverage->driver ?? '(auto)');
+            $lines[] = '  coverage exports: ' . ($exports === [] ? '(none)' : \implode(', ', $exports));
         }
 
         return \implode("\n", $lines) . "\n";

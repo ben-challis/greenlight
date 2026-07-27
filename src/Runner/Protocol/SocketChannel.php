@@ -7,13 +7,11 @@ namespace Greenlight\Runner\Protocol;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * A framed message channel over one stream socket.
+ * Sends framed messages through one stream socket.
  *
- * send() is blocking and complete: partial writes are retried until the
- * whole frame is written.
+ * send() waits until it writes the complete frame. It continues after a partial write.
  *
- * Receiving is either receive(), which blocks with a timeout, or poll(),
- * which never blocks.
+ * receive() waits for a message with a timeout. poll() returns without a wait.
  *
  * @internal
  */
@@ -42,9 +40,11 @@ final class SocketChannel
             throw ProtocolError::malformedFrame('the channel is closed');
         }
 
-        // poll() leaves the stream non-blocking; a large frame written to a
-        // full socket buffer would then short-write or return zero, which is
-        // indistinguishable from a closed peer. Writes are always blocking.
+        // poll() leaves the stream in a mode that does not wait. In this mode,
+        // a large frame in a full socket buffer can cause a partial or
+        // zero-byte write.
+        // A zero-byte write looks like a closed peer. Always use a mode that
+        // waits for writes.
         \stream_set_blocking($this->stream, true);
 
         $bytes = $this->codec->encode(MessageRegistry::envelope($message));
@@ -73,9 +73,10 @@ final class SocketChannel
     }
 
     /**
-     * Blocks up to the timeout for the next message. Null means the timeout
-     * elapsed; EOF from the peer raises a protocol error unless a complete
-     * frame was already buffered.
+     * Waits up to the timeout for the next message.
+     *
+     * Null means that the timeout elapsed. Peer EOF causes a protocol error
+     * unless the buffer already contains a complete frame.
      *
      * @throws ProtocolError
      */
@@ -112,8 +113,9 @@ final class SocketChannel
     }
 
     /**
-     * Non-blocking: drains available bytes and returns the next complete
-     * message, if any.
+     * Reads available bytes without a wait.
+     *
+     * Returns the next complete message or null.
      *
      * @throws ProtocolError
      */

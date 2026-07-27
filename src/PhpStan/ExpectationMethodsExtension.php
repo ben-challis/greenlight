@@ -13,19 +13,21 @@ use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
 
 /**
- * Reflects matcher closure signatures so PHPStan can check dynamic methods.
- * Conflicting signatures for one matcher name fail analysis.
+ * Gets matcher closure signatures through reflection. PHPStan uses the
+ * signatures to check dynamic methods. Different signatures for one matcher
+ * name cause an analysis error.
  *
- * Config files are loaded the same way workers load them, so plugin
- * constructors run inside the PHPStan process.
+ * PHPStan and workers use the same procedure to load configuration files.
+ * PHPStan loads the files in the PHPStan process. Thus, plugin constructors
+ * run in that process.
  */
 final class ExpectationMethodsExtension implements MethodsClassReflectionExtension
 {
     private ?MatcherMap $map = null;
 
     /**
-     * @param list<string> $configFiles relative paths resolve against the
-     *   directory PHPStan runs from
+     * @param list<string> $configFiles Relative paths use the directory from
+     *   which PHPStan runs
      */
     public function __construct(private readonly array $configFiles) {}
 

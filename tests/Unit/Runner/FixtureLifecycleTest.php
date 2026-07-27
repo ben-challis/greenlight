@@ -52,8 +52,8 @@ final class FixtureLifecycleTest
     }
 
     /**
-     * The sandbox mutates superglobals behind the analyser's back, so read
-     * through a parameter to prevent offset narrowing.
+     * The sandbox changes superglobals in a way that the analyzer cannot detect.
+     * Read through a parameter so the analyzer does not assume a fixed offset.
      *
      * @param array<mixed> $superglobal
      */

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Artifact;
 
 /**
- * Raised when attachment input is invalid or its evidence cannot be stored safely.
+ * Greenlight raises this error for invalid attachment input or an attachment storage failure.
  */
 final class AttachmentError extends \RuntimeException
 {

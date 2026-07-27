@@ -25,13 +25,13 @@ final class DistributorTest
 
         [$pooled, $isolated] = new Distributor()->units($plan);
 
-        Expect::that($pooled)->toHaveCount(1);
-        Expect::that($pooled[0]->plan->seed)->toBe(42);
-        Expect::that($pooled[0]->resources)->toBe(['postgres', 'redis']);
-        Expect::that($pooled[0]->isolated)->toBeFalse();
-        Expect::that($isolated)->toHaveCount(1);
-        Expect::that($isolated[0]->resources)->toBe(['sandbox']);
-        Expect::that($isolated[0]->isolated)->toBeTrue();
+        Expect::that($pooled)->because('class units hold the union of every entry requirement')->toHaveCount(1);
+        Expect::that($pooled[0]->plan->seed)->because('class units hold the union of every entry requirement')->toBe(42);
+        Expect::that($pooled[0]->resources)->because('class units hold the union of every entry requirement')->toBe(['postgres', 'redis']);
+        Expect::that($pooled[0]->isolated)->because('class units hold the union of every entry requirement')->toBeFalse();
+        Expect::that($isolated)->because('class units hold the union of every entry requirement')->toHaveCount(1);
+        Expect::that($isolated[0]->resources)->because('class units hold the union of every entry requirement')->toBe(['sandbox']);
+        Expect::that($isolated[0]->isolated)->because('class units hold the union of every entry requirement')->toBeTrue();
     }
 
     /**

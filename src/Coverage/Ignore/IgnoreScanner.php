@@ -7,20 +7,21 @@ namespace Greenlight\Coverage\Ignore;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Computes the set of source lines a file opts out of coverage.
+ * Finds the source lines that coverage ignores in a file.
  *
- * ignoredLines() tokenises the file and honours four marker forms: a
- * CoverageIgnore attribute or a comment containing "@codeCoverageIgnore"
- * before a named class-like or function declaration ignores the whole
- * declaration, signature through closing brace; a
- * "@codeCoverageIgnoreStart" / "@codeCoverageIgnoreEnd" comment pair
- * ignores the enclosed range, with an unmatched start running to end of
- * file and a stray end doing nothing; and a "@codeCoverageIgnore" comment
- * with no following declaration ignores its own line.
+ * ignoredLines() converts the file to tokens and accepts four marker forms.
+ * A CoverageIgnore attribute can occur before a named class-like or function
+ * declaration. A comment with "@codeCoverageIgnore" can occur in the same
+ * position. These markers ignore the complete declaration.
  *
- * The attribute is matched by name, bare or qualified, so no user code is
- * loaded; an import alias does not match. Unreadable files yield an empty
- * set, never an error.
+ * A pair of "@codeCoverageIgnoreStart" and "@codeCoverageIgnoreEnd" comments
+ * ignores its range. A start marker without an end marker ignores to the
+ * end of the file. An end marker without a start marker has no effect. An
+ * "@codeCoverageIgnore" comment without a declaration ignores its own line.
+ *
+ * The scanner compares a bare or qualified attribute name. It does not load
+ * user code. An import alias does not match. An unreadable file gives an
+ * empty set, not an error.
  *
  * @internal
  */
@@ -94,10 +95,11 @@ final readonly class IgnoreScanner
     }
 
     /**
-     * Finds the named declaration starting at or after $from, skipping
-     * comments, attributes, and modifiers. Returns its first and last line,
-     * or null when the next significant code is not a named class-like or
-     * function declaration.
+     * Finds the named declaration at or after $from.
+     *
+     * The search ignores comments, attributes, and modifiers. It returns the
+     * first and last line. It returns null if the next applicable code is not
+     * a named class-like or function declaration.
      *
      * @param list<\PhpToken> $tokens
      *
@@ -164,9 +166,11 @@ final readonly class IgnoreScanner
     }
 
     /**
-     * Line span from a declaration keyword to its matching closing brace, or
-     * to the terminating semicolon for bodyless signatures. Strings and
-     * comments are single tokens, so braces inside them never miscount.
+     * Finds the line range from a declaration keyword to its final character.
+     *
+     * The final character is the related final brace. For a signature
+     * without a body, it is the final semicolon. Strings and comments are
+     * single tokens. Thus, braces in them do not affect the count.
      *
      * @param list<\PhpToken> $tokens
      *
@@ -196,10 +200,11 @@ final readonly class IgnoreScanner
     }
 
     /**
-     * Walks one "#[ ... ]" group. Reports whether any attribute in it is
-     * named CoverageIgnore, bare or qualified, and the index just past the
-     * closing bracket. Argument lists are skipped wholesale so their
-     * contents cannot produce false matches.
+     * Examines one "#[ ... ]" group.
+     *
+     * Reports if it contains a bare or qualified CoverageIgnore attribute.
+     * It also reports the index after the final bracket. The method does not
+     * examine argument lists. Thus, their content cannot cause false matches.
      *
      * @param list<\PhpToken> $tokens
      *

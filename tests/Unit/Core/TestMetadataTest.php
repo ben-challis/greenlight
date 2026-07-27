@@ -32,19 +32,19 @@ final class TestMetadataTest
 
         $restored = TestMetadata::fromWire(JsonWire::roundTrip($metadata->toWire()));
 
-        Expect::that($restored->class)->toBe('App\FooTest');
-        Expect::that($restored->method)->toBe('bar');
-        Expect::that($restored->groups)->toBe(['slow', 'io']);
-        Expect::that($restored->skipReason)->toBe(null);
-        Expect::that($restored->skipUnlessCondition)->toBe('App\OnPosix');
-        Expect::that($restored->skipUnlessArguments)->toBe([]);
-        Expect::that($restored->retryTimes)->toBe(3);
-        Expect::that($restored->retryOnlyOn)->toBe(\RuntimeException::class);
-        Expect::that($restored->timeoutSeconds)->toBe(5.5);
-        Expect::that($restored->isolated)->toBe(true);
-        Expect::that($restored->dataSetProvider)->toBe('currencies');
-        Expect::that($restored->dataSetProviderClass)->toBe('App\SharedDataSets');
-        Expect::that($restored->resources)->toBe(['postgres', 'redis']);
+        Expect::that($restored->class)->because('survives the wire fully populated')->toBe('App\FooTest');
+        Expect::that($restored->method)->because('survives the wire fully populated')->toBe('bar');
+        Expect::that($restored->groups)->because('survives the wire fully populated')->toBe(['slow', 'io']);
+        Expect::that($restored->skipReason)->because('survives the wire fully populated')->toBe(null);
+        Expect::that($restored->skipUnlessCondition)->because('survives the wire fully populated')->toBe('App\OnPosix');
+        Expect::that($restored->skipUnlessArguments)->because('survives the wire fully populated')->toBe([]);
+        Expect::that($restored->retryTimes)->because('survives the wire fully populated')->toBe(3);
+        Expect::that($restored->retryOnlyOn)->because('survives the wire fully populated')->toBe(\RuntimeException::class);
+        Expect::that($restored->timeoutSeconds)->because('survives the wire fully populated')->toBe(5.5);
+        Expect::that($restored->isolated)->because('survives the wire fully populated')->toBe(true);
+        Expect::that($restored->dataSetProvider)->because('survives the wire fully populated')->toBe('currencies');
+        Expect::that($restored->dataSetProviderClass)->because('survives the wire fully populated')->toBe('App\SharedDataSets');
+        Expect::that($restored->resources)->because('survives the wire fully populated')->toBe(['postgres', 'redis']);
     }
 
     #[Test]
@@ -53,12 +53,12 @@ final class TestMetadataTest
         $metadata = new TestMetadata('App\FooTest', 'bar');
         $restored = TestMetadata::fromWire(JsonWire::roundTrip($metadata->toWire()));
 
-        Expect::that($restored->groups)->toBe([]);
-        Expect::that($restored->retryTimes)->toBe(null);
-        Expect::that($restored->timeoutSeconds)->toBe(null);
-        Expect::that($restored->isolated)->toBe(false);
-        Expect::that($restored->dataSetProviderClass)->toBe(null);
-        Expect::that($restored->resources)->toBe([]);
+        Expect::that($restored->groups)->because('survives the wire with defaults')->toBe([]);
+        Expect::that($restored->retryTimes)->because('survives the wire with defaults')->toBe(null);
+        Expect::that($restored->timeoutSeconds)->because('survives the wire with defaults')->toBe(null);
+        Expect::that($restored->isolated)->because('survives the wire with defaults')->toBe(false);
+        Expect::that($restored->dataSetProviderClass)->because('survives the wire with defaults')->toBe(null);
+        Expect::that($restored->resources)->because('survives the wire with defaults')->toBe([]);
     }
 
     #[Test]
@@ -73,8 +73,8 @@ final class TestMetadataTest
 
         $restored = TestMetadata::fromWire(JsonWire::roundTrip($metadata->toWire()));
 
-        Expect::that($restored->skipUnlessCondition)->toBe('App\OnPosix');
-        Expect::that($restored->skipUnlessArguments)->toBe(['redis', 42, 1.5, true, null]);
+        Expect::that($restored->skipUnlessCondition)->because('skip unless arguments survive the wire')->toBe('App\OnPosix');
+        Expect::that($restored->skipUnlessArguments)->because('skip unless arguments survive the wire')->toBe(['redis', 42, 1.5, true, null]);
     }
 
     #[Test]
@@ -82,14 +82,14 @@ final class TestMetadataTest
     {
         Expect::that(
             static fn(): TestMetadata => new TestMetadata('App\FooTest', 'bar', skipUnlessArguments: [['nested']]),
-        )->toThrow(\InvalidArgumentException::class);
+        )->because('rejects non scalar skip unless arguments on both sides')->toThrow(\InvalidArgumentException::class);
 
         $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
         $payload['skipUnlessArguments'] = [['nested']];
 
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
-        )->toThrow(InvalidWirePayload::class);
+        )->because('rejects non scalar skip unless arguments on both sides')->toThrow(InvalidWirePayload::class);
     }
 
     #[Test]
@@ -97,14 +97,14 @@ final class TestMetadataTest
     {
         Expect::that(
             static fn(): TestMetadata => new TestMetadata('App\FooTest', 'bar', ['ok', '']),
-        )->toThrow(\InvalidArgumentException::class);
+        )->because('rejects empty group names on both sides')->toThrow(\InvalidArgumentException::class);
 
         $payload = new TestMetadata('App\FooTest', 'bar', ['ok'])->toWire();
         $payload['groups'] = ['ok', ''];
 
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
-        )->toThrow(InvalidWirePayload::class);
+        )->because('rejects empty group names on both sides')->toThrow(InvalidWirePayload::class);
     }
 
     #[Test]
@@ -113,7 +113,7 @@ final class TestMetadataTest
         $payload = new TestMetadata('App\FooTest', 'bar', resources: ['postgres'])->toWire();
         unset($payload['resources']);
 
-        Expect::that(TestMetadata::fromWire($payload)->resources)->toBe([]);
+        Expect::that(TestMetadata::fromWire($payload)->resources)->because('missing resource wire key uses the backward compatible default')->toBe([]);
     }
 
     #[Test]
@@ -121,12 +121,12 @@ final class TestMetadataTest
     {
         Expect::that(
             static fn(): TestMetadata => new TestMetadata('App\FooTest', 'bar', resources: ['Postgres']),
-        )->toThrow(\InvalidArgumentException::class);
+        )->because('rejects invalid resource names on both sides')->toThrow(\InvalidArgumentException::class);
 
         $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
         $payload['resources'] = ['Postgres'];
 
-        Expect::that(static fn(): TestMetadata => TestMetadata::fromWire($payload))
+        Expect::that(static fn(): TestMetadata => TestMetadata::fromWire($payload))->because('rejects invalid resource names on both sides')
             ->toThrow(InvalidWirePayload::class);
     }
 
@@ -138,13 +138,13 @@ final class TestMetadataTest
 
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
-        )->toThrow(InvalidWirePayload::class);
+        )->because('missing optional keys fail loudly')->toThrow(InvalidWirePayload::class);
 
         $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
         unset($payload['timeoutSeconds']);
 
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
-        )->toThrow(InvalidWirePayload::class);
+        )->because('missing optional keys fail loudly')->toThrow(InvalidWirePayload::class);
     }
 }

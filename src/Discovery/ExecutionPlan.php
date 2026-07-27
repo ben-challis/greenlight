@@ -8,8 +8,8 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Entries are contiguous by class and preserve plan, method, and data-set
- * order. The same inputs produce the same entry order.
+ * Entries for one class are adjacent. Entries preserve plan, method, and
+ * data-set order. The same inputs produce the same entry order.
  *
  * @internal
  */
@@ -39,7 +39,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
 
             if (isset($seen[$class])) {
                 throw new \InvalidArgumentException(\sprintf(
-                    'Execution plan entries must be grouped by class; "%s" appears in more than one block.',
+                    'Group execution plan entries by class. "%s" occurs in more than one block.',
                     $class,
                 ));
             }
@@ -58,7 +58,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
     }
 
     /**
-     * Class names in plan order.
+     * Returns class names in plan order.
      *
      * @return list<non-empty-string>
      */

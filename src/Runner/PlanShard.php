@@ -9,11 +9,12 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 
 /**
- * Selects a class-based shard by stable hash.
+ * Selects a test-class shard with a stable hash.
  *
- * select() lets each CI machine pick its shard independently: the union of
- * all shards is exactly the full plan and shards are disjoint, whatever the
- * seed or filters, because selection happens on the already-filtered plan.
+ * select() lets each CI computer select its shard independently. All shards
+ * together contain the complete plan with no duplicate entries. The seed and
+ * filters do not change this property because shard selection occurs after
+ * filter application.
  *
  * Classes never split across shards.
  *

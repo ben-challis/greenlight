@@ -12,11 +12,11 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: a recycle threshold was hit.
+ * Tells the orchestrator that a worker reached a replacement limit.
  *
- * The listed entries remain unexecuted and need reassignment. The worker
- * exits after sending. The summary is cross-checked against the event stream
- * before the remainder is reassigned.
+ * The listed entries remain incomplete and require reassignment. The worker
+ * exits after it sends this message. The orchestrator compares the summary
+ * to the event stream before it reassigns the remaining entries.
  *
  * @internal
  */

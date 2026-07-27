@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Implemented by every generated proxy class.
+ * Each generated proxy class implements this interface.
  *
- * The obscure method name keeps the injected handler out of the way of the
- * doubled type's own surface.
+ * The uncommon method name prevents a conflict with the interface of the
+ * doubled type.
  *
  * @internal
  */

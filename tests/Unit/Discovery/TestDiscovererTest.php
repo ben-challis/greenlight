@@ -16,7 +16,7 @@ final class TestDiscovererTest
     /**
      * @return non-empty-string
      */
-    private static function fixtureDir(string $name): string
+    private function fixtureDir(string $name): string
     {
         return \dirname(__DIR__, 2) . '/Fixture/' . $name;
     }
@@ -36,11 +36,22 @@ final class TestDiscovererTest
     }
 
     #[Test]
+    public function rejectsANonpositiveProviderTimeBudgetWithExactGuidance(): void
+    {
+        Expect::that(
+            static fn(): TestDiscoverer => new TestDiscoverer(0.0),
+        )->toThrow(
+            \InvalidArgumentException::class,
+            message: 'Set the provider time budget to a value greater than zero seconds.',
+        );
+    }
+
+    #[Test]
     public function discoversBasicSuiteInFileOrderWithoutSeed(): void
     {
-        $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')]);
+        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')]);
 
-        Expect::that($this->ids($plan))->toBe([
+        Expect::that($this->ids($plan))->because('discovers basic suite in file order without seed')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two',
             'Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::zulu',
@@ -50,14 +61,14 @@ final class TestDiscovererTest
             'Greenlight\Tests\Fixture\DiscoveryBasic\DeltaTest::flies',
         ]);
 
-        Expect::that($plan->seed)->toBe(null);
-        Expect::that($plan->count())->toBe(7);
+        Expect::that($plan->seed)->because('discovers basic suite in file order without seed')->toBe(null);
+        Expect::that($plan->count())->because('discovers basic suite in file order without seed')->toBe(7);
     }
 
     #[Test]
     public function abstractClassesAndClassesWithoutTestsAreSkipped(): void
     {
-        $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')]);
+        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')]);
 
         foreach ($plan->classes() as $class) {
             Expect::that($class)
@@ -70,12 +81,12 @@ final class TestDiscovererTest
     public function sameSeedProducesByteIdenticalPlans(): void
     {
         $discoverer = new TestDiscoverer();
-        $first = $discoverer->discover([self::fixtureDir('DiscoveryBasic')], null, 1234);
-        $second = $discoverer->discover([self::fixtureDir('DiscoveryBasic')], null, 1234);
+        $first = $discoverer->discover([$this->fixtureDir('DiscoveryBasic')], null, 1234);
+        $second = $discoverer->discover([$this->fixtureDir('DiscoveryBasic')], null, 1234);
 
-        Expect::that(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))
+        Expect::that(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))->because('same seed produces byte identical plans')
             ->toBe(\json_encode($first->toWire(), \JSON_THROW_ON_ERROR));
-        Expect::that($first->seed)->toBe(1234);
+        Expect::that($first->seed)->because('same seed produces byte identical plans')->toBe(1234);
     }
 
     #[Test]
@@ -85,16 +96,16 @@ final class TestDiscovererTest
         $orders = [];
 
         foreach ([1, 2, 3, 4, 5] as $seed) {
-            $orders[] = \implode(',', $discoverer->discover([self::fixtureDir('DiscoveryBasic')], null, $seed)->classes());
+            $orders[] = \implode(',', $discoverer->discover([$this->fixtureDir('DiscoveryBasic')], null, $seed)->classes());
         }
 
-        Expect::that(\count(\array_unique($orders)))->toBeGreaterThan(1);
+        Expect::that(\count(\array_unique($orders)))->because('different seeds produce different class order')->toBeGreaterThan(1);
     }
 
     #[Test]
     public function seededPlanKeepsMethodDeclarationOrderWithinClass(): void
     {
-        $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')], null, 42);
+        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')], null, 42);
         $bravoMethods = [];
 
         foreach ($plan->entries as $entry) {
@@ -103,33 +114,38 @@ final class TestDiscovererTest
             }
         }
 
-        Expect::that($bravoMethods)->toBe(['zulu', 'alpha', 'mike']);
+        Expect::that($bravoMethods)->because('seeded plan keeps method declaration order within class')->toBe(['zulu', 'alpha', 'mike']);
     }
 
     #[Test]
     public function seededPlanSurvivesTheWire(): void
     {
-        $plan = new TestDiscoverer()->discover([self::fixtureDir('DiscoveryBasic')], null, 99);
+        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')], null, 99);
         $restored = ExecutionPlan::fromWire(JsonWire::roundTrip($plan->toWire()));
 
-        Expect::that(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))
+        Expect::that(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('seeded plan survives the wire')
             ->toBe(\json_encode($plan->toWire(), \JSON_THROW_ON_ERROR));
     }
 
     #[Test]
     public function unknownDirectoryFailsLoudly(): void
     {
+        $directory = $this->fixtureDir('DoesNotExist');
+
         Expect::that(
-            static fn(): ExecutionPlan => new TestDiscoverer()->discover([self::fixtureDir('DoesNotExist')]),
-        )->toThrow(DiscoveryError::class);
+            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
+        )->because('unknown directory fails loudly')->toThrow(
+            DiscoveryError::class,
+            message: \sprintf('Discovery directory "%s" is missing or is not a directory.', $directory),
+        );
     }
 
     #[Test]
     public function overlappingDirectoriesDoNotDuplicateEntries(): void
     {
-        $dir = self::fixtureDir('DiscoveryBasic');
+        $dir = $this->fixtureDir('DiscoveryBasic');
         $plan = new TestDiscoverer()->discover([$dir, $dir]);
 
-        Expect::that($plan->count())->toBe(7);
+        Expect::that($plan->count())->because('overlapping directories do not duplicate entries')->toBe(7);
     }
 }

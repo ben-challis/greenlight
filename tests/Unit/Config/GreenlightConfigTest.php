@@ -23,20 +23,20 @@ final class GreenlightConfigTest
     {
         $configuration = GreenlightConfig::create()->build();
 
-        Expect::that($configuration->paths)->toBe(['tests']);
-        Expect::that($configuration->suites)->toBe([]);
-        Expect::that($configuration->workers->isAuto())->toBeTrue();
-        Expect::that($configuration->recycleAfterTests)->toBe(null);
-        Expect::that($configuration->recycleAboveMemoryBytes)->toBe(268435456);
-        Expect::that($configuration->coverage)->toBe(null);
-        Expect::that($configuration->plugins)->toBe([]);
-        Expect::that($configuration->stopAfterFailures)->toBe(null);
-        Expect::that($configuration->randomizeOrder)->toBe(false);
-        Expect::that($configuration->randomSeed)->toBe(null);
-        Expect::that($configuration->groups)->toBe([]);
-        Expect::that($configuration->artifacts->directory)->toBe('build/greenlight-artifacts');
-        Expect::that($configuration->artifacts->maxAttachmentsPerTest)->toBe(32);
-        Expect::that($configuration->resourceLimits)->toBe([]);
+        Expect::that($configuration->paths)->because('builds documented defaults')->toBe(['tests']);
+        Expect::that($configuration->suites)->because('builds documented defaults')->toBe([]);
+        Expect::that($configuration->workers->isAuto())->because('builds documented defaults')->toBeTrue();
+        Expect::that($configuration->recycleAfterTests)->because('builds documented defaults')->toBe(null);
+        Expect::that($configuration->recycleAboveMemoryBytes)->because('builds documented defaults')->toBe(268435456);
+        Expect::that($configuration->coverage)->because('builds documented defaults')->toBe(null);
+        Expect::that($configuration->plugins)->because('builds documented defaults')->toBe([]);
+        Expect::that($configuration->stopAfterFailures)->because('builds documented defaults')->toBe(null);
+        Expect::that($configuration->randomizeOrder)->because('builds documented defaults')->toBe(false);
+        Expect::that($configuration->randomSeed)->because('builds documented defaults')->toBe(null);
+        Expect::that($configuration->groups)->because('builds documented defaults')->toBe([]);
+        Expect::that($configuration->artifacts->directory)->because('builds documented defaults')->toBe('build/greenlight-artifacts');
+        Expect::that($configuration->artifacts->maxAttachmentsPerTest)->because('builds documented defaults')->toBe(32);
+        Expect::that($configuration->resourceLimits)->because('builds documented defaults')->toBe([]);
     }
 
     #[Test]
@@ -67,14 +67,14 @@ final class GreenlightConfigTest
             ->randomizeOrder(seed: 99)
             ->build();
 
-        Expect::that($configuration->paths)->toBe(['tests/Unit', 'tests/Integration']);
-        Expect::that($configuration->suites)->toHaveCount(2);
-        Expect::that($configuration->suites[0]->name)->toBe('unit');
-        Expect::that($configuration->suites[1]->paths)->toBe(['tests/Integration']);
-        Expect::that($configuration->suites[1]->tags)->toBe(['io', 'slow']);
-        Expect::that($configuration->workers->fixed)->toBe(8);
-        Expect::that($configuration->recycleAfterTests)->toBe(250);
-        Expect::that($configuration->recycleAboveMemoryBytes)->toBe(1073741824);
+        Expect::that($configuration->paths)->because('builds a fully configured run')->toBe(['tests/Unit', 'tests/Integration']);
+        Expect::that($configuration->suites)->because('builds a fully configured run')->toHaveCount(2);
+        Expect::that($configuration->suites[0]->name)->because('builds a fully configured run')->toBe('unit');
+        Expect::that($configuration->suites[1]->paths)->because('builds a fully configured run')->toBe(['tests/Integration']);
+        Expect::that($configuration->suites[1]->tags)->because('builds a fully configured run')->toBe(['io', 'slow']);
+        Expect::that($configuration->workers->fixed)->because('builds a fully configured run')->toBe(8);
+        Expect::that($configuration->recycleAfterTests)->because('builds a fully configured run')->toBe(250);
+        Expect::that($configuration->recycleAboveMemoryBytes)->because('builds a fully configured run')->toBe(1073741824);
         $coverage = $configuration->coverage;
 
         if (!$coverage instanceof CoverageConfiguration) {
@@ -84,18 +84,18 @@ final class GreenlightConfigTest
             ));
         }
 
-        Expect::that($coverage->includePaths)->toBe(['src']);
-        Expect::that($coverage->driver)->toBe('pcov');
-        Expect::that($coverage->exports[0]->format)->toBe('lcov');
-        Expect::that($coverage->exports[0]->target)->toBe('coverage/lcov.info');
-        Expect::that($configuration->plugins)->toBe([$plugin]);
-        Expect::that($configuration->stopAfterFailures)->toBe(1);
-        Expect::that($configuration->randomizeOrder)->toBe(true);
-        Expect::that($configuration->randomSeed)->toBe(99);
-        Expect::that($configuration->artifacts->directory)->toBe('build/evidence');
-        Expect::that($configuration->artifacts->maxAttachmentBytes)->toBe(5 * 1024 * 1024);
-        Expect::that($configuration->artifacts->maxRunBytes)->toBe(100 * 1024 * 1024);
-        Expect::that($configuration->resourceLimits)->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
+        Expect::that($coverage->includePaths)->because('builds a fully configured run')->toBe(['src']);
+        Expect::that($coverage->driver)->because('builds a fully configured run')->toBe('pcov');
+        Expect::that($coverage->exports[0]->format)->because('builds a fully configured run')->toBe('lcov');
+        Expect::that($coverage->exports[0]->target)->because('builds a fully configured run')->toBe('coverage/lcov.info');
+        Expect::that($configuration->plugins)->because('builds a fully configured run')->toBe([$plugin]);
+        Expect::that($configuration->stopAfterFailures)->because('builds a fully configured run')->toBe(1);
+        Expect::that($configuration->randomizeOrder)->because('builds a fully configured run')->toBe(true);
+        Expect::that($configuration->randomSeed)->because('builds a fully configured run')->toBe(99);
+        Expect::that($configuration->artifacts->directory)->because('builds a fully configured run')->toBe('build/evidence');
+        Expect::that($configuration->artifacts->maxAttachmentBytes)->because('builds a fully configured run')->toBe(5 * 1024 * 1024);
+        Expect::that($configuration->artifacts->maxRunBytes)->because('builds a fully configured run')->toBe(100 * 1024 * 1024);
+        Expect::that($configuration->resourceLimits)->because('builds a fully configured run')->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
     }
 
     #[Test]
@@ -103,8 +103,8 @@ final class GreenlightConfigTest
     {
         $configuration = GreenlightConfig::create()->randomizeOrder()->build();
 
-        Expect::that($configuration->randomizeOrder)->toBe(true);
-        Expect::that($configuration->randomSeed)->toBe(null);
+        Expect::that($configuration->randomizeOrder)->because('randomize order without seed still enables randomization')->toBe(true);
+        Expect::that($configuration->randomSeed)->because('randomize order without seed still enables randomization')->toBe(null);
     }
 
     #[Test]
@@ -134,7 +134,8 @@ final class GreenlightConfigTest
                 GreenlightConfig::create()->workers(count: 0);
             },
             'bad worker string' => static function (): void {
-                // Reflection bypasses the static 'auto'|int type to hit the runtime guard.
+                // Reflection bypasses the static 'auto'|int type and exercises the
+                // runtime guard.
                 new \ReflectionMethod(GreenlightConfig::class, 'workers')
                     ->invoke(GreenlightConfig::create(), 'many');
             },
@@ -173,6 +174,6 @@ final class GreenlightConfigTest
 
         Expect::that(static function () use ($builder): void {
             $builder->build();
-        })->toThrow(InvalidConfiguration::class);
+        })->because('bad memory string is accepted until build')->toThrow(InvalidConfiguration::class);
     }
 }

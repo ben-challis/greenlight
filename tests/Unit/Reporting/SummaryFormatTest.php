@@ -22,7 +22,7 @@ final class SummaryFormatTest
             $this->skip('App\BetaTest::two', null),
         ], new Style(ansi: false));
 
-        Expect::that($block)->toBe(
+        Expect::that($block)->because('a single test per reason stays inline')->toBe(
             "\nSkipped:\n"
             . "  App\AlphaTest::one (needs redis)\n"
             . "  App\BetaTest::two (no reason given)\n",
@@ -40,7 +40,7 @@ final class SummaryFormatTest
 
         $block = SummaryFormat::skipped($results, new Style(ansi: false));
 
-        Expect::that($block)->toContain("  xdebug not loaded:\n    App\GammaTest::case1\n")
+        Expect::that($block)->because('shared reasons group with a cap')->toContain("  xdebug not loaded:\n    App\GammaTest::case1\n")
             ->toContain("    App\GammaTest::case5\n")
             ->not()->toContain('case6')
             ->toContain('    … and 2 more');
@@ -55,7 +55,7 @@ final class SummaryFormatTest
             $five[] = $this->skip(\sprintf('App\DeltaTest::case%d', $i), 'shared reason');
         }
 
-        Expect::that(SummaryFormat::skipped($five, new Style(ansi: false)))->toBe(
+        Expect::that(SummaryFormat::skipped($five, new Style(ansi: false)))->because('exactly five lists all without overflow and six overflows by one')->toBe(
             "\nSkipped:\n"
             . "  shared reason:\n"
             . "    App\DeltaTest::case1\n"
@@ -67,7 +67,7 @@ final class SummaryFormatTest
 
         $six = [...$five, $this->skip('App\DeltaTest::case6', 'shared reason')];
 
-        Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->toContain('… and 1 more');
+        Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->because('exactly five lists all without overflow and six overflows by one')->toContain('… and 1 more');
     }
 
     #[Test]
@@ -78,8 +78,8 @@ final class SummaryFormatTest
             new TestId('App\BetaTest', 'two'),
         ], new Style(ansi: false));
 
-        Expect::that($block)->toBe(
-            "\nLeaks (the test instance survived its test):\n"
+        Expect::that($block)->because('leaks list every test under one header')->toBe(
+            "\nTest instance leaks:\n"
             . "  App\AlphaTest::one\n"
             . "  App\BetaTest::two\n",
         );
@@ -90,7 +90,7 @@ final class SummaryFormatTest
     {
         $block = SummaryFormat::leaks([new TestId('App\AlphaTest', 'one')], new Style(ansi: true));
 
-        Expect::that($block)->toContain("\x1b[31mLeaks (the test instance survived its test):\x1b[0m")
+        Expect::that($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mTest instance leaks:\x1b[0m")
             ->and(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
     }
 
@@ -99,7 +99,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: false));
 
-        Expect::that($line)->toBe('Coverage: 88.30% (5283 of 5983 lines)');
+        Expect::that($line)->because('coverage shows covered of executable lines')->toBe('Coverage: 88.30% (5283 of 5983 lines)');
     }
 
     #[Test]
@@ -107,7 +107,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverage(100.0, 1, 1, new Style(ansi: false));
 
-        Expect::that($line)->toBe('Coverage: 100.00% (1 of 1 line)');
+        Expect::that($line)->because('coverage singularizes a single executable line')->toBe('Coverage: 100.00% (1 of 1 line)');
     }
 
     #[Test]
@@ -115,7 +115,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: true));
 
-        Expect::that($line)->toContain("\x1b[32m88.30%\x1b[0m");
+        Expect::that($line)->because('coverage colors the percentage green')->toContain("\x1b[32m88.30%\x1b[0m");
     }
 
     #[Test]
@@ -123,7 +123,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverageExport('json', 'build/coverage/coverage.json');
 
-        Expect::that($line)->toBe('  json → build/coverage/coverage.json');
+        Expect::that($line)->because('coverage export renders an indented format and target line')->toBe('  json → build/coverage/coverage.json');
     }
 
     /**

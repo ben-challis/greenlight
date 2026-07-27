@@ -37,7 +37,7 @@ final class JsonlSchemaTest
             }
         }
 
-        Expect::that($violations)->toBe([])
+        Expect::that($violations)->because('every canned line validates against the shipped schema')->toBe([])
             ->and(\array_keys($seenTags))->toEqualCanonicalizing(\array_keys(EventTags::all()));
     }
 
@@ -48,7 +48,7 @@ final class JsonlSchemaTest
         $validator = new Validator();
         $validator->validate($decoded, $this->schema());
 
-        Expect::that($validator->isValid())->toBeFalse();
+        Expect::that($validator->isValid())->because('an unknown event tag is rejected')->toBeFalse();
     }
 
     #[Test]
@@ -76,12 +76,12 @@ final class JsonlSchemaTest
             break;
         }
 
-        Expect::that($corrupted)->not()->toBeNull();
+        Expect::that($corrupted)->because('a corrupted outcome is rejected')->not()->toBeNull();
 
         $validator = new Validator();
         $validator->validate($corrupted, $this->schema());
 
-        Expect::that($validator->isValid())->toBeFalse();
+        Expect::that($validator->isValid())->because('a corrupted outcome is rejected')->toBeFalse();
     }
 
     private function schema(): object

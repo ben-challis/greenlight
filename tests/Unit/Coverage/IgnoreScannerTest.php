@@ -14,7 +14,7 @@ final class IgnoreScannerTest
     #[Test]
     public function unreadableFileYieldsNoIgnoredLines(): void
     {
-        Expect::that(new IgnoreScanner()->ignoredLines('/nonexistent/nope.php'))->toBe([]);
+        Expect::that(new IgnoreScanner()->ignoredLines('/nonexistent/nope.php'))->because('unreadable file yields no ignored lines')->toBe([]);
     }
 
     #[Test]
@@ -28,7 +28,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([]);
+        Expect::that($this->scan($source))->because('file without markers yields no ignored lines')->toBe([]);
     }
 
     #[Test]
@@ -51,8 +51,9 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        // Lines 10-13: the marked declaration, signature through closing brace.
-        Expect::that($this->scan($source))->toBe([10, 11, 12, 13]);
+        // Lines 10-13 contain the marked declaration from its signature to its
+        // final brace.
+        Expect::that($this->scan($source))->because('attribute ignores the whole method')->toBe([10, 11, 12, 13]);
     }
 
     #[Test]
@@ -84,7 +85,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([5, 6, 7, 8, 11, 12, 13, 14, 19, 20, 21, 22]);
+        Expect::that($this->scan($source))->because('attribute matches qualified grouped and multiline forms')->toBe([5, 6, 7, 8, 11, 12, 13, 14, 19, 20, 21, 22]);
     }
 
     #[Test]
@@ -102,7 +103,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([]);
+        Expect::that($this->scan($source))->because('unrelated attributes do not ignore')->toBe([]);
     }
 
     #[Test]
@@ -120,7 +121,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([3, 4, 5, 6, 7, 8, 9]);
+        Expect::that($this->scan($source))->because('attribute on class ignores the whole class')->toBe([3, 4, 5, 6, 7, 8, 9]);
     }
 
     #[Test]
@@ -142,7 +143,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([7]);
+        Expect::that($this->scan($source))->because('docblock annotation ignores the following declaration')->toBe([7]);
     }
 
     #[Test]
@@ -164,7 +165,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([6, 7, 8, 9, 10]);
+        Expect::that($this->scan($source))->because('start end comments ignore the enclosed range')->toBe([6, 7, 8, 9, 10]);
     }
 
     #[Test]
@@ -178,7 +179,7 @@ final class IgnoreScannerTest
             $c = 3;
             PHP;
 
-        Expect::that($this->scan($source))->toBe([3, 4, 5]);
+        Expect::that($this->scan($source))->because('unmatched start ignores through end of file')->toBe([3, 4, 5]);
     }
 
     #[Test]
@@ -191,7 +192,7 @@ final class IgnoreScannerTest
             $b = 2;
             PHP;
 
-        Expect::that($this->scan($source))->toBe([]);
+        Expect::that($this->scan($source))->because('stray end is a no-op')->toBe([]);
     }
 
     #[Test]
@@ -209,7 +210,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([5]);
+        Expect::that($this->scan($source))->because('trailing comment ignores its own line')->toBe([5]);
     }
 
     #[Test]
@@ -236,7 +237,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([5, 6, 7, 8, 9, 10, 11, 12]);
+        Expect::that($this->scan($source))->because('braces in strings and heredocs do not confuse ranges')->toBe([5, 6, 7, 8, 9, 10, 11, 12]);
     }
 
     #[Test]
@@ -259,7 +260,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([5, 6, 7, 8, 9, 10, 11, 12, 13]);
+        Expect::that($this->scan($source))->because('nested anonymous class stays inside the ignored range')->toBe([5, 6, 7, 8, 9, 10, 11, 12, 13]);
     }
 
     #[Test]
@@ -276,7 +277,7 @@ final class IgnoreScannerTest
             }
             PHP;
 
-        Expect::that($this->scan($source))->toBe([5]);
+        Expect::that($this->scan($source))->because('bodyless signature ignores only the signature lines')->toBe([5]);
     }
 
     #[Test]
@@ -290,7 +291,7 @@ final class IgnoreScannerTest
             };
             PHP;
 
-        Expect::that($this->scan($source))->toBe([2]);
+        Expect::that($this->scan($source))->because('annotation without a following declaration ignores its own line only')->toBe([2]);
     }
 
     /**

@@ -16,15 +16,14 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Reporting\Output\Output;
 
 /**
- * Every message carries a flowId set to the class name, keeping interleaved
- * parallel output untangled for consumers. The class name identifies the
- * flow because a class never spans workers and, unlike a worker id, it is
- * present on test events as well as class events.
+ * Each message uses the test-class name as its flowId. Thus, consumers can
+ * separate parallel output. A test class does not use multiple workers. The
+ * test-class name is also available on test events and test-class events.
  *
- * JetBrains navigation hints are omitted when the class is not loadable in
- * the orchestrator.
+ * The reporter omits JetBrains navigation hints if the orchestrator cannot
+ * load the class.
  *
- * Values are escaped per the TeamCity service message rules.
+ * The reporter escapes values with the TeamCity service-message rules.
  *
  * @internal
  */
@@ -242,7 +241,7 @@ final class TeamCityReporter implements Reporter
                 }
             }
         } catch (\Throwable) {
-            // A throwing autoloader must not take down the report stream.
+            // An autoloader error must not stop the report stream.
         }
 
         return $this->classFiles[$class] = $file;

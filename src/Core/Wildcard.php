@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 /**
- * Substring-or-wildcard matching for user-supplied filter patterns.
+ * Compares a user filter pattern to part or all of the subject text.
  *
- * A pattern without "*" or "?" matches by substring; a pattern containing
- * either must match the whole subject, shell-style.
+ * A pattern without "*" or "?" matches part of the subject text. A pattern
+ * that has one of these characters must match all subject text as a shell
+ * wildcard.
  *
  * @internal
  */

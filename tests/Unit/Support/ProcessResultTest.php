@@ -19,7 +19,7 @@ final class ProcessResultTest
             stderr: "warning\nerror",
         );
 
-        Expect::that($result->exitCode)->toBe(17)
+        Expect::that($result->exitCode)->because('exposes individual and combined output lines')->toBe(17)
             ->and($result->stdoutLines())->toBe(['first', 'second'])
             ->and($result->output())->toBe("first\nsecond\nwarning\nerror")
             ->and($result->outputLines())->toBe(['first', 'second', 'warning', 'error']);
@@ -32,7 +32,7 @@ final class ProcessResultTest
         $stderrOnly = new ProcessResult(1, '', 'error');
         $empty = new ProcessResult(0, '', '');
 
-        Expect::that($stdoutOnly->output())->toBe('output')
+        Expect::that($stdoutOnly->output())->because('combines empty streams without adding separators')->toBe('output')
             ->and($stderrOnly->output())->toBe('error')
             ->and($empty->output())->toBe('')
             ->and($empty->outputLines())->toBe([]);

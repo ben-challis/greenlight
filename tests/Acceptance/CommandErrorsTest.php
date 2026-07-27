@@ -20,7 +20,7 @@ final readonly class CommandErrorsTest
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), ['bogus-command']);
 
-        Expect::that($result->exitCode)->toBe(64)
+        Expect::that($result->exitCode)->because('unknown command exits with a usage error')->toBe(64)
             ->and($result->output())->toContain("Unknown command 'bogus-command'")
             ->toContain('greenlight --help');
     }
@@ -30,7 +30,7 @@ final readonly class CommandErrorsTest
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), ['coverage:diff']);
 
-        Expect::that($result->exitCode)->toBe(64)
+        Expect::that($result->exitCode)->because('coverage diff without baseline or current is a usage error')->toBe(64)
             ->and($result->output())->toContain('coverage:diff requires --baseline=<path> and --current=<path>');
     }
 
@@ -39,23 +39,23 @@ final readonly class CommandErrorsTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'command-errors');
         $result = GreenlightCli::run($project->directory, ['profile:report', '--input=nowhere.jsonl']);
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('Could not read')
+        Expect::that($result->exitCode)->because('profile report with a missing input file fails cleanly')->toBe(1)
+            ->and($result->output())->toContain('Greenlight could not read')
             ->toContain('nowhere.jsonl');
     }
 
     #[Test]
     public function ideHelperWithAnUnwritableOutputPathFailsCleanly(): void
     {
-        // Root bypasses directory write permissions, so chmod 0555 cannot
-        // provoke the write failure.
+        // Root ignores directory write permissions. Thus, chmod 0555 cannot
+        // cause the required write failure.
         if (\function_exists('posix_getuid') && \posix_getuid() === 0) {
             throw new SkipTest('An unwritable directory cannot be staged when running as root.');
         }
 
-        // A config without any matchers configured skips writing entirely
-        // (IdeHelperTest covers that path), so this needs the shipped
-        // PhpStanExtension fixture, whose config has matchers to render.
+        // A configuration without matchers does not write a file.
+        // IdeHelperTest verifies that path. This test uses PhpStanExtension,
+        // which has matchers that the helper can render.
         $fixture = \dirname(__DIR__) . '/Fixture/PhpStanExtension';
         $readOnlyDirectory = $this->tempDirectory->subdirectory('ide-helper-read-only');
         \chmod($readOnlyDirectory, 0o555);
@@ -66,7 +66,7 @@ final readonly class CommandErrorsTest
                 '--output=' . $readOnlyDirectory . '/helper.php',
             ]);
 
-            Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('Could not write');
+            Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('Greenlight could not write');
         } finally {
             \chmod($readOnlyDirectory, 0o755);
         }

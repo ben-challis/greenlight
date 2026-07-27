@@ -22,7 +22,7 @@ final class JsonExporterTest
 
         $decoded = \json_decode(new JsonExporter()->export($map)[JsonExporter::FILE_NAME], true, 512, \JSON_THROW_ON_ERROR);
 
-        Expect::that($decoded)->toBe([
+        Expect::that($decoded)->because('document matches the documented schema')->toBe([
             'v' => 1,
             'files' => [
                 '/src/A.php' => [
@@ -45,7 +45,7 @@ final class JsonExporterTest
     {
         $json = new JsonExporter()->export(CoverageMap::empty())[JsonExporter::FILE_NAME];
 
-        Expect::that($json)->toContain('"files":{}');
+        Expect::that($json)->because('empty map encodes files as an object')->toContain('"files":{}');
     }
 
     #[Test]
@@ -58,17 +58,45 @@ final class JsonExporterTest
 
         $restored = JsonExporter::import(new JsonExporter()->export($map)[JsonExporter::FILE_NAME]);
 
-        Expect::that($restored->toWire())->toBe($map->toWire());
+        Expect::that($restored->toWire())->because('import round trips an exported document')->toBe($map->toWire());
     }
 
     #[Test]
     public function importRejectsMalformedDocuments(): void
     {
-        Expect::that(static fn(): CoverageMap => JsonExporter::import('not json'))
+        Expect::that(static fn(): CoverageMap => JsonExporter::import('not json'))->because('import rejects malformed documents')
             ->toThrow(CoverageError::class)
             ->and(static fn(): CoverageMap => JsonExporter::import('{"v":2,"files":{}}'))
-            ->toThrow(CoverageError::class, '/schema version/')
-            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"/a.php":{"covered":["x"],"uncovered":[]}}}'))
-            ->toThrow(CoverageError::class, '/positive integers/');
+            ->toThrow(CoverageError::class, '/schema version/');
+    }
+
+    #[Test]
+    public function importReportsEachInvalidDocumentShapeExactly(): void
+    {
+        Expect::that(static fn(): CoverageMap => JsonExporter::import('"invalid"'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use an object at the top level.',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":"invalid"}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use an object for "files".',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"":{}}}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: map each file path in "files" to an object.',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"/a.php":{"covered":{"line":1},"uncovered":[]}}}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use a list of line numbers for "covered" in file "/a.php".',
+            )
+            ->and(static fn(): CoverageMap => JsonExporter::import('{"v":1,"files":{"/a.php":{"covered":[0],"uncovered":[]}}}'))
+            ->toThrow(
+                CoverageError::class,
+                message: 'Coverage JSON document is invalid: use only positive integers in "covered" for file "/a.php".',
+            );
     }
 }

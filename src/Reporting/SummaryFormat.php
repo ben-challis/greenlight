@@ -118,7 +118,7 @@ final class SummaryFormat
             return '';
         }
 
-        $lines = ["\n" . $style->error('Leaks (the test instance survived its test):')];
+        $lines = ["\n" . $style->error('Test instance leaks:')];
 
         foreach ($leaks as $leak) {
             $lines[] = '  ' . $leak;

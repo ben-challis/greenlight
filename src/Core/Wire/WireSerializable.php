@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Core\Wire;
 
 /**
- * Contract for values that cross the orchestrator/worker process boundary.
+ * Defines values that cross the boundary between an orchestrator and a worker.
  *
- * Payloads must survive a JSON round trip: keys are strings, values are
- * scalars, null, or nested arrays of the same. PHP serialize() is banned.
+ * A JSON encode and decode operation must preserve the payload. Keys are
+ * strings. Values are scalars, null, or nested arrays of these types. Do not
+ * use PHP serialize().
  */
 interface WireSerializable
 {

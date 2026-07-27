@@ -8,12 +8,14 @@ use Greenlight\Cli\Terminal;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Reads single keys from stdin without blocking.
+ * Reads available single keys from standard input.
  *
- * On an interactive terminal the constructor disables canonical mode so keys
- * arrive without a newline; restore() re-enables it when the loop ends.
+ * On an interactive terminal, the constructor disables canonical mode. Thus,
+ * keys arrive without a newline. restore() enables canonical mode when the
+ * loop ends.
  *
- * A piped stdin works as-is, which is what the acceptance tests drive.
+ * Standard input from a pipe does not require a mode change. The acceptance
+ * tests use this form.
  *
  * @internal
  */

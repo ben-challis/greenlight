@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Benchmark harness: generates synthetic suites in the shapes that matter,
- * runs each under Greenlight (and under PHPUnit and ParaTest when
- * --with-phpunit is given, installed into the generated project via
- * composer), and reports median wall times. Results are only meaningful on
- * an idle machine; docs/benchmarks.md records the parameters alongside the
- * numbers so anyone can reproduce them.
+ * Generates synthetic suites and reports median wall times for each benchmark
+ * shape. Greenlight runs all shapes. With --with-phpunit, PHPUnit and ParaTest
+ * also run after Composer installs them in the generated project.
+ *
+ * Run the benchmark on an idle machine. Record the parameters with the
+ * results in docs/benchmarks.md so others can reproduce them.
  *
  * Usage:
  *   php tools/benchmark.php [--shape=<name>] [--scale=<n>] [--workers=<k>]
@@ -136,16 +136,16 @@ function median(array $samples): float
 function generateShape(string $shape, int $scale, string $project): int
 {
     if (!\mkdir($project . '/tests/gl', 0o777, true) || !\mkdir($project . '/tests/pu', 0o777, true)) {
-        \fwrite(\STDERR, "Could not create the benchmark project directory.\n");
+        \fwrite(\STDERR, "Greenlight did not create the benchmark project directory.\n");
         exit(1);
     }
 
     $tests = match ($shape) {
-        // Discovery- and event-bound: lots of classes, trivial bodies.
+        // Measures discovery and event costs with many classes and trivial bodies.
         'many-fast' => \writeClasses($project, 'ManyFast', 40 * $scale, 5, 0),
-        // Scheduler-bound: a handful of classes dominated by sleep.
+        // Measures scheduler costs with a small number of classes that sleep.
         'few-slow' => \writeClasses($project, 'FewSlow', 8, 4, 25_000),
-        // The indivisible-class worst case: one class, many data rows.
+        // Measures the indivisible-class limit with one class and many data rows.
         'giant-dataset' => \writeGiantDataSet($project, 100 * $scale),
         'mixed' => \writeClasses($project, 'MixedFast', 20 * $scale, 5, 0)
             + \writeClasses($project, 'MixedSlow', 4, 4, 25_000)
@@ -333,7 +333,7 @@ function install(string $project): void
     ), $output, $exit);
 
     if ($exit !== 0) {
-        \fwrite(\STDERR, "composer install of phpunit/paratest failed:\n" . \implode("\n", $output) . "\n");
+        \fwrite(\STDERR, "Composer did not install PHPUnit and ParaTest:\n" . \implode("\n", $output) . "\n");
         exit(1);
     }
 }

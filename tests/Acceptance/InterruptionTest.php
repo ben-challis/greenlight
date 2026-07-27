@@ -29,9 +29,8 @@ final readonly class InterruptionTest
             throw new SkipTest('Graceful interruption requires ext-pcntl in the CLI PHP.');
         }
 
-        // POSIX-only beyond the pcntl check above: the test shells out to
-        // `kill -INT` and `ps -p` directly, neither of which exists on
-        // Windows.
+        // The pcntl check is not sufficient on Windows. This test directly
+        // runs `kill -INT` and `ps -p`, which Windows does not provide.
 
         $project = $this->writeProject();
         $tmp = $this->tempDirectory->subdirectory('interrupt/tmp');
@@ -46,8 +45,9 @@ final readonly class InterruptionTest
         try {
             $deadline = \microtime(true) + self::DEADLINE_SECONDS;
 
-            // A marker avoids stdout block buffering. Waiting for a
-            // test-finished line can delay SIGINT until the run has ended.
+            // A marker makes standard output available before the buffer is
+            // full. A test-finished line can delay SIGINT until after the run
+            // ends.
             while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
                 $process->pump();
                 \usleep(5_000);
@@ -103,9 +103,9 @@ final readonly class InterruptionTest
         $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
-        // Each class writes a marker when work starts. The parent can send
-        // SIGINT without relying on a fixed startup delay, while the bounded
-        // loop keeps the class busy long enough to receive it.
+        // Each class writes a marker when work starts. The parent sends SIGINT
+        // without a fixed start delay. The bounded loop keeps the class active
+        // long enough to receive the signal.
         $template = <<<'PHP'
             <?php
 

@@ -19,8 +19,8 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
 /**
- * The toThrow() signature keeps matching and message nullable for backwards
- * compatibility, so their mutual exclusivity needs a call-site rule.
+ * For compatibility, the toThrow() signature keeps matching and message
+ * nullable. A call-site rule makes these arguments mutually exclusive.
  *
  * @implements Rule<MethodCall>
  */
@@ -63,8 +63,9 @@ final class ToThrowMessageRule implements Rule
     }
 
     /**
-     * Expands constant-array argument unpacking into its possible call shapes.
-     * Dynamic unpacks remain a runtime concern.
+     * Converts a constant-array unpack operation to its possible call forms.
+     *
+     * Greenlight validates dynamic unpack operations at run time.
      *
      * @return list<array{matching: ?Type, message: ?Type, nextPosition: int}>
      */

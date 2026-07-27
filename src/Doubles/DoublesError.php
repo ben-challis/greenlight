@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * A misuse of the doubles API: doubling a type outside the supported
- * boundary, planning a method that cannot be intercepted, interacting with
- * a double in a way its kind forbids, or relying on a return value that was
- * never configured.
+ * Identifies incorrect use of the doubles API. Examples include an
+ * unsupported type or a method that Doubles cannot intercept. Other examples
+ * are a prohibited interaction or a return value without a configured
+ * result.
  *
- * These are authoring errors, not expectation failures, so the test errors
- * rather than fails.
+ * These conditions are errors in the test code, not expectation failures.
+ * Thus, Greenlight reports the test as an error.
  *
  * @internal
  */
@@ -25,18 +25,18 @@ final class DoublesError extends \LogicException
     public static function stubWasCalled(string $type, string $method): self
     {
         return new self(\sprintf(
-            'The stub of "%s" was called ("%s()"). Stubs exist purely to satisfy a type '
-            . 'and must never be interacted with; use mock() with explicit expectations instead.',
-            $type,
+            'Code called "%s()" on the stub of "%s". Stubs only satisfy a type. '
+            . 'Use mock() with explicit expectations for interactions.',
             $method,
+            $type,
         ));
     }
 
     public static function returnNotConfigured(string $type, string $method): self
     {
         return new self(\sprintf(
-            'The mocked call "%s::%s()" has no configured answer. Every value a mock '
-            . 'returns must be stated explicitly with andReturns() or andThrows().',
+            'The mock call "%s::%s()" has no configured answer. Configure each returned '
+            . 'value with andReturns() or andThrows().',
             $type,
             $method,
         ));
@@ -45,8 +45,8 @@ final class DoublesError extends \LogicException
     public static function spyCannotAnswer(string $type, string $method): self
     {
         return new self(\sprintf(
-            'The spy of "%s" cannot answer "%s()", which declares a return value. Spies '
-            . 'only record; use mock() with explicit expectations for value-returning calls.',
+            'The spy of "%s" cannot supply a value for "%s()". Spies only record '
+            . 'interactions. Use mock() with explicit expectations for calls that return values.',
             $type,
             $method,
         ));
@@ -54,22 +54,27 @@ final class DoublesError extends \LogicException
 
     public static function noSuchMethod(string $type, string $method): self
     {
-        return new self(\sprintf('%s has no method %s(), so it cannot be planned.', $type, $method));
+        return new self(\sprintf('%s has no method %s(). Doubles cannot plan it.', $type, $method));
     }
 
     public static function staticMethod(string $type, string $method): self
     {
-        return new self(\sprintf('%s::%s() is static; static methods cannot be doubled.', $type, $method));
+        return new self(\sprintf('%s::%s() is static. Doubles cannot intercept static methods.', $type, $method));
+    }
+
+    public static function neverMethodRequiresThrow(string $type, string $method): self
+    {
+        return new self(\sprintf('%s::%s() declares never. Configure it with andThrows().', $type, $method));
     }
 
     public static function methodNotPublic(string $type, string $method): self
     {
-        return new self(\sprintf('%s::%s() is not public, so it cannot be planned on a double.', $type, $method));
+        return new self(\sprintf('%s::%s() is not public. Doubles cannot plan it.', $type, $method));
     }
 
     public static function finalMethod(string $type, string $method): self
     {
-        return new self(\sprintf('%s::%s() is final and cannot be intercepted. Double an interface instead.', $type, $method));
+        return new self(\sprintf('%s::%s() is final. Doubles cannot intercept it. Use an interface instead.', $type, $method));
     }
 
     public static function unsupportedReflectionType(string $typeClass): self
@@ -89,38 +94,38 @@ final class DoublesError extends \LogicException
 
     public static function cannotDoubleEnum(string $type): self
     {
-        return new self(\sprintf('%s is an enum and cannot be doubled. Double an interface it implements instead.', $type));
+        return new self(\sprintf('%s is an enum. Doubles does not support enums. Use an interface that the enum implements.', $type));
     }
 
     public static function cannotDoubleReadonly(string $type): self
     {
-        return new self(\sprintf('%s is a readonly class and cannot be doubled in v1. Double an interface instead.', $type));
+        return new self(\sprintf('%s is a readonly class. Doubles v1 does not support readonly classes. Use an interface instead.', $type));
     }
 
     public static function cannotDoubleFinal(string $type): self
     {
-        return new self(\sprintf('%s is final and cannot be doubled. Double an interface instead; that boundary is deliberate.', $type));
+        return new self(\sprintf('%s is final. Doubles cannot create a proxy subclass. Use an interface instead.', $type));
     }
 
     public static function cannotDoubleTrait(string $type): self
     {
-        return new self(\sprintf('%s is a trait and cannot be doubled. Double a class or interface using it instead.', $type));
+        return new self(\sprintf('%s is a trait. Doubles cannot create a proxy for a trait. Use a class or interface that uses it.', $type));
     }
 
     public static function notDoubleable(string $type): self
     {
-        return new self(\sprintf('%s is not a loadable class or interface, so it cannot be doubled.', $type));
+        return new self(\sprintf('Doubles cannot load %s as a class or interface.', $type));
     }
 
     public static function attachHandlerCollision(string $class): self
     {
-        return new self(\sprintf('%s declares __greenlightAttachHandler(), which collides with the proxy plumbing.', $class));
+        return new self(\sprintf('%s declares __greenlightAttachHandler(). This method conflicts with the proxy handler method.', $class));
     }
 
     public static function defaultValueNotReproducible(string $parameter, string $class, string $method): self
     {
         return new self(\sprintf(
-            'The default value of parameter $%s of %s::%s() cannot be reproduced in a proxy.',
+            'Doubles cannot reproduce the default value of parameter $%s from %s::%s() in a proxy.',
             $parameter,
             $class,
             $method,
@@ -129,13 +134,13 @@ final class DoublesError extends \LogicException
 
     public static function defaultConstantUnresolvable(string $parameter): self
     {
-        return new self(\sprintf('The default constant of parameter $%s could not be resolved.', $parameter));
+        return new self(\sprintf('Doubles cannot resolve the default constant of parameter $%s.', $parameter));
     }
 
     public static function objectDefaultNotReproducible(string $parameter, string $class, string $method): self
     {
         return new self(\sprintf(
-            'The object default of parameter $%s of %s::%s() cannot be reproduced in a proxy. Double an interface without object defaults instead.',
+            'Doubles cannot reproduce the object default of parameter $%s from %s::%s() in a proxy. Use an interface without object defaults instead.',
             $parameter,
             $class,
             $method,
@@ -145,7 +150,7 @@ final class DoublesError extends \LogicException
     public static function proxyDirectoryNotCreated(string $directory, ?string $reason = null): self
     {
         return new self(\sprintf(
-            'The proxy directory %s could not be created%s.',
+            'Doubles could not create the proxy directory %s%s.',
             $directory,
             $reason === null ? '' : ': ' . $reason,
         ));
@@ -153,47 +158,47 @@ final class DoublesError extends \LogicException
 
     public static function proxyFileNotWritten(string $file, \Throwable $cause): self
     {
-        return new self(\sprintf('The proxy file %s could not be written.', $file), $cause);
+        return new self(\sprintf('Doubles could not write the proxy file %s.', $file), $cause);
     }
 
     public static function workingDirectoryUnresolved(): self
     {
-        return new self('The working directory could not be resolved; pass a proxy directory explicitly.');
+        return new self('Doubles could not resolve the working directory. Pass a proxy directory explicitly.');
     }
 
     public static function foreignDouble(string $class): self
     {
-        return new self(\sprintf('The given %s instance was not created by this Doubles factory.', $class));
+        return new self(\sprintf('This Doubles factory did not create the %s instance.', $class));
     }
 
     public static function invalidTimes(int $count): self
     {
-        return new self(\sprintf('times(%d) is invalid: the count must be zero or more.', $count));
+        return new self(\sprintf('times(%d) requires a count of zero or more.', $count));
     }
 
     public static function invalidAtLeast(int $count): self
     {
-        return new self(\sprintf('atLeast(%d) is invalid: the count must be one or more.', $count));
+        return new self(\sprintf('atLeast(%d) requires a count of one or more.', $count));
     }
 
     public static function conflictingAnswers(string $method): self
     {
         return new self(\sprintf(
             'The expectation on %s() already has an answer. Configure exactly one of '
-            . 'andReturns(), andReturnsSequence(), andReturnsUsing(), or andThrows() per expectation.',
+            . 'andReturns(), andReturnsSequence(), andReturnsUsing(), or andThrows().',
             $method,
         ));
     }
 
     public static function emptySequence(string $method): self
     {
-        return new self(\sprintf('andReturnsSequence() on %s() needs at least one value.', $method));
+        return new self(\sprintf('andReturnsSequence() on %s() requires at least one value.', $method));
     }
 
     public static function sequenceExhausted(string $method, int $count): self
     {
         return new self(\sprintf(
-            'The return sequence of %s() is exhausted after %s. Plan more values or a stricter call count.',
+            'The return sequence for %s() has no value after %s. Add values or use a stricter call count.',
             $method,
             MethodExpectation::timesPhrase($count),
         ));
@@ -201,11 +206,11 @@ final class DoublesError extends \LogicException
 
     public static function nothingCaptured(): self
     {
-        return new self('The captor has not captured a value yet: no matched call has fed it.');
+        return new self('The captor has no value. No matched call supplied a value.');
     }
 
     public static function invalidCaptorPosition(int $position): self
     {
-        return new self(\sprintf('captureArgument(%d) is invalid: the position must be zero or more.', $position));
+        return new self(\sprintf('captureArgument(%d) requires a position of zero or more.', $position));
     }
 }

@@ -91,8 +91,10 @@ and meaning. Use the singular form unless the context requires a plural.
 | assignment | Technical noun | A group of test classes that an orchestrator sends to a worker |
 | attachment | Technical noun | Evidence that belongs to one test result |
 | attempt | Technical noun | One execution of a test before Greenlight reports a result or starts a retry |
+| baseline diff | Technical noun | A comparison of current coverage with a saved coverage map |
 | benchmark shape | Technical noun | A generated test-suite structure that one benchmark measures |
 | binding | Technical noun | A container rule that maps an ID to a value or construction method |
+| boot latency | Technical noun | The time from worker-process creation to the start of its first test class |
 | builder | Technical noun | A mutable object that collects configuration for one part of a run |
 | capability interface | Technical noun | A plugin interface that adds one defined type of behavior |
 | captor | Technical noun | An object that stores argument values from matched mock calls |
@@ -102,21 +104,28 @@ and meaning. Use the singular form unless the context requires a plural.
 | configuration | Technical noun | The settings that control a Greenlight run |
 | configurator | Technical noun | A callable that changes a builder |
 | consumer | Technical noun | A program or tool that reads Greenlight output |
+| coverage driver | Technical noun | A component that collects raw line coverage |
 | coverage export | Technical noun | A file or directory that contains coverage results |
 | coverage gate | Technical noun | A repository check that enforces a coverage requirement |
 | coverage map | Technical noun | Data that identifies executable and covered source lines |
+| crash containment | Technical noun | Orchestrator behavior that limits a worker crash to its active test and recovers the remaining assignment |
 | data provider | Technical noun | A public static method that supplies named data sets |
 | data set | Technical noun | One named set of arguments for a test method |
 | data-set | Noun modifier | Related to a data set |
+| deep equality | Technical noun | A recursive comparison of values by type, structure, and content |
 | diagnostics buffer | Technical noun | Bounded worker output that helps to explain a worker failure |
+| discovery | Technical noun | The process that identifies test metadata and makes an execution plan |
 | discovery cache | Technical noun | Stored test metadata that Greenlight can reuse for unchanged files |
 | double | Technical noun | A test object that replaces a collaborator |
 | envelope | Technical noun | A versioned JSONL object that contains one event |
+| environment sandbox | Technical noun | A fixture that isolates and restores environment-variable state |
+| event | Technical noun | A record of one occurrence in the run lifecycle |
 | event tag | Technical noun | A string that selects the event payload shape |
 | execution plan | Technical noun | The ordered test metadata that discovery sends for execution |
 | expectation | Technical noun | A required condition for a test value |
 | extension matcher | Technical noun | A matcher that an expectation extension supplies |
 | fixture | Technical noun | Test support code or data with a controlled purpose |
+| filter | Technical noun | A set of rules that selects tests or coverage paths |
 | flat memory | Technical noun | Memory use that does not increase with the number of completed tests |
 | frame | Technical noun | One length-prefixed worker-protocol message |
 | harness | Technical noun | The test environment that supplies application services to a worker |
@@ -125,8 +134,10 @@ and meaning. Use the singular form unless the context requires a plural.
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
+| live window | Technical noun | The bounded terminal area that shows active test classes |
 | matcher | Technical noun | An operation that checks an expectation |
 | matcher map | Technical noun | The configured names and signatures of extension matchers |
+| memory gate | Technical noun | A repository check that detects memory growth across a long test run |
 | mock | Technical noun | A strict double with planned interactions |
 | mutant | Technical noun | A source version that contains one deliberate change |
 | orchestrator | Technical noun | The process that plans and controls a run |
@@ -136,20 +147,29 @@ and meaning. Use the singular form unless the context requires a plural.
 | poll | Technical verb | To observe a probe until a condition or deadline stops the operation |
 | probe | Technical noun | A callable that supplies values to a temporal expectation |
 | plugin | Technical noun | An extension that adds a Greenlight capability |
+| proxy class | Technical noun | A generated class that implements or extends a doubled type |
+| proxy object | Technical noun | An instance of a proxy class that acts as a double |
 | reporter | Technical noun | A component that converts run events to output |
+| resource lease | Technical noun | A temporary grant of resource capacity to one scheduling unit |
 | resource limit | Technical noun | A limit on concurrent access to a named resource |
 | result policy | Technical noun | A rule that can change a test result after execution |
 | retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
+| risky test | Technical noun | A passed test that verifies no expectations and does not opt out |
 | run | Technical noun | One execution of a selected test suite |
 | run | Technical verb | To execute a command, test, or test suite |
 | run directory | Technical noun | The directory that contains published attachments for one run |
+| run profile | Technical noun | A report that summarizes worker use, scheduling, and boot latency for one run |
+| run state | Technical noun | Saved failure and duration data that can control a later run |
 | run subscriber | Technical noun | An orchestrator plugin that observes run events |
 | run time | Technical noun | The time when a program executes |
 | runtime | Noun modifier | Related to program execution |
 | service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |
+| scheduling unit | Technical noun | One test class or isolated test that the orchestrator can assign to a worker |
+| seed | Technical noun | An integer that reproduces randomized test-class order |
+| shard | Technical noun | One disjoint class-based part of an execution plan |
 | sidecar | Technical noun | A JSON metadata file for one complete staged file |
 | spy | Technical noun | A double that records permitted calls |
 | staged | Noun modifier | Stored in staging before publication |
@@ -157,9 +177,12 @@ and meaning. Use the singular form unless the context requires a plural.
 | storage key | Technical noun | An opaque value that identifies staged attachment content |
 | stream | Technical noun | An ordered sequence of reporter events or JSONL lines |
 | stub | Technical noun | An inert double that supplies a dependency |
+| subject | Technical noun | The value that an expectation checks |
+| subscriber | Technical noun | A plugin that receives lifecycle callbacks or run events |
 | suite | Technical noun | A selected group of test classes |
 | Symfony bridge | Technical noun | The component that connects the Greenlight harness to a Symfony kernel and container |
 | temporal expectation | Technical noun | An expectation that observes probe values over time |
+| terminal emulator | Technical noun | Test support that models the terminal state after control sequences |
 | terminal result | Technical noun | The final result after all test and plugin changes |
 | test | Technical noun | One test method with one optional data set |
 | test class | Technical noun | A class that contains one or more test methods |
@@ -167,9 +190,12 @@ and meaning. Use the singular form unless the context requires a plural.
 | test ID | Technical noun | The stable class, method, and optional data-set label for a test |
 | timing cache | Technical noun | Stored class durations that Greenlight uses to order later runs |
 | transformation log | Technical noun | The record of plugins that changed a test result |
+| wire payload | Technical noun | Data that Greenlight sends through the worker protocol |
+| warmup | Technical noun | Initial test execution that lets runtime caches reach stable sizes before measurement |
 | worker | Technical noun | A process that executes assigned test classes |
 | worker pool | Technical noun | The workers that are available to an orchestrator |
 | worker protocol | Technical noun | The internal message contract between the orchestrator and workers |
+| worker replacement | Technical noun | The creation of a new worker after a worker reaches a configured limit or exits unexpectedly |
 
 Use `configuration`, not `config`, in prose. Preserve `config` when it is part
 of code, a path, a command, or exact output.

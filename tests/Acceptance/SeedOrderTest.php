@@ -22,7 +22,7 @@ final readonly class SeedOrderTest
         $project = $this->writeProject();
         $first = $this->order($project, '--seed=3');
         $second = $this->order($project, '--seed=3');
-        Expect::that($first)->toBe($second);
+        Expect::that($first)->because('the same seed produces the same order across runs')->toBe($second);
     }
 
     #[Test]
@@ -38,7 +38,7 @@ final readonly class SeedOrderTest
                 break;
             }
         }
-        Expect::that($reordered)->toBeTrue();
+        Expect::that($reordered)->because('some seed reorders the classes away from declaration order')->toBeTrue();
     }
 
     #[Test]
@@ -46,19 +46,19 @@ final readonly class SeedOrderTest
     {
         $project = $this->writeProject();
 
-        Expect::that($this->order($project))->toBe($this->declaredOrder());
+        Expect::that($this->order($project))->because('without a seed the order matches declaration order')->toBe($this->declaredOrder());
     }
 
     #[Test]
     public function anActiveSeedIsAnnouncedInTheRunHeader(): void
     {
         $project = $this->writeProject();
-        // Stdout only: extension noise on stderr could contain "seed:"
-        // and break the negative assertion below.
+        // Use standard output only. Extension messages on standard error can
+        // contain "seed:" and invalidate the negative assertion.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=7']);
-        Expect::that($result->exitCode)->toBe(0)->and($result->stdout)->toContain('seed: 7');
+        Expect::that($result->exitCode)->because('an active seed is announced in the run header')->toBe(0)->and($result->stdout)->toContain('seed: 7');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->toBe(0)->and($result->stdout)->not()->toContain('seed:');
+        Expect::that($result->exitCode)->because('an active seed is announced in the run header')->toBe(0)->and($result->stdout)->not()->toContain('seed:');
     }
 
     /**
@@ -73,8 +73,8 @@ final readonly class SeedOrderTest
     }
 
     /**
-     * Reads --list-tests to avoid booting six classes per seed. Uses stdout
-     * so extension noise on stderr cannot affect the order.
+     * Reads --list-tests to prevent the start of six classes for each seed.
+     * Uses standard output so extension messages cannot change the order.
      *
      * @return list<string>
      */

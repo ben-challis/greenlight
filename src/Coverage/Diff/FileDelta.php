@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Diff;
 
 /**
- * A null percentage on either side means the file was absent from that map;
- * delta() treats an absent side as zero percent.
+ * A null percentage means that the applicable map did not contain the file.
+ * delta() uses zero percent for an absent file.
  *
- * Newly uncovered lines are lines uncovered now that were not uncovered in
- * the baseline, either because they were covered or because they were not
- * executable then.
+ * The current map identifies a newly uncovered line as uncovered. The
+ * baseline identifies the line as covered or not executable.
  *
  * @internal
  */

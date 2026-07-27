@@ -10,8 +10,8 @@ final readonly class TestClassFinished implements Event
 {
     /**
      * @param non-empty-string $class
-     * @param string $workerId the worker that ran the class; empty when the
-     *   producer predates worker attribution
+     * @param string $workerId The worker that ran the class, or an empty
+     *   string from a producer without worker attribution
      */
     public function __construct(
         public string $class,

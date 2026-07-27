@@ -54,7 +54,7 @@ final class DataSetExpansionTest
     {
         $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
 
-        Expect::that($this->keysFor($plan, 'withStringKeys'))->toBe(['first case', 'second case']);
+        Expect::that($this->keysFor($plan, 'withStringKeys'))->because('printable string keys are used as is')->toBe(['first case', 'second case']);
     }
 
     #[Test]
@@ -62,7 +62,7 @@ final class DataSetExpansionTest
     {
         $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
 
-        Expect::that($this->keysFor($plan, 'withIntegerKeys'))->toBe(['#0', '#1', '#2']);
+        Expect::that($this->keysFor($plan, 'withIntegerKeys'))->because('integer keys become ordinal strings')->toBe(['#0', '#1', '#2']);
     }
 
     #[Test]
@@ -76,7 +76,7 @@ final class DataSetExpansionTest
             \substr(\hash('sha256', ''), 0, 8),
         ];
 
-        Expect::that($this->keysFor($plan, 'withAwkwardKeys'))->toBe($expected);
+        Expect::that($this->keysFor($plan, 'withAwkwardKeys'))->because('non printable and empty keys become stable hash prefixes')->toBe($expected);
     }
 
     #[Test]
@@ -85,7 +85,7 @@ final class DataSetExpansionTest
         $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
         $rendered = \array_map(static fn(PlanEntry $entry): string => (string) $entry->id, $plan->entries);
 
-        Expect::that($rendered)->toContain(
+        Expect::that($rendered)->because('expanded IDs render with their keys')->toContain(
             'Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest::withStringKeys[first case]',
         );
     }
@@ -95,8 +95,8 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderMissing');
 
-        Expect::that($message)->toContain('doesNotExist');
-        Expect::that($message)->toContain('MissingProviderTest');
+        Expect::that($message)->because('missing provider fails naming it')->toContain('doesNotExist');
+        Expect::that($message)->because('missing provider fails naming it')->toContain('MissingProviderTest');
     }
 
     #[Test]
@@ -104,8 +104,8 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderInvalid');
 
-        Expect::that($message)->toContain('must be public and static');
-        Expect::that($message)->toContain('instanceProvider');
+        Expect::that($message)->because('non static provider is rejected')->toContain('Declare the provider as public and static');
+        Expect::that($message)->because('non static provider is rejected')->toContain('instanceProvider');
     }
 
     #[Test]
@@ -113,8 +113,8 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderNotIterable');
 
-        Expect::that($message)->toContain('must return an iterable');
-        Expect::that($message)->toContain('string');
+        Expect::that($message)->because('non iterable provider is rejected')->toContain('Return an iterable from the provider');
+        Expect::that($message)->because('non iterable provider is rejected')->toContain('string');
     }
 
     #[Test]
@@ -122,8 +122,8 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderThrows');
 
-        Expect::that($message)->toContain('provider exploded');
-        Expect::that($message)->toContain('boom');
+        Expect::that($message)->because('throwing provider fails discovery with the cause')->toContain('provider exploded');
+        Expect::that($message)->because('throwing provider fails discovery with the cause')->toContain('boom');
     }
 
     #[Test]
@@ -131,8 +131,8 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderSlow', 0.005);
 
-        Expect::that($message)->toContain('time budget');
-        Expect::that($message)->toContain('dawdles');
+        Expect::that($message)->because('slow provider exceeds the configured budget')->toContain('time budget');
+        Expect::that($message)->because('slow provider exceeds the configured budget')->toContain('dawdles');
     }
 
     #[Test]
@@ -140,7 +140,7 @@ final class DataSetExpansionTest
     {
         $plan = new TestDiscoverer(5.0)->discover([$this->fixtureDir('DiscoveryProviderSlow')]);
 
-        Expect::that($plan->count())->toBe(3);
+        Expect::that($plan->count())->because('slow provider passes under a generous budget')->toBe(3);
     }
 
     #[Test]
@@ -148,7 +148,7 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderEmpty');
 
-        Expect::that($message)->toContain('yielded no data sets');
+        Expect::that($message)->because('empty provider is rejected')->toContain('produced no data sets');
     }
 
     #[Test]
@@ -156,7 +156,7 @@ final class DataSetExpansionTest
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderDuplicate');
 
-        Expect::that($message)->toContain('more than once');
-        Expect::that($message)->toContain('same key');
+        Expect::that($message)->because('duplicate keys are rejected')->toContain('more than once');
+        Expect::that($message)->because('duplicate keys are rejected')->toContain('same key');
     }
 }

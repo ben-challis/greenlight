@@ -19,7 +19,7 @@ final readonly class SymfonyRunTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('injects container services and resets state between tests')->toBe(0)
             ->and($result->output())->toContain('4 tests, 4 passed');
     }
 

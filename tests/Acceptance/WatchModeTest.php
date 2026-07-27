@@ -28,14 +28,15 @@ final readonly class WatchModeTest
         $process = GreenlightCli::start($project->directory, ['run', '--watch', '--reporter=plain']);
 
         try {
-            $output = $process->readStdoutUntil('Watching for changes', 20.0);
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
             Expect::that($output)->toContain('1 test, 1 passed');
 
-            // A synthetic change: append a comment, size changes, mtime may not.
+            // Append a comment to make a synthetic change. The size changes, but
+            // the modification time can remain equal.
             $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
 
-            $output = $process->readStdoutUntil('Watching for changes', 20.0);
-            Expect::that($output)->toContain('Change detected')
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+            Expect::that($output)->toContain('Detected changes')
                 ->toContain('1 test, 1 passed');
 
             $process->write('q');

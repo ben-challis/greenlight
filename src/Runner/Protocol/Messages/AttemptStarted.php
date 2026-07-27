@@ -9,10 +9,10 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: a new attempt started for the in-flight test.
+ * Tells the orchestrator that a worker started a new attempt for the active test.
  *
- * This lets crash containment preserve retry progress without exposing
- * attempts as separate public test events.
+ * Crash containment uses this message to preserve retry progress. Test
+ * attempts do not become separate public test events.
  *
  * @internal
  */

@@ -16,7 +16,7 @@ use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 
-/** Crash and hang fixtures must never run in-process. */
+/** Crash and hang fixtures MUST NOT run in the orchestrator process. */
 final readonly class ParallelRunTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -24,12 +24,12 @@ final readonly class ParallelRunTest
     #[Test]
     public function parallelResultsMatchSequentialResults(): void
     {
-        // An isolated project, so this comparison run cannot
-        // race another acceptance test's use of the same working directory.
+        // An isolated project prevents a conflict with another acceptance
+        // test in the same directory.
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'parallel');
         $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
-        Expect::that($sequential->exitCode)->toBe(0)
+        Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0)
             ->and($parallel->exitCode)->toBe(0)
             ->and($this->summaryLine($sequential->output()))->toBe('7 tests, 7 passed, 0 expectations')
             ->and($this->summaryLine($parallel->output()))->toBe('7 tests, 7 passed, 0 expectations');
@@ -40,9 +40,9 @@ final readonly class ParallelRunTest
     {
         $result = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1)
             ->and($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations')
-            ->and($result->output())->toContain('crashed while running');
+            ->and($result->output())->toContain('crashed during this test');
     }
 
     #[Test]
@@ -88,7 +88,7 @@ final readonly class ParallelRunTest
             Fail::because('The crashed retry did not emit TestFinished.');
         }
 
-        Expect::that($result->exitCode)->toBe(1)
+        Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1)
             ->and($finished->result->outcome)->toBe(Outcome::Errored)
             ->and($finished->result->attempts)->toBe(2);
     }
@@ -98,7 +98,7 @@ final readonly class ParallelRunTest
     {
         $result = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('configured plugins reach workers across the process boundary')->toBe(0)
             ->and($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
     }
 
@@ -107,7 +107,7 @@ final readonly class ParallelRunTest
     {
         $result = $this->runIn('RecycleConfig', ['run']);
 
-        Expect::that($result->exitCode)->toBe(0)
+        Expect::that($result->exitCode)->because('worker recycling keeps results intact')->toBe(0)
             ->and($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
@@ -116,31 +116,31 @@ final readonly class ParallelRunTest
     {
         $withFlag = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2']);
 
-        Expect::that($withFlag->exitCode)->toBe(1)
-            ->and($withFlag->output())->toContain('Leaks (the test instance survived its test):')
+        Expect::that($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1)
+            ->and($withFlag->output())->toContain('Test instance leaks:')
             ->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         $withoutFlag = $this->runIn('LeakConfig', ['run', '--workers=2']);
 
-        Expect::that($withoutFlag->exitCode)->toBe(0);
+        Expect::that($withoutFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(0);
     }
 
     #[Test]
     public function leakDetectionWarnsWhenXdebugDevelopModeIsActive(): void
     {
         if (!\extension_loaded('xdebug')) {
-            // The warning triggers on xdebug develop mode, an environment
-            // property the test cannot create without the extension.
+            // Xdebug develop mode causes the warning. The test cannot create
+            // this environment property without the extension.
             throw new SkipTest('xdebug is not loaded');
         }
 
         $develop = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
 
-        Expect::that($develop->output())->toContain('xdebug develop mode');
+        Expect::that($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('xdebug develop mode');
 
         $off = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
 
-        Expect::that($off->output())->not()->toContain('xdebug develop mode');
+        Expect::that($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('xdebug develop mode');
     }
 
     #[Test]
@@ -156,8 +156,8 @@ final readonly class ParallelRunTest
             Fail::because('The hard timeout did not emit TestFinished.');
         }
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('timeout budget')
+        Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1)
+            ->and($result->output())->toContain('time limit')
             ->and($durationSeconds)->toBeLessThan(20.0)
             ->and($finished->result->outcome)->toBe(Outcome::Failed)
             ->and($finished->result->durationSeconds)->toBeGreaterThan(0.1)

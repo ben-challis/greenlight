@@ -11,7 +11,7 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use JsonSchema\Validator;
 
-/** Suite events use the canned stream because real runs do not emit them. */
+/** Uses a predefined stream for suite events because runs do not emit them. */
 final readonly class JsonlSchemaTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
@@ -32,12 +32,12 @@ final readonly class JsonlSchemaTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
         $lines = $result->stdoutLines();
         $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v2.schema.json'];
         $seenTags = [];
         $violations = [];
-        Expect::that($lines)->not()->toBeEmpty();
+        Expect::that($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();
         foreach ($lines as $line) {
             $decoded = \json_decode($line, flags: \JSON_THROW_ON_ERROR);
             $validator = new Validator();
@@ -70,7 +70,7 @@ final readonly class JsonlSchemaTest
                 $seenTags[$assoc['event']] = true;
             }
         }
-        Expect::that($violations)->toBe([]);
+        Expect::that($violations)->because('every emitted line validates against the shipped schema')->toBe([]);
         foreach (self::PRODUCIBLE_TAGS as $tag) {
             Expect::that($seenTags)->toHaveKey($tag);
         }
@@ -128,7 +128,7 @@ final readonly class JsonlSchemaTest
             }
             PHP);
 
-        // recycleAfterTests: 1 forces worker-recycled events into the stream.
+        // recycleAfterTests: 1 adds worker-recycled events to the stream.
         $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 

@@ -42,7 +42,7 @@ final class PluginTest
 
         $quarantined = $byMethod['flakyAndQuarantined'];
 
-        Expect::that($quarantined->outcome)->toBe(Outcome::Skipped)
+        Expect::that($quarantined->outcome)->because('quarantine plugin transforms failures with provenance')->toBe(Outcome::Skipped)
             ->and($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class)
             ->and($quarantined->transformations[0]->from)->toBe(Outcome::Errored)
             ->and($byMethod['passes']->outcome)->toBe(Outcome::Passed);
@@ -58,15 +58,16 @@ final class PluginTest
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
-                // Deliberately bypasses withOutcome(): no provenance.
+                // Bypass withOutcome() intentionally to omit the transformation
+                // source.
                 return new TestResult($result->id, Outcome::Skipped, $result->durationSeconds, 0);
             }
         };
 
         [, $results] = $this->runSuite('Lifecycle/Order', [$rogue]);
 
-        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)->toContain('without withOutcome() provenance');
+        Expect::that($results[0]->outcome)->because('unattributed outcome changes error the test naming the plugin')->toBe(Outcome::Errored)
+            ->and($results[0]->error?->message)->toContain('without a new transformation-log entry from withOutcome()');
     }
 
     #[Test]
@@ -88,8 +89,8 @@ final class PluginTest
 
         [, $results] = $this->runSuite('Lifecycle/Order', [$broken]);
 
-        Expect::that($results[0]->outcome)->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)->toContain('failed in beforeTest')
+        Expect::that($results[0]->outcome)->because('throwing before test errors the test naming the plugin')->toBe(Outcome::Errored)
+            ->and($results[0]->error?->message)->toContain('caused an error during beforeTest()')
             ->toContain('plugin exploded');
     }
 
@@ -115,17 +116,17 @@ final class PluginTest
             $byMethod[$result->id->method] = $result;
         }
 
-        // The passing test errors, naming the plugin.
-        Expect::that($byMethod['passes']->outcome)->toBe(Outcome::Errored)
-            ->and($byMethod['passes']->error?->message)->toContain('failed in afterTest')
+        // The passed test becomes an error that names the plugin.
+        Expect::that($byMethod['passes']->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
+            ->and($byMethod['passes']->error?->message)->toContain('caused an error during afterTest()')
             ->toContain('plugin exploded');
 
-        // The already-errored test keeps its original error; the plugin
-        // failure is recorded as a failure detail instead of vanishing.
+        // The test keeps its original error. Greenlight records the plugin
+        // failure as a failure detail.
         $errored = $byMethod['explodes'];
-        Expect::that($errored->outcome)->toBe(Outcome::Errored)
+        Expect::that($errored->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
             ->and($errored->error?->message)->toContain('intentional boom')
-            ->and($errored->failures[0]->message ?? '')->toContain('failed in afterTest')
+            ->and($errored->failures[0]->message ?? '')->toContain('caused an error during afterTest()')
             ->toContain('plugin exploded');
     }
 
@@ -148,7 +149,7 @@ final class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::that($summary->skipped)->toBe(1)
+        Expect::that($summary->skipped)->because('context skip from before test skips the test')->toBe(1)
             ->and($results[0]->skipReason)->toBe('flaky on this platform');
     }
 
@@ -171,7 +172,7 @@ final class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::that($summary->skipped)->toBe(1)
+        Expect::that($summary->skipped)->because('skip signal from before test skips the test')->toBe(1)
             ->and($results[0]->skipReason)->toBe('quarantined environment');
     }
 
@@ -222,8 +223,9 @@ final class PluginTest
 
         $this->runSuite('Lifecycle/Order', [$late, $early]);
 
-        // Construction precedes beforeTest, so the first entry is the fixture's own.
-        Expect::that(\array_slice(TraceLog::drain(), 1, 2))->toBe(['early', 'late']);
+        // Construction occurs before beforeTest(). Thus, the first entry comes
+        // from the fixture.
+        Expect::that(\array_slice(TraceLog::drain(), 1, 2))->because('subscribers run in priority order')->toBe(['early', 'late']);
     }
 
     #[Test]
@@ -234,7 +236,7 @@ final class PluginTest
 
         [$summary] = $this->runSuite('Lifecycle/Services', [new ProbeProvider()]);
 
-        Expect::that($summary->passed)->toBe(2)
+        Expect::that($summary->passed)->because('harness providers contribute injectable services')->toBe(2)
             ->and(TraceLog::drain())->toContain('probe1:disposed');
     }
 
@@ -244,8 +246,8 @@ final class PluginTest
         Expect::install([new EvenNumbersExtension()]);
 
         try {
-            // Dispatch uses __call because static analysis cannot resolve
-            // dynamic matchers.
+            // Dispatch uses __call because static analysis cannot resolve dynamic
+            // matchers.
             Expect::that(4)->__call('toBeEven', []);
             Expect::that(3)->not()->__call('toBeEven', []);
 
