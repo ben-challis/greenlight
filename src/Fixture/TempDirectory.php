@@ -38,6 +38,8 @@ final class TempDirectory implements Disposable
     /**
      * @param string $name A relative path of plain segments. The path can
      *   contain separators but cannot contain traversal segments.
+     *
+     * @return non-empty-string
      */
     public function subdirectory(string $name): string
     {
