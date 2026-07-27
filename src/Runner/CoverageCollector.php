@@ -28,16 +28,20 @@ final readonly class CoverageCollector
 
     /**
      * @param \Closure(string): void|null $unavailable receives the reason when no driver can collect
+     * @param DriverSelector|null $selector The selector to use. Null selects the configured built-in drivers.
      */
-    public static function create(CoverageSettings $settings, ?\Closure $unavailable = null): ?self
-    {
+    public static function create(
+        CoverageSettings $settings,
+        ?\Closure $unavailable = null,
+        ?DriverSelector $selector = null,
+    ): ?self {
         $candidates = match ($settings->driver) {
             'pcov' => [PcovDriver::class],
             'xdebug' => [XdebugDriver::class],
             default => [PcovDriver::class, XdebugDriver::class],
         };
 
-        $selection = new DriverSelector($candidates)->select();
+        $selection = ($selector ?? new DriverSelector($candidates))->select();
         $driver = $selection->driver;
 
         if (!$driver instanceof CoverageDriver) {
