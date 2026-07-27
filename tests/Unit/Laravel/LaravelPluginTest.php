@@ -19,6 +19,7 @@ use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Laravel\LaravelBridgeError;
+use Greenlight\Laravel\LaravelFrameworkRequirement;
 use Greenlight\Laravel\LaravelPlugin;
 use Greenlight\Laravel\Service;
 use Greenlight\Plugin\TestContext;
@@ -135,6 +136,28 @@ final class LaravelPluginTest
             ->and(\getenv('APP_ENV'))->toBe('before-laravel')
             ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
             ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
+    }
+
+    #[Test]
+    public function aComponentOnlyIlluminateInstallationCannotUseTheBridge(): void
+    {
+        Expect::that(static function (): void {
+            LaravelFrameworkRequirement::checkVersion(null);
+        })->toThrow(
+            LaravelBridgeError::class,
+            matching: '/requires the complete laravel\\/framework 13 package/',
+        );
+    }
+
+    #[Test]
+    public function anUnsupportedLaravelMajorVersionCannotUseTheBridge(): void
+    {
+        Expect::that(static function (): void {
+            LaravelFrameworkRequirement::checkVersion('12.9.0');
+        })->toThrow(
+            LaravelBridgeError::class,
+            matching: '/found laravel\\/framework "12\\.9\\.0".*requires major version 13/s',
+        );
     }
 
     #[Test]

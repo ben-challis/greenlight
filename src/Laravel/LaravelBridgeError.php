@@ -26,6 +26,24 @@ final class LaravelBridgeError extends \RuntimeException
         ));
     }
 
+    public static function frameworkUnavailable(): self
+    {
+        return new self(
+            'The Laravel framework is not available. LaravelPlugin requires the complete '
+            . 'laravel/framework 13 package. Install laravel/framework 13 before you activate '
+            . 'the plugin.',
+        );
+    }
+
+    public static function frameworkVersionUnsupported(string $version): self
+    {
+        return new self(\sprintf(
+            'LaravelPlugin found laravel/framework "%s", but it requires major version 13. '
+            . 'Install laravel/framework 13.',
+            $version,
+        ));
+    }
+
     public static function notAnApplication(string $actual): self
     {
         return new self(\sprintf(

@@ -130,6 +130,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
             return $this->app;
         }
 
+        LaravelFrameworkRequirement::check();
         $this->processState = LaravelProcessState::setEnvironment($this->env);
 
         try {
