@@ -4,9 +4,6 @@ Greenlight includes a PHPStan extension. The extension supplies information
 about custom expectation matchers and data-provider shape rules. It also
 supplies native matcher constraints that the PHP type system cannot express.
 
-PHPStan also checks native and custom matchers used with `eventually()` and
-`consistently()`.
-
 ## Setup
 
 Include the extension in your PHPStan configuration. Set the Greenlight
