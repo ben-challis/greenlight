@@ -52,6 +52,53 @@ final class EnvironmentSandboxTest
     }
 
     #[Test]
+    public function disposeRestoresEachEnvironmentChannelIndependently(): void
+    {
+        $suffix = \strtoupper(\bin2hex(\random_bytes(6)));
+        $processAndServer = 'GREENLIGHT_SANDBOX_TEST_PROCESS_SERVER_' . $suffix;
+        $envOnly = 'GREENLIGHT_SANDBOX_TEST_ENV_ONLY_' . $suffix;
+        $sandbox = new EnvironmentSandbox();
+
+        try {
+            \putenv($processAndServer . '=process-original');
+            unset($_ENV[$processAndServer]);
+            $_SERVER[$processAndServer] = 'server-original';
+
+            \putenv($envOnly);
+            $_ENV[$envOnly] = 'env-original';
+            unset($_SERVER[$envOnly]);
+
+            $sandbox->set($processAndServer, 'changed');
+            $sandbox->unset($envOnly);
+            $sandbox->dispose();
+
+            Expect::that(\getenv($processAndServer))
+                ->because('dispose restores each environment channel independently')
+                ->toBe('process-original')
+                ->and($this->envHas($processAndServer))
+                ->toBeFalse()
+                ->and($this->serverValue($processAndServer))
+                ->toBe('server-original')
+                ->and(\getenv($envOnly))
+                ->toBeFalse()
+                ->and($this->envValue($envOnly))
+                ->toBe('env-original')
+                ->and($this->serverHas($envOnly))
+                ->toBeFalse();
+        } finally {
+            $sandbox->dispose();
+            \putenv($processAndServer);
+            \putenv($envOnly);
+            unset(
+                $_ENV[$processAndServer],
+                $_ENV[$envOnly],
+                $_SERVER[$processAndServer],
+                $_SERVER[$envOnly],
+            );
+        }
+    }
+
+    #[Test]
     public function unsetRemovesTheVariableAndDisposeBringsItBack(): void
     {
         $name = 'GREENLIGHT_SANDBOX_TEST_UNSET';
