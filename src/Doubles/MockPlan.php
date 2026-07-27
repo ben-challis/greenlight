@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * The planning DSL handed to the closure of Doubles::mock().
+ * Defines the mock plan that Doubles::mock() supplies to its closure.
  *
- * Declare call patterns fluently:
- *
- *     $plan->expects('charge')->with(MockPlan::any())->once()->andReturns($ok);
- *
- * Cardinality defaults to at least once. Every declared pattern is verified
- * when the test's scope closes.
+ * Use the fluent methods to declare call patterns. The default cardinality is
+ * at least one call. The verifier checks each declared pattern when the test
+ * scope closes.
  */
 final readonly class MockPlan
 {
     /**
-     * @internal constructed by the Doubles factory only
+     * @internal Only the Doubles factory constructs this object.
      */
     public function __construct(private DoubleState $state) {}
 
     /**
-     * Argument wildcard for with(): matches any value in that position.
+     * Returns the with() wildcard that accepts all values in its position.
      */
     public static function any(): Any
     {

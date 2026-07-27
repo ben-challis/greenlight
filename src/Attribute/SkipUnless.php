@@ -7,8 +7,8 @@ namespace Greenlight\Attribute;
 use Greenlight\Core\Condition;
 
 /**
- * Evaluates the condition in the worker. Constructor arguments must be
- * scalars or null so they can cross the worker boundary.
+ * A worker evaluates the condition. Because the worker protocol transfers the
+ * constructor arguments, use only scalar values or null.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class SkipUnless

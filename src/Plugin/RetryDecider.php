@@ -8,13 +8,13 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestMetadata;
 
 /**
- * Worker-side retry policy, consulted after each unsuccessful attempt.
+ * A retry decider that a worker calls after each unsuccessful attempt.
  *
- * Any decider answering yes triggers a fresh attempt with a fresh instance
- * and scope.
+ * A yes result starts a new attempt with a new test instance in a new service
+ * scope.
  *
- * shouldRetry() receives metadata and the causing throwable rather than a
- * context: the failed attempt's instance is already gone when this runs.
+ * shouldRetry() receives the metadata, result, and optional cause. It does not
+ * receive a context because the test instance no longer exists.
  */
 interface RetryDecider extends Plugin
 {

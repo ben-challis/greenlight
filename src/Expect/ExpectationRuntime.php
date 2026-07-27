@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Stores the polling clock and current test deadline for a worker.
+ * Stores the poll clock and current test deadline for a worker.
  *
  * @internal
  */
@@ -39,7 +39,7 @@ final class ExpectationRuntime
     }
 
     /**
-     * Runs an operation with a temporary polling clock.
+     * Runs an operation with a temporary poll clock.
      *
      * @template T
      *

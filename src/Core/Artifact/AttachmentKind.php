@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Artifact;
 
 /**
- * The representation a caller supplied for an attachment.
+ * The form of attachment content that a caller supplies.
  */
 enum AttachmentKind: string
 {

@@ -9,21 +9,22 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Result-level CI gates that can fail a passed test.
+ * CI rules that can change a passed test to a failed test.
  *
- * apply() is called by the worker on each final result, after retries and
- * afterTest subscribers, so every consumer, from exit code to junit to
- * plugins, sees the same truth.
+ * The worker calls apply() for each final result. This call occurs after
+ * retries and afterTest subscribers. Thus, each consumer receives the same
+ * result.
  *
- * A passed test with a captured deprecation or notice fails under the
- * matching flag, with the diagnostic as the failure detail and the flip
- * recorded as a provenance transformation.
+ * The applicable flag changes a passed test with a captured deprecation or
+ * notice to a failed test. The diagnostic becomes the failure detail. The
+ * transformation log records the change.
  *
- * The ignore list exempts deprecation messages by case-insensitive
- * substring, or whole-message match when the pattern contains "*" or "?".
+ * A pattern without "*" or "?" matches part of a deprecation message without
+ * case sensitivity. A pattern with either character matches the complete
+ * message.
  *
- * A passed test that verified no expectations is marked risky, and failed
- * outright under failOnRisky.
+ * A passed test with no verified expectations becomes risky. failOnRisky
+ * changes this result to failed.
  *
  * @internal
  */

@@ -7,8 +7,9 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * Each file produces one SF record, a DA record per executable line with a
- * hit count of one or zero, then LF and LH line totals.
+ * Each file produces one SF record and one DA record for each executable
+ * line. A DA record has a hit count of one or zero. LF and LH contain line
+ * totals.
  *
  * @internal
  */

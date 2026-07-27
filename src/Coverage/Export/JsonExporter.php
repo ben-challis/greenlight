@@ -9,10 +9,9 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
 /**
- * Greenlight's own JSON coverage schema, documented in
- * docs/architecture/coverage-json.md.
+ * Uses the Greenlight JSON coverage schema from docs/architecture/coverage-json.md.
  *
- * import() reads the schema back into a CoverageMap for baseline diffing.
+ * import() reads the schema into a CoverageMap for a baseline comparison.
  *
  * @internal
  */
@@ -47,9 +46,8 @@ final readonly class JsonExporter implements CoverageExporter
     }
 
     /**
-     * Reads a document produced by export() back into a CoverageMap. Totals
-     * and percentages are derived data and are recomputed rather than
-     * trusted.
+     * Reads a document from export() into a CoverageMap. The method calculates
+     * totals and percentages because export() derives these values.
      */
     public static function import(string $json): CoverageMap
     {

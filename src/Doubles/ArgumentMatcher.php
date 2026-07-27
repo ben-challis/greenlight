@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * A per-position argument constraint for with().
+ * An argument constraint for one position in with().
  *
- * matches() decides whether a value is acceptable in the matcher's position;
- * it must be side-effect free, because candidate expectations are probed
- * against calls they may not win. describe() names the constraint in failure
- * messages.
+ * matches() determines if the matcher accepts a value in its position.
+ * Candidate expectations can receive checks for calls that they do not
+ * answer. Thus, matches() must not cause side effects. describe() identifies
+ * the constraint in failure messages.
  *
- * Obtain matchers via the Argument factories.
+ * Use the Argument factories to get matchers.
  */
 interface ArgumentMatcher
 {

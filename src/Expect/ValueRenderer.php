@@ -7,8 +7,8 @@ namespace Greenlight\Expect;
 use Greenlight\Core\Wire\Utf8;
 
 /**
- * Produces bounded, single-line failure values. Output is scrubbed to valid
- * UTF-8 because failure details cross a JSON wire.
+ * Produces bounded, single-line failure values. The renderer converts the
+ * output to valid UTF-8 because a JSON message contains the failure details.
  *
  * @internal
  */

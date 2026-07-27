@@ -8,7 +8,7 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Immutable metadata for one retained test attachment.
+ * Fixed metadata for one retained test attachment.
  *
  * @phpstan-consistent-constructor
  */

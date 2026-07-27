@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Extension matchers are worker-local state: install() stores the configured
- * ExpectationExtension list once at worker boot, and every chain created by
- * that() dispatches through it. Workers are single-threaded and the runner
- * owns the install point, so the static registry is never observed
- * mid-mutation. Before install() runs, that() works with no extensions.
+ * Extension matchers are worker-local state. install() stores the configured
+ * ExpectationExtension list when the worker starts. Each chain from that()
+ * uses this list. A worker uses one thread, and the runner controls the
+ * install point. Thus, no code reads the static registry during a change.
+ * Before install() runs, that() uses no extensions.
  */
 final class Expect
 {
@@ -67,9 +67,9 @@ final class Expect
     }
 
     /**
-     * Replaces the worker-local extension list consulted by every subsequent
-     * that() chain. Called once per worker at boot; tests that install their
-     * own extensions must restore the previous list themselves.
+     * Replaces the worker-local extension list for subsequent that() chains.
+     * The runner calls this method when the worker starts. A test that installs
+     * extensions must restore the previous list.
      *
      * @internal
      *

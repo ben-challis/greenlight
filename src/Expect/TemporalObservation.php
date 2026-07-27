@@ -7,7 +7,7 @@ namespace Greenlight\Expect;
 use Greenlight\Core\Result\FailureDetail;
 
 /**
- * Records the outcome of one polling attempt.
+ * Records the result of one poll attempt.
  *
  * @internal
  */

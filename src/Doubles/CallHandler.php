@@ -9,13 +9,13 @@ use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ValueRenderer;
 
 /**
- * Runtime behind every generated proxy method.
+ * Provides the runtime behavior for each method of a generated proxy class.
  *
- * invoke() records the call, then answers it according to the double's kind.
+ * invoke() records the call. It then supplies the result for the double kind.
  *
- * A mock answers only what was explicitly configured, a stub errors on any
- * call, and a spy records interactions and errors on calls to value-returning
- * methods.
+ * A mock supplies only configured results. A stub causes an error for all
+ * calls. A spy records interactions. It causes an error when a method must
+ * return a value.
  *
  * @internal
  */
@@ -104,9 +104,8 @@ final readonly class CallHandler
     }
 
     /**
-     * Only void and undeclared return types need no configured answer.
-     * Anything else, including never (which can only be satisfied by
-     * andThrows()), must be stated explicitly.
+     * Methods with void or undeclared return types do not need a configured
+     * result. All other methods need a result. For never, use andThrows().
      */
     private function returnsNothing(object $double, string $method): bool
     {

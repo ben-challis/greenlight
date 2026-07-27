@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * A harness service that must be torn down when its scope closes.
+ * A harness service that Greenlight disposes when its service scope closes.
  *
- * Disposal runs in reverse creation order and is exception-safe: every
- * disposable is disposed even when an earlier one throws.
+ * Greenlight disposes services in reverse creation order. An exception from
+ * one service does not prevent disposal of the remaining services.
  */
 interface Disposable
 {

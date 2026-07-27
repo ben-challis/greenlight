@@ -9,10 +9,10 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * When output is truncated the head is kept, because the first output a
- * test produces usually names the cause; the tail is commonly repetition.
+ * When output is too long, Greenlight keeps the first part. This part usually
+ * identifies the cause. The last part usually contains repeated information.
  *
- * Stdout is scrubbed to valid UTF-8 when it crosses the wire.
+ * Greenlight converts standard output to valid UTF-8 before it crosses the wire.
  */
 final readonly class CapturedOutput implements WireSerializable
 {

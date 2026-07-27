@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Renders reflected parameter, property, and return types back to PHP source
- * for generated proxies.
+ * Converts reflected parameter, property, and return types to PHP source for
+ * generated proxy classes.
  *
- * render() handles named, nullable, union, and intersection types, including
- * intersections nested in unions.
+ * render() processes named, nullable, union, and intersection types. It also
+ * processes intersections inside unions.
  *
- * self and parent resolve against the declaring class so the rendered code is
- * position independent; static stays literal because it is only valid, and
- * correct, in the proxy.
+ * self and parent resolve against the class that declares the member. Thus,
+ * their result does not depend on the code position. static remains literal
+ * because it is valid only in the proxy class.
  *
  * @internal
  */
@@ -23,7 +23,7 @@ final class TypeRenderer
     private function __construct() {}
 
     /**
-     * @param \ReflectionClass<object> $context the class declaring the member
+     * @param \ReflectionClass<object> $context Class that declares the member.
      */
     public static function render(\ReflectionType $type, \ReflectionClass $context): string
     {

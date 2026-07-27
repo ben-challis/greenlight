@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * The set of registered harness services, looked up by exact type.
+ * Stores registered harness services by their exact types.
  *
  * @internal
  */

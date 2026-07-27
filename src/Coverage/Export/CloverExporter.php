@@ -7,10 +7,10 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * Every executable line becomes a stmt line element with a count of one or
- * zero, and file plus project metrics carry statement totals.
+ * Each executable line becomes a stmt line element with a count of one or
+ * zero. File and project metrics contain statement totals.
  *
- * The timestamp is injected for deterministic output.
+ * The caller supplies the timestamp to make the output deterministic.
  *
  * @internal
  */

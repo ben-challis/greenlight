@@ -8,11 +8,11 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestMetadata;
 
 /**
- * The RetryDecider for the #[Retry] attribute.
+ * Implements RetryDecider for the #[Retry] attribute.
  *
- * shouldRetry() answers yes until the attribute's extra attempts are used
- * up. When the attribute names a throwable type, the cause must be an
- * instance of it; tests without the attribute are never retried.
+ * shouldRetry() returns yes while unused additional attempts remain. If the
+ * attribute specifies a throwable type, the cause must have that type. The
+ * method returns no for a test without the attribute.
  *
  * @internal
  */

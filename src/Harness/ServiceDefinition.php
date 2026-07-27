@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Registration of one harness service: the exact type tests inject, its
- * scope, and the factory producing it.
+ * Defines one harness service. It contains the exact injected type, service
+ * scope, and factory.
  */
 final readonly class ServiceDefinition
 {

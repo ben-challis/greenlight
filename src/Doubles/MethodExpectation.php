@@ -8,24 +8,24 @@ use Greenlight\Expect\Equality;
 use Greenlight\Expect\ValueRenderer;
 
 /**
- * One planned call pattern on a doubled method: which arguments it accepts,
- * how often it may run, and what it does when it runs.
+ * Defines one planned call pattern for a method of a double. The plan
+ * specifies the accepted arguments, cardinality, and result.
  *
- * Built fluently from MockPlan::expects(). The fluent planning methods are
- * the public surface; the members the call handler and the verifier consume
- * are marked @internal individually.
+ * MockPlan::expects() creates this object. Its fluent plan methods are the
+ * public interface. The call handler and verifier use the members marked
+ * @internal.
  *
  * Argument values compare with the same deep equality as Expect's toEqual().
  */
 final class MethodExpectation
 {
     /**
-     * @internal written by the call handler, read by the verifier
+     * @internal The call handler writes this value. The verifier reads it.
      */
     public int $actualCalls = 0;
 
     /**
-     * @var list<mixed>|null null means any arguments
+     * @var list<mixed>|null A null value accepts any arguments.
      */
     private ?array $arguments = null;
 
@@ -54,7 +54,7 @@ final class MethodExpectation
     private array $registeredCaptors = [];
 
     /**
-     * @internal constructed by MockPlan::expects() only
+     * @internal Only MockPlan::expects() constructs this object.
      *
      * @param non-empty-string $method
      */
@@ -118,8 +118,8 @@ final class MethodExpectation
     }
 
     /**
-     * Each matched call consumes the next value; a matched call after the
-     * last value is an authoring error.
+     * Each accepted call consumes the next value. A call after the last value
+     * causes an error in the test code.
      */
     public function andReturnsSequence(mixed ...$values): self
     {
@@ -137,8 +137,8 @@ final class MethodExpectation
     }
 
     /**
-     * The closure receives the call's arguments and its return value is
-     * handed back to the caller.
+     * The closure receives the call arguments. The call returns the value
+     * from the closure.
      */
     public function andReturnsUsing(\Closure $answer): self
     {
@@ -159,10 +159,10 @@ final class MethodExpectation
     }
 
     /**
-     * Records the argument at $position on every call this expectation
-     * answers. Returns the captor rather than the expectation, so it
-     * deliberately ends the fluent chain; configure counts and answers
-     * before calling it.
+     * Records the argument at $position each time Greenlight selects this
+     * expectation for a call. The method returns the captor and ends the
+     * fluent chain. Before you call this method, configure the cardinality. If
+     * the doubled method returns a value, configure its result first.
      */
     public function captureArgument(int $position = 0): ArgumentCaptor
     {
@@ -177,7 +177,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      *
      * @param list<mixed> $arguments
      */
@@ -209,11 +209,10 @@ final class MethodExpectation
     }
 
     /**
-     * Feeds every captor its argument. Called only for the expectation that
-     * won the call, never during matching probes, so losing candidates
-     * cannot pollute a captor.
+     * Adds an argument to each captor. Only the expectation selected for the
+     * call uses this method. Candidate checks cannot add values to a captor.
      *
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      *
      * @param list<mixed> $arguments
      */
@@ -237,7 +236,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function isSaturated(): bool
     {
@@ -245,7 +244,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the verifier only
+     * @internal Only the verifier calls this method.
      */
     public function isSatisfied(): bool
     {
@@ -254,7 +253,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function hasConfiguredReturnValue(): bool
     {
@@ -262,7 +261,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function configuredReturnValue(): mixed
     {
@@ -270,7 +269,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function hasSequence(): bool
     {
@@ -278,7 +277,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function consumeSequenceValue(): mixed
     {
@@ -290,7 +289,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function configuredCallback(): ?\Closure
     {
@@ -298,7 +297,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal called by the call handler only
+     * @internal Only the call handler calls this method.
      */
     public function configuredThrowable(): ?\Throwable
     {
@@ -306,7 +305,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal used in failure messages only
+     * @internal Only failure messages use this method.
      */
     public function describeCall(ValueRenderer $renderer): string
     {
@@ -325,10 +324,10 @@ final class MethodExpectation
     }
 
     /**
-     * The planned call pattern and its cardinality as one phrase, the way
-     * every failure message names an expectation.
+     * Describes the planned call pattern and its cardinality. Each failure
+     * message uses this format to identify an expectation.
      *
-     * @internal used in failure messages only
+     * @internal Only failure messages use this method.
      */
     public function describePlan(ValueRenderer $renderer): string
     {
@@ -336,10 +335,9 @@ final class MethodExpectation
     }
 
     /**
-     * Renders a concrete recorded call the way describeCall() renders a
-     * planned one.
+     * Describes a recorded call in the same format as describeCall().
      *
-     * @internal used in failure messages only
+     * @internal Only failure messages use this method.
      *
      * @param list<mixed> $arguments
      */
@@ -349,7 +347,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal used in failure messages only
+     * @internal Only failure messages use this method.
      */
     public function describeExpectedCount(): string
     {
@@ -365,7 +363,7 @@ final class MethodExpectation
     }
 
     /**
-     * @internal used in failure messages only
+     * @internal Only failure messages use this method.
      */
     public static function timesPhrase(int $count): string
     {

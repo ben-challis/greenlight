@@ -57,7 +57,7 @@ final class SuiteBuilder
     /**
      * @internal
      *
-     * @throws InvalidConfiguration when the suite was given no paths
+     * @throws InvalidConfiguration if the suite has no paths
      */
     public function toConfiguration(): SuiteConfiguration
     {

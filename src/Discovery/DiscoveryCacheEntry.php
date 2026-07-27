@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 /**
- * fromDecoded() validates untrusted JSON and returns
- * null when any part of the shape is malformed, so a corrupt cache degrades
- * to a re-parse. jsonSerialize() emits the same shape.
+ * fromDecoded() examines input JSON. It returns null if a part has an
+ * incorrect form. Thus, discovery parses the file again after a corrupt cache
+ * entry. jsonSerialize() produces the same form.
  *
  * @internal
  */

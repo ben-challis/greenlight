@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Core\Wire;
 
 /**
- * Raised when a decoded wire payload is missing a required key or carries the
- * wrong type for one.
+ * Greenlight raises this error when a decoded wire payload has a missing key
+ * or an incorrect value type.
  *
- * Always names the offending key so protocol errors are diagnosable from the
- * message alone.
+ * The error always names the applicable key. Thus, its message identifies the
+ * protocol error.
  */
 final class InvalidWirePayload extends \RuntimeException
 {

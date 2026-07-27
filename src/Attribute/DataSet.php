@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
-/** References a pure public static provider that runs during discovery. */
+/**
+ * References a pure public static data provider. The provider runs during
+ * discovery.
+ */
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class DataSet
 {
@@ -19,8 +22,9 @@ final readonly class DataSet
     public ?string $providerClass;
 
     /**
-     * With one argument, $provider names a method on the test class. With two,
-     * it names the provider class and $method names the provider method.
+     * With one argument, $provider names a method on the test class. With two
+     * arguments, it names the provider class and $method names the provider
+     * method.
      *
      * @param non-empty-string $provider
      * @param non-empty-string|null $method

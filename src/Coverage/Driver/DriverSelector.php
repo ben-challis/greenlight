@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Driver;
 
 /**
- * The default order prefers pcov over Xdebug because pcov collects line
- * coverage much faster.
+ * The default order selects pcov before Xdebug because pcov collects line
+ * coverage more quickly.
  *
- * When nothing is available, select() returns a selection carrying a reason
- * string suitable for direct display to the user.
+ * If no driver is available, select() returns a selection with a reason for
+ * the user.
  *
  * @internal
  */
