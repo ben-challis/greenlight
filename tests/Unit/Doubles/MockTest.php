@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
+use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
@@ -66,6 +68,49 @@ final class MockTest
 
         Expect::that(static fn() => $doubles->dispose())->because('an unplanned expectation defaults to at least once')
             ->toThrow(ExpectationFailed::class, '/at least 1 time/');
+    }
+
+    /**
+     * @param 'times'|'atLeast' $cardinality
+     * @param non-empty-string $message
+     */
+    #[Test]
+    #[DataSet('invalidCardinalities')]
+    public function invalidCardinalitiesAreRejected(string $cardinality, int $count, string $message): void
+    {
+        $doubles = new Doubles();
+
+        Expect::that(static fn(): Calculator => $doubles->mock(
+            Calculator::class,
+            static function (MockPlan $plan) use ($cardinality, $count): void {
+                $expectation = $plan->expects('add');
+
+                match ($cardinality) {
+                    'times' => $expectation->times($count),
+                    'atLeast' => $expectation->atLeast($count),
+                };
+            },
+        ))
+            ->because('invalid mock cardinalities are rejected')
+            ->toThrow(DoublesError::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{'times'|'atLeast', int, non-empty-string}>
+     */
+    public static function invalidCardinalities(): iterable
+    {
+        yield 'negative exact count' => [
+            'times',
+            -1,
+            'times(-1) requires a count of zero or more.',
+        ];
+
+        yield 'zero minimum count' => [
+            'atLeast',
+            0,
+            'atLeast(0) requires a count of one or more.',
+        ];
     }
 
     #[Test]
