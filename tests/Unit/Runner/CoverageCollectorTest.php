@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Coverage\Driver\CoverageDriver;
 use Greenlight\Coverage\Driver\DriverSelector;
+use Greenlight\Coverage\Driver\PcovDriver;
+use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\CoverageCollector;
@@ -87,5 +90,55 @@ final class CoverageCollectorTest
                 '/project/src/Included.php',
                 '/project/tests/Excluded.php',
             ]);
+    }
+
+    #[Test]
+    public function explicitSettingsSelectOnlyTheRequestedDriver(): void
+    {
+        $this->expectExplicitDriver('pcov', PcovDriver::class, XdebugDriver::class);
+        $this->expectExplicitDriver('xdebug', XdebugDriver::class, PcovDriver::class);
+    }
+
+    /**
+     * @param 'pcov'|'xdebug' $setting
+     * @param class-string<CoverageDriver> $expected
+     * @param class-string<CoverageDriver> $other
+     */
+    private function expectExplicitDriver(string $setting, string $expected, string $other): void
+    {
+        $reason = null;
+        $collector = CoverageCollector::create(
+            new CoverageSettings([], $setting),
+            static function (string $message) use (&$reason): void {
+                $reason = $message;
+            },
+        );
+
+        if (!$expected::isAvailable()) {
+            $expectedName = new \ReflectionClass($expected)->getShortName();
+            $otherName = new \ReflectionClass($other)->getShortName();
+
+            if (!\is_string($reason)) {
+                Fail::because(\sprintf('Expected unavailable %s coverage to report a reason.', $setting));
+            }
+
+            Expect::that($collector)
+                ->because($setting . ' selects only its configured coverage driver')
+                ->toBeNull()
+                ->and($reason)->toContain('Greenlight tried ' . $expectedName . '.')
+                ->and(\str_contains($reason, $otherName))->toBeFalse();
+
+            return;
+        }
+
+        if (!$collector instanceof CoverageCollector) {
+            Fail::because(\sprintf('Expected available %s coverage to create a collector.', $setting));
+        }
+
+        $driver = new \ReflectionProperty(CoverageCollector::class, 'driver')->getValue($collector);
+
+        Expect::that($driver)
+            ->because($setting . ' selects only its configured coverage driver')
+            ->toBeInstanceOf($expected);
     }
 }
