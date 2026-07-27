@@ -10,9 +10,14 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Harness\Scope;
+use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
@@ -29,6 +34,32 @@ use Greenlight\Tests\Support\CollectingEventSink;
 
 final class PluginTest
 {
+    #[Test]
+    public function aPluginCannotReplaceADefaultHarnessService(): void
+    {
+        $provider = new class implements HarnessProvider, Fake {
+            #[\Override]
+            public function services(): array
+            {
+                return [
+                    new ServiceDefinition(
+                        TempDirectory::class,
+                        Scope::PerTest,
+                        static fn(): TempDirectory => new TempDirectory(),
+                    ),
+                ];
+            }
+        };
+        $plugins = PluginRegistry::forWorker([$provider]);
+
+        Expect::that(static fn() => DefaultServices::registry($plugins))
+            ->because('plugin services MUST not replace Greenlight-owned defaults')
+            ->toThrow(
+                \LogicException::class,
+                message: 'A harness service for Greenlight\Fixture\TempDirectory is already registered.',
+            );
+    }
+
     #[Test]
     public function quarantinePluginTransformsFailuresWithProvenance(): void
     {
