@@ -24,8 +24,10 @@ final readonly class PhpStanProbe
         TempDirectory $workspace,
         string $goodSource,
         string $badSource,
+        ?string $configFile = null,
     ): self {
         $root = \dirname(__DIR__, 2);
+        $configFile ??= $root . '/tests/Fixture/PhpStanExtension/probe.neon';
         $probeDirectory = $workspace->subdirectory('phpstan-probe');
         $goodFile = $probeDirectory . '/GoodProbe.php';
         $badFile = $probeDirectory . '/BadProbe.php';
@@ -42,7 +44,7 @@ final readonly class PhpStanProbe
                 '--no-progress',
                 '--error-format=json',
                 '-c',
-                $root . '/tests/Fixture/PhpStanExtension/probe.neon',
+                $configFile,
                 $goodFile,
                 $badFile,
             ],
