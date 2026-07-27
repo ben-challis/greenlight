@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core\Result;
 
 /**
- * A retried test has exactly one of these final outcomes. TestResult contains
+ * A retried test has exactly one of these final outcomes. `TestResult` contains
  * the attempt count.
  */
 enum Outcome: string

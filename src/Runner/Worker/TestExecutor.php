@@ -28,19 +28,25 @@ use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 /**
- * Each test attempt has these operations:
+ * Each test attempt can have these operations, in this order:
  *
  * - Constructor injection
- * - beforeTest subscribers
- * - Before hooks in declaration order
+ * - `beforeTest()` subscribers
+ * - `Before` hooks
  * - The test method
- * - After hooks in reverse declaration order
+ * - `After` hooks
  * - Test-scope teardown
  * - Timeout enforcement
+ * - `afterTest()` subscribers
  *
- * After hooks always run. afterTest subscribers use the guard for the
- * transformation log in applyAfterSubscribers(). Greenlight removes each reference to the
- * test instance when the test attempt ends.
+ * `Before` hooks use declaration order. `After` hooks use reverse declaration
+ * order.
+ *
+ * An `After` hook runs if constructor injection created a test instance. It
+ * runs even when a previous test-body operation did not complete.
+ * `applyAfterSubscribers()` validates each outcome change against the
+ * transformation log. Greenlight removes each reference to the test instance
+ * when the attempt ends.
  *
  * @internal
  */
@@ -300,8 +306,9 @@ final readonly class TestExecutor
     }
 
     /**
-     * Runs afterTest subscribers with the guard for the transformation log.
- *
+     * Runs afterTest() subscribers and validates each outcome change against
+     * the transformation log.
+     *
      * A change without a new transformation-log entry has no source. This
      * condition causes a test error that identifies the plugin.
      *
@@ -440,8 +447,8 @@ final readonly class TestExecutor
             return $shortName;
         }
 
-        // Replace invalid UTF-8 to keep a skipped result. An encoder error
-        // would change the skip-reason conversion to a worker error.
+        // Replace invalid UTF-8 to keep a skipped result. Without replacement,
+        // an encoder error changes the skip-reason conversion to a worker error.
         $rendered = \array_map(
             static fn(bool|float|int|string|null $argument): string => (string) \json_encode($argument, \JSON_INVALID_UTF8_SUBSTITUTE),
             $arguments,

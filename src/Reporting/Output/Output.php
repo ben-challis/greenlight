@@ -9,7 +9,7 @@ use Greenlight\Reporting\ReportingError;
 /**
  * A destination for reporter text.
  *
- * write() sends the exact text to the destination. It does not add, escape,
+ * `write()` sends the exact text to the destination. It does not add, escape,
  * or buffer text.
  */
 interface Output

@@ -137,9 +137,9 @@ final readonly class AttachmentsTest
         $budget = new TestArtifactBudget();
         $attachments = $store->forAttempt($id, 1, $budget);
 
-        Expect::that(static fn() => $attachments->text('../secret', 'x'))->because('unsafe names symlinks and limits fail loudly')
+        Expect::that(static fn() => $attachments->text('../secret', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(AttachmentError::class);
-        Expect::that(static fn() => $attachments->bytes('large.bin', '12345'))->because('unsafe names symlinks and limits fail loudly')
+        Expect::that(static fn() => $attachments->bytes('large.bin', '12345'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment size 5 exceeds the limit of 4 bytes.',
@@ -147,19 +147,19 @@ final readonly class AttachmentsTest
 
         $attachments->text('one.txt', '1234');
 
-        Expect::that(static fn() => $attachments->text('two.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
+        Expect::that(static fn() => $attachments->text('two.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'This test has reached the limit of 1 attachments.',
             );
         $retry = $store->forAttempt($id, 2, $budget);
-        Expect::that(static fn() => $retry->text('retry.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
+        Expect::that(static fn() => $retry->text('retry.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'This test has reached the limit of 1 attachments.',
             );
         $runLimited = $store->forAttempt(new TestId('Example\EvidenceTest', 'run-limit'), 1, new TestArtifactBudget());
-        Expect::that(static fn() => $runLimited->text('other.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
+        Expect::that(static fn() => $runLimited->text('other.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'This run has reached the limit of 1 attachments.',
@@ -171,11 +171,11 @@ final readonly class AttachmentsTest
         \symlink($source, $link);
         $other = $store->forAttempt(new TestId('Example\EvidenceTest', 'symlink'), 1, new TestArtifactBudget());
 
-        Expect::that(static fn() => $other->file('link.txt', $link))->because('unsafe names symlinks and limits fail loudly')
+        Expect::that(static fn() => $other->file('link.txt', $link))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: \sprintf(
-                    'Attachment source "%s" Use a source path that is not a symbolic link.',
+                    'Attachment source "%s" is a symbolic link. Use a source path that is not a symbolic link.',
                     $link,
                 ),
             );

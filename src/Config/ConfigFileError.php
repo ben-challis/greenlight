@@ -20,7 +20,7 @@ final class ConfigFileError extends \RuntimeException
     public static function noneInDirectory(string $directory): self
     {
         return new self(\sprintf(
-            'No %s found in "%s". Create one that returns GreenlightConfig::create(), or point at one with --config=<path>.',
+            'No %s found in "%s". Create one that returns GreenlightConfig::create(). Alternatively, use --config=<path> to select a configuration file.',
             ConfigLoader::FILE_NAME,
             $directory,
         ));
@@ -34,10 +34,10 @@ final class ConfigFileError extends \RuntimeException
     public static function didNotReturnBuilder(string $file, mixed $returned): self
     {
         return new self(\sprintf(
-            'Configuration file "%s" must return a %s instance, got %s. End the file with "return GreenlightConfig::create()->...;".',
+            'Configuration file "%s" returned %s. It must return a %s instance. End the file with "return GreenlightConfig::create()->...;".',
             $file,
-            GreenlightConfig::class,
             \get_debug_type($returned),
+            GreenlightConfig::class,
         ));
     }
 

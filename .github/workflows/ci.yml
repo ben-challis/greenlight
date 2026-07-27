@@ -139,8 +139,8 @@ jobs:
         run: "composer static-analysis"
 
       # PHPStan does not run in the "lowest" jobs. The oldest permitted PHPStan
-      # cannot infer types that the code requires. Examples are proc_open type
-      # narrowing and ReflectionClass variance. Consequently, all PHPStan
+      # cannot infer types that the code requires. Examples include the
+      # proc_open return type and ReflectionClass variance. Consequently, all PHPStan
       # reports in these jobs are false.
       - name: "Tests"
         run: "composer tests"

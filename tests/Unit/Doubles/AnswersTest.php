@@ -63,7 +63,7 @@ final class AnswersTest
             $plan->expects('add')->once()->andReturnsUsing(static fn(int $a, int $b): int => $a + $b);
         });
 
-        Expect::that($calculator->add(19, 23))->because('and() returns using receives the call arguments')->toBe(42);
+        Expect::that($calculator->add(19, 23))->because('andReturnsUsing() receives the call arguments')->toBe(42);
 
         $doubles->dispose();
     }

@@ -105,8 +105,8 @@ access controls as logs and test evidence.
 
 The protocol version detects peer-version mismatches. Frame and payload
 decoders reject malformed protocol data. The protocol does not support
-independent upgrades. The orchestrator and worker always come from the same
-Greenlight installation.
+independent upgrades. The orchestrator and worker always use the same Greenlight
+installation.
 
 Protocol payloads can change without a public compatibility cycle. For each
 change, update both sides and their protocol tests together.

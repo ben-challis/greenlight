@@ -138,13 +138,13 @@ final class TestMetadataTest
 
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
-        )->because('missing optional keys fail loudly')->toThrow(InvalidWirePayload::class);
+        )->because('missing optional keys cause an error')->toThrow(InvalidWirePayload::class);
 
         $payload = new TestMetadata('App\FooTest', 'bar')->toWire();
         unset($payload['timeoutSeconds']);
 
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
-        )->because('missing optional keys fail loudly')->toThrow(InvalidWirePayload::class);
+        )->because('missing optional keys cause an error')->toThrow(InvalidWirePayload::class);
     }
 }

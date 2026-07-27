@@ -50,7 +50,7 @@ const registeredOptions = new Set(
   [...application.matchAll(/new OptionSpec\('([^']+)'/g)].map((match) => match[1]),
 );
 const documentedOptions = new Set(
-  [...configurationReference.matchAll(/^### (?:-[A-Za-z], )?--([a-z][a-z-]*)(?:[=<[]|$)/gm)].map(
+  [...configurationReference.matchAll(/^### `?(?:-[A-Za-z], )?--([a-z][a-z-]*)(?:[=<[]|`|$)/gm)].map(
     (match) => match[1],
   ),
 );

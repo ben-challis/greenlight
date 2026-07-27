@@ -11,7 +11,7 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * A plugin does not change a result object. It uses withOutcome() to produce
+ * A plugin does not change a result object. It uses `withOutcome()` to produce
  * a replacement and record the source of the change.
  *
  * The expectations value counts each matcher in a chain separately. It counts
@@ -74,6 +74,8 @@ final readonly class TestResult implements WireSerializable
     /**
      * Adds failure details and records the outcome transformation.
      *
+     * @internal
+     *
      * @param non-empty-string $transformedBy
      * @param non-empty-list<FailureDetail> $details
      */
@@ -86,12 +88,15 @@ final readonly class TestResult implements WireSerializable
         );
     }
 
+    /** @internal */
     public function asRisky(): self
     {
         return $this->with(risky: true);
     }
 
     /**
+     * @internal
+     *
      * @param list<Attachment> $attachments
      */
     public function withAttachments(array $attachments): self
@@ -111,6 +116,8 @@ final readonly class TestResult implements WireSerializable
 
     /**
      * Returns the same result with an error and the specified detail.
+     *
+     * @internal
      */
     public function erroredBy(ThrowableDetail $error): self
     {
@@ -118,6 +125,8 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
+     * @internal
+     *
      * @param list<FailureDetail> $failures
      */
     public function withFailures(array $failures): self

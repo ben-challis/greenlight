@@ -33,12 +33,12 @@
     },
     "suggest": {
         "ext-pcov": "Collects line coverage quickly",
-        "fidry/cpu-core-counter": "Improves worker core detection for auto with cgroup limits and more platforms",
+        "fidry/cpu-core-counter": "Improves the 'auto' worker count across platforms and on systems with cgroup limits",
         "laravel/framework": "Provides the complete Laravel 13 framework that LaravelPlugin requires",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
-        "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled extension.neon",
-        "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled PhpUnitToGreenlightRector rule",
-        "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the SymfonyPlugin bridge"
+        "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled 'extension.neon' file",
+        "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled 'PhpUnitToGreenlightRector' rule",
+        "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the 'SymfonyPlugin' bridge"
     },
     "autoload": {
         "psr-4": {

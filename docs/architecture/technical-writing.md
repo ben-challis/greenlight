@@ -19,10 +19,17 @@ The prose checker finds mechanical errors and possible language problems. It
 does not certify compliance with ASD-STE100. A writer must also review the
 meaning, vocabulary, grammar, and technical accuracy.
 
+The checker also examines structured text fields, script strings and comments,
+and PHP strings that resemble messages. It examines extensionless PHP command
+entry points. It checks multiline PHPDoc tag descriptions, visible Markdown
+link labels, and website accessibility attributes. It applies only mandatory
+rules to PHPDoc tag descriptions and human-readable strings. Review all strings
+manually because code literals can resemble prose.
+
 ## Writing rules
 
 Use the official ASD-STE100 Issue 9 standard as the primary reference. Apply
-these rules to all new or materially changed technical prose:
+these rules to all repository-owned technical prose:
 
 * Use approved words with their approved meaning and part of speech.
 * Use the project terms in the technical-term register.
@@ -88,7 +95,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | --- | --- | --- |
 | adapter | Technical noun | A component that connects Greenlight to an external tool or execution method |
 | artifact | Technical noun | A file or data item that a run produces |
-| assignment | Technical noun | A group of test classes that an orchestrator sends to a worker |
+| assignment | Technical noun | A scheduling unit that an orchestrator sends to a worker |
 | attachment | Technical noun | Evidence that belongs to one test result |
 | attempt | Technical noun | One execution of a test before Greenlight reports a result or starts a retry |
 | baseline diff | Technical noun | A comparison of current coverage with a saved coverage map |
@@ -156,7 +163,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | result policy | Technical noun | A rule that can change a test result after execution |
 | retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
-| risky test | Technical noun | A passed test that verifies no expectations and does not opt out |
+| risky test | Technical noun | A passed test that verifies no expectations and has no `#[NoExpectations]` attribute |
 | run | Technical noun | One execution of a selected test suite |
 | run | Technical verb | To execute a command, test, or test suite |
 | run directory | Technical noun | The directory that contains published attachments for one run |
@@ -185,7 +192,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | temporal expectation | Technical noun | An expectation that observes probe values over time |
 | terminal emulator | Technical noun | Test support that models the terminal state after control sequences |
 | terminal result | Technical noun | The final result after all test and plugin changes |
-| test | Technical noun | One test method with one optional data set |
+| test | Technical noun | One invocation of a test method with one optional data set |
 | test class | Technical noun | A class that contains one or more test methods |
 | test container | Technical noun | A Symfony container that makes test services available |
 | test ID | Technical noun | The stable class, method, and optional data-set label for a test |

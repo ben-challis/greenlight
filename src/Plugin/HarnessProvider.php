@@ -9,7 +9,7 @@ use Greenlight\Harness\ServiceDefinition;
 /**
  * Adds harness services to the worker registry.
  *
- * Greenlight adds built-in services before services() results. A duplicate
+ * Greenlight adds built-in services before `services()` results. A duplicate
  * type causes a configuration error.
  */
 interface HarnessProvider extends Plugin

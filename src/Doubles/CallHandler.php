@@ -127,7 +127,7 @@ final readonly class CallHandler
 
         $expected = $declared === []
             ? \sprintf('no calls to %s()', $method)
-            : \implode('; ', \array_map(
+            : \implode("\n", \array_map(
                 fn(MethodExpectation $expectation): string => $expectation->describePlan($this->renderer),
                 $declared,
             ));

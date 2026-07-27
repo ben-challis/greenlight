@@ -13,7 +13,7 @@ use Greenlight\Expect\ValueRenderer;
  *
  * MockPlan::expects() creates this object. Its fluent plan methods are the
  * public interface. The call handler and verifier use the members marked
- * @internal.
+ * @internal
  *
  * Argument values compare with the same deep equality as Expect's toEqual().
  */
@@ -25,7 +25,7 @@ final class MethodExpectation
     public int $actualCalls = 0;
 
     /**
-     * @var list<mixed>|null A null value accepts any arguments.
+     * @var list<mixed>|null A null value accepts all argument lists.
      */
     private ?array $arguments = null;
 
@@ -310,7 +310,7 @@ final class MethodExpectation
     public function describeCall(ValueRenderer $renderer): string
     {
         if ($this->arguments === null) {
-            return $this->method . '(any arguments)';
+            return $this->method . '(all arguments)';
         }
 
         $parts = \array_map(

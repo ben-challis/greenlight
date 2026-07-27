@@ -20,8 +20,8 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->because('list tests prints the selection in plan order without running')->toBe(0);
-        Expect::that($output)->because('list tests prints the selection in plan order without running')
+        Expect::that($result->exitCode)->because('--list-tests prints the selection in plan order and does not run tests')->toBe(0);
+        Expect::that($output)->because('--list-tests prints the selection in plan order and does not run tests')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls')
             ->toContain('7 tests');
@@ -35,7 +35,7 @@ final readonly class ListingTest
                 $classes[] = $class;
             }
         }
-        Expect::that($classes)->because('list tests prints the selection in plan order without running')->toBe(\array_values(\array_unique($classes)));
+        Expect::that($classes)->because('--list-tests prints the selection in plan order and does not run tests')->toBe(\array_values(\array_unique($classes)));
     }
 
     #[Test]

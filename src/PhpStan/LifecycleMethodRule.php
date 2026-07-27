@@ -17,6 +17,8 @@ use PHPStan\Rules\RuleErrorBuilder;
  * A lifecycle hook must be public, non-static, concrete, and callable without
  * arguments.
  *
+ * @internal
+ *
  * @implements Rule<InClassMethodNode>
  */
 final class LifecycleMethodRule implements Rule
@@ -82,7 +84,7 @@ final class LifecycleMethodRule implements Rule
 
         if ($this->hasRequiredParameter($method)) {
             $errors[] = $this->error(
-                \sprintf('Lifecycle hook %s must accept zero arguments.', $methodName),
+                \sprintf('Lifecycle hook %s must not require arguments.', $methodName),
                 'parameters',
                 $line,
             );

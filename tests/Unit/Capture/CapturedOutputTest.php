@@ -46,7 +46,7 @@ final class CapturedOutputTest
 
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip($original->toWire()));
 
-        Expect::that($restored->stdout)->because('binary bytes are scrubbed on the way to the wire')->toMatch('//u')
+        Expect::that($restored->stdout)->because('wire serialization replaces invalid bytes')->toMatch('//u')
             ->toContain('stdout with')
             ->toContain('1')
             ->and(\preg_match('//u', $restored->diagnostics[0]->message))->toBe(1)
@@ -59,7 +59,7 @@ final class CapturedOutputTest
     {
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip(new CapturedOutput('')->toWire()));
 
-        Expect::that($restored->stdout)->because('an empty capture round trips')->toBe('')
+        Expect::that($restored->stdout)->because('wire serialization preserves an empty capture')->toBe('')
             ->and($restored->diagnostics)->toBe([])
             ->and($restored->stdoutTruncated)->toBeFalse()
             ->and($restored->diagnosticsTruncated)->toBeFalse();

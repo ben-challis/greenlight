@@ -60,7 +60,7 @@ final class ConfigLoaderTest
             new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn'));
         } catch (ConfigFileError $error) {
             Expect::that($error->getMessage())->toContain('must return a Greenlight\Config\GreenlightConfig instance');
-            Expect::that($error->getMessage())->toContain('got string');
+            Expect::that($error->getMessage())->toContain('returned string');
 
             return;
         }

@@ -11,29 +11,31 @@ use Greenlight\Core\Test\ExpectationCounter;
 /**
  * A fluent matcher chain for one subject value.
  *
- * Use Expect::that() to create an instance.
+ * Use `Expect::that()` to create an instance.
  *
- * A failed matcher throws ExpectationFailed immediately.
+ * A failed matcher throws `ExpectationFailed` immediately.
  *
- * toEqual() uses these rules for deep equality:
+ * `toEqual()` uses these rules for deep equality:
  *
- * - Integers and floats use numeric value. Thus, 1 equals 1.0. NAN does not
+ * - Integers and floats use numeric value. Thus, `1` equals `1.0`. `NAN` does not
  *   equal a value, even itself.
  *
- * - Other scalar values and null use strict equality. Thus, '1' does not
- *   equal 1.
+ * - Other scalar values and `null` use strict equality. Thus, `'1'` does not
+ *   equal `1`.
  *
  * - Arrays are equal when they contain the same keys and recursively equal
  *   values. Key order has no effect.
  *
  * - Enum cases, closures, and resources use identity.
  *
- * - DateTimeInterface instances are equal at the same instant and
+ * - `DateTimeInterface` instances are equal at the same instant and
  *   microsecond. The timezone has no effect.
  *
  * - Other objects are equal when they have the same class and recursively
  *   equal properties. This rule includes private and inherited properties.
  *   The comparison safely processes cyclic structures.
+ *
+ * @template T
  */
 final class Expectation
 {
@@ -45,6 +47,7 @@ final class Expectation
     /**
      * @internal Use Expect::that() instead.
      *
+     * @param T $subject
      * @param list<ExpectationExtension> $extensions
      */
     public function __construct(
@@ -54,13 +57,15 @@ final class Expectation
     ) {}
 
     /**
-     * Dispatches extension matchers. If an ExpectationExtension provides the
+     * Dispatches extension matchers. If an `ExpectationExtension` provides the
      * requested matcher, this method gives it the subject and arguments.
      *
      * An extension cannot replace a native matcher. PHP calls the native
      * method directly.
      *
      * @param array<int, mixed> $arguments
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -89,6 +94,8 @@ final class Expectation
      * Inverts the next matcher in the chain. That matcher consumes the
      * inversion. Negation does not apply to subject type checks. A matcher
      * fails if it cannot process the subject type.
+     *
+     * @return self<T>
      */
     public function not(): self
     {
@@ -106,6 +113,8 @@ final class Expectation
      *
      * @param non-empty-string $reason
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function because(string $reason): self
@@ -122,8 +131,14 @@ final class Expectation
     }
 
     /**
-     * Sets a new subject for the chain. The chain does not apply not() and
-     * because() modifiers to the new subject.
+     * Sets a new subject for the chain. The chain does not apply `not()` and
+     * `because()` modifiers to the new subject.
+     *
+     * @template TNext
+     *
+     * @param TNext $value
+     *
+     * @return self<TNext>
      */
     public function and(mixed $value): self
     {
@@ -132,6 +147,8 @@ final class Expectation
 
     /**
      * Passes when the subject and expected value are identical (===).
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -148,6 +165,8 @@ final class Expectation
      * Passes when the subject and expected value satisfy the rules for deep
      * equality on this class.
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toEqual(mixed $expected): self
@@ -160,8 +179,10 @@ final class Expectation
     }
 
     /**
-     * Uses the toEqual() rules but ignores list-element order at all levels.
+     * Uses the `toEqual()` rules but ignores list-element order at all levels.
      * Associative arrays keep their keys.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -177,6 +198,8 @@ final class Expectation
     /**
      * Passes when the subject is identical (===) to one of the options.
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeOneOf(mixed ...$options): self
@@ -190,10 +213,12 @@ final class Expectation
 
     /**
      * Passes when the haystack contains the subject by identity (===). This
-     * matcher is the reverse of toContain(). The check consumes a Traversable
+     * matcher is the reverse of `toContain()`. The check consumes a `Traversable`
      * haystack.
      *
      * @param iterable<mixed> $haystack
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -211,6 +236,8 @@ final class Expectation
     /**
      * @param class-string $class
      *
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeInstanceOf(string $class): self
@@ -223,6 +250,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeTrue(): self
@@ -231,6 +260,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeFalse(): self
@@ -239,6 +270,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeNull(): self
@@ -247,6 +280,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeArray(): self
@@ -260,6 +295,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeString(): self
@@ -273,6 +310,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeInt(): self
@@ -286,6 +325,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeFloat(): self
@@ -299,6 +340,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeBool(): self
@@ -312,6 +355,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeCallable(): self
@@ -325,6 +370,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeIterable(): self
@@ -340,7 +387,9 @@ final class Expectation
     /**
      * For a string subject, checks for a string needle. For an iterable
      * subject, checks for the value by identity (===). The check consumes a
-     * Traversable subject.
+     * `Traversable` subject.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -386,8 +435,10 @@ final class Expectation
     }
 
     /**
-     * The subject must be Countable or Traversable. The count consumes a
-     * Traversable subject.
+     * The subject must be `Countable` or `Traversable`. The count consumes a
+     * `Traversable` subject.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -414,8 +465,10 @@ final class Expectation
 
     /**
      * Passes when the subject is an empty string or contains no elements.
-     * The subject must be a string, array, Countable, or iterable. The check
-     * consumes a Traversable subject.
+     * The subject must be a string, array, `Countable`, or iterable. The check
+     * consumes a `Traversable` subject.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -439,8 +492,10 @@ final class Expectation
 
     /**
      * For a valid UTF-8 string, measures the number of code points. For other
-     * strings, measures the number of bytes. Array and Countable subjects use
-     * count().
+     * strings, measures the number of bytes. Array and `Countable` subjects use
+     * `count()`.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -467,9 +522,11 @@ final class Expectation
     }
 
     /**
-     * The subject must be an array or an ArrayAccess implementation. The
-     * matcher uses array_key_exists() for arrays and offsetExists() for
-     * ArrayAccess.
+     * The subject must be an array or an `ArrayAccess` implementation. The
+     * matcher uses `array_key_exists()` for arrays and `offsetExists()` for
+     * `ArrayAccess`.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -495,11 +552,13 @@ final class Expectation
 
     /**
      * Each subset key must exist in the subject with an equal value. Equality
-     * uses the toEqual() rules. A nested array is also a subset. The
+     * uses the `toEqual()` rules. A nested array is also a subset. The
      * related nested subject array can contain extra keys. The failure
      * identifies the first different key by its dot-separated path.
      *
      * @param array<array-key, mixed> $subset
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -529,6 +588,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeGreaterThan(int|float $bound): self
@@ -541,6 +602,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeGreaterThanOrEqual(int|float $bound): self
@@ -553,6 +616,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeLessThan(int|float $bound): self
@@ -565,6 +630,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toBeLessThanOrEqual(int|float $bound): self
@@ -577,7 +644,10 @@ final class Expectation
     }
 
     /**
-     * Passes when abs(subject - of) is not more than delta.
+     * Passes when the absolute difference between the numeric subject and
+     * `$of` is not more than `$delta`.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -599,6 +669,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws \InvalidArgumentException when the pattern is not a valid regular expression
      * @throws ExpectationFailed
      */
@@ -614,6 +686,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toStartWith(string $prefix): self
@@ -626,6 +700,8 @@ final class Expectation
     }
 
     /**
+     * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toEndWith(string $suffix): self
@@ -640,6 +716,8 @@ final class Expectation
     /**
      * The subject must be a string. The matcher passes when the string
      * contains valid JSON.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -657,6 +735,8 @@ final class Expectation
      * decodes the subject and expected JSON. It then applies deep equality to
      * the results. Object-key order has no effect. Invalid subject JSON causes
      * an expectation failure. Invalid expected JSON causes a usage error.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -696,10 +776,12 @@ final class Expectation
      * The message must satisfy the optional regular expression or exact-text
      * constraint.
      *
-     * With not(), a throwable that does not satisfy both conditions makes the
+     * With `not()`, a throwable that does not satisfy both conditions makes the
      * matcher pass.
      *
      * @param class-string<\Throwable> $throwable
+     *
+     * @return self<T>
      *
      * @throws \InvalidArgumentException when the match pattern is not a valid regular expression
      * @throws ExpectationFailed
@@ -747,15 +829,17 @@ final class Expectation
                 $thrown::class,
                 $this->renderer->render($thrown->getMessage()),
             )
-            : 'a callable that threw nothing';
+            : 'a callable that did not throw';
 
         return $this->verify($matched, $description, $throwable, $actual);
     }
 
     /**
      * @param non-empty-string $description Sentence fragment that starts with
-     *   "to". Negation puts "not" before it. A pending because() reason
+     *   "to". Negation puts "not" before it. A pending `because()` reason
      *   follows it.
+     *
+     * @return self<T>
      *
      * @throws ExpectationFailed
      */
@@ -827,7 +911,7 @@ final class Expectation
 
     /**
      * Reports a matcher that cannot process the subject type. The failure
-     * ignores negation. Thus, not() cannot make incorrect use pass.
+     * ignores negation. Thus, `not()` cannot make incorrect use pass.
      *
      * @param non-empty-string $message
      *

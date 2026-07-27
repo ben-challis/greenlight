@@ -47,7 +47,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 /**
  * Converts a final PHPUnit test class to Greenlight: the TestCase parent,
- * lifecycle hooks, attributes, assertions, and expectException blocks. The
+ * lifecycle hooks, attributes, assertions, and `expectException()` blocks. The
  * rule converts a class only when every member has a faithful Greenlight
  * equivalent. It does not change other classes.
  */
@@ -359,7 +359,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
         if ($hasTestAttribute) {
             // A #[Test] attribute on a static or non-public method is not a
-            // runnable PHPUnit test. A conversion would silently drop it.
+            // runnable PHPUnit test. Without this check, conversion drops the
+            // method without an error.
             return null;
         }
 
@@ -887,7 +888,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     /**
      * @param array<Arg|Node\VariadicPlaceholder> $args
      *
-     * @return list<Arg>|null null when any argument is named, unpacked, or a
+     * @return list<Arg>|null Null if an argument is named, unpacked, or a
      *                        first-class callable placeholder
      */
     private function positionalArgs(array $args): ?array

@@ -27,13 +27,13 @@ final readonly class RuntimeMessageTest
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->stderr)->toContain(
                 \sprintf(
-                    'Coverage export not found at %s/build/coverage/coverage.json. Run `composer tests:coverage` first.',
+                    'Greenlight did not find the coverage export at %s/build/coverage/coverage.json. Run `composer tests:coverage` first.',
                     (string) \realpath($root),
                 ),
             )
             ->and((string) \file_get_contents($summary))->toBe(
                 "## Code coverage\n\n"
-                . "**Coverage unavailable.** The coverage run did not produce an export.\n\n",
+                . "**Coverage unavailable.** Greenlight did not produce the coverage export.\n\n",
             );
     }
 

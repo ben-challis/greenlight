@@ -8,10 +8,11 @@ Infection needs the tests that cover each mutated line.
 
 Its adapter can then run this loop:
 
-1. Run the suite once and collect per-test coverage.
-2. For each mutant, find the tests that cover the changed line.
-3. Run only those tests.
-4. Treat a run with a test failure or test error as a killed mutant.
+1. Run the suite one time.
+2. During the run, collect coverage for each test.
+3. For each mutant, find the tests that cover the changed line.
+4. Run only those tests.
+5. Treat a run with a test failure or test error as a killed mutant.
 
 This process keeps mutation tests within a practical limit. Infection can run
 the complete suite for every mutant, but that integration is too slow.
@@ -32,7 +33,7 @@ The missing part is attribution.
 Current coverage answers:
 
 ```text
-which lines were covered by the run?
+which lines did the run cover?
 ```
 
 Infection needs:

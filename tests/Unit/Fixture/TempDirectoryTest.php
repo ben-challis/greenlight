@@ -13,8 +13,8 @@ final class TempDirectoryTest
     #[Test]
     public function nothingExistsOnDiskBeforeFirstUse(): void
     {
-        // path() is the only method that accesses the disk. If construction
-        // created a directory, disposal could try to remove it and throw.
+        // path() is the only method that accesses the disk. Construction does
+        // not create a directory for disposal.
         $directory = new TempDirectory();
 
         Expect::that(static function () use ($directory): void {

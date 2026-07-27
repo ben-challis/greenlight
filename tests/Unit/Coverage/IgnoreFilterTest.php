@@ -74,7 +74,7 @@ final class IgnoreFilterTest
         $filtered = new IgnoreFilter()->apply($map);
         $file = $filtered->files()['/nonexistent/plain.php'];
 
-        Expect::that($file->coveredLines)->because('files without markers pass through unchanged')->toBe([1, 2])
+        Expect::that($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2])
             ->and($file->uncoveredLines)->toBe([3]);
     }
 

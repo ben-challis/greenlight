@@ -35,8 +35,8 @@ final class Equality
         $canonical = \array_map(self::canonicalize(...), $value);
 
         if (\array_is_list($canonical)) {
-            // Compute each key one time for each element. A comparator would
-            // serialize both operands again for each comparison.
+            // Compute each key one time for each element. A comparator
+            // serializes both operands again for each comparison.
             $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, []), $canonical);
             \array_multisort($keys, \SORT_ASC, \SORT_STRING, $canonical);
         }

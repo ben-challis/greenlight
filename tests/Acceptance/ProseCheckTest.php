@@ -18,12 +18,22 @@ final readonly class ProseCheckTest
     #[Test]
     #[DataRow(['semicolon', 'The worker stops; the orchestrator continues.', 'The worker stops. The orchestrator continues.'], 'semicolon')]
     #[DataRow(['contraction', "The worker doesn't stop.", 'The worker does not stop.'], 'contraction')]
-    #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'British spelling')]
-    #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'British favour spelling')]
-    #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'British honor and label spelling')]
-    #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'British normalize spelling')]
-    #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'British parameterize spelling')]
-    #[DataRow(['british-spelling', 'The reporter deserialises the event.', 'The reporter deserializes the event.'], 'British deserialize spelling')]
+    #[DataRow(['contraction', 'The worker doesn’t stop.', 'The worker does not stop.'], 'Unicode contraction')]
+    #[DataRow(['contraction', "Let's start the worker.", 'Start the worker.'], 'additional contraction')]
+    #[DataRow(['contraction', "Here's why that should've worked.", 'Here is why that should have worked.'], 'missing forms')]
+    #[DataRow(['contraction', "There'll be capacity, so that'll work.", 'There will be capacity, so that will work.'], 'future forms')]
+    #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'colour')]
+    #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'favour')]
+    #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'honour and labelled')]
+    #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'normalise')]
+    #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'parameterise')]
+    #[DataRow(['british-spelling', 'The reporter deserialises the event.', 'The reporter deserializes the event.'], 'deserialise')]
+    #[DataRow(['british-spelling', 'The worker fulfils the request.', 'The worker fulfills the request.'], 'fulfil')]
+    #[DataRow([
+        'british-spelling',
+        'Organise the authorised customisation.',
+        'Organize the authorized customization.',
+    ], 'other spellings')]
     #[DataRow([
         'sentence-length',
         'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
@@ -64,8 +74,9 @@ final readonly class ProseCheckTest
             # Exclusions
 
             The value is `colour;` in this sample.
+            The other value is ``colour; `sample` `` in this sample.
 
-            [colour;](https://example.com/colour)
+            [reference](https://example.com/colour)
 
             ```php
             $colour = 'value;';
@@ -76,6 +87,67 @@ final readonly class ProseCheckTest
 
         $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes markdown code and links')->toBe(0);
+    }
+
+    #[Test]
+    public function closesMarkdownFencesOnlyWithTheOpeningMarker(): void
+    {
+        $root = $this->workspace('markdown-fence-marker');
+        $this->write(
+            $root,
+            'sample.md',
+            <<<'MARKDOWN'
+            # Fence marker
+
+            ```php
+            $colour = 'value;';
+            ~~~
+            $colour = 'other;';
+            ```
+
+            The reporter doesn't stop;
+
+            MARKDOWN,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('closes Markdown fences only with the opening marker')->toBe(1)
+            ->and($result->output())->toContain('sample.md:9: contraction:')
+            ->toContain('sample.md:9: semicolon:')
+            ->not()->toContain('sample.md:6:');
+    }
+
+    #[Test]
+    public function checksMarkdownLinkLabelsButExcludesDestinations(): void
+    {
+        $root = $this->workspace('markdown-link-label');
+        $this->write(
+            $root,
+            'sample.md',
+            "[The guide doesn't use colour;](https://example.com/colour)\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks visible Markdown link labels but excludes destinations')->toBe(1)
+            ->and($result->output())->toContain('sample.md:1: british-spelling:')
+            ->toContain('sample.md:1: contraction:')
+            ->toContain('sample.md:1: semicolon:');
+    }
+
+    #[Test]
+    public function checksMarkdownImageAltText(): void
+    {
+        $root = $this->workspace('markdown-image-alt');
+        $this->write(
+            $root,
+            'sample.md',
+            "![The diagram doesn't use colour](images/worker.svg)\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks Markdown image alt text')->toBe(1)
+            ->and($result->output())->toContain('sample.md:1: british-spelling:')
+            ->toContain('sample.md:1: contraction:');
     }
 
     #[Test]
@@ -111,12 +183,17 @@ final readonly class ProseCheckTest
             <<<'ASTRO'
             ---
             const codeSample = "The code doesn't use colour;";
+            const title = "The page doesn't use colour.";
             ---
 
             <main aria-label="The site uses colour">
               <p>The worker doesn't stop.</p>
               <code>The code doesn't use colour;</code>
             </main>
+
+            <script>
+              status.textContent = "The search doesn't use colour.";
+            </script>
 
             ASTRO,
         );
@@ -127,6 +204,163 @@ final readonly class ProseCheckTest
             ->toContain('british-spelling')
             ->toContain('contraction')
             ->not()->toContain('codeSample');
+    }
+
+    #[Test]
+    public function checksAccessibilityAttributeForms(): void
+    {
+        $root = $this->workspace('accessibility-attributes');
+        $this->write(
+            $root,
+            'website/src/pages/index.astro',
+            <<<'ASTRO'
+            <main aria-label='The page does not stop;'>
+              <section aria-label={ready ? "The dialog doesn't stop." : 'The dialog stops.'}></section>
+            </main>
+
+            ASTRO,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks static and expression accessibility attributes')->toBe(1)
+            ->and($result->output())->toContain('website/src/pages/index.astro:1: semicolon:')
+            ->toContain('website/src/pages/index.astro:2: contraction:');
+    }
+
+    #[Test]
+    public function checksStructuredDescriptionsAndOwnedComments(): void
+    {
+        $root = $this->workspace('structured-prose');
+        $this->write(
+            $root,
+            'composer.json',
+            <<<'JSON'
+            {
+              "description": "The package doesn't organise tests."
+            }
+            JSON,
+        );
+        $this->write(
+            $root,
+            '.github/ISSUE_TEMPLATE/feature.yml',
+            <<<'YAML'
+            name: Feature request
+            description: The template uses colour.
+            # The author shouldn't add a solution.
+            YAML,
+        );
+        $this->write(
+            $root,
+            'website/src/lib/docs.ts',
+            <<<'TS'
+            export const item = {
+              title: 'Start',
+              description: 'The guide favours one worker.',
+            };
+            TS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks structured descriptions and owned comments')->toBe(1)
+            ->and($result->output())->toContain('composer.json:2: british-spelling:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:2: british-spelling:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:3: contraction:')
+            ->toContain('website/src/lib/docs.ts:3: british-spelling:');
+    }
+
+    #[Test]
+    public function checksMultilineStructuredAndScriptProse(): void
+    {
+        $root = $this->workspace('multiline-structured-prose');
+        $this->write(
+            $root,
+            'composer.json',
+            <<<'JSON'
+            {"suggest": {
+              "vendor/package": "The package doesn't organise tests."
+            }}
+            JSON,
+        );
+        $this->write(
+            $root,
+            '.github/ISSUE_TEMPLATE/feature.yml',
+            <<<'YAML'
+            description: >-
+              The template doesn't use
+              colour;
+            YAML,
+        );
+        $this->write(
+            $root,
+            'website/scripts/status.mjs',
+            <<<'JS'
+            const labels = { unavailable: 'The service does not use colour.' };
+            throw new Error("The worker doesn't stop.");
+            status.textContent = 'The runner does not organise tests.';
+            JS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks multiline structured and script prose')->toBe(1)
+            ->and($result->output())->toContain('composer.json:2: contraction:')
+            ->toContain('composer.json:2: british-spelling:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: contraction:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: british-spelling:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: semicolon:')
+            ->toContain('website/scripts/status.mjs:1: british-spelling:')
+            ->toContain('website/scripts/status.mjs:2: contraction:')
+            ->toContain('website/scripts/status.mjs:3: british-spelling:');
+    }
+
+    #[Test]
+    public function checksScriptBlockComments(): void
+    {
+        $root = $this->workspace('script-block-comments');
+        $this->write(
+            $root,
+            'website/scripts/status.mjs',
+            <<<'JS'
+            const open = '/*';
+            const codeSample = "The code doesn't stop;";
+            const close = '*/';
+
+            /**
+             * The reporter does not stop;
+             * the worker continues.
+             */
+            JS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks script block comments')->toBe(1)
+            ->and($result->output())->toContain('website/scripts/status.mjs:6: semicolon:')
+            ->not()->toContain('website/scripts/status.mjs:2: contraction:');
+    }
+
+    #[Test]
+    public function joinsScriptLineCommentParagraphs(): void
+    {
+        $root = $this->workspace('script-line-comments');
+        $this->write(
+            $root,
+            'website/scripts/status.mjs',
+            <<<'JS'
+            const template = `
+            // The template doesn't stop;
+            `;
+
+            // The orchestrator collects every selected test class from all configured directories and
+            // sends one complete assignment to every available worker before the test run begins across all active channels.
+            //
+            // One sentence. Two sentences. Three sentences. Four sentences. Five sentences. Six sentences. Seven sentences.
+            JS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('joins script line-comment paragraphs')->toBe(1)
+            ->and($result->output())->toContain('website/scripts/status.mjs:5: sentence-length:')
+            ->toContain('website/scripts/status.mjs:8: paragraph-length:')
+            ->not()->toContain('website/scripts/status.mjs:2: contraction:');
     }
 
     #[Test]
@@ -170,6 +404,20 @@ final readonly class ProseCheckTest
     }
 
     #[Test]
+    public function excludesGeneratedAstroTypes(): void
+    {
+        $root = $this->workspace('generated-astro-types');
+        $this->write(
+            $root,
+            'website/.astro/content.d.ts',
+            "/** The generated declaration doesn't stop; */\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('excludes generated Astro types')->toBe(0);
+    }
+
+    #[Test]
     public function excludesPhpDocTagsAndMachineDirectivesButChecksNarrativeComments(): void
     {
         $root = $this->workspace('php-comments');
@@ -210,6 +458,191 @@ final readonly class ProseCheckTest
             ->and($includedResult->output())->toContain('src/Narrative.php:3:')
             ->toContain('british-spelling')
             ->toContain('semicolon');
+    }
+
+    #[Test]
+    public function checksPhpDocTagDescriptionsAndHumanReadableStrings(): void
+    {
+        $root = $this->workspace('php-human-prose');
+        $this->write(
+            $root,
+            'src/Message.php',
+            <<<'PHP'
+            <?php
+
+            final class Message
+            {
+                /**
+                 * @param string $value The reporter doesn't use colour;
+                 * @param int<1, max>|null $limit The worker doesn't use colour;
+                 * @return array{value: string, label: string} The method doesn't use colour;
+                 */
+                public function report(string $value, ?int $limit): string
+                {
+                    return 'The worker does not organise the data.';
+                }
+            }
+
+            PHP,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks PHPDoc tag descriptions and human-readable strings')->toBe(1)
+            ->and($result->output())->toContain('src/Message.php:6: semicolon:')
+            ->toContain('src/Message.php:6: contraction:')
+            ->toContain('src/Message.php:6: british-spelling:')
+            ->toContain('src/Message.php:7: contraction:')
+            ->toContain('src/Message.php:7: british-spelling:')
+            ->toContain('src/Message.php:8: contraction:')
+            ->toContain('src/Message.php:8: british-spelling:')
+            ->toContain('src/Message.php:12: british-spelling:');
+    }
+
+    #[Test]
+    public function checksProseBearingPhpDocTags(): void
+    {
+        $root = $this->workspace('php-prose-tags');
+        $this->write(
+            $root,
+            'src/Message.php',
+            <<<'PHP'
+            <?php
+
+            final class Message
+            {
+                /**
+                 * @internal The reporter doesn't stop;
+                 */
+                public function report(): void {}
+
+                /**
+                 * @deprecated The worker starts here and
+                 *   doesn't continue;
+                 */
+                public function oldReport(): void {}
+            }
+
+            PHP,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks prose-bearing PHPDoc tags')->toBe(1)
+            ->and($result->output())->toContain('src/Message.php:6: contraction:')
+            ->toContain('src/Message.php:6: semicolon:')
+            ->toContain('src/Message.php:11: contraction:')
+            ->toContain('src/Message.php:11: semicolon:');
+    }
+
+    #[Test]
+    public function checksTheExtensionlessPhpEntrypoint(): void
+    {
+        $root = $this->workspace('extensionless-php');
+        $this->write(
+            $root,
+            'bin/greenlight',
+            "<?php\n\n\\fwrite(\\STDERR, \"The runner doesn't stop;\");\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks the extensionless PHP entry point')->toBe(1)
+            ->and($result->output())->toContain('bin/greenlight:3: contraction:')
+            ->toContain('bin/greenlight:3: semicolon:');
+    }
+
+    #[Test]
+    public function checksMultilinePhpDocAndInterpolatedPhpStrings(): void
+    {
+        $root = $this->workspace('php-multiline-prose');
+        $this->write(
+            $root,
+            'src/Message.php',
+            <<<'PHP'
+            <?php
+
+            final class Message
+            {
+                /**
+                 * @param string $value The reporter starts here and
+                 *   doesn't use colour;
+                 */
+                public function report(string $value, string $worker): string
+                {
+                    return "The $worker doesn't organise tests.";
+                }
+
+                public function document(): string
+                {
+                    return <<<TEXT
+                    The worker doesn't use colour;
+                    TEXT;
+                }
+            }
+
+            PHP,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks multiline PHPDoc and interpolated PHP strings')->toBe(1)
+            ->and($result->output())->toContain('src/Message.php:6: semicolon:')
+            ->toContain('src/Message.php:6: contraction:')
+            ->toContain('src/Message.php:6: british-spelling:')
+            ->toContain('src/Message.php:11: contraction:')
+            ->toContain('src/Message.php:11: british-spelling:')
+            ->toContain('src/Message.php:16: semicolon:')
+            ->toContain('src/Message.php:16: contraction:')
+            ->toContain('src/Message.php:16: british-spelling:');
+    }
+
+    #[Test]
+    public function joinsWrappedMarkdownListItems(): void
+    {
+        $root = $this->workspace('markdown-list-continuation');
+        $this->write(
+            $root,
+            'sample.md',
+            <<<'MARKDOWN'
+            - The orchestrator collects every selected test class from all configured directories
+              and sends one complete assignment to every available worker before the test run begins across all active channels.
+
+            - One sentence. Two sentences. Three sentences.
+              Four sentences. Five sentences. Six sentences. Seven sentences.
+            MARKDOWN,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('joins wrapped Markdown list items')->toBe(1)
+            ->and($result->output())->toContain('sample.md:1: sentence-length:')
+            ->toContain('sample.md:4: paragraph-length:');
+    }
+
+    #[Test]
+    public function excludesCodeTemplatesAndQuotedLiteralsInPhpStrings(): void
+    {
+        $root = $this->workspace('php-string-exclusions');
+        $this->write(
+            $root,
+            'src/CodeTemplate.php',
+            <<<'PHP'
+            <?php
+
+            final class CodeTemplate
+            {
+                public function render(): string
+                {
+                    return 'private $colour;';
+                }
+
+                public function instruction(): string
+                {
+                    return 'End the file with "return GreenlightConfig::create();".';
+                }
+            }
+
+            PHP,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('excludes code templates and quoted literals in PHP strings')->toBe(0);
     }
 
     #[Test]
@@ -353,7 +786,7 @@ final readonly class ProseCheckTest
         $this->write($root, 'packages/example/node_modules/package/README.md', $invalid);
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes dependencies at any directory depth')->toBe(0);
+        Expect::that($result->exitCode)->because('excludes dependencies at all directory depths')->toBe(0);
     }
 
     #[Test]

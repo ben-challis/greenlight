@@ -17,19 +17,24 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\IntegerType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * A data provider must be a public, static, concrete method that accepts zero
- * arguments. It must be in the test class or the specified provider class. It
- * must return an iterable of argument arrays.
+ * A data provider must be a public, static, concrete method that does not
+ * require arguments. It must be in the test class or the specified provider
+ * class. It must return an iterable of argument arrays.
  *
- * PHPStan can know the exact form of an array{...} return type or an inline
- * #[DataRow] literal. In these forms, PHPStan compares each value to its
+ * PHPStan can know the exact form of an `array{...}` return type or an inline
+ * `#[DataRow]` literal. In these forms, PHPStan compares each value to its
  * parameter. It also reports too few or too many values. For other forms,
  * PHPStan verifies only that each data set is an array. Greenlight validates
  * its content at run time.
+ *
+ * @internal
  *
  * @implements Rule<InClassMethodNode>
  */
@@ -48,7 +53,7 @@ final readonly class DataProviderSignatureRule implements Rule
     {
         $method = $node->getMethodReflection();
         $acceptor = null;
-        $errors = [];
+        $errors = $this->checkDataRowKeys($node, $scope);
 
         foreach ($node->getOriginalNode()->attrGroups as $group) {
             foreach ($group->attrs as $attribute) {
@@ -67,6 +72,48 @@ final readonly class DataProviderSignatureRule implements Rule
                 $errors = [...$errors, ...($name === DataRow::class
                     ? $this->checkDataRow($attribute, $acceptor, $method->getName(), $scope)
                     : $this->checkDataSet($attribute, $acceptor, $node->getClassReflection(), $method->getName(), $scope))];
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function checkDataRowKeys(InClassMethodNode $node, Scope $scope): array
+    {
+        $keys = [];
+        $position = 0;
+        $errors = [];
+
+        foreach ($node->getOriginalNode()->attrGroups as $group) {
+            foreach ($group->attrs as $attribute) {
+                if ($scope->resolveName($attribute->name) !== DataRow::class) {
+                    continue;
+                }
+
+                $label = $this->attributeArgument($attribute, 1, 'label');
+                $labels = $label instanceof Node\Expr
+                    ? $scope->getType($label)->getConstantStrings()
+                    : [];
+                $key = \count($labels) === 1
+                    ? $labels[0]->getValue()
+                    : ($label instanceof Node\Expr ? null : \sprintf('#%d', $position));
+
+                if ($key !== null && isset($keys[$key])) {
+                    $errors[] = $this->error(
+                        \sprintf('#[DataRow] key "%s" occurs more than once on %s().', $key, $node->getMethodReflection()->getName()),
+                        'duplicateKey',
+                        $attribute->getStartLine(),
+                    );
+                }
+
+                if ($key !== null) {
+                    $keys[$key] = true;
+                }
+
+                ++$position;
             }
         }
 
@@ -197,7 +244,7 @@ final readonly class DataProviderSignatureRule implements Rule
 
         if ($this->requiredParameterCount($providerAcceptor) > 0) {
             return [$this->error(
-                \sprintf('Data provider %s::%s() must accept zero arguments.', $providerClass->getDisplayName(), $provider),
+                \sprintf('Data provider %s::%s() must not require arguments.', $providerClass->getDisplayName(), $provider),
                 'parameters',
                 $line,
             )];
@@ -208,7 +255,7 @@ final readonly class DataProviderSignatureRule implements Rule
         if ($returnType->isIterable()->no()) {
             return [$this->error(
                 \sprintf(
-                    'Data provider %s::%s() must return an iterable of argument arrays, returns %s.',
+                    'Data provider %s::%s() must return an iterable of argument arrays. It returns %s.',
                     $providerClass->getDisplayName(),
                     $provider,
                     $returnType->describe(VerbosityLevel::typeOnly()),
@@ -218,17 +265,41 @@ final readonly class DataProviderSignatureRule implements Rule
             )];
         }
 
+        if ($returnType->isIterableAtLeastOnce()->no()) {
+            return [$this->error(
+                \sprintf('Data provider %s::%s() must provide at least one argument array.', $providerClass->getDisplayName(), $provider),
+                'empty',
+                $line,
+            )];
+        }
+
         $rowType = $returnType->getIterableValueType();
 
         if ($rowType->isArray()->no()) {
             return [$this->error(
                 \sprintf(
-                    'Data provider %s::%s() must yield arrays of arguments, yields %s.',
+                    'Data provider %s::%s() must provide argument arrays. The iterable has value type %s.',
                     $providerClass->getDisplayName(),
                     $provider,
                     $rowType->describe(VerbosityLevel::typeOnly()),
                 ),
                 'returnType',
+                $line,
+            )];
+        }
+
+        $keyType = $returnType->getIterableKeyType();
+        $allowedKeyType = TypeCombinator::union(new IntegerType(), new StringType());
+
+        if ($allowedKeyType->isSuperTypeOf($keyType)->no()) {
+            return [$this->error(
+                \sprintf(
+                    'Data provider %s::%s() keys must be int or string. The provider returns keys of type %s.',
+                    $providerClass->getDisplayName(),
+                    $provider,
+                    $keyType->describe(VerbosityLevel::typeOnly()),
+                ),
+                'keyType',
                 $line,
             )];
         }
@@ -302,12 +373,12 @@ final readonly class DataProviderSignatureRule implements Rule
             if ($parameter->getType()->accepts($valueType, true)->no()) {
                 $errors[] = $this->error(
                     \sprintf(
-                        '%s argument #%d of %s() expects %s, %s given.',
+                        '%s argument #%d for %s() has type %s, but the parameter requires %s.',
                         $source,
                         $position + 1,
                         $methodName,
-                        $parameter->getType()->describe(VerbosityLevel::typeOnly()),
                         $valueType->describe(VerbosityLevel::typeOnly()),
+                        $parameter->getType()->describe(VerbosityLevel::typeOnly()),
                     ),
                     'argument',
                     $line,

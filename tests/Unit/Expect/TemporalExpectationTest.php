@@ -67,7 +67,7 @@ final class TemporalExpectationTest
         Expect::that($detail->message)->because('eventually() failure keeps the final diff and bounded history')->toBe(
             'The eventually() expectation did not pass within 0.030 seconds after 4 observations. '
             . 'Last failure: Expected 4 to equal 99. Observations: '
-            . '+0.0ms 1; +10.0ms 2; +20.0ms 3; +30.0ms 4.',
+            . "+0.0ms 1\n+10.0ms 2\n+20.0ms 3\n+30.0ms 4.",
         )
             ->and($detail->expected)->toBe('99')
             ->and($detail->actual)->toBe('4')
@@ -232,7 +232,7 @@ final class TemporalExpectationTest
             ->and($detail->message)->toBe(
                 'The consistently() expectation failed after 0.020 seconds and 3 observations. '
                 . "Last failure: Expected 'changed' to be 'stable'. Observations: "
-                . "+0.0ms 'stable' (×2); +20.0ms 'changed'.",
+                . "+0.0ms 'stable' (×2)\n+20.0ms 'changed'.",
             )
             ->and($detail->expected)->toBe("'stable'")
             ->and($detail->actual)->toBe("'changed'");

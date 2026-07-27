@@ -14,8 +14,8 @@ for all repository-owned technical prose. The standard applies ASD-STE100 Issue
 diagnostics, CLI help, and human-readable output.
 
 Use uppercase `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, and `MAY` as
-normative tokens. Use STE clarity principles for promotional copy. The
-controlled vocabulary is optional for promotional copy.
+normative tokens. Use STE clarity principles for marketing copy. The
+controlled vocabulary is optional for marketing copy.
 
 Before you push prose changes, review the prose:
 

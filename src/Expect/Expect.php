@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Extension matchers are worker-local state. install() stores the configured
- * ExpectationExtension list when the worker starts. Each chain from that()
- * uses this list. A worker uses one thread, and the runner controls the
- * install point. Thus, no code reads the static registry during a change.
- * Before install() runs, that() uses no extensions.
+ * Extension matchers are worker-local state. `install()` stores the configured
+ * `ExpectationExtension` list when the worker starts. Each chain from `that()`
+ * uses a snapshot of this list. The runner changes the list before test
+ * execution starts. Before `install()` runs, `that()` uses no extensions.
  */
 final class Expect
 {
@@ -21,6 +20,13 @@ final class Expect
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /**
+     * @template T
+     *
+     * @param T $value
+     *
+     * @return Expectation<T>
+     */
     public static function that(mixed $value): Expectation
     {
         return new Expectation($value, new ValueRenderer(), self::$extensions);
@@ -67,7 +73,7 @@ final class Expect
     }
 
     /**
-     * Replaces the worker-local extension list for subsequent that() chains.
+     * Replaces the worker-local extension list for subsequent `that()` chains.
      * The runner calls this method when the worker starts. A test that installs
      * extensions must restore the previous list.
      *

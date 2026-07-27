@@ -119,9 +119,9 @@ suite success.
 
 ## Resource assignment
 
-Discovery stores `#[RequiresResource]` names in test metadata. It groups entries
-by class and combines the requirements from all entries in that class. The
-orchestrator treats an isolated entry as a separate unit.
+Discovery stores `#[RequiresResource]` names in test metadata. The orchestrator
+groups non-isolated entries by class and combines their requirements. It treats
+each isolated entry as a separate scheduling unit.
 
 Before it sends `assign`, the orchestrator claims one slot from each required
 resource in one atomic operation. A resource without a configured limit has one
@@ -151,8 +151,8 @@ separate resource counters. Different runs require an external lock or service
 for coordination.
 
 The orchestrator controls capacity, not resource identity. A limit of two
-permits two class assignments that require the resource at the same time. It
-does not tell either class which database, account, or sandbox to use.
+permits two assignments that require the resource at the same time. It does not
+tell either assignment which database, account, or sandbox to use.
 
 ## Worker exit
 
@@ -196,8 +196,8 @@ the test as errored. It attaches the tail of the worker's captured stderr to
 the failure. The orchestrator returns the rest of the assignment to the queue
 for a replacement.
 
-The orchestrator does not return the crashed test to the queue. Otherwise, a
-test that terminates its process could terminate each replacement. The
+The orchestrator does not return the crashed test to the queue. Otherwise, the
+same test can terminate each replacement process. The
 orchestrator releases the assignment's resource slots before it returns
 untouched entries to the queue.
 
@@ -226,7 +226,7 @@ The orchestrator fails the complete run for either of these conditions:
 - A connected worker sends no message for 60 seconds when no test is active.
 
 Both conditions indicate a fault outside the suite, such as an invalid
-bootstrap or a blocked socket. A replacement worker would repeat the fault. A
+bootstrap or a blocked socket. Each replacement worker repeats the fault. A
 run-wide spawn limit also controls the total number of workers. If replacements
 repeatedly die, the orchestrator fails the run with a diagnosis.
 
@@ -260,4 +260,4 @@ A channel identifies a stable resource slot for one worker. The resource
 scheduler controls shared capacity but does not assign resource identity. A
 test can use both functions. For example, it can use a channel-specific
 database and a concurrency limit for a shared sandbox. For user guidance, see
-[external resources](../../README.md#external-resources).
+[channels and resource limits](../configuration.md#channels-and-resource-limits).

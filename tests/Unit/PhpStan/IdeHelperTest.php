@@ -21,7 +21,8 @@ final class IdeHelperTest
         Expect::that($rendered)->because('renders one method annotation per matcher with reflected signatures')->toContain('namespace Greenlight\Expect;')
             ->toContain(' * @method self toBeHexadecimal()')
             ->toContain(' * @method self toHaveDigestLength(int $length)')
+            ->toContain(' * @method self toBePositive()')
             ->toContain('final class Expectation {}')
-            ->toContain('Never executed or autoloaded');
+            ->toContain('The IDE does not execute or autoload');
     }
 }

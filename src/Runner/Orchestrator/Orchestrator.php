@@ -103,11 +103,11 @@ final class Orchestrator
     private ?ChannelAllocator $channels = null;
 
     /**
-     * @param non-empty-list<non-empty-string> $workerCommand argv prefix invoking bin/greenlight
+     * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
      * @param positive-int|null $recycleAfterTests
      * @param positive-int|null $recycleAboveMemoryBytes
-     * @param float $connectDeadlineSeconds seconds a spawned worker gets to complete the hello handshake before the run fails
-     * @param float $progressDeadlineSeconds seconds a connected worker may stay silent with no test in flight before the run fails
+     * @param float $connectDeadlineSeconds Maximum seconds for a new worker to complete the hello handshake.
+     * @param float $progressDeadlineSeconds Maximum seconds that a connected worker can stay silent when no test is in flight.
      * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public function __construct(
@@ -341,8 +341,8 @@ final class Orchestrator
     /**
      * Returns live workers without a first assignment.
      *
-     * These workers will consume queued scheduling units. Thus, the
-     * orchestrator must not start more workers for the same scheduling units.
+     * The orchestrator assigns queued scheduling units to these workers. Thus,
+     * it does not start more workers for the same units.
      */
     private function unassignedActiveCount(): int
     {
@@ -687,8 +687,8 @@ final class Orchestrator
             }
 
             // pumpChannels already drained the channel, so the EOF state is
-            // current. Do not poll here. This code would discard a returned
-            // message.
+            // current. Do not poll here because another poll discards a
+            // returned message.
             if (!$handle->channel->isEof()) {
                 continue;
             }

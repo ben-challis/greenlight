@@ -25,7 +25,7 @@ final class BecauseTest
     #[Test]
     public function becauseDoesNotChangeAPassingMatcher(): void
     {
-        Expect::that(true)->because('a passing matcher consumes the reason silently')->toBeTrue();
+        Expect::that(true)->because('a passing matcher consumes the reason without reporting it')->toBeTrue();
     }
 
     #[Test]
@@ -46,12 +46,12 @@ final class BecauseTest
         $notFirst = FailureProbe::detailOf(
             static fn() => Expect::that(1)->not()->because('the id must change')->toBe(1),
         );
-        Expect::that($notFirst->message)->because('because() combines with negation in any order')->toBe($expected);
+        Expect::that($notFirst->message)->because('because() combines with negation in both orders')->toBe($expected);
 
         $becauseFirst = FailureProbe::detailOf(
             static fn() => Expect::that(1)->because('the id must change')->not()->toBe(1),
         );
-        Expect::that($becauseFirst->message)->because('because() combines with negation in any order')->toBe($expected);
+        Expect::that($becauseFirst->message)->because('because() combines with negation in both orders')->toBe($expected);
     }
 
     #[Test]

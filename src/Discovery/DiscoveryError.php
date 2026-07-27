@@ -7,9 +7,9 @@ namespace Greenlight\Discovery;
 /**
  * Discovery raises this error when it cannot make plan entries from a test file.
  *
- * Discovery does not silently ignore a file that it cannot resolve. Each
- * failure type has a named constructor. Its message identifies the applicable
- * file, class, or method.
+ * Discovery reports each file that it cannot resolve. Each failure type has a
+ * named constructor. Its message identifies the applicable file, class, or
+ * method.
  *
  * @internal
  */

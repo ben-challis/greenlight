@@ -22,23 +22,23 @@ final readonly class PolicyTest
         // Without flags, all tests pass. Greenlight records deprecations but
         // does not make them fatal.
         $result = $this->run($project, '--filter=DiagnosticProbeTest');
-        Expect::that($result->exitCode)->because('deprecation and notice policies flip passed tests')->toBe(0)
+        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(0)
             ->and($result->output())->toContain('3 tests, 3 passed')
         // Each test uses one matcher. The summary contains those expectations
         // after transfer from the worker.
             ->toContain('3 expectations');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
-        Expect::that($result->exitCode)->because('deprecation and notice policies flip passed tests')->toBe(1)
+        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1)
             ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
-            ->toContain('deprecation policy failed this passed test')
+            ->toContain('deprecation policy changed this test from passed to failed')
             ->toContain('old api is deprecated')
         // The result change MUST NOT remove verified expectations.
             ->toContain('3 expectations')
         // The deprecation in the allow list does not fail the test.
             ->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
-        Expect::that($result->exitCode)->because('deprecation and notice policies flip passed tests')->toBe(1)
-            ->and($result->output())->toContain('notice policy failed this passed test')
+        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1)
+            ->and($result->output())->toContain('notice policy changed this test from passed to failed')
             ->toContain('a probe notice');
     }
 
@@ -61,7 +61,7 @@ final readonly class PolicyTest
         $result = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
         Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(1)
             ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
-            ->toContain('fail-on-risky policy failed this passed test');
+            ->toContain('fail-on-risky policy changed this test from passed to failed');
     }
 
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult

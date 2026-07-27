@@ -12,5 +12,5 @@ Do not open a public issue for a security problem.
 Report the problem privately through GitHub Security Advisories in this
 repository. On the Security tab, select "Report a vulnerability".
 
-We will acknowledge your report as soon as possible. We will coordinate a fix
-or mitigation plan with you before public disclosure.
+We will acknowledge your report. We will coordinate a fix or mitigation plan
+with you before public disclosure.

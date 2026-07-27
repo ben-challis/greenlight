@@ -14,8 +14,8 @@ namespace Greenlight\Runner;
 final readonly class CoverageSettings
 {
     /**
-     * @param list<non-empty-string> $includePaths absolute
-     * @param non-empty-string|null $driver 'pcov' or 'xdebug'; null tries both
+     * @param list<non-empty-string> $includePaths Absolute paths.
+     * @param non-empty-string|null $driver The value is 'pcov' or 'xdebug'. Null tries both.
      */
     public function __construct(
         public array $includePaths,

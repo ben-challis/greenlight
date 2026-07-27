@@ -8,8 +8,8 @@
 **A parallel-first test framework for PHP 8.4 and later.**
 
 Greenlight runs test classes in parallel by default and has zero runtime
-dependencies. An orchestrator discovers one suite and sends test classes to a
-pool of worker processes.
+dependencies. Greenlight discovers one suite and sends assignments to a pool of
+worker processes.
 
 [Read the documentation](https://ben-challis.github.io/greenlight/)
 
@@ -104,14 +104,15 @@ See the [start guide](docs/getting-started.md) for a complete example.
 
 ## Execution model
 
-The orchestrator discovers each test class once and creates an execution plan.
-Workers request test classes when they have capacity.
+Greenlight discovers each test class once and creates an execution plan.
+Workers request assignments when they have capacity.
 
 The orchestrator controls resource limits, worker replacement, event checks,
 and reports. It also stores test durations to improve the order of later runs.
 
-Greenlight schedules complete test classes. It preserves the method order in a
-class, but different workers can run different classes.
+Greenlight normally schedules complete test classes. It schedules each
+`#[Isolated]` test separately. It preserves the method order in a class, but
+different workers can run different classes.
 
 Use a channel to give each worker a separate external resource. Use
 `#[RequiresResource]` to limit concurrent access to a shared resource.

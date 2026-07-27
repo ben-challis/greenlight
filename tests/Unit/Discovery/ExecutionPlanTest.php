@@ -93,13 +93,13 @@ final class ExecutionPlanTest
 
         Expect::that(
             static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload),
-        )->because('missing wire keys fail loudly')->toThrow(InvalidWirePayload::class);
+        )->because('missing wire keys cause an error')->toThrow(InvalidWirePayload::class);
 
         $payload = new ExecutionPlan([self::entry('App\FooTest', 'a')])->toWire();
         unset($payload['entries']);
 
         Expect::that(
             static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload),
-        )->because('missing wire keys fail loudly')->toThrow(InvalidWirePayload::class);
+        )->because('missing wire keys cause an error')->toThrow(InvalidWirePayload::class);
     }
 }

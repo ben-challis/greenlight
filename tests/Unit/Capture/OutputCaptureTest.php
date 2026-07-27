@@ -228,7 +228,7 @@ final class OutputCaptureTest
     #[Test]
     public function stoppingWithoutStartingThrows(): void
     {
-        Expect::that(static fn(): mixed => new OutputCapture()->stop())->because('stopping without starting throws')
+        Expect::that(static fn(): mixed => new OutputCapture()->stop())->because('stop() without start() throws')
             ->toThrow(CaptureError::class, '/not active.*start\(\)/');
     }
 

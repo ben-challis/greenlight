@@ -131,16 +131,16 @@ final readonly class ParallelRunTest
         if (!\extension_loaded('xdebug')) {
             // Xdebug develop mode causes the warning. The test cannot create
             // this environment property without the extension.
-            throw new SkipTest('xdebug is not loaded');
+            throw new SkipTest('Xdebug is not loaded');
         }
 
         $develop = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
 
-        Expect::that($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('xdebug develop mode');
+        Expect::that($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('Xdebug develop mode');
 
         $off = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
 
-        Expect::that($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('xdebug develop mode');
+        Expect::that($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('Xdebug develop mode');
     }
 
     #[Test]

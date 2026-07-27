@@ -109,8 +109,9 @@ final class MemoryProbe implements TestLifecycleSubscriber
 
         if ($this->count === $this->warmupTests || $this->count === $this->totalTests) {
             gc_collect_cycles();
-            // Real allocation, not reserved allocator chunks: chunk reservation
-            // moves in 2 MiB steps and would mask or fake a leak slope.
+            // Real allocation, not reserved allocator chunks. Chunk
+            // reservation moves in 2 MiB steps. It can hide a leak slope or
+            // create a false one.
             $this->samples[(string) $this->count] = memory_get_usage();
             file_put_contents($this->samplesFile, json_encode($this->samples));
         }
@@ -154,7 +155,7 @@ $config = \file_get_contents($workDir . '/greenlight.php');
 $config = \str_replace(['{WARMUP}', '{TOTAL}'], [(string) WARMUP_TESTS, (string) $totalTests], (string) $config);
 \file_put_contents($workDir . '/greenlight.php', $config);
 
-echo \sprintf("Running %d generated tests in one worker...\n", $totalTests);
+echo \sprintf("Greenlight runs %d generated tests in one worker...\n", $totalTests);
 
 $command = \sprintf(
     'cd %s && %s %s run --reporter=plain 2>&1 | tail -4',
@@ -189,7 +190,7 @@ if (\is_array($samples)) {
 }
 
 if ($baseline === null || $final === null) {
-    \fwrite(\STDERR, "Sampling points are missing from the probe output.\n");
+    \fwrite(\STDERR, "The probe output does not contain all sample points.\n");
     $cleanup();
     exit(1);
 }
@@ -209,7 +210,7 @@ echo \sprintf(
 $cleanup();
 
 if ($drift > MAX_DRIFT_BYTES) {
-    \fwrite(\STDERR, "FLAT-MEMORY GATE FAILED: the framework leaks across a long run.\n");
+    \fwrite(\STDERR, "FLAT-MEMORY GATE FAILED: Greenlight leaks memory during a long run.\n");
     exit(1);
 }
 

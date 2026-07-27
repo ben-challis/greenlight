@@ -43,7 +43,7 @@ final readonly class ChannelAllocatorTest
 
         Expect::that(static function () use ($allocator): void {
             $allocator->allocate();
-        })->because('never hands out more than the bound')->toThrow(\LogicException::class, matching: '/channels are in use/');
+        })->because('does not allocate more channels than the limit')->toThrow(\LogicException::class, matching: '/channels are in use/');
     }
 
     #[Test]
@@ -74,6 +74,6 @@ final readonly class ChannelAllocatorTest
 
         Expect::that(static function () use ($allocator): void {
             $allocator->release(1);
-        })->because('releasing an unallocated channel fails loudly')->toThrow(\LogicException::class, matching: '/not allocated/');
+        })->because('releasing an unallocated channel causes an error')->toThrow(\LogicException::class, matching: '/not allocated/');
     }
 }

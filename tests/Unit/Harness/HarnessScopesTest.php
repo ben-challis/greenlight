@@ -122,7 +122,7 @@ final class HarnessScopesTest
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
-        })->because('a resolver answering with the wrong type fails loudly')->toThrow(UnresolvableService::class, matching: '/is not that type/');
+        })->because('a resolver that returns the wrong type causes an error')->toThrow(UnresolvableService::class, matching: '/is not that type/');
     }
 
     #[Test]

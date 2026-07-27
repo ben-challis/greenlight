@@ -12,10 +12,9 @@ final class DigestExtension implements ExpectationExtension
     public function matchers(): array
     {
         return [
-            'toBeHexadecimal' => static fn(mixed $subject): bool => \is_string($subject)
-                && \preg_match('/^[0-9a-f]+$/', $subject) === 1,
-            'toHaveDigestLength' => static fn(mixed $subject, int $length): bool => \is_string($subject)
-                && \strlen($subject) === $length,
+            'toBeHexadecimal' => static fn(string $subject): bool => \preg_match('/^[0-9a-f]+$/', $subject) === 1,
+            'toHaveDigestLength' => static fn(string $subject, int $length): bool => \strlen($subject) === $length,
+            'toBePositive' => static fn(int $subject): bool => $subject > 0,
         ];
     }
 }

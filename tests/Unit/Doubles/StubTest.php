@@ -30,7 +30,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that(static fn(): string => $stub->name())->because('any call is an authoring error')
+        Expect::that(static fn(): string => $stub->name())->because('each call is an authoring error')
             ->toThrow(DoublesError::class, '/Stubs only satisfy a type/');
 
         $doubles->dispose();
