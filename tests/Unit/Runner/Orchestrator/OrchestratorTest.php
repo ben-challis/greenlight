@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Result\ResultSummary;
@@ -62,6 +63,99 @@ final class OrchestratorTest
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a connected worker that goes silent before starting its assignment fails the run')
             ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
+    }
+
+    /**
+     * @param list<array<string, mixed>> $messages
+     */
+    #[Test]
+    #[DataSet('unexpectedAttempts')]
+    #[Timeout(30.0)]
+    public function unexpectedAttemptMessagesNameTheProtocolDrift(array $messages, string $expectedDiagnostic): void
+    {
+        $encodedMessages = \var_export($messages, true);
+        $script = \sprintf(
+            <<<'PHP'
+                [, , $address, $workerId, $token] = $argv;
+                $socket = stream_socket_client($address);
+
+                $send = static function (array $message) use ($socket): void {
+                    $json = json_encode($message, JSON_THROW_ON_ERROR);
+                    fwrite($socket, pack('N', strlen($json)) . $json);
+                    fflush($socket);
+                };
+
+                $send([
+                    'v' => 1,
+                    't' => 'hello',
+                    'p' => [
+                        'workerId' => $workerId,
+                        'token' => $token,
+                        'pid' => getmypid(),
+                    ],
+                ]);
+
+                foreach (%s as $message) {
+                    $send($message);
+                }
+
+                sleep(60);
+                PHP,
+            $encodedMessages,
+        );
+
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, '-r', $script],
+            workingDirectory: \sys_get_temp_dir(),
+        );
+
+        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('unexpected attempt messages name the protocol drift')
+            ->toThrow(
+                ProtocolError::class,
+                matching: '/' . \preg_quote($expectedDiagnostic, '/') . '$/',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{list<array<string, mixed>>, string}>
+     */
+    public static function unexpectedAttempts(): iterable
+    {
+        $id = [
+            'class' => 'Example\\NeverExecutedTest',
+            'method' => 'irrelevant',
+            'dataSetKey' => null,
+        ];
+
+        yield 'no active test' => [
+            [[
+                'v' => 1,
+                't' => 'attempt-started',
+                'p' => ['id' => $id, 'attempt' => 1],
+            ]],
+            'reported attempt 1 for "Example\\NeverExecutedTest::irrelevant". '
+            . 'Greenlight expected attempt 1. Active test: none.',
+        ];
+
+        yield 'attempt number jumps' => [
+            [
+                [
+                    'v' => 1,
+                    't' => 'event',
+                    'p' => [
+                        'event' => 'test-started',
+                        'data' => ['id' => $id, 'occurredAt' => 1.0],
+                    ],
+                ],
+                [
+                    'v' => 1,
+                    't' => 'attempt-started',
+                    'p' => ['id' => $id, 'attempt' => 2],
+                ],
+            ],
+            'reported attempt 2 for "Example\\NeverExecutedTest::irrelevant". '
+            . 'Greenlight expected attempt 1. Active test: "Example\\NeverExecutedTest::irrelevant".',
+        ];
     }
 
     #[Test]
