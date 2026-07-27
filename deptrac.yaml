@@ -96,7 +96,7 @@ deptrac:
     - name: LaravelFramework
       collectors:
         - type: classNameRegex
-          value: /^Illuminate\\(Container|Contracts\\(Console|Foundation)|Support\\Facades)\\/
+          value: /^Illuminate\\/
     - name: CpuCoreCounter
       collectors:
         - type: classNameRegex

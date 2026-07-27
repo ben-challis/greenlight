@@ -92,6 +92,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | attachment | Technical noun | Evidence that belongs to one test result |
 | attempt | Technical noun | One execution of a test before Greenlight reports a result or starts a retry |
 | benchmark shape | Technical noun | A generated test-suite structure that one benchmark measures |
+| binding | Technical noun | A container rule that maps an ID to a value or construction method |
 | builder | Technical noun | A mutable object that collects configuration for one part of a run |
 | capability interface | Technical noun | A plugin interface that adds one defined type of behavior |
 | captor | Technical noun | An object that stores argument values from matched mock calls |

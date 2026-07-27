@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Laravel;
 
-/** @internal */
+/**
+ * Reports a Laravel bridge configuration or run-time failure.
+ *
+ * @internal
+ */
 final class LaravelBridgeError extends \RuntimeException
 {
     private function __construct(string $message)
@@ -40,6 +44,15 @@ final class LaravelBridgeError extends \RuntimeException
             . 'bootstrap it. Create the application with Application::configure(...)->create(), '
             . 'which registers the kernel bindings.',
         );
+    }
+
+    public static function consoleKernelTypeMismatch(string $actual): self
+    {
+        return new self(\sprintf(
+            'The Laravel console kernel binding contains "%s" instead of an '
+            . 'Illuminate\Contracts\Console\Kernel instance, so LaravelPlugin cannot boot it.',
+            $actual,
+        ));
     }
 
     public static function unknownServiceId(string $id, string $type): self

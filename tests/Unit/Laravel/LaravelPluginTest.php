@@ -14,6 +14,7 @@ use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
@@ -24,18 +25,33 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Tests\Fixture\Laravel\FixtureApplication;
 use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
+use Greenlight\Tests\Fixture\Laravel\ThrowingKernel;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Support\Facades\Facade;
 
-#[SkipUnless(ClassAvailable::class, \Illuminate\Foundation\Application::class)]
+#[SkipUnless(ClassAvailable::class, LaravelApplication::class)]
 final class LaravelPluginTest
 {
-    /** A failed expectation must not leak Laravel statics into other tests. */
+    /**
+     * @var list<LaravelPlugin>
+     */
+    private array $plugins = [];
+
+    public function __construct(private readonly EnvironmentSandbox $environment) {}
+
+    /** A failed expectation MUST NOT leak a Laravel application into another test. */
     #[After]
-    public function forgetLaravelStatics(): void
+    public function releaseLaravelApplications(): void
     {
+        foreach ($this->plugins as $plugin) {
+            $plugin->afterTest($this->context(), $this->result());
+        }
+
+        $this->plugins = [];
         Facade::clearResolvedInstances();
         Facade::setFacadeApplication(null);
         Container::setInstance();
@@ -110,21 +126,73 @@ final class LaravelPluginTest
     #[Test]
     public function aBootstrapFileThatDoesNotExistFailsLoudly(): void
     {
-        $plugin = new LaravelPlugin($this->fixtureDir() . '/missing-bootstrap.php');
+        $this->environment->set('APP_ENV', 'before-laravel');
+        $plugin = $this->track(new LaravelPlugin($this->fixtureDir() . '/missing-bootstrap.php'));
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
-        })->toThrow(LaravelBridgeError::class, matching: '/does not exist.*bootstrap\/app\.php/s');
+        })->toThrow(LaravelBridgeError::class, matching: '/does not exist.*bootstrap\/app\.php/s')
+            ->and(\getenv('APP_ENV'))->toBe('before-laravel')
+            ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
+            ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
     }
 
     #[Test]
     public function aBootstrapThatDoesNotReturnAnApplicationFailsLoudly(): void
     {
-        $plugin = new LaravelPlugin($this->fixtureDir() . '/bootstrap-invalid.php');
+        $plugin = $this->track(new LaravelPlugin($this->fixtureDir() . '/bootstrap-invalid.php'));
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
         })->toThrow(LaravelBridgeError::class, matching: '/returned "stdClass".*Application::configure/s');
+    }
+
+    #[Test]
+    public function anApplicationWithoutAConsoleKernelFailsLoudly(): void
+    {
+        $plugin = $this->track(new LaravelPlugin(
+            fn(): Application => $this->bareApplication(),
+        ));
+
+        Expect::that(static function () use ($plugin): void {
+            $plugin->resolve(Greeter::class, []);
+        })->toThrow(LaravelBridgeError::class, matching: '/no console kernel binding/');
+    }
+
+    #[Test]
+    public function aConsoleKernelBindingOfTheWrongTypeFailsLoudly(): void
+    {
+        $plugin = $this->track(new LaravelPlugin(function (): Application {
+            $app = $this->bareApplication();
+            $app->instance(Kernel::class, new \stdClass());
+
+            return $app;
+        }));
+
+        Expect::that(static function () use ($plugin): void {
+            $plugin->resolve(Greeter::class, []);
+        })->toThrow(LaravelBridgeError::class, matching: '/contains "stdClass" instead of/');
+    }
+
+    #[Test]
+    public function aFailedKernelBootstrapRestoresProcessState(): void
+    {
+        $this->environment->set('APP_ENV', 'before-laravel');
+        $container = Container::getInstance();
+        $plugin = $this->track(new LaravelPlugin(function (): Application {
+            $app = $this->bareApplication();
+            $app->instance(Kernel::class, new ThrowingKernel());
+
+            return $app;
+        }));
+
+        Expect::that(static function () use ($plugin): void {
+            $plugin->resolve(Greeter::class, []);
+        })->toThrow(\RuntimeException::class, matching: '/could not bootstrap/')
+            ->and(Container::getInstance())->toBe($container)
+            ->and(\getenv('APP_ENV'))->toBe('before-laravel')
+            ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
+            ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
     }
 
     #[Test]
@@ -152,7 +220,10 @@ final class LaravelPluginTest
     #[Test]
     public function theApplicationIsAPerRunHarnessServiceWithoutRefresh(): void
     {
-        $plugin = new LaravelPlugin($this->fixtureDir() . '/bootstrap.php', refreshBetweenTests: false);
+        $plugin = $this->track(new LaravelPlugin(
+            $this->fixtureDir() . '/bootstrap.php',
+            refreshBetweenTests: false,
+        ));
 
         Expect::that($plugin->services()[0]->scope)->toBe(Scope::PerRun);
     }
@@ -160,7 +231,9 @@ final class LaravelPluginTest
     #[Test]
     public function aClosureFactoryBootsTheApplicationItProduces(): void
     {
-        $plugin = new LaravelPlugin(static fn(): Application => FixtureApplication::create());
+        $plugin = $this->track(new LaravelPlugin(
+            static fn(): Application => FixtureApplication::create(),
+        ));
 
         Expect::that($plugin->resolve(Greeter::class, []))->toBeInstanceOf(Greeter::class);
     }
@@ -186,7 +259,7 @@ final class LaravelPluginTest
         $plugin = $this->plugin();
         $app = ($plugin->services()[0]->factory)();
 
-        Expect::that($plugin->resolve(\Illuminate\Foundation\Application::class, []))->toBe($app);
+        Expect::that($plugin->resolve(LaravelApplication::class, []))->toBe($app);
     }
 
     #[Test]
@@ -222,7 +295,11 @@ final class LaravelPluginTest
     #[Test]
     public function waivedRefreshKeepsTheApplicationAndItsState(): void
     {
-        $plugin = new LaravelPlugin($this->fixtureDir() . '/bootstrap.php', refreshBetweenTests: false);
+        $this->environment->set('APP_ENV', 'before-laravel');
+        $plugin = $this->track(new LaravelPlugin(
+            $this->fixtureDir() . '/bootstrap.php',
+            refreshBetweenTests: false,
+        ));
         $counter = $plugin->resolve(VisitCounter::class, []);
 
         if (!$counter instanceof VisitCounter) {
@@ -243,11 +320,11 @@ final class LaravelPluginTest
     public function afterTestWithoutABootedApplicationIsANoOp(): void
     {
         $booted = false;
-        $plugin = new LaravelPlugin(static function () use (&$booted): Application {
+        $plugin = $this->track(new LaravelPlugin(static function () use (&$booted): Application {
             $booted = true;
 
             return FixtureApplication::create();
-        });
+        }));
 
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
@@ -258,6 +335,8 @@ final class LaravelPluginTest
     #[Test]
     public function afterTestClearsFacadeAndContainerStatics(): void
     {
+        $this->environment->set('APP_ENV', 'before-laravel');
+        $container = Container::getInstance();
         $plugin = $this->plugin();
         $app = ($plugin->services()[0]->factory)();
 
@@ -267,7 +346,10 @@ final class LaravelPluginTest
         $plugin->afterTest($this->context(), $this->result());
 
         Expect::that(Facade::getFacadeApplication())->toBeNull()
-            ->and(Container::getInstance() === $app)->toBe(false);
+            ->and(Container::getInstance())->toBe($container)
+            ->and(\getenv('APP_ENV'))->toBe('before-laravel')
+            ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
+            ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
     }
 
     #[Test]
@@ -277,6 +359,7 @@ final class LaravelPluginTest
         \restore_error_handler();
         $exceptionBefore = \set_exception_handler(null);
         \restore_exception_handler();
+        $reportingBefore = \error_reporting();
 
         $this->plugin()->resolve(Greeter::class, []);
 
@@ -286,12 +369,52 @@ final class LaravelPluginTest
         \restore_exception_handler();
 
         Expect::that($errorAfter)->toBe($errorBefore)
-            ->and($exceptionAfter)->toBe($exceptionBefore);
+            ->and($exceptionAfter)->toBe($exceptionBefore)
+            ->and(\error_reporting())->toBe($reportingBefore);
+    }
+
+    #[Test]
+    public function repeatedApplicationRefreshesKeepMemoryFlat(): void
+    {
+        $plugin = $this->plugin();
+
+        for ($index = 0; $index < 10; ++$index) {
+            $this->refreshApplication($plugin);
+        }
+
+        \gc_collect_cycles();
+        $memoryBefore = \memory_get_usage();
+
+        for ($index = 0; $index < 60; ++$index) {
+            $this->refreshApplication($plugin);
+        }
+
+        \gc_collect_cycles();
+
+        Expect::that(\memory_get_usage() - $memoryBefore)->toBeLessThan(262_144);
     }
 
     private function plugin(): LaravelPlugin
     {
-        return new LaravelPlugin($this->fixtureDir() . '/bootstrap.php');
+        return $this->track(new LaravelPlugin($this->fixtureDir() . '/bootstrap.php'));
+    }
+
+    private function track(LaravelPlugin $plugin): LaravelPlugin
+    {
+        $this->plugins[] = $plugin;
+
+        return $plugin;
+    }
+
+    private function bareApplication(): LaravelApplication
+    {
+        return new LaravelApplication($this->fixtureDir());
+    }
+
+    private function refreshApplication(LaravelPlugin $plugin): void
+    {
+        $plugin->resolve(Greeter::class, []);
+        $plugin->afterTest($this->context(), $this->result());
     }
 
     private function fixtureDir(): string
