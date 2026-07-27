@@ -21,14 +21,43 @@ use Greenlight\Core\ErrorTrap;
  */
 final class StdinKeyInput implements KeyInput
 {
+    private const string ENABLE_RAW_MODE_COMMAND = 'stty -icanon -echo < /dev/tty 2> /dev/null';
+
+    private const string RESTORE_CANONICAL_MODE_COMMAND = 'stty icanon echo < /dev/tty 2> /dev/null';
+
     private bool $rawMode = false;
 
-    public function __construct()
-    {
-        \stream_set_blocking(\STDIN, false);
+    /** @var \Closure(): (string|false) */
+    private readonly \Closure $read;
 
-        if (Terminal::isTty(\STDIN) && \function_exists('shell_exec')) {
-            ErrorTrap::run(static fn(): string|false|null => \shell_exec('stty -icanon -echo < /dev/tty 2> /dev/null'));
+    /** @var (\Closure(string): (string|false|null))|null */
+    private readonly ?\Closure $runShellCommand;
+
+    /**
+     * @param (\Closure(bool): mixed)|null $configureBlocking
+     * @param (\Closure(): bool)|null $isTty
+     * @param (\Closure(): (string|false))|null $read
+     * @param (\Closure(string): (string|false|null))|null $runShellCommand
+     */
+    public function __construct(
+        ?\Closure $configureBlocking = null,
+        ?\Closure $isTty = null,
+        ?\Closure $read = null,
+        ?\Closure $runShellCommand = null,
+    ) {
+        $configureBlocking ??= static fn(bool $blocking): bool => \stream_set_blocking(\STDIN, $blocking);
+        $isTty ??= static fn(): bool => Terminal::isTty(\STDIN);
+        $read ??= static fn(): string|false => \fread(\STDIN, 1);
+        $runShellCommand ??= \function_exists('shell_exec')
+            ? \shell_exec(...)
+            : null;
+
+        $this->read = $read;
+        $this->runShellCommand = $runShellCommand;
+        $configureBlocking(false);
+
+        if ($isTty() && $runShellCommand instanceof \Closure) {
+            ErrorTrap::run(static fn(): string|false|null => $runShellCommand(self::ENABLE_RAW_MODE_COMMAND));
             $this->rawMode = true;
         }
     }
@@ -36,15 +65,17 @@ final class StdinKeyInput implements KeyInput
     #[\Override]
     public function poll(): ?string
     {
-        $key = ErrorTrap::run(static fn(): string|false => \fread(\STDIN, 1));
+        $key = ErrorTrap::run($this->read);
 
         return \is_string($key) && $key !== '' ? $key : null;
     }
 
     public function restore(): void
     {
-        if ($this->rawMode) {
-            ErrorTrap::run(static fn(): string|false|null => \shell_exec('stty icanon echo < /dev/tty 2> /dev/null'));
+        if ($this->rawMode && $this->runShellCommand instanceof \Closure) {
+            ErrorTrap::run(
+                fn(): string|false|null => ($this->runShellCommand)(self::RESTORE_CANONICAL_MODE_COMMAND),
+            );
             $this->rawMode = false;
         }
     }
