@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Supplies monotonic time and delays to the polling loop.
+ * Supplies monotonic time and delays to the poll loop.
  *
  * @internal
  */

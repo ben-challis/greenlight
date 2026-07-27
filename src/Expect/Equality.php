@@ -16,10 +16,10 @@ final class Equality
     }
 
     /**
-     * Like equals(), but list order is irrelevant: lists are sorted by a
-     * stable serialization of their canonicalized elements before comparing,
-     * recursively. Associative arrays keep their keys and everything else
-     * follows the equals() semantics.
+     * Compares values with the equals() rules, but ignores list order. The
+     * method recursively converts each list element to a canonical form. It
+     * then sorts lists by a stable representation. Associative arrays keep
+     * their keys.
      */
     public static function equalsCanonicalizing(mixed $a, mixed $b): bool
     {
@@ -35,8 +35,8 @@ final class Equality
         $canonical = \array_map(self::canonicalize(...), $value);
 
         if (\array_is_list($canonical)) {
-            // Keys are precomputed once per element; sorting with a comparator
-            // would re-serialize both operands on every comparison.
+            // Compute each key one time for each element. A comparator would
+            // serialize both operands again for each comparison.
             $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, []), $canonical);
             \array_multisort($keys, \SORT_ASC, \SORT_STRING, $canonical);
         }
@@ -45,12 +45,12 @@ final class Equality
     }
 
     /**
-     * Serializes a canonicalized value into a stable ordering key. Numbers
-     * share one representation so 1 and 1.0 sort together; objects without
-     * comparable state (closures, resources) fall back to identity.
+     * Converts a canonical value to a stable sort key. Numbers use one
+     * representation, so 1 and 1.0 have the same sort position. Closures and
+     * resources use their identity because they have no comparable state.
      *
-     * @param list<int> $seen object ids already on the serialization stack,
-     *   so cyclic structures terminate
+     * @param list<int> $seen Object IDs already in the conversion stack. This
+     *   list stops cycles.
      */
     private static function sortKey(mixed $value, array $seen): string
     {
@@ -65,9 +65,9 @@ final class Equality
         }
 
         if (\is_int($value)) {
-            // Beyond 2**53 a float cannot hold the int exactly; keeping the
-            // exact digits stops distinct large ints from colliding on one
-            // key, which would freeze them in their original list positions.
+            // A float cannot hold an integer above 2**53 exactly. Keep the
+            // exact digits to give different large integers different keys.
+            // Otherwise, the integers can remain in their initial positions.
             return \abs($value) <= 2 ** 53
                 ? 'number:' . (float) $value
                 : 'number:' . $value;
@@ -106,8 +106,8 @@ final class Equality
     }
 
     /**
-     * @param list<non-empty-string> $comparing object pairs already on the
-     *   comparison stack, so cyclic structures terminate
+     * @param list<non-empty-string> $comparing Object pairs already in the
+     *   comparison stack. This list stops cycles.
      */
     private static function compare(mixed $a, mixed $b, array $comparing): bool
     {

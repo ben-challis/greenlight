@@ -8,11 +8,11 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\SourceLocation;
 
 /**
- * Thrown when one or more expectations fail.
+ * Identifies one or more failed expectations.
  *
- * Carries the structured FailureDetail values so the runner can report
- * rendered expected/actual strings and the call site without re-parsing the
- * message.
+ * Contains structured FailureDetail values. The runner uses them to report
+ * the expected value, actual value, and call site. It does not have to parse
+ * the message.
  */
 final class ExpectationFailed extends \Exception
 {
@@ -58,8 +58,8 @@ final class ExpectationFailed extends \Exception
     }
 
     /**
-     * The first failure, which for the default throw-on-first-failure mode is
-     * the only one.
+     * Returns the first failure. In the default mode, this is the only
+     * failure.
      */
     public function detail(): FailureDetail
     {

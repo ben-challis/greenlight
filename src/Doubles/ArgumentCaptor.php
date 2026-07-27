@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Records the argument in its position each time the surrounding
- * expectation answers a call.
+ * A captor records the argument in its position. It records the argument when
+ * Greenlight selects the related expectation for the call.
  *
- * matches() always accepts and never records; capturing happens only for
- * the expectation that won the call, so probing candidate expectations
- * cannot pollute a captor.
+ * matches() always accepts the value and does not record it. Only the
+ * expectation selected for the call can record an argument. Thus, checks of
+ * candidate expectations cannot add values to a captor.
  */
 final class ArgumentCaptor implements ArgumentMatcher
 {

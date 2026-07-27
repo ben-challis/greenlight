@@ -7,8 +7,8 @@ namespace Greenlight\Expect;
 use Greenlight\Core\Result\SourceLocation;
 
 /**
- * Finds the user-facing call site of a failed expectation: the innermost
- * backtrace frame whose file lies outside this component's source directory.
+ * Finds the call site to report for a failed expectation. It selects the
+ * innermost backtrace frame outside this component source directory.
  *
  * @internal
  */

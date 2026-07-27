@@ -9,14 +9,14 @@ use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Proxy class names hash method signatures, so unchanged types reuse cached
- * code. Parent constructors never run.
+ * Proxy class names contain a hash of their method signatures. Thus,
+ * unchanged types reuse code from the cache. Parent constructors do not run.
  *
- * Final classes, readonly classes, enums, partial mocks, and static
- * interception are unsupported. Final methods on otherwise
- * doubleable classes are not intercepted and keep their real implementation,
- * which runs against an object whose constructor never ran; prefer doubling
- * an interface.
+ * The generator does not support final classes, readonly classes, enums,
+ * partial mocks, or static interception. It cannot intercept a final method
+ * on a supported class. Such a method keeps its actual implementation. The
+ * implementation uses an object whose constructor did not run. Prefer an
+ * interface as the type for a double.
  *
  * @internal
  */
@@ -146,9 +146,8 @@ final readonly class ProxyGenerator
     }
 
     /**
-     * Interface properties and abstract hooked properties must be declared
-     * for the proxy to be instantiable; a plain property satisfies both get
-     * and set requirements.
+     * The proxy class must declare interface properties and abstract hooked
+     * properties. A plain property satisfies both get and set requirements.
      *
      * @param \ReflectionClass<object> $reflection
      *
