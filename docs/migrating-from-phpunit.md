@@ -75,9 +75,9 @@ These differences are important:
 * `->because()` replaces the PHPUnit `$message` argument and applies only to
   the next matcher.
 * `toThrow()` accepts a callable subject and an optional message constraint.
-* Use `message:` for exact equality.
-* Use `matching:` for a regular expression.
-* Do not use `message:` and `matching:` in one call.
+  * Use `message:` for exact equality.
+  * Use `matching:` for a regular expression.
+  * Do not use `message:` and `matching:` in one call.
 * `Fail::because()` replaces `$this->fail()` and supports explicit type guards.
 * `Fail::because()` counts as an expectation and reports the guard location.
 * A failed matcher throws immediately. Greenlight has no soft-assertion mode.
