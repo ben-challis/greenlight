@@ -9,6 +9,10 @@ use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
+use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
@@ -147,6 +151,30 @@ final class WorkerTest
 
         Expect::that($results[0]->outcome)->because('unknown constructor dependencies error the test naming the type')->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('SplStack');
+    }
+
+    #[Test]
+    public function unsupportedConstructorParametersErrorTheTestWithGuidance(): void
+    {
+        $id = new TestId(UnsupportedConstructorProbe::class, 'neverRuns');
+        $plan = new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+        $sink = new CollectingEventSink();
+
+        new Worker($this->registry())->run($plan, $sink);
+
+        $result = $sink->results()[0];
+
+        Expect::that($result->outcome)
+            ->because('unsupported constructor parameters error the test with guidance')
+            ->toBe(Outcome::Errored)
+            ->and($result->error?->message)
+            ->toBe(\sprintf(
+                'Constructor parameter $value of "%s" has no resolvable type. '
+                . 'A test constructor can declare only harness service types.',
+                UnsupportedConstructorProbe::class,
+            ));
     }
 
     #[Test]
@@ -371,5 +399,15 @@ final class WorkerTest
         return new HarnessRegistry([
             new ServiceDefinition(InjectedProbe::class, Scope::PerTest, static fn(): InjectedProbe => new InjectedProbe()),
         ]);
+    }
+}
+
+final readonly class UnsupportedConstructorProbe
+{
+    public function __construct(public string $value) {}
+
+    public function neverRuns(): never
+    {
+        throw new \LogicException('The unsupported-constructor probe MUST NOT run.');
     }
 }
