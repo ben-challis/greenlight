@@ -39,6 +39,7 @@ final class Expectation
 {
     private bool $negated = false;
 
+    /** @var non-empty-string|null */
     private ?string $reason = null;
 
     /**
@@ -102,6 +103,8 @@ final class Expectation
      *
      * If the matcher fails, the failure message ends with "because" and the
      * reason. An empty reason causes a usage failure.
+     *
+     * @param non-empty-string $reason
      *
      * @throws ExpectationFailed
      */

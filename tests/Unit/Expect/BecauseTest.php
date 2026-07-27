@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationExtension;
 
 final class BecauseTest
@@ -77,7 +78,9 @@ final class BecauseTest
     #[Test]
     public function anEmptyReasonIsAUsageFailure(): void
     {
-        $empty = FailureProbe::detailOf(static fn() => Expect::that(true)->because(''));
+        $empty = FailureProbe::detailOf(
+            static fn() => new \ReflectionMethod(Expectation::class, 'because')->invoke(Expect::that(true), ''),
+        );
 
         Expect::that($empty->message)->toBe('because() requires a non-empty reason.');
 

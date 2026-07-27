@@ -20,6 +20,7 @@ abstract class TemporalExpectation
 {
     private bool $negated = false;
 
+    /** @var non-empty-string|null */
     private ?string $reason = null;
 
     /**
@@ -46,9 +47,13 @@ abstract class TemporalExpectation
     }
 
     /**
-     * Adds a reason to the next matcher and is consumed by it. When that
-     * matcher fails, the failure message ends with the word "because" and
-     * the reason. An empty reason is a usage failure.
+     * Sets a reason for the next matcher. The next matcher consumes the
+     * reason.
+     *
+     * If the matcher fails, the failure message ends with "because" and the
+     * reason. An empty reason causes a usage failure.
+     *
+     * @param non-empty-string $reason
      *
      * @throws ExpectationFailed
      */
