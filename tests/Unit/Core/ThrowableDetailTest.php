@@ -14,16 +14,26 @@ final class ThrowableDetailTest
     #[Test]
     public function deepTracesAreBoundedWithATruncationMarker(): void
     {
-        $threw = null;
+        $capture = new class {
+            public ?\RuntimeException $exception = null;
+        };
 
-        try {
-            $this->throwAtDepth(40);
-        } catch (\RuntimeException $exception) {
-            $threw = $exception;
-        }
+        Expect::that(function () use ($capture): void {
+            try {
+                $this->throwAtDepth(40);
+            } catch (\RuntimeException $exception) {
+                $capture->exception = $exception;
+
+                throw $exception;
+            }
+        })
+            ->because('the recursive helper MUST throw at its terminal depth')
+            ->toThrow(\RuntimeException::class, message: 'bottom');
+
+        $threw = $capture->exception;
 
         if (!$threw instanceof \RuntimeException) {
-            Fail::because('Expected the recursive helper to throw.');
+            Fail::because('Expected to capture the recursive helper exception.');
         }
 
         $detail = ThrowableDetail::fromThrowable($threw);
