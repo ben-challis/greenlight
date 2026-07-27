@@ -138,6 +138,17 @@ final class ProtocolTest
     }
 
     #[Test]
+    public function zeroLengthFramesAreRejected(): void
+    {
+        $buffer = new FrameBuffer();
+        $buffer->feed(\pack('N', 0));
+
+        Expect::that(static fn(): ?string => $buffer->next())
+            ->because('zero-length frames are rejected')
+            ->toThrow(ProtocolError::class, message: 'Malformed frame: zero-length frame.');
+    }
+
+    #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
         Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
