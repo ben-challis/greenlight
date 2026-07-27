@@ -14,6 +14,7 @@ use Greenlight\Tests\Fixture\Doubles\CacheBeta;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Clock;
 use Greenlight\Tests\Fixture\Doubles\DestructorProbe;
+use Greenlight\Tests\Fixture\Doubles\PropertyContract;
 use Greenlight\Tests\Fixture\Doubles\ProxyFileProbe;
 use Greenlight\Tests\Fixture\Doubles\SelfConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
@@ -122,6 +123,20 @@ final class ProxyGenerationTest
         Expect::that(DestructorProbe::$calls)
             ->because('class doubles suppress the doubled destructor')
             ->toBe(0);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function interfacePropertiesAreDeclaredOnTheGeneratedProxy(): void
+    {
+        $doubles = new Doubles();
+        $double = $doubles->stub(PropertyContract::class);
+        $double->status = 'ready';
+
+        Expect::that($double->status)
+            ->because('a generated proxy satisfies its interface property contract')
+            ->toBe('ready');
 
         $doubles->dispose();
     }
