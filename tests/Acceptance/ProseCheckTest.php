@@ -144,8 +144,7 @@ final readonly class ProseCheckTest
              * @param non-empty-string $colour;
              * @phpstan-type Colour = array{colour: string};
              */
-            // @phpstan-ignore colour;
-            final class TagOnly {}
+            final class TagOnly {} // @phpstan-ignore colour (test fixture: tests that the checker excludes machine directives)
 
             PHP,
         );

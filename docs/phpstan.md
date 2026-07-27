@@ -147,6 +147,5 @@ Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
 exception inline:
 
 ```php
-// @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
-#[DataSet('doesNotExist')]
+#[DataSet('doesNotExist')] // @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
 ```

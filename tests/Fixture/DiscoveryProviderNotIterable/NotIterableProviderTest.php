@@ -10,8 +10,7 @@ use Greenlight\Attribute\Test;
 final class NotIterableProviderTest
 {
     #[Test]
-    // @phpstan-ignore greenlight.dataProvider.returnType (deliberately broken: drives the runtime discovery-error path)
-    #[DataSet('notIterable')]
+    #[DataSet('notIterable')] // @phpstan-ignore greenlight.dataProvider.returnType (deliberately broken: drives the runtime discovery-error path)
     public function needsData(string $value): void
     {
         echo $value;
