@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Fixture\Coverage;
 
 use Greenlight\Coverage\Driver\CoverageDriver;
 use Greenlight\Coverage\RawCoverage;
+use Greenlight\Doubles\Fake;
 
-final class RecordingFakeDriver implements CoverageDriver
+final class RecordingFakeDriver implements CoverageDriver, Fake
 {
     private static bool $started = false;
 
