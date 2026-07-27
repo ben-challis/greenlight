@@ -7,9 +7,11 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
 use Greenlight\Attribute\CoverageIgnore;
+use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
+use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Skip;
@@ -23,9 +25,17 @@ final class AttributeContractTest
     #[Test]
     public function methodOnlyAttributesTargetMethods(): void
     {
-        foreach ([Test::class, Before::class, After::class, DataSet::class] as $attribute) {
+        foreach ([Test::class, Before::class, After::class, DataSet::class, NoExpectations::class] as $attribute) {
             Expect::that($this->flags($attribute))->toBe(\Attribute::TARGET_METHOD);
         }
+    }
+
+    #[Test]
+    public function inlineDataRowsAreRepeatableOnMethods(): void
+    {
+        Expect::that($this->flags(DataRow::class))
+            ->because('inline data rows MUST be repeatable on methods')
+            ->toBe(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE);
     }
 
     #[Test]
