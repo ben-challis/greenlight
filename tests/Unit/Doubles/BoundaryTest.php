@@ -15,6 +15,7 @@ use Greenlight\Tests\Fixture\Doubles\FinalService;
 use Greenlight\Tests\Fixture\Doubles\HandlerCollision;
 use Greenlight\Tests\Fixture\Doubles\PlanningBoundaries;
 use Greenlight\Tests\Fixture\Doubles\ReadonlyService;
+use Greenlight\Tests\Fixture\Doubles\ReusableBehavior;
 use Greenlight\Tests\Fixture\Doubles\Suit;
 
 final class BoundaryTest
@@ -47,6 +48,21 @@ final class BoundaryTest
                 DoublesError::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Suit is an enum. '
                     . 'Doubles does not support enums. Use an interface that the enum implements.',
+            );
+    }
+
+    #[Test]
+    public function traitsCannotBeDoubled(): void
+    {
+        $doubles = new Doubles();
+
+        Expect::that(static fn(): object => $doubles->mock(ReusableBehavior::class))
+            ->because('a trait cannot supply an object type for a generated proxy')
+            ->toThrow(
+                DoublesError::class,
+                message: ReusableBehavior::class . ' is a trait. '
+                    . 'Doubles cannot create a proxy for a trait. '
+                    . 'Use a class or interface that uses it.',
             );
     }
 
