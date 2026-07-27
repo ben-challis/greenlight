@@ -62,7 +62,8 @@ final class IterableMatchersTest
             static fn() => Expect::that(42)->not()->toContain(4),
         );
 
-        Expect::that($detail->message)->because('toContain() guards the subject type even when negated')->toBe('toContain() requires a string or iterable subject, got int.');
+        Expect::that($detail->message)->because('toContain() guards the subject type even when negated')
+            ->toBe('toContain() requires a string or iterable subject. The subject type is int.');
     }
 
     #[Test]
@@ -72,7 +73,8 @@ final class IterableMatchersTest
             static fn() => Expect::that('greenlight')->toContain(4),
         );
 
-        Expect::that($detail->message)->because('toContain() guards the needle type for string subjects')->toBe('toContain() on a string subject requires a string needle, got int.');
+        Expect::that($detail->message)->because('toContain() guards the needle type for string subjects')
+            ->toBe('toContain() requires a string needle for a string subject. The needle type is int.');
     }
 
     #[Test]
@@ -107,7 +109,8 @@ final class IterableMatchersTest
             static fn() => Expect::that('12')->toHaveCount(2),
         );
 
-        Expect::that($detail->message)->because('toHaveCount() guards the subject type')->toBe('toHaveCount() requires a countable or traversable subject, got string.');
+        Expect::that($detail->message)->because('toHaveCount() guards the subject type')
+            ->toBe('toHaveCount() requires a countable or traversable subject. The subject type is string.');
     }
 
     #[Test]
@@ -142,7 +145,8 @@ final class IterableMatchersTest
             static fn() => Expect::that('abc')->toHaveKey(0),
         );
 
-        Expect::that($detail->message)->because('toHaveKey() guards the subject type')->toBe('toHaveKey() requires an array or ArrayAccess subject, got string.');
+        Expect::that($detail->message)->because('toHaveKey() guards the subject type')
+            ->toBe('toHaveKey() requires an array or ArrayAccess subject. The subject type is string.');
     }
 
     #[Test]
@@ -189,7 +193,8 @@ final class IterableMatchersTest
             static fn() => Expect::that(0)->toBeEmpty(),
         );
 
-        Expect::that($detail->message)->because('toBeEmpty() guards the subject type')->toBe('toBeEmpty() requires a string, array, Countable or iterable subject, got int.');
+        Expect::that($detail->message)->because('toBeEmpty() guards the subject type')
+            ->toBe('toBeEmpty() requires a string, array, Countable, or iterable subject. The subject type is int.');
     }
 
     #[Test]
@@ -329,7 +334,8 @@ final class IterableMatchersTest
             static fn() => Expect::that('x')->toContainSubset(['a' => 1]),
         );
 
-        Expect::that($detail->message)->because('toContainSubset() guards the subject type')->toBe('toContainSubset() requires an array subject, got string.');
+        Expect::that($detail->message)->because('toContainSubset() guards the subject type')
+            ->toBe('toContainSubset() requires an array subject. The subject type is string.');
     }
 
     /**

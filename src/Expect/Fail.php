@@ -20,7 +20,7 @@ final class Fail
         ExpectationCounter::increment();
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
-            $reason === '' ? 'Failed without a reason.' : $reason,
+            $reason === '' ? 'The test failed without a reason.' : $reason,
             location: CallSite::capture(),
         ));
     }

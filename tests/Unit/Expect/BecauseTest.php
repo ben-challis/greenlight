@@ -95,7 +95,8 @@ final class BecauseTest
             static fn() => Expect::that(42)->because('the reason applies to matcher failures only')->toContain('x'),
         );
 
-        Expect::that($detail->message)->because('a usage failure ignores the pending reason')->toBe('toContain() requires a string or iterable subject, got int.');
+        Expect::that($detail->message)->because('a usage failure ignores the pending reason')
+            ->toBe('toContain() requires a string or iterable subject. The subject type is int.');
     }
 
     #[Test]

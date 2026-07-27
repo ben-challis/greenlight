@@ -116,7 +116,8 @@ final class ToThrowTest
             static fn() => Expect::that(42)->not()->toThrow(\DomainException::class),
         );
 
-        Expect::that($detail->message)->because('toThrow() guards the subject type even when negated')->toBe('toThrow() requires a callable subject, got int.');
+        Expect::that($detail->message)->because('toThrow() guards the subject type even when negated')
+            ->toBe('toThrow() requires a callable subject. The subject type is int.');
     }
 
     #[Test]
@@ -156,7 +157,7 @@ final class ToThrowTest
         );
 
         Expect::that($detail->message)->because('toThrow() rejects pattern and exact message before invoking the subject')->toBe(
-            'toThrow() accepts either matching: or message:, not both.',
+            'Specify matching: or message: for toThrow(). Do not specify both.',
         );
         Expect::that($invoked)->because('toThrow() rejects pattern and exact message before invoking the subject')->toBeFalse();
     }

@@ -263,7 +263,7 @@ abstract class TemporalExpectation
     {
         if ($matching !== null && $message !== null) {
             throw ExpectationFailed::fromDetail(new FailureDetail(
-                'toThrow() accepts either matching: or message:, not both.',
+                'Specify matching: or message: for toThrow(). Do not specify both.',
                 location: CallSite::capture(),
             ));
         }
@@ -378,7 +378,7 @@ abstract class TemporalExpectation
                 ++$stalled;
 
                 if ($stalled >= 10_000) {
-                    throw new \LogicException('The polling clock did not advance while sleeping.');
+                    throw new \LogicException('The polling clock did not advance during sleep.');
                 }
             } else {
                 $stalled = 0;

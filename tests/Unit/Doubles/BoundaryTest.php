@@ -22,7 +22,7 @@ final class BoundaryTest
         $doubles = new Doubles();
 
         Expect::that(static fn(): object => $doubles->mock(FinalService::class))->because('final classes cannot be doubled')
-            ->toThrow(DoublesError::class, '/final and cannot be doubled.*interface/');
+            ->toThrow(DoublesError::class, '/is final.*proxy subclass.*interface/');
     }
 
     #[Test]
@@ -40,7 +40,11 @@ final class BoundaryTest
         $doubles = new Doubles();
 
         Expect::that(static fn(): object => $doubles->mock(Suit::class))->because('enums cannot be doubled')
-            ->toThrow(DoublesError::class, '/is an enum/');
+            ->toThrow(
+                DoublesError::class,
+                message: 'Greenlight\Tests\Fixture\Doubles\Suit is an enum. '
+                    . 'Doubles does not support enums. Use an interface that the enum implements.',
+            );
     }
 
     #[Test]

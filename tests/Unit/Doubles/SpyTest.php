@@ -72,7 +72,7 @@ final class SpyTest
         $foreign = new \stdClass();
 
         Expect::that(static fn(): array => $doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects')
-            ->toThrow(DoublesError::class, '/not created by this Doubles factory/');
+            ->toThrow(DoublesError::class, '/Doubles factory did not create/');
     }
 
     #[Test]

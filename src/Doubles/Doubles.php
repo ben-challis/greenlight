@@ -209,11 +209,11 @@ final class Doubles implements Disposable
 
         return new FailureDetail(
             \sprintf(
-                '%s::%s() was expected %s but was called %s.',
+                'Calls to %s::%s(): %s. The expectation requires %s.',
                 $state->type,
                 $expectation->method,
-                $expectation->describeExpectedCount(),
                 MethodExpectation::timesPhrase($expectation->actualCalls),
+                $expectation->describeExpectedCount(),
             ),
             $expectation->describePlan($this->renderer),
             $actual,

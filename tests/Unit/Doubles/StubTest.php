@@ -31,7 +31,7 @@ final class StubTest
         $stub = $doubles->stub(Stubbable::class);
 
         Expect::that(static fn(): string => $stub->name())->because('any call is an authoring error')
-            ->toThrow(DoublesError::class, '/must never be interacted with/');
+            ->toThrow(DoublesError::class, '/Stubs only satisfy a type/');
 
         $doubles->dispose();
     }
@@ -44,7 +44,7 @@ final class StubTest
 
         Expect::that(static function () use ($stub): void {
             $stub->touch();
-        })->because('even void calls are authoring errors')->toThrow(DoublesError::class, '/must never be interacted with/');
+        })->because('even void calls are authoring errors')->toThrow(DoublesError::class, '/Stubs only satisfy a type/');
 
         $doubles->dispose();
     }
