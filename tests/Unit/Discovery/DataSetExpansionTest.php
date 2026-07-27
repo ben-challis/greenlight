@@ -123,6 +123,26 @@ final class DataSetExpansionTest
     }
 
     #[Test]
+    public function missingExternalProviderClassFailsNamingIt(): void
+    {
+        $expander = new DataSetExpander();
+
+        Expect::that(static fn(): array => $expander->rowsFor(
+            new \ReflectionClass(ProviderKeysTest::class),
+            'withStringKeys',
+            'rows',
+            5.0,
+            'Greenlight\Tests\Fixture\MissingProvider',
+        ))
+            ->because('missing external provider class fails naming it')
+            ->toThrow(
+                DiscoveryError::class,
+                message: 'Test method ' . ProviderKeysTest::class . '::withStringKeys() '
+                    . 'references missing data-set provider class "Greenlight\Tests\Fixture\MissingProvider".',
+            );
+    }
+
+    #[Test]
     public function nonStaticProviderIsRejected(): void
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderInvalid');
