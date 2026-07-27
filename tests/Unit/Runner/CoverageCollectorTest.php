@@ -65,4 +65,27 @@ final class CoverageCollectorTest
                 . 'Set xdebug.mode to "coverage", or set the XDEBUG_MODE environment variable.',
             );
     }
+
+    #[Test]
+    public function emptyIncludePathsKeepCoverageFromEveryFile(): void
+    {
+        $collector = CoverageCollector::create(
+            new CoverageSettings([]),
+            selector: new DriverSelector([RecordingFakeDriver::class]),
+        );
+
+        if (!$collector instanceof CoverageCollector) {
+            Fail::because('Expected the available driver to create a coverage collector.');
+        }
+
+        $collector->start();
+        $files = $collector->stop()->files();
+
+        Expect::that(\array_keys($files))
+            ->because('empty coverage include paths MUST retain every collected file')
+            ->toBe([
+                '/project/src/Included.php',
+                '/project/tests/Excluded.php',
+            ]);
+    }
 }
