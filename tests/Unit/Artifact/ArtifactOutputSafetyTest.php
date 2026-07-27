@@ -24,6 +24,7 @@ final readonly class ArtifactOutputSafetyTest
     {
         $root = $this->tempDirectory->subdirectory('output-symlink');
         $outside = $this->tempDirectory->subdirectory('outside-output');
+        \mkdir($root . '/published');
         $store = ArtifactStore::open(
             new ArtifactConfiguration($root . '/published'),
             $root,
