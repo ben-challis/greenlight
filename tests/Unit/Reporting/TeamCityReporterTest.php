@@ -147,6 +147,30 @@ final class TeamCityReporterTest
     }
 
     #[Test]
+    public function autoloaderErrorsDoNotStopTheReportStream(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TeamCityReporter($output);
+        $class = 'Acme\BrokenAutoloaderTest';
+        $autoload = static function (string $requested) use ($class): void {
+            if ($requested === $class) {
+                throw new \RuntimeException('autoload failed');
+            }
+        };
+        \spl_autoload_register($autoload);
+
+        try {
+            $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
+        } finally {
+            \spl_autoload_unregister($autoload);
+        }
+
+        Expect::that($output->buffer())
+            ->because('an autoloader error omits the optional navigation hint')
+            ->toBe("##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n");
+    }
+
+    #[Test]
     public function interleavedClassesKeepDistinctFlows(): void
     {
         $output = new BufferOutput();
