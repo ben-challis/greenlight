@@ -259,6 +259,27 @@ final class DiscoveryCacheTest
         }
     }
 
+    #[Test]
+    public function aSourceThatVanishedBeforeCachingIsIgnored(): void
+    {
+        $directory = \sys_get_temp_dir() . '/greenlight-vanished-' . \bin2hex(\random_bytes(6));
+        $cacheFile = $this->cacheFile($directory);
+        $cache = DiscoveryCache::forDirectories([$directory]);
+
+        try {
+            $cache->store($directory . '/GoneTest.php', []);
+
+            Expect::that($cache->persist())
+                ->because('a vanished discovery source MUST not make cache persistence fail')
+                ->toBeTrue()
+                ->and(\is_file($cacheFile))
+                ->because('a vanished source MUST not create an empty cache document')
+                ->toBeFalse();
+        } finally {
+            @\unlink($cacheFile);
+        }
+    }
+
     /**
      * @param non-empty-string $directory
      */
