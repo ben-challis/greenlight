@@ -200,15 +200,6 @@ Repeat the flag to select more than one reporter:
 vendor/bin/greenlight run --reporter=tty --reporter=junit
 ```
 
-Write JUnit XML to a file and keep the default terminal reporter:
-
-```sh
-vendor/bin/greenlight run --log-junit=build/test-results/greenlight.junit.xml
-```
-
-Greenlight creates the parent directory and replaces the file atomically.
-Repeat and watch modes replace the file after each run.
-
 Tests can retain diagnostic data without output to standard output. Inject
 `Greenlight\Core\Artifact\Attachments`.
 

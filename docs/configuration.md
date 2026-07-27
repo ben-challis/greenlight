@@ -608,13 +608,6 @@ The `teamcity` reporter includes IDE navigation metadata: `php_qn://` location
 hints for click-to-source, plus a per-class `flowId` to keep parallel output
 separated in JetBrains tools.
 
-### `--log-junit=<path>`
-
-Writes JUnit XML to a file in addition to the selected reporters.
-
-Greenlight creates the parent directory and replaces the file atomically.
-Repeat and watch modes replace the file after each run.
-
 ### `--artifacts-dir=<path>`
 
 Overrides the configured artifact parent directory for this run. Greenlight

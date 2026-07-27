@@ -154,7 +154,9 @@ jobs:
 
       - name: "Tests with JUnit output"
         if: "matrix.analytics == true"
-        run: "php bin/greenlight run --log-junit=build/test-results/greenlight.junit.xml"
+        run: |
+          mkdir -p build/test-results
+          php bin/greenlight run --reporter=junit > build/test-results/greenlight.junit.xml
 
       - name: "Upload test results to Codecov"
         if: "${{ !cancelled() && matrix.analytics == true }}"

@@ -26,11 +26,4 @@ final class ReportingErrorTest
                 self::class,
             ));
     }
-
-    #[Test]
-    public function reportsAJunitFileWriteFailureExactly(): void
-    {
-        Expect::that(ReportingError::junitFileWriteFailed('/project/report.xml', 'Permission denied.')->getMessage())
-            ->toBe('Greenlight could not write JUnit output to "/project/report.xml": Permission denied.');
-    }
 }
