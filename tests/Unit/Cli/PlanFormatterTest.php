@@ -9,10 +9,12 @@ use Greenlight\Cli\PlanFormatter;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\CoverageExport;
+use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\WatchConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 
 final class PlanFormatterTest
 {
@@ -58,5 +60,22 @@ final class PlanFormatterTest
 
                 PLAN,
         );
+    }
+
+    #[Test]
+    public function formatsRuntimeSeedSelectionAndPluginClasses(): void
+    {
+        $configuration = GreenlightConfig::create()
+            ->randomizeOrder()
+            ->plugins(new NamedFakePlugin())
+            ->build();
+
+        $formatted = PlanFormatter::format($configuration, '/project/greenlight.php');
+
+        Expect::that($formatted)
+            ->because('the plan names runtime seed selection and configured plugins')
+            ->toContain('  order: random (seed chosen at run time)')
+            ->and($formatted)
+            ->toContain('  plugins: ' . NamedFakePlugin::class);
     }
 }
