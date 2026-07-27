@@ -78,7 +78,7 @@ final class SymfonyPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, [new Service('fixture.missing')]);
-        })->because('an unknown explicit ID fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/no service "fixture\.missing".*Check the service ID/s');
+        })->because('an unknown explicit ID causes an error')->toThrow(SymfonyBridgeError::class, matching: '/no service "fixture\.missing".*Check the service ID/s');
     }
 
     #[Test]
@@ -88,15 +88,15 @@ final class SymfonyPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(VisitCounter::class, [new Service('fixture.named_greeter')]);
-        })->because('an explicit ID of the wrong type fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/has type .* The parameter requires type/');
+        })->because('an explicit ID of the wrong type causes an error')->toThrow(SymfonyBridgeError::class, matching: '/has type .* The parameter requires type/');
     }
 
     #[Test]
     public function aKernelWithoutTheTestContainerFailsAtBoot(): void
     {
         // The prod environment compiles without framework.test. Boot validation
-        // rejects it before service resolution can silently use a less strict
-        // path.
+        // rejects it before service resolution uses a less strict path without
+        // an error.
         $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'prod', debug: true);
 
         Expect::that(static function () use ($plugin): void {
@@ -182,7 +182,7 @@ final class SymfonyPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
-        })->because('a class that is not a kernel fails loudly')->toThrow(SymfonyBridgeError::class, matching: '/does not implement/');
+        })->because('a class that is not a kernel causes an error')->toThrow(SymfonyBridgeError::class, matching: '/does not implement/');
     }
 
     #[Test]

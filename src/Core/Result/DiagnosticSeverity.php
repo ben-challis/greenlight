@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Core\Result;
 
 /**
- * Greenlight captures only notices, warnings, and deprecations. PHP handles
- * other levels with its default process.
+ * Greenlight captures only notices, warnings, and deprecations. PHP uses its
+ * default behavior for all other error levels.
  */
 enum DiagnosticSeverity: string
 {

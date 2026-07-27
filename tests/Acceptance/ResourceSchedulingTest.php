@@ -121,9 +121,9 @@ final readonly class ResourceSchedulingTest
             ['RESOURCE_CRASH_MARKER' => $marker],
         );
 
-        Expect::that($result->exitCode)->because('a crashed worker releases its lease for waiting work')->toBe(1);
-        Expect::that($result->output())->because('a crashed worker releases its lease for waiting work')->toContain('2 tests, 1 passed, 1 errored');
-        Expect::that((string) \file_get_contents($marker))->because('a crashed worker releases its lease for waiting work')->toBe('ran');
+        Expect::that($result->exitCode)->because('a crashed worker releases its lease for queued work')->toBe(1);
+        Expect::that($result->output())->because('a crashed worker releases its lease for queued work')->toContain('2 tests, 1 passed, 1 errored');
+        Expect::that((string) \file_get_contents($marker))->because('a crashed worker releases its lease for queued work')->toBe('ran');
     }
 
     private function concurrencyProject(): AcceptanceProject

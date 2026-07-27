@@ -104,8 +104,8 @@ public static function fromWire(array $payload): static
 
 Namespace: `Greenlight\Core\Result`
 
-Greenlight captures only notices, warnings, and deprecations. PHP handles
-other levels with its default process.
+Greenlight captures only notices, warnings, and deprecations. PHP uses its
+default behavior for all other error levels.
 
 ```php
 enum DiagnosticSeverity: string

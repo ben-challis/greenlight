@@ -7,8 +7,9 @@ namespace Greenlight\Core;
 /**
  * Runs one native operation. It does not send engine diagnostics to a host error handler.
  *
- * run() installs an error handler that records the last message and handles
- * it. It then invokes the operation and restores the previous handler.
+ * run() installs an error handler that records the last message and suppresses
+ * each diagnostic. It then invokes the operation and restores the previous
+ * handler.
  * The return value of the operation still identifies a failure. The recorded
  * message gives more information for an error that the caller raises.
  *

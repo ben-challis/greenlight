@@ -70,7 +70,7 @@ final class ConditionsTest
     #[Test]
     public function phpVersionAtLeastComparesAgainstTheRunningVersion(): void
     {
-        Expect::that(new PhpVersionAtLeast('8.0')->isSatisfied())->because('PHP version at least compares against the running version')->toBeTrue()
+        Expect::that(new PhpVersionAtLeast('8.0')->isSatisfied())->because('PHP version at least compares against the current PHP version')->toBeTrue()
             ->and(new PhpVersionAtLeast(\PHP_VERSION)->isSatisfied())->toBeTrue()
             ->and(new PhpVersionAtLeast('99.0')->isSatisfied())->toBeFalse();
     }
@@ -78,7 +78,7 @@ final class ConditionsTest
     #[Test]
     public function phpVersionLessThanComparesAgainstTheRunningVersion(): void
     {
-        Expect::that(new PhpVersionLessThan('99.0')->isSatisfied())->because('PHP version less than compares against the running version')->toBeTrue()
+        Expect::that(new PhpVersionLessThan('99.0')->isSatisfied())->because('PHP version less than compares against the current PHP version')->toBeTrue()
             ->and(new PhpVersionLessThan('8.0')->isSatisfied())->toBeFalse()
             ->and(new PhpVersionLessThan(\PHP_VERSION)->isSatisfied())->toBeFalse();
     }

@@ -139,7 +139,7 @@ final class StringMatchersTest
     #[Test]
     public function toHaveLengthFallsBackToBytesForInvalidUtf8(): void
     {
-        Expect::that("\xC3\x28")->because('toHaveLength() falls back to bytes for invalid utf8')->toHaveLength(2);
+        Expect::that("\xC3\x28")->because('toHaveLength() counts bytes for invalid UTF-8')->toHaveLength(2);
     }
 
     #[Test]

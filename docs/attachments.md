@@ -42,7 +42,7 @@ temporary source file after `file()` returns. Later changes to a value or file
 do not change the attachment.
 
 Greenlight retains attachments when the attempt fails or has an error. This
-rule includes a successful attempt that result policy changes to another
+rule includes a successful attempt that a result policy changes to another
 outcome. To retain an attachment from a successful attempt, set its retention to
 `AttachmentRetention::Always`:
 
@@ -89,9 +89,9 @@ attempt number, retention policy, and published path. The metadata does not
 include the original source path or the attachment content.
 
 Attachment names are labels, not paths. They cannot contain directory
-separators, control characters, `.` or `..`. Repeated names within one attempt
-receive `-2`, `-3`, and later suffixes in their published filenames. Their
-logical names remain unchanged in the result metadata.
+separators or control characters. They cannot equal `.` or `..`. Repeated names
+within one attempt receive `-2`, `-3`, and later suffixes in their published
+filenames. Their logical names remain unchanged in the result metadata.
 
 Greenlight converts test IDs to slugs and hashes before it uses them in paths.
 

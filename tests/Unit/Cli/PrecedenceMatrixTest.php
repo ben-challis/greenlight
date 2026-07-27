@@ -129,9 +129,9 @@ final class PrecedenceMatrixTest
             ->paths(['tests/Only'])
             ->workers(recycleAfterTests: 42, recycleAboveMemory: '64M'), cli: new CliOverrides(workers: WorkerCount::auto(), stopAfterFailures: 1, groups: ['g'], seed: 1));
 
-        Expect::that($resolved->paths)->because('settings without flags always come from the configuration file')->toBe(['tests/Only']);
-        Expect::that($resolved->recycleAfterTests)->because('settings without flags always come from the configuration file')->toBe(42);
-        Expect::that($resolved->recycleAboveMemoryBytes)->because('settings without flags always come from the configuration file')->toBe(67108864);
+        Expect::that($resolved->paths)->because('settings without flags use the configuration file')->toBe(['tests/Only']);
+        Expect::that($resolved->recycleAfterTests)->because('settings without flags use the configuration file')->toBe(42);
+        Expect::that($resolved->recycleAboveMemoryBytes)->because('settings without flags use the configuration file')->toBe(67108864);
     }
 
     /**

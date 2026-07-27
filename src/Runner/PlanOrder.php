@@ -14,8 +14,8 @@ use Greenlight\Discovery\PlanEntry;
  *
  * Entry order within a class never changes.
  *
- * A run with a seed must not supply durations. An order from cached durations
- * would change the order that the seed reproduces.
+ * A run with a seed does not supply durations. Cached durations change the
+ * order that the seed reproduces.
  *
  * @internal
  */

@@ -15,9 +15,9 @@ final class Utf8Test
     #[Test]
     public function validUtf8PassesThroughUntouched(): void
     {
-        Expect::that(Utf8::scrub('plain'))->because('valid utf8 passes through untouched')->toBe('plain');
-        Expect::that(Utf8::scrub('naïve ✓'))->because('valid utf8 passes through untouched')->toBe('naïve ✓');
-        Expect::that(Utf8::scrub(''))->because('valid utf8 passes through untouched')->toBe('');
+        Expect::that(Utf8::scrub('plain'))->because('valid UTF-8 remains unchanged')->toBe('plain');
+        Expect::that(Utf8::scrub('naïve ✓'))->because('valid UTF-8 remains unchanged')->toBe('naïve ✓');
+        Expect::that(Utf8::scrub(''))->because('valid UTF-8 remains unchanged')->toBe('');
     }
 
     #[Test]

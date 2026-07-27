@@ -460,8 +460,8 @@ final readonly class Application
 
         if ($coverageSettings instanceof CoverageSettings) {
             // The worker-pool path collects orchestrator coverage unless this
-            // process inherits relay variables. A second driver period would
-            // close the inherited process period too early.
+            // process inherits relay variables. A second driver period closes
+            // the inherited process period too early.
             if ($workers !== 1 && $realBin !== false && !SubprocessCoverage::requested()) {
                 $orchestratorCollector = CoverageCollector::create($coverageSettings);
                 $orchestratorCollector?->start();

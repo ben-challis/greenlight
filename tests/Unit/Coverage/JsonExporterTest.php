@@ -58,7 +58,7 @@ final class JsonExporterTest
 
         $restored = JsonExporter::import(new JsonExporter()->export($map)[JsonExporter::FILE_NAME]);
 
-        Expect::that($restored->toWire())->because('import round trips an exported document')->toBe($map->toWire());
+        Expect::that($restored->toWire())->because('import restores the exported coverage map')->toBe($map->toWire());
     }
 
     #[Test]
