@@ -12,6 +12,7 @@ parameters:
         - tools
     excludePaths:
         analyse:
+            - tests/Fixture/DataRowsDuplicateInline
             - tests/Fixture/DiscoveryAttributeArgumentsInvalid
             - tests/Fixture/DiscoveryInvalidMethods
             - tests/Fixture/DiscoveryResourceInvalid
