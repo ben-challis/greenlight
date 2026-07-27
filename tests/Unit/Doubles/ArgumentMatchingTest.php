@@ -164,6 +164,14 @@ final class ArgumentMatchingTest
     }
 
     #[Test]
+    public function captorDiagnosticsNameTheConstraint(): void
+    {
+        Expect::that(Argument::captor()->describe())
+            ->because('captor diagnostics identify the argument constraint')
+            ->toBe('captor()');
+    }
+
+    #[Test]
     public function captureArgumentRecordsEveryMatchedCall(): void
     {
         $doubles = new Doubles();
