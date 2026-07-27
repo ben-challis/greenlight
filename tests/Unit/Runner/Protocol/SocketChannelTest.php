@@ -14,6 +14,32 @@ use Greenlight\Runner\Protocol\SocketChannel;
 final class SocketChannelTest
 {
     #[Test]
+    public function receiveTimeoutLeavesTheChannelOpenForLaterMessages(): void
+    {
+        [$stream, $peer] = $this->socketPair();
+        $receiver = new SocketChannel($stream);
+        $sender = new SocketChannel($peer);
+
+        try {
+            Expect::that($receiver->receive(0.0))
+                ->because('an empty receive can reach its deadline')
+                ->toBeNull()
+                ->and($receiver->isEof())
+                ->because('a receive deadline MUST NOT mark an open channel as EOF')
+                ->toBeFalse();
+
+            $sender->send(new Drain());
+
+            Expect::that($receiver->receive(0.0))
+                ->because('a channel remains usable after a receive deadline')
+                ->toBeInstanceOf(Drain::class);
+        } finally {
+            $sender->close();
+            $receiver->close();
+        }
+    }
+
+    #[Test]
     public function aCompleteFinalFrameIsDeliveredBeforeCleanEof(): void
     {
         [$stream, $peer] = $this->socketPair();
