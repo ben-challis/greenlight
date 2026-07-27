@@ -8,7 +8,7 @@ use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Test\ResourceName;
 use Greenlight\Plugin\Plugin;
 
-/** Fluent configuration builder returned by greenlight.php. */
+/** Collects the configuration that greenlight.php returns. */
 final class GreenlightConfig
 {
     private const string DEFAULT_RECYCLE_ABOVE_MEMORY = '256M';
@@ -76,7 +76,7 @@ final class GreenlightConfig
     }
 
     /**
-     * Directories to discover tests in when no suite is selected.
+     * Sets the test-discovery directories for runs without a selected suite.
      *
      * @param list<string> $tests
      *
@@ -104,9 +104,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Declares a named suite. The configurator receives a SuiteBuilder and
-     * must give the suite at least one path via in(). The configurator's
-     * return value is ignored, so terse arrow functions work.
+     * Declares a named suite. The configurator receives a SuiteBuilder. The
+     * configurator must add at least one path with in(). Greenlight ignores the
+     * return value, which permits short arrow functions.
      *
      * @param callable(SuiteBuilder): mixed $configurator
      *
@@ -130,12 +130,13 @@ final class GreenlightConfig
     }
 
     /**
-     * Test-count recycling is opt-in because each recycle boots a new worker.
-     * Use it for state that memory-based recycling cannot bound.
+     * Greenlight replaces a worker after the specified number of tests only
+     * when recycleAfterTests has a value. Use this option for state that the
+     * memory limit cannot control.
      *
      * @param int|'auto' $count
-     * @param int|null $recycleAfterTests null means workers are never
-     *   recycled by test count
+     * @param int|null $recycleAfterTests A null value disables test-count
+     *   worker replacement.
      *
      * @throws InvalidConfiguration
      */
@@ -157,9 +158,10 @@ final class GreenlightConfig
     }
 
     /**
-     * Limits simultaneous class assignments that require the named resource.
+     * Sets the maximum number of concurrent assignments that require the
+     * named resource.
      *
-     * A required resource with no configured limit defaults to one.
+     * A resource without an explicit resource limit has a limit of one.
      *
      * @throws InvalidConfiguration
      */
@@ -225,9 +227,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Fails a passed test whose captured output contains a deprecation, with
-     * the diagnostic as the failure detail. Exempt known dependency noise
-     * with ignoreDeprecationsMatching().
+     * Fails an otherwise passed test if captured output contains a
+     * deprecation. The diagnostic becomes the failure detail. Use
+     * ignoreDeprecationsMatching() to exempt known dependency messages.
      */
     public function failOnDeprecation(bool $enabled = true): self
     {
@@ -244,8 +246,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Fails a passed test that verified no expectations. Tests that
-     * legitimately assert nothing opt out with #[NoExpectations].
+     * Fails an otherwise passed test if the test verifies no expectations.
+     * Use #[NoExpectations] to exempt a test that intentionally verifies no
+     * expectations.
      */
     public function failOnRisky(bool $enabled = true): self
     {
@@ -255,9 +258,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Exempts deprecation messages from failOnDeprecation(): patterns match
-     * by case-insensitive substring, or against the whole message when they
-     * contain "*" or "?". Repeatable; patterns accumulate.
+     * Exempts deprecation messages from failOnDeprecation(). A pattern matches
+     * part of a message without case sensitivity. A pattern that contains "*"
+     * or "?" matches the complete message. Multiple calls add patterns.
      */
     public function ignoreDeprecationsMatching(string ...$patterns): self
     {
@@ -288,7 +291,7 @@ final class GreenlightConfig
         return $this;
     }
 
-    /** A null seed is generated and printed at run time. */
+    /** If the seed is null, Greenlight generates and prints a seed at run time. */
     public function randomizeOrder(?int $seed = null): self
     {
         $this->randomizeOrder = true;
@@ -298,8 +301,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Deliberately wider than the public contract so callers without static
-     * analysis still get a clear runtime error for bad strings.
+     * Uses a wider parameter type than the public contract. This gives callers
+     * without static analysis a clear runtime error for invalid strings.
      */
     private function workerCount(int|string $count): WorkerCount
     {

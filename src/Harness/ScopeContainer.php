@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Services created within one scope instance.
+ * Stores services for one service scope.
  *
- * dispose() tears them down in reverse creation order when the scope closes.
+ * dispose() disposes the services in reverse creation order.
  *
- * Services are lazy proxies where the class allows it, so an injected but
- * untouched service is never constructed and never disposed.
+ * If the service class supports a lazy proxy, Greenlight does not construct
+ * the service until its first use. Thus, Greenlight does not dispose an
+ * unused service.
  *
  * @internal
  */
@@ -36,8 +37,8 @@ final class ScopeContainer
     }
 
     /**
-     * Disposes created services in reverse creation order. Never throws;
-     * every failure is collected so one broken teardown cannot leak the rest.
+     * Disposes constructed services in reverse creation order. It records each
+     * failure and continues to dispose the remaining services.
      *
      * @return list<\Throwable>
      */
@@ -75,9 +76,9 @@ final class ScopeContainer
         try {
             return $reflection->newLazyProxy(static fn(): object => ($definition->factory)());
         } catch (\ReflectionException|\Error) {
-            // Classes that cannot be lazy (internal classes among them) are
-            // constructed eagerly. The factory has not run at this point, so
-            // nothing real can be swallowed here.
+            // Greenlight constructs a class immediately if PHP cannot create a
+            // lazy proxy for it. The factory has not run, so this catch does
+            // not hide a factory error.
             return ($definition->factory)();
         }
     }

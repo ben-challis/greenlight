@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 /**
- * The runner resolves 'auto'; configuration never guesses a CPU count.
+ * The runner resolves 'auto'. The configuration does not estimate the number
+ * of CPU cores.
  *
  * @internal
  */
 final readonly class WorkerCount
 {
     /**
-     * @param positive-int|null $fixed null means resolve automatically at run time
+     * @param positive-int|null $fixed A null value makes the runner select the
+     *   worker count at run time.
      */
     private function __construct(public ?int $fixed) {}
 

@@ -8,7 +8,7 @@ use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
- * Persistent output location and safety limits for test attachments.
+ * Contains the output directory and safety limits for test attachments.
  *
  * @internal
  */

@@ -9,8 +9,8 @@ use Greenlight\Core\Condition;
 final readonly class ClassAvailable implements Condition
 {
     /**
-     * The name is a plain string, not a class-string, because the class it
-     * names may legitimately not exist in the current environment.
+     * The class name has the string type because the class can be absent from
+     * the current environment.
      *
      * @param non-empty-string $class
      */

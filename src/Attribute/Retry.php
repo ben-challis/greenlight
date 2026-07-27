@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Attribute;
 
 /**
- * Retries a failing test up to the given number of additional attempts,
- * optionally only when the failure was caused by the given throwable type.
+ * Runs a failed test again for the specified number of additional attempts.
+ * The optional throwable type limits the failures that start another attempt.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Retry
