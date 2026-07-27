@@ -77,7 +77,7 @@ PHPDoc:
 - `@param string $name A relative path of plain segments. The path can contain separators but cannot contain traversal segments.`
 - `@return non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L47)
 
 ### `dispose()`
 
@@ -86,7 +86,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L69)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L72)
 
 ## `Disposable`
 
