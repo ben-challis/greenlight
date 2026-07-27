@@ -78,8 +78,7 @@ final class BecauseTest
     public function anEmptyReasonIsAUsageFailure(): void
     {
         $empty = FailureProbe::detailOf(static function (): void {
-            // @phpstan-ignore argument.type
-            Expect::that(true)->because('');
+            Expect::that(true)->because(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         });
 
         Expect::that($empty->message)->toBe('because() requires a non-empty reason.');
