@@ -125,6 +125,33 @@ final class ProfileAggregatorTest
         Expect::that($aggregator->render(new Style(ansi: false)))->because('without a finished run nothing renders')->toBe('');
     }
 
+    #[Test]
+    public function spawnedWorkersWithoutClassesStayOutOfTheStatisticsTable(): void
+    {
+        $aggregator = new ProfileAggregator();
+        $events = [
+            new RunStarted('run-1', 1, 2, 100.0),
+            new WorkerSpawned('active', 11, 100.0),
+            new WorkerSpawned('idle', 12, 100.0),
+            new TestClassStarted('Acme\ExampleTest', 100.5, 'active'),
+            new TestClassFinished('Acme\ExampleTest', 101.0, 'active'),
+            new RunFinished('run-1', new ResultSummary(passed: 1), 1.0, 101.0),
+        ];
+
+        foreach ($events as $event) {
+            $aggregator->onEvent($event);
+        }
+
+        Expect::that($aggregator->render(new Style(ansi: false)))
+            ->because('the summary counts every spawned worker')
+            ->toContain('Workers: 2 requested, 2 spawned, 0 recycled')
+            ->and($aggregator->render(new Style(ansi: false)))
+            ->because('an idle worker has no class statistics to report')
+            ->toContain("\n  active        1  0.500s")
+            ->not()
+            ->toContain("\n  idle");
+    }
+
     /**
      * Worker w-1 starts in 0.5 seconds and runs two classes with a gap. It is
      * active for 3.5 seconds of a 4.5-second period. Worker w-2 starts in 1.0
