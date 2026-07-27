@@ -8,15 +8,15 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 
 ## API sections
 
-- [Attributes and conditions API](api-attributes.md) — This reference lists the attributes and conditions that control test discovery and execution. (23 types)
-- [Configuration API](api-configuration.md) — This reference lists the builders that configure Greenlight runs. (5 types)
-- [Artifact API](api-artifacts.md) — This reference lists attachment values, retention rules, and attachment operations. (5 types)
-- [Event API](api-events.md) — This reference lists the events that plugins and reporters receive during a run. (12 types)
-- [Result API](api-results.md) — This reference lists test outcomes, diagnostics, failure details, and result values. (10 types)
-- [Test contracts API](api-test-contracts.md) — This reference lists test metadata, skip signals, conditions, and wire contracts. (7 types)
-- [Expectations API](api-expectations.md) — This reference lists immediate and temporal expectation types. (9 types)
-- [Doubles API](api-doubles.md) — This reference lists double factories, argument matchers, captors, and mock plans. (6 types)
-- [Fixtures and harness API](api-fixtures-harness.md) — This reference lists fixtures and harness service contracts. (6 types)
-- [Plugin API](api-plugins.md) — This reference lists plugin capabilities and lifecycle callback contracts. (7 types)
-- [Reporter API](api-reporting.md) — This reference lists reporter and output contracts. (2 types)
-- [Integration API](api-integrations.md) — This reference lists public integration types for PHPStan, Rector, and Symfony. (3 types)
+- [Attributes and conditions API](api-attributes.md) — This reference lists the attributes and conditions that control test discovery and execution.
+- [Configuration API](api-configuration.md) — This reference lists the builders that configure Greenlight runs.
+- [Artifact API](api-artifacts.md) — This reference lists attachment values, retention rules, and attachment operations.
+- [Event API](api-events.md) — This reference lists the events that plugins and reporters receive during a run.
+- [Result API](api-results.md) — This reference lists test outcomes, diagnostics, failure details, and result values.
+- [Test contracts API](api-test-contracts.md) — This reference lists test metadata, skip signals, conditions, and wire contracts.
+- [Expectations API](api-expectations.md) — This reference lists immediate and temporal expectation types.
+- [Doubles API](api-doubles.md) — This reference lists double factories, argument matchers, captors, and mock plans.
+- [Fixtures and harness API](api-fixtures-harness.md) — This reference lists fixtures and harness service contracts.
+- [Plugin API](api-plugins.md) — This reference lists plugin capabilities and lifecycle callback contracts.
+- [Reporter API](api-reporting.md) — This reference lists reporter and output contracts.
+- [Integration API](api-integrations.md) — This reference lists public integration types for PHPStan, Rector, and Symfony.
