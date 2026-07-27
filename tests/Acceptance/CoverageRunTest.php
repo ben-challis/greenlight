@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -81,6 +82,47 @@ final readonly class CoverageRunTest
             ->toContain('Unknown coverage export format "sarif".')
             ->and(\is_dir($project->path('coverage-out')))
             ->toBeFalse();
+    }
+
+    #[Test]
+    #[DataSet('xmlExportFormats')]
+    public function configuredXmlExportFormatsWriteWellFormedDocuments(
+        string $format,
+        string $expectedChild,
+    ): void {
+        $project = $this->writeProject(exportFormat: $format);
+        $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('a configured XML coverage export MUST complete')
+            ->toBe(0)
+            ->and($result->output())
+            ->toContain(\sprintf('  %s → coverage-out/coverage.unknown', $format));
+
+        $document = \file_get_contents($project->path('coverage-out/coverage.unknown'));
+
+        if ($document === false) {
+            Fail::because(\sprintf('Expected a readable %s coverage export.', $format));
+        }
+
+        $xml = new \SimpleXMLElement($document);
+        $children = $xml->xpath('/coverage/' . $expectedChild);
+
+        Expect::that($xml->getName())
+            ->because('the configured XML exporter MUST write a coverage document')
+            ->toBe('coverage')
+            ->and($children === false ? [] : $children)
+            ->not()
+            ->toBe([]);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, non-empty-string}>
+     */
+    public static function xmlExportFormats(): iterable
+    {
+        yield 'Clover' => ['clover', 'project'];
+        yield 'Cobertura' => ['cobertura', 'packages'];
     }
 
     #[Test]
