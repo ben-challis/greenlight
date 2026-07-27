@@ -123,6 +123,21 @@ final class ProtocolTest
     }
 
     #[Test]
+    public function assignDropsEmptyCoverageIncludePathsFromTheWire(): void
+    {
+        $payload = new Assign(
+            new ExecutionPlan([]),
+            coverageInclude: ['/app/src'],
+        )->toWire();
+        $payload['coverageInclude'] = ['', '/app/src', ''];
+        $assign = Assign::fromWire($payload);
+
+        Expect::that($assign->coverageInclude)
+            ->because('workers receive only non-empty coverage include paths')
+            ->toBe(['/app/src']);
+    }
+
+    #[Test]
     public function oversizedFramesAreRejectedOnBothSides(): void
     {
         $codec = new JsonFrameCodec(maxFrameBytes: 64);
