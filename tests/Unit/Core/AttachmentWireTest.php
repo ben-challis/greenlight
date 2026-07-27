@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Core;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\Attachment;
+use Greenlight\Core\Artifact\AttachmentRetention;
+use Greenlight\Core\Artifact\StagedAttachment;
+use Greenlight\Expect\Expect;
+
+final class AttachmentWireTest
+{
+    #[Test]
+    public function payloadsWithoutRetentionUseTheBackwardCompatibleDefault(): void
+    {
+        $payload = [
+            'name' => 'response.json',
+            'kind' => 'value',
+            'mediaType' => 'application/json',
+            'sizeBytes' => 2,
+            'sha256' => \str_repeat('a', 64),
+            'attempt' => 1,
+            'path' => 'build/artifacts/response.json',
+        ];
+
+        $attachment = Attachment::fromWire($payload);
+        $staged = StagedAttachment::fromWire([
+            ...$payload,
+            'storageKey' => 'attempt/response.json',
+        ]);
+
+        Expect::that($attachment->retention)
+            ->because('older attachment payloads use on-failure retention')
+            ->toBe(AttachmentRetention::OnFailure)
+            ->and($staged->retention)
+            ->toBe(AttachmentRetention::OnFailure);
+    }
+}
