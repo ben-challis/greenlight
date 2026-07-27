@@ -32,6 +32,7 @@ use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TemporalRetry\TemporalRetryTest;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe;
+use Greenlight\Tests\Fixture\Runner\OptionalConstructorProbe;
 use Greenlight\Tests\Fixture\Runner\UnsupportedConstructorProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
 
@@ -152,6 +153,26 @@ final class WorkerTest
 
         Expect::that($results[0]->outcome)->because('unknown constructor dependencies error the test naming the type')->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('SplStack');
+    }
+
+    #[Test]
+    public function optionalBuiltInConstructorParametersUseTheirDefaults(): void
+    {
+        $id = new TestId(OptionalConstructorProbe::class, 'usesDeclaredDefault');
+        $plan = new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+        $sink = new CollectingEventSink();
+
+        new Worker($this->registry())->run($plan, $sink);
+
+        $result = $sink->results()[0];
+
+        Expect::that($result->outcome)
+            ->because('optional built-in constructor parameters use their defaults')
+            ->toBe(Outcome::Passed)
+            ->and($result->expectations)
+            ->toBe(1);
     }
 
     #[Test]
