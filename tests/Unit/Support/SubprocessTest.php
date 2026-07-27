@@ -65,6 +65,24 @@ final readonly class SubprocessTest
     }
 
     #[Test]
+    public function phpProcessesDoNotInheritHostTracing(): void
+    {
+        $result = Subprocess::run(
+            $this->workspace->path(),
+            [
+                \PHP_BINARY,
+                '-r',
+                <<<'PHP'
+                fwrite(STDOUT, ini_get('ddtrace.disable'));
+                PHP,
+            ],
+        );
+
+        Expect::that($result->exitCode)->because('PHP processes do not inherit host tracing')->toBe(0)
+            ->and($result->stdout)->toBe('1');
+    }
+
+    #[Test]
     public function interactiveProcessAcceptsInputAndReturnsItsFinalResult(): void
     {
         $process = Subprocess::start(

@@ -48,7 +48,15 @@ final class GreenlightCli
                 $root . '/bin/greenlight',
                 ...$arguments,
             ],
-            $environment,
+            [
+                // Child workers MUST NOT start host tracer sidecars. A
+                // sidecar can keep a completed acceptance process alive.
+                'DD_INSTRUMENTATION_TELEMETRY_ENABLED' => '0',
+                'DD_REMOTE_CONFIG_ENABLED' => '0',
+                'DD_TRACE_CLI_ENABLED' => '0',
+                'DD_TRACE_SIDECAR_TRACE_SENDER' => '0',
+                ...$environment,
+            ],
         );
     }
 }

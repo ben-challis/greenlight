@@ -53,6 +53,16 @@ final class Subprocess
         array $command,
         array $environment = [],
     ): self {
+        // Direct PHP probes MUST NOT start the host tracer.
+        if ($command[0] === \PHP_BINARY) {
+            $command = [
+                \PHP_BINARY,
+                '-d',
+                'ddtrace.disable=1',
+                ...\array_slice($command, 1),
+            ];
+        }
+
         $processEnvironment = null;
 
         if ($environment !== []) {
