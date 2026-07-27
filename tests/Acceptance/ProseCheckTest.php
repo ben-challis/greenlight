@@ -23,6 +23,7 @@ final readonly class ProseCheckTest
     #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'British honor and label spelling')]
     #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'British normalize spelling')]
     #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'British parameterize spelling')]
+    #[DataRow(['british-spelling', 'The reporter deserialises the event.', 'The reporter deserializes the event.'], 'British deserialize spelling')]
     #[DataRow([
         'sentence-length',
         'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
@@ -353,6 +354,20 @@ final readonly class ProseCheckTest
 
         $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes dependencies at any directory depth')->toBe(0);
+    }
+
+    #[Test]
+    public function excludesNestedClaudeWorktrees(): void
+    {
+        $root = $this->workspace('nested-worktree-exclusion');
+        $this->write(
+            $root,
+            '.claude/worktrees/example/README.md',
+            "The worker doesn't use the configured colour; it stops.\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('excludes nested Claude worktrees')->toBe(0);
     }
 
     #[Test]

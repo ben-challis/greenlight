@@ -103,7 +103,7 @@ Enum cases compare by identity.
 * `toStartWith(string $prefix)` checks that a string starts with the prefix.
 * `toEndWith(string $suffix)` checks that a string ends with the suffix.
 
-Matchers that consume a `Traversable` do not rewind it afterwards.
+Matchers that consume a `Traversable` do not rewind it after consumption.
 
 ### Numbers
 

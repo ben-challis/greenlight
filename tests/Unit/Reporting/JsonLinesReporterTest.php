@@ -104,7 +104,7 @@ final class JsonLinesReporterTest
             #[\Override]
             public static function fromWire(array $payload): static
             {
-                throw new \LogicException('Not deserialisable.');
+                throw new \LogicException('Not deserializable.');
             }
         };
 

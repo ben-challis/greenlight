@@ -6,7 +6,7 @@
 - Technical prose includes documentation, PHPDoc, comments, contributor material, accessibility text, diagnostics, CLI help, and human-readable output.
 - Use ASD-STE100 Issue 9 for technical prose.
 - Use uppercase `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, and `MAY` as normative tokens.
-- Use STE clarity principles for promotional copy. The controlled vocabulary is optional for promotional copy.
+- Use STE clarity principles for marketing copy. The controlled vocabulary is optional for marketing copy.
 - Add focused unit or acceptance tests. Use `Greenlight\Expect`. Treat shared fixture directories as append-only.
 - Run focused tests with `php bin/greenlight run --filter=<test-id>`.
 - Before you complete PHP changes, run `composer static-analysis && composer tests`.

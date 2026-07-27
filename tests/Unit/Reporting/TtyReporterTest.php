@@ -47,7 +47,7 @@ final class TtyReporterTest
         $screen = $terminal->screen();
 
         Expect::that($screen)->because('interleaved classes finalize in place with ANSI')->toContain('Greenlight dev-main')
-            ->toContain('PHP 8.4.0 | config: greenlight.php | workers: 2 | seed: 4242')
+            ->toContain('PHP 8.4.0 | configuration: greenlight.php | workers: 2 | seed: 4242')
             // Only the failed class has a permanent line. The passed class
             // changes only the count.
             ->not()->toContain('✓ App\AlphaTest')

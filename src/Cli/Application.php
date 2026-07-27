@@ -930,7 +930,7 @@ final readonly class Application
         return $probed > 0 ? $probed : 24;
     }
 
-    /** Uses the loaded config so IDE and PHPStan signatures match. */
+    /** Uses the loaded configuration so IDE and PHPStan signatures match. */
     private function ideHelperCommand(ParsedArguments $arguments, string $workingDirectory): int
     {
         try {

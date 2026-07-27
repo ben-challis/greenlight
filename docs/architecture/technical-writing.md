@@ -12,8 +12,8 @@ This policy applies to repository-owned technical prose:
 * Command help, diagnostics, error messages, and reports
 * Package, schema, and configuration descriptions
 
-Promotional website text follows the clarity principles in this policy. It does
-not have to use the controlled vocabulary.
+Marketing copy follows the clarity principles in this policy. It does not have
+to use the controlled vocabulary.
 
 The prose checker finds mechanical errors and possible language problems. It
 does not certify compliance with ASD-STE100. A writer must also review the
