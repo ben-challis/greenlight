@@ -47,4 +47,40 @@ final readonly class ArtifactStorePublicationTest
             $store->cleanup();
         }
     }
+
+    #[Test]
+    public function workerStoresCannotPublishCoordinatorOwnedEvidence(): void
+    {
+        $root = $this->tempDirectory->subdirectory('worker-publication');
+        $configuration = new ArtifactConfiguration($root);
+        $coordinator = ArtifactStore::open($configuration, $root, 'run-worker-publication');
+        $worker = ArtifactStore::fromSession($coordinator->session(), $configuration);
+        $id = new TestId('Example\EvidenceTest', 'fails');
+        $attempt = $worker->forAttempt($id, 1, new TestArtifactBudget());
+        $attempt->text('evidence.txt', 'evidence');
+        $result = new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: $attempt->seal(),
+        );
+
+        try {
+            Expect::that(static fn(): TestResult => $worker->publish($result))
+                ->because('only the coordinator can publish attachment evidence')
+                ->toThrow(
+                    AttachmentError::class,
+                    message: 'A worker attempted to publish attachments.',
+                );
+
+            $published = $coordinator->publish($result);
+
+            Expect::that($published->attachments)
+                ->because('a rejected worker publication leaves the evidence intact')
+                ->toHaveCount(1);
+        } finally {
+            $coordinator->cleanup();
+        }
+    }
 }
