@@ -220,6 +220,37 @@ final class PluginTest
     }
 
     #[Test]
+    public function pluginSkipBypassesExecutionButRunsEveryTeardown(): void
+    {
+        TraceLog::drain();
+
+        $skipper = new class implements TestLifecycleSubscriber, Fake {
+            #[\Override]
+            public function beforeTest(TestContext $context): void
+            {
+                $context->skip('not applicable');
+            }
+
+            #[\Override]
+            public function afterTest(TestContext $context, TestResult $result): TestResult
+            {
+                TraceLog::add('plugin-after');
+
+                return $result;
+            }
+        };
+
+        [$summary] = $this->runSuite('Lifecycle/Order', [$skipper]);
+
+        Expect::that($summary->skipped)
+            ->because('the plugin skip stops test execution')
+            ->toBe(1)
+            ->and(TraceLog::drain())
+            ->because('the plugin skip MUST preserve fixture and subscriber teardown order')
+            ->toBe(['construct', 'after2', 'after1', 'plugin-after']);
+    }
+
+    #[Test]
     public function skipSignalFromBeforeTestSkipsTheTest(): void
     {
         $skipper = new class implements TestLifecycleSubscriber {
