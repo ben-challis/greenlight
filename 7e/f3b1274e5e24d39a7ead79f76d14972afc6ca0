@@ -1,0 +1,24 @@
+composer.json
+  s_16b5064f92cccc::t_41e94ed9b697d2 24
+  s_16b5064f92cccc::t_7467f185f11149 27
+tests/Support/TerminalEmulator.php
+  s_16b5064f92cccc::t_45d3cd4875a9cf 17
+composer.lock
+  s_16b5064f92cccc::t_0d81b69e09f415 7,1442,1445-1446,1502,1810,1814,1818-1819,1824,1858,1866
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "7ef3b1274e5e24d39a7ead79f76d14972afc6ca0",
+  "prompts": {},
+  "sessions": {
+    "s_16b5064f92cccc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2524d526-f1f7-4e81-8c6c-7ec61fa25623",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Marcin Michalski <marcin+github@michalski.dev>"
+    }
+  }
+}
