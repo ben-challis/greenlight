@@ -121,6 +121,34 @@ final class OutputCaptureTest
     }
 
     #[Test]
+    public function stopPreservesAnErrorHandlerInstalledDuringCapture(): void
+    {
+        $baselineHandler = self::activeErrorHandler();
+        $messages = [];
+        $capture = new OutputCapture();
+        $capture->start();
+
+        \set_error_handler(
+            static function (int $severity, string $message) use (&$messages): bool {
+                $messages[] = [$severity, $message];
+
+                return true;
+            },
+        );
+
+        try {
+            $capture->stop();
+            \trigger_error('after capture', \E_USER_NOTICE);
+
+            Expect::that($messages)
+                ->because('stop preserves an error handler installed during capture')
+                ->toBe([[\E_USER_NOTICE, 'after capture']]);
+        } finally {
+            self::restoreErrorHandler($baselineHandler);
+        }
+    }
+
+    #[Test]
     public function truncationKeepsTheHeadAndSetsTheFlag(): void
     {
         $capture = new OutputCapture(maxStdoutBytes: 8);
@@ -258,5 +286,27 @@ final class OutputCaptureTest
     {
         Expect::that(static fn(): OutputCapture => new OutputCapture(maxDiagnostics: 0))->because('a nonpositive diagnostics bound is rejected')
             ->toThrow(\InvalidArgumentException::class, '/at least 1 entry/');
+    }
+
+    private static function activeErrorHandler(): ?callable
+    {
+        $probe = static fn(): bool => false;
+        $active = \set_error_handler($probe);
+        \restore_error_handler();
+
+        return $active;
+    }
+
+    private static function restoreErrorHandler(?callable $baseline): void
+    {
+        for ($attempt = 0; $attempt < 4; ++$attempt) {
+            if (self::activeErrorHandler() === $baseline) {
+                return;
+            }
+
+            \restore_error_handler();
+        }
+
+        throw new \RuntimeException('Failed to restore the test error-handler stack.');
     }
 }
