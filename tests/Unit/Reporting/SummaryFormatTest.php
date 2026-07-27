@@ -86,7 +86,7 @@ final class SummaryFormatTest
     }
 
     #[Test]
-    public function leaksColourTheHeaderRedAndNothingWithoutLeaks(): void
+    public function leaksColorTheHeaderRedAndNothingWithoutLeaks(): void
     {
         $block = SummaryFormat::leaks([new TestId('App\AlphaTest', 'one')], new Style(ansi: true));
 
@@ -103,7 +103,7 @@ final class SummaryFormatTest
     }
 
     #[Test]
-    public function coverageSingularisesASingleExecutableLine(): void
+    public function coverageSingularizesASingleExecutableLine(): void
     {
         $line = SummaryFormat::coverage(100.0, 1, 1, new Style(ansi: false));
 
@@ -111,7 +111,7 @@ final class SummaryFormatTest
     }
 
     #[Test]
-    public function coverageColoursThePercentageGreen(): void
+    public function coverageColorsThePercentageGreen(): void
     {
         $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: true));
 

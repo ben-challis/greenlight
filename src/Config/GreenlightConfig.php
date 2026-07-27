@@ -228,8 +228,10 @@ final class GreenlightConfig
 
     /**
      * Fails an otherwise passed test if captured output contains a
-     * deprecation. The diagnostic becomes the failure detail. Use
-     * ignoreDeprecationsMatching() to exempt known dependency messages.
+     * deprecation. The diagnostic becomes the failure detail. Use a regular
+     * expression to exempt known dependency messages.
+     *
+     * @see self::ignoreDeprecationsMatching()
      */
     public function failOnDeprecation(bool $enabled = true): self
     {

@@ -11,7 +11,7 @@ use Greenlight\Reporting\Style;
 final class StyleTest
 {
     #[Test]
-    public function coloursApplyOnlyWithAnsi(): void
+    public function colorsApplyOnlyWithAnsi(): void
     {
         $ansi = new Style(ansi: true);
         $plain = new Style(ansi: false);
@@ -25,7 +25,7 @@ final class StyleTest
     }
 
     #[Test]
-    public function durationsColourBySeverity(): void
+    public function durationsColorBySeverity(): void
     {
         $ansi = new Style(ansi: true);
 

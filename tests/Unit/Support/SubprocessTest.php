@@ -16,7 +16,7 @@ final readonly class SubprocessTest
     public function __construct(private TempDirectory $workspace) {}
 
     #[Test]
-    public function runCapturesTheResultAndHonoursItsExecutionContext(): void
+    public function runCapturesTheResultAndHonorsItsExecutionContext(): void
     {
         $result = Subprocess::run(
             $this->workspace->path(),

@@ -16,7 +16,7 @@ final readonly class PhpStanExtensionTest
     #[Test]
     public function reflectedMatcherSignaturesAreEnforced(): void
     {
-        $probe = PhpStanProbe::analyse(
+        $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
             <?php
@@ -56,7 +56,7 @@ final readonly class PhpStanExtensionTest
     #[Test]
     public function temporalMatcherSignaturesAreEnforced(): void
     {
-        $probe = PhpStanProbe::analyse(
+        $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
             <?php

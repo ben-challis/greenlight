@@ -20,7 +20,7 @@ final readonly class PhpStanProbe
     /**
      * @throws \RuntimeException when PHPStan cannot run or return a valid file report
      */
-    public static function analyse(
+    public static function analyze(
         TempDirectory $workspace,
         string $goodSource,
         string $badSource,

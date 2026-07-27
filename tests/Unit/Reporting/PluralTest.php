@@ -11,7 +11,7 @@ use Greenlight\Reporting\Plural;
 final class PluralTest
 {
     #[Test]
-    public function countPluralisesRegularNouns(): void
+    public function countPluralizesRegularNouns(): void
     {
         Expect::that(Plural::count(1, 'test'))->because('count pluralizes regular nouns')->toBe('1 test')
             ->and(Plural::count(2, 'test'))->toBe('2 tests')

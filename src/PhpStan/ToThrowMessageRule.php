@@ -19,8 +19,9 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
 /**
- * For compatibility, the toThrow() signature keeps matching and message
- * nullable. A call-site rule makes these arguments mutually exclusive.
+ * For compatibility, the toThrow() signature keeps the pattern and
+ * exact-message arguments nullable. A call-site rule makes these arguments
+ * mutually exclusive.
  *
  * @implements Rule<MethodCall>
  */

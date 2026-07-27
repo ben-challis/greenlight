@@ -107,7 +107,7 @@ final class HtmlExporterTest
     }
 
     #[Test]
-    public function filePageColoursSourceLinesByCoverageStatus(): void
+    public function filePageColorsSourceLinesByCoverageStatus(): void
     {
         $fixture = (string) new \ReflectionClass(Adder::class)->getFileName();
         \assert($fixture !== '');

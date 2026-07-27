@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Support;
 
 /**
  * Supports carriage return, newline, CSI cursor-up, line and screen clear operations,
- * cursor visibility, and TtyReporter SGR sequences. Unless retainColour is
+ * cursor visibility, and TtyReporter SGR sequences. Unless retainColor is
  * true, it removes SGR codes. write() throws for other escape sequences.
  */
 final class TerminalEmulator
@@ -32,7 +32,7 @@ final class TerminalEmulator
     private bool $cursorHidden = false;
 
     public function __construct(
-        private readonly bool $retainColour = false,
+        private readonly bool $retainColor = false,
     ) {
         $this->cells[0] = [];
     }
@@ -109,7 +109,7 @@ final class TerminalEmulator
 
     private function applySgr(string $params): void
     {
-        if ($this->retainColour) {
+        if ($this->retainColor) {
             $this->pendingPrefix .= \sprintf("\x1b[%sm", $params);
         }
     }

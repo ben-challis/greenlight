@@ -42,10 +42,10 @@ Greenlight verifies mocks when the test ends.
   `mock(Type::class, $plan)`. An unplanned interaction fails immediately.
 * If the test needs an unused dependency, use `stub(Type::class)`. Each
   interaction fails immediately.
-* If the test must examine void-returning calls after they occur, use
-  `spy(Type::class)`. The spy records an unplanned call.
+* If the test must examine calls that return void, use `spy(Type::class)`. The
+  spy records an unplanned call.
 
-A call to a value-returning method on a spy fails the test.
+A call to a spy method that returns a value fails the test.
 
 ## Mock call plans
 
@@ -72,7 +72,7 @@ together.
 
 ## Mock responses
 
-Each value-returning mock method needs an explicit response:
+Each mock method that returns a value needs an explicit response:
 
 ```php
 $plan->expects('nextId')->andReturns('id-1');
@@ -88,8 +88,8 @@ $plan->expects('load')
     ->andThrows(new NotFound('Missing record.'));
 ```
 
-`andReturnsSequence()` consumes one value for each call that matches. A call
-after the sequence is empty causes an authoring error.
+`andReturnsSequence()` consumes one value for each call that matches. Greenlight
+reports an error if a call occurs after the sequence is empty.
 
 ## Argument matches
 

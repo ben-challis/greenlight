@@ -23,6 +23,8 @@ are not in the controlled vocabulary.
 Uppercase normative tokens are an approved exception to the controlled
 vocabulary.
 
+Code identifiers **MUST** use American English spelling.
+
 ## Exceptions
 
 Modules **SHOULD** expose one exception class at each caller seam.

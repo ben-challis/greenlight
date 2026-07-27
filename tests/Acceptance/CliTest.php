@@ -124,7 +124,7 @@ final readonly class CliTest
     }
 
     #[Test]
-    public function listTestsHonoursGroupFilters(): void
+    public function listTestsHonorsGroupFilters(): void
     {
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['list-tests', '--group=slow']);

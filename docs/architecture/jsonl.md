@@ -40,7 +40,7 @@ Output uses UTF-8 JSON. Greenlight cleans captured strings that contain invalid
 UTF-8 before they reach the reporter. The encoder replaces invalid sequences
 that remain.
 
-## Versioning
+## Versions
 
 The `v` field identifies the schema version.
 
@@ -50,8 +50,7 @@ cannot parse.
 
 Greenlight **MAY** add optional payload keys within a version. Consumers
 **MUST** ignore unknown keys. New required keys, event tags, or enum values
-require a new version. Changes to existing types and meanings also require a
-new version.
+require a new version. When a type or its definition changes, use a new version.
 
 [Compatibility](compatibility.md) defines the complete policy, order
 guarantees, and incomplete-output behavior.

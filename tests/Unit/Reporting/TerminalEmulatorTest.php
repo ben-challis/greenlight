@@ -56,7 +56,7 @@ final class TerminalEmulatorTest
     }
 
     #[Test]
-    public function sgrColourCodesAreStrippedByDefault(): void
+    public function sgrColorCodesAreStrippedByDefault(): void
     {
         $terminal = new TerminalEmulator();
         $terminal->write("\x1b[32mok\x1b[0m plain");
@@ -65,9 +65,9 @@ final class TerminalEmulatorTest
     }
 
     #[Test]
-    public function sgrColourCodesCanBeRetainedOnRequest(): void
+    public function sgrColorCodesCanBeRetainedOnRequest(): void
     {
-        $terminal = new TerminalEmulator(retainColour: true);
+        $terminal = new TerminalEmulator(retainColor: true);
         $terminal->write("\x1b[32mok\x1b[0m");
 
         Expect::that($terminal->screen())->because('SGR color codes can be retained on request')->toBe("\x1b[32mok\x1b[0m");

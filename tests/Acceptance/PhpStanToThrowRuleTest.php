@@ -16,7 +16,7 @@ final readonly class PhpStanToThrowRuleTest
     #[Test]
     public function patternAndExactMessageConstraintsAreMutuallyExclusive(): void
     {
-        $probe = PhpStanProbe::analyse(
+        $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
             <?php

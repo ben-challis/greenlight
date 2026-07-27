@@ -139,7 +139,7 @@ final class ProfileAggregator
                 continue;
             }
 
-            $rows[] = [$id, (string) $worker->classes, \sprintf('%.3fs', $worker->busy), $worker->utilisationPercent()];
+            $rows[] = [$id, (string) $worker->classes, \sprintf('%.3fs', $worker->busy), $worker->utilizationPercent()];
         }
 
         if ($rows !== []) {
@@ -206,7 +206,7 @@ final class ProfileAggregator
             // change the alignment.
             $util = $percent === null
                 ? ''
-                : \str_repeat(' ', $utilWidth - \strlen($percent . '%')) . $this->utilisation($style, $percent);
+                : \str_repeat(' ', $utilWidth - \strlen($percent . '%')) . $this->utilization($style, $percent);
 
             $lines[] = \rtrim(\sprintf(
                 '  %s  %s  %s  %s',
@@ -224,7 +224,7 @@ final class ProfileAggregator
      * Uses green for utilization of 90 percent or more. Uses yellow from 70
      * percent. Uses red below 70 percent. Thus, idle workers are easy to see.
      */
-    private function utilisation(Style $style, int $percent): string
+    private function utilization(Style $style, int $percent): string
     {
         $text = $percent . '%';
 
