@@ -10,6 +10,7 @@ use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Tests\Fixture\Harness\FailingDisposable;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
@@ -93,5 +94,41 @@ final class ScopeContainerTest
 
         Expect::that($failures)->because('disposal failures are collected not thrown')->toHaveCount(1)
             ->and($failures[0]->getMessage())->toBe('disposal broke');
+    }
+
+    #[Test]
+    public function aFailedDisposalIsNotRetried(): void
+    {
+        FailingDisposable::reset();
+
+        $container = new ScopeContainer();
+        $definition = new ServiceDefinition(
+            FailingDisposable::class,
+            Scope::PerTest,
+            static fn(): FailingDisposable => new FailingDisposable(),
+        );
+        $service = $container->get($definition);
+
+        if (!$service instanceof FailingDisposable) {
+            Fail::because(\sprintf(
+                'Expected ScopeContainer::get() to return FailingDisposable, got %s.',
+                \get_debug_type($service),
+            ));
+        }
+
+        $service->initialize();
+        $first = $container->dispose();
+        $second = $container->dispose();
+
+        Expect::that($first)
+            ->because('the first disposal reports the service failure')
+            ->toHaveCount(1)
+            ->and($first[0]->getMessage())
+            ->toBe('disposal broke')
+            ->and($second)
+            ->because('a failed disposal MUST still leave the scope empty')
+            ->toBe([])
+            ->and(FailingDisposable::disposals())
+            ->toBe(1);
     }
 }
