@@ -391,6 +391,27 @@ final class WorkerTest
     }
 
     #[Test]
+    public function memoryBudgetStopsTheWorkerAndReportsTheRemainder(): void
+    {
+        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $sink = new CollectingEventSink();
+
+        $outcome = new Worker($this->registry())->run(
+            $plan,
+            $sink,
+            budget: new WorkerBudget(maxMemoryBytes: 1),
+        );
+
+        Expect::that($outcome->recycleReason)
+            ->because('memory budget stops the worker and reports the remainder')
+            ->toBe(RecycleReason::Memory)
+            ->and($outcome->summary->total())->toBe(1)
+            ->and(\count($outcome->remaining))->toBe(2)
+            ->and((string) $outcome->remaining[0])->toContain('AaTest::wouldPass');
+    }
+
+    #[Test]
     public function drainRequestStopsBetweenTests(): void
     {
         $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
