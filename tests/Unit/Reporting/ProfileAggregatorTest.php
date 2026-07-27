@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Reporting;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
@@ -123,6 +124,54 @@ final class ProfileAggregatorTest
         $aggregator->onEvent(new WorkerSpawned('w-1', 11, 100.0));
 
         Expect::that($aggregator->render(new Style(ansi: false)))->because('without a finished run nothing renders')->toBe('');
+    }
+
+    /**
+     * @param list<Event> $events
+     */
+    #[Test]
+    #[DataSet('workersWithoutMeasurablePeriods')]
+    public function workersWithoutMeasurablePeriodsLeaveUtilizationBlank(
+        array $events,
+        string $expectedRow,
+    ): void {
+        $aggregator = new ProfileAggregator();
+
+        foreach ($events as $event) {
+            $aggregator->onEvent($event);
+        }
+
+        Expect::that($aggregator->render(new Style(ansi: false)))
+            ->because('a missing worker period must not invent a utilization percentage')
+            ->toContain("\n  Worker  Classes    Busy  Util\n")
+            ->toContain($expectedRow . "\n")
+            ->not()
+            ->toContain('%');
+    }
+
+    /**
+     * @return iterable<string, array{list<Event>, non-empty-string}>
+     */
+    public static function workersWithoutMeasurablePeriods(): iterable
+    {
+        yield 'zero-length period' => [
+            [
+                new RunStarted('run-1', 1, 1, 100.0),
+                new WorkerSpawned('w-1', 11, 100.0),
+                new TestClassStarted('Acme\InstantTest', 100.0, 'w-1'),
+                new TestClassFinished('Acme\InstantTest', 100.0, 'w-1'),
+                new RunFinished('run-1', new ResultSummary(passed: 1), 0.0, 100.0),
+            ],
+            '  w-1           1  0.000s',
+        ];
+        yield 'missing start timing' => [
+            [
+                new RunStarted('run-1', 1, 1, 100.0),
+                new TestClassFinished('Acme\RecoveredTest', 100.0, 'w-2'),
+                new RunFinished('run-1', new ResultSummary(passed: 1), 0.0, 100.0),
+            ],
+            '  w-2           1  0.000s',
+        ];
     }
 
     /**
