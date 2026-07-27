@@ -109,6 +109,12 @@ final class JsonLinesReporterTest
         };
 
         Expect::that(static fn() => $reporter->onEvent($event))->because('an unmapped event is rejected')
-            ->toThrow(ReportingError::class, '/no stable tag/');
+            ->toThrow(
+                ReportingError::class,
+                message: \sprintf(
+                    'Event "%s" has no stable tag. Add the event to the tag map before Greenlight writes it.',
+                    $event::class,
+                ),
+            );
     }
 }

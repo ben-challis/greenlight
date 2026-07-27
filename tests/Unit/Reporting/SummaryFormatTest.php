@@ -79,7 +79,7 @@ final class SummaryFormatTest
         ], new Style(ansi: false));
 
         Expect::that($block)->because('leaks list every test under one header')->toBe(
-            "\nLeaks (the test instance survived its test):\n"
+            "\nTest instance leaks:\n"
             . "  App\AlphaTest::one\n"
             . "  App\BetaTest::two\n",
         );
@@ -90,7 +90,7 @@ final class SummaryFormatTest
     {
         $block = SummaryFormat::leaks([new TestId('App\AlphaTest', 'one')], new Style(ansi: true));
 
-        Expect::that($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mLeaks (the test instance survived its test):\x1b[0m")
+        Expect::that($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mTest instance leaks:\x1b[0m")
             ->and(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
     }
 

@@ -30,7 +30,7 @@ final readonly class PathFilter
             $trimmed = \rtrim($directory, '/');
 
             if ($trimmed === '') {
-                throw new \InvalidArgumentException('Coverage include directories must be non-empty paths.');
+                throw new \InvalidArgumentException('Use nonempty paths for coverage include directories.');
             }
 
             $prefixes[] = $trimmed . '/';

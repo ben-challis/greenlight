@@ -36,7 +36,7 @@ final class ChannelAllocator
         }
 
         throw new \LogicException(\sprintf(
-            'All %d worker channels are in use; a channel was not released when its worker finished.',
+            'All %d worker channels are in use. A worker finished without releasing its channel.',
             $this->bound,
         ));
     }
@@ -45,7 +45,7 @@ final class ChannelAllocator
     {
         if (!isset($this->inUse[$channel])) {
             throw new \LogicException(\sprintf(
-                'Channel %d is not allocated; releasing it twice hides a lifecycle bug.',
+                'Channel %d is not allocated. A second release indicates a lifecycle error.',
                 $channel,
             ));
         }

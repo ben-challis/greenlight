@@ -97,7 +97,7 @@ final readonly class FileCoverage
 
         foreach ($lines as $line) {
             if ($line < 1) {
-                throw new \InvalidArgumentException(\sprintf('Coverage line numbers must be positive, got %d.', $line));
+                throw new \InvalidArgumentException(\sprintf('Use positive coverage line numbers. Actual value: %d.', $line));
             }
 
             $set[$line] = true;

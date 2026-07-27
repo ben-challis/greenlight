@@ -101,7 +101,7 @@ final class WorkerTest
         [, $results] = $this->runFixture('SlowTimeout');
 
         Expect::that($results[0]->outcome)->because('timeout fails a slow test after the fact')->toBe(Outcome::Failed)
-            ->and($results[0]->failures[0]->message)->toContain('Timed out');
+            ->and($results[0]->failures[0]->message)->toContain('configured time limit');
     }
 
     #[Test]

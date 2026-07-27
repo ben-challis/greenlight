@@ -37,7 +37,7 @@ final class PcovDriver implements CoverageDriver
     public function start(): void
     {
         if ($this->collecting) {
-            throw new \LogicException('pcov collection window is already open; stop() must be called first.');
+            throw new \LogicException('The pcov collection window is already open. Call stop() before start().');
         }
 
         \pcov\start();
@@ -48,7 +48,7 @@ final class PcovDriver implements CoverageDriver
     public function stop(): RawCoverage
     {
         if (!$this->collecting) {
-            throw new \LogicException('pcov collection window is not open; start() must be called first.');
+            throw new \LogicException('The pcov collection window is not open. Call start() before stop().');
         }
 
         $collected = \pcov\collect();

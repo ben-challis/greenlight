@@ -242,13 +242,13 @@ final class Orchestrator
         });
 
         if (!\is_resource($server)) {
-            throw ProtocolError::malformedFrame('could not open an orchestrator socket: ' . $errorMessage);
+            throw ProtocolError::malformedFrame('Greenlight did not open an orchestrator socket: ' . $errorMessage);
         }
 
         $name = \stream_socket_get_name($server, false);
 
         if ($name === false || $name === '') {
-            throw ProtocolError::malformedFrame('could not resolve the orchestrator socket address');
+            throw ProtocolError::malformedFrame('Greenlight did not resolve the orchestrator socket address');
         }
 
         return [$server, 'tcp://' . $name, null];
@@ -278,7 +278,8 @@ final class Orchestrator
 
             if ($this->spawnedCount > $this->spawnBudget) {
                 throw ProtocolError::malformedFrame(\sprintf(
-                    'spawned %d workers for a plan that should need far fewer; a respawn loop is a bug, not a retry strategy',
+                    'Greenlight started %d workers for this execution plan. '
+                    . 'This count indicates a worker replacement loop',
                     $this->spawnedCount,
                 ));
             }
@@ -296,7 +297,7 @@ final class Orchestrator
             if (!\is_resource($process)) {
                 $channels->release($channelNumber);
 
-                throw ProtocolError::malformedFrame('could not spawn a worker process', $warning);
+                throw ProtocolError::malformedFrame('Greenlight did not start a worker process', $warning);
             }
 
             \assert(isset($pipes[0], $pipes[1], $pipes[2]));
@@ -753,7 +754,7 @@ final class Orchestrator
         if ($inFlight instanceof TestId) {
             $duration = \max(0.0, \microtime(true) - $handle->inFlightSince);
             $message = \sprintf(
-                'The test exceeded its %.3fs timeout budget; worker "%s" was killed after %.3fs.',
+                'The test exceeded its %.3f-second time limit. Greenlight stopped worker "%s" after %.3f seconds.',
                 $budget,
                 $handle->workerId,
                 $duration,
@@ -782,7 +783,7 @@ final class Orchestrator
 
         if ($inFlight instanceof TestId) {
             $diagnostics = \trim($handle->diagnostics);
-            $message = \sprintf('Worker "%s" crashed while running this test: %s.', $handle->workerId, $reason);
+            $message = \sprintf('Worker "%s" crashed during this test: %s.', $handle->workerId, $reason);
 
             if ($diagnostics !== '') {
                 $message .= "\nWorker output:\n" . \substr($diagnostics, -2048);

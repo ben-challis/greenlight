@@ -14,7 +14,7 @@ final class ReportingError extends \RuntimeException
 
     public static function writeFailed(): self
     {
-        return new self('Could not write reporter output to the underlying stream.');
+        return new self('Greenlight did not write reporter output to the stream.');
     }
 
     /**
@@ -22,7 +22,7 @@ final class ReportingError extends \RuntimeException
      */
     public static function unmappedEvent(string $eventClass): self
     {
-        return new self(\sprintf('Event "%s" has no stable tag. Add it to the tag map before emitting it.', $eventClass));
+        return new self(\sprintf('Event "%s" has no stable tag. Add the event to the tag map before Greenlight writes it.', $eventClass));
     }
 
     public static function xmlUnavailable(): self

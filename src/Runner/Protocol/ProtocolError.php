@@ -51,8 +51,8 @@ final class ProtocolError extends \RuntimeException
     public static function summaryMismatch(string $workerId, string $expected, string $reported): self
     {
         return new self(\sprintf(
-            'Worker "%s" reported a summary of %s but its event stream tallies %s. '
-            . 'A bookkeeping bug must fail the run, never report green.',
+            'Worker "%s" reported a summary of %s, but its event stream totals %s. '
+            . 'This difference indicates an internal accounting error. Greenlight stopped the run.',
             $workerId,
             $reported,
             $expected,
@@ -67,20 +67,21 @@ final class ProtocolError extends \RuntimeException
         int $expectedAttempt,
     ): self {
         return new self(\sprintf(
-            'Worker "%s" reported attempt %d for "%s"; expected attempt %d for %s.',
+            'Worker "%s" reported attempt %d for "%s". Greenlight expected attempt %d. Active test: %s.',
             $workerId,
             $reportedAttempt,
             $reportedTest,
             $expectedAttempt,
-            $inFlightTest === null ? 'no in-flight test' : '"' . $inFlightTest . '"',
+            $inFlightTest === null ? 'none' : '"' . $inFlightTest . '"',
         ));
     }
 
     public static function workerNeverConnected(string $workerId, float $deadlineSeconds, string $diagnostics): self
     {
         $message = \sprintf(
-            'Worker "%s" spawned but never connected within %.1fs. '
-            . 'The machine may be too starved to boot worker processes; failing the run beats waiting forever.',
+            'Worker "%s" did not connect within %.1f seconds. '
+            . 'The machine can have insufficient resources to start a worker. '
+            . 'Greenlight stopped the run to prevent an unlimited wait.',
             $workerId,
             $deadlineSeconds,
         );
@@ -95,8 +96,8 @@ final class ProtocolError extends \RuntimeException
     public static function workerStalled(string $workerId, float $deadlineSeconds, string $diagnostics): self
     {
         $message = \sprintf(
-            'Worker "%s" connected but then sent nothing for %.1fs with no test in flight. '
-            . 'The worker process stopped responding between messages; failing the run beats waiting forever.',
+            'Worker "%s" sent no message for %.1f seconds after connection. No test was active. '
+            . 'The worker stopped responding between protocol messages. Greenlight stopped the run to prevent an unlimited wait.',
             $workerId,
             $deadlineSeconds,
         );
@@ -111,7 +112,7 @@ final class ProtocolError extends \RuntimeException
     public static function workerFatal(string $workerId, string $message, string $file, int $line): self
     {
         return new self(\sprintf(
-            'Worker "%s" reported a fatal framework error: %s (%s:%d)',
+            'Worker "%s" reported a fatal Greenlight error: %s (%s:%d)',
             $workerId,
             $message,
             $file,

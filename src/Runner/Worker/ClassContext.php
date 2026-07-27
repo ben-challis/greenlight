@@ -46,7 +46,7 @@ final class ClassContext
     {
         if (!\class_exists($class)) {
             throw new \RuntimeException(\sprintf(
-                'Test class "%s" from the plan is not loadable in this process.',
+                'This process cannot load test class "%s" from the execution plan.',
                 $class,
             ));
         }
@@ -106,8 +106,8 @@ final class ClassContext
 
         if (!\array_key_exists($key, $sets)) {
             throw new \RuntimeException(\sprintf(
-                'Data set "%s" of "%s::%s()" is in the plan but the method\'s data sets no longer include it. '
-                . 'Re-run discovery.',
+                'The execution plan contains data set "%s" for "%s::%s()", but its data provider no longer returns it. '
+                . 'Run discovery again.',
                 $key,
                 $this->reflection->getName(),
                 $testMethod,
@@ -118,7 +118,7 @@ final class ClassContext
 
         if (!\is_array($value)) {
             throw new \RuntimeException(\sprintf(
-                'Data set "%s" of "%s::%s()" must be an array of arguments, got %s.',
+                'Data set "%s" of "%s::%s()" requires an argument array. Actual type: %s.',
                 $key,
                 $this->reflection->getName(),
                 $testMethod,

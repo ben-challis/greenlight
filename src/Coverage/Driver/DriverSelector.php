@@ -29,7 +29,7 @@ final readonly class DriverSelector
         }
 
         if ($this->candidates === []) {
-            return DriverSelection::unavailable('No coverage driver is available: no drivers are configured.');
+            return DriverSelection::unavailable('No coverage driver is configured.');
         }
 
         $names = \array_map(
@@ -42,7 +42,8 @@ final readonly class DriverSelector
         );
 
         return DriverSelection::unavailable(\sprintf(
-            'No coverage driver is available: tried %s. Install pcov, or enable xdebug with "coverage" in xdebug.mode or the XDEBUG_MODE environment variable.',
+            'No coverage driver is available. Greenlight tried %s. Install pcov or enable Xdebug coverage mode. '
+            . 'Set xdebug.mode to "coverage", or set the XDEBUG_MODE environment variable.',
             \implode(', ', $names),
         ));
     }

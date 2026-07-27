@@ -7,12 +7,15 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Artifact\AttachmentRetention;
+use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 
@@ -137,18 +140,30 @@ final readonly class AttachmentsTest
         Expect::that(static fn() => $attachments->text('../secret', 'x'))->because('unsafe names symlinks and limits fail loudly')
             ->toThrow(AttachmentError::class);
         Expect::that(static fn() => $attachments->bytes('large.bin', '12345'))->because('unsafe names symlinks and limits fail loudly')
-            ->toThrow(AttachmentError::class);
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment size 5 exceeds the limit of 4 bytes.',
+            );
 
         $attachments->text('one.txt', '1234');
 
         Expect::that(static fn() => $attachments->text('two.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
-            ->toThrow(AttachmentError::class);
+            ->toThrow(
+                AttachmentError::class,
+                message: 'This test has reached the limit of 1 attachments.',
+            );
         $retry = $store->forAttempt($id, 2, $budget);
         Expect::that(static fn() => $retry->text('retry.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
-            ->toThrow(AttachmentError::class);
+            ->toThrow(
+                AttachmentError::class,
+                message: 'This test has reached the limit of 1 attachments.',
+            );
         $runLimited = $store->forAttempt(new TestId('Example\EvidenceTest', 'run-limit'), 1, new TestArtifactBudget());
         Expect::that(static fn() => $runLimited->text('other.txt', 'x'))->because('unsafe names symlinks and limits fail loudly')
-            ->toThrow(AttachmentError::class);
+            ->toThrow(
+                AttachmentError::class,
+                message: 'This run has reached the limit of 1 attachments.',
+            );
 
         $source = $this->tempDirectory->path() . '/target.txt';
         $link = $this->tempDirectory->path() . '/link.txt';
@@ -157,7 +172,211 @@ final readonly class AttachmentsTest
         $other = $store->forAttempt(new TestId('Example\EvidenceTest', 'symlink'), 1, new TestArtifactBudget());
 
         Expect::that(static fn() => $other->file('link.txt', $link))->because('unsafe names symlinks and limits fail loudly')
-            ->toThrow(AttachmentError::class);
+            ->toThrow(
+                AttachmentError::class,
+                message: \sprintf(
+                    'Attachment source "%s" Use a source path that is not a symbolic link.',
+                    $link,
+                ),
+            );
+
+        $store->cleanup();
+    }
+
+    #[Test]
+    public function aggregateByteLimitsReportExactValues(): void
+    {
+        $testRoot = $this->tempDirectory->subdirectory('test-byte-limit');
+        $testConfiguration = new ArtifactConfiguration(
+            $testRoot,
+            maxAttachmentsPerTest: 10,
+            maxAttachmentBytes: 10,
+            maxTestBytes: 4,
+            maxRunAttachments: 10,
+            maxRunBytes: 10,
+        );
+        $testStore = ArtifactStore::open($testConfiguration, $testRoot, 'run-test-limit');
+        $testAttachments = $testStore->forAttempt(
+            new TestId('Example\EvidenceTest', 'testByteLimit'),
+            1,
+            new TestArtifactBudget(),
+        );
+        $testAttachments->text('one.txt', '1234');
+
+        Expect::that(static fn() => $testAttachments->text('two.txt', 'x'))
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachments for this test exceed the limit of 4 bytes.',
+            );
+
+        $testStore->cleanup();
+
+        $runRoot = $this->tempDirectory->subdirectory('run-byte-limit');
+        $runConfiguration = new ArtifactConfiguration(
+            $runRoot,
+            maxAttachmentsPerTest: 10,
+            maxAttachmentBytes: 10,
+            maxTestBytes: 10,
+            maxRunAttachments: 10,
+            maxRunBytes: 4,
+        );
+        $runStore = ArtifactStore::open($runConfiguration, $runRoot, 'run-run-limit');
+        $runStore->forAttempt(
+            new TestId('Example\EvidenceTest', 'first'),
+            1,
+            new TestArtifactBudget(),
+        )->text('one.txt', '1234');
+        $runAttachments = $runStore->forAttempt(
+            new TestId('Example\EvidenceTest', 'second'),
+            1,
+            new TestArtifactBudget(),
+        );
+
+        Expect::that(static fn() => $runAttachments->text('two.txt', 'x'))
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachments for this run exceed the limit of 4 bytes.',
+            );
+
+        $runStore->cleanup();
+    }
+
+    #[Test]
+    public function rejectsAParentSegmentInARelativeOutputDirectoryExactly(): void
+    {
+        $workingDirectory = $this->tempDirectory->subdirectory('relative-output');
+
+        Expect::that(static fn(): ArtifactStore => ArtifactStore::open(
+            new ArtifactConfiguration('../outside'),
+            $workingDirectory,
+            'run-relative',
+        ))->toThrow(
+            AttachmentError::class,
+            message: 'Keep a relative attachment output directory inside the working directory.',
+        );
+    }
+
+    #[Test]
+    public function reportsAnExistingStagingPartExactly(): void
+    {
+        $root = $this->tempDirectory->subdirectory('existing-staging-part');
+        $staging = $root . '/staging';
+        $storageKey = 'Example-EvidenceTest/attempt-1/01-evidence.txt';
+        \mkdir(\dirname($staging . '/' . $storageKey), 0o777, true);
+        \file_put_contents($staging . '/' . $storageKey . '.part', 'occupied');
+
+        $configuration = new ArtifactConfiguration($root . '/published');
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-1'),
+            $configuration,
+        );
+
+        Expect::that(static fn() => $store->stageBytes(
+            'evidence',
+            'evidence.txt',
+            $storageKey,
+            'text/plain',
+            AttachmentKind::Text,
+            1,
+            AttachmentRetention::OnFailure,
+            $configuration,
+        ))->toThrow(
+            AttachmentError::class,
+            message: 'Greenlight did not create the attachment staging file.',
+        );
+    }
+
+    #[Test]
+    public function reportsMetadataAndAttemptRecordFailuresExactly(): void
+    {
+        $root = $this->tempDirectory->subdirectory('metadata-failures');
+        $staging = $root . '/staging';
+        \mkdir($staging);
+        $configuration = new ArtifactConfiguration($root . '/published');
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-1'),
+            $configuration,
+        );
+
+        Expect::that(static fn() => $store->stageBytes(
+            'evidence',
+            'evidence.txt',
+            \str_repeat('a', 250),
+            'text/plain',
+            AttachmentKind::Text,
+            1,
+            AttachmentRetention::OnFailure,
+            $configuration,
+        ))->toThrow(
+            AttachmentError::class,
+            message: 'Greenlight did not write attachment recovery metadata.',
+        );
+
+        $id = new TestId('Example\EvidenceTest', 'attemptRecord');
+        $testDirectory = $staging . '/' . ArtifactStore::testDirectory($id);
+        \mkdir($testDirectory, 0o777, true);
+        \mkdir($testDirectory . '/.attempt');
+
+        Expect::that(static fn() => $store->recordAttempt($id, 2))
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Greenlight did not finalize the current test attempt record.',
+            );
+    }
+
+    #[Test]
+    public function reportsAnAttachmentCleanupFailureExactly(): void
+    {
+        $root = $this->tempDirectory->subdirectory('cleanup-failure');
+        $staging = $root . '/staging';
+        $storageKey = 'test/attempt-1/01-evidence.txt';
+        \mkdir($staging . '/' . $storageKey . '.meta.json', 0o777, true);
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-1'),
+            new ArtifactConfiguration($root . '/published'),
+        );
+        $attachment = new StagedAttachment(
+            'evidence.txt',
+            AttachmentKind::Text,
+            'text/plain',
+            1,
+            \hash('sha256', 'x'),
+            1,
+            $root . '/published/run-1/' . $storageKey,
+            AttachmentRetention::OnFailure,
+            $storageKey,
+        );
+
+        Expect::that(static fn() => $store->discard($attachment))
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Greenlight did not remove attachment recovery metadata.',
+            );
+    }
+
+    #[Test]
+    public function reportsAnExistingAttachmentOutputExactly(): void
+    {
+        $root = $this->tempDirectory->subdirectory('existing-output');
+        $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-output');
+        $id = new TestId('Example\EvidenceTest', 'fails');
+        $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attachments->text('evidence.txt', 'evidence');
+        $staged = $attachments->seal()[0];
+        $destination = $store->publicDirectory() . '/' . $staged->storageKey;
+        \mkdir(\dirname($destination), 0o777, true);
+        \file_put_contents($destination, 'occupied');
+
+        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: [$staged],
+        )))->toThrow(
+            AttachmentError::class,
+            message: 'An attachment output path already exists.',
+        );
 
         $store->cleanup();
     }

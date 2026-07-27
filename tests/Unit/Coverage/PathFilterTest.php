@@ -39,6 +39,9 @@ final class PathFilterTest
     public function emptyDirectoryEntriesAreRejected(): void
     {
         Expect::that(static fn(): PathFilter => new PathFilter(['']))->because('empty directory entries are rejected')
-            ->toThrow(\InvalidArgumentException::class, '/non-empty paths/');
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Use nonempty paths for coverage include directories.',
+            );
     }
 }

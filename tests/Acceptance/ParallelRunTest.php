@@ -42,7 +42,7 @@ final readonly class ParallelRunTest
 
         Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1)
             ->and($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations')
-            ->and($result->output())->toContain('crashed while running');
+            ->and($result->output())->toContain('crashed during this test');
     }
 
     #[Test]
@@ -117,7 +117,7 @@ final readonly class ParallelRunTest
         $withFlag = $this->runIn('LeakConfig', ['run', '--detect-leaks', '--workers=2']);
 
         Expect::that($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1)
-            ->and($withFlag->output())->toContain('Leaks (the test instance survived its test):')
+            ->and($withFlag->output())->toContain('Test instance leaks:')
             ->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         $withoutFlag = $this->runIn('LeakConfig', ['run', '--workers=2']);
@@ -157,7 +157,7 @@ final readonly class ParallelRunTest
         }
 
         Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1)
-            ->and($result->output())->toContain('timeout budget')
+            ->and($result->output())->toContain('time limit')
             ->and($durationSeconds)->toBeLessThan(20.0)
             ->and($finished->result->outcome)->toBe(Outcome::Failed)
             ->and($finished->result->durationSeconds)->toBeGreaterThan(0.1)

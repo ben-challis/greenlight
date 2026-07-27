@@ -178,7 +178,7 @@ final readonly class TestExecutor
                     break;
                 } catch (\Throwable $threw) {
                     $cause = new \RuntimeException(\sprintf(
-                        'Plugin "%s" failed in beforeTest: %s',
+                        'Plugin "%s" caused an error during beforeTest(): %s',
                         $subscriber::class,
                         $threw->getMessage(),
                     ), 0, $threw);
@@ -265,7 +265,7 @@ final readonly class TestExecutor
         if ($budget !== null && $durationSeconds > $budget && $outcome === Outcome::Passed) {
             $outcome = Outcome::Failed;
             $failures = [new FailureDetail(\sprintf(
-                'Timed out: budget %.3fs, took %.3fs.',
+                'The configured time limit is %.3f seconds. The test took %.3f seconds.',
                 $budget,
                 $durationSeconds,
             ))];
@@ -320,7 +320,7 @@ final readonly class TestExecutor
                 if ($result->outcome->isSuccessful()) {
                     $result = $result->erroredBy(
                         ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                            'Plugin "%s" failed in afterTest: %s',
+                            'Plugin "%s" caused an error during afterTest(): %s',
                             $subscriber::class,
                             $threw->getMessage(),
                         ), 0, $threw)),
@@ -329,7 +329,7 @@ final readonly class TestExecutor
                     $result = $result->withFailures([
                         ...$result->failures,
                         new FailureDetail(\sprintf(
-                            'Plugin "%s" failed in afterTest: %s',
+                            'Plugin "%s" caused an error during afterTest(): %s',
                             $subscriber::class,
                             $threw->getMessage(),
                         )),
@@ -344,7 +344,7 @@ final readonly class TestExecutor
             ) {
                 $result = $result->erroredBy(
                     ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                        'Plugin "%s" changed the outcome from %s to %s without withOutcome() provenance.',
+                        'Plugin "%s" changed the outcome from %s to %s without a new transformation-log entry from withOutcome().',
                         $subscriber::class,
                         $result->outcome->value,
                         $replacement->outcome->value,
@@ -415,7 +415,7 @@ final readonly class TestExecutor
 
             if (!$condition instanceof Condition) {
                 return new \RuntimeException(\sprintf(
-                    'Condition class "%s" must implement %s.',
+                    'Condition class "%s" does not implement %s.',
                     $conditionClass,
                     Condition::class,
                 ));

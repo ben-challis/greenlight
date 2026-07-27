@@ -273,7 +273,9 @@ final class TtyReporter implements Reporter, Ticking
 
         if ($this->risky !== []) {
             $this->output->write(\sprintf(
-                "\nRisky: %d passed without verifying any expectation (opt out with #[NoExpectations], enforce with --fail-on-risky):\n%s\n",
+                "\nRisky tests: %d\n"
+                . "These tests passed without a verified expectation.\n"
+                . "Add #[NoExpectations] to accept this result. Use --fail-on-risky to fail the run.\n%s\n",
                 \count($this->risky),
                 \implode("\n", \array_map(static fn(string $id): string => '  ' . $id, $this->risky)),
             ));

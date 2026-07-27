@@ -24,7 +24,7 @@ $suiteDir = $workDir . '/suite';
 $samplesFile = $workDir . '/samples.json';
 
 if (!\mkdir($suiteDir, 0o777, true) && !\is_dir($suiteDir)) {
-    throw new RuntimeException(\sprintf('Directory "%s" was not created', $suiteDir));
+    throw new RuntimeException(\sprintf('Greenlight did not create directory "%s".', $suiteDir));
 }
 
 $totalTests = CLASS_COUNT * METHODS_PER_CLASS * ROWS_PER_METHOD;
@@ -172,7 +172,7 @@ $cleanup = static function () use ($workDir): void {
 $samplesJson = \is_file($samplesFile) ? \file_get_contents($samplesFile) : false;
 
 if ($samplesJson === false) {
-    \fwrite(\STDERR, "The memory probe wrote no samples; the run did not reach the sampling points.\n");
+    \fwrite(\STDERR, "The memory probe wrote no samples. The run did not reach the sample points.\n");
     $cleanup();
     exit(1);
 }
@@ -197,7 +197,7 @@ if ($baseline === null || $final === null) {
 $drift = $final - $baseline;
 
 echo \sprintf(
-    "Memory after %d tests: %.2f MiB; after %d tests: %.2f MiB; drift: %+d bytes (limit %d).\n",
+    "Memory after %d tests: %.2f MiB. Memory after %d tests: %.2f MiB. Drift: %+d bytes. Limit: %d bytes.\n",
     WARMUP_TESTS,
     $baseline / 1_048_576,
     $totalTests,
