@@ -14,6 +14,31 @@ use Greenlight\Runner\Protocol\SocketChannel;
 final class SocketChannelTest
 {
     #[Test]
+    public function aCompleteFinalFrameIsDeliveredBeforeCleanEof(): void
+    {
+        [$stream, $peer] = $this->socketPair();
+        $receiver = new SocketChannel($stream);
+        $sender = new SocketChannel($peer);
+
+        try {
+            $sender->send(new Drain());
+            $sender->close();
+
+            Expect::that($receiver->poll())
+                ->because('a complete final frame MUST be delivered before peer EOF')
+                ->toBeInstanceOf(Drain::class)
+                ->and($receiver->poll())
+                ->because('the channel reaches clean EOF after the final frame')
+                ->toBeNull()
+                ->and($receiver->isEof())
+                ->toBeTrue();
+        } finally {
+            $sender->close();
+            $receiver->close();
+        }
+    }
+
+    #[Test]
     public function peerEofRejectsAnIncompleteFrame(): void
     {
         [$stream, $peer] = $this->socketPair();
