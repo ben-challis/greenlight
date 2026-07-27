@@ -86,7 +86,7 @@ final class TestAttributePlacementRule implements Rule
 
         foreach ($attributes as [$attribute, $line]) {
             $errors[] = $this->error(\sprintf(
-                '#[%s] on %s has no effect because the method is not a #[Test].',
+                '#[%s] on %s has no effect because the method does not have #[Test].',
                 self::TEST_ATTRIBUTES[$attribute],
                 $method,
             ), $line);

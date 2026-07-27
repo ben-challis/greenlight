@@ -267,7 +267,7 @@ final readonly class DataProviderSignatureRule implements Rule
 
         if ($returnType->isIterableAtLeastOnce()->no()) {
             return [$this->error(
-                \sprintf('Data provider %s::%s() must yield at least one argument array.', $providerClass->getDisplayName(), $provider),
+                \sprintf('Data provider %s::%s() must provide at least one argument array.', $providerClass->getDisplayName(), $provider),
                 'empty',
                 $line,
             )];
@@ -278,7 +278,7 @@ final readonly class DataProviderSignatureRule implements Rule
         if ($rowType->isArray()->no()) {
             return [$this->error(
                 \sprintf(
-                    'Data provider %s::%s() must yield argument arrays. It yields %s.',
+                    'Data provider %s::%s() must provide argument arrays. The iterable has value type %s.',
                     $providerClass->getDisplayName(),
                     $provider,
                     $rowType->describe(VerbosityLevel::typeOnly()),

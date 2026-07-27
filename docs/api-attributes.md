@@ -10,14 +10,15 @@ These signatures are the public API.
 
 Namespace: `Greenlight\Attribute`
 
-Runs after a test, even if the test fails.
+Runs at the end of an attempt that has a test instance. It also runs when
+setup or the test method does not complete.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class After
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/After.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/After.php#L12)
 
 This type does not declare public members.
 
@@ -233,9 +234,9 @@ PHPDoc:
 
 Namespace: `Greenlight\Attribute`
 
-Starts the specified number of additional attempts after an unsuccessful
-test attempt. If `$onlyOn` specifies a throwable type, only a cause of this
-type starts another attempt.
+Starts up to `$times` additional attempts after an unsuccessful test attempt.
+If `$onlyOn` specifies a throwable type, Greenlight starts another attempt
+only when the cause has that type.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]

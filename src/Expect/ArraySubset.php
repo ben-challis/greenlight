@@ -11,9 +11,9 @@ final class ArraySubset
     private function __construct() {}
 
     /**
-     * Returns null when every subset key exists in the subject with an equal
-     * value (nested arrays match as subsets too), otherwise a description of
-     * the first difference, e.g. "missing key 'user.address.city'".
+     * Returns null when each subset key exists in the subject with an equal
+     * value. Nested arrays also match as subsets. Otherwise, it describes the
+     * first difference, for example, "missing key 'user.address.city'".
      *
      * @param array<array-key, mixed> $subset
      * @param array<array-key, mixed> $subject

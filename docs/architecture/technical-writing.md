@@ -19,11 +19,12 @@ The prose checker finds mechanical errors and possible language problems. It
 does not certify compliance with ASD-STE100. A writer must also review the
 meaning, vocabulary, grammar, and technical accuracy.
 
-The checker also examines structured text fields, script strings, and PHP
-strings that resemble messages. It checks multiline PHPDoc tag descriptions
-and visible Markdown link labels. It applies only mandatory rules to PHPDoc tag
-descriptions and human-readable strings. Review all strings manually because
-code literals can resemble prose.
+The checker also examines structured text fields, script strings and comments,
+and PHP strings that resemble messages. It examines extensionless PHP command
+entry points. It checks multiline PHPDoc tag descriptions, visible Markdown
+link labels, and website accessibility attributes. It applies only mandatory
+rules to PHPDoc tag descriptions and human-readable strings. Review all strings
+manually because code literals can resemble prose.
 
 ## Writing rules
 
@@ -160,7 +161,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | result policy | Technical noun | A rule that can change a test result after execution |
 | retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
-| risky test | Technical noun | A passed test that verifies no expectations and does not opt out |
+| risky test | Technical noun | A passed test that verifies no expectations and has no `#[NoExpectations]` attribute |
 | run | Technical noun | One execution of a selected test suite |
 | run | Technical verb | To execute a command, test, or test suite |
 | run directory | Technical noun | The directory that contains published attachments for one run |

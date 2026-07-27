@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Attribute;
 
 /**
- * Starts the specified number of additional attempts after an unsuccessful
- * test attempt. If `$onlyOn` specifies a throwable type, only a cause of this
- * type starts another attempt.
+ * Starts up to `$times` additional attempts after an unsuccessful test attempt.
+ * If `$onlyOn` specifies a throwable type, Greenlight starts another attempt
+ * only when the cause has that type.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Retry

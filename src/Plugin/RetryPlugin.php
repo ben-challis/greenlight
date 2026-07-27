@@ -10,9 +10,9 @@ use Greenlight\Core\Test\TestMetadata;
 /**
  * Implements RetryDecider for the #[Retry] attribute.
  *
- * shouldRetry() returns yes while unused additional attempts remain. If the
+ * shouldRetry() returns true while additional attempts remain unused. If the
  * attribute specifies a throwable type, the cause must have that type. The
- * method returns no for a test without the attribute.
+ * method returns false if the test does not have the attribute.
  *
  * @internal
  */

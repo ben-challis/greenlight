@@ -13,7 +13,7 @@ use Greenlight\Expect\ValueRenderer;
  *
  * MockPlan::expects() creates this object. Its fluent plan methods are the
  * public interface. The call handler and verifier use the members marked
- * @internal.
+ * @internal
  *
  * Argument values compare with the same deep equality as Expect's toEqual().
  */

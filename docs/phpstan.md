@@ -58,8 +58,8 @@ These checks apply when a plugin adds matchers through `ExpectationExtension`.
 See [plugins](plugins.md). Built-in matchers such as `toBe()` are real methods.
 Thus, PHPStan checks them without help from the extension.
 
-Custom matchers send calls through `__call` at run time. PHPStan does not
-usually check these calls. The extension loads your configuration files in the
+Custom matcher calls use `__call()` at run time. PHPStan cannot infer their
+signatures from `__call()`. The extension loads your configuration files in the
 same way as workers. It reflects each matcher closure and checks calls against
 the real signature.
 

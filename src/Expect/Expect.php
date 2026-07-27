@@ -7,9 +7,8 @@ namespace Greenlight\Expect;
 /**
  * Extension matchers are worker-local state. `install()` stores the configured
  * `ExpectationExtension` list when the worker starts. Each chain from `that()`
- * uses this list. A worker uses one thread, and the runner controls the
- * install point. Thus, no code reads the static registry during a change.
- * Before `install()` runs, `that()` uses no extensions.
+ * uses a snapshot of this list. The runner changes the list before test
+ * execution starts. Before `install()` runs, `that()` uses no extensions.
  */
 final class Expect
 {

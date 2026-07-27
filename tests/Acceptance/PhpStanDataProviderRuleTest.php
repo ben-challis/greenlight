@@ -219,7 +219,7 @@ final readonly class PhpStanDataProviderRuleTest
             ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
             ->toContain('notStatic() must be public and static')
             ->toContain('notIterable() must return an iterable of argument arrays. It returns string')
-            ->toContain('scalarRows() must yield argument arrays. It yields int')
+            ->toContain('scalarRows() must provide argument arrays. The iterable has value type int')
             ->toContain('Data provider stringRows() row argument #1 for typedRows() has type string, but the parameter requires int')
             ->toContain('requiredArgument() must not require arguments')
             ->toContain('SharedBadProviders::notStatic() must be public and static')
@@ -333,6 +333,6 @@ final readonly class PhpStanDataProviderRuleTest
             ->and($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
             ->toContain('#[DataRow] key "#0" occurs more than once on duplicateGeneratedLabel()')
             ->toContain('invalidKeys() keys must be int or string. The provider returns keys of type bool')
-            ->toContain('empty() must yield at least one argument array');
+            ->toContain('empty() must provide at least one argument array');
     }
 }

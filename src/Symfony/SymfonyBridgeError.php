@@ -16,7 +16,7 @@ final class SymfonyBridgeError extends \RuntimeException
     {
         return new self(\sprintf(
             'The kernel started in the "%s" environment without the Symfony test container. '
-            . 'Container services cannot reach tests. Enable framework.test for this environment. '
+            . 'Tests cannot use container services. Enable framework.test for this environment. '
             . 'The standard FrameworkBundle test configuration usually uses APP_ENV=test. '
             . 'You can also configure SymfonyPlugin to use an environment that provides the test container.',
             $environment,

@@ -7,6 +7,7 @@ const PROSE_EXCLUDED_DIRECTORIES = [
     '.git',
     '.phpstan-api-stubs',
     'tests/Fixture',
+    'website/.astro',
     'website/dist',
 ];
 
@@ -19,6 +20,7 @@ const PROSE_CONTRACTIONS = [
     "ain't",
     "aren't",
     "can't",
+    "could've",
     "couldn't",
     "couldn't've",
     "didn't",
@@ -30,6 +32,7 @@ const PROSE_CONTRACTIONS = [
     "he'd",
     "he'll",
     "he's",
+    "here's",
     "how'd",
     "how'll",
     "how's",
@@ -53,7 +56,11 @@ const PROSE_CONTRACTIONS = [
     "she's",
     "shouldn't",
     "shouldn't've",
+    "should've",
+    "that'll",
     "that's",
+    "there'd",
+    "there'll",
     "there's",
     "they'd",
     "they'll",
@@ -341,7 +348,10 @@ function proseFiles(string $root): array
             continue;
         }
 
-        if (!\in_array(\strtolower($file->getExtension()), ['astro', 'js', 'json', 'md', 'markdown', 'mjs', 'neon', 'php', 'ts', 'tsx', 'yaml', 'yml'], true)) {
+        if (
+            $relative !== 'bin/greenlight'
+            && !\in_array(\strtolower($file->getExtension()), ['astro', 'js', 'json', 'md', 'markdown', 'mjs', 'neon', 'php', 'ts', 'tsx', 'yaml', 'yml'], true)
+        ) {
             continue;
         }
 
@@ -383,7 +393,7 @@ function prosePassages(string $root, string $path): array
 
     $extension = \strtolower(\pathinfo($path, \PATHINFO_EXTENSION));
 
-    if ($extension === 'php') {
+    if ($extension === 'php' || $relative === 'bin/greenlight') {
         return \prosePhpPassages($relative, $contents);
     }
 
@@ -527,6 +537,30 @@ function proseScriptPassages(string $path, string $contents): array
         }
     }
 
+    foreach (\proseScriptBlockComments($contents) as [$comment, $commentOffset]) {
+        $lines = \preg_split('/\R/', $comment);
+        $paragraph = [];
+        $paragraphLine = \proseLineAtOffset($contents, $commentOffset);
+
+        foreach ($lines === false ? [] : $lines as $offset => $line) {
+            $text = \trim((string) \preg_replace('/^\s*\*\s?/', '', $line));
+
+            if ($text === '' || \str_starts_with($text, '@')) {
+                \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+
+                continue;
+            }
+
+            if ($paragraph === []) {
+                $paragraphLine = \proseLineAtOffset($contents, $commentOffset) + $offset;
+            }
+
+            $paragraph[] = $text;
+        }
+
+        \proseFlushParagraph($passages, $paragraph, $paragraphLine, $path, true);
+    }
+
     if (\preg_match_all('/([\'"`])((?:\\\\.|(?!\1).)*)\1/s', $contents, $strings, \PREG_OFFSET_CAPTURE) !== false) {
         foreach ($strings[2] as $index => [$encoded, $offset]) {
             $matchOffset = $strings[0][$index][1];
@@ -552,6 +586,63 @@ function proseScriptPassages(string $path, string $contents): array
     }
 
     return $passages;
+}
+
+/**
+ * @return list<array{string, int}>
+ */
+function proseScriptBlockComments(string $contents): array
+{
+    $comments = [];
+    $length = \strlen($contents);
+
+    for ($index = 0; $index < $length; ++$index) {
+        $character = $contents[$index];
+
+        if (\in_array($character, ["'", '"', '`'], true)) {
+            $quote = $character;
+
+            for (++$index; $index < $length; ++$index) {
+                if ($contents[$index] === '\\') {
+                    ++$index;
+
+                    continue;
+                }
+
+                if ($contents[$index] === $quote) {
+                    break;
+                }
+            }
+
+            continue;
+        }
+
+        if ($character !== '/' || $index + 1 >= $length) {
+            continue;
+        }
+
+        if ($contents[$index + 1] === '/') {
+            $newline = \strpos($contents, "\n", $index + 2);
+            $index = $newline === false ? $length : $newline;
+
+            continue;
+        }
+
+        if ($contents[$index + 1] !== '*') {
+            continue;
+        }
+
+        $end = \strpos($contents, '*/', $index + 2);
+
+        if ($end === false) {
+            break;
+        }
+
+        $comments[] = [\substr($contents, $index + 2, $end - $index - 2), $index + 2];
+        $index = $end + 1;
+    }
+
+    return $comments;
 }
 
 function proseLineAtOffset(string $contents, int $offset): int
@@ -729,6 +820,28 @@ function proseAstroPassages(string $path, string $contents): array
         static fn(array $matches): string => ' LITERAL ' . \str_repeat("\n", \substr_count($matches[0], "\n")),
         $contents,
     );
+
+    if (\preg_match_all('/\b(?:alt|aria-label|description|placeholder|title)\s*=\s*([\'"])(.*?)\1/is', $contents, $attributes, \PREG_OFFSET_CAPTURE) !== false) {
+        foreach ($attributes[2] as [$attributeText, $offset]) {
+            $passages[] = [
+                'path' => $path,
+                'line' => \proseLineAtOffset($contents, $offset),
+                'text' => \html_entity_decode($attributeText, \ENT_QUOTES | \ENT_HTML5),
+            ];
+        }
+    }
+
+    if (\preg_match_all('/\b(?:alt|aria-label|description|placeholder|title)\s*=\s*\{([^{}]*)\}/is', $contents, $attributes, \PREG_OFFSET_CAPTURE) !== false) {
+        foreach ($attributes[1] as [$expression, $offset]) {
+            $expressionLine = \proseLineAtOffset($contents, $offset) - 1;
+
+            foreach (\proseScriptPassages($path, $expression) as $passage) {
+                $passage['line'] += $expressionLine;
+                $passages[] = $passage;
+            }
+        }
+    }
+
     $contents = \proseMaskAstroExpressions($contents);
     $lines = \preg_split('/\R/', $contents);
     $paragraph = [];
@@ -736,18 +849,6 @@ function proseAstroPassages(string $path, string $contents): array
 
     foreach ($lines === false ? [] : $lines as $offset => $line) {
         $lineNumber = $offset + 1;
-
-        if (\preg_match_all('/\b(?:alt|aria-label|description|placeholder|title)="([^"]+)"/i', $line, $matches) !== false) {
-            foreach ($matches[1] as $attributeText) {
-                if (!\str_contains($attributeText, '{')) {
-                    $passages[] = [
-                        'path' => $path,
-                        'line' => $lineNumber,
-                        'text' => \html_entity_decode($attributeText, \ENT_QUOTES | \ENT_HTML5),
-                    ];
-                }
-            }
-        }
 
         $visible = (string) \preg_replace('/\{[^{}]*\}/', ' LITERAL ', $line);
         $visible = (string) \preg_replace('/<[^>]+>/', ' ', $visible);
@@ -964,6 +1065,10 @@ function prosePhpDocTagDescription(string $line): ?string
 
     if (\preg_match('/^@(return|throws|var)\s+\S+\s+(.+)$/', $line, $matches) === 1) {
         return $matches[2];
+    }
+
+    if (\preg_match('/^@(internal|deprecated)(?:\s+(.+))?$/', $line, $matches) === 1) {
+        return $matches[2] ?? '';
     }
 
     return null;

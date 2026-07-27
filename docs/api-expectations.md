@@ -50,15 +50,14 @@ Namespace: `Greenlight\Expect`
 
 Extension matchers are worker-local state. `install()` stores the configured
 `ExpectationExtension` list when the worker starts. Each chain from `that()`
-uses this list. A worker uses one thread, and the runner controls the
-install point. Thus, no code reads the static registry during a change.
-Before `install()` runs, `that()` uses no extensions.
+uses a snapshot of this list. The runner changes the list before test
+execution starts. Before `install()` runs, `that()` uses no extensions.
 
 ```php
 final class Expect
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L13)
 
 ### `that()`
 
@@ -72,7 +71,7 @@ PHPDoc:
 - `@param T $value`
 - `@return Expectation<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L30)
 
 ### `eventually()`
 
@@ -88,7 +87,7 @@ PHPDoc:
 - `@param callable(): T $probe`
 - `@return PendingEventually<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L44)
 
 ### `consistently()`
 
@@ -104,7 +103,7 @@ PHPDoc:
 - `@param callable(): T $probe`
 - `@return PendingConsistently<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L64)
 
 ## `Expectation`
 

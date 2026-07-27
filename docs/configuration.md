@@ -73,13 +73,10 @@ A second declaration with the same suite name causes an error.
 Default: `'auto'` workers, a `256M` memory recycle limit, and no test-count
 recycle limit.
 
-Workers pull one class at a time from the orchestrator queue. When a worker
-finishes a class, it takes the next one. Thus, a long batch for one worker does
-not make another worker idle.
-
-The orchestrator orders the queue by the class durations from the previous run.
-The longest classes go first. Classes that failed in that run go before other
-classes.
+A worker requests one class at a time. When the worker finishes that class, it
+requests the next class. Thus, a long class does not make another worker idle.
+The orchestrator gives first priority to classes that failed in the previous
+run. It orders the other classes by previous duration, longest first.
 
 Worker placement is load-dependent. The stable parts are:
 
@@ -251,8 +248,7 @@ teardown.
 The `tty` and `plain` reporters always list risky tests after the summary. The
 `failOnRisky()` method changes risky tests to failures.
 
-A test that intentionally has no expectations can opt out with
-`#[NoExpectations]`.
+Use `#[NoExpectations]` for a test that intentionally verifies no expectations.
 
 Each `eventually()` or `consistently()` matcher counts once.
 
