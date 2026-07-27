@@ -96,6 +96,47 @@ final readonly class SubprocessCoverageTest
     }
 
     #[Test]
+    public function drainSkipsUnreadableDumpsAndCleansTheRelayDirectory(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '/outer/dir');
+        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+
+        try {
+            $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
+            $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
+
+            if (!\is_string($directory)) {
+                Fail::because('Expected the coverage relay directory environment variable to contain a path.');
+            }
+
+            $unreadable = $directory . '/unreadable.json';
+
+            if (!\symlink($directory . '/missing.json', $unreadable)) {
+                Fail::because('Expected to create an unreadable coverage dump symlink.');
+            }
+
+            Expect::that($shared->drain())
+                ->because('drain skips unreadable coverage dumps')
+                ->toBeNull()
+                ->and(\is_link($unreadable))
+                ->because('drain removes unreadable coverage dumps')
+                ->toBeFalse()
+                ->and(\is_dir($directory))
+                ->because('drain removes the empty relay directory')
+                ->toBeFalse()
+                ->and(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+                ->because('drain restores the previous relay directory')
+                ->toBe('/outer/dir')
+                ->and(\getenv(SubprocessCoverage::INCLUDE_ENV))
+                ->because('drain restores an unset include-path variable')
+                ->toBeFalse();
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
+    #[Test]
     public function beginDoesNothingWithoutTheRelayVariables(): void
     {
         $sandbox = new EnvironmentSandbox();
