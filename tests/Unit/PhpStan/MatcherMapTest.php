@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\PhpStan;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
 use Greenlight\Tests\Fixture\PhpStan\MatcherTypeShapes;
@@ -41,6 +42,23 @@ final class MatcherMapTest
         $map = MatcherMap::fromConfigFiles([self::CONFIG, self::CONFIG]);
 
         Expect::that($map->has('toHaveDigestLength'))->because('identical declarations from multiple files merge without an error')->toBeTrue();
+    }
+
+    #[Test]
+    public function relativeConfigurationPathsResolveFromTheWorkingDirectory(): void
+    {
+        $workingDirectory = \getcwd();
+
+        if (!\is_string($workingDirectory) || !\str_starts_with(self::CONFIG, $workingDirectory . '/')) {
+            Fail::because('Expected the matcher configuration fixture below the current working directory.');
+        }
+
+        $relativeConfig = \substr(self::CONFIG, \strlen($workingDirectory) + 1);
+        $map = MatcherMap::fromConfigFiles([$relativeConfig]);
+
+        Expect::that($map->has('toHaveDigestLength'))
+            ->because('relative matcher configuration paths resolve from the working directory')
+            ->toBeTrue();
     }
 
     #[Test]
