@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\RunState;
 use Greenlight\Expect\Expect;
@@ -98,6 +99,37 @@ final class RunStateTest
             @\unlink($file . '/occupant.txt');
             @\rmdir($file);
         }
+    }
+
+    #[Test]
+    #[DataSet('nonFiniteDurations')]
+    public function nonFiniteClassDurationsAreRejectedWithoutReplacingState(float $duration): void
+    {
+        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
+        $file = $this->stateFileFor($directory);
+        $state = RunState::forWorkingDirectory($directory);
+
+        try {
+            Expect::that($state->record(['Acme\AlphaTest::one']))->toBeTrue();
+            Expect::that($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
+                ->because('non-finite durations cannot be represented in the state JSON')
+                ->toBeFalse();
+            Expect::that($state->failedTests())
+                ->because('a failed encode does not replace the previous state')
+                ->toBe(['Acme\AlphaTest::one']);
+        } finally {
+            @\unlink($file);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function nonFiniteDurations(): iterable
+    {
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 
     private function stateFileFor(string $directory): string
