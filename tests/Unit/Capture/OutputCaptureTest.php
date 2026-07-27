@@ -123,7 +123,7 @@ final class OutputCaptureTest
     #[Test]
     public function stopPreservesAnErrorHandlerInstalledDuringCapture(): void
     {
-        $baselineHandler = self::activeErrorHandler();
+        $baselineHandler = $this->activeErrorHandler();
         $messages = [];
         $capture = new OutputCapture();
         $capture->start();
@@ -144,7 +144,7 @@ final class OutputCaptureTest
                 ->because('stop preserves an error handler installed during capture')
                 ->toBe([[\E_USER_NOTICE, 'after capture']]);
         } finally {
-            self::restoreErrorHandler($baselineHandler);
+            $this->restoreErrorHandler($baselineHandler);
         }
     }
 
@@ -288,7 +288,7 @@ final class OutputCaptureTest
             ->toThrow(\InvalidArgumentException::class, '/at least 1 entry/');
     }
 
-    private static function activeErrorHandler(): ?callable
+    private function activeErrorHandler(): ?callable
     {
         $probe = static fn(): bool => false;
         $active = \set_error_handler($probe);
@@ -297,10 +297,10 @@ final class OutputCaptureTest
         return $active;
     }
 
-    private static function restoreErrorHandler(?callable $baseline): void
+    private function restoreErrorHandler(?callable $baseline): void
     {
         for ($attempt = 0; $attempt < 4; ++$attempt) {
-            if (self::activeErrorHandler() === $baseline) {
+            if ($this->activeErrorHandler() === $baseline) {
                 return;
             }
 
