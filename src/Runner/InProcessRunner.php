@@ -74,19 +74,20 @@ final readonly class InProcessRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
-        $machineResources = MachineResourceCoordinator::openForPlan(
-            $plan,
-            $configuration->machineResourceLimits,
-            $configuration->resourceCoordinationNamespace,
-        );
         $artifactStore = ArtifactStore::open(
             $artifactConfiguration,
             $this->workingDirectory,
             $runId,
         );
+        $machineResources = null;
         $channelEnvironment = null;
 
         try {
+            $machineResources = MachineResourceCoordinator::openForPlan(
+                $plan,
+                $configuration->machineResourceLimits,
+                $configuration->resourceCoordinationNamespace,
+            );
             $plugins = PluginRegistry::forWorker($configuration->plugins);
             $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
 
@@ -200,7 +201,7 @@ final readonly class InProcessRunner
         } finally {
             $channelEnvironment?->restore();
             $artifactStore->cleanup();
-            $machineResources->close();
+            $machineResources?->close();
         }
     }
 

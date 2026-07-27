@@ -30,9 +30,7 @@ final readonly class MachineResourceCoordinatorTest
             Expect::that($secondPermit)->toBeInstanceOf(MachineResourcePermit::class);
             Expect::that($first->tryAcquire(['sandbox']))->toBe(false);
 
-            if ($firstPermit instanceof MachineResourcePermit) {
-                $first->release($firstPermit);
-            }
+            $first->release($firstPermit);
 
             Expect::that($first->tryAcquire(['sandbox']))->toBeInstanceOf(MachineResourcePermit::class);
         } finally {
@@ -65,7 +63,7 @@ final readonly class MachineResourceCoordinatorTest
 
         try {
             Expect::that(fn(): MachineResourceCoordinator => $this->coordinator(['sandbox' => 2], 'definition'))
-                ->toThrow(ResourceCoordinationError::class, matching: '/active with limit 1.+configured 2/');
+                ->toThrow(ResourceCoordinationError::class, matching: '/active limit 1.+configured limit 2/');
         } finally {
             $first->close();
         }
@@ -98,12 +96,10 @@ final readonly class MachineResourceCoordinatorTest
         $inherited = MachineResourceEnvironment::inherited();
 
         try {
-            if ($permit instanceof MachineResourcePermit) {
-                MachineResourceEnvironment::set($permit->coordinationKeys);
-            }
+            MachineResourceEnvironment::set($permit->coordinationKeys);
 
             Expect::that(fn(): MachineResourceCoordinator => $this->coordinator(['sandbox' => 1], 'nested'))
-                ->toThrow(ResourceCoordinationError::class, matching: '/already held by an outer Greenlight run/');
+                ->toThrow(ResourceCoordinationError::class, matching: '/outer Greenlight run holds/');
         } finally {
             MachineResourceEnvironment::set($inherited);
             $outer->close();

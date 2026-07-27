@@ -28,6 +28,7 @@ final class ConfigurationResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /** @throws InvalidConfiguration */
     public static function resolve(Configuration $configuration, CliOverrides $overrides): Configuration
     {
         $randomizeOrder = $overrides->seed !== null || $configuration->randomizeOrder;
@@ -58,7 +59,7 @@ final class ConfigurationResolver
 
         if ($machineResourceLimits !== [] && $resourceCoordinationNamespace === null) {
             throw new InvalidConfiguration(
-                'Machine resource limits require a coordination namespace. Configure one or pass --resource-coordination-namespace.',
+                'Machine resource limits require a coordination namespace. Use resourceCoordinationNamespace() or --resource-coordination-namespace to configure one.',
             );
         }
 

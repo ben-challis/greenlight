@@ -412,8 +412,8 @@ requirements.
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.
 
-The attribute declares only the named requirement. Configuration decides
-if its limit applies to one run or to processes on the same machine. See
+The attribute declares only the named requirement. Configuration determines
+whether its limit applies to one run or to processes on the same machine. See
 [configuration](configuration.md#machine-scoped-resource-limits).
 
 The requirement controls when a class can start. It does not select a specific

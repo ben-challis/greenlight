@@ -78,14 +78,15 @@ final readonly class ParallelRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
-        $machineResources = MachineResourceCoordinator::openForPlan(
-            $plan,
-            $configuration->machineResourceLimits,
-            $configuration->resourceCoordinationNamespace,
-        );
         $artifactStore = ArtifactStore::open($artifactConfiguration, $this->workingDirectory, $runId);
+        $machineResources = null;
 
         try {
+            $machineResources = MachineResourceCoordinator::openForPlan(
+                $plan,
+                $configuration->machineResourceLimits,
+                $configuration->resourceCoordinationNamespace,
+            );
             $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
 
             if ($orchestratorSide->runSubscribers() !== []) {
@@ -162,7 +163,7 @@ final readonly class ParallelRunner
             return $result;
         } finally {
             $artifactStore->cleanup();
-            $machineResources->close();
+            $machineResources?->close();
         }
     }
 

@@ -125,7 +125,8 @@ final readonly class Application
                              Set a machine-scoped resource limit. You can repeat
                              this option.
           --resource-coordination-namespace=<name>
-                             Set the machine resource coordination namespace
+                             Set the coordination namespace for machine resource
+                             limits
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Run only this group. You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a

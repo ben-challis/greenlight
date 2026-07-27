@@ -70,7 +70,7 @@ final readonly class CliTest
 
         Expect::that($result->exitCode)->toBe(0);
         Expect::that($result->outputLines())
-            ->toContain('  resource limits: postgres=2 (machine, namespace orders-service)');
+            ->toContain('  resource limits: postgres=2 (machine-scoped, namespace orders-service)');
     }
 
     #[Test]

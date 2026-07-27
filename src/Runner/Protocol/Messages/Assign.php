@@ -23,8 +23,8 @@ final readonly class Assign implements Message
      * @param positive-int|null $recycleAboveMemoryBytes
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
-     * @param list<non-empty-string> $machineResourceLeases Coordination keys
-     *   for this assignment.
+     * @param list<non-empty-string> $machineResourceLeases Machine resource
+     *   coordination keys for this assignment.
      */
     public function __construct(
         public ExecutionPlan $slice,

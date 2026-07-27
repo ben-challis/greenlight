@@ -257,6 +257,7 @@ final readonly class CliOverrides
 
     /**
      * @return array{non-empty-string, positive-int}
+     * @throws CliError
      */
     private static function resourceLimit(string $raw, string $flag): array
     {

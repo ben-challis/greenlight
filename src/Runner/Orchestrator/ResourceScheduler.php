@@ -8,7 +8,8 @@ use Greenlight\Runner\Resource\MachineResourceCoordinator;
 use Greenlight\Runner\Resource\MachineResourcePermit;
 
 /**
- * Controls queued work and run-scoped and machine-scoped resource capacity.
+ * Controls queued work and capacity for run-scoped and machine-scoped resource
+ * limits.
  *
  * The oldest blocked scheduling unit reserves one future slot on each
  * required resource. A later scheduling unit can proceed only with separate

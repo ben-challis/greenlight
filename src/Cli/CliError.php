@@ -105,7 +105,7 @@ final class CliError extends \RuntimeException
     public static function invalidResourceCoordinationNamespace(string $namespace): self
     {
         return new self(\sprintf(
-            '--resource-coordination-namespace requires a valid resource name. Received "%s".',
+            '--resource-coordination-namespace requires a name that matches [a-z0-9][a-z0-9._-]*. Received "%s".',
             $namespace,
         ));
     }

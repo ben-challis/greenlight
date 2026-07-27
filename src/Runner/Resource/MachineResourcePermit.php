@@ -7,7 +7,7 @@ namespace Greenlight\Runner\Resource;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * The file handles for machine resource slots in one class assignment.
+ * Holds the file handles for machine resource slots in one class assignment.
  *
  * @internal
  */

@@ -39,7 +39,7 @@ For a nonempty plan, the runner provisions integration fixtures before
 The runner closes the graph after `RunFinished` or after a run failure.
 
 The orchestrator makes decisions that apply to more than one worker. It
-controls assignments, run-scoped resource capacity, machine resource permits,
+controls assignments, run-scoped resource limits, machine resource permits,
 bail, hard timeouts, crash containment, summary totals, artifact publication,
 and the final coverage merge. Workers execute their plan sections in sequence
 and send each result immediately. The in-process runner gets machine resource

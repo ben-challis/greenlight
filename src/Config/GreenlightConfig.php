@@ -218,8 +218,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Limits simultaneous class assignments across Greenlight processes on
-     * the same machine.
+     * Limits the number of concurrent class assignments across Greenlight
+     * processes on the same machine.
      *
      * @throws InvalidConfiguration
      */
@@ -231,7 +231,7 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the namespace used to coordinate machine-scoped resource limits.
+     * Sets the coordination namespace for machine-scoped resource limits.
      *
      * @throws InvalidConfiguration
      */

@@ -39,7 +39,7 @@ final class PlanFormatter
 
         foreach ($configuration->machineResourceLimits as $name => $limit) {
             $resourceLimits[] = \sprintf(
-                '%s=%d (machine, namespace %s)',
+                '%s=%d (machine-scoped, namespace %s)',
                 $name,
                 $limit,
                 $configuration->resourceCoordinationNamespace,

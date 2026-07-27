@@ -35,7 +35,7 @@ final readonly class Configuration
      *   exclude.
      * @param list<non-empty-string> $excludePaths Path prefixes to exclude.
      * @param array<non-empty-string, positive-int> $resourceLimits Configured
-     *   local resource limits.
+     *   run-scoped resource limits.
      * @param array<non-empty-string, positive-int> $machineResourceLimits
      *   Machine-scoped resource limits.
      * @param non-empty-string|null $resourceCoordinationNamespace The namespace
