@@ -21,21 +21,25 @@ final class SignalHandlers
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function install(GracefulShutdown $shutdown): void
-    {
-        if (!\function_exists('pcntl_signal') || !\function_exists('pcntl_async_signals')) {
+    public static function install(
+        GracefulShutdown $shutdown,
+        ?SignalOperations $operations = null,
+    ): void {
+        $operations ??= new SystemSignalOperations();
+
+        if (!$operations->available()) {
             return;
         }
 
-        \pcntl_async_signals(true);
+        $operations->enableAsync();
 
-        $handler = static function (int $signal) use ($shutdown): void {
+        $handler = static function (int $signal) use ($shutdown, $operations): void {
             $shutdown->request($signal);
-            \pcntl_signal(\SIGINT, \SIG_DFL);
-            \pcntl_signal(\SIGTERM, \SIG_DFL);
+            $operations->register(\SIGINT, \SIG_DFL);
+            $operations->register(\SIGTERM, \SIG_DFL);
         };
 
-        \pcntl_signal(\SIGINT, $handler);
-        \pcntl_signal(\SIGTERM, $handler);
+        $operations->register(\SIGINT, $handler);
+        $operations->register(\SIGTERM, $handler);
     }
 }
