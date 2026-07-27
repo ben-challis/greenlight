@@ -3,14 +3,10 @@
 The Laravel bridge supplies Laravel container services to test constructors. It
 supplies these services together with the built-in Greenlight harness services.
 
-The bridge boots a fresh application for each test that uses it. The bridge is
-in the `Greenlight\Laravel` namespace and is part of Greenlight. Register it to
-activate it. Your Laravel application includes `laravel/framework` as an
-application dependency. Greenlight does not require Laravel.
-
-`LaravelPlugin` requires `laravel/framework` 13. It does not support
-applications that install individual `illuminate/*` components. A standard
-Laravel 13 application already has the required package.
+The bridge boots a fresh application for each test that uses it. Register the
+plugin to activate the bridge. The bridge uses the Laravel package that the
+application provides. Greenlight does not declare a runtime dependency on
+Laravel.
 
 ## Setup
 
@@ -45,8 +41,11 @@ application. If you disable refreshes, the selected value stays active for the
 worker lifetime.
 
 The application boots when a test first requests a container service. A worker
-does not boot Laravel when its tests do not use the container. Greenlight tests
-the bridge with each `laravel/framework` 13 release.
+does not boot Laravel when its tests do not use the container.
+
+Greenlight tests the bridge with `laravel/framework` 13. The bridge does not
+support applications that install individual `illuminate/*` components. A
+standard Laravel 13 application has the required package.
 
 ## Container services
 
