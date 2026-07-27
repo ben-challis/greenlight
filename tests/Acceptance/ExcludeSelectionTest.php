@@ -133,6 +133,37 @@ final readonly class ExcludeSelectionTest
     }
 
     #[Test]
+    public function excludePathWarningIsSuppressedWhenDiscoveryFails(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'exclude-path-discovery-error');
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/missing-tests']);
+
+            PHP);
+
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['list-tests', '--exclude-path=tests/MissingProbeTest.php'],
+        );
+
+        Expect::that($result->exitCode)
+            ->because('the discovery failure remains the command error')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain('Discovery directory')
+            ->toContain('missing-tests')
+            ->not()
+            ->toContain('did not match a discovered test file');
+    }
+
+    #[Test]
     public function excludePathDoesNotWarnWhenThePrefixMatchesATestFile(): void
     {
         $project = $this->writeProject();
