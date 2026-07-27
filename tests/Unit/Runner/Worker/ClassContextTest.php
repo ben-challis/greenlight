@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Worker\ClassContext;
+use Greenlight\Tests\Fixture\Runner\Worker\ClassContextDataProbe;
 
 final class ClassContextTest
 {
@@ -52,21 +53,5 @@ final class ClassContextTest
                     ClassContextDataProbe::class,
                 ),
             );
-    }
-}
-
-final class ClassContextDataProbe
-{
-    public function accepts(): never
-    {
-        throw new \LogicException('The class-context probe MUST NOT run.');
-    }
-
-    /**
-     * @return iterable<string, string>
-     */
-    public static function scalarRows(): iterable
-    {
-        yield 'bad' => 'not an argument array';
     }
 }

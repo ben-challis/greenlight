@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\Fail;
+use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension;
 
 final class ExpectTest
 {
@@ -81,16 +81,5 @@ final class ExpectTest
 
         Expect::that(static fn() => Expect::that(4)->__call('toBeEven', []))->because('chains created before an install keep their extensions')
             ->toThrow(\BadMethodCallException::class);
-    }
-}
-
-final class EvenNumbersExtension implements ExpectationExtension
-{
-    #[\Override]
-    public function matchers(): array
-    {
-        return [
-            'toBeEven' => static fn(mixed $subject): bool => \is_int($subject) && $subject % 2 === 0,
-        ];
     }
 }

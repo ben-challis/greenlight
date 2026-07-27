@@ -6,6 +6,9 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Fixture\Expect\Node;
+use Greenlight\Tests\Fixture\Expect\Point;
+use Greenlight\Tests\Fixture\Expect\Suit;
 
 final class ToBeAndToEqualTest
 {
@@ -125,28 +128,4 @@ final class ToBeAndToEqualTest
         Expect::that($detail->expected)->because('toEqual() failure renders both sides')->toBe("['a' => 2]");
         Expect::that($detail->actual)->because('toEqual() failure renders both sides')->toBe("['a' => 1]");
     }
-}
-
-final class Point
-{
-    public function __construct(
-        public int $x,
-        private readonly int $y,
-    ) {}
-
-    public function y(): int
-    {
-        return $this->y;
-    }
-}
-
-enum Suit
-{
-    case Hearts;
-    case Spades;
-}
-
-final class Node
-{
-    public ?Node $next = null;
 }

@@ -14,6 +14,7 @@ use Greenlight\Tests\Fixture\Doubles\CacheBeta;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Clock;
 use Greenlight\Tests\Fixture\Doubles\ProxyFileProbe;
+use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
 final class ProxyGenerationTest
@@ -158,7 +159,7 @@ final class ProxyGenerationTest
         Expect::that(static fn(): string => $proxyClass::lookup())
             ->toThrow(
                 DoublesError::class,
-                message: 'Greenlight\Tests\Unit\Doubles\StaticMethodFixture::lookup() is static. '
+                message: StaticMethodFixture::class . '::lookup() is static. '
                     . 'Doubles cannot intercept static methods.',
             );
 
@@ -189,9 +190,4 @@ final class ProxyGenerationTest
 
         @\rmdir($directory);
     }
-}
-
-interface StaticMethodFixture
-{
-    public static function lookup(): string;
 }

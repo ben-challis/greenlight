@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Fixture\Expect\CanonicalNode;
 
 final class CanonicalizingTest
 {
@@ -106,11 +107,4 @@ final class CanonicalizingTest
             \fclose($secondStream);
         }
     }
-}
-
-final class CanonicalNode
-{
-    public ?CanonicalNode $next = null;
-
-    public function __construct(public readonly string $name) {}
 }
