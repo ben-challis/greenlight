@@ -9,13 +9,16 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\SkipTest;
+use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Runner\DefaultServices;
@@ -128,6 +131,39 @@ final class PluginTest
             ->and($errored->error?->message)->toContain('intentional boom')
             ->and($errored->failures[0]->message ?? '')->toContain('caused an error during afterTest()')
             ->toContain('plugin exploded');
+    }
+
+    #[Test]
+    public function throwingRetryDeciderErrorsTheFailedTest(): void
+    {
+        $broken = new class implements RetryDecider, Fake {
+            #[\Override]
+            public function shouldRetry(
+                TestMetadata $metadata,
+                TestResult $result,
+                int $attempt,
+                ?\Throwable $cause,
+            ): bool {
+                throw new \RuntimeException('retry decision failed');
+            }
+        };
+
+        [, $results] = $this->runSuite('RunFailingSuite', [$broken]);
+
+        $byMethod = [];
+
+        foreach ($results as $result) {
+            $byMethod[$result->id->method] = $result;
+        }
+
+        Expect::that($byMethod['passes']->outcome)
+            ->because('a retry decider MUST NOT run after a successful test')
+            ->toBe(Outcome::Passed)
+            ->and($byMethod['explodes']->outcome)
+            ->because('a retry decider failure MUST error the unsuccessful test')
+            ->toBe(Outcome::Errored)
+            ->and($byMethod['explodes']->error?->message)
+            ->toBe('retry decision failed');
     }
 
     #[Test]
