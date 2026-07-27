@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 /*
- * The self-coverage gate: reads the JSON export produced by
- * `composer tests:coverage` and fails when the framework's own line
- * coverage drops below the floor.
+ * Reads the JSON coverage export from `composer tests:coverage`.
+ * Fails if Greenlight line coverage is below the required floor.
  */
 
 const MIN_COVERAGE_PERCENTAGE = 78.0;

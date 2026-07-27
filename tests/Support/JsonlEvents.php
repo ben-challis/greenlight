@@ -9,8 +9,9 @@ use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Wire\Wire;
 
 /**
- * Reads JSONL from stdout only. Every non-trailing line must contain a valid
- * version-two envelope, known event tag, and event payload.
+ * Reads JSONL only from standard output. Each line except a final empty line
+ * MUST contain a valid version-two envelope. It MUST also contain a known
+ * event tag and event payload.
  */
 final class JsonlEvents
 {

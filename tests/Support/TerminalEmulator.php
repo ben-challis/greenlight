@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 /**
- * Supports carriage return, newline, CSI cursor-up, line and screen clearing,
- * cursor visibility, and SGR sequences emitted by TtyReporter. SGR codes are
- * stripped unless retainColour is true. write() throws on any other escape
- * sequence.
+ * Supports carriage return, newline, CSI cursor-up, line and screen clear operations,
+ * cursor visibility, and TtyReporter SGR sequences. Unless retainColour is
+ * true, it removes SGR codes. write() throws for other escape sequences.
  */
 final class TerminalEmulator
 {

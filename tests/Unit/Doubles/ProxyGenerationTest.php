@@ -54,9 +54,9 @@ final class ProxyGenerationTest
             \substr(\sha1($workingDirectory), 0, 12),
         );
 
-        // The proxy class name embeds a hash of Calculator's signatures, so
-        // its generated file has a deterministic name; other tests may have
-        // left it cached from an earlier run, so start from a clean slate.
+        // The proxy class name contains a hash of Calculator signatures. Thus,
+        // its generated file has a deterministic name. Other tests can leave
+        // this file in the cache, so start with an empty cache.
         $expectedFile = null;
         $doubles = new Doubles();
 
@@ -97,8 +97,8 @@ final class ProxyGenerationTest
     #[Test]
     public function classDoublesNeverRunTheDoubledConstructor(): void
     {
-        // The Clock constructor throws; creating the double without an
-        // exception proves it never ran.
+        // The Clock constructor throws. Creation of the double without an
+        // exception shows that Greenlight did not run the constructor.
         $doubles = new Doubles();
         $clock = $doubles->stub(Clock::class);
 

@@ -9,8 +9,8 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
 
 /**
- * Snapshot of the config file API. Update it only for an intentional API
- * change.
+ * Records the configuration-file API. Update this list only for an intentional
+ * API change.
  */
 final class GreenlightConfigApiTest
 {

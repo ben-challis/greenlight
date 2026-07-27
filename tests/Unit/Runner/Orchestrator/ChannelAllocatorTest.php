@@ -49,8 +49,8 @@ final readonly class ChannelAllocatorTest
     #[Test]
     public function channelsStayWithinTheBoundAcrossChurn(): void
     {
-        // Recycling and crash containment retire and respawn workers many
-        // times; the occupied set must stay within 1..bound throughout.
+        // Worker replacement and crash containment start workers many times.
+        // The occupied set MUST remain within 1..bound.
         $allocator = new ChannelAllocator(2);
         $first = $allocator->allocate();
         $second = $allocator->allocate();

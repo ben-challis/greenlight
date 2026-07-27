@@ -45,9 +45,8 @@ final readonly class ChannelTest
     #[Test]
     public function recycledWorkersReuseFreedChannels(): void
     {
-        // Recycling after every test forces replacement workers; more
-        // workers are spawned than channels exist, yet the occupied set
-        // never leaves {1, 2}.
+        // Replacement after each test starts more workers than channels. The
+        // set of occupied channels remains within {1, 2}.
         $project = $this->writeProject(recycleAfterTests: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
@@ -108,9 +107,9 @@ final readonly class ChannelTest
         $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
-        // Each class records its channel and waits for every expected marker.
-        // This prevents one worker from draining its queue before the other
-        // starts, without relying on a fixed delay.
+        // Each class records its channel and waits for all expected markers.
+        // This makes both workers start before one completes its queue. The
+        // test does not use a fixed delay.
         $template = <<<'PHP'
             <?php
 

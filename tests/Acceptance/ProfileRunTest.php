@@ -18,8 +18,8 @@ final readonly class ProfileRunTest
     public function liveProfileAndOfflineReportAgree(): void
     {
         $root = \dirname(__DIR__, 2);
-        // An isolated project, so this run cannot race another
-        // acceptance test's use of the same working directory.
+        // An isolated project prevents a conflict with another acceptance
+        // test in the same directory.
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'profile');
         $artifact = $project->path('profile.jsonl');
 
@@ -36,18 +36,18 @@ final readonly class ProfileRunTest
             ->toContain('Boot latency:')
             ->toContain('Slowest classes:');
 
-        // The jsonl lines are interleaved with the plain report on
-        // stdout; extract them into an artifact file.
+        // The plain report and JSONL lines share standard output. Extract the
+        // JSONL lines to an artifact file.
         $jsonl = \array_filter($output, static fn(string $line): bool => \str_starts_with($line, '{"v":'));
         \file_put_contents($artifact, \implode("\n", $jsonl) . "\n");
 
-        // stdout only: extensions like ddtrace write noise to stderr on
-        // spawn, and this comparison is exact.
+        // Use standard output only because this comparison is exact.
+        // Extensions such as ddtrace write messages to standard error.
         $report = GreenlightCli::run($root, ['profile:report', '--input=' . $artifact]);
         $offline = $report->stdout;
 
-        // The live block, minus its leading blank line, must reproduce
-        // verbatim from the artifact.
+        // The artifact MUST reproduce the live block without its first blank
+        // line.
         $liveBlock = \substr($live, (int) \strpos($live, 'Profile:'));
 
         Expect::that($report->exitCode)->toBe(0)

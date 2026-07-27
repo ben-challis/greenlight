@@ -19,7 +19,8 @@ final class CompletionScriptsTest
             $script = (string) $this->scripts()->render($shell);
 
             foreach (['run', 'list-tests', 'coverage:diff', 'profile:report', 'ide-helper', 'completion'] as $command) {
-                // The zsh _describe entries escape the colon in a command name.
+                // The zsh _describe entries use an escape before the colon in a
+                // command name.
                 Expect::that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
             }
         }

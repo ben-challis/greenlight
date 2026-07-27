@@ -25,9 +25,8 @@ final readonly class ListingTest
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls')
             ->toContain('7 tests');
-        // Cheap proxy for "the seed shuffled the plan": ids must stay
-        // grouped by class. Alphabetical output would also pass this
-        // check; interleaved classes would not.
+        // This check verifies that test IDs for one class remain adjacent.
+        // Alphabetical output also passes, but interleaved classes do not.
         $classes = [];
         foreach ($this->testIdLines($output) as $id) {
             $class = \strstr($id, '::', true);

@@ -70,8 +70,8 @@ final class ProtocolTest
         $codec = new JsonFrameCodec();
         $buffer = new FrameBuffer();
 
-        // Feed all frames as one concatenated byte stream, in 3-byte chunks,
-        // to prove reassembly across arbitrary boundaries.
+        // Send all frames as one byte stream in three-byte parts. This shows
+        // that reassembly operates across arbitrary boundaries.
         $stream = '';
 
         foreach ($messages as $message) {

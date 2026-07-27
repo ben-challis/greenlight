@@ -14,8 +14,9 @@ use Greenlight\Config\WorkerCount;
 use Greenlight\Expect\Expect;
 
 /**
- * Covers every CLI-overridable setting with defaults, config, CLI, and both
- * sources. CLI values must win when both are set.
+ * Covers each option that a command-line value can replace. It tests default,
+ * configuration, command-line, and combined values. Command-line values MUST
+ * have priority in the combined case.
  */
 final class PrecedenceMatrixTest
 {
