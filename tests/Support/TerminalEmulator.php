@@ -14,7 +14,7 @@ final class TerminalEmulator
     /**
      * @var array<int, list<string>>
      */
-    private array $cells = [];
+    private array $cells;
 
     /**
      * @var array<int, string>
