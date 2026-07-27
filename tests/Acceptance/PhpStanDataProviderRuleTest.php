@@ -140,7 +140,7 @@ final readonly class PhpStanDataProviderRuleTest
 
                 #[Test]
                 #[DataSet('requiredArgument')]
-                public function providerMustAcceptZeroArguments(int $value): void
+                public function providerMustBeCallableWithoutArguments(int $value): void
                 {
                     echo $value;
                 }
@@ -221,7 +221,7 @@ final readonly class PhpStanDataProviderRuleTest
             ->toContain('notIterable() must return an iterable of argument arrays, returns string')
             ->toContain('scalarRows() must yield arrays of arguments, yields int')
             ->toContain('Data provider stringRows() row argument #1 of typedRows() expects int, string given')
-            ->toContain('requiredArgument() must accept zero arguments')
+            ->toContain('requiredArgument() must not require arguments')
             ->toContain('SharedBadProviders::notStatic() must be public and static')
             ->toContain('SharedBadProviders::abstractProvider() must be concrete')
             ->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
@@ -229,7 +229,7 @@ final readonly class PhpStanDataProviderRuleTest
     }
 
     #[Test]
-    public function providerKeysAndEmptyOrDuplicateRowsAreChecked(): void
+    public function providerKeysEmptyProvidersAndDuplicateRowKeysAreChecked(): void
     {
         $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
@@ -327,12 +327,12 @@ final readonly class PhpStanDataProviderRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('provider keys and empty or duplicate rows are checked')->toBe(1)
+        Expect::that($probe->exitCode)->because('PHPStan checks provider keys, empty providers, and duplicate row keys')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(4)
             ->and($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
             ->toContain('#[DataRow] key "#0" occurs more than once on duplicateGeneratedLabel()')
-            ->toContain('invalidKeys() keys must be int or string, returns bool keys')
+            ->toContain('invalidKeys() keys must be int or string. The provider returns keys of type bool')
             ->toContain('empty() must yield at least one argument array');
     }
 }

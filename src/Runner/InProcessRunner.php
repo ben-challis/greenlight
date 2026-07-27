@@ -28,8 +28,8 @@ final readonly class InProcessRunner
 
     /**
      * @param list<non-empty-string> $directories
-     * @param list<non-empty-string> $priorityClasses classes to run first, in the given order
-     * @param array<string, float> $classSeconds recorded class durations for longest-first ordering; ignored on seeded runs
+     * @param list<non-empty-string> $priorityClasses Classes that run first in the specified order.
+     * @param array<string, float> $classSeconds Recorded class durations for longest-first ordering. Seeded runs ignore this value.
      *
      * @throws DiscoveryError
      */

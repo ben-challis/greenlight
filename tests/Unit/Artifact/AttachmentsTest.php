@@ -175,7 +175,7 @@ final readonly class AttachmentsTest
             ->toThrow(
                 AttachmentError::class,
                 message: \sprintf(
-                    'Attachment source "%s" Use a source path that is not a symbolic link.',
+                    'Attachment source "%s" is a symbolic link. Use a source path that is not a symbolic link.',
                     $link,
                 ),
             );

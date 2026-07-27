@@ -809,7 +809,7 @@ function escapeBackticks(value) {
 }
 
 function collectUnformattedIdentifiers(problems, owner, description) {
-  const identifier = /(?:#\[[^\]]+\]|\$[A-Za-z_][A-Za-z0-9_]*(?:->[A-Za-z_][A-Za-z0-9_]*\(\))?|(?:[A-Za-z_\\][A-Za-z0-9_\\]*::)?[A-Za-z_][A-Za-z0-9_]*\(\)|\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b|\b[a-z][a-z0-9]*_[a-z0-9_]+\b|--[a-z][a-z-]*|\b[A-Za-z0-9_.-]+\.(?:php|neon|json|xml)\b)/gu;
+  const identifier = /(?:#\[[^\]]+\]|\$[A-Za-z_][A-Za-z0-9_]*(?:->[A-Za-z_][A-Za-z0-9_]*\(\))?|(?:[A-Za-z_\\][A-Za-z0-9_\\]*::)?[A-Za-z_][A-Za-z0-9_]*\(\)|\b[a-z][a-z0-9]*(?:[A-Z][A-Za-z0-9]*)+\b|\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b|\b[a-z][a-z0-9]*_[a-z0-9_]+\b|--[a-z][a-z-]*|\b[A-Za-z0-9_.-]+\.(?:php|neon|json|xml)\b)/gu;
   const parts = description.split(/(`[^`]*`)/gu);
   let prose = '';
 

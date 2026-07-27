@@ -47,7 +47,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 /**
  * Converts a final PHPUnit test class to Greenlight: the TestCase parent,
- * lifecycle hooks, attributes, assertions, and expectException blocks. The
+ * lifecycle hooks, attributes, assertions, and `expectException()` blocks. The
  * rule converts a class only when every member has a faithful Greenlight
  * equivalent. It does not change other classes.
  */

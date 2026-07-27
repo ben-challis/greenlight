@@ -233,15 +233,16 @@ PHPDoc:
 
 Namespace: `Greenlight\Attribute`
 
-Runs a failed test again for the specified number of additional attempts.
-The optional throwable type limits the failures that start another attempt.
+Runs an unsuccessful test attempt again for the specified number of
+additional attempts. The optional throwable type limits the unsuccessful
+attempts that start another attempt.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Retry
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L13)
 
 ### `$times`
 
@@ -253,7 +254,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L18)
 
 ### `__construct()`
 
@@ -269,7 +270,7 @@ PHPDoc:
 - `@param class-string<\Throwable>|null $onlyOn`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L25)
 
 ## `Skip`
 

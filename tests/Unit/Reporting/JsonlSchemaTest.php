@@ -121,6 +121,6 @@ final class JsonlSchemaTest
             );
         }
 
-        return \implode('; ', $rendered);
+        return \implode("\n", $rendered);
     }
 }

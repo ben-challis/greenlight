@@ -115,12 +115,14 @@ final class AttributeArgumentRule implements Rule
     private function checkSkipUnless(Attribute $attribute, Scope $scope): array
     {
         $errors = [];
+        $conditionArgument = 0;
 
         foreach ($attribute->args as $index => $argument) {
             if ($argument->name === null ? $index === 0 : $argument->name->toString() === 'condition') {
                 continue;
             }
 
+            ++$conditionArgument;
             $type = $scope->getType($argument->value);
 
             if ($type->isNull()->yes() || $type->isScalar()->yes()) {
@@ -128,7 +130,7 @@ final class AttributeArgumentRule implements Rule
             }
 
             $errors[] = $this->error(
-                \sprintf('#[SkipUnless] argument %d must be a scalar or null.', $index),
+                \sprintf('#[SkipUnless] argument %d must be a scalar or null.', $conditionArgument),
                 'skipUnless',
                 $argument->getStartLine(),
             );
@@ -161,7 +163,7 @@ final class AttributeArgumentRule implements Rule
         }
 
         return [$this->error(
-            \sprintf('#[RequiresResource] name must match %s, got "%s".', ResourceName::PATTERN, $name),
+            \sprintf('#[RequiresResource] name "%s" does not match %s.', $name, ResourceName::PATTERN),
             'resource',
             $attribute->getStartLine(),
         )];

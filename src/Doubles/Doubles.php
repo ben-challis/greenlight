@@ -202,7 +202,7 @@ final class Doubles implements Disposable
         $recorded = $state->recordedCalls[$expectation->method] ?? [];
         $actual = $recorded === []
             ? 'never called'
-            : \implode('; ', \array_map(
+            : \implode("\n", \array_map(
                 fn(array $arguments): string => MethodExpectation::renderCall($this->renderer, $expectation->method, $arguments),
                 $recorded,
             ));

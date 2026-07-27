@@ -61,7 +61,7 @@ final readonly class JsonlSchemaTest
                     );
                 }
 
-                $violations[] = \sprintf('%s: %s', $line, \implode('; ', $errors));
+                $violations[] = \sprintf('%s: %s', $line, \implode("\n", $errors));
             }
 
             $assoc = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);

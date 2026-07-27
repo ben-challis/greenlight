@@ -84,7 +84,7 @@ final class LifecycleMethodRule implements Rule
 
         if ($this->hasRequiredParameter($method)) {
             $errors[] = $this->error(
-                \sprintf('Lifecycle hook %s must accept zero arguments.', $methodName),
+                \sprintf('Lifecycle hook %s must not require arguments.', $methodName),
                 'parameters',
                 $line,
             );

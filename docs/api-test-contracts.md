@@ -10,7 +10,7 @@ These signatures are the public API.
 
 Namespace: `Greenlight\Core`
 
-A run-time condition that `#[SkipUnless]` references.
+A runtime condition that `#[SkipUnless]` references.
 
 Implementations can receive constructor arguments from `#[SkipUnless]`.
 Constructors must only store these arguments. `isSatisfied()` evaluates the
@@ -36,13 +36,14 @@ Namespace: `Greenlight\Core\Test`
 
 Reports a skipped test with the specified reason.
 
-Throw this signal from a test method, a before hook, or a beforeTest subscriber.
+Throw this signal from a test method, a before hook, or a `beforeTest()`
+subscriber.
 
 ```php
 final class SkipTest extends \Exception
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L13)
 
 ### `__construct()`
 
@@ -56,7 +57,7 @@ PHPDoc:
 
 - `@param non-empty-string $reason`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L18)
 
 ## `TestChannel`
 

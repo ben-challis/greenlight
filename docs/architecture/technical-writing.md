@@ -19,6 +19,11 @@ The prose checker finds mechanical errors and possible language problems. It
 does not certify compliance with ASD-STE100. A writer must also review the
 meaning, vocabulary, grammar, and technical accuracy.
 
+The checker also examines structured text fields and PHP strings that resemble
+messages. It applies only mandatory rules to PHPDoc tag descriptions and these
+strings. Review all PHP strings manually because code literals can resemble
+prose.
+
 ## Writing rules
 
 Use the official ASD-STE100 Issue 9 standard as the primary reference. Apply

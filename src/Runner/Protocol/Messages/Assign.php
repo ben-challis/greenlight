@@ -21,9 +21,9 @@ final readonly class Assign implements Message
     /**
      * @param positive-int|null $recycleAfterTests
      * @param positive-int|null $recycleAboveMemoryBytes
-     * @param list<non-empty-string>|null $coverageInclude null means coverage is off
+     * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
-     * @param non-empty-string|null $configFile loaded worker-side to instantiate plugins; null runs plugin-free
+     * @param non-empty-string|null $configFile The worker loads this file to instantiate plugins. Null disables plugins.
      */
     public function __construct(
         public ExecutionPlan $slice,

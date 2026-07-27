@@ -84,7 +84,7 @@ final readonly class PhpStanLifecycleMethodRuleTest
             ->and(\count($probe->errors))->toBe(4)
             ->and($probe->messages())->toContain('protectedBefore() cannot run because it is not public')
             ->toContain('staticAfter() cannot run because it is static')
-            ->toContain('beforeWithArgument() must accept zero arguments')
+            ->toContain('beforeWithArgument() must not require arguments')
             ->toContain('abstractAfter() cannot run because it is abstract');
     }
 }

@@ -103,11 +103,11 @@ final class Orchestrator
     private ?ChannelAllocator $channels = null;
 
     /**
-     * @param non-empty-list<non-empty-string> $workerCommand argv prefix invoking bin/greenlight
+     * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
      * @param positive-int|null $recycleAfterTests
      * @param positive-int|null $recycleAboveMemoryBytes
-     * @param float $connectDeadlineSeconds seconds a spawned worker gets to complete the hello handshake before the run fails
-     * @param float $progressDeadlineSeconds seconds a connected worker may stay silent with no test in flight before the run fails
+     * @param float $connectDeadlineSeconds Maximum seconds for a new worker to complete the hello handshake.
+     * @param float $progressDeadlineSeconds Maximum seconds that a connected worker can stay silent when no test is in flight.
      * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public function __construct(
