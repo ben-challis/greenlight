@@ -35,6 +35,12 @@ final readonly class GeneratedCoveragePathTest
             ->because('coverage MUST collect source generated during the run')
             ->toBe(0);
 
+        $generatedPath = \realpath($generatedDirectory . '/RuntimeSource.php');
+
+        if ($generatedPath === false) {
+            Fail::because('Expected the generated source file to exist after the run.');
+        }
+
         $json = \file_get_contents($project->path('coverage.json'));
 
         if ($json === false) {
@@ -46,7 +52,7 @@ final readonly class GeneratedCoveragePathTest
         $generatedFile = null;
 
         foreach ($decoded['files'] as $file => $lines) {
-            if ($file === $generatedDirectory . '/RuntimeSource.php') {
+            if ($file === $generatedPath) {
                 $generatedFile = $lines;
             }
         }
