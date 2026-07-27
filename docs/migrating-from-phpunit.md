@@ -42,6 +42,7 @@ class.
 $this->assertSame('a', $value);                           Expect::that($value)->toBe('a');
 $this->assertEquals($expected, $order);                   Expect::that($order)->toEqual($expected);
 $this->fail('Reason');                                    Fail::because('Reason');
+$this->assertTrue($open, 'Order must stay open');         Expect::that($open)->because('Order must stay open')->toBeTrue();
 $this->assertInstanceOf(Response::class, $r);             Expect::that($r)->toBeInstanceOf(Response::class);
 $this->assertCount(3, $items);                            Expect::that($items)->toHaveCount(3);
 $this->expectException(DomainException::class);           Expect::that($fn)->toThrow(DomainException::class);
@@ -71,6 +72,8 @@ These differences are important:
 * Objects compare by exact class and all properties, with private properties.
 * Unlike types do not use loose equality. Thus, `'1'` does not equal `1`.
 * `->not()` applies only to the next matcher.
+* `->because()` replaces the PHPUnit `$message` argument and applies only to
+  the next matcher.
 * `toThrow()` accepts a callable subject and an optional message constraint.
 * Use `message:` for exact equality.
 * Use `matching:` for a regular expression.

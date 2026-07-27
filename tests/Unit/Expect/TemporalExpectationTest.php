@@ -296,6 +296,57 @@ final class TemporalExpectationTest
     }
 
     #[Test]
+    public function eventuallyCarriesTheReasonIntoTheFailure(): void
+    {
+        $clock = new FakePollingClock();
+
+        $detail = FailureProbe::detailOf(static function () use ($clock): void {
+            ExpectationRuntime::withClock(
+                $clock,
+                static fn() => Expect::eventually(static fn(): string => 'pending')
+                    ->pollEvery(0.010)
+                    ->within(0.030)
+                    ->because('the job must finish')
+                    ->toBe('done'),
+            );
+        });
+
+        Expect::that($detail->message)
+            ->toContain('Eventually expectation did not pass within 0.030s')
+            ->toContain("Last failure: Expected 'pending' to be 'done' because the job must finish.");
+    }
+
+    #[Test]
+    public function consistentlyCarriesTheReasonIntoTheFailure(): void
+    {
+        $clock = new FakePollingClock();
+
+        $detail = FailureProbe::detailOf(static function () use ($clock): void {
+            ExpectationRuntime::withClock(
+                $clock,
+                static fn() => Expect::consistently(static fn(): int => 1)
+                    ->for(0.030)
+                    ->because('the queue must stay empty')
+                    ->toBe(0),
+            );
+        });
+
+        Expect::that($detail->message)
+            ->toContain('Consistently expectation failed on its first observation.')
+            ->toContain('Last failure: Expected 1 to be 0 because the queue must stay empty.');
+    }
+
+    #[Test]
+    public function temporalBecauseRequiresANonEmptyReason(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::eventually(static fn(): bool => true)->within(0.030)->because('   '),
+        );
+
+        Expect::that($detail->message)->toBe('because() requires a non-empty reason.');
+    }
+
+    #[Test]
     public function observationHistoryCollapsesRepeatsAndBoundsChanges(): void
     {
         $clock = new FakePollingClock();

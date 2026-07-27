@@ -29,6 +29,24 @@ Expect::that($result)->not()->toBeNull()
     ->and($errors)->toBeEmpty();
 ```
 
+`because()` adds a reason to the next matcher only:
+
+```php
+Expect::that($order->isOpen())
+    ->because('a refund requires an open order')
+    ->toBeTrue();
+```
+
+When the matcher fails, the failure message puts the reason after the word
+`because`:
+
+```text
+Expected false to be true because a refund requires an open order.
+```
+
+The reason must not be empty. Temporal expectation chains also accept
+`because()`.
+
 ## Matcher reference
 
 ### Identity and equality
