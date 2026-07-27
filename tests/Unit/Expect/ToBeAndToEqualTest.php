@@ -90,6 +90,18 @@ final class ToBeAndToEqualTest
     }
 
     #[Test]
+    public function toEqualRejectsObjectsWithDifferentPropertyCounts(): void
+    {
+        $withProperty = new \stdClass();
+        $withProperty->value = 1;
+
+        Expect::that($withProperty)
+            ->because('object equality requires the same property count')
+            ->not()
+            ->toEqual(new \stdClass());
+    }
+
+    #[Test]
     public function toEqualComparesEnumsByIdentity(): void
     {
         Expect::that(Suit::Hearts)->because('toEqual() compares enums by identity')->toEqual(Suit::Hearts);
