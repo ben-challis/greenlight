@@ -181,10 +181,6 @@ final class GreenlightConfigTest
             GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory(''));
         }];
 
-        yield 'zero artifact count' => [static function (): void {
-            GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0));
-        }];
-
         yield 'invalid resource name' => [static function (): void {
             GreenlightConfig::create()->resourceLimit('Postgres');
         }];
@@ -196,6 +192,57 @@ final class GreenlightConfigTest
         yield 'duplicate resource limit' => [static function (): void {
             GreenlightConfig::create()->resourceLimit('postgres')->resourceLimit('postgres', 2);
         }];
+    }
+
+    /**
+     * @param \Closure(): void $configure
+     */
+    #[Test]
+    #[DataSet('invalidArtifactCounts')]
+    public function invalidArtifactCountsGiveExactGuidance(\Closure $configure, string $message): void
+    {
+        Expect::that($configure)
+            ->because('artifact count limits must be positive')
+            ->toThrow(InvalidConfiguration::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): void, non-empty-string}>
+     */
+    public static function invalidArtifactCounts(): iterable
+    {
+        yield 'zero per-test count' => [
+            static function (): void {
+                GreenlightConfig::create()->artifacts(
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0),
+                );
+            },
+            'Artifact count per test must be at least 1.',
+        ];
+        yield 'negative per-test count' => [
+            static function (): void {
+                GreenlightConfig::create()->artifacts(
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(-1),
+                );
+            },
+            'Artifact count per test must be at least 1.',
+        ];
+        yield 'zero per-run count' => [
+            static function (): void {
+                GreenlightConfig::create()->artifacts(
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxRunAttachments(0),
+                );
+            },
+            'Artifact count per run must be at least 1.',
+        ];
+        yield 'negative per-run count' => [
+            static function (): void {
+                GreenlightConfig::create()->artifacts(
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxRunAttachments(-1),
+                );
+            },
+            'Artifact count per run must be at least 1.',
+        ];
     }
 
     #[Test]
