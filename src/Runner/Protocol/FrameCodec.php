@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 /**
- * JSON is the v1 encoding.
+ * Version 1 uses JSON.
  *
  * @internal
  */

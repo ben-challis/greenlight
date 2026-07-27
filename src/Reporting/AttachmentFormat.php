@@ -8,7 +8,7 @@ use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Result\TestResult;
 
 /**
- * Shared bounded text rendering for attachment metadata.
+ * Produces bounded attachment metadata text for reporters.
  *
  * @internal
  */

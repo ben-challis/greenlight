@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * Flag candidates come from OptionSpec. Command names and enum-like values
- * remain explicit tables.
+ * Gets flag candidates from OptionSpec. Explicit tables contain command names
+ * and enum-like values.
  *
  * @internal
  */

@@ -23,13 +23,17 @@ use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Artifact\ArtifactStore;
 
 /**
- * A class-scope teardown failure is attributed to the test that
- * triggered the close: the last test executed in that class.
+ * Greenlight assigns a class-scope teardown failure to the last test in that
+ * class. This test causes the class scope to close.
  *
- * run() stops early when the failure threshold is hit, when the recycling
- * budget is exhausted (checked after each test), or when a drain is
- * requested between tests. Unexecuted entries are reported back in plan
- * order.
+ * run() stops early in these conditions:
+ *
+ * - The run reaches the failure limit.
+ * - The worker uses its replacement budget.
+ * - The orchestrator requests a drain between tests.
+ *
+ * Greenlight checks the replacement budget after each test. run() reports
+ * incomplete entries in plan order.
  *
  * @internal
  */
@@ -57,9 +61,9 @@ final readonly class Worker
         ?HarnessScopes $scopes = null,
         ?\Closure $attemptStarted = null,
     ): WorkerRunOutcome {
-        // Externally owned scopes survive this call, so per-run services
-        // keep worker-lifetime semantics when one worker runs several
-        // assignments; the owner closes the run scope on exit.
+        // This call does not close externally owned scopes. Thus, run services
+        // remain available when one worker runs multiple assignments. The
+        // owner closes the run scope at exit.
         $ownScopes = !$scopes instanceof HarnessScopes;
         $scopes ??= new HarnessScopes($this->registry, $this->plugins->serviceResolvers());
         $summary = new ResultSummary();

@@ -7,7 +7,7 @@ namespace Greenlight\Runner\Protocol\Messages;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Orchestrator to worker: finish the current test, send done, exit.
+ * Tells a worker to complete the current test, send Done, and exit.
  *
  * @internal
  */

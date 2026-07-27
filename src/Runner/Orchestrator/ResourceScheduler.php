@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 /**
- * Owns pending work and local named-resource capacity for one run.
+ * Controls queued work and named-resource capacity for one run.
  *
- * The oldest blocked unit reserves one future slot on every resource it
- * needs. Later units may bypass it only with disjoint or excess capacity,
- * preventing starvation without imposing global head-of-line blocking.
+ * The oldest blocked scheduling unit reserves one future slot on each
+ * required resource. A later scheduling unit can proceed only with separate
+ * or excess capacity. Thus, the oldest scheduling unit eventually proceeds
+ * without a global queue block.
  *
  * @internal
  */
@@ -159,7 +160,7 @@ final class ResourceScheduler
     }
 
     /**
-     * An unconfigured required resource is exclusive by default.
+     * A required resource without configuration is exclusive by default.
      *
      * @return positive-int
      */

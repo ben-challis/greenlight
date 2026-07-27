@@ -9,7 +9,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Publishes staged attachments before forwarding a completed test event.
+ * Publishes staged attachments before it sends a completed test event.
  *
  * @internal
  */

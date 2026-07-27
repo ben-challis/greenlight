@@ -10,8 +10,8 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 
 /**
- * Exports a temporary dump directory and restores the previous environment
- * when drained. Corrupt or truncated dumps are skipped.
+ * Exports a temporary coverage directory. drain() restores the previous
+ * environment. It ignores corrupt or incomplete coverage files.
  *
  * @internal
  */

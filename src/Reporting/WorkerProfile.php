@@ -49,7 +49,10 @@ final class WorkerProfile
     }
 
     /**
-     * Spawn to first class start, or null when either end is unknown.
+     * Returns boot latency from worker-process creation to the first
+     * test-class start.
+     *
+     * Returns null if either timestamp is unknown.
      */
     public function bootLatency(): ?float
     {
@@ -61,7 +64,9 @@ final class WorkerProfile
     }
 
     /**
-     * Spawn (or first class, whichever is known) to last class finish.
+     * Returns the time from process start to the completion of the last test class.
+     *
+     * If process start is unknown, uses the first test-class start.
      */
     public function window(): float
     {
@@ -75,8 +80,9 @@ final class WorkerProfile
     }
 
     /**
-     * Busy time over the window as a whole percentage, capped at 100, or
-     * null when the window is empty.
+     * Returns busy time as a percentage of the worker period.
+     *
+     * The maximum is 100. Returns null for an empty period.
      */
     public function utilisationPercent(): ?int
     {

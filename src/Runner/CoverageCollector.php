@@ -12,10 +12,10 @@ use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Coverage\PathFilter;
 
 /**
- * Wraps one coverage collection window around a slice of test execution.
+ * Collects coverage during one part of test execution.
  *
- * create() fails soft: when no driver is available the run proceeds uncovered
- * and the reason is reported, never fatal.
+ * If no coverage driver is available, create() sends the reason to the optional
+ * callback and returns null. The run continues without coverage.
  *
  * @internal
  */

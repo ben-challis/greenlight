@@ -8,13 +8,14 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\Export\JsonExporter;
 
 /**
- * Inherited GREENLIGHT_COVERAGE_DIR and GREENLIGHT_COVERAGE_INCLUDE variables
- * relay a spawned CLI process's coverage to its parent run. Missing drivers
- * fail soft, and empty maps are not written.
+ * GREENLIGHT_COVERAGE_DIR and GREENLIGHT_COVERAGE_INCLUDE send coverage from
+ * a child CLI process to its parent run. A child process inherits these
+ * variables. A missing coverage driver does not fail the run. Greenlight does
+ * not write an empty coverage map.
  *
- * Worker processes never dump; their coverage travels over the worker
- * protocol. Opening a second collection window would close the inherited
- * whole-process window early.
+ * Worker processes do not write coverage files. They send coverage through
+ * the worker protocol. A second collection period would close the inherited
+ * process period too early.
  *
  * @internal
  */

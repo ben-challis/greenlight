@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 /**
- * Whether an option takes a value: never (--help), optionally (--bail or
- * --bail=3), or always (--workers=4).
+ * Identifies if an option takes no value, an optional value, or a required value.
+ *
+ * Examples are --help, --bail or --bail=3, and --workers=4.
  *
  * @internal
  */

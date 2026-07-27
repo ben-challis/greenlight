@@ -29,7 +29,7 @@ use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * The hidden __worker command carries no compatibility promise.
+ * The hidden __worker command has no compatibility guarantee.
  *
  * @internal
  */
@@ -48,10 +48,9 @@ final readonly class WorkerProcess
      */
     public function run(string $address, string $workerId, string $token): int
     {
-        // The terminal delivers Ctrl+C to the whole process group. Workers
-        // ignore SIGINT so the orchestrator can drive an orderly drain
-        // instead of crash containment attributing in-flight tests to a
-        // dead worker.
+        // The terminal sends Ctrl+C to the complete process group. Workers
+        // ignore SIGINT. Thus, the orchestrator can control an orderly drain.
+        // Crash containment does not report active tests as crashes from SIGINT.
         if (\function_exists('pcntl_signal')) {
             \pcntl_signal(\SIGINT, \SIG_IGN);
         }
@@ -70,9 +69,9 @@ final readonly class WorkerProcess
         $pid = \getmypid();
         $channel->send(new Hello($workerId, $token, $pid === false ? 1 : \max(1, $pid)));
 
-        // Built on the first assignment and reused for every later one, so
-        // plugin construction happens once per worker and per-run harness
-        // services keep worker-lifetime semantics across assignments.
+        // Build plugins on the first assignment and reuse them for later
+        // assignments. Thus, plugin construction occurs one time for each
+        // worker. Run-scope harness services remain available across assignments.
         $plugins = null;
         $registry = null;
         $scopes = null;
@@ -85,8 +84,8 @@ final readonly class WorkerProcess
 
                 if (!$message instanceof Message) {
                     if (!$channel->isEof()) {
-                        // Resource-aware scheduling may intentionally leave an
-                        // idle worker without a message for an arbitrary time.
+                        // The resource scheduler can keep an idle worker without
+                        // a message. No time limit applies while it waits for capacity.
                         continue;
                     }
 
@@ -190,7 +189,8 @@ final readonly class WorkerProcess
             try {
                 $channel->send(new Fatal(ThrowableDetail::fromThrowable($threw)));
             } catch (\Throwable) {
-                // Last gasp only; nothing more to do if the channel is gone.
+                // This is the final report attempt. No action is possible if
+                // the channel is gone.
             }
 
             return 1;

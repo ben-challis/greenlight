@@ -7,10 +7,10 @@ namespace Greenlight\Reporting\Output;
 use Greenlight\Reporting\ReportingError;
 
 /**
- * Writes reporter text to an already-open stream resource.
+ * Writes reporter text to an open stream resource.
  *
- * The caller owns the resource lifecycle; this class never opens or closes
- * the stream.
+ * The caller controls the resource lifecycle. This class does not open or
+ * close the stream.
  *
  * @internal
  */

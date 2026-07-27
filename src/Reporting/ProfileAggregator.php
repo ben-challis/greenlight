@@ -13,19 +13,20 @@ use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 
 /**
- * Derives a run profile purely from the event stream.
+ * Makes a run profile only from the event stream.
  *
- * Working from events alone means the same numbers come out of a live run and
- * a saved jsonl artifact.
+ * Thus, a live run and a saved JSONL artifact produce the same values.
  *
- * Class events use worker clocks; worker and run events use orchestrator
- * clocks. All are host wall clocks, so cross-process boot latency may include
- * scheduling delay.
+ * Class events use worker clocks. Worker and run events use orchestrator
+ * clocks. These clocks use host wall time. Thus, boot latency can
+ * include a scheduler delay.
  *
- * Per worker: busy time is the sum of its class spans, the window runs from
- * its spawn (or first class, whichever is known) to its last class finish,
- * and utilisation is busy over window. Boot latency is spawn to first class
- * start, which includes the hello handshake and first assignment wait.
+ * Worker busy time is the sum of its test-class periods. The worker period
+ * starts at process start or the first test class, if process start is
+ * unknown. It ends at the last completed test class. Utilization is busy time
+ * divided by the worker period. Boot latency is the time from process
+ * start to the first test class. It includes the hello exchange and the wait
+ * for the first assignment.
  *
  * @internal
  */
@@ -89,7 +90,7 @@ final class ProfileAggregator
     }
 
     /**
-     * The rendered profile block, empty when no run completed.
+     * Returns the profile block or an empty string if no run completed.
      */
     public function render(Style $style): string
     {
@@ -165,8 +166,8 @@ final class ProfileAggregator
             $width = \max(6, ...\array_map(static fn(float $duration): int => \strlen(\sprintf('%.3fs', $duration)), \array_values($slowest)));
 
             foreach ($slowest as $class => $duration) {
-                // Pad outside the colour codes so escape sequences cannot
-                // break the alignment.
+                // Add space outside the color codes. Thus, escape sequences
+                // cannot change the alignment.
                 $pad = \str_repeat(' ', $width - \strlen(\sprintf('%.3fs', $duration)));
                 $lines[] = \sprintf('    %s%s  %s', $pad, $style->duration($duration), $class);
             }
@@ -176,8 +177,10 @@ final class ProfileAggregator
     }
 
     /**
-     * The aligned worker stats table: left-aligned ids, right-aligned
-     * numeric columns, widths computed from the data.
+     * Returns the worker statistics table.
+     *
+     * Worker IDs align left, and numeric columns align right. The data determines
+     * the column widths.
      *
      * @param list<array{string, string, string, ?int}> $rows
      *
@@ -199,8 +202,8 @@ final class ProfileAggregator
         ))];
 
         foreach ($rows as [$id, $classes, $busy, $percent]) {
-            // Pad outside the colour codes so escape sequences cannot break
-            // the alignment.
+            // Add space outside the color codes. Thus, escape sequences cannot
+            // change the alignment.
             $util = $percent === null
                 ? ''
                 : \str_repeat(' ', $utilWidth - \strlen($percent . '%')) . $this->utilisation($style, $percent);
@@ -218,8 +221,8 @@ final class ProfileAggregator
     }
 
     /**
-     * High utilisation is the healthy state, so the bands run green at 90%,
-     * yellow at 70%, and red below, making idle workers stand out.
+     * Uses green for utilization of 90 percent or more. Uses yellow from 70
+     * percent. Uses red below 70 percent. Thus, idle workers are easy to see.
      */
     private function utilisation(Style $style, int $percent): string
     {

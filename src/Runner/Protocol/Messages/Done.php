@@ -12,13 +12,13 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: assignment complete.
+ * Tells the orchestrator that a worker completed an assignment.
  *
- * The summary is cross-checked against the event stream; a mismatch fails
- * the run.
+ * The orchestrator compares the summary to the event stream. A difference
+ * fails the run.
  *
- * A worker whose cumulative budget is spent asks to be recycled instead of
- * receiving another assignment, and exits after sending this.
+ * A worker requests replacement when it uses its cumulative budget. It exits
+ * after it sends this message and does not receive another assignment.
  *
  * @internal
  */

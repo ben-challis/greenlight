@@ -12,7 +12,7 @@ use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Orchestrator to worker: plan slice and recycling thresholds.
+ * Sends an execution-plan part and worker replacement limits to a worker.
  *
  * @internal
  */

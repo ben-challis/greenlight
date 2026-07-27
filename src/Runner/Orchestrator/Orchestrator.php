@@ -39,28 +39,29 @@ use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
- * Workers pull classes on demand; isolated entries use fresh processes.
- * Crashes fail the in-flight test and requeue the rest of its assignment.
+ * Workers request test classes when required. Isolated entries use new
+ * processes. A crash fails the active test and puts the remainder of its
+ * assignment in the queue again.
  *
- * Bail and graceful shutdown stop new assignments, drain active workers, and
- * reap every process. Queue and within-class order are deterministic, but
- * worker placement depends on load.
+ * Bail and graceful shutdown stop new assignments and drain active workers.
+ * They also collect each process. Queue order and order in a class are
+ * deterministic. Worker placement depends on load.
  *
- * Deadlines cover workers that never authenticate and authenticated workers
- * that stop making progress outside a running test.
+ * Deadlines apply to workers that do not authenticate. They also apply to
+ * authenticated workers that stop progress outside an active test.
  *
  * @internal
  */
 final class Orchestrator
 {
     private const float HELLO_DEADLINE_SECONDS = 10.0;
-    // Generous on purpose: a worker boot is normally sub-second, but the
-    // deadline aborts the whole run, so it must clear the slow tail of a
-    // loaded machine with debug extensions, not the typical case.
+    // A worker usually starts in less than one second. This deadline stops the
+    // complete run. Thus, it permits slow starts on a loaded computer with
+    // debug extensions.
     private const float CONNECT_DEADLINE_SECONDS = 30.0;
-    // Generous for the same reason: the gaps this covers (assignment receipt
-    // to first TestStarted, or between tests) are normally milliseconds, but
-    // missing the deadline aborts the whole run.
+    // These periods usually take milliseconds. They occur between assignment
+    // receipt and the first TestStarted or between tests. This deadline stops
+    // the complete run, so it permits longer periods.
     private const float PROGRESS_DEADLINE_SECONDS = 60.0;
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
@@ -131,8 +132,10 @@ final class Orchestrator
     }
 
     /**
-     * Coverage merged incrementally from worker reports; null when coverage
-     * was off or no worker could collect.
+     * Contains coverage from worker reports.
+     *
+     * The orchestrator merges reports when they arrive. A null value means
+     * that coverage was off or no worker could collect it.
      */
     public function collectedCoverage(): ?CoverageMap
     {
@@ -174,9 +177,9 @@ final class Orchestrator
             return $this->summary;
         }
 
-        // Recycling and crash containment legitimately respawn, but never
-        // more than a few times per planned test; anything beyond that is a
-        // respawn loop and must fail loudly instead of spawning forever.
+        // Worker replacement and crash containment can start replacement
+        // processes. Permit only a small number for each planned test. A
+        // larger number indicates a replacement loop and must fail the run.
         $this->spawnBudget = \count($plan->entries) + $workerCount * 8 + 16;
 
         $token = \bin2hex(\random_bytes(16));
@@ -220,8 +223,8 @@ final class Orchestrator
      */
     private function listen(): array
     {
-        // Unix sockets live in the temp dir: sun_path is limited to around a
-        // hundred bytes, which deep project paths exceed.
+        // Put Unix sockets in the temporary directory. sun_path has a limit of
+        // approximately 100 bytes, and long project paths can exceed it.
         $socketPath = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-' . \bin2hex(\random_bytes(6)) . '/orchestrator.sock';
 
         $server = ErrorTrap::run(static function () use ($socketPath) {
@@ -258,9 +261,9 @@ final class Orchestrator
      */
     private function spawnUpTo(int $workerCount, string $address, string $token, EventSink $sink): void
     {
-        // Isolated workers draw from the same pool as reused ones, and the
-        // active-count cap below holds live workers at the worker count, so
-        // the bound covers every worker that can be alive at once.
+        // Isolated and reused workers use the same worker pool. The active
+        // count below limits live workers to the worker count. Thus, the
+        // allocator has a channel for each possible live worker.
         $channels = $this->channels ??= new ChannelAllocator($workerCount);
 
         while (!$this->draining && $this->pendingUnits() > $this->unassignedActiveCount() && $this->activeCount() < $workerCount) {
@@ -281,9 +284,8 @@ final class Orchestrator
             }
 
             $channelNumber = $channels->allocate();
-            // proc_open's env parameter replaces the whole environment, so
-            // the channel is merged into the parent's rather than passed
-            // alone.
+            // The env parameter of proc_open replaces the complete
+            // environment. Add the channel to the parent environment.
             $environment = \getenv();
             $environment['GREENLIGHT_CHANNEL'] = (string) $channelNumber;
 
@@ -336,9 +338,10 @@ final class Orchestrator
     }
 
     /**
-     * Live workers that have not yet received their first assignment; they
-     * will consume queue units, so spawning must not over-provision for the
-     * same units.
+     * Returns live workers without a first assignment.
+     *
+     * These workers will consume queued scheduling units. Thus, the
+     * orchestrator must not start more workers for the same scheduling units.
      */
     private function unassignedActiveCount(): int
     {
@@ -406,9 +409,9 @@ final class Orchestrator
                 if ($handle !== null && $handle->channel === null) {
                     $handle->channel = $channel;
                     $handle->lastProgressAt = \microtime(true);
-                    // Fresh workers may take isolated units; a reused worker
-                    // never does, because isolation promises a process no
-                    // other test has touched.
+                    // A new worker can take an isolated scheduling unit. A
+                    // reused worker cannot take it because isolation requires
+                    // an unused process.
                     $this->assignNext($handle, $sink);
 
                     continue;
@@ -416,7 +419,8 @@ final class Orchestrator
             }
 
             if ($message !== null || \microtime(true) - $since > self::HELLO_DEADLINE_SECONDS || $channel->isEof()) {
-                // Wrong token, unknown worker, or too slow: drop the connection.
+                // Close a connection for an incorrect token, unknown worker,
+                // or authentication timeout.
                 $channel->close();
 
                 continue;
@@ -429,9 +433,10 @@ final class Orchestrator
     }
 
     /**
-     * Hands the next queue unit to a connected worker, or drains it when no
-     * suitable work remains. A worker may remain connected without an
-     * assignment while a resource lease is unavailable.
+     * Gives the next suitable queued scheduling unit to a connected worker.
+     *
+     * If no suitable work remains, drains the worker. A worker can remain
+     * connected without an assignment while a resource lease is unavailable.
      */
     private function assignNext(WorkerHandle $handle, EventSink $sink): void
     {
@@ -453,7 +458,7 @@ final class Orchestrator
             try {
                 $channel->send(new Drain());
             } catch (ProtocolError) {
-                // Already gone; crash detection covers it.
+                // Crash detection processes a worker that is already gone.
             }
 
             $this->finishHandle($handle);
@@ -484,8 +489,9 @@ final class Orchestrator
             ));
             $handle->lastProgressAt = \microtime(true);
         } catch (ProtocolError) {
-            // The worker died before the assignment arrived; containment
-            // re-enqueues the whole unit for a replacement.
+            // The worker stopped before it received the assignment. Crash
+            // containment puts the complete scheduling unit in the queue for
+            // a replacement worker.
             $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
         }
     }
@@ -525,8 +531,9 @@ final class Orchestrator
                     $this->releaseAssignment($handle);
 
                     if ($message->wantsRecycle instanceof RecycleReason) {
-                        // The worker's cumulative budget is spent; it exits
-                        // after Done and a replacement covers the queue.
+                        // The worker has used its cumulative budget. It exits
+                        // after Done, and a replacement worker processes the
+                        // queue.
                         $sink->emit(new WorkerRecycled($handle->workerId, $message->wantsRecycle, \microtime(true)));
                         $this->finishHandle($handle);
 
@@ -537,7 +544,7 @@ final class Orchestrator
                         try {
                             $channel->send(new Drain());
                         } catch (ProtocolError) {
-                            // Already gone after done; nothing left to drain.
+                            // The worker is already gone after Done. No drain is necessary.
                         }
 
                         $this->finishHandle($handle);
@@ -582,8 +589,8 @@ final class Orchestrator
             $handle->inFlight = null;
             $handle->inFlightAttempt = 0;
             $handle->finished[(string) $event->result->id] = true;
-            // Finished tests no longer need plan lookups; the index tracks only
-            // outstanding tests so it shrinks as the run progresses.
+            // Completed tests do not need plan lookups. The index contains
+            // only incomplete tests and becomes smaller during the run.
             unset($this->entriesById[(string) $event->result->id]);
             $handle->tally = $handle->tally->add($event->result->outcome);
             $this->summary = $this->summary->add($event->result->outcome);
@@ -631,7 +638,7 @@ final class Orchestrator
                 try {
                     $handle->channel->send(new Drain());
                 } catch (ProtocolError) {
-                    // The worker is already gone; crash detection covers it.
+                    // Crash detection processes a worker that is already gone.
                 }
 
                 if ($handle->assigned === null) {
@@ -649,20 +656,21 @@ final class Orchestrator
             }
 
             if ($handle->channel === null) {
-                // Died before it ever connected: nothing was assigned yet,
-                // so containment just reaps the handle and the spawn loop
-                // provisions a replacement for the still-queued work.
+                // This worker stopped before connection and had no assignment.
+                // Crash containment collects the handle. The start loop
+                // supplies a replacement worker for queued work.
                 if (!$handle->isRunning()) {
                     $this->containCrash($handle, $sink, 'the worker exited before connecting');
 
                     continue;
                 }
 
-                // Alive but silent past the deadline: the process exists, so
-                // crash containment never fires, and the hello deadline only
-                // starts once a connection is accepted. On a starved machine
-                // a respawn would stall the same way, so this fails the run
-                // rather than burning the spawn budget one deadline at a time.
+                // This process is alive but did not connect before the
+                // deadline. Crash containment cannot detect an active process.
+                // The hello deadline starts only after connection acceptance.
+                // On a computer without sufficient resources, a replacement
+                // can stop in the same way. Thus, this condition fails the run
+                // and does not use the replacement budget.
                 if (\microtime(true) - $handle->spawnedAt > $this->connectDeadlineSeconds) {
                     $handle->drainPipes();
                     $handle->terminate();
@@ -677,9 +685,9 @@ final class Orchestrator
                 continue;
             }
 
-            // pumpChannels drained the channel already, so EOF state is
-            // current. Never poll here: a poll that returns a message would
-            // silently discard it.
+            // pumpChannels already drained the channel, so the EOF state is
+            // current. Do not poll here. This code would discard a returned
+            // message.
             if (!$handle->channel->isEof()) {
                 continue;
             }
@@ -697,17 +705,15 @@ final class Orchestrator
 
             if ($handle->inFlight === null) {
                 if ($handle->assigned === null) {
-                    // The scheduler is intentionally holding this connected
-                    // worker until a resource lease becomes available.
+                    // The scheduler keeps this connected worker idle until a
+                    // resource lease is available.
                     continue;
                 }
 
-                // No per-test budget applies between messages, so a worker
-                // that stops responding after receiving an assignment (or
-                // between tests) would otherwise hang the run forever. Like a
-                // worker that never connects, a stalled worker would probably
-                // stall again on respawn, so this fails the run rather than
-                // containing it.
+                // No test timeout applies between messages. Thus, a worker can
+                // stop after assignment receipt or between tests without a
+                // test timeout. A replacement worker can stop in the same way.
+                // Fail the run instead of use crash containment.
                 if ($handle->channel !== null
                     && \microtime(true) - $handle->lastProgressAt > $this->progressDeadlineSeconds
                 ) {
@@ -911,7 +917,7 @@ final class Orchestrator
         $handle->channel?->close();
 
         if (\is_resource($handle->process)) {
-            // Give the worker a moment to exit on its own, then reap it.
+            // Permit the worker to exit, and then collect it.
             $deadline = \microtime(true) + 2.0;
 
             while (\microtime(true) < $deadline && $handle->isRunning()) {
