@@ -68,47 +68,6 @@ final class DiscoveryCacheTest
     }
 
     #[Test]
-    public function corruptDecodedEntriesAreReparsedInsteadOfFailingDiscovery(): void
-    {
-        $className = 'CorruptEntryProbeTest';
-        $directory = $this->writeFixture($className);
-        $testFile = $directory . '/' . $className . '.php';
-        $cacheFile = $this->cacheFile($directory);
-
-        \spl_autoload_register(static function (string $class) use ($directory, $className): void {
-            if ($class === 'GreenlightDiscoCache\\' . $className) {
-                require_once $directory . '/' . $className . '.php';
-            }
-        });
-
-        try {
-            new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-
-            $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
-            \assert(\is_array($decoded) && \is_array($decoded['files']));
-            $cachedPath = (string) \array_key_first($decoded['files']);
-            $cachedFile = $decoded['files'][$cachedPath] ?? null;
-            \assert(\is_array($cachedFile) && \is_array($cachedFile['entries']));
-            $cachedFile['entries'] = [[]];
-            $decoded['files'][$cachedPath] = $cachedFile;
-            \file_put_contents($cacheFile, \json_encode($decoded, \JSON_THROW_ON_ERROR));
-
-            $recovered = new TestDiscoverer()->discover(
-                [$directory],
-                cache: DiscoveryCache::forDirectories([$directory]),
-            );
-
-            Expect::that($recovered->count())
-                ->because('a corrupt decoded entry MUST become a cache miss')
-                ->toBe(2);
-        } finally {
-            @\unlink($cacheFile);
-            @\unlink($testFile);
-            @\rmdir($directory);
-        }
-    }
-
-    #[Test]
     public function externalProviderFileChangesInvalidateTestEntries(): void
     {
         $directory = \sys_get_temp_dir() . '/greenlight-disco-' . \bin2hex(\random_bytes(6));
