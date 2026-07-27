@@ -6,11 +6,13 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
+use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+use Greenlight\Tests\Fixture\Doubles\UntypedMethod;
 
 final class MockTest
 {
@@ -23,6 +25,40 @@ final class MockTest
         });
 
         Expect::that($calculator->add(1, 2))->because('met expectations pass verification')->toBe(3);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function valueReturningCallsRequireAConfiguredAnswer(): void
+    {
+        $doubles = new Doubles();
+        $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+            $plan->expects('add')->with(1, 2)->once();
+        });
+
+        Expect::that(static fn(): int => $calculator->add(1, 2))
+            ->because('value-returning mock calls require a configured answer')
+            ->toThrow(
+                DoublesError::class,
+                message: 'The mock call "' . Calculator::class . '::add()" has no configured answer. '
+                    . 'Configure each returned value with andReturns() or andThrows().',
+            );
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function untypedMethodsNeedNoConfiguredAnswer(): void
+    {
+        $doubles = new Doubles();
+        $untyped = $doubles->mock(UntypedMethod::class, static function (MockPlan $plan): void {
+            $plan->expects('run')->once();
+        });
+
+        Expect::that($untyped->run())
+            ->because('untyped mock methods need no configured answer')
+            ->toBeNull();
 
         $doubles->dispose();
     }
