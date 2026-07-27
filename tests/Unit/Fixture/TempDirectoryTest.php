@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Fixture;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -62,20 +63,51 @@ final class TempDirectoryTest
     }
 
     #[Test]
-    public function subdirectoryRejectsTraversalAndAbsolutePaths(): void
+    #[DataSet('invalidSubdirectoryNames')]
+    public function subdirectoryRejectsUnsafePaths(string $name, string $expectedMessage): void
     {
         $directory = new TempDirectory();
 
-        Expect::that(static fn(): string => $directory->subdirectory('../escape'))->because('subdirectory rejects traversal and absolute paths')
-            ->toThrow(\InvalidArgumentException::class)
-            ->and(static fn(): string => $directory->subdirectory('a/../b'))
-            ->toThrow(\InvalidArgumentException::class)
-            ->and(static fn(): string => $directory->subdirectory('/absolute'))
-            ->toThrow(\InvalidArgumentException::class)
-            ->and(static fn(): string => $directory->subdirectory(''))
-            ->toThrow(\InvalidArgumentException::class);
+        Expect::that(static fn(): string => $directory->subdirectory($name))
+            ->because('subdirectory rejects unsafe paths')
+            ->toThrow(\InvalidArgumentException::class, message: $expectedMessage);
 
         $directory->dispose();
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function invalidSubdirectoryNames(): iterable
+    {
+        yield 'leading traversal' => [
+            '../escape',
+            'Subdirectory name "../escape" must not contain empty or traversal segments.',
+        ];
+        yield 'embedded traversal' => [
+            'a/../b',
+            'Subdirectory name "a/../b" must not contain empty or traversal segments.',
+        ];
+        yield 'absolute path' => [
+            '/absolute',
+            'Subdirectory name "/absolute" must be a relative path.',
+        ];
+        yield 'empty path' => [
+            '',
+            'Subdirectory name "" must be a relative path.',
+        ];
+        yield 'Windows separator' => [
+            'a\\b',
+            'Subdirectory name "a\b" must be a relative path.',
+        ];
+        yield 'empty segment' => [
+            'a//b',
+            'Subdirectory name "a//b" must not contain empty or traversal segments.',
+        ];
+        yield 'current-directory segment' => [
+            'a/./b',
+            'Subdirectory name "a/./b" must not contain empty or traversal segments.',
+        ];
     }
 
     #[Test]
