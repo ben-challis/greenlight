@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
@@ -106,6 +108,41 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes(new HarnessRegistry(), [$passing, $answering]);
 
         Expect::that($scopes->resolve(\ArrayObject::class, 'test'))->because('resolvers are consulted in order until one answers')->toBe($answer);
+    }
+
+    #[Test]
+    public function resolverOwnedServicesAreNotDisposedByHarnessScopes(): void
+    {
+        $service = new class implements Disposable, Fake {
+            public int $disposeCalls = 0;
+
+            #[\Override]
+            public function dispose(): void
+            {
+                ++$this->disposeCalls;
+            }
+        };
+        $resolver = new readonly class ($service) implements ServiceResolver, Fake {
+            public function __construct(private Disposable $service) {}
+
+            #[\Override]
+            public function resolve(string $type, array $attributes): object
+            {
+                return $this->service;
+            }
+        };
+        $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
+
+        $resolved = $scopes->resolve(Disposable::class, 'test');
+        $failures = $scopes->closeRun();
+
+        Expect::that($resolved)
+            ->because('the resolver retains ownership of the service lifecycle')
+            ->toBe($service)
+            ->and($service->disposeCalls)
+            ->toBe(0)
+            ->and($failures)
+            ->toBe([]);
     }
 
     #[Test]
