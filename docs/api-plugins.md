@@ -76,13 +76,13 @@ public function priority(): int;
 
 Namespace: `Greenlight\Plugin`
 
-A retry decider that a worker calls after each unsuccessful attempt.
+A worker calls a retry decider after each unsuccessful attempt.
 
-A yes result starts a new attempt with a new test instance in a new service
-scope.
+A `true` result starts a new attempt with a new test instance and a new
+service scope.
 
-`shouldRetry()` receives the metadata, result, and optional cause. It does not
-receive a context because the test instance no longer exists.
+`shouldRetry()` receives the metadata, result, attempt number, and optional
+cause. It does not receive `TestContext` because the attempt is complete.
 
 ```php
 interface RetryDecider extends Plugin

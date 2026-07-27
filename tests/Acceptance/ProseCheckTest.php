@@ -20,6 +20,8 @@ final readonly class ProseCheckTest
     #[DataRow(['contraction', "The worker doesn't stop.", 'The worker does not stop.'], 'contraction')]
     #[DataRow(['contraction', 'The worker doesn’t stop.', 'The worker does not stop.'], 'Unicode contraction')]
     #[DataRow(['contraction', "Let's start the worker.", 'Start the worker.'], 'additional contraction')]
+    #[DataRow(['contraction', "Here's why that should've worked.", 'Here is why that should have worked.'], 'missing forms')]
+    #[DataRow(['contraction', "There'll be capacity, so that'll work.", 'There will be capacity, so that will work.'], 'future forms')]
     #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'colour')]
     #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'favour')]
     #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'honour and labelled')]
@@ -176,6 +178,27 @@ final readonly class ProseCheckTest
     }
 
     #[Test]
+    public function checksAccessibilityAttributeForms(): void
+    {
+        $root = $this->workspace('accessibility-attributes');
+        $this->write(
+            $root,
+            'website/src/pages/index.astro',
+            <<<'ASTRO'
+            <main aria-label='The page does not stop;'>
+              <section aria-label={ready ? "The dialog doesn't stop." : 'The dialog stops.'}></section>
+            </main>
+
+            ASTRO,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks static and expression accessibility attributes')->toBe(1)
+            ->and($result->output())->toContain('website/src/pages/index.astro:1: semicolon:')
+            ->toContain('website/src/pages/index.astro:2: contraction:');
+    }
+
+    #[Test]
     public function checksStructuredDescriptionsAndOwnedComments(): void
     {
         $root = $this->workspace('structured-prose');
@@ -261,6 +284,31 @@ final readonly class ProseCheckTest
     }
 
     #[Test]
+    public function checksScriptBlockComments(): void
+    {
+        $root = $this->workspace('script-block-comments');
+        $this->write(
+            $root,
+            'website/scripts/status.mjs',
+            <<<'JS'
+            const open = '/*';
+            const codeSample = "The code doesn't stop;";
+            const close = '*/';
+
+            /**
+             * The reporter does not stop;
+             * the worker continues.
+             */
+            JS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks script block comments')->toBe(1)
+            ->and($result->output())->toContain('website/scripts/status.mjs:6: semicolon:')
+            ->not()->toContain('website/scripts/status.mjs:2: contraction:');
+    }
+
+    #[Test]
     public function excludesMultilineAstroExpressions(): void
     {
         $root = $this->workspace('website-expressions');
@@ -298,6 +346,20 @@ final readonly class ProseCheckTest
         $result = $this->run('review', $root);
         Expect::that($result->exitCode)->because('excludes registered literals')->toBe(0)
             ->and($result->output())->toBe('');
+    }
+
+    #[Test]
+    public function excludesGeneratedAstroTypes(): void
+    {
+        $root = $this->workspace('generated-astro-types');
+        $this->write(
+            $root,
+            'website/.astro/content.d.ts',
+            "/** The generated declaration doesn't stop; */\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('excludes generated Astro types')->toBe(0);
     }
 
     #[Test]
@@ -373,6 +435,57 @@ final readonly class ProseCheckTest
             ->toContain('src/Message.php:6: contraction:')
             ->toContain('src/Message.php:6: british-spelling:')
             ->toContain('src/Message.php:10: british-spelling:');
+    }
+
+    #[Test]
+    public function checksProseBearingPhpDocTags(): void
+    {
+        $root = $this->workspace('php-prose-tags');
+        $this->write(
+            $root,
+            'src/Message.php',
+            <<<'PHP'
+            <?php
+
+            final class Message
+            {
+                /**
+                 * @internal The reporter doesn't stop;
+                 */
+                public function report(): void {}
+
+                /**
+                 * @deprecated The worker starts here and
+                 *   doesn't continue;
+                 */
+                public function oldReport(): void {}
+            }
+
+            PHP,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks prose-bearing PHPDoc tags')->toBe(1)
+            ->and($result->output())->toContain('src/Message.php:6: contraction:')
+            ->toContain('src/Message.php:6: semicolon:')
+            ->toContain('src/Message.php:11: contraction:')
+            ->toContain('src/Message.php:11: semicolon:');
+    }
+
+    #[Test]
+    public function checksTheExtensionlessPhpEntrypoint(): void
+    {
+        $root = $this->workspace('extensionless-php');
+        $this->write(
+            $root,
+            'bin/greenlight',
+            "<?php\n\n\\fwrite(\\STDERR, \"The runner doesn't stop;\");\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks the extensionless PHP entry point')->toBe(1)
+            ->and($result->output())->toContain('bin/greenlight:3: contraction:')
+            ->toContain('bin/greenlight:3: semicolon:');
     }
 
     #[Test]

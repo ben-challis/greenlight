@@ -32,7 +32,7 @@
     },
     "suggest": {
         "ext-pcov": "Collects line coverage quickly",
-        "fidry/cpu-core-counter": "Improves the 'auto' worker count on systems with cgroup limits and on more platforms",
+        "fidry/cpu-core-counter": "Improves the 'auto' worker count across platforms and on systems with cgroup limits",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled 'extension.neon' file",
         "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled 'PhpUnitToGreenlightRector' rule",

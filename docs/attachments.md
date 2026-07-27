@@ -76,7 +76,7 @@ return GreenlightConfig::create()
 Use `--artifacts-dir` to override it for one run:
 
 ```sh
-greenlight run --artifacts-dir=build/ci-evidence
+vendor/bin/greenlight run --artifacts-dir=build/ci-evidence
 ```
 
 Greenlight does not delete completed run directories. For local runs, remove

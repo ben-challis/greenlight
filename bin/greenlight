@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 if (\PHP_VERSION_ID < 80400) {
     \fwrite(\STDERR, \sprintf(
-        "Greenlight requires PHP 8.4 or later; running under %s.\n",
+        "Greenlight requires PHP 8.4 or later. The current PHP version is %s.\n",
         \PHP_VERSION,
     ));
 

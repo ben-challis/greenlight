@@ -260,4 +260,4 @@ A channel identifies a stable resource slot for one worker. The resource
 scheduler controls shared capacity but does not assign resource identity. A
 test can use both functions. For example, it can use a channel-specific
 database and a concurrency limit for a shared sandbox. For user guidance, see
-[external resources](../../README.md#external-resources).
+[channels and resource limits](../configuration.md#channels-and-resource-limits).

@@ -62,7 +62,7 @@ final readonly class ResultPolicy implements WireSerializable
 
             if ($offends) {
                 $details[] = new FailureDetail(\sprintf(
-                    'The %s policy failed this passed test: %s at %s:%d',
+                    'The %s policy changed this test from passed to failed: %s at %s:%d',
                     $diagnostic->severity->value,
                     $diagnostic->message,
                     $diagnostic->file,
@@ -77,7 +77,7 @@ final readonly class ResultPolicy implements WireSerializable
 
         if ($result->risky && $this->failOnRisky) {
             return $result->failedBy('fail-on-risky policy', [new FailureDetail(
-                'The fail-on-risky policy failed this passed test: it verified no expectations.',
+                'The fail-on-risky policy changed this test from passed to failed because it verified no expectations.',
             )]);
         }
 

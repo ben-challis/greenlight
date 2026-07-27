@@ -14,8 +14,8 @@ namespace Greenlight\Core\Test;
  * verification.
  *
  * The static counter supports the design. Harness service factories do not
- * receive a resolver. Each worker uses one thread. The executor controls the
- * reset and read operations.
+ * receive a resolver. Each worker runs one test attempt at a time. The executor
+ * controls the reset and read operations.
  *
  * @internal
  */

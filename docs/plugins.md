@@ -225,11 +225,11 @@ parameters:
 PHPStan provides analysis. IDE completion needs a separate file because IDE
 indexers do not run PHPStan plugins.
 
-Run `greenlight ide-helper` to generate `_greenlight_ide_helper.php`. No process
-executes this file. It declares a duplicate expectation chain with `@method`
-annotations for each configured matcher. PhpStorm and Intelephense merge the
-duplicate declaration. Thus, configured matchers have their real signatures in
-IDE completion.
+Run `vendor/bin/greenlight ide-helper` to generate
+`_greenlight_ide_helper.php`. No process executes this file. It declares a
+duplicate expectation chain with `@method` annotations for each configured
+matcher. PhpStorm and Intelephense merge the duplicate declaration. Thus,
+configured matchers have their real signatures in IDE completion.
 
 Add the helper file to `.gitignore`. Regenerate it after a matcher change.
 
