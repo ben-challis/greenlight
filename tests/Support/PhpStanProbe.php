@@ -46,6 +46,11 @@ final readonly class PhpStanProbe
                 $goodFile,
                 $badFile,
             ],
+            [
+                'TEMP' => $probeDirectory,
+                'TMP' => $probeDirectory,
+                'TMPDIR' => $probeDirectory,
+            ],
         );
 
         try {
