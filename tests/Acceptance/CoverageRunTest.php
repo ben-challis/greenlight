@@ -84,6 +84,23 @@ final readonly class CoverageRunTest
     }
 
     #[Test]
+    public function failedSingleDocumentExportNamesTheTarget(): void
+    {
+        $project = $this->writeProject();
+        $project->writeFile('coverage-out', 'not a directory');
+        $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('a failed coverage export MUST fail the run')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain('Greenlight could not write the coverage export to')
+            ->toContain('coverage-out/coverage.json')
+            ->not()
+            ->toContain('json → coverage-out/coverage.json');
+    }
+
+    #[Test]
     public function orchestratorProcessCoverageIsMergedIntoTheExport(): void
     {
         $project = $this->writeProject(includeOrchestrator: true);
