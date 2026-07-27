@@ -11,6 +11,7 @@ use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\WatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 
 final class WatchTest
@@ -79,7 +80,7 @@ final class WatchTest
     public function loopDebouncesBurstsForcesOnEnterAndQuitsOnQ(): void
     {
         // Each scripted tick increases virtual time by 0.1 seconds.
-        $clock = new class implements WatchClock {
+        $clock = new class implements WatchClock, Fake {
             public float $time = 0.0;
 
             #[\Override]
