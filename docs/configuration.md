@@ -40,7 +40,7 @@ GreenlightConfig::create()
 
 Every builder method returns `$this`. Thus, you can chain method calls.
 
-### paths(array $tests): self
+### `paths(array $tests): self`
 
 Default: `['tests']`.
 
@@ -48,7 +48,7 @@ Sets the directories that Greenlight scans when you do not select a suite.
 
 Paths must be non-empty strings. The list itself must not be empty.
 
-### suite(string $name, callable $configurator): self
+### `suite(string $name, callable $configurator): self`
 
 Default: no suites.
 
@@ -68,7 +68,7 @@ A second declaration with the same suite name causes an error.
 * `in(string ...$paths): self` adds directories to the suite. Required.
 * `tag(string ...$tags): self` adds tags to the suite. Optional.
 
-### workers(int|string $count = 'auto', ?int $recycleAfterTests = null, string $recycleAboveMemory = '256M'): self
+### `workers(int|string $count = 'auto', ?int $recycleAfterTests = null, string $recycleAboveMemory = '256M'): self`
 
 Default: `'auto'` workers, a `256M` memory recycle limit, and no test-count
 recycle limit.
@@ -106,7 +106,7 @@ boot. The worker channel is idle during the boot. Use this limit for suites
 that collect per-process state that memory checks cannot detect. Examples
 include connections and file handles.
 
-### resourceLimit(string $name, int $limit = 1): self
+### `resourceLimit(string $name, int $limit = 1): self`
 
 Default: `1` for a resource used by `#[RequiresResource]`.
 
@@ -134,7 +134,7 @@ identifier. If a test needs one of several distinct instances, the application
 must allocate it. Use a channel instead when every worker can have its own
 instance.
 
-### coverage(callable $configurator): self
+### `coverage(callable $configurator): self`
 
 Default: coverage off.
 
@@ -182,7 +182,7 @@ Before export, the run adds these coverage files to the
 result. This collection operation does not fail the run. The configured include
 paths filter coverage from all processes.
 
-### watch(callable $configurator): self
+### `watch(callable $configurator): self`
 
 Default: 200 ms debounce.
 
@@ -200,7 +200,7 @@ of save operations starts only one run.
 ->watch(fn ($w) => $w->debounceMilliseconds(500))
 ```
 
-### failOnDeprecation(bool $enabled = true): self
+### `failOnDeprecation(bool $enabled = true): self`
 
 Default: off.
 
@@ -214,7 +214,7 @@ The worker applies this policy after retries and `afterTest()` subscribers.
 
 Also available as `--fail-on-deprecation`.
 
-### failOnNotice(bool $enabled = true): self
+### `failOnNotice(bool $enabled = true): self`
 
 Default: off.
 
@@ -240,7 +240,7 @@ The method is repeatable and patterns accumulate.
 
 Use this for dependency deprecations you cannot fix yet.
 
-### failOnRisky(bool $enabled = true): self
+### `failOnRisky(bool $enabled = true): self`
 
 Default: off.
 
@@ -258,7 +258,7 @@ Each `eventually()` or `consistently()` matcher counts once.
 
 Also available as `--fail-on-risky`.
 
-### plugins(Plugin ...$plugins): self
+### `plugins(Plugin ...$plugins): self`
 
 Default: none.
 
@@ -267,7 +267,7 @@ capability interfaces.
 
 The method is repeatable and instances accumulate.
 
-### artifacts(callable $configurator): self
+### `artifacts(callable $configurator): self`
 
 Default: output below `build/greenlight-artifacts`, with failure-only retention.
 
@@ -291,13 +291,13 @@ later. Greenlight releases run quota when it discards an attachment.
 
 See [test attachments](attachments.md) for the runtime API and security model.
 
-### failFast(bool $enabled = true): self
+### `failFast(bool $enabled = true): self`
 
 Default: off.
 
 Stops the run after the first failure.
 
-### randomizeOrder(?int $seed = null): self
+### `randomizeOrder(?int $seed = null): self`
 
 Default: declared order, no seed.
 
@@ -306,7 +306,7 @@ Randomizes class order.
 If `$seed` is `null`, Greenlight selects and prints a seed at run time. Use
 `--seed` with that value to reproduce the same order.
 
-### build(): Configuration
+### `build(): Configuration`
 
 The loader calls this method. User configuration does not call it.
 
@@ -375,7 +375,7 @@ This is the default command if you do not give a command.
 
 Prints each discovered test ID on a separate line. It then prints the count.
 
-### coverage:diff
+### `coverage:diff`
 
 Compares two coverage JSON exports.
 
@@ -433,15 +433,15 @@ For zsh, run `compinit` before you source the completion script.
 
 ## Options
 
-### --config=<path>
+### `--config=<path>`
 
 Uses this configuration file instead of `./greenlight.php`.
 
-### --workers=<n|auto>
+### `--workers=<n|auto>`
 
 Overrides the worker process count.
 
-### --resource-limit=<name>=<n>
+### `--resource-limit=<name>=<n>`
 
 Sets a resource limit for this run and overrides `greenlight.php`.
 
@@ -454,19 +454,19 @@ vendor/bin/greenlight run \
 Repeat the option to set limits for different resources. Use each name only one
 time.
 
-### --bail[=<n>]
+### `--bail[=<n>]`
 
 Stops after `<n>` failures.
 
 Bare `--bail` means `--bail=1`.
 
-### --group=<name>
+### `--group=<name>`
 
 Runs only tests in the given group.
 
 Repeatable.
 
-### --filter=<pattern>
+### `--filter=<pattern>`
 
 Runs only tests with a test ID that matches the pattern.
 
@@ -477,7 +477,7 @@ that contains `*` or `?` must match the complete test ID.
 
 Repeatable. Multiple filters form a union.
 
-### --test-id=<id>
+### `--test-id=<id>`
 
 Runs only the exact test ID. Unlike `--filter`, this option does not compare
 substrings or wildcard patterns.
@@ -493,13 +493,13 @@ greenlight run \
 Repeatable. Multiple exact test IDs and `--filter` patterns form a union.
 Exclusions have precedence.
 
-### --exclude-group=<name>
+### `--exclude-group=<name>`
 
 Excludes tests in the given group.
 
 Repeatable. Exclusions take precedence over `--group` and `--filter`.
 
-### --exclude-class=<pattern>
+### `--exclude-class=<pattern>`
 
 Excludes classes with names that match the pattern.
 
@@ -508,7 +508,7 @@ that contains `*` or `?` must match the complete class name.
 
 Repeatable.
 
-### --exclude-method=<pattern>
+### `--exclude-method=<pattern>`
 
 Excludes methods with names that match the pattern.
 
@@ -517,39 +517,39 @@ that contains `*` or `?` must match the complete method name.
 
 Repeatable.
 
-### --exclude-path=<prefix>
+### `--exclude-path=<prefix>`
 
 Excludes tests whose source file is below the path prefix.
 
 Greenlight resolves relative prefixes from the current directory. Repeatable.
 
-### --list-tests
+### `--list-tests`
 
 Prints the selected test IDs. It does not run them.
 
-### --list-groups
+### `--list-groups`
 
 Prints each selected group and its test count. It does not run tests.
 
-### --list-suites
+### `--list-suites`
 
 Prints the configured named suites. It does not discover or run tests.
 
-### --repeat=<n>
+### `--repeat=<n>`
 
 Runs the selected tests in `<n>` fresh iterations.
 
 The command exits with a nonzero code if an iteration fails. `--repeat=1` is
 equivalent to an ordinary run.
 
-### --repeat-until-failure
+### `--repeat-until-failure`
 
 Repeats fresh runs until an iteration fails.
 
 On its own, the command stops after 100 successful iterations. Use
 `--repeat=<n>` to set a different limit. Do not use it with `--watch`.
 
-### --shard=n/m
+### `--shard=n/m`
 
 Runs the nth of m disjoint slices of the plan.
 
@@ -564,7 +564,7 @@ into shards.
 Each shard enforces its own resource limits. If four shards each use
 `postgres=2`, up to eight tests can use PostgreSQL across the CI job.
 
-### --failed
+### `--failed`
 
 Reruns only tests that did not pass in the previous run.
 
@@ -579,14 +579,14 @@ to rerun and exits 0.
 When failure state exists, normal runs put previously failed classes first.
 `--seed` disables this order.
 
-### --seed=<n>
+### `--seed=<n>`
 
 Randomizes class order with this seed.
 
 Seeded runs do not use the timing-cache order. The seed determines the complete
 order.
 
-### --reporter=<name>
+### `--reporter=<name>`
 
 Selects the output format.
 
@@ -612,21 +612,21 @@ The `teamcity` reporter includes IDE navigation metadata: `php_qn://` location
 hints for click-to-source, plus a per-class `flowId` to keep parallel output
 separated in JetBrains tools.
 
-### --artifacts-dir=<path>
+### `--artifacts-dir=<path>`
 
 Overrides the configured artifact parent directory for this run. Greenlight
 creates a unique run directory below it and reports that path in human and
 machine-readable output.
 
-### --baseline=<path>
+### `--baseline=<path>`
 
 Sets the baseline coverage JSON file for `coverage:diff`.
 
-### --current=<path>
+### `--current=<path>`
 
 Sets the current coverage JSON file for `coverage:diff`.
 
-### --watch
+### `--watch`
 
 Reruns on file changes.
 
@@ -635,25 +635,25 @@ In watch mode:
 * Enter reruns everything.
 * `q` quits.
 
-### --detect-leaks
+### `--detect-leaks`
 
 Verifies that garbage collection removes each test instance after its test.
 
 A detected leak fails the run.
 
-### --fail-on-deprecation
+### `--fail-on-deprecation`
 
 Enables the deprecation policy for this run.
 
-### --fail-on-notice
+### `--fail-on-notice`
 
 Enables the notice policy for this run.
 
-### --fail-on-risky
+### `--fail-on-risky`
 
 Enables the risky-test policy for this run.
 
-### --profile
+### `--profile`
 
 Adds a run profile after the summary.
 
@@ -674,25 +674,25 @@ artifact later with:
 greenlight profile:report --input=<file>
 ```
 
-### --input=<path>
+### `--input=<path>`
 
 Sets the JSONL input file for `profile:report`.
 
-### --output=<path>
+### `--output=<path>`
 
 Changes the file written by `ide-helper`.
 
 Default: `_greenlight_ide_helper.php`.
 
-### --dry-run
+### `--dry-run`
 
 Prints the resolved configuration and does not run tests.
 
-### --verbose
+### `--verbose`
 
 In interactive output, prints a permanent line for every completed class.
 
-### --no-ansi
+### `--no-ansi`
 
 Disables colors and the live progress window. Output becomes plain and
 append-only.

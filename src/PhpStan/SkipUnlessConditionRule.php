@@ -84,11 +84,12 @@ final readonly class SkipUnlessConditionRule implements Rule
         if ($actual < $required) {
             return [$this->error(
                 \sprintf(
-                    '%s constructor invoked with %d %s, %d required.',
-                    $classReflection->getDisplayName(),
+                    '#[SkipUnless] supplies %d argument%s to the %s constructor, but the constructor requires %d argument%s.',
                     $actual,
-                    $actual === 1 ? 'parameter' : 'parameters',
+                    $actual === 1 ? '' : 's',
+                    $classReflection->getDisplayName(),
                     $required,
+                    $required === 1 ? '' : 's',
                 ),
                 'arity',
                 $node->getStartLine(),
@@ -96,12 +97,16 @@ final readonly class SkipUnlessConditionRule implements Rule
         }
 
         if (!$variadic && $actual > \count($parameters)) {
+            $accepted = \count($parameters);
+
             return [$this->error(
                 \sprintf(
-                    '%s constructor invoked with %d parameters, %d accepted.',
-                    $classReflection->getDisplayName(),
+                    '#[SkipUnless] supplies %d argument%s to the %s constructor, but the constructor accepts %d argument%s.',
                     $actual,
-                    \count($parameters),
+                    $actual === 1 ? '' : 's',
+                    $classReflection->getDisplayName(),
+                    $accepted,
+                    $accepted === 1 ? '' : 's',
                 ),
                 'arity',
                 $node->getStartLine(),
@@ -120,12 +125,12 @@ final readonly class SkipUnlessConditionRule implements Rule
 
             $errors[] = $this->error(
                 \sprintf(
-                    'Parameter #%d $%s of class %s constructor expects %s, %s given.',
+                    '#[SkipUnless] argument #%d for %s constructor parameter $%s has type %s, but the parameter requires %s.',
                     $index + 1,
-                    $parameter->getName(),
                     $classReflection->getDisplayName(),
-                    $parameter->getType()->describe(VerbosityLevel::typeOnly()),
+                    $parameter->getName(),
                     $argumentType->describe(VerbosityLevel::typeOnly()),
+                    $parameter->getType()->describe(VerbosityLevel::typeOnly()),
                 ),
                 'argument',
                 $argument->getStartLine(),

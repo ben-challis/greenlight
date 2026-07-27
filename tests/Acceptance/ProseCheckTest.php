@@ -18,18 +18,20 @@ final readonly class ProseCheckTest
     #[Test]
     #[DataRow(['semicolon', 'The worker stops; the orchestrator continues.', 'The worker stops. The orchestrator continues.'], 'semicolon')]
     #[DataRow(['contraction', "The worker doesn't stop.", 'The worker does not stop.'], 'contraction')]
+    #[DataRow(['contraction', 'The worker doesn’t stop.', 'The worker does not stop.'], 'Unicode contraction')]
     #[DataRow(['contraction', "Let's start the worker.", 'Start the worker.'], 'additional contraction')]
-    #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'British spelling')]
-    #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'British favour spelling')]
-    #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'British honor and label spelling')]
-    #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'British normalize spelling')]
-    #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'British parameterize spelling')]
-    #[DataRow(['british-spelling', 'The reporter deserialises the event.', 'The reporter deserializes the event.'], 'British deserialize spelling')]
+    #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'colour')]
+    #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'favour')]
+    #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'honour and labelled')]
+    #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'normalise')]
+    #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'parameterise')]
+    #[DataRow(['british-spelling', 'The reporter deserialises the event.', 'The reporter deserializes the event.'], 'deserialise')]
+    #[DataRow(['british-spelling', 'The worker fulfils the request.', 'The worker fulfills the request.'], 'fulfil')]
     #[DataRow([
         'british-spelling',
         'Organise the authorised customisation.',
         'Organize the authorized customization.',
-    ], 'additional British spellings')]
+    ], 'other spellings')]
     #[DataRow([
         'sentence-length',
         'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
@@ -71,7 +73,7 @@ final readonly class ProseCheckTest
 
             The value is `colour;` in this sample.
 
-            [colour;](https://example.com/colour)
+            [reference](https://example.com/colour)
 
             ```php
             $colour = 'value;';
@@ -82,6 +84,23 @@ final readonly class ProseCheckTest
 
         $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes markdown code and links')->toBe(0);
+    }
+
+    #[Test]
+    public function checksMarkdownLinkLabelsButExcludesDestinations(): void
+    {
+        $root = $this->workspace('markdown-link-label');
+        $this->write(
+            $root,
+            'sample.md',
+            "[The guide doesn't use colour;](https://example.com/colour)\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks visible Markdown link labels but excludes destinations')->toBe(1)
+            ->and($result->output())->toContain('sample.md:1: british-spelling:')
+            ->toContain('sample.md:1: contraction:')
+            ->toContain('sample.md:1: semicolon:');
     }
 
     #[Test]
@@ -133,12 +152,17 @@ final readonly class ProseCheckTest
             <<<'ASTRO'
             ---
             const codeSample = "The code doesn't use colour;";
+            const title = "The page doesn't use colour.";
             ---
 
             <main aria-label="The site uses colour">
               <p>The worker doesn't stop.</p>
               <code>The code doesn't use colour;</code>
             </main>
+
+            <script>
+              status.textContent = "The search doesn't use colour.";
+            </script>
 
             ASTRO,
         );
@@ -190,6 +214,50 @@ final readonly class ProseCheckTest
             ->toContain('.github/ISSUE_TEMPLATE/feature.yml:2: british-spelling:')
             ->toContain('.github/ISSUE_TEMPLATE/feature.yml:3: contraction:')
             ->toContain('website/src/lib/docs.ts:3: british-spelling:');
+    }
+
+    #[Test]
+    public function checksMultilineStructuredAndScriptProse(): void
+    {
+        $root = $this->workspace('multiline-structured-prose');
+        $this->write(
+            $root,
+            'composer.json',
+            <<<'JSON'
+            {"suggest": {
+              "vendor/package": "The package doesn't organise tests."
+            }}
+            JSON,
+        );
+        $this->write(
+            $root,
+            '.github/ISSUE_TEMPLATE/feature.yml',
+            <<<'YAML'
+            description: >-
+              The template doesn't use
+              colour;
+            YAML,
+        );
+        $this->write(
+            $root,
+            'website/scripts/status.mjs',
+            <<<'JS'
+            const labels = { unavailable: 'The service does not use colour.' };
+            throw new Error("The worker doesn't stop.");
+            status.textContent = 'The runner does not organise tests.';
+            JS,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks multiline structured and script prose')->toBe(1)
+            ->and($result->output())->toContain('composer.json:2: contraction:')
+            ->toContain('composer.json:2: british-spelling:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: contraction:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: british-spelling:')
+            ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: semicolon:')
+            ->toContain('website/scripts/status.mjs:1: british-spelling:')
+            ->toContain('website/scripts/status.mjs:2: contraction:')
+            ->toContain('website/scripts/status.mjs:3: british-spelling:');
     }
 
     #[Test]
@@ -305,6 +373,72 @@ final readonly class ProseCheckTest
             ->toContain('src/Message.php:6: contraction:')
             ->toContain('src/Message.php:6: british-spelling:')
             ->toContain('src/Message.php:10: british-spelling:');
+    }
+
+    #[Test]
+    public function checksMultilinePhpDocAndInterpolatedPhpStrings(): void
+    {
+        $root = $this->workspace('php-multiline-prose');
+        $this->write(
+            $root,
+            'src/Message.php',
+            <<<'PHP'
+            <?php
+
+            final class Message
+            {
+                /**
+                 * @param string $value The reporter starts here and
+                 *   doesn't use colour;
+                 */
+                public function report(string $value, string $worker): string
+                {
+                    return "The $worker doesn't organise tests.";
+                }
+
+                public function document(): string
+                {
+                    return <<<TEXT
+                    The worker doesn't use colour;
+                    TEXT;
+                }
+            }
+
+            PHP,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks multiline PHPDoc and interpolated PHP strings')->toBe(1)
+            ->and($result->output())->toContain('src/Message.php:6: semicolon:')
+            ->toContain('src/Message.php:6: contraction:')
+            ->toContain('src/Message.php:6: british-spelling:')
+            ->toContain('src/Message.php:11: contraction:')
+            ->toContain('src/Message.php:11: british-spelling:')
+            ->toContain('src/Message.php:16: semicolon:')
+            ->toContain('src/Message.php:16: contraction:')
+            ->toContain('src/Message.php:16: british-spelling:');
+    }
+
+    #[Test]
+    public function joinsWrappedMarkdownListItems(): void
+    {
+        $root = $this->workspace('markdown-list-continuation');
+        $this->write(
+            $root,
+            'sample.md',
+            <<<'MARKDOWN'
+            - The orchestrator collects every selected test class from all configured directories
+              and sends one complete assignment to every available worker before the test run begins across all active channels.
+
+            - One sentence. Two sentences. Three sentences.
+              Four sentences. Five sentences. Six sentences. Seven sentences.
+            MARKDOWN,
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('joins wrapped Markdown list items')->toBe(1)
+            ->and($result->output())->toContain('sample.md:1: sentence-length:')
+            ->toContain('sample.md:4: paragraph-length:');
     }
 
     #[Test]

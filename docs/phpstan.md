@@ -133,11 +133,11 @@ coverage attributes do not require `#[Test]`.
 
 ## Test constructor checks
 
-A concrete class that contains or inherits a test must have a public
-constructor. Each required constructor parameter must have one class or
-interface type. A scalar, untyped, union, intersection, or `object` parameter
-must have a default value. Greenlight can then resolve supported service types
-at run time.
+A concrete class that contains or inherits a test can omit its constructor. If
+the class declares a constructor, the constructor must be public. Each required
+constructor parameter must have one class or interface type. A parameter must
+have a default value if it has a scalar, union, intersection, or `object` type,
+or no type. Greenlight can then resolve supported service types at run time.
 
 Errors have identifiers under `greenlight.testConstructor.*` (`visibility`,
 `parameter`).

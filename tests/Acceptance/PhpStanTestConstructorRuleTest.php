@@ -106,10 +106,10 @@ final readonly class PhpStanTestConstructorRuleTest
         Expect::that($probe->exitCode)->because('test constructors must have resolvable shapes')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
             ->and(\count($probe->errors))->toBe(5)
-            ->and($probe->messages())->toContain('PrivateConstructorProbe cannot be instantiated because its constructor is not public')
-            ->toContain('Constructor parameter $scalar of test class GreenlightTestConstructorProbe\InvalidParametersProbe cannot be resolved')
-            ->toContain('Constructor parameter $union of test class GreenlightTestConstructorProbe\InvalidParametersProbe cannot be resolved')
-            ->toContain('Constructor parameter $object of test class GreenlightTestConstructorProbe\InvalidParametersProbe cannot be resolved')
-            ->toContain('Constructor parameter $value of test class GreenlightTestConstructorProbe\InvalidInheritedTestConstructorProbe cannot be resolved');
+            ->and($probe->messages())->toContain('Greenlight cannot instantiate test class GreenlightTestConstructorProbe\PrivateConstructorProbe because its constructor is not public')
+            ->toContain('Greenlight cannot resolve constructor parameter $scalar of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
+            ->toContain('Greenlight cannot resolve constructor parameter $union of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
+            ->toContain('Greenlight cannot resolve constructor parameter $object of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
+            ->toContain('Greenlight cannot resolve constructor parameter $value of test class GreenlightTestConstructorProbe\InvalidInheritedTestConstructorProbe');
     }
 }

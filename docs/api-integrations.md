@@ -2,7 +2,7 @@
 
 # Integration API
 
-This reference lists public integration types for PHPStan, Rector, and Symfony.
+This reference lists public integration types for Rector and Symfony.
 
 These signatures are the public API.
 
@@ -21,7 +21,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L54)
 
-### `string`
+### `DROP_ASSERTION_MESSAGES`
 
 Configuration key: remove PHPUnit failure-message arguments. Without
 this option, a custom message rejects the class. Greenlight

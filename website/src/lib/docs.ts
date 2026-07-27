@@ -134,7 +134,7 @@ export const docSections = [
       {
         id: 'api-integrations',
         title: 'Integration API',
-        description: 'This reference lists public integration types for PHPStan, Rector, and Symfony.',
+        description: 'This reference lists public integration types for Rector and Symfony.',
       },
     ],
   },
