@@ -78,8 +78,8 @@ const sections = [
   {
     id: 'api-integrations',
     title: 'Integration API',
-    description: 'This reference lists public integration types for Rector and Symfony.',
-    prefixes: ['Greenlight\\PhpStan\\', 'Greenlight\\Rector\\', 'Greenlight\\Symfony\\'],
+    description: 'This reference lists public integration types for Laravel, Rector, and Symfony.',
+    prefixes: ['Greenlight\\Laravel\\', 'Greenlight\\PhpStan\\', 'Greenlight\\Rector\\', 'Greenlight\\Symfony\\'],
   },
 ];
 
@@ -130,19 +130,24 @@ for (const section of sections) {
 
     return matchesPrefix || matchesName;
   });
-  const shortNames = new Set();
+  const shortNameCounts = new Map();
 
   for (const type of types) {
     if (assigned.has(type.name)) {
       throw new Error(`Public API type "${type.name}" belongs to more than one section.`);
     }
 
-    if (shortNames.has(type.shortName)) {
-      throw new Error(`API section "${section.id}" contains more than one type named "${type.shortName}".`);
-    }
-
     assigned.add(type.name);
-    shortNames.add(type.shortName);
+    shortNameCounts.set(type.shortName, (shortNameCounts.get(type.shortName) ?? 0) + 1);
+  }
+
+  // Qualify colliding short names so every heading and anchor stays unique,
+  // for example the Laravel and Symfony Service attributes.
+  for (const type of types) {
+    type.headingName =
+      (shortNameCounts.get(type.shortName) ?? 0) > 1
+        ? type.name.split('\\').slice(-2).join('\\')
+        : type.shortName;
   }
 
   generated.set(`${section.id}.md`, renderSection(section, types));
@@ -754,7 +759,7 @@ function renderSection(section, types) {
 
   for (const type of types) {
     lines.push(
-      `## \`${type.shortName}\``,
+      `## \`${type.headingName}\``,
       '',
       `Namespace: \`${type.name.slice(0, type.name.lastIndexOf('\\'))}\``,
       '',

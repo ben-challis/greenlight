@@ -139,7 +139,7 @@ export const docSections = [
       {
         id: 'api-integrations',
         title: 'Integration API',
-        description: 'This reference lists public integration types for Rector and Symfony.',
+        description: 'This reference lists public integration types for Laravel, Rector, and Symfony.',
       },
     ],
   },

@@ -18,8 +18,8 @@ use Illuminate\Foundation\Bootstrap\RegisterProviders;
 
 /**
  * Boots one Laravel application lazily for a test and resolves bound services.
- * #[Service] selects an explicit binding ID. Tests MUST isolate external
- * resources by GREENLIGHT_CHANNEL.
+ * `#[Service]` selects an explicit binding ID. Tests MUST isolate external
+ * resources by `GREENLIGHT_CHANNEL`.
  */
 final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
 {
