@@ -13,6 +13,7 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
@@ -96,6 +97,48 @@ final class GithubReporterTest
             ->toBe(
                 '::error::Acme\FallbackTest::reports: ' . $summary
                 . '.%0Aattachments:%0Aevidence.txt: build/evidence.txt'
+                . "\n",
+            );
+    }
+
+    #[Test]
+    public function structuredErrorsIncludeAttachmentPathsInTheAnnotation(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new GithubReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\NetworkTest', 'connects'),
+            Outcome::Errored,
+            0.001,
+            0,
+            error: new ThrowableDetail(
+                \RuntimeException::class,
+                'Connection refused.',
+                '/project/tests/NetworkTest.php',
+                17,
+            ),
+            attachments: [
+                new Attachment(
+                    'request.log',
+                    AttachmentKind::Text,
+                    'text/plain',
+                    8,
+                    \str_repeat('a', 64),
+                    1,
+                    'build/request.log',
+                ),
+            ],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('structured error annotations retain attachment paths')
+            ->toBe(
+                '::error file=/project/tests/NetworkTest.php,line=17'
+                . '::Acme\NetworkTest::connects: RuntimeException: Connection refused.'
+                . '%0Aattachments:%0Arequest.log: build/request.log'
                 . "\n",
             );
     }
