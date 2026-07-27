@@ -22,8 +22,8 @@ final readonly class DataSet
     public ?string $providerClass;
 
     /**
-     * With one argument, $provider names a method on the test class. With two
-     * arguments, it names the provider class and $method names the provider
+     * With one argument, `$provider` names a method on the test class. With two
+     * arguments, it names the provider class and `$method` names the provider
      * method.
      *
      * @param non-empty-string $provider

@@ -1196,6 +1196,10 @@ code {
   scroll-margin-top: 6rem;
 }
 
+.docs-article h2 > code {
+  font-size: 0.72em;
+}
+
 .docs-article p,
 .docs-article ul,
 .docs-article ol,

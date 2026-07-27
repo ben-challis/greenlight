@@ -20,6 +20,8 @@ use PHPStan\Reflection\MethodsClassReflectionExtension;
  * PHPStan and workers use the same procedure to load configuration files.
  * PHPStan loads the files in the PHPStan process. Thus, plugin constructors
  * run in that process.
+ *
+ * @internal
  */
 final readonly class ExpectationMethodsExtension implements MethodsClassReflectionExtension
 {

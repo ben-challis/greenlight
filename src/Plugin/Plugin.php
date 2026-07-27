@@ -8,7 +8,7 @@ namespace Greenlight\Plugin;
  * Identifies an object as a Greenlight plugin.
  *
  * Plugins implement one or more capability interfaces such as
- * TestLifecycleSubscriber, RunLifecycleSubscriber, RetryDecider,
- * HarnessProvider, or ExpectationExtension.
+ * `TestLifecycleSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
+ * `HarnessProvider`, or `ExpectationExtension`.
  */
 interface Plugin {}

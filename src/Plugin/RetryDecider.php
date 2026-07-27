@@ -13,7 +13,7 @@ use Greenlight\Core\Test\TestMetadata;
  * A yes result starts a new attempt with a new test instance in a new service
  * scope.
  *
- * shouldRetry() receives the metadata, result, and optional cause. It does not
+ * `shouldRetry()` receives the metadata, result, and optional cause. It does not
  * receive a context because the test instance no longer exists.
  */
 interface RetryDecider extends Plugin

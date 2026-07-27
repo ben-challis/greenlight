@@ -8,7 +8,7 @@ use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Test\ResourceName;
 use Greenlight\Plugin\Plugin;
 
-/** Collects the configuration that greenlight.php returns. */
+/** Collects the configuration that `greenlight.php` returns. */
 final class GreenlightConfig
 {
     private const string DEFAULT_RECYCLE_ABOVE_MEMORY = '256M';
@@ -104,8 +104,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Declares a named suite. The configurator receives a SuiteBuilder. The
-     * configurator must add at least one path with in(). Greenlight ignores the
+     * Declares a named suite. The configurator receives a `SuiteBuilder`. The
+     * configurator must add at least one path with `in()`. Greenlight ignores the
      * return value, which permits short arrow functions.
      *
      * @param callable(SuiteBuilder): mixed $configurator
@@ -249,7 +249,7 @@ final class GreenlightConfig
 
     /**
      * Fails an otherwise passed test if the test verifies no expectations.
-     * Use #[NoExpectations] to exempt a test that intentionally verifies no
+     * Use `#[NoExpectations]` to exempt a test that intentionally verifies no
      * expectations.
      */
     public function failOnRisky(bool $enabled = true): self
@@ -260,7 +260,7 @@ final class GreenlightConfig
     }
 
     /**
-     * Exempts deprecation messages from failOnDeprecation(). A pattern matches
+     * Exempts deprecation messages from `failOnDeprecation()`. A pattern matches
      * part of a message without case sensitivity. A pattern that contains "*"
      * or "?" matches the complete message. Multiple calls add patterns.
      */

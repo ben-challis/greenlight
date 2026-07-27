@@ -8,7 +8,7 @@ namespace Greenlight\Attribute;
  * Supplies one argument list in an attribute for a test method.
  *
  * The optional label becomes the data-set key in the test ID. A row without a
- * label uses its position. Use #[DataSet] if an attribute cannot express a
+ * label uses its position. Use `#[DataSet]` if an attribute cannot express a
  * value.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]

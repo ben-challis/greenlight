@@ -16,12 +16,12 @@ use Greenlight\Harness\Disposable;
  * error for all interactions. Spies record calls to methods that return
  * nothing.
  *
- * A verification failure throws one ExpectationFailed. It contains one
- * FailureDetail for each unmet expectation. Thus, the reporter shows it in
- * the same format as an Expect failure.
+ * A verification failure throws one `ExpectationFailed`. It contains one
+ * `FailureDetail` for each unmet expectation. Thus, the reporter shows it in
+ * the same format as an `Expect` failure.
  *
- * Doubles supports interfaces and non-final classes. Class constructors do
- * not run. Doubles does not support partial mocks or static interception.
+ * `Doubles` supports interfaces and non-final classes. Class constructors do
+ * not run. `Doubles` does not support partial mocks or static interception.
  */
 final class Doubles implements Disposable
 {
@@ -103,8 +103,8 @@ final class Doubles implements Disposable
 
     /**
      * Creates a spy that records each call and its arguments. A call to a
-     * method that returns a value causes a test error. Use callsTo() to get the
-     * calls. Use Expect to check them.
+     * method that returns a value causes a test error. Use `callsTo()` to get the
+     * calls. Use `Expect` to check them.
      *
      * @template T of object
      *
@@ -134,7 +134,7 @@ final class Doubles implements Disposable
 
     /**
      * Verifies mocks and clears their state when the test scope closes.
-     * One ExpectationFailed contains the details for all unmet expectations.
+     * One `ExpectationFailed` contains the details for all unmet expectations.
      */
     #[\Override]
     public function dispose(): void

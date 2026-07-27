@@ -70,6 +70,9 @@ final class ArtifactBuilder
         return $this;
     }
 
+    /**
+     * @internal
+     */
     public function toConfiguration(): ArtifactConfiguration
     {
         return new ArtifactConfiguration(

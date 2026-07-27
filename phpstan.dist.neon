@@ -10,6 +10,10 @@ parameters:
         - src
         - tests
         - tools
+    excludePaths:
+        analyse:
+            - tests/Fixture/DiscoveryAttributeArgumentsInvalid
+            - tests/Fixture/DiscoveryResourceInvalid
     greenlight:
         configFiles:
             - tests/Fixture/PhpStanExtension/greenlight.php
