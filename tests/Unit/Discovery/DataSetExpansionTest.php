@@ -127,6 +127,18 @@ final class DataSetExpansionTest
     }
 
     #[Test]
+    public function providerThatThrowsDuringIterationFailsDiscoveryWithTheCause(): void
+    {
+        $message = $this->discoveryErrorMessage('DiscoveryProviderIterationThrows');
+
+        Expect::that($message)
+            ->because('provider that throws during iteration fails discovery with the cause')
+            ->toContain('iteration exploded')
+            ->and($message)
+            ->toContain('rows');
+    }
+
+    #[Test]
     public function slowProviderExceedsTheConfiguredBudget(): void
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderSlow', 0.005);
