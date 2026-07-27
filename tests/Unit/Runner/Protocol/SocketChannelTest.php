@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
@@ -15,9 +16,7 @@ final class SocketChannelTest
     #[Test]
     public function anExternallyClosedStreamEndsPollingAndRejectsWrites(): void
     {
-        $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
-        \assert(\is_array($pair));
-        [$stream, $peer] = $pair;
+        [$stream, $peer] = $this->socketPair();
         $channel = new SocketChannel($stream);
 
         try {
@@ -40,5 +39,19 @@ final class SocketChannelTest
             $channel->close();
             \fclose($peer);
         }
+    }
+
+    /**
+     * @return array{resource, resource}
+     */
+    private function socketPair(): array
+    {
+        $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
+
+        if ($pair === false || \count($pair) !== 2 || !isset($pair[0], $pair[1])) {
+            Fail::because('Expected stream_socket_pair() to create a connected socket pair.');
+        }
+
+        return [$pair[0], $pair[1]];
     }
 }
