@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\RunState;
 use Greenlight\Expect\Expect;
@@ -98,6 +99,36 @@ final class RunStateTest
             @\unlink($file . '/occupant.txt');
             @\rmdir($file);
         }
+    }
+
+    #[Test]
+    #[DataSet('nonFiniteDurations')]
+    public function nonFiniteClassDurationsDoNotCreateState(float $seconds): void
+    {
+        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
+        $file = $this->stateFileFor($directory);
+        $state = RunState::forWorkingDirectory($directory);
+
+        try {
+            Expect::that($state->record([], ['Acme\ExampleTest' => $seconds]))
+                ->because('JSON cannot store a non-finite class duration')
+                ->toBeFalse()
+                ->and(\file_exists($file))
+                ->because('a failed state encoding MUST NOT create the state file')
+                ->toBeFalse();
+        } finally {
+            @\unlink($file);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function nonFiniteDurations(): iterable
+    {
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 
     private function stateFileFor(string $directory): string
