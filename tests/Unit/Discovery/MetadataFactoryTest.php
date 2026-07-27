@@ -9,12 +9,51 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\MetadataFactory;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
+use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongCaptureTypeTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\AbstractMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\NonPublicMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\StaticMethodTest;
 
 final class MetadataFactoryTest
 {
+    #[Test]
+    public function invalidAttributeArgumentsAreWrappedWithTheirLocationAndCause(): void
+    {
+        $class = $this->wrongCaptureTypeClass();
+        $capture = new class {
+            public ?DiscoveryError $error = null;
+        };
+        $attempt = static function () use ($capture, $class): array {
+            try {
+                return new MetadataFactory()->forClass(new \ReflectionClass($class));
+            } catch (DiscoveryError $error) {
+                $capture->error = $error;
+
+                throw $error;
+            }
+        };
+
+        Expect::that($attempt)
+            ->because('discovery wraps invalid attribute arguments with their location')
+            ->toThrow(
+                DiscoveryError::class,
+                matching: '/^Attribute on '
+                    . \preg_quote($class . '::neverDiscovered()', '/')
+                    . ' is invalid:/',
+            );
+
+        $error = $capture->error;
+
+        if (!$error instanceof DiscoveryError) {
+            Fail::because('Expected discovery to throw the captured DiscoveryError.');
+        }
+
+        Expect::that($error->getPrevious())
+            ->because('the discovery error preserves the invalid attribute cause')
+            ->toBeInstanceOf(\TypeError::class);
+    }
+
     /**
      * @param class-string $class
      */
@@ -46,5 +85,13 @@ final class MetadataFactoryTest
         yield 'static' => [StaticMethodTest::class, 'it is static'];
 
         yield 'abstract' => [AbstractMethodTest::class, 'it is abstract'];
+    }
+
+    /**
+     * @return class-string
+     */
+    private function wrongCaptureTypeClass(): string
+    {
+        return WrongCaptureTypeTest::class;
     }
 }
