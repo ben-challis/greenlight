@@ -20,8 +20,8 @@ final readonly class RunHeader
         $segments = ['PHP ' . $this->phpVersion];
 
         $segments[] = $this->configFile === null
-            ? $style->warn('config: (none)')
-            : 'config: ' . $this->configFile;
+            ? $style->warn('configuration: (none)')
+            : 'configuration: ' . $this->configFile;
 
         $workersSegment = 'workers: ' . $workers;
         $segments[] = $this->workerFallback ? $style->warn($workersSegment) : $workersSegment;

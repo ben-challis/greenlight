@@ -3,9 +3,10 @@
 The Symfony bridge supplies Symfony services to test constructors. It supplies
 these services together with the built-in Greenlight harness services.
 
-The bridge boots your kernel once for each worker. Register the plugin to
-activate the bridge. Symfony remains a development dependency of your
-application. Greenlight has no Symfony dependency.
+The bridge boots the application kernel once for each worker. Register the
+plugin to activate the bridge. The bridge uses the Symfony packages that the
+application provides. Greenlight does not declare a runtime dependency on
+Symfony.
 
 ## Setup
 

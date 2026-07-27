@@ -101,16 +101,29 @@ vendor/bin/greenlight ide-helper
 The extension reports a `#[Test]` method that Greenlight cannot run. A test
 method must be public, non-static, and concrete.
 
+A test method with required parameters must have a `#[DataRow]` or `#[DataSet]`
+attribute. Without a data set, Greenlight calls the method with no arguments.
+
 Errors have identifiers under `greenlight.testMethod.*` (`visibility`,
-`static`, `abstract`).
+`static`, `abstract`, `dataSet`).
+
+## Lifecycle hook checks
+
+The extension reports a `#[Before]` or `#[After]` method that Greenlight cannot
+run. A lifecycle hook must be public, non-static, and concrete. It must accept
+zero arguments.
+
+Errors have identifiers under `greenlight.lifecycleMethod.*` (`visibility`,
+`static`, `abstract`, `parameters`).
 
 ## Data provider checks
 
 The extension validates data providers before a test runs. If you run analysis
 first, PHPStan reports a broken provider before a test can report the error:
 
-* The `#[DataSet]` provider must exist as a public static method. It belongs to
-  the test class or the provider class in the two-argument form.
+* The `#[DataSet]` provider must exist as a public, static, concrete method. It
+  must accept zero arguments. It belongs to the test class or the provider
+  class in the two-argument form.
 * The provider must return an iterable of argument arrays.
 * PHPStan can know the exact row shape from an `array{...}` return type or an
   inline `#[DataRow]` literal. In this case, the rule checks each value against
@@ -151,8 +164,8 @@ type `iterable<array<mixed>>`. PHPStan requires only that each row is an array.
 Greenlight checks the array contents at run time.
 
 Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
-`returnType`, `arity`, `argument`). Thus, you can suppress a deliberate
-exception inline:
+`parameters`, `returnType`, `arity`, `argument`). Thus, you can suppress a
+deliberate exception inline:
 
 ```php
 #[DataSet('doesNotExist')] // @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
