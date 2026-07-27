@@ -43,8 +43,8 @@ Integrations **SHOULD** use exit codes or machine-readable reporters. They
 The envelope version selects the complete line schema. Within one JSONL
 version:
 
-- Existing event tags, required keys, value types, enum values, and meanings
-  stay fixed.
+- The schema keeps event tags, required keys, value types, enum values, and
+  meanings fixed.
 - Greenlight **MAY** add optional payload keys. Consumers **MUST** ignore
   unknown keys.
 - Field order is not significant.
@@ -79,9 +79,9 @@ Coverage JSON version 1 **MAY** receive optional top-level or per-file fields.
 Readers **MUST** ignore unknown keys. They **MUST** calculate derived totals
 from `covered` and `uncovered`.
 
-A change to path semantics or line-status meaning requires a new version. A
-change to required fields or existing field types also requires a new version.
-For example, v1 cannot change from absolute paths to project-relative paths.
+A change to path semantics or a line-status definition requires a new version.
+A change to a required field or a field type also requires a new version. For
+example, v1 cannot change from absolute paths to project-relative paths.
 
 ## Paths and portability
 

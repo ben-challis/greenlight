@@ -15,7 +15,7 @@ use Greenlight\Core\Test\TestId;
  *
  * The detector reports each leak one time.
  *
- * environmentWarning() identifies environments that prevent correct detection.
+ * The environment check identifies settings that prevent correct detection.
  * Xdebug develop mode retains the stack frames of a caught
  * exception until shutdown. These frames include $this. Thus, the detector
  * reports a leak for a test that throws and catches an exception.

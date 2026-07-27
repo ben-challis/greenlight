@@ -11,7 +11,7 @@ use Greenlight\Core\Event\Event;
  *
  * onEvent() and finish() invoke reporters in construction order. Thus, all
  * reporters receive events and the finish signal in the same order. tick()
- * invokes only reporters that implement Ticking.
+ * invokes only reporters that support periodic updates.
  *
  * @internal
  */

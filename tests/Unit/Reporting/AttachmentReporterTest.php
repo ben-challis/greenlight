@@ -29,7 +29,7 @@ final class AttachmentReporterTest
     {
         foreach ([
             static fn(BufferOutput $output) => new PlainReporter($output),
-            static fn(BufferOutput $output) => new TtyReporter($output, colour: false, cursor: false),
+            static fn(BufferOutput $output) => new TtyReporter($output, color: false, cursor: false),
         ] as $factory) {
             $output = new BufferOutput();
             $reporter = $factory($output);
@@ -47,7 +47,7 @@ final class AttachmentReporterTest
     public function ttyReporterDoesNotRetainSuccessfulResultsUntilFinish(): void
     {
         $output = new BufferOutput();
-        $reporter = new TtyReporter($output, colour: false, cursor: false);
+        $reporter = new TtyReporter($output, color: false, cursor: false);
         $failed = $this->result();
         $result = new TestResult(
             $failed->id,

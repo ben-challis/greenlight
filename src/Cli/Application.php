@@ -613,7 +613,7 @@ final readonly class Application
             $noAnsiFlag,
         );
 
-        return new Style($capabilities->colour);
+        return new Style($capabilities->color);
     }
 
     private function stderrStyle(bool $noAnsiFlag): Style
@@ -624,7 +624,7 @@ final readonly class Application
             $noAnsiFlag,
         );
 
-        return new Style($capabilities->colour);
+        return new Style($capabilities->color);
     }
 
     private function watchCommand(
@@ -892,7 +892,7 @@ final readonly class Application
             $reporters[] = match ($name) {
                 'tty' => new TtyReporter(
                     $output,
-                    $capabilities->colour,
+                    $capabilities->color,
                     $capabilities->interactive,
                     $header,
                     extendedSlowTests: $profile,
@@ -909,7 +909,7 @@ final readonly class Application
         }
 
         if ($profile) {
-            $reporters[] = new ProfileReporter($output, new Style($capabilities->colour));
+            $reporters[] = new ProfileReporter($output, new Style($capabilities->color));
         }
 
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
@@ -1064,7 +1064,7 @@ final readonly class Application
             Terminal::isTty(\STDOUT),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $arguments->has('no-ansi'),
-        )->colour));
+        )->color));
 
         if ($report === '') {
             ($this->err)("The stream has no finished run to profile.\n");
@@ -1210,7 +1210,7 @@ final readonly class Application
 
     /**
      * Discovery reports absolute file paths after it resolves symbolic links.
-     * This method resolves prefixes against the working directory. If a prefix
+     * This method resolves prefixes against the current directory. If a prefix
      * exists, it converts the prefix to its canonical form before comparison.
      * A prefix that does not exist keeps its absolute noncanonical form.
      *
@@ -1250,7 +1250,7 @@ final readonly class Application
     /**
      * Returns unique configured top-level and suite paths.
      *
-     * The method resolves the paths against the working directory.
+     * The method resolves the paths against the current directory.
      *
      * @return list<non-empty-string>
      */

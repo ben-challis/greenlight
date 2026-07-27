@@ -15,7 +15,7 @@ use Greenlight\Tests\Fixture\PhpStanExtension\DigestExtension;
 final class ExtensionMatcherDispatchTest
 {
     #[Test]
-    public function fixtureMatchersDispatchAndAnalyse(): void
+    public function fixtureMatchersDispatchAndAnalyze(): void
     {
         Expect::install([new DigestExtension()]);
 

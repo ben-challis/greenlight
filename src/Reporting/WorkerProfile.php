@@ -84,7 +84,7 @@ final class WorkerProfile
      *
      * The maximum is 100. Returns null for an empty period.
      */
-    public function utilisationPercent(): ?int
+    public function utilizationPercent(): ?int
     {
         $window = $this->window();
 

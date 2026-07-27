@@ -96,14 +96,14 @@ final class TtyReporter implements Reporter, Ticking
 
     public function __construct(
         private readonly Output\Output $output,
-        bool $colour,
+        bool $color,
         private readonly bool $cursor,
         private readonly ?RunHeader $header = null,
         bool $extendedSlowTests = false,
         private readonly bool $verbose = false,
         int $terminalRows = 24,
     ) {
-        $this->style = new Style($colour);
+        $this->style = new Style($color);
         $this->slowTests = new SlowTests($extendedSlowTests);
         $this->windowCapacity = self::windowCapacity($terminalRows);
     }

@@ -15,7 +15,7 @@ final readonly class TerminalCapabilities
 {
     public function __construct(
         public bool $interactive,
-        public bool $colour,
+        public bool $color,
     ) {}
 
     /**

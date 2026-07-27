@@ -19,6 +19,10 @@ final readonly class ProseCheckTest
     #[DataRow(['semicolon', 'The worker stops; the orchestrator continues.', 'The worker stops. The orchestrator continues.'], 'semicolon')]
     #[DataRow(['contraction', "The worker doesn't stop.", 'The worker does not stop.'], 'contraction')]
     #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'British spelling')]
+    #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'British favour spelling')]
+    #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'British honor and label spelling')]
+    #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'British normalize spelling')]
+    #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'British parameterize spelling')]
     #[DataRow([
         'sentence-length',
         'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
@@ -34,16 +38,16 @@ final readonly class ProseCheckTest
         string $invalid,
         string $valid,
     ): void {
-        [$root, $baseline] = $this->workspace('blocking-' . $rule);
+        $root = $this->workspace('blocking-' . $rule);
         $this->write($root, 'sample.md', "# Sample\n\n" . $invalid . "\n");
 
-        $invalidResult = $this->run('check', $root, $baseline);
+        $invalidResult = $this->run('check', $root);
         Expect::that($invalidResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(1)
             ->and($invalidResult->output())->toContain($rule);
 
         $this->write($root, 'sample.md', "# Sample\n\n" . $valid . "\n");
 
-        $validResult = $this->run('check', $root, $baseline);
+        $validResult = $this->run('check', $root);
         Expect::that($validResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(0)
             ->and($validResult->output())->not()->toContain($rule);
     }
@@ -51,7 +55,7 @@ final readonly class ProseCheckTest
     #[Test]
     public function excludesMarkdownCodeAndLinks(): void
     {
-        [$root, $baseline] = $this->workspace('markdown-exclusions');
+        $root = $this->workspace('markdown-exclusions');
         $this->write(
             $root,
             'sample.md',
@@ -69,14 +73,14 @@ final readonly class ProseCheckTest
             MARKDOWN,
         );
 
-        $result = $this->run('check', $root, $baseline);
+        $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes markdown code and links')->toBe(0);
     }
 
     #[Test]
     public function checksMarkdownHeadingsAndTables(): void
     {
-        [$root, $baseline] = $this->workspace('markdown-prose');
+        $root = $this->workspace('markdown-prose');
         $this->write(
             $root,
             'sample.md',
@@ -90,16 +94,16 @@ final readonly class ProseCheckTest
             MARKDOWN,
         );
 
-        $result = $this->run('check', $root, $baseline);
+        $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('checks markdown headings and tables')->toBe(1)
             ->and($result->output())->toContain('sample.md:1: british-spelling:')
             ->toContain('sample.md:5: contraction:');
     }
 
     #[Test]
-    public function checksWebsiteCopyAndUsesTheWebsiteShard(): void
+    public function checksWebsiteCopyAndExcludesCode(): void
     {
-        [$root, $baseline] = $this->workspace('website-copy');
+        $root = $this->workspace('website-copy');
         $this->write(
             $root,
             'website/src/pages/index.astro',
@@ -116,22 +120,58 @@ final readonly class ProseCheckTest
             ASTRO,
         );
 
-        $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->because('checks website copy and uses the website shard')->toBe(1)
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('checks website copy and excludes code')->toBe(1)
             ->and($result->output())->toContain('website/src/pages/index.astro:')
             ->toContain('british-spelling')
-            ->toContain('contraction');
-
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('checks website copy and uses the website shard')->toBe(0);
-        $websiteBaseline = (string) \file_get_contents($baseline . '/website.json');
-        Expect::that($websiteBaseline)->because('checks website copy and uses the website shard')->toContain('website/src/pages/index.astro')
+            ->toContain('contraction')
             ->not()->toContain('codeSample');
+    }
+
+    #[Test]
+    public function excludesMultilineAstroExpressions(): void
+    {
+        $root = $this->workspace('website-expressions');
+        $this->write(
+            $root,
+            'website/src/layouts/DocsLayout.astro',
+            <<<'ASTRO'
+            <main>
+              {
+                headings.map((heading) => (
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                ))
+              }
+              <p>The worker stops.</p>
+            </main>
+
+            ASTRO,
+        );
+
+        $result = $this->run('review', $root);
+        Expect::that($result->exitCode)->because('excludes multiline Astro expressions')->toBe(0)
+            ->and($result->output())->toBe('');
+    }
+
+    #[Test]
+    public function excludesRegisteredLiterals(): void
+    {
+        $root = $this->workspace('registered-literals');
+        $this->write(
+            $root,
+            'website/src/components/Version.astro',
+            "<span>dev-main</span>\n",
+        );
+
+        $result = $this->run('review', $root);
+        Expect::that($result->exitCode)->because('excludes registered literals')->toBe(0)
+            ->and($result->output())->toBe('');
     }
 
     #[Test]
     public function excludesPhpDocTagsAndMachineDirectivesButChecksNarrativeComments(): void
     {
-        [$root, $baseline] = $this->workspace('php-comments');
+        $root = $this->workspace('php-comments');
         $this->write(
             $root,
             'src/TagOnly.php',
@@ -149,7 +189,7 @@ final readonly class ProseCheckTest
             PHP,
         );
 
-        $excludedResult = $this->run('check', $root, $baseline);
+        $excludedResult = $this->run('check', $root);
         Expect::that($excludedResult->exitCode)->because('excludes PHPDoc tags and machine directives but checks narrative comments')->toBe(0);
 
         $this->write(
@@ -164,7 +204,7 @@ final readonly class ProseCheckTest
             PHP,
         );
 
-        $includedResult = $this->run('check', $root, $baseline);
+        $includedResult = $this->run('check', $root);
         Expect::that($includedResult->exitCode)->because('excludes PHPDoc tags and machine directives but checks narrative comments')->toBe(1)
             ->and($includedResult->output())->toContain('src/Narrative.php:3:')
             ->toContain('british-spelling')
@@ -174,7 +214,7 @@ final readonly class ProseCheckTest
     #[Test]
     public function joinsConsecutiveLineCommentsAndDoesNotCreateDelimiterText(): void
     {
-        [$root, $baseline] = $this->workspace('php-comment-groups');
+        $root = $this->workspace('php-comment-groups');
         $this->write(
             $root,
             'src/Comments.php',
@@ -194,7 +234,7 @@ final readonly class ProseCheckTest
             PHP,
         );
 
-        $result = $this->run('check', $root, $baseline);
+        $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('joins consecutive line comments and does not create delimiter text')->toBe(1)
             ->and($result->output())->toContain('paragraph-length')
             ->not()->toContain('valid description. /');
@@ -203,7 +243,7 @@ final readonly class ProseCheckTest
     #[Test]
     public function reviewReportsAdvisoriesWithoutFailure(): void
     {
-        [$root, $baseline] = $this->workspace('advisories');
+        $root = $this->workspace('advisories');
         $this->write(
             $root,
             'sample.md',
@@ -223,7 +263,7 @@ final readonly class ProseCheckTest
             MARKDOWN,
         );
 
-        $result = $this->run('review', $root, $baseline);
+        $result = $this->run('review', $root);
         Expect::that($result->exitCode)->because('review reports advisories without failure')->toBe(0)
             ->and($result->output())->toContain('procedural-sentence-length')
             ->toContain('passive-voice')
@@ -236,15 +276,15 @@ final readonly class ProseCheckTest
     #[Test]
     public function reportsLongInstructionsWithoutBlockingThem(): void
     {
-        [$root, $baseline] = $this->workspace('long-instruction');
+        $root = $this->workspace('long-instruction');
         $this->write(
             $root,
             'sample.md',
             'Configure each available worker with every selected test class from all project directories before the orchestrator starts the complete test run with parallel processes and reports.' . "\n",
         );
 
-        $checked = $this->run('check', $root, $baseline);
-        $reviewed = $this->run('review', $root, $baseline);
+        $checked = $this->run('check', $root);
+        $reviewed = $this->run('review', $root);
 
         Expect::that($checked->exitCode)->because('reports long instructions without blocking them')->toBe(0)
             ->and($reviewed->exitCode)->toBe(0)
@@ -254,14 +294,14 @@ final readonly class ProseCheckTest
     #[Test]
     public function doesNotReportApprovedNormativeTokensAsDiscouragedWords(): void
     {
-        [$root, $baseline] = $this->workspace('normative-tokens');
+        $root = $this->workspace('normative-tokens');
         $this->write(
             $root,
             'sample.md',
             "The worker MUST stop. The reporter SHOULD continue. The plugin MAY report the result.\n",
         );
 
-        $result = $this->run('review', $root, $baseline);
+        $result = $this->run('review', $root);
         Expect::that($result->exitCode)->because('does not report approved normative tokens as discouraged words')->toBe(0)
             ->and($result->output())->not()->toContain('discouraged-word');
     }
@@ -269,12 +309,12 @@ final readonly class ProseCheckTest
     #[Test]
     public function outputIsDeterministicAndSortedByPath(): void
     {
-        [$root, $baseline] = $this->workspace('deterministic-output');
+        $root = $this->workspace('deterministic-output');
         $this->write($root, 'z-last.md', "The worker doesn't stop.\n");
         $this->write($root, 'a-first.md', "The worker doesn't start.\n");
 
-        $first = $this->run('check', $root, $baseline);
-        $second = $this->run('check', $root, $baseline);
+        $first = $this->run('check', $root);
+        $second = $this->run('check', $root);
         $firstPosition = \strpos($first->output(), 'a-first.md:');
         $lastPosition = \strpos($first->output(), 'z-last.md:');
 
@@ -290,156 +330,56 @@ final readonly class ProseCheckTest
     #[Test]
     public function excludesSharedFixtureDirectories(): void
     {
-        [$root, $baseline] = $this->workspace('fixture-exclusion');
+        $root = $this->workspace('fixture-exclusion');
         $this->write(
             $root,
             'tests/Fixture/Invalid.php',
             "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
         );
 
-        $result = $this->run('check', $root, $baseline);
+        $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes shared fixture directories')->toBe(0);
     }
 
     #[Test]
     public function excludesDependenciesAtAnyDirectoryDepth(): void
     {
-        [$root, $baseline] = $this->workspace('dependency-exclusion');
+        $root = $this->workspace('dependency-exclusion');
         $invalid = "The worker doesn't use the configured colour; it stops.\n";
         $this->write($root, 'vendor/package/README.md', $invalid);
         $this->write($root, 'website/node_modules/package/README.md', $invalid);
         $this->write($root, 'packages/example/vendor/package/README.md', $invalid);
         $this->write($root, 'packages/example/node_modules/package/README.md', $invalid);
 
-        $result = $this->run('check', $root, $baseline);
+        $result = $this->run('check', $root);
         Expect::that($result->exitCode)->because('excludes dependencies at any directory depth')->toBe(0);
     }
 
     #[Test]
-    public function createsAnInitialBaselineThatAllowsExistingFindings(): void
+    public function rejectsRemovedBaselineOptions(): void
     {
-        [$root, $baseline] = $this->workspace('baseline-create');
-        $this->write($root, 'sample.md', "The worker doesn't stop.\n");
+        $root = $this->workspace('removed-baseline');
+        $this->write($root, 'sample.md', "The worker stops.\n");
+        $result = Subprocess::run($root, [
+            \PHP_BINARY,
+            \dirname(__DIR__, 2) . '/tools/prose-check.php',
+            'check',
+            '--root=' . $root,
+            '--baseline-dir=' . $root . '/baseline',
+        ]);
 
-        $created = $this->run('baseline', $root, $baseline, '--create');
-        $checked = $this->run('check', $root, $baseline);
-        $matchedBaselineFiles = \glob($baseline . '/*');
-        $baselineFiles = $matchedBaselineFiles === false ? [] : $matchedBaselineFiles;
-
-        Expect::that($created->exitCode)->because('creates an initial baseline that allows existing findings')->toBe(0)
-            ->and($baselineFiles)->not()->toBeEmpty()
-            ->and($checked->exitCode)->toBe(0);
+        Expect::that($result->exitCode)->because('rejects removed baseline options')->toBe(1)
+            ->and($result->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
     }
 
-    #[Test]
-    public function refusesToReplaceAnExistingBaseline(): void
-    {
-        [$root, $baseline] = $this->workspace('baseline-create-twice');
-        $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-
-        $created = $this->run('baseline', $root, $baseline, '--create');
-        $repeated = $this->run('baseline', $root, $baseline, '--create');
-
-        Expect::that($created->exitCode)->because('refuses to replace an existing baseline')->toBe(0)
-            ->and($repeated->exitCode)->toBe(1)
-            ->and($repeated->output())->toContain('already exists');
-    }
-
-    #[Test]
-    public function newFindingsFailAgainstAnExistingBaseline(): void
-    {
-        [$root, $baseline] = $this->workspace('baseline-new');
-        $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('new findings fail against an existing baseline')->toBe(0);
-
-        $this->write(
-            $root,
-            'sample.md',
-            "The worker doesn't stop.\n\nThe reporter uses a different colour.\n",
-        );
-
-        $result = $this->run('check', $root, $baseline);
-        Expect::that($result->exitCode)->because('new findings fail against an existing baseline')->toBe(1)
-            ->and(\strtolower($result->output()))->toContain('new')
-            ->and($result->output())->toContain('british-spelling');
-    }
-
-    #[Test]
-    public function staleFindingsFailUntilTheBaselineIsPruned(): void
-    {
-        [$root, $baseline] = $this->workspace('baseline-stale');
-        $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('stale findings fail until the baseline is pruned')->toBe(0);
-
-        $this->write($root, 'sample.md', "The worker does not stop.\n");
-
-        $stale = $this->run('check', $root, $baseline);
-        $pruned = $this->run('baseline', $root, $baseline, '--prune');
-        $checked = $this->run('check', $root, $baseline);
-
-        Expect::that($stale->exitCode)->because('stale findings fail until the baseline is pruned')->toBe(1)
-            ->and(\strtolower($stale->output()))->toContain('stale')
-            ->and($pruned->exitCode)->toBe(0)
-            ->and($checked->exitCode)->toBe(0);
-    }
-
-    #[Test]
-    public function baselineFingerprintsIncludeDuplicateFindingCounts(): void
-    {
-        [$root, $baseline] = $this->workspace('baseline-duplicates');
-        $duplicate = "The worker doesn't stop.\n\nThe worker doesn't stop.\n";
-        $this->write($root, 'sample.md', $duplicate);
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('baseline fingerprints include duplicate finding counts')->toBe(0);
-        $baselineJson = (string) \file_get_contents($baseline . '/root.json');
-        $expectedFingerprint = \hash(
-            'sha256',
-            "sample.md\0contraction\0the worker doesn't stop.\0" . '2',
-        );
-
-        $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-
-        $result = $this->run('check', $root, $baseline);
-        Expect::that($baselineJson)->because('baseline fingerprints include duplicate finding counts')->toContain($expectedFingerprint)
-            ->toContain('"count": 2')
-            ->and($result->exitCode)->toBe(1)
-            ->and(\strtolower($result->output()))->toContain('stale');
-    }
-
-    #[Test]
-    public function pruneRefusesToAddNewFindings(): void
-    {
-        [$root, $baseline] = $this->workspace('baseline-prune-refusal');
-        $this->write($root, 'sample.md', "The worker doesn't stop.\n");
-        Expect::that($this->run('baseline', $root, $baseline, '--create')->exitCode)->because('prune refuses to add new findings')->toBe(0);
-        $before = $this->baselineContents($baseline);
-
-        $this->write(
-            $root,
-            'sample.md',
-            "The worker doesn't stop.\n\nThe reporter uses a different colour.\n",
-        );
-
-        $pruned = $this->run('baseline', $root, $baseline, '--prune');
-        $after = $this->baselineContents($baseline);
-        $checked = $this->run('check', $root, $baseline);
-
-        Expect::that($pruned->exitCode)->because('prune refuses to add new findings')->toBe(1)
-            ->and(\strtolower($pruned->output()))->toContain('new')
-            ->and($after)->toBe($before)
-            ->and($checked->exitCode)->toBe(1);
-    }
-
-    /**
-     * @return array{string, string}
-     */
-    private function workspace(string $name): array
+    private function workspace(string $name): string
     {
         $directory = $this->tempDirectory->subdirectory($name);
         $root = $directory . '/project';
 
         \mkdir($root);
 
-        return [$root, $directory . '/baseline'];
+        return $root;
     }
 
     private function write(string $root, string $relativePath, string $contents): void
@@ -454,39 +394,13 @@ final readonly class ProseCheckTest
         \file_put_contents($path, $contents);
     }
 
-    private function run(
-        string $command,
-        string $root,
-        string $baseline,
-        ?string $operation = null,
-    ): ProcessResult {
-        $arguments = [
+    private function run(string $command, string $root): ProcessResult
+    {
+        return Subprocess::run($root, [
             \PHP_BINARY,
             \dirname(__DIR__, 2) . '/tools/prose-check.php',
             $command,
-        ];
-
-        if ($operation !== null) {
-            $arguments[] = $operation;
-        }
-
-        $arguments[] = '--root=' . $root;
-        $arguments[] = '--baseline-dir=' . $baseline;
-
-        return Subprocess::run($root, $arguments);
-    }
-
-    private function baselineContents(string $baseline): string
-    {
-        $matchedFiles = \glob($baseline . '/*');
-        $files = $matchedFiles === false ? [] : $matchedFiles;
-        \sort($files);
-        $contents = '';
-
-        foreach ($files as $file) {
-            $contents .= \basename($file) . "\n" . \file_get_contents($file);
-        }
-
-        return $contents;
+            '--root=' . $root,
+        ]);
     }
 }

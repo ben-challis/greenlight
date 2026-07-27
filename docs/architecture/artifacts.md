@@ -50,8 +50,8 @@ partial copies, which have no complete sidecar, during cleanup.
 
 After a test has staged evidence, a small marker records later retry attempts.
 Thus, a synthetic crash result has the correct attempt count. This also applies
-when the crashing attempt adds no attachment. Recovery accepts only storage
-keys that resolve inside the staging directory.
+when a worker crashes during an attempt that has no attachment. Recovery accepts
+only storage keys that resolve inside the staging directory.
 
 ## Limits
 
