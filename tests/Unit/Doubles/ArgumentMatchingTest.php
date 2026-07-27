@@ -118,6 +118,14 @@ final class ArgumentMatchingTest
     }
 
     #[Test]
+    public function equalsDiagnosticsRenderTheExpectedValue(): void
+    {
+        Expect::that(Argument::equals(['a' => [1, 2]])->describe())
+            ->because('equals() diagnostics render the expected value')
+            ->toBe("equals(['a' => [1, 2]])");
+    }
+
+    #[Test]
     public function bareValuesAndMatchersMixInOneWith(): void
     {
         $doubles = new Doubles();
