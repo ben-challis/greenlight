@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Harness;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
@@ -18,6 +19,24 @@ use Greenlight\Harness\UnresolvableService;
 
 final class HarnessScopesTest
 {
+    #[Test]
+    #[DataSet('closedScopes')]
+    public function scopedServicesCannotResolveBeforeTheirScopeOpens(Scope $scope, string $message): void
+    {
+        $registry = new HarnessRegistry([
+            new ServiceDefinition(
+                \ArrayObject::class,
+                $scope,
+                static fn(): \ArrayObject => new \ArrayObject(),
+            ),
+        ]);
+        $scopes = new HarnessScopes($registry);
+
+        Expect::that(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
+            ->because('a scoped service MUST not escape its configured lifetime')
+            ->toThrow(\LogicException::class, message: $message);
+    }
+
     #[Test]
     public function registeredServicesWinOverFallbackResolvers(): void
     {
@@ -187,5 +206,14 @@ final class HarnessScopesTest
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
         })->because('without resolvers the original message stands')->toThrow(UnresolvableService::class, matching: '/exact types only\.$/');
+    }
+
+    /**
+     * @return iterable<string, array{Scope, non-empty-string}>
+     */
+    public static function closedScopes(): iterable
+    {
+        yield 'class' => [Scope::PerClass, 'No class scope is open.'];
+        yield 'test' => [Scope::PerTest, 'No test scope is open.'];
     }
 }
