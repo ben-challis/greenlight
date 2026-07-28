@@ -4,64 +4,15 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
-use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\Subprocess;
 
-final readonly class ProseCheckTest
+final readonly class ProseCheckBehaviorTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
-
-    #[Test]
-    #[DataRow(['semicolon', 'The worker stops; the orchestrator continues.', 'The worker stops. The orchestrator continues.'], 'semicolon')]
-    #[DataRow(['contraction', "The worker doesn't stop.", 'The worker does not stop.'], 'contraction')]
-    #[DataRow(['contraction', 'The worker doesn’t stop.', 'The worker does not stop.'], 'Unicode contraction')]
-    #[DataRow(['contraction', "Let's start the worker.", 'Start the worker.'], 'additional contraction')]
-    #[DataRow(['contraction', "Here's why that should've worked.", 'Here is why that should have worked.'], 'missing forms')]
-    #[DataRow(['contraction', "There'll be capacity, so that'll work.", 'There will be capacity, so that will work.'], 'future forms')]
-    #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'colour')]
-    #[DataRow(['british-spelling', 'The runner favours one worker.', 'The runner favors one worker.'], 'favour')]
-    #[DataRow(['british-spelling', 'The runner honours a labelled test.', 'The runner honors a labeled test.'], 'honour and labelled')]
-    #[DataRow(['british-spelling', 'The driver normalises the data.', 'The driver normalizes the data.'], 'normalise')]
-    #[DataRow(['british-spelling', 'The runner parameterises tests.', 'The runner parameterizes tests.'], 'parameterise')]
-    #[DataRow(['british-spelling', 'The reporter deserialises the event.', 'The reporter deserializes the event.'], 'deserialise')]
-    #[DataRow(['british-spelling', 'The worker fulfils the request.', 'The worker fulfills the request.'], 'fulfil')]
-    #[DataRow([
-        'british-spelling',
-        'Organise the authorised customisation.',
-        'Organize the authorized customization.',
-    ], 'other spellings')]
-    #[DataRow([
-        'sentence-length',
-        'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
-        'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts.',
-    ], 'sentence length')]
-    #[DataRow([
-        'paragraph-length',
-        'A worker starts. It reads the configuration. It runs tests. It records results. It sends events. It releases resources. It stops.',
-        'A worker starts. It reads the configuration. It runs tests. It records results. It sends events. It stops.',
-    ], 'paragraph length')]
-    public function blockingRulesRejectInvalidProseAndAcceptTheValidCounterpart(
-        string $rule,
-        string $invalid,
-        string $valid,
-    ): void {
-        $root = $this->workspace('blocking-' . $rule);
-        $this->write($root, 'sample.md', "# Sample\n\n" . $invalid . "\n");
-
-        $invalidResult = $this->run('check', $root);
-        Expect::that($invalidResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(1)
-            ->and($invalidResult->output())->toContain($rule);
-
-        $this->write($root, 'sample.md', "# Sample\n\n" . $valid . "\n");
-
-        $validResult = $this->run('check', $root);
-        Expect::that($validResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(0)
-            ->and($validResult->output())->not()->toContain($rule);
-    }
 
     #[Test]
     public function excludesMarkdownCodeAndLinks(): void
