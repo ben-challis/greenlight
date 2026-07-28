@@ -42,6 +42,14 @@ final class ValueRendererTest
     }
 
     #[Test]
+    public function escapesTheStringDelimiter(): void
+    {
+        Expect::that(new ValueRenderer()->render("can't"))
+            ->because('rendered string delimiters MUST remain unambiguous')
+            ->toBe("'can\\'t'");
+    }
+
+    #[Test]
     public function truncatesLongStrings(): void
     {
         $rendered = new ValueRenderer()->render(\str_repeat('x', 500));
