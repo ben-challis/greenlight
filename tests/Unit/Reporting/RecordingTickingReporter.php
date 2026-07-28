@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Core\Event\Event;
+use Greenlight\Doubles\Fake;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\Ticking;
 
-final class RecordingTickingReporter implements Reporter, Ticking
+final class RecordingTickingReporter implements Reporter, Ticking, Fake
 {
     /**
      * @var list<float>

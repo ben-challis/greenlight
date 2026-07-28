@@ -25,6 +25,8 @@ use Greenlight\Tests\Fixture\Plugins\EvenNumbersExtension as PluginEvenNumbersEx
 use Greenlight\Tests\Fixture\Plugins\ProbeProvider;
 use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Fixture\Symfony\BareKernel;
+use Greenlight\Tests\Unit\Reporting\RecordingReporter;
+use Greenlight\Tests\Unit\Reporting\RecordingTickingReporter;
 use Illuminate\Foundation\Application as LaravelApplication;
 
 final class FakeFixtureTest
@@ -70,6 +72,8 @@ final class FakeFixtureTest
         yield ProbeProvider::class => [ProbeProvider::class];
         yield QuarantinePlugin::class => [QuarantinePlugin::class];
         yield BareKernel::class => [BareKernel::class];
+        yield RecordingReporter::class => [RecordingReporter::class];
+        yield RecordingTickingReporter::class => [RecordingTickingReporter::class];
     }
 
     /**
