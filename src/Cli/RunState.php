@@ -98,9 +98,17 @@ final readonly class RunState
         $durations = [];
 
         foreach ($decoded['classSeconds'] as $class => $seconds) {
-            if (\is_string($class) && $class !== '' && (\is_float($seconds) || \is_int($seconds))) {
-                $durations[$class] = (float) $seconds;
+            if (!\is_string($class) || $class === '' || (!\is_float($seconds) && !\is_int($seconds))) {
+                continue;
             }
+
+            $seconds = (float) $seconds;
+
+            if (!\is_finite($seconds) || $seconds < 0.0) {
+                continue;
+            }
+
+            $durations[$class] = $seconds;
         }
 
         return $durations;
