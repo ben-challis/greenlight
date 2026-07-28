@@ -147,6 +147,20 @@ final class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function memoryThresholdRecyclesAWorkerAfterAnEmptyAssignment(): void
+    {
+        [$workerExit, $serverExit] = $this->runScenario('empty-assignment-memory-recycles');
+
+        Expect::that($workerExit)
+            ->because('a worker above its memory threshold MUST exit cleanly')
+            ->toBe(0)
+            ->and($serverExit)
+            ->because('the protocol fixture MUST receive the memory recycle request')
+            ->toBe(0);
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     public function aPassingAssignmentReportsTestCountRecycling(): void
     {
         [$workerExit, $serverExit] = $this->runScenario('passing-assignment-recycles');
@@ -297,6 +311,23 @@ final class WorkerProcessTest
                     ) {
                         exit(6);
                     }
+                }
+
+                exit(0);
+            }
+
+            if ($scenario === 'empty-assignment-memory-recycles') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\ExecutionPlan([]),
+                    recycleAboveMemoryBytes: 1,
+                ));
+                $done = $channel->receive(2.0);
+
+                if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
+                    || $done->summary->total() !== 0
+                    || $done->wantsRecycle !== Greenlight\Core\Event\RecycleReason::Memory
+                ) {
+                    exit(9);
                 }
 
                 exit(0);
