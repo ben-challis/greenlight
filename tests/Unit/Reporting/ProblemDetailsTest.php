@@ -128,6 +128,28 @@ final class ProblemDetailsTest
     }
 
     #[Test]
+    #[DataSet('partialFailureDiffs')]
+    public function partialFailureDiffsRetainTheAvailableSide(
+        ?string $expected,
+        ?string $actual,
+        string $detail,
+    ): void {
+        $result = new TestResult(
+            new TestId('Acme\\FailureTest', 'reportsPartialDiff'),
+            Outcome::Failed,
+            0.1,
+            0,
+            failures: [
+                new FailureDetail('values differ', expected: $expected, actual: $actual),
+            ],
+        );
+
+        Expect::that(ProblemDetails::render($result))
+            ->because('shared problem details MUST retain each available diff side independently')
+            ->toBe("  values differ\n  {$detail}\n");
+    }
+
+    #[Test]
     public function multipleFailureDetailsRenderCompletelyInOrder(): void
     {
         $result = new TestResult(
@@ -214,6 +236,16 @@ final class ProblemDetailsTest
         Expect::that(ProblemDetails::outcomeLabel($result))
             ->because('reporters MUST use the stable outcome label')
             ->toBe($label);
+    }
+
+    /**
+     * @return iterable<string, array{?string, ?string, non-empty-string}>
+     */
+    public static function partialFailureDiffs(): iterable
+    {
+        yield 'expected only' => ['left', null, 'expected: left'];
+
+        yield 'actual only' => [null, 'right', 'actual: right'];
     }
 
     /**
