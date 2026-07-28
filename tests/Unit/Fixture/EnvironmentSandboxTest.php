@@ -52,6 +52,36 @@ final class EnvironmentSandboxTest
     }
 
     #[Test]
+    public function disposePreservesPresentFalseyOriginalValues(): void
+    {
+        $name = 'GREENLIGHT_SANDBOX_TEST_FALSEY_RESTORE';
+        \putenv($name . '=');
+        $_ENV[$name] = null;
+        $_SERVER[$name] = false;
+
+        try {
+            $sandbox = new EnvironmentSandbox();
+            $sandbox->set($name, 'changed');
+            $sandbox->dispose();
+
+            Expect::that(\getenv($name))
+                ->because('dispose MUST distinguish present falsey values from absent values')
+                ->toBe('')
+                ->and($this->envHas($name))
+                ->toBeTrue()
+                ->and($this->envValue($name))
+                ->toBeNull()
+                ->and($this->serverHas($name))
+                ->toBeTrue()
+                ->and($this->serverValue($name))
+                ->toBeFalse();
+        } finally {
+            \putenv($name);
+            unset($_ENV[$name], $_SERVER[$name]);
+        }
+    }
+
+    #[Test]
     public function disposeRestoresEachEnvironmentChannelIndependently(): void
     {
         $suffix = \strtoupper(\bin2hex(\random_bytes(6)));
