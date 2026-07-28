@@ -8,7 +8,22 @@ use Greenlight\Core\Condition;
 
 final readonly class PhpVersionAtLeast implements Condition
 {
-    public function __construct(private string $version) {}
+    /**
+     * @var non-empty-string
+     */
+    private string $version;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $version)
+    {
+        if ($version === '') {
+            throw new \InvalidArgumentException('PHP version MUST NOT be empty.');
+        }
+
+        $this->version = $version;
+    }
 
     #[\Override]
     public function isSatisfied(): bool
