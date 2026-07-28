@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\RunHeader;
@@ -78,5 +82,36 @@ final class PlainReporterTest
         CannedStream::feed(new PlainReporter($output));
 
         Expect::that($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
+    }
+
+    #[Test]
+    public function successfulRiskyTestsRenderExactGuidance(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new PlainReporter($output);
+        $reporter->onEvent(new TestFinished(
+            new TestResult(
+                new TestId('Acme\\RiskyTest', 'passesWithoutExpectations'),
+                Outcome::Passed,
+                0.01,
+                0,
+                risky: true,
+            ),
+            1_750_000_000.5,
+        ));
+        $reporter->finish();
+
+        $expected = <<<'TXT'
+            PASS Acme\RiskyTest::passesWithoutExpectations (0.010s)
+
+            Risky tests: 1
+            These tests passed without a verified expectation.
+            Add #[NoExpectations] to accept this result. Use --fail-on-risky to fail the run.
+              Acme\RiskyTest::passesWithoutExpectations
+            TXT;
+
+        Expect::that($output->buffer())
+            ->because('successful risky tests MUST render exact actionable guidance')
+            ->toBe($expected . "\n");
     }
 }
