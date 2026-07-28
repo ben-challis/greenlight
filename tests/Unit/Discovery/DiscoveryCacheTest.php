@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 
 final class DiscoveryCacheTest
 {
@@ -114,6 +115,61 @@ final class DiscoveryCacheTest
         yield 'files is not a map' => ['{"version":3,"files":"invalid"}'];
         yield 'file path is not a string' => ['{"version":3,"files":{"0":{}}}'];
         yield 'file entry is not a map' => ['{"version":3,"files":{"/project/Test.php":"invalid"}}'];
+    }
+
+    #[Test]
+    public function aCorruptCachedPlanEntryIsReparsedAndReplaced(): void
+    {
+        $className = 'WireProbe' . \bin2hex(\random_bytes(6)) . 'Test';
+        $directory = $this->writeFixture($className);
+        $source = $directory . '/' . $className . '.php';
+        $cacheFile = $this->cacheFile($directory);
+        $loader = static function (string $class) use ($directory, $className): void {
+            if ($class === 'GreenlightDiscoCache\\' . $className) {
+                require_once $directory . '/' . $className . '.php';
+            }
+        };
+        \spl_autoload_register($loader);
+
+        try {
+            $mtime = \filemtime($source);
+            $size = \filesize($source);
+
+            if (!\is_int($mtime) || !\is_int($size)) {
+                Fail::because('Expected the discovery fixture to have file metadata.');
+            }
+
+            \file_put_contents($cacheFile, \json_encode([
+                'version' => 3,
+                'files' => [
+                    $source => [
+                        'mtime' => $mtime,
+                        'size' => $size,
+                        'entries' => [[]],
+                        'dependencies' => [],
+                    ],
+                ],
+            ], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES));
+
+            $plan = new TestDiscoverer()->discover(
+                [$directory],
+                cache: DiscoveryCache::forDirectories([$directory]),
+            );
+            $rewritten = (string) \file_get_contents($cacheFile);
+
+            Expect::that($plan->count())
+                ->because('a corrupt cached plan entry becomes a cache miss')
+                ->toBe(2)
+                ->and($rewritten)
+                ->because('discovery replaces the corrupt plan entry')
+                ->not()
+                ->toContain('"entries":[[]]');
+        } finally {
+            \spl_autoload_unregister($loader);
+            @\unlink($cacheFile);
+            @\unlink($source);
+            @\rmdir($directory);
+        }
     }
 
     #[Test]
