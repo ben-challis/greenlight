@@ -6,6 +6,12 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\RunFinished;
+use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\SourceLocation;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 
@@ -96,5 +102,55 @@ final class JUnitReporterTest
         Expect::that((string) $document['time'])
             ->because('test durations provide the total when RunFinished is absent')
             ->toBe('0.527000');
+    }
+
+    #[Test]
+    public function forbiddenXmlCharactersAreReplacedInNamesAndDiagnostics(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\XmlTest', 'fails', "case\x01"),
+            Outcome::Failed,
+            0.001,
+            0,
+            failures: [
+                new FailureDetail(
+                    "message\x02",
+                    "expected\x03",
+                    "actual\x04",
+                    new SourceLocation("/project/tests/\x05Test.php", 12),
+                ),
+            ],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('JUnit output MUST remain valid XML when diagnostics contain forbidden characters')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        if ($document === false) {
+            return;
+        }
+
+        $case = $document->testsuite->testcase;
+        $failure = $case->failure;
+
+        Expect::that((string) $case['name'])
+            ->because('forbidden characters in test names are replaced')
+            ->toBe("fails[case\u{FFFD}]")
+            ->and((string) $failure['message'])
+            ->because('forbidden characters in diagnostic attributes are replaced')
+            ->toBe("message\u{FFFD}")
+            ->and((string) $failure)
+            ->because('forbidden characters in diagnostic text are replaced')
+            ->toBe(
+                "expected: expected\u{FFFD}\n"
+                . "actual: actual\u{FFFD}\n"
+                . "at /project/tests/\u{FFFD}Test.php:12",
+            );
     }
 }
