@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Result\Diagnostic;
+use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Wire\Utf8;
 use Greenlight\Expect\Expect;
@@ -38,5 +40,31 @@ final class Utf8Test
 
         Expect::that($restored->class)->because('throwable with binary message survives the wire')->toBe(\RuntimeException::class);
         Expect::that($restored->message)->because('throwable with binary message survives the wire')->toContain('query failed');
+    }
+
+    #[Test]
+    public function diagnosticWithBinaryMessageAndFileSurvivesTheWire(): void
+    {
+        $diagnostic = new Diagnostic(
+            DiagnosticSeverity::Warning,
+            "warning: \xB1 details",
+            "/src/\xFF.php",
+            42,
+        );
+
+        $restored = Diagnostic::fromWire(JsonWire::roundTrip($diagnostic->toWire()));
+
+        Expect::that($restored->severity)
+            ->because('the diagnostic severity MUST survive the wire')
+            ->toBe(DiagnosticSeverity::Warning)
+            ->and($restored->message)
+            ->because('the diagnostic message MUST replace invalid bytes')
+            ->toBe("warning: \u{FFFD} details")
+            ->and($restored->file)
+            ->because('the diagnostic file MUST replace invalid bytes')
+            ->toBe("/src/\u{FFFD}.php")
+            ->and($restored->line)
+            ->because('the diagnostic line MUST survive the wire')
+            ->toBe(42);
     }
 }
