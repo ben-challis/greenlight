@@ -130,7 +130,7 @@ final class PluginTest
     #[Test]
     public function throwingAfterTestKeepsTheOutcomeAndRecordsThePluginFailure(): void
     {
-        $broken = new class implements TestLifecycleSubscriber {
+        $broken = new class implements Fake, TestLifecycleSubscriber {
             #[\Override]
             public function beforeTest(TestContext $context): void {}
 
@@ -160,6 +160,23 @@ final class PluginTest
         Expect::that($errored->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
             ->and($errored->error?->message)->toContain('intentional boom')
             ->and($errored->failures[0]->message ?? '')->toContain('caused an error during afterTest()')
+            ->toContain('plugin exploded');
+
+        // The test keeps its assertion failure. Greenlight adds the plugin
+        // failure after it and does not replace either failure with an error.
+        [, $failedResults] = $this->runSuite('PluginAssertionFailure', [$broken]);
+        $failed = $failedResults[0];
+        Expect::that($failed->outcome)
+            ->because('a plugin failure MUST NOT replace an assertion failure')
+            ->toBe(Outcome::Failed)
+            ->and($failed->error)
+            ->toBe(null)
+            ->and($failed->failures)
+            ->toHaveCount(2)
+            ->and($failed->failures[0]->message)
+            ->toContain('intentional assertion failure')
+            ->and($failed->failures[1]->message)
+            ->toContain('caused an error during afterTest()')
             ->toContain('plugin exploded');
     }
 
