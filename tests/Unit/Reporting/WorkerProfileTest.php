@@ -11,6 +11,44 @@ use Greenlight\Reporting\WorkerProfile;
 final class WorkerProfileTest
 {
     #[Test]
+    public function completeLifecycleAccumulatesWorkerMetrics(): void
+    {
+        $profile = new WorkerProfile();
+        $profile->spawned(10.0);
+        $profile->classStarted(12.0);
+
+        Expect::that($profile->classFinished(13.25))
+            ->because('the first class duration is measured')
+            ->toBe(1.25);
+
+        $profile->classStarted(14.0);
+
+        Expect::that($profile->classFinished(15.75))
+            ->because('the second class duration is measured')
+            ->toBe(1.75)
+            ->and($profile->busy)
+            ->because('busy time accumulates every completed class')
+            ->toBe(3.0)
+            ->and($profile->classes)
+            ->toBe(2)
+            ->and($profile->openAt)
+            ->toBeNull()
+            ->and($profile->spawnedAt)
+            ->toBe(10.0)
+            ->and($profile->firstClassAt)
+            ->toBe(12.0)
+            ->and($profile->lastFinishAt)
+            ->toBe(15.75)
+            ->and($profile->bootLatency())
+            ->toBe(2.0)
+            ->and($profile->window())
+            ->toBe(5.75)
+            ->and($profile->utilizationPercent())
+            ->because('utilization is rounded from accumulated busy time')
+            ->toBe(52);
+    }
+
+    #[Test]
     public function incompleteTimingDataDoesNotInventMetrics(): void
     {
         $profile = new WorkerProfile();
