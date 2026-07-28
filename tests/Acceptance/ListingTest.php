@@ -48,6 +48,34 @@ final readonly class ListingTest
     }
 
     #[Test]
+    public function listTestsReportsDiscoveryFailures(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'listing-discovery-error');
+        $testFile = $project->path('tests/NoClassTest.php');
+        $project->writeFile('tests/NoClassTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace ListingDiscoveryError;
+
+            function helper(): void {}
+            PHP);
+        $project->configureWithTestFiles(['tests/NoClassTest.php']);
+
+        $result = GreenlightCli::run($project->directory, ['run', '--list-tests', '--no-ansi']);
+
+        Expect::that($result->exitCode)
+            ->because('list tests MUST report discovery failures')
+            ->toBe(1)
+            ->and($result->stderr)
+            ->toBe(\sprintf(
+                'greenlight: Test file "%s" does not declare a class, interface, trait, or enum.',
+                $testFile,
+            ));
+    }
+
+    #[Test]
     public function listTestsComposesWithExcludeGroup(): void
     {
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
