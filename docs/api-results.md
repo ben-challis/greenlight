@@ -308,25 +308,70 @@ final readonly class ResultSummary implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L11)
 
+### `$passed`
+
+```php
+public int $passed;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L16)
+
+### `$failed`
+
+```php
+public int $failed;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L21)
+
+### `$errored`
+
+```php
+public int $errored;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L26)
+
+### `$skipped`
+
+```php
+public int $skipped;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L31)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public int $passed = 0,
-    public int $failed = 0,
-    public int $errored = 0,
-    public int $skipped = 0,
+    int $passed = 0,
+    int $failed = 0,
+    int $errored = 0,
+    int $skipped = 0,
 )
 ```
 
 PHPDoc:
 
-- `@param non-negative-int $passed`
-- `@param non-negative-int $failed`
-- `@param non-negative-int $errored`
-- `@param non-negative-int $skipped`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L36)
 
 ### `add()`
 
@@ -334,7 +379,7 @@ PHPDoc:
 public function add(Outcome $outcome): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L64)
 
 ### `total()`
 
@@ -346,7 +391,7 @@ PHPDoc:
 
 - `@return non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L77)
 
 ### `isSuccessful()`
 
@@ -354,7 +399,7 @@ PHPDoc:
 public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L82)
 
 ### `toWire()`
 
@@ -363,7 +408,7 @@ public function isSuccessful(): bool
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L87)
 
 ### `fromWire()`
 
@@ -372,7 +417,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L98)
 
 ## `SourceLocation`
 
