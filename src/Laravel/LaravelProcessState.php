@@ -27,8 +27,15 @@ final readonly class LaravelProcessState
         private mixed $serverEnvironment,
     ) {}
 
+    /**
+     * @throws \InvalidArgumentException If $environment contains a null byte.
+     */
     public static function setEnvironment(string $environment): self
     {
+        if (\str_contains($environment, "\0")) {
+            throw new \InvalidArgumentException('Laravel environment MUST NOT contain a null byte.');
+        }
+
         $state = new self(
             Container::getInstance(),
             Facade::getFacadeApplication(),
