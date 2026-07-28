@@ -21,12 +21,24 @@ final readonly class CapturedOutput implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L17)
 
+### `$diagnostics`
+
+```php
+public array $diagnostics;
+```
+
+PHPDoc:
+
+- `@var list<Diagnostic>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L22)
+
 ### `__construct()`
 
 ```php
 public function __construct(
     public string $stdout,
-    public array $diagnostics = [],
+    array $diagnostics = [],
     public bool $stdoutTruncated = false,
     public bool $diagnosticsTruncated = false,
 )
@@ -34,9 +46,10 @@ public function __construct(
 
 PHPDoc:
 
-- `@param list<Diagnostic> $diagnostics`
+- `@param array<mixed> $diagnostics`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L29)
 
 ### `toWire()`
 
@@ -45,7 +58,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L50)
 
 ### `fromWire()`
 
@@ -54,7 +67,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L64)
 
 ## `Diagnostic`
 
