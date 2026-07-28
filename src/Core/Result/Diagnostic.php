@@ -11,15 +11,30 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Greenlight converts the message and file to valid UTF-8 before the
  * diagnostic crosses the wire. These values originate in user code.
+ * The line number MUST be greater than zero.
  */
 final readonly class Diagnostic implements WireSerializable
 {
+    /**
+     * @var positive-int
+     */
+    public int $line;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
     public function __construct(
         public DiagnosticSeverity $severity,
         public string $message,
         public string $file,
-        public int $line,
-    ) {}
+        int $line,
+    ) {
+        if ($line < 1) {
+            throw new \InvalidArgumentException('Diagnostic line MUST be greater than zero.');
+        }
+
+        $this->line = $line;
+    }
 
     #[\Override]
     public function toWire(): array
@@ -39,7 +54,7 @@ final readonly class Diagnostic implements WireSerializable
             Wire::enum($payload, 'severity', DiagnosticSeverity::class),
             Wire::string($payload, 'message'),
             Wire::string($payload, 'file'),
-            Wire::int($payload, 'line'),
+            \max(1, Wire::int($payload, 'line')),
         );
     }
 }
