@@ -11,8 +11,8 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * The integration fixtures visible to one worker channel.
  *
- * A worker receives shared data merged with only its own channel data; it
- * cannot inspect credentials allocated to another concurrently running lane.
+ * A worker receives shared data merged with only its own channel data. It
+ * cannot inspect credentials allocated to another concurrent lane.
  */
 final readonly class IntegrationResources implements WireSerializable
 {

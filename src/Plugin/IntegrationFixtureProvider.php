@@ -7,7 +7,7 @@ namespace Greenlight\Plugin;
 /**
  * Contributes orchestrator-owned infrastructure to an executing test run.
  */
-interface IntegrationFixtureProvider
+interface IntegrationFixtureProvider extends Plugin
 {
     /**
      * @return list<IntegrationFixtureDefinition>

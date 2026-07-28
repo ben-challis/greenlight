@@ -491,9 +491,9 @@ final class Orchestrator
                         $this->openInitialBarrier($sink);
                     } else {
                         // A replacement worker can start as soon as its own
-                        // bootstrap completes; the all-ready barrier only
-                        // applies to the initial pool.
-                        $this->assignNext($handle, $sink, allowIsolated: true);
+                        // bootstrap completes. The all-ready barrier applies
+                        // only to the initial pool.
+                        $this->assignNext($handle, $sink);
                     }
                 } elseif ($message instanceof Recycling) {
                     $this->crossCheck($handle, $message->summary);
@@ -572,7 +572,7 @@ final class Orchestrator
             if (!$handle->done && $handle->ready && $handle->assigned === null) {
                 // Every initial worker is fresh, so once pooled work is gone
                 // it may take an isolated unit.
-                $this->assignNext($handle, $sink, allowIsolated: true);
+                $this->assignNext($handle, $sink);
             }
         }
     }

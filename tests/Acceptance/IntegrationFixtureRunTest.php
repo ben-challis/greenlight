@@ -105,7 +105,7 @@ final readonly class IntegrationFixtureRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('crashed while running')
+            ->and($result->output())->toContain('crashed during this test')
             ->and($this->matches($project->path('markers/resource-*')))->toBe([])
             ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
@@ -131,7 +131,7 @@ final readonly class IntegrationFixtureRunTest
 
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('intentional worker bootstrap failure')
-            ->and($result->output())->toContain('fatal framework error')
+            ->and($result->output())->toContain('reported a fatal Greenlight error')
             ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
             ->and($this->matches($project->path('markers/resource-*')))->toBe([])
             ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);

@@ -102,7 +102,7 @@ Attachment content uses the shared run-scoped filesystem rather than the
 socket. Workers send only metadata in `TestFinished`. The orchestrator
 publishes staged files before forwarding the event, keeping binary content
 outside the 8 MiB frame limit. Atomic sidecars let it recover completed
-attachments if a worker crashes; see [artifact storage](artifacts.md).
+attachments if a worker crashes. See [artifact storage](artifacts.md).
 
 `done` carries the worker's tally for the assignment. The orchestrator compares
 it with the events it counted and fails the run on a mismatch. A lost or
@@ -201,7 +201,7 @@ that kills its process would kill each replacement in turn.
 The orchestrator enforces each test timeout with a grace window of twice the
 budget plus two seconds. The worker may be too stuck to enforce the timeout
 itself. When the grace window expires, the orchestrator kills the process with
-SIGKILL and handles it as a crash, except that it reports the test as timed out.
+SIGKILL and handles it as a crash. It reports the test as timed out.
 
 The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
@@ -218,7 +218,7 @@ bare process exit.
 The orchestrator fails the run if a worker does not send `hello` within 30
 seconds. It also fails the run when a connected worker goes silent for 60
 seconds with no test in flight. These failures usually indicate a broken
-bootstrap or blocked socket, so the orchestrator does not start another worker
+bootstrap or blocked socket. The orchestrator does not start another worker
 that is likely to fail in the same way.
 
 A run-wide spawn budget prevents an endless replacement loop. If the pool
