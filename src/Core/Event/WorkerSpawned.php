@@ -9,14 +9,34 @@ use Greenlight\Core\Wire\Wire;
 final readonly class WorkerSpawned implements Event
 {
     /**
-     * @param non-empty-string $workerId
-     * @param positive-int $pid
+     * @var non-empty-string
+     */
+    public string $workerId;
+
+    /**
+     * @var positive-int
+     */
+    public int $pid;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $workerId,
-        public int $pid,
+        string $workerId,
+        int $pid,
         public float $occurredAt,
-    ) {}
+    ) {
+        if ($workerId === '') {
+            throw new \InvalidArgumentException('Worker ID MUST NOT be empty.');
+        }
+
+        if ($pid < 1) {
+            throw new \InvalidArgumentException('Worker PID MUST be greater than zero.');
+        }
+
+        $this->workerId = $workerId;
+        $this->pid = $pid;
+    }
 
     #[\Override]
     public function toWire(): array

@@ -9,13 +9,24 @@ use Greenlight\Core\Wire\Wire;
 final readonly class WorkerRecycled implements Event
 {
     /**
-     * @param non-empty-string $workerId
+     * @var non-empty-string
+     */
+    public string $workerId;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $workerId,
+        string $workerId,
         public RecycleReason $reason,
         public float $occurredAt,
-    ) {}
+    ) {
+        if ($workerId === '') {
+            throw new \InvalidArgumentException('Worker ID MUST NOT be empty.');
+        }
+
+        $this->workerId = $workerId;
+    }
 
     #[\Override]
     public function toWire(): array
