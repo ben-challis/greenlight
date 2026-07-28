@@ -44,7 +44,6 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
      *   A kernel class name that Greenlight constructs as
      *   new $kernel($env, $debug), or a closure that constructs the kernel.
      *   Use a closure for other constructor requirements.
-     * @param non-empty-string $env
      * @param bool $resetBetweenTests
      *   For a container without stateful services, use false to disable
      *   resets. Tests on one worker then share all service instances.
@@ -55,6 +54,10 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
         bool $debug = false,
         private readonly bool $resetBetweenTests = true,
     ) {
+        if ($env === '') {
+            throw new \InvalidArgumentException('Framework environment MUST NOT be empty.');
+        }
+
         $this->factory = $kernel instanceof \Closure
             ? $kernel
             : static function () use ($kernel, $env, $debug): KernelInterface {

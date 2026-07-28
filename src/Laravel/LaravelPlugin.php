@@ -35,20 +35,29 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
     private ?LaravelProcessState $processState = null;
 
     /**
+     * @var non-empty-string
+     */
+    private readonly string $env;
+
+    /**
      * @param string|\Closure(): Application $application
      *   A path to the file that returns the application, usually
      *   bootstrap/app.php, or a closure returning the application when
      *   exotic construction is needed.
-     * @param non-empty-string $env
      * @param bool $refreshBetweenTests
      *   Set to false only when no service carries state; tests on one worker
      *   then share one unreset application for the worker lifetime.
      */
     public function __construct(
         string|\Closure $application,
-        private readonly string $env = 'testing',
+        string $env = 'testing',
         private readonly bool $refreshBetweenTests = true,
     ) {
+        if ($env === '') {
+            throw new \InvalidArgumentException('Framework environment MUST NOT be empty.');
+        }
+
+        $this->env = $env;
         $this->factory = $application instanceof \Closure
             ? $application
             : static function () use ($application): mixed {
