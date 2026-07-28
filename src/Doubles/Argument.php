@@ -20,8 +20,6 @@ final class Argument
     /**
      * This matcher accepts instances of the specified class or interface.
      * It also accepts values when `get_debug_type()` returns `$type`.
-     *
-     * @param non-empty-string $type
      */
     public static function type(string $type): ArgumentMatcher
     {

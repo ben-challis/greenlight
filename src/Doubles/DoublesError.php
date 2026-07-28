@@ -213,4 +213,9 @@ final class DoublesError extends \LogicException
     {
         return new self(\sprintf('captureArgument(%d) requires a position of zero or more.', $position));
     }
+
+    public static function invalidArgumentType(): self
+    {
+        return new self('Argument::type() requires a type name that contains a non-space character.');
+    }
 }
