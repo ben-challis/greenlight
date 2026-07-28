@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\WorkerCount;
+use Greenlight\Core\DecimalInteger;
 use Greenlight\Core\Test\ResourceName;
 
 /**
@@ -103,8 +104,8 @@ final readonly class CliOverrides
                 throw CliError::malformedShard($raw);
             }
 
-            $index = self::decimalInt($matches[1]);
-            $count = self::decimalInt($matches[2]);
+            $index = DecimalInteger::parse($matches[1]);
+            $count = DecimalInteger::parse($matches[2]);
 
             if ($index === null
                 || $count === null
@@ -171,7 +172,7 @@ final readonly class CliOverrides
         if ($arguments->has('seed')) {
             $raw = $arguments->value('seed') ?? '';
 
-            $parsed = self::decimalInt($raw);
+            $parsed = DecimalInteger::parse($raw);
 
             if ($parsed === null) {
                 throw CliError::invalidSeed($raw);
@@ -227,38 +228,12 @@ final readonly class CliOverrides
      */
     private static function positiveInt(string $raw, string $flag): int
     {
-        $value = self::decimalInt($raw);
+        $value = DecimalInteger::parse($raw);
 
         if ($value === null || $value < 1) {
             throw CliError::notAPositiveInteger($flag, $raw);
         }
 
         return $value;
-    }
-
-    /**
-     * @return int<0, max>|null
-     */
-    private static function decimalInt(string $raw): ?int
-    {
-        if (\preg_match('/^\d+$/', $raw) !== 1) {
-            return null;
-        }
-
-        $normalized = \ltrim($raw, '0');
-
-        if ($normalized === '') {
-            return 0;
-        }
-
-        $maximum = (string) \PHP_INT_MAX;
-
-        if (\strlen($normalized) > \strlen($maximum)
-            || (\strlen($normalized) === \strlen($maximum) && \strcmp($normalized, $maximum) > 0)
-        ) {
-            return null;
-        }
-
-        return \max(0, (int) $normalized);
     }
 }

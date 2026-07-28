@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Config;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\MemorySize;
@@ -43,18 +44,34 @@ final class MemorySizeTest
     }
 
     #[Test]
-    public function rejectsSizesThatOverflowTheIntegerByteCount(): void
+    #[DataSet('overflowingSizes')]
+    public function rejectsSizesThatOverflowTheIntegerByteCount(string $input): void
     {
-        $input = \PHP_INT_MAX . 'G';
-
         Expect::that(static function () use ($input): void {
             MemorySize::parseToBytes($input);
         })
             ->because('the parsed byte count MUST fit in a platform integer')
             ->toThrow(
                 InvalidConfiguration::class,
-                '/The value does not fit in an integer byte count\./',
+                message: \sprintf(
+                    'Invalid memory size "%s". The value does not fit in an integer byte count.',
+                    $input,
+                ),
             );
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function overflowingSizes(): iterable
+    {
+        yield 'plain bytes exceed the platform integer range' => [
+            \PHP_INT_MAX . '0',
+        ];
+
+        yield 'suffix multiplication exceeds the platform integer range' => [
+            \intdiv(\PHP_INT_MAX, 1024) + 1 . 'K',
+        ];
     }
 
     #[Test]
