@@ -253,7 +253,8 @@ PHPDoc:
 ### `callsTo()`
 
 Gets the calls to one method of a double from this factory. The result
-uses call order. Each entry contains the arguments for one call.
+uses call order. Each entry contains the arguments for one call. The
+method must exist on the doubled type.
 
 ```php
 public function callsTo(object $double, string $method): array
@@ -263,7 +264,7 @@ PHPDoc:
 
 - `@return list<list<mixed>>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L131)
 
 ### `dispose()`
 
@@ -275,7 +276,7 @@ One `ExpectationFailed` contains the details for all unmet expectations.
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L143)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L150)
 
 ## `Fake`
 

@@ -57,6 +57,11 @@ final class DoublesError extends \LogicException
         return new self(\sprintf('%s has no method %s(). Doubles cannot plan it.', $type, $method));
     }
 
+    public static function noSuchRecordedMethod(string $type, string $method): self
+    {
+        return new self(\sprintf('%s has no method %s(). Doubles cannot inspect calls to it.', $type, $method));
+    }
+
     public static function staticMethod(string $type, string $method): self
     {
         return new self(\sprintf('%s::%s() is static. Doubles cannot intercept static methods.', $type, $method));

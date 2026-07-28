@@ -123,7 +123,8 @@ final class Doubles implements Disposable
 
     /**
      * Gets the calls to one method of a double from this factory. The result
-     * uses call order. Each entry contains the arguments for one call.
+     * uses call order. Each entry contains the arguments for one call. The
+     * method must exist on the doubled type.
      *
      * @return list<list<mixed>>
      */
@@ -133,7 +134,13 @@ final class Doubles implements Disposable
             throw DoublesError::foreignDouble($double::class);
         }
 
-        return $this->doubles[$double]->recordedCalls[$method] ?? [];
+        $state = $this->doubles[$double];
+
+        if (!\method_exists($state->type, $method)) {
+            throw DoublesError::noSuchRecordedMethod($state->type, $method);
+        }
+
+        return $state->recordedCalls[$method] ?? [];
     }
 
     /**
