@@ -9,11 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Runner\Worker\WorkerProcess;
 use Greenlight\Tests\Support\Subprocess;
 
-final class WorkerProcessTest
+final readonly class WorkerProcessTest
 {
+    public function __construct(private EnvironmentSandbox $environment) {}
+
     #[Test]
     public function connectionFailureNamesTheExactAddress(): void
     {
@@ -105,6 +108,7 @@ final class WorkerProcessTest
                 Fail::because('Worker protocol server did not publish its address.');
             }
 
+            $this->environment->set('GREENLIGHT_CHANNEL', '1');
             $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
             $serverResult = $server->wait(2.0);
 
@@ -377,6 +381,7 @@ final class WorkerProcessTest
                 Fail::because('Worker protocol server did not publish its address.');
             }
 
+            $this->environment->set('GREENLIGHT_CHANNEL', '1');
             $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
             $serverResult = $server->wait(2.0);
 
