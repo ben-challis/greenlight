@@ -310,9 +310,9 @@ int $times
 
 Retries a failed test up to `$times` additional attempts.
 
-`$times` must be at least 1.
+`$times` MUST be at least 1.
 
-When you supply `$onlyOn`, it must be a throwable class-string. Greenlight
+When you supply `$onlyOn`, it MUST be a throwable class-string. Greenlight
 retries only failures with that throwable type. It does not retry other
 failures.
 

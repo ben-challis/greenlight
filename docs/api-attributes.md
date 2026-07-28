@@ -268,21 +268,32 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L18)
 
+### `$onlyOn`
+
+```php
+public ?string $onlyOn;
+```
+
+PHPDoc:
+
+- `@var class-string<\Throwable>|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L23)
+
 ### `__construct()`
 
 ```php
 public function __construct(
     int $times,
-    public ?string $onlyOn = null,
+    ?string $onlyOn = null,
 )
 ```
 
 PHPDoc:
 
-- `@param class-string<\Throwable>|null $onlyOn`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L28)
 
 ## `Skip`
 

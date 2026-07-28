@@ -18,18 +18,26 @@ final readonly class Retry
     public int $times;
 
     /**
-     * @param class-string<\Throwable>|null $onlyOn
-     *
+     * @var class-string<\Throwable>|null
+     */
+    public ?string $onlyOn;
+
+    /**
      * @throws \InvalidArgumentException
      */
     public function __construct(
         int $times,
-        public ?string $onlyOn = null,
+        ?string $onlyOn = null,
     ) {
         if ($times < 1) {
             throw new \InvalidArgumentException('Retry times must be at least 1.');
         }
 
+        if ($onlyOn !== null && !\is_a($onlyOn, \Throwable::class, true)) {
+            throw new \InvalidArgumentException('Retry onlyOn MUST name a Throwable type.');
+        }
+
         $this->times = $times;
+        $this->onlyOn = $onlyOn;
     }
 }
