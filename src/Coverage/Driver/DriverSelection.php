@@ -19,10 +19,14 @@ final readonly class DriverSelection
     }
 
     /**
-     * @param non-empty-string $reason
+     * @throws \InvalidArgumentException when the reason is empty
      */
     public static function unavailable(string $reason): self
     {
+        if ($reason === '') {
+            throw new \InvalidArgumentException('Coverage unavailability requires a nonempty reason.');
+        }
+
         return new self(null, $reason);
     }
 }
