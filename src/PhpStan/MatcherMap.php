@@ -157,7 +157,12 @@ final readonly class MatcherMap
     public static function typeName(?\ReflectionType $type): string
     {
         if ($type instanceof \ReflectionUnionType) {
-            return \implode('|', \array_map(self::typeName(...), $type->getTypes()));
+            return \implode('|', \array_map(
+                static fn(\ReflectionType $member): string => $member instanceof \ReflectionIntersectionType
+                    ? '(' . self::typeName($member) . ')'
+                    : self::typeName($member),
+                $type->getTypes(),
+            ));
         }
 
         if ($type instanceof \ReflectionIntersectionType) {
