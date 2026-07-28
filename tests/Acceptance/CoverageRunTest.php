@@ -235,10 +235,9 @@ final readonly class CoverageRunTest
 
         $baseline = $outDir . '/coverage.json';
 
-        $sameResult = $this->runIn(
-            $project,
+        $sameResult = GreenlightCli::run(
+            $project->directory,
             ['coverage:diff', '--baseline=coverage-out/coverage.json', '--current=coverage-out/coverage.json'],
-            'off',
         );
 
         Expect::that($sameResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(0)
@@ -280,10 +279,9 @@ final readonly class CoverageRunTest
         $regressedPath = $outDir . '/regressed.json';
         \file_put_contents($regressedPath, $regressed);
 
-        $regressedResult = $this->runIn(
-            $project,
+        $regressedResult = GreenlightCli::run(
+            $project->directory,
             ['coverage:diff', '--baseline=coverage-out/coverage.json', '--current=coverage-out/regressed.json'],
-            'off',
         );
 
         Expect::that($regressedResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(1)
