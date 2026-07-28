@@ -115,9 +115,9 @@ converts it to Infection's PHPUnit XML format.
 ## Watch mode
 
 Per-test coverage is not available in watch mode. A future local test selector
-could use the map, but it would need to fall back to the configured selection
-when the map is missing, stale, or ambiguous. Such a selector would remain
-optional. CI should still run the full suite.
+could use the map. It would need to fall back to the configured selection when
+the map is missing, stale, or ambiguous. Such a selector would remain optional.
+CI should still run the full suite.
 
 ## Open questions
 

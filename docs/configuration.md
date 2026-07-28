@@ -198,9 +198,11 @@ Per-test collection is stricter than aggregate coverage. It fails the run when
 the requested driver is unavailable, because a missing map must not make an
 impact-analysis consumer run the wrong tests. At least one `include()` path is
 required. Each data row has its own test ID. Retries are unioned into that
-test's mapping. Failed, errored, and skipped tests still receive a test record.
-The artifact is published only after a complete successful run. See the
-[per-test coverage schema](architecture/test-coverage-jsonl.md).
+test's mapping.
+
+Failed, errored, and skipped tests still receive a test record. The artifact is
+published only after a complete successful run. See the [per-test coverage
+schema](architecture/test-coverage-jsonl.md).
 
 Per-test coverage adds driver calls, protocol traffic, and disk I/O. It is off
 by default and is not available in watch mode.

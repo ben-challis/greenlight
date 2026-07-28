@@ -83,8 +83,8 @@ final readonly class SelectionTest
             '--test-id=SelectionProbe\SelectionProbeTest::also',
         );
 
-        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1);
-        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('Greenlight found no tests');
+        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1)
+            ->and($result->output())->toContain('Exact test selection did not find');
     }
 
     #[Test]
