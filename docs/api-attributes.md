@@ -422,7 +422,7 @@ final readonly class EnvironmentVariableEquals implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L28)
 
 ## `EnvironmentVariableSet`
 
@@ -434,6 +434,18 @@ final readonly class EnvironmentVariableSet implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $name)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -441,7 +453,7 @@ final readonly class EnvironmentVariableSet implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L28)
 
 ## `ExtensionLoaded`
 
