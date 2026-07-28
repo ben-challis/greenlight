@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\ArgumentParser;
 use Greenlight\Cli\CliError;
@@ -70,26 +71,53 @@ final class ArgumentParserTest
         Expect::that(self::parser()->parse(['-V'])->has('version'))->because('short aliases map to their long options')->toBeTrue();
     }
 
+    /**
+     * @param list<string> $argv
+     */
     #[Test]
-    public function rejectsMalformedInput(): void
+    #[DataSet('malformedArguments')]
+    public function rejectsMalformedInputWithExactGuidance(array $argv, string $message): void
     {
-        $malformed = [
-            'unknown long option' => ['--nope'],
-            'unknown short option' => ['-x'],
-            'value on a flag' => ['--help=yes'],
-            'missing required value' => ['--workers'],
-            'repeated non-repeatable option' => ['--workers=1', '--workers=2'],
-            'second positional argument' => ['run', 'again'],
-            'bare double dash' => ['--'],
-        ];
+        Expect::that(
+            static function () use ($argv): void {
+                self::parser()->parse($argv);
+            },
+        )->toThrow(CliError::class, message: $message);
+    }
 
-        foreach ($malformed as $argv) {
-            Expect::that(
-                static function () use ($argv): void {
-                    self::parser()->parse($argv);
-                },
-            )->toThrow(CliError::class);
-        }
+    /**
+     * @return iterable<string, array{list<string>, non-empty-string}>
+     */
+    public static function malformedArguments(): iterable
+    {
+        yield 'unknown long option' => [
+            ['--nope'],
+            'Unknown option "--nope". Use greenlight --help to list options.',
+        ];
+        yield 'unknown short option' => [
+            ['-x'],
+            'Unknown option "-x". Use greenlight --help to list options.',
+        ];
+        yield 'value on a flag' => [
+            ['--help=yes'],
+            'Option --help does not take a value.',
+        ];
+        yield 'missing required value' => [
+            ['--workers'],
+            'Option --workers requires a value. Use --workers=<value>.',
+        ];
+        yield 'repeated non-repeatable option' => [
+            ['--workers=1', '--workers=2'],
+            'Specify option --workers only once.',
+        ];
+        yield 'second positional argument' => [
+            ['run', 'again'],
+            'Unexpected argument "again".',
+        ];
+        yield 'bare double dash' => [
+            ['--'],
+            '"--" requires an option name.',
+        ];
     }
 
     private static function parser(): ArgumentParser
