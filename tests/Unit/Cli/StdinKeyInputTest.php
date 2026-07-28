@@ -4,12 +4,38 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StdinKeyInput;
 use Greenlight\Expect\Expect;
 
 final class StdinKeyInputTest
 {
+    #[Test]
+    #[DataSet('readResults')]
+    public function pollReturnsOnlyAvailableKeys(string|false $readResult, ?string $expected): void
+    {
+        $input = new StdinKeyInput(
+            configureBlocking: static function (bool $enabled): void {},
+            isTty: static fn(): bool => false,
+            read: static fn(): string|false => $readResult,
+        );
+
+        Expect::that($input->poll())
+            ->because('poll returns a key only when one is available')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{string|false, ?string}>
+     */
+    public static function readResults(): iterable
+    {
+        yield 'key' => ['q', 'q'];
+        yield 'no bytes available' => ['', null];
+        yield 'read failure' => [false, null];
+    }
+
     #[Test]
     public function aTerminalEnablesRawModeAndRestoresItExactlyOnce(): void
     {
