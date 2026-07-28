@@ -66,10 +66,12 @@ final class TestMetadataWireTest
                 'checksValue',
                 timeoutSeconds: $seconds,
             ),
-        )->because('invalid timeouts are rejected by direct construction')->toThrow(
-            \InvalidArgumentException::class,
-            message: 'Timeout seconds must be finite and greater than zero.',
-        );
+        )
+            ->because('invalid timeouts are rejected by direct construction')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Timeout seconds must be finite and greater than zero.',
+            );
 
         $payload = new TestMetadata('App\ExampleTest', 'checksValue')->toWire();
         $payload['timeoutSeconds'] = $seconds;
