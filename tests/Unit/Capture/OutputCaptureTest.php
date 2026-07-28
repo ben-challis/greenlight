@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Capture;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
@@ -275,17 +276,26 @@ final class OutputCaptureTest
     }
 
     #[Test]
-    public function aNonPositiveStdoutBoundIsRejected(): void
-    {
-        Expect::that(static fn(): OutputCapture => new OutputCapture(maxStdoutBytes: 0))->because('a nonpositive stdout bound is rejected')
-            ->toThrow(\InvalidArgumentException::class, '/at least 1 byte/');
+    #[DataSet('nonPositiveBounds')]
+    public function nonPositiveBoundsAreRejected(
+        int $maxStdoutBytes,
+        int $maxDiagnostics,
+        string $message,
+    ): void {
+        Expect::that(static fn(): OutputCapture => new OutputCapture($maxStdoutBytes, $maxDiagnostics))
+            ->because('output capture bounds MUST be positive')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
     }
 
-    #[Test]
-    public function aNonPositiveDiagnosticsBoundIsRejected(): void
+    /**
+     * @return iterable<string, array{int, int, non-empty-string}>
+     */
+    public static function nonPositiveBounds(): iterable
     {
-        Expect::that(static fn(): OutputCapture => new OutputCapture(maxDiagnostics: 0))->because('a nonpositive diagnostics bound is rejected')
-            ->toThrow(\InvalidArgumentException::class, '/at least 1 entry/');
+        yield 'zero stdout bound' => [0, 1, 'Stdout bound must be at least 1 byte, got 0.'];
+        yield 'negative stdout bound' => [-1, 1, 'Stdout bound must be at least 1 byte, got -1.'];
+        yield 'zero diagnostics bound' => [1, 0, 'Diagnostics bound must be at least 1 entry, got 0.'];
+        yield 'negative diagnostics bound' => [1, -1, 'Diagnostics bound must be at least 1 entry, got -1.'];
     }
 
     private function activeErrorHandler(): ?callable
