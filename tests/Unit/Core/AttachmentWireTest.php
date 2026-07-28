@@ -62,4 +62,23 @@ final class AttachmentWireTest
             ->and($staged->retention)
             ->toBe(AttachmentRetention::OnFailure);
     }
+
+    #[Test]
+    public function wireDecodingNormalizesNumericBounds(): void
+    {
+        $attachment = Attachment::fromWire([
+            'name' => 'response.json',
+            'kind' => AttachmentKind::Value->value,
+            'mediaType' => 'application/json',
+            'sizeBytes' => -1,
+            'sha256' => \str_repeat('a', 64),
+            'attempt' => 0,
+            'path' => 'build/artifacts/response.json',
+            'retention' => AttachmentRetention::Always->value,
+        ]);
+
+        Expect::that([$attachment->sizeBytes, $attachment->attempt])
+            ->because('attachment wire decoding MUST preserve its numeric bounds')
+            ->toBe([0, 1]);
+    }
 }
