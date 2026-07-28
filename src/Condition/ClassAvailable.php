@@ -12,9 +12,21 @@ final readonly class ClassAvailable implements Condition
      * The class name has the string type because the class can be absent from
      * the current environment.
      *
-     * @param non-empty-string $class
+     * @var non-empty-string
      */
-    public function __construct(private string $class) {}
+    private string $class;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $class)
+    {
+        if ($class === '') {
+            throw new \InvalidArgumentException('Class name MUST NOT be empty.');
+        }
+
+        $this->class = $class;
+    }
 
     #[\Override]
     public function isSatisfied(): bool

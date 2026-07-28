@@ -96,4 +96,15 @@ final class ConditionsTest
         Expect::that(new ClassAvailable(\stdClass::class)->isSatisfied())->because('class available checks autoloadable classes')->toBeTrue()
             ->and(new ClassAvailable('Greenlight\NoSuchClassAnywhere')->isSatisfied())->toBeFalse();
     }
+
+    #[Test]
+    public function classAvailableRejectsAnEmptyClassName(): void
+    {
+        Expect::that(static fn(): ClassAvailable => new ClassAvailable(''))
+            ->because('a class availability condition MUST identify the class')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Class name MUST NOT be empty.',
+            );
+    }
 }
