@@ -49,8 +49,8 @@ final readonly class TestResult implements WireSerializable
         public int $expectations = 0,
         public array $attachments = [],
     ) {
-        if ($durationSeconds < 0.0) {
-            throw new \InvalidArgumentException('Duration cannot be negative.');
+        if (!\is_finite($durationSeconds) || $durationSeconds < 0.0) {
+            throw new \InvalidArgumentException('Duration must be finite and zero or more.');
         }
 
         if ($attempts < 1) {

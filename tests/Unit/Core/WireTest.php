@@ -95,6 +95,26 @@ final class WireTest
     }
 
     #[Test]
+    #[DataSet('nonFiniteFloats')]
+    public function floatReadersRejectNonFiniteValues(float $value): void
+    {
+        $payload = ['durationSeconds' => $value];
+
+        Expect::that(static fn(): float => Wire::float($payload, 'durationSeconds'))
+            ->because('protocol floats MUST be finite')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "durationSeconds" must be a finite float, got float.',
+            )
+            ->and(static fn(): ?float => Wire::nullableFloat($payload, 'durationSeconds'))
+            ->because('nullable protocol floats MUST reject non-finite values')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "durationSeconds" must be a finite float or null, got float.',
+            );
+    }
+
+    #[Test]
     #[DataSet('invalidReaderCases')]
     public function typedReadersRejectInvalidFields(string $reader, string $expected): void
     {
@@ -130,10 +150,22 @@ final class WireTest
         yield 'string' => ['string', 'a string'];
         yield 'nullable string' => ['nullableString', 'a string or null'];
         yield 'nullable integer' => ['nullableInt', 'an integer or null'];
-        yield 'nullable float' => ['nullableFloat', 'a float or null'];
+        yield 'nullable float' => ['nullableFloat', 'a finite float or null'];
         yield 'boolean' => ['bool', 'a boolean'];
         yield 'map' => ['map', 'a map'];
         yield 'nullable map' => ['nullableMap', 'a map'];
         yield 'list of maps' => ['listOfMaps', 'a list of maps'];
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function nonFiniteFloats(): iterable
+    {
+        yield 'JSON exponent overflow' => [
+            \json_decode('1e400', flags: \JSON_THROW_ON_ERROR),
+        ];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 }

@@ -10,8 +10,8 @@ namespace Greenlight\Core\Wire;
  * Each reader throws InvalidWirePayload with the applicable key. Thus, its
  * message identifies the protocol error.
  *
- * A float reader accepts integer values because JSON does not preserve the
- * difference.
+ * A float reader accepts finite integer and float values. It accepts integers
+ * because JSON does not preserve the difference between the numeric types.
  *
  * @internal
  */
@@ -100,11 +100,11 @@ final class Wire
         }
 
         if (\is_int($value)) {
-            return (float) $value;
+            $value = (float) $value;
         }
 
-        if (!\is_float($value)) {
-            throw InvalidWirePayload::wrongType($key, 'a float or null', $value);
+        if (!\is_float($value) || !\is_finite($value)) {
+            throw InvalidWirePayload::wrongType($key, 'a finite float or null', $value);
         }
 
         return $value;
@@ -136,11 +136,11 @@ final class Wire
         $value = self::require($payload, $key);
 
         if (\is_int($value)) {
-            return (float) $value;
+            $value = (float) $value;
         }
 
-        if (!\is_float($value)) {
-            throw InvalidWirePayload::wrongType($key, 'a float', $value);
+        if (!\is_float($value) || !\is_finite($value)) {
+            throw InvalidWirePayload::wrongType($key, 'a finite float', $value);
         }
 
         return $value;

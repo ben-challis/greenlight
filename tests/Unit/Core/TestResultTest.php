@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Core;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Artifact\AttachmentKind;
@@ -103,14 +104,29 @@ final class TestResultTest
     }
 
     #[Test]
-    public function rejectsInvalidConstruction(): void
+    public function rejectsInvalidAttemptCounts(): void
     {
         $id = new TestId('App\FooTest', 'bar');
 
-        Expect::that(static fn(): TestResult => new TestResult($id, Outcome::Passed, -0.1, 0))->because('rejects invalid construction')
+        Expect::that(static fn(): TestResult => new TestResult($id, Outcome::Passed, 0.1, 0, 0))
+            ->because('attempt counts MUST start at one')
             ->toThrow(\InvalidArgumentException::class);
-        Expect::that(static fn(): TestResult => new TestResult($id, Outcome::Passed, 0.1, 0, 0))->because('rejects invalid construction')
-            ->toThrow(\InvalidArgumentException::class);
+    }
+
+    #[Test]
+    #[DataSet('invalidDurations')]
+    public function rejectsInvalidDurations(float $duration): void
+    {
+        $id = new TestId('App\FooTest', 'bar');
+
+        Expect::that(
+            static fn(): TestResult => new TestResult($id, Outcome::Passed, $duration, 0),
+        )
+            ->because('result durations MUST be finite and non-negative')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Duration must be finite and zero or more.',
+            );
     }
 
     #[Test]
@@ -120,5 +136,16 @@ final class TestResultTest
         Expect::that(Outcome::Skipped->isSuccessful())->because('outcome success uses the required semantics')->toBeTrue();
         Expect::that(Outcome::Failed->isSuccessful())->because('outcome success uses the required semantics')->toBeFalse();
         Expect::that(Outcome::Errored->isSuccessful())->because('outcome success uses the required semantics')->toBeFalse();
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function invalidDurations(): iterable
+    {
+        yield 'negative' => [-0.1];
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 }
