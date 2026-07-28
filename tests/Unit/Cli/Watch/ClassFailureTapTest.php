@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\ClassFailureTap;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
@@ -15,6 +16,22 @@ use Greenlight\Tests\Support\CollectingEventSink;
 
 final class ClassFailureTapTest
 {
+    #[Test]
+    public function forwardsLifecycleEventsWithoutRecordingFailures(): void
+    {
+        $inner = new CollectingEventSink();
+        $tap = new ClassFailureTap($inner);
+        $event = new RunStarted('run-1', 3, 2, 1.0);
+
+        $tap->emit($event);
+
+        Expect::that($inner->events)
+            ->because('the watch tap MUST forward lifecycle events unchanged')
+            ->toBe([$event])
+            ->and($tap->failedClasses())
+            ->toBe([]);
+    }
+
     #[Test]
     public function failedClassesAreDeduplicatedWhileEveryResultIsForwarded(): void
     {
