@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Fixture\Doubles\VariadicReference;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
 final class ProxyByReferenceTest
@@ -33,5 +34,43 @@ final class ProxyByReferenceTest
         } finally {
             $doubles->dispose();
         }
+    }
+
+    #[Test]
+    public function configuredCallbacksCanChangeVariadicByReferenceArguments(): void
+    {
+        $directory = \sys_get_temp_dir() . '/greenlight-doubles-' . \bin2hex(\random_bytes(6));
+        $doubles = new Doubles($directory);
+        $double = $doubles->mock(VariadicReference::class, static function (MockPlan $plan): void {
+            $plan->expects('change')
+                ->andReturnsUsing(static function (string &$first, string &$second): void {
+                    $first = 'changed-first';
+                    $second = 'changed-second';
+                });
+        });
+        $first = 'first';
+        $second = 'second';
+
+        try {
+            $double->change($first, $second);
+
+            Expect::that([$first, $second])
+                ->because('a doubled method MUST preserve variadic by-reference argument changes')
+                ->toBe(['changed-first', 'changed-second']);
+        } finally {
+            $doubles->dispose();
+            $this->removeDirectory($directory);
+        }
+    }
+
+    private function removeDirectory(string $directory): void
+    {
+        $files = \glob($directory . '/*');
+
+        foreach ($files === false ? [] : $files as $file) {
+            @\unlink($file);
+        }
+
+        @\rmdir($directory);
     }
 }
