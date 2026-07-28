@@ -17,8 +17,12 @@ final class EnvironmentSandbox implements Disposable
      */
     private array $originals = [];
 
+    /**
+     * @throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.
+     */
     public function set(string $name, string $value): void
     {
+        $this->validateName($name);
         $this->record($name);
 
         \putenv($name . '=' . $value);
@@ -26,8 +30,12 @@ final class EnvironmentSandbox implements Disposable
         $_SERVER[$name] = $value;
     }
 
+    /**
+     * @throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.
+     */
     public function unset(string $name): void
     {
+        $this->validateName($name);
         $this->record($name);
 
         \putenv($name);
@@ -47,5 +55,14 @@ final class EnvironmentSandbox implements Disposable
     private function record(string $name): void
     {
         $this->originals[$name] ??= EnvironmentBackup::capture($name);
+    }
+
+    private function validateName(string $name): void
+    {
+        if ($name === '' || \str_contains($name, '=') || \str_contains($name, "\0")) {
+            throw new \InvalidArgumentException(
+                'Environment variable names cannot be empty or contain "=" or a null byte.',
+            );
+        }
     }
 }

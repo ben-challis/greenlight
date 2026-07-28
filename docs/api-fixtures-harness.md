@@ -25,7 +25,11 @@ final class EnvironmentSandbox implements Disposable
 public function set(string $name, string $value): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L20)
+PHPDoc:
+
+- `@throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L23)
 
 ### `unset()`
 
@@ -33,7 +37,11 @@ public function set(string $name, string $value): void
 public function unset(string $name): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L29)
+PHPDoc:
+
+- `@throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L36)
 
 ### `dispose()`
 
@@ -42,7 +50,7 @@ public function unset(string $name): void
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L45)
 
 ## `TempDirectory`
 

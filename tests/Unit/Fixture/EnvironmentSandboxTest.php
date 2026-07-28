@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Fixture;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -147,6 +148,66 @@ final class EnvironmentSandboxTest
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
         }
+    }
+
+    #[Test]
+    #[DataSet('invalidNames')]
+    public function setRejectsInvalidNamesWithoutChangingTheEnvironment(string $name): void
+    {
+        $processBefore = \getenv();
+        $envBefore = $_ENV;
+        $serverBefore = $_SERVER;
+        $sandbox = new EnvironmentSandbox();
+
+        Expect::that(static fn() => $sandbox->set($name, 'value'))
+            ->because('set rejects invalid names before it changes the environment')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
+            );
+
+        Expect::that(\getenv())
+            ->because('set rejects invalid names before it changes the environment')
+            ->toBe($processBefore)
+            ->and($_ENV)
+            ->toBe($envBefore)
+            ->and($_SERVER)
+            ->toBe($serverBefore);
+    }
+
+    #[Test]
+    #[DataSet('invalidNames')]
+    public function unsetRejectsInvalidNamesWithoutChangingTheEnvironment(string $name): void
+    {
+        $processBefore = \getenv();
+        $envBefore = $_ENV;
+        $serverBefore = $_SERVER;
+        $sandbox = new EnvironmentSandbox();
+
+        Expect::that(static fn() => $sandbox->unset($name))
+            ->because('unset rejects invalid names before it changes the environment')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
+            );
+
+        Expect::that(\getenv())
+            ->because('unset rejects invalid names before it changes the environment')
+            ->toBe($processBefore)
+            ->and($_ENV)
+            ->toBe($envBefore)
+            ->and($_SERVER)
+            ->toBe($serverBefore);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidNames(): iterable
+    {
+        yield 'empty name' => [''];
+        yield 'equals sign' => ['GREENLIGHT_INVALID=NAME'];
+        yield 'null byte' => ["GREENLIGHT_INVALID\0NAME"];
     }
 
     /** Tells the analyzer that the superglobal offset remains variable after a change. */
