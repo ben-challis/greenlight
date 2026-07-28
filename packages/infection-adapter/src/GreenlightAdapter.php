@@ -8,7 +8,7 @@ use Greenlight\Cli\Application;
 use Infection\AbstractTestFramework\Coverage\TestLocation;
 use Infection\AbstractTestFramework\TestFrameworkAdapter;
 
-final class GreenlightAdapter implements TestFrameworkAdapter
+final readonly class GreenlightAdapter implements TestFrameworkAdapter
 {
     private const string COVERAGE_DIRECTORY = 'coverage-xml';
     private const string COVERAGE_MAP = 'greenlight-test-coverage.jsonl';
@@ -17,11 +17,11 @@ final class GreenlightAdapter implements TestFrameworkAdapter
      * @param list<string> $sourceDirectories
      */
     public function __construct(
-        private readonly string $executable,
-        private readonly string $temporaryDirectory,
-        private readonly string $configuration,
-        private readonly string $projectDirectory,
-        private readonly array $sourceDirectories,
+        private string $executable,
+        private string $temporaryDirectory,
+        private string $configuration,
+        private string $projectDirectory,
+        private array $sourceDirectories,
     ) {}
 
     public function getName(): string
@@ -96,7 +96,7 @@ final class GreenlightAdapter implements TestFrameworkAdapter
         foreach ($coverageTests as $test) {
             $id = $test->getMethod();
 
-            if (\str_contains($id, "\n") || \str_contains($id, "\r")) {
+            if (\str_contains((string) $id, "\n") || \str_contains((string) $id, "\r")) {
                 throw new \RuntimeException(\sprintf(
                     'Greenlight test id "%s" cannot be written to Infection\'s exact-test file because it contains a line break.',
                     $id,

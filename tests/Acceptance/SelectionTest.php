@@ -48,7 +48,7 @@ final readonly class SelectionTest
         );
 
         Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1)
-            ->and($result->output())->toContain('Greenlight found no tests');
+            ->and($result->output())->toContain('Exact test selection did not find');
     }
 
     #[Test]
