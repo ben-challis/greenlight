@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+use Greenlight\Core\DecimalInteger;
+
 /**
  * Converts memory-size text to bytes.
  *
@@ -35,7 +37,14 @@ final class MemorySize
             ));
         }
 
-        $number = (int) $matches[1];
+        $number = DecimalInteger::parse($matches[1]);
+
+        if ($number === null) {
+            throw new InvalidConfiguration(\sprintf(
+                'Invalid memory size "%s". The value does not fit in an integer byte count.',
+                $value,
+            ));
+        }
 
         if ($number < 1) {
             throw new InvalidConfiguration(\sprintf(
