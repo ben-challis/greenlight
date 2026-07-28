@@ -17,6 +17,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Tests\Fixture\CrashDiagnostics\CrashDiagnosticsTest;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
@@ -391,6 +392,33 @@ final class OrchestratorTest
             ->toBe(AaTest::class . '::fails');
     }
 
+    #[Test]
+    #[Timeout(30.0)]
+    public function crashedWorkerPreservesCapturedDiagnosticsInTheSyntheticResult(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $sink = new CollectingEventSink();
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+        );
+
+        $summary = $orchestrator->run($this->crashDiagnosticsPlan(), $sink, 1);
+        $results = $sink->results();
+
+        Expect::that($summary->errored)
+            ->because('a worker crash MUST produce one synthetic error result')
+            ->toBe(1)
+            ->and($results)
+            ->toHaveCount(1)
+            ->and($results[0]->error?->message)
+            ->because('the synthetic error MUST preserve the worker diagnostic output')
+            ->toBe(
+                "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"
+                . "Worker output:\nThe worker emitted crash diagnostics.",
+            );
+    }
+
     private function plan(): ExecutionPlan
     {
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
@@ -439,6 +467,15 @@ final class OrchestratorTest
         return new ExecutionPlan([
             new PlanEntry($failing, new TestMetadata($failing->class, $failing->method)),
             new PlanEntry($passing, new TestMetadata($passing->class, $passing->method)),
+        ]);
+    }
+
+    private function crashDiagnosticsPlan(): ExecutionPlan
+    {
+        $id = new TestId(CrashDiagnosticsTest::class, 'writesDiagnosticsThenExits');
+
+        return new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
         ]);
     }
 }
