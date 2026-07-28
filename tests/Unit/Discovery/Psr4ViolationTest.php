@@ -75,10 +75,6 @@ final readonly class Psr4ViolationTest
     {
         $directory = $this->tempDirectory->subdirectory('incomplete-declaration');
 
-        if ($directory === '') {
-            Fail::because('Expected the incomplete class fixture directory to be non-empty.');
-        }
-
         $file = $directory . '/IncompleteTest.php';
         \file_put_contents($file, "<?php\n\nclass");
         $resolvedFile = \realpath($file);
