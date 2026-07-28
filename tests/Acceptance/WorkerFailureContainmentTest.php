@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -98,6 +99,57 @@ final readonly class WorkerFailureContainmentTest
             ->and($finished->result->durationSeconds)->toBeGreaterThan(0.1)
             ->and($finished->result->failures)->toHaveCount(1)
             ->and($finished->result->error)->toBeNull();
+    }
+
+    #[Test]
+    public function aHardTimeoutPreservesWorkerDiagnostics(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'timeout-diagnostics');
+        $project->writeFile('tests/TimeoutDiagnosticsTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace TimeoutDiagnostics;
+
+            use Greenlight\Attribute\Test;
+            use Greenlight\Attribute\Timeout;
+
+            final class TimeoutDiagnosticsTest
+            {
+                #[Test]
+                #[Timeout(0.05)]
+                public function hangsAfterWritingDiagnostics(): void
+                {
+                    \fwrite(\STDERR, "The timed-out worker emitted diagnostics.\n");
+                    \sleep(60);
+                }
+            }
+            PHP);
+        $project->configureWithTestFiles(['tests/TimeoutDiagnosticsTest.php'], workers: 2);
+
+        $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
+        $finished = \array_find(
+            JsonlEvents::from($result),
+            static fn($event): bool => $event instanceof TestFinished,
+        );
+
+        if (!$finished instanceof TestFinished) {
+            Fail::because('The diagnostic hard timeout did not emit TestFinished.');
+        }
+
+        $failure = $finished->result->failures[0] ?? null;
+
+        if (!$failure instanceof FailureDetail) {
+            Fail::because('The diagnostic hard timeout did not report a failure.');
+        }
+
+        Expect::that($result->exitCode)
+            ->because('a hard timeout MUST fail the run')
+            ->toBe(1)
+            ->and($failure->message)
+            ->because('a hard timeout MUST preserve the worker diagnostic output')
+            ->toContain("Worker output:\nThe timed-out worker emitted diagnostics.");
     }
 
     /**
