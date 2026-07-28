@@ -49,6 +49,7 @@ final class AttachmentValidationTest
         yield 'negative size' => ['attachment', 'text/plain', -1, $hash, 1, 'attachment.txt'];
         yield 'invalid hash' => ['attachment', 'text/plain', 1, \str_repeat('a', 63), 1, 'attachment.txt'];
         yield 'zero attempt' => ['attachment', 'text/plain', 1, $hash, 0, 'attachment.txt'];
+        yield 'negative attempt' => ['attachment', 'text/plain', 1, $hash, -1, 'attachment.txt'];
         yield 'empty path' => ['attachment', 'text/plain', 1, $hash, 1, ''];
         yield 'null byte path' => ['attachment', 'text/plain', 1, $hash, 1, "attachment\0.txt"];
     }
