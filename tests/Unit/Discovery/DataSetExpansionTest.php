@@ -154,6 +154,18 @@ final class DataSetExpansionTest
     }
 
     #[Test]
+    public function nonPublicProviderIsRejected(): void
+    {
+        $message = $this->discoveryErrorMessage('DiscoveryProviderNonPublic');
+
+        Expect::that($message)
+            ->because('a non-public data-set provider MUST fail discovery')
+            ->toContain('Declare the provider as public and static')
+            ->and($message)
+            ->toContain('privateProvider');
+    }
+
+    #[Test]
     public function nonIterableProviderIsRejected(): void
     {
         $message = $this->discoveryErrorMessage('DiscoveryProviderNotIterable');
