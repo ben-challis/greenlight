@@ -14,14 +14,25 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class FailureDetail implements WireSerializable
 {
     /**
-     * @param non-empty-string $message
+     * @var non-empty-string
+     */
+    public string $message;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $message,
+        string $message,
         public ?string $expected = null,
         public ?string $actual = null,
         public ?SourceLocation $location = null,
-    ) {}
+    ) {
+        if ($message === '') {
+            throw new \InvalidArgumentException('Failure detail message must not be empty.');
+        }
+
+        $this->message = $message;
+    }
 
     #[\Override]
     public function toWire(): array

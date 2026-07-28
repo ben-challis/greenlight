@@ -162,11 +162,23 @@ final readonly class FailureDetail implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L14)
 
+### `$message`
+
+```php
+public string $message;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L19)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $message,
+    string $message,
     public ?string $expected = null,
     public ?string $actual = null,
     public ?SourceLocation $location = null,
@@ -175,9 +187,9 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $message`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L24)
 
 ### `toWire()`
 
@@ -186,7 +198,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L37)
 
 ### `fromWire()`
 
@@ -195,7 +207,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L48)
 
 ## `Outcome`
 
