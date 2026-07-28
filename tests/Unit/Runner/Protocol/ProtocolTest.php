@@ -164,6 +164,26 @@ final class ProtocolTest
     }
 
     #[Test]
+    public function stalledWorkerErrorsIncludeCapturedOutput(): void
+    {
+        $error = ProtocolError::workerStalled(
+            'worker-7',
+            2.5,
+            "stderr: extension failed\nstdout: booting",
+        );
+
+        Expect::that($error->getMessage())
+            ->because('a stalled worker error MUST preserve its captured output')
+            ->toBe(
+                "Worker \"worker-7\" sent no message for 2.5 seconds after connection. No test was active. "
+                . "The worker stopped responding between protocol messages. Greenlight stopped the run to prevent an unlimited wait.\n"
+                . "Worker output:\n"
+                . "stderr: extension failed\n"
+                . 'stdout: booting',
+            );
+    }
+
+    #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
         Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
