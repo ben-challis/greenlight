@@ -66,6 +66,47 @@ final class GithubReporterTest
     }
 
     #[Test]
+    public function everyFailureDetailProducesItsOwnLocatedAnnotation(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new GithubReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\MultiFailureTest', 'checks'),
+            Outcome::Failed,
+            0.001,
+            0,
+            failures: [
+                new FailureDetail(
+                    "first 50%\nline",
+                    '1',
+                    '2',
+                    new SourceLocation('/project/tests/First:Case.php', 11),
+                ),
+                new FailureDetail(
+                    "second\rproblem",
+                    'left',
+                    'right',
+                    new SourceLocation('/project/tests/Second,Case.php', 12),
+                ),
+            ],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('each failure detail MUST retain its location, diff, and workflow-command escaping')
+            ->toBe(
+                '::error file=/project/tests/First%3ACase.php,line=11'
+                . '::Acme\MultiFailureTest::checks: first 50%25%0Aline%0Aexpected: 1%0Aactual: 2'
+                . "\n"
+                . '::error file=/project/tests/Second%2CCase.php,line=12'
+                . '::Acme\MultiFailureTest::checks: second%0Dproblem%0Aexpected: left%0Aactual: right'
+                . "\n",
+            );
+    }
+
+    #[Test]
     #[DataSet('outcomesWithoutDetails')]
     public function outcomesWithoutDetailsStillProduceAnnotations(Outcome $outcome, string $summary): void
     {
