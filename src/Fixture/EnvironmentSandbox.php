@@ -18,11 +18,16 @@ final class EnvironmentSandbox implements Disposable
     private array $originals = [];
 
     /**
-     * @throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.
+     * @throws \InvalidArgumentException If $name is invalid or $value contains a null byte.
      */
     public function set(string $name, string $value): void
     {
         $this->validateName($name);
+
+        if (\str_contains($value, "\0")) {
+            throw new \InvalidArgumentException('Environment variable values cannot contain a null byte.');
+        }
+
         $this->record($name);
 
         \putenv($name . '=' . $value);
