@@ -25,4 +25,14 @@ final class IdeHelperTest
             ->toContain('final class Expectation {}')
             ->toContain('The IDE does not execute or autoload');
     }
+
+    #[Test]
+    public function preservesParenthesesAroundIntersectionsInsideUnions(): void
+    {
+        $map = MatcherMap::fromConfigFiles([\dirname(__DIR__, 2) . '/Fixture/PhpStanIdeHelperDnf/greenlight.php']);
+
+        Expect::that(IdeHelper::render($map))
+            ->because('generated matcher annotations preserve disjunctive normal form types')
+            ->toContain(' * @method self toCompareWith((Countable&Iterator)|string $comparison)');
+    }
 }
