@@ -54,6 +54,31 @@ final class TestContextTest
     }
 
     #[Test]
+    public function serviceRejectsAccessAfterTheTestScopeCloses(): void
+    {
+        $registry = new HarnessRegistry([
+            new ServiceDefinition(
+                \ArrayObject::class,
+                Scope::PerTest,
+                static fn(): \ArrayObject => new \ArrayObject(['ready']),
+            ),
+        ]);
+        $scopes = new HarnessScopes($registry);
+        $scopes->openTest();
+        $context = $this->context($scopes);
+
+        Expect::that($context->service(\ArrayObject::class))
+            ->because('the plugin context can resolve a service while the test scope is open')
+            ->toBeInstanceOf(\ArrayObject::class);
+
+        $scopes->closeTest();
+
+        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+            ->because('the plugin context MUST NOT expose a service after the test scope closes')
+            ->toThrow(\LogicException::class, message: 'No test scope is open.');
+    }
+
+    #[Test]
     public function attachmentsAreUnavailableWithoutAnActiveAttempt(): void
     {
         $context = $this->context(new HarnessScopes(new HarnessRegistry()));
