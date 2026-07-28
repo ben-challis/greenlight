@@ -245,11 +245,23 @@ final readonly class TestClassFinished implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L9)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L14)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
+    string $class,
     public float $occurredAt,
     public string $workerId = '',
 )
@@ -257,10 +269,10 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $class`
 - `@param string $workerId The worker that ran the class, or an empty string from a producer without worker attribution`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L22)
 
 ### `toWire()`
 
@@ -269,7 +281,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L34)
 
 ### `fromWire()`
 
@@ -278,7 +290,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L44)
 
 ## `TestClassStarted`
 
@@ -290,11 +302,23 @@ final readonly class TestClassStarted implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L9)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L14)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
+    string $class,
     public float $occurredAt,
     public string $workerId = '',
 )
@@ -302,10 +326,10 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $class`
 - `@param string $workerId The worker that ran the class, or an empty string from a producer without worker attribution`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L22)
 
 ### `toWire()`
 
@@ -314,7 +338,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L34)
 
 ### `fromWire()`
 
@@ -323,7 +347,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L44)
 
 ## `TestFinished`
 

@@ -9,15 +9,27 @@ use Greenlight\Core\Wire\Wire;
 final readonly class TestClassFinished implements Event
 {
     /**
-     * @param non-empty-string $class
+     * @var non-empty-string
+     */
+    public string $class;
+
+    /**
      * @param string $workerId The worker that ran the class, or an empty
      *   string from a producer without worker attribution
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $class,
+        string $class,
         public float $occurredAt,
         public string $workerId = '',
-    ) {}
+    ) {
+        if ($class === '') {
+            throw new \InvalidArgumentException('Test class name MUST NOT be empty.');
+        }
+
+        $this->class = $class;
+    }
 
     #[\Override]
     public function toWire(): array
