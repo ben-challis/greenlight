@@ -195,7 +195,7 @@ final class Wire
     {
         $value = self::require($payload, $key);
 
-        if (!\is_array($value)) {
+        if (!\is_array($value) || ($value !== [] && \array_is_list($value))) {
             throw InvalidWirePayload::wrongType($key, 'a map', $value);
         }
 
@@ -290,7 +290,7 @@ final class Wire
         $maps = [];
 
         foreach ($value as $item) {
-            if (!\is_array($item)) {
+            if (!\is_array($item) || ($item !== [] && \array_is_list($item))) {
                 throw InvalidWirePayload::wrongType($key, 'a list of maps', $item);
             }
 
