@@ -42,7 +42,7 @@ public function __construct(
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L43)
 
 ### `fromWire()`
 
@@ -51,7 +51,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L58)
 
 ## `AttachmentError`
 
