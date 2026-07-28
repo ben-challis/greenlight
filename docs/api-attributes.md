@@ -491,6 +491,18 @@ final readonly class FunctionAvailable implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $function)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -498,7 +510,7 @@ final readonly class FunctionAvailable implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L28)
 
 ## `OperatingSystemFamily`
 
