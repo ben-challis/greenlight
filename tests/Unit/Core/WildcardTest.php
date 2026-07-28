@@ -92,6 +92,13 @@ final class WildcardTest
             true,
         ];
 
+        yield 'case-insensitive star matches across line breaks' => [
+            "FIRST\nSECOND",
+            'first*second',
+            true,
+            true,
+        ];
+
         yield 'question mark matches exactly one character' => [
             'Test',
             'T?st',
