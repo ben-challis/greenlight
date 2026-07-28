@@ -60,6 +60,17 @@ final class ObservationLogTest
     }
 
     #[Test]
+    public function truncationDoesNotSplitAUnicodeCharacter(): void
+    {
+        $log = new ObservationLog(0.0);
+        $log->record(0.0, \str_repeat('€', 1_000));
+
+        Expect::that($log->render())
+            ->because('bounded observation history MUST remain valid UTF-8')
+            ->toBe('+0.0ms ' . \str_repeat('€', 679) . '...');
+    }
+
+    #[Test]
     public function anIdenticalTailGroupDoesNotRepeatTheFirstObservation(): void
     {
         $log = new ObservationLog(0.0);

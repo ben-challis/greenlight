@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
+use Greenlight\Core\Wire\Utf8;
+
 /**
  * Keeps a bounded history of rendered poll attempts.
  *
@@ -102,12 +104,18 @@ final class ObservationLog
             \array_splice($parts, 1, 0, \sprintf('... %d earlier changes omitted ...', $this->omittedGroups));
         }
 
-        $rendered = \implode("\n", $parts);
+        $rendered = Utf8::scrub(\implode("\n", $parts));
 
         if (\strlen($rendered) <= self::MAX_RENDERED_BYTES) {
             return $rendered;
         }
 
-        return \substr($rendered, 0, self::MAX_RENDERED_BYTES - 3) . '...';
+        $truncated = \substr($rendered, 0, self::MAX_RENDERED_BYTES - 3);
+
+        while (\preg_match('//u', $truncated) !== 1) {
+            $truncated = \substr($truncated, 0, -1);
+        }
+
+        return $truncated . '...';
     }
 }
