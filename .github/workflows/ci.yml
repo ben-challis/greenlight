@@ -140,9 +140,32 @@ jobs:
         env:
           SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
 
+      - name: "Restore static analysis cache"
+        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
+        uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: |
+            .deptrac.cache
+            .php-cs-fixer.cache
+            build/cache/phpstan
+            build/cache/rector
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ github.run_id }}"
+          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-"
+
       - name: "Static analysis"
         if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
         run: "composer static-analysis"
+
+      - name: "Save static analysis cache"
+        if: "${{ !cancelled() && matrix.dependencies == 'locked' && matrix.php-version == '8.4' }}"
+        uses: "actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: |
+            .deptrac.cache
+            .php-cs-fixer.cache
+            build/cache/phpstan
+            build/cache/rector
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ github.run_id }}"
 
       # PHPStan does not run in the "lowest" jobs. The oldest permitted PHPStan
       # cannot infer types that the code requires. Examples include the

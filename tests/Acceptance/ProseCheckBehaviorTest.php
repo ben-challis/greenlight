@@ -727,6 +727,20 @@ final readonly class ProseCheckBehaviorTest
     }
 
     #[Test]
+    public function excludesGeneratedToolCaches(): void
+    {
+        $root = $this->workspace('tool-cache-exclusion');
+        $this->write(
+            $root,
+            'build/cache/phpstan/cache.php',
+            "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
+        );
+
+        $result = $this->run('check', $root);
+        Expect::that($result->exitCode)->because('excludes generated tool caches')->toBe(0);
+    }
+
+    #[Test]
     public function excludesDependenciesAtAnyDirectoryDepth(): void
     {
         $root = $this->workspace('dependency-exclusion');
