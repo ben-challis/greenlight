@@ -172,6 +172,22 @@ final readonly class AttachmentsTest
             },
             'Attachment value cannot be encoded as JSON: Recursion detected.',
         ];
+
+        yield 'invalid UTF-8 JSON value' => [
+            static fn(StagedAttachments $attachments) => $attachments->value(
+                'invalid-utf8.json',
+                "\xB1",
+            ),
+            'Attachment value cannot be encoded as JSON: Malformed UTF-8 characters, possibly incorrectly encoded.',
+        ];
+
+        yield 'nonfinite JSON value' => [
+            static fn(StagedAttachments $attachments) => $attachments->value(
+                'nonfinite.json',
+                \INF,
+            ),
+            'Attachment value cannot be encoded as JSON: Inf and NaN cannot be JSON encoded.',
+        ];
     }
 
     #[Test]
