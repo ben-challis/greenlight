@@ -8,6 +8,7 @@ use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 
 return RectorConfig::configure()
     ->withPaths([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/tools'])
+    ->withCache(__DIR__ . '/build/cache/rector')
     ->withSkip([
         // Empty test methods and hooks have a purpose in a test framework.
         RemoveEmptyClassMethodRector::class,

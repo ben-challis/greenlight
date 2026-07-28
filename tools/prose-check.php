@@ -6,6 +6,7 @@ const PROSE_EXCLUDED_DIRECTORIES = [
     '.claude/worktrees',
     '.git',
     '.phpstan-api-stubs',
+    'build/cache',
     'tests/Fixture',
     'website/.astro',
     'website/dist',
