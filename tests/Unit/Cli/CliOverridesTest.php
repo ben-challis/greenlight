@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CliError;
 use Greenlight\Cli\CliOverrides;
@@ -146,6 +147,66 @@ final class CliOverridesTest
         }
 
         Fail::because('Expected CliOverrides::fromArguments() to reject zero-shard specification "1/0".');
+    }
+
+    /**
+     * @param array<string, list<string|null>> $options
+     */
+    #[Test]
+    #[DataSet('integerOverflows')]
+    public function rejectsIntegerValuesOutsideThePlatformRange(array $options, string $message): void
+    {
+        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
+            new ParsedArguments(null, $options),
+        ))
+            ->because('CLI integers MUST fit the platform integer range')
+            ->toThrow(CliError::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, list<string|null>>, non-empty-string}>
+     */
+    public static function integerOverflows(): iterable
+    {
+        $overflow = \PHP_INT_MAX . '0';
+
+        yield 'workers' => [
+            ['workers' => [$overflow]],
+            \sprintf('--workers requires a positive integer. Received "%s".', $overflow),
+        ];
+
+        yield 'bail' => [
+            ['bail' => [$overflow]],
+            \sprintf('--bail requires a positive integer. Received "%s".', $overflow),
+        ];
+
+        yield 'repeat' => [
+            ['repeat' => [$overflow]],
+            \sprintf('--repeat requires a positive integer. Received "%s".', $overflow),
+        ];
+
+        yield 'resource limit' => [
+            ['resource-limit' => ['postgres=' . $overflow]],
+            \sprintf('--resource-limit requires a positive integer. Received "%s".', $overflow),
+        ];
+
+        yield 'seed' => [
+            ['seed' => [$overflow]],
+            \sprintf('--seed requires a nonnegative integer. Received "%s".', $overflow),
+        ];
+
+        yield 'shard index' => [
+            ['shard' => [$overflow . '/4']],
+            \sprintf(
+                '--shard requires 1 <= n <= m. Received "%s/4". Valid n values for 4 shards are 1 through 4.',
+                $overflow,
+            ),
+        ];
+
+        yield 'shard count' => [
+            ['shard' => ['1/' . $overflow]],
+            \sprintf('--shard requires 1 <= n <= m. Received "1/%s".', $overflow),
+        ];
     }
 
     #[Test]

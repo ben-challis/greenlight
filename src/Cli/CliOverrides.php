@@ -103,11 +103,16 @@ final readonly class CliOverrides
                 throw CliError::malformedShard($raw);
             }
 
-            $index = (int) $matches[1];
-            $count = (int) $matches[2];
+            $index = self::decimalInt($matches[1]);
+            $count = self::decimalInt($matches[2]);
 
-            if ($count < 1 || $index < 1 || $index > $count) {
-                throw CliError::shardOutOfRange($raw, $count);
+            if ($index === null
+                || $count === null
+                || $count < 1
+                || $index < 1
+                || $index > $count
+            ) {
+                throw CliError::shardOutOfRange($raw, $count ?? 0);
             }
 
             $shard = [$index, $count];
@@ -166,13 +171,9 @@ final readonly class CliOverrides
         if ($arguments->has('seed')) {
             $raw = $arguments->value('seed') ?? '';
 
-            if (\preg_match('/^\d+$/', $raw) !== 1) {
-                throw CliError::invalidSeed($raw);
-            }
+            $parsed = self::decimalInt($raw);
 
-            $parsed = (int) $raw;
-
-            if ($parsed < 0) {
+            if ($parsed === null) {
                 throw CliError::invalidSeed($raw);
             }
 
@@ -226,12 +227,38 @@ final readonly class CliOverrides
      */
     private static function positiveInt(string $raw, string $flag): int
     {
-        $value = \preg_match('/^\d+$/', $raw) === 1 ? (int) $raw : 0;
+        $value = self::decimalInt($raw);
 
-        if ($value < 1) {
+        if ($value === null || $value < 1) {
             throw CliError::notAPositiveInteger($flag, $raw);
         }
 
         return $value;
+    }
+
+    /**
+     * @return int<0, max>|null
+     */
+    private static function decimalInt(string $raw): ?int
+    {
+        if (\preg_match('/^\d+$/', $raw) !== 1) {
+            return null;
+        }
+
+        $normalized = \ltrim($raw, '0');
+
+        if ($normalized === '') {
+            return 0;
+        }
+
+        $maximum = (string) \PHP_INT_MAX;
+
+        if (\strlen($normalized) > \strlen($maximum)
+            || (\strlen($normalized) === \strlen($maximum) && \strcmp($normalized, $maximum) > 0)
+        ) {
+            return null;
+        }
+
+        return \max(0, (int) $normalized);
     }
 }
