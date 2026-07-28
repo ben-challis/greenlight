@@ -7,14 +7,30 @@ namespace Greenlight\Runner\Worker;
 /** @internal */
 final readonly class WorkerBudget
 {
+    /** @var positive-int|null */
+    public ?int $maxTests;
+
+    /** @var positive-int|null */
+    public ?int $maxMemoryBytes;
+
     /**
-     * @param positive-int|null $maxTests
-     * @param positive-int|null $maxMemoryBytes
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public ?int $maxTests = null,
-        public ?int $maxMemoryBytes = null,
-    ) {}
+        ?int $maxTests = null,
+        ?int $maxMemoryBytes = null,
+    ) {
+        if ($maxTests !== null && $maxTests < 1) {
+            throw new \InvalidArgumentException('The worker test budget must be at least 1.');
+        }
+
+        if ($maxMemoryBytes !== null && $maxMemoryBytes < 1) {
+            throw new \InvalidArgumentException('The worker memory budget must be at least 1 byte.');
+        }
+
+        $this->maxTests = $maxTests;
+        $this->maxMemoryBytes = $maxMemoryBytes;
+    }
 
     public function exhaustedByCount(int $executed): bool
     {
