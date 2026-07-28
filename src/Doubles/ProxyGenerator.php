@@ -195,11 +195,13 @@ final readonly class ProxyGenerator
     {
         $returnType = $method->getReturnType() ?? $method->getTentativeReturnType();
         $returnName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : null;
+        $arguments = $this->renderInvocationArguments($method);
 
         $invoke = \sprintf(
-            "\$this->%s->invoke(\$this, '%s', \\func_get_args());",
+            "\$this->%s->invoke(\$this, '%s', %s);",
             self::HANDLER_PROPERTY,
             $method->name,
+            $arguments,
         );
 
         if ($returnName === 'void') {
@@ -220,6 +222,31 @@ final readonly class ProxyGenerator
             "    %s\n    {\n%s    }\n",
             $this->renderSignature($method, $returnType),
             $body,
+        );
+    }
+
+    private function renderInvocationArguments(\ReflectionMethod $method): string
+    {
+        $parameters = $method->getParameters();
+
+        if (!\array_any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->isPassedByReference())) {
+            return '\func_get_args()';
+        }
+
+        $arguments = \array_map(
+            static function (\ReflectionParameter $parameter): string {
+                $prefix = $parameter->isVariadic()
+                    ? '...'
+                    : ($parameter->isPassedByReference() ? '&' : '');
+
+                return $prefix . '$' . $parameter->name;
+            },
+            $parameters,
+        );
+
+        return \sprintf(
+            '\array_slice([%s], 0, \func_num_args())',
+            \implode(', ', $arguments),
         );
     }
 
