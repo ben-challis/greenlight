@@ -291,6 +291,14 @@ final class IterableMatchersTest
     }
 
     #[Test]
+    public function toContainSubsetTreatsANullValuedKeyAsPresent(): void
+    {
+        Expect::that(['optional' => null])
+            ->because('subset matching MUST distinguish a null-valued key from a missing key')
+            ->toContainSubset(['optional' => null]);
+    }
+
+    #[Test]
     public function toContainSubsetFailsOnMissingKeyWithPath(): void
     {
         $detail = FailureProbe::detailOf(
