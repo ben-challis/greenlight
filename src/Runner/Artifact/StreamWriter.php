@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Runner\Artifact;
+
+use Greenlight\Core\Artifact\AttachmentError;
+
+/**
+ * Writes complete byte strings to streams.
+ *
+ * @internal
+ */
+final class StreamWriter
+{
+    /**
+     * @param resource $stream
+     */
+    public static function writeFully($stream, string $bytes): void
+    {
+        $offset = 0;
+        $length = \strlen($bytes);
+
+        while ($offset < $length) {
+            $written = \fwrite($stream, \substr($bytes, $offset));
+
+            if ($written === false || $written === 0) {
+                throw AttachmentError::storage('Failed to write the complete attachment');
+            }
+
+            $offset += $written;
+        }
+    }
+
+    private function __construct() {}
+}
