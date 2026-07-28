@@ -39,6 +39,16 @@ final class RunHeaderTest
     }
 
     #[Test]
+    public function rendersAZeroSeed(): void
+    {
+        $header = new RunHeader('dev-main', 'greenlight.php', 0, phpVersion: '8.4.0');
+
+        Expect::that($header->render(1, new Style(ansi: false)))
+            ->because('the run header MUST print seed zero so the order can be reproduced')
+            ->toBe("Greenlight dev-main\nPHP 8.4.0 | configuration: greenlight.php | workers: 1 | seed: 0");
+    }
+
+    #[Test]
     public function flagsAMissingConfigFile(): void
     {
         $header = new RunHeader('dev-main', null, null, phpVersion: '8.4.0');
