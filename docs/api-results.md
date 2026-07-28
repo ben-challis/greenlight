@@ -471,6 +471,18 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L27)
 
+### `$expectations`
+
+```php
+public int $expectations;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L32)
+
 ### `__construct()`
 
 ```php
@@ -486,7 +498,7 @@ public function __construct(
     public array $transformations = [],
     public ?CapturedOutput $output = null,
     public bool $risky = false,
-    public int $expectations = 0,
+    int $expectations = 0,
     public array $attachments = [],
 )
 ```
@@ -495,11 +507,10 @@ PHPDoc:
 
 - `@param list<FailureDetail> $failures`
 - `@param list<OutcomeTransformation> $transformations`
-- `@param non-negative-int $expectations`
 - `@param list<Attachment> $attachments`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L41)
 
 ### `withOutcome()`
 
@@ -511,7 +522,7 @@ PHPDoc:
 
 - `@param non-empty-string $transformedBy`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L75)
 
 ### `toWire()`
 
@@ -520,7 +531,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L171)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L180)
 
 ### `fromWire()`
 
@@ -529,7 +540,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L197)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L206)
 
 ## `ThrowableDetail`
 
