@@ -18,6 +18,8 @@ use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
+use Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest;
+use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -363,6 +365,32 @@ final class OrchestratorTest
             ->toBe(RecycleReason::TestCount);
     }
 
+    #[Test]
+    #[Timeout(30.0)]
+    public function failureLimitDrainsQueuedClassAssignments(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $sink = new CollectingEventSink();
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+            stopAfterFailures: 1,
+        );
+
+        $summary = $orchestrator->run($this->failingThenPassingPlan(), $sink, 1);
+        $results = $sink->results();
+
+        Expect::that($summary->total())
+            ->because('the failure limit MUST stop before the queued class assignment runs')
+            ->toBe(1)
+            ->and($summary->errored)
+            ->toBe(1)
+            ->and($results)
+            ->toHaveCount(1)
+            ->and((string) $results[0]->id)
+            ->toBe(AaTest::class . '::fails');
+    }
+
     private function plan(): ExecutionPlan
     {
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
@@ -400,6 +428,17 @@ final class OrchestratorTest
         return new ExecutionPlan([
             new PlanEntry($clean, new TestMetadata($clean->class, $clean->method)),
             new PlanEntry($waiting, new TestMetadata($waiting->class, $waiting->method)),
+        ]);
+    }
+
+    private function failingThenPassingPlan(): ExecutionPlan
+    {
+        $failing = new TestId(AaTest::class, 'fails');
+        $passing = new TestId(BbTest::class, 'wouldAlsoPass');
+
+        return new ExecutionPlan([
+            new PlanEntry($failing, new TestMetadata($failing->class, $failing->method)),
+            new PlanEntry($passing, new TestMetadata($passing->class, $passing->method)),
         ]);
     }
 }
