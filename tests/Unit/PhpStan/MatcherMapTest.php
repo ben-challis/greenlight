@@ -16,6 +16,7 @@ final class MatcherMapTest
 {
     private const string CONFIG = __DIR__ . '/../../Fixture/PhpStanExtension/greenlight.php';
     private const string CONFLICTING_CONFIG = __DIR__ . '/../../Fixture/PhpStanExtensionConflict/greenlight.php';
+    private const string NON_EXPECTATION_CONFIG = __DIR__ . '/../../Fixture/PluginRunConfig/greenlight.php';
 
     #[Test]
     public function collectsMatchersWithSubjectStripped(): void
@@ -59,6 +60,16 @@ final class MatcherMapTest
         Expect::that($map->has('toHaveDigestLength'))
             ->because('relative matcher configuration paths resolve from the working directory')
             ->toBeTrue();
+    }
+
+    #[Test]
+    public function pluginsWithoutExpectationMatchersAreIgnored(): void
+    {
+        $map = MatcherMap::fromConfigFiles([self::NON_EXPECTATION_CONFIG]);
+
+        Expect::that($map->names())
+            ->because('plugins without expectation matchers do not add static methods')
+            ->toBe([]);
     }
 
     #[Test]
