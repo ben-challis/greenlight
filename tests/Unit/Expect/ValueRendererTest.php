@@ -59,6 +59,30 @@ final class ValueRendererTest
     }
 
     #[Test]
+    public function truncatesUnicodeStringsByCodePoint(): void
+    {
+        $rendered = new ValueRenderer()->render(\str_repeat('é', 121));
+
+        Expect::that($rendered)
+            ->because('diagnostic truncation MUST preserve complete Unicode characters')
+            ->toBe(
+                "'" . \str_repeat('é', 120) . "...' (truncated from 121 characters)",
+            );
+    }
+
+    #[Test]
+    public function truncationDoesNotSplitAnEscapedCharacter(): void
+    {
+        $rendered = new ValueRenderer()->render(\str_repeat('a', 119) . "\ntail");
+
+        Expect::that($rendered)
+            ->because('diagnostic truncation MUST keep escape sequences complete')
+            ->toBe(
+                "'" . \str_repeat('a', 119) . "...' (truncated from 124 characters)",
+            );
+    }
+
+    #[Test]
     public function rendersArraysWithDepthAndItemLimits(): void
     {
         $renderer = new ValueRenderer();
