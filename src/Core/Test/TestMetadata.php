@@ -61,6 +61,10 @@ final readonly class TestMetadata implements WireSerializable
         array $resources = [],
         public ?string $dataSetProviderClass = null,
     ) {
+        if (!self::isValidTimeout($timeoutSeconds)) {
+            throw new \InvalidArgumentException('Timeout seconds must be finite and greater than zero.');
+        }
+
         $validated = [];
 
         foreach ($groups as $group) {
@@ -140,6 +144,15 @@ final readonly class TestMetadata implements WireSerializable
             : null;
         $retryTimes = Wire::nullableInt($payload, 'retryTimes');
         $timeoutSeconds = Wire::nullableFloat($payload, 'timeoutSeconds');
+
+        if (!self::isValidTimeout($timeoutSeconds)) {
+            throw InvalidWirePayload::wrongType(
+                'timeoutSeconds',
+                'a finite float greater than zero or null',
+                $timeoutSeconds,
+            );
+        }
+
         $skipUnlessArguments = self::skipUnlessArgumentsFromWire($payload);
         $resources = \array_key_exists('resources', $payload) ? Wire::listOfStrings($payload, 'resources') : [];
 
@@ -166,6 +179,11 @@ final readonly class TestMetadata implements WireSerializable
             $resources,
             $dataSetProviderClass === '' ? null : $dataSetProviderClass,
         );
+    }
+
+    private static function isValidTimeout(?float $seconds): bool
+    {
+        return $seconds === null || (\is_finite($seconds) && $seconds > 0.0);
     }
 
     /**
