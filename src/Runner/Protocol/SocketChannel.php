@@ -15,7 +15,7 @@ use Greenlight\Core\ErrorTrap;
  *
  * @internal
  */
-final class SocketChannel
+final class SocketChannel implements Channel
 {
     private readonly FrameBuffer $buffer;
 
@@ -34,6 +34,7 @@ final class SocketChannel
     /**
      * @throws ProtocolError when the peer is gone or the frame is invalid
      */
+    #[\Override]
     public function send(Message $message): void
     {
         if (!\is_resource($this->stream)) {
@@ -80,6 +81,7 @@ final class SocketChannel
      *
      * @throws ProtocolError
      */
+    #[\Override]
     public function receive(float $timeoutSeconds): ?Message
     {
         $deadline = \microtime(true) + $timeoutSeconds;
@@ -123,6 +125,7 @@ final class SocketChannel
      *
      * @throws ProtocolError
      */
+    #[\Override]
     public function poll(): ?Message
     {
         $body = $this->buffer->next();
@@ -176,6 +179,7 @@ final class SocketChannel
         return MessageRegistry::open($this->codec->decode($body));
     }
 
+    #[\Override]
     public function isEof(): bool
     {
         return $this->eof;
@@ -189,6 +193,7 @@ final class SocketChannel
         return $this->stream;
     }
 
+    #[\Override]
     public function close(): void
     {
         $this->eof = true;
