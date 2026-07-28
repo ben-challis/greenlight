@@ -45,6 +45,30 @@ final class OrchestratorTest
     }
 
     #[Test]
+    public function aWorkerProcessThatCannotStartFailsWithItsSystemDiagnostic(): void
+    {
+        $missingDirectory = \sys_get_temp_dir()
+            . '/greenlight-missing-' . \bin2hex(\random_bytes(8));
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, 'bin/greenlight'],
+            workingDirectory: $missingDirectory,
+        );
+
+        Expect::that(
+            fn(): ResultSummary => $orchestrator->run(
+                $this->plan(),
+                new CollectingEventSink(),
+                1,
+            ),
+        )
+            ->because('a failed worker start MUST preserve the system diagnostic')
+            ->toThrow(
+                ProtocolError::class,
+                '/Greenlight did not start a worker process: .+/',
+            );
+    }
+
+    #[Test]
     #[Timeout(30.0)]
     public function anInvalidHelloTokenIsRejectedBeforeALegitimateWorkerCompletesThePlan(): void
     {
