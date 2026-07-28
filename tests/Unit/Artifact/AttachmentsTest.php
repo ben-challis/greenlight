@@ -436,6 +436,34 @@ final readonly class AttachmentsTest
     }
 
     #[Test]
+    public function rejectsTamperedStagingContentExactly(): void
+    {
+        $root = $this->tempDirectory->subdirectory('tampered-staging');
+        $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-tampered');
+        $id = new TestId('Example\EvidenceTest', 'fails');
+        $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attachments->text('evidence.txt', 'original');
+        $staged = $attachments->seal()[0];
+        \file_put_contents(
+            $store->session()->stagingDirectory . '/' . $staged->storageKey,
+            'tampered',
+        );
+
+        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: [$staged],
+        )))->toThrow(
+            AttachmentError::class,
+            message: 'Attachment staging content does not match its metadata.',
+        );
+
+        $store->cleanup();
+    }
+
+    #[Test]
     public function completedEvidenceCanBeRecoveredAfterAWorkerCrash(): void
     {
         $root = $this->tempDirectory->subdirectory('recovery');
