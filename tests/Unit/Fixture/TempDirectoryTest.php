@@ -235,6 +235,40 @@ final class TempDirectoryTest
     }
 
     #[Test]
+    public function disposeReportsItsRootWhenTheRootCannotBeRemoved(): void
+    {
+        $owner = new TempDirectory();
+        $temporaryRoot = $owner->subdirectory('blocked-root');
+        $directory = new TempDirectory($temporaryRoot);
+        $path = $directory->path();
+        \chmod($temporaryRoot, 0o500);
+        \clearstatcache(true, $temporaryRoot);
+
+        try {
+            if (\is_writable($temporaryRoot)) {
+                throw new SkipTest('The filesystem does not enforce directory write permissions.');
+            }
+
+            Expect::that(static function () use ($directory): void {
+                $directory->dispose();
+            })
+                ->because('fixture cleanup MUST report a root that it cannot remove')
+                ->toThrow(
+                    \RuntimeException::class,
+                    message: \sprintf(
+                        'Failed to remove temp directory "%s": rmdir(%s): Permission denied.',
+                        $path,
+                        $path,
+                    ),
+                );
+        } finally {
+            \chmod($temporaryRoot, 0o700);
+            $directory->dispose();
+            $owner->dispose();
+        }
+    }
+
+    #[Test]
     public function disposeRemovesASymbolicLinkWithoutChangingItsTarget(): void
     {
         $directory = new TempDirectory();

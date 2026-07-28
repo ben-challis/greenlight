@@ -72,7 +72,7 @@ final class TempDirectory implements Disposable
 public function path(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L21)
 
 ### `subdirectory()`
 
@@ -85,7 +85,7 @@ PHPDoc:
 - `@param string $name A relative path of plain segments. The path can contain separators but cannot contain traversal segments.`
 - `@return non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L49)
 
 ### `dispose()`
 
@@ -94,7 +94,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L72)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L74)
 
 ## `Disposable`
 
