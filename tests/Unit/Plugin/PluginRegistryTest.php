@@ -14,6 +14,24 @@ use Greenlight\Tests\Fixture\Plugins\PrioritizedFakeCapabilityPlugin;
 final class PluginRegistryTest
 {
     #[Test]
+    public function emptyRegistryExposesNoCapabilitiesOrHarnessServices(): void
+    {
+        $registry = PluginRegistry::none();
+
+        Expect::that($registry->testSubscribers())
+            ->because('an empty registry MUST expose no plugin capabilities or harness services')
+            ->toBe([])
+            ->and($registry->retryDeciders())
+            ->toBe([])
+            ->and($registry->runSubscribers())
+            ->toBe([])
+            ->and($registry->harnessServices())
+            ->toBe([])
+            ->and($registry->serviceResolvers())
+            ->toBe([]);
+    }
+
+    #[Test]
     public function capabilityAccessorsFilterPluginsAndKeepStablePriorityOrder(): void
     {
         $late = new PrioritizedFakeCapabilityPlugin(10);
