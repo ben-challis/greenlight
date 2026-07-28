@@ -34,6 +34,37 @@ final class TypeRendererTest
             ->toBe($expected);
     }
 
+    #[Test]
+    public function nullableClassAndNullAcceptingNamedTypesRemainValidPhp(): void
+    {
+        $nullableClassAndMixed = new \ReflectionFunction(
+            static fn(?\ArrayObject $value): mixed => $value,
+        );
+        $returnsNull = new \ReflectionFunction(static fn(): null => null);
+        $nullableClass = $nullableClassAndMixed->getParameters()[0]->getType();
+        $mixed = $nullableClassAndMixed->getReturnType();
+        $null = $returnsNull->getReturnType();
+
+        if (!$nullableClass instanceof \ReflectionType
+            || !$mixed instanceof \ReflectionType
+            || !$null instanceof \ReflectionType
+        ) {
+            Fail::because('Expected each closure to expose its declared type.');
+        }
+
+        $context = new \ReflectionMethod(TypeRenderingChild::class, 'nullable')->getDeclaringClass();
+
+        Expect::that(TypeRenderer::render($nullableClass, $context))
+            ->because('nullable class names MUST retain valid PHP syntax')
+            ->toBe('?\ArrayObject')
+            ->and(TypeRenderer::render($mixed, $context))
+            ->because('mixed MUST NOT gain a nullable prefix')
+            ->toBe('mixed')
+            ->and(TypeRenderer::render($null, $context))
+            ->because('null MUST NOT gain a nullable prefix')
+            ->toBe('null');
+    }
+
     /**
      * @return iterable<string, array{string, int|null, string}>
      */
