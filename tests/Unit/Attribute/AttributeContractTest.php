@@ -23,6 +23,14 @@ use Greenlight\Expect\Expect;
 final class AttributeContractTest
 {
     #[Test]
+    public function skipRejectsAnEmptyReason(): void
+    {
+        Expect::that(static fn(): Skip => new Skip(''))
+            ->because('skip reasons cannot be empty')
+            ->toThrow(\InvalidArgumentException::class, message: 'Skip reasons cannot be empty.');
+    }
+
+    #[Test]
     public function methodOnlyAttributesTargetMethods(): void
     {
         foreach ([Test::class, Before::class, After::class, DataSet::class, NoExpectations::class] as $attribute) {

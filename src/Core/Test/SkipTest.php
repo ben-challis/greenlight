@@ -13,11 +13,20 @@ namespace Greenlight\Core\Test;
 final class SkipTest extends \Exception
 {
     /**
-     * @param non-empty-string $reason
+     * @var non-empty-string
      */
-    public function __construct(
-        public readonly string $reason,
-    ) {
+    public readonly string $reason;
+
+    /**
+     * @throws \InvalidArgumentException If $reason is empty.
+     */
+    public function __construct(string $reason)
+    {
+        if ($reason === '') {
+            throw new \InvalidArgumentException('Skip reasons cannot be empty.');
+        }
+
+        $this->reason = $reason;
         parent::__construct($reason);
     }
 }
