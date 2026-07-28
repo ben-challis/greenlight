@@ -18,9 +18,14 @@ final class ChannelAllocator
     private array $inUse = [];
 
     /**
-     * @param positive-int $bound
+     * @throws \InvalidArgumentException
      */
-    public function __construct(private readonly int $bound) {}
+    public function __construct(private readonly int $bound)
+    {
+        if ($bound < 1) {
+            throw new \InvalidArgumentException('The channel bound must be at least 1.');
+        }
+    }
 
     /**
      * @return positive-int
