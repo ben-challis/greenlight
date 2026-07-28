@@ -175,6 +175,20 @@ final class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function completedAssignmentsCanRequestMemoryRecycling(): void
+    {
+        [$workerExit, $serverExit] = $this->runScenario('completed-assignment-memory-recycle');
+
+        Expect::that($workerExit)
+            ->because('a worker above its memory budget MUST exit cleanly')
+            ->toBe(0)
+            ->and($serverExit)
+            ->because('the protocol fixture MUST receive the memory recycle request')
+            ->toBe(0);
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     #[DataSet('cleanControlChannelEndings')]
     public function controlChannelEndingsStopTheWorkerCleanly(string $scenario): void
     {
@@ -297,6 +311,23 @@ final class WorkerProcessTest
                     ) {
                         exit(6);
                     }
+                }
+
+                exit(0);
+            }
+
+            if ($scenario === 'completed-assignment-memory-recycle') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\ExecutionPlan([]),
+                    recycleAboveMemoryBytes: 1,
+                ));
+                $done = $channel->receive(2.0);
+
+                if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
+                    || $done->summary->total() !== 0
+                    || $done->wantsRecycle !== Greenlight\Core\Event\RecycleReason::Memory
+                ) {
+                    exit(9);
                 }
 
                 exit(0);
