@@ -113,22 +113,45 @@ final readonly class TestId implements WireSerializable, \Stringable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L13)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L16)
+
+### `$method`
+
+```php
+public string $method;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L19)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
-    public string $method,
+    string $class,
+    string $method,
     public ?string $dataSetKey = null,
 )
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $class`
-- `@param non-empty-string $method`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L22)
 
 ### `equals()`
 
@@ -136,7 +159,7 @@ PHPDoc:
 public function equals(self $other): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L39)
 
 ### `__toString()`
 
@@ -145,7 +168,7 @@ public function equals(self $other): bool
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L46)
 
 ### `toWire()`
 
@@ -154,7 +177,7 @@ public function __toString(): string
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L56)
 
 ### `fromWire()`
 
@@ -163,7 +186,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L66)
 
 ## `TestMetadata`
 
