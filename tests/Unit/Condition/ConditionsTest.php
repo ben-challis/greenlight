@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Condition;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Condition\EnvironmentVariableEquals;
@@ -106,5 +107,29 @@ final class ConditionsTest
                 \InvalidArgumentException::class,
                 message: 'Class name MUST NOT be empty.',
             );
+    }
+
+    /**
+     * @param class-string<PhpVersionAtLeast|PhpVersionLessThan> $condition
+     */
+    #[Test]
+    #[DataSet('phpVersionConditions')]
+    public function phpVersionConditionsRejectAnEmptyVersion(string $condition): void
+    {
+        Expect::that(static fn(): object => new $condition(''))
+            ->because('a PHP version condition MUST identify a version')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'PHP version MUST NOT be empty.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{class-string<PhpVersionAtLeast|PhpVersionLessThan>}>
+     */
+    public static function phpVersionConditions(): iterable
+    {
+        yield 'at least' => [PhpVersionAtLeast::class];
+        yield 'less than' => [PhpVersionLessThan::class];
     }
 }
