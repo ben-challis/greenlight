@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Laravel;
 
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\ClassAvailable;
 use Greenlight\Expect\Expect;
 use Greenlight\Laravel\LaravelStateResetter;
 use Illuminate\Support\Str;
 
+#[SkipUnless(ClassAvailable::class, Str::class)]
 final class LaravelStateResetterTest
 {
     #[Test]
