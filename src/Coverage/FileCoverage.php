@@ -14,6 +14,11 @@ namespace Greenlight\Coverage;
 final readonly class FileCoverage
 {
     /**
+     * @var non-empty-string
+     */
+    public string $file;
+
+    /**
      * @var list<positive-int>
      */
     public array $coveredLines;
@@ -24,15 +29,19 @@ final readonly class FileCoverage
     public array $uncoveredLines;
 
     /**
-     * @param non-empty-string $file
      * @param list<int> $coveredLines
      * @param list<int> $uncoveredLines
      */
     public function __construct(
-        public string $file,
+        string $file,
         array $coveredLines,
         array $uncoveredLines,
     ) {
+        if ($file === '') {
+            throw new \InvalidArgumentException('Use a non-empty coverage file path.');
+        }
+
+        $this->file = $file;
         $covered = $this->normalizeLines($coveredLines);
         $coveredSet = \array_fill_keys($covered, true);
         $uncovered = [];
