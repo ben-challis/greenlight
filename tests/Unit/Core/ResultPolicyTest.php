@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Core;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Diagnostic;
@@ -16,6 +17,30 @@ use Greenlight\Expect\Expect;
 
 final class ResultPolicyTest
 {
+    #[Test]
+    #[DataSet('policyActivity')]
+    public function onlyBehaviorChangingFlagsMakeThePolicyActive(ResultPolicy $policy, bool $noOp): void
+    {
+        Expect::that($policy->isNoOp())
+            ->because('worker dispatch MUST omit only behaviorally inactive result policies')
+            ->toBe($noOp);
+    }
+
+    /**
+     * @return iterable<string, array{ResultPolicy, bool}>
+     */
+    public static function policyActivity(): iterable
+    {
+        yield 'default policy' => [new ResultPolicy(), true];
+        yield 'ignore patterns without enforcement' => [
+            new ResultPolicy(ignoreDeprecations: ['legacy *']),
+            true,
+        ];
+        yield 'deprecation enforcement' => [new ResultPolicy(failOnDeprecation: true), false];
+        yield 'notice enforcement' => [new ResultPolicy(failOnNotice: true), false];
+        yield 'risky-test enforcement' => [new ResultPolicy(failOnRisky: true), false];
+    }
+
     #[Test]
     public function aPolicyFlipPreservesTheRestOfTheResult(): void
     {
