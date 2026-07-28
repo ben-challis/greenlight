@@ -32,4 +32,24 @@ final readonly class ReporterSelectionTest
             ->because('the test run does not start')
             ->toBe('');
     }
+
+    #[Test]
+    public function explicitTtyReporterRunsWithoutAnInteractiveTerminal(): void
+    {
+        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'tty-reporter');
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['run', '--workers=1', '--no-ansi', '--reporter=tty'],
+        );
+
+        Expect::that($result->exitCode)
+            ->because('an explicitly selected TTY reporter MUST run without a terminal')
+            ->toBe(0)
+            ->and($result->stdout)
+            ->toContain('7 tests, 7 passed')
+            ->not()
+            ->toContain("\x1b[")
+            ->and($result->stderr)
+            ->toBe('');
+    }
 }

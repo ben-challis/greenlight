@@ -35,6 +35,24 @@ final class StyleTest
     }
 
     #[Test]
+    public function durationColorThresholdsAreInclusive(): void
+    {
+        $ansi = new Style(ansi: true);
+
+        Expect::that($ansi->duration(0.999))
+            ->because('durations below one second remain uncolored')
+            ->toBe('0.999s')
+            ->and($ansi->duration(1.0))
+            ->because('one second enters the warning band')
+            ->toBe("\x1b[33m1.000s\x1b[0m")
+            ->and($ansi->duration(4.999))
+            ->toBe("\x1b[33m4.999s\x1b[0m")
+            ->and($ansi->duration(5.0))
+            ->because('five seconds enters the error band')
+            ->toBe("\x1b[31m5.000s\x1b[0m");
+    }
+
+    #[Test]
     public function durationsStayPlainWithoutAnsi(): void
     {
         $plain = new Style(ansi: false);

@@ -396,6 +396,18 @@ final readonly class ClassAvailable implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $class)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L22)
+
 ### `isSatisfied()`
 
 ```php
@@ -403,7 +415,7 @@ final readonly class ClassAvailable implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L31)
 
 ## `EnvironmentVariableEquals`
 
@@ -531,6 +543,18 @@ final readonly class PhpVersionAtLeast implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $version)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -538,7 +562,7 @@ final readonly class PhpVersionAtLeast implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L28)
 
 ## `PhpVersionLessThan`
 
@@ -550,6 +574,18 @@ final readonly class PhpVersionLessThan implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $version)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -557,4 +593,4 @@ final readonly class PhpVersionLessThan implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L28)

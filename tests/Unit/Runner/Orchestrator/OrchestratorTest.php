@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Event\RecycleReason;
+use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
@@ -23,6 +24,7 @@ use Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
+use Greenlight\Tests\Fixture\Runner\Orchestrator\DisconnectBeforeAssignmentWorker;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final class OrchestratorTest
@@ -88,6 +90,39 @@ final class OrchestratorTest
             ->and($results)->toHaveCount(1)
             ->and((string) $results[0]->id)
             ->toBe(CleanTest::class . '::passesAndIsCollectable');
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
+    public function aWorkerThatDisconnectsBeforeAssignmentIsReplaced(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $bootstrap = \sprintf(
+            'require %s; exit(%s::run($argv[2], $argv[3], $argv[4]));',
+            \var_export($root . '/vendor/autoload.php', true),
+            DisconnectBeforeAssignmentWorker::class,
+        );
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, '-r', $bootstrap],
+            workingDirectory: $root,
+        );
+        $sink = new CollectingEventSink();
+
+        $summary = $orchestrator->run($this->passingPlan(), $sink, 1);
+        $workers = [];
+
+        foreach ($sink->events as $event) {
+            if ($event instanceof TestClassStarted) {
+                $workers[] = $event->workerId;
+            }
+        }
+
+        Expect::that($summary->passed)
+            ->because('a replacement worker MUST complete the undelivered assignment')
+            ->toBe(1)
+            ->and($workers)
+            ->because('the disconnected worker MUST NOT start the test class')
+            ->toBe(['w-2']);
     }
 
     #[Test]

@@ -26,13 +26,11 @@ final readonly class TemporalExpectationRunTest
         namespace TemporalProbe;
 
         use Greenlight\Attribute\Test;
-        use Greenlight\Attribute\Timeout;
         use Greenlight\Expect\Expect;
 
         final class AsynchronousAdapterTest
         {
             #[Test]
-            #[Timeout(2.0)]
             public function observesStateWrittenByAnotherProcess(): void
             {
                 $marker = \tempnam(\sys_get_temp_dir(), 'greenlight-eventual-');
@@ -45,22 +43,60 @@ final readonly class TemporalExpectationRunTest
                 $process = \proc_open([
                     \PHP_BINARY,
                     '-r',
-                    'usleep(50_000); file_put_contents($argv[1], "ready");',
+                    <<<'PHP'
+                    fwrite(STDOUT, "ready\n");
+                    fflush(STDOUT);
+
+                    if (fgets(STDIN) !== false) {
+                        file_put_contents($argv[1], "ready");
+                    }
+                    PHP,
                     $marker,
-                ], [], $pipes);
+                ], [
+                    ['pipe', 'r'],
+                    ['pipe', 'w'],
+                ], $pipes);
 
                 if (!\is_resource($process)) {
                     throw new \RuntimeException('Could not start the asynchronous writer.');
                 }
 
                 try {
+                    if (
+                        !isset($pipes[0], $pipes[1])
+                        || !\is_resource($pipes[0])
+                        || !\is_resource($pipes[1])
+                        || \fgets($pipes[1]) !== "ready\n"
+                    ) {
+                        throw new \RuntimeException('The asynchronous writer did not become ready.');
+                    }
+
+                    \fclose($pipes[1]);
+                    $released = false;
+
                     Expect::eventually(
-                        static fn(): string|false => \file_get_contents($marker),
+                        static function () use ($marker, $pipes, &$released): string|false {
+                            $state = \is_file($marker) ? \file_get_contents($marker) : false;
+
+                            if (!$released) {
+                                \fwrite($pipes[0], "write\n");
+                                \fflush($pipes[0]);
+                                $released = true;
+                            }
+
+                            return $state;
+                        },
                     )
                         ->pollEvery(0.010)
                         ->within(1.0)
                         ->toBe('ready');
                 } finally {
+                    foreach ($pipes as $pipe) {
+                        if (\is_resource($pipe)) {
+                            \fclose($pipe);
+                        }
+                    }
+
                     \proc_close($process);
 
                     if (\is_file($marker)) {

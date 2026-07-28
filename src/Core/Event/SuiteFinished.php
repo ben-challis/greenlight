@@ -9,9 +9,21 @@ use Greenlight\Core\Wire\Wire;
 final readonly class SuiteFinished implements Event
 {
     /**
-     * @param non-empty-string $suite
+     * @var non-empty-string
      */
-    public function __construct(public string $suite, public float $occurredAt) {}
+    public string $suite;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $suite, public float $occurredAt)
+    {
+        if ($suite === '') {
+            throw new \InvalidArgumentException('Suite name MUST NOT be empty.');
+        }
+
+        $this->suite = $suite;
+    }
 
     #[\Override]
     public function toWire(): array

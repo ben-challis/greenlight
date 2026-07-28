@@ -46,6 +46,28 @@ final readonly class InProcessRunnerTest
     }
 
     #[Test]
+    public function explicitSeedIsReportedAndReproducesTheRunOrder(): void
+    {
+        $configuration = GreenlightConfig::create()->randomizeOrder(seed: 4242)->build();
+        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $runner = new InProcessRunner($this->tempDirectory->path());
+        $firstSink = new CollectingEventSink();
+        $secondSink = new CollectingEventSink();
+
+        $first = $runner->run($configuration, [$fixtureDirectory], $firstSink);
+        $second = $runner->run($configuration, [$fixtureDirectory], $secondSink);
+
+        Expect::that($first->seed)
+            ->because('the run result MUST report its explicit random seed')
+            ->toBe(4242)
+            ->and($second->seed)
+            ->toBe(4242)
+            ->and($this->resultIds($firstSink))
+            ->because('the same explicit seed MUST reproduce the in-process run order')
+            ->toBe($this->resultIds($secondSink));
+    }
+
+    #[Test]
     public function shardsPartitionAnInProcessRunWithoutLossOrDuplication(): void
     {
         $runner = new InProcessRunner($this->tempDirectory->path());

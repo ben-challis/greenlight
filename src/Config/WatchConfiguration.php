@@ -8,7 +8,22 @@ namespace Greenlight\Config;
 final readonly class WatchConfiguration
 {
     /**
-     * @param positive-int $debounceMilliseconds
+     * @var positive-int
      */
-    public function __construct(public int $debounceMilliseconds = 200) {}
+    public int $debounceMilliseconds;
+
+    /**
+     * @throws InvalidConfiguration
+     */
+    public function __construct(int $debounceMilliseconds = 200)
+    {
+        if ($debounceMilliseconds < 1) {
+            throw new InvalidConfiguration(\sprintf(
+                'The watch debounce must be at least 1 millisecond, got %d.',
+                $debounceMilliseconds,
+            ));
+        }
+
+        $this->debounceMilliseconds = $debounceMilliseconds;
+    }
 }

@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Cli;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Cli\Application;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\EnvironmentSandbox;
+
+final readonly class ApplicationTerminalRowsTest
+{
+    public function __construct(private EnvironmentSandbox $environment) {}
+
+    #[Test]
+    public function linesEnvironmentVariableSetsTerminalRows(): void
+    {
+        $this->environment->set('LINES', '37');
+
+        $application = new \ReflectionClass(Application::class)->newInstanceWithoutConstructor();
+        $rows = new \ReflectionMethod(Application::class, 'terminalRows')->invoke($application);
+
+        Expect::that($rows)
+            ->because('a positive LINES value MUST set the reporter terminal height')
+            ->toBe(37);
+    }
+}

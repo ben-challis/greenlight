@@ -12,10 +12,64 @@ use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 use Greenlight\Runner\PluginEventSink;
+use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final class PluginEventSinkTest
 {
+    #[Test]
+    public function subscribersReceiveTheExactEventBeforeTheInnerSink(): void
+    {
+        /** @var \ArrayObject<int, array{string, Event}> $calls */
+        $calls = new \ArrayObject();
+        $subscriber = (static fn(string $name): RunLifecycleSubscriber =>
+            new readonly class ($calls, $name) implements RunLifecycleSubscriber, Fake {
+                /**
+                 * @param \ArrayObject<int, array{string, Event}> $calls
+                 */
+                public function __construct(
+                    private \ArrayObject $calls,
+                    private string $name,
+                ) {}
+
+                #[\Override]
+                public function onRunEvent(Event $event): void
+                {
+                    $this->calls->append([$this->name, $event]);
+                }
+            });
+        $inner = new readonly class ($calls) implements EventSink, Fake {
+            /**
+             * @param \ArrayObject<int, array{string, Event}> $calls
+             */
+            public function __construct(private \ArrayObject $calls) {}
+
+            #[\Override]
+            public function emit(Event $event): void
+            {
+                $this->calls->append(['inner', $event]);
+            }
+        };
+        $sink = new PluginEventSink(
+            PluginRegistry::orchestratorSide([
+                $subscriber('first'),
+                $subscriber('second'),
+            ]),
+            $inner,
+        );
+        $event = new SuiteStarted('unit', 1.0);
+
+        $sink->emit($event);
+
+        Expect::that($calls->getArrayCopy())
+            ->because('run subscribers MUST receive the exact event in order before the inner sink')
+            ->toBe([
+                ['first', $event],
+                ['second', $event],
+                ['inner', $event],
+            ]);
+    }
+
     #[Test]
     public function aSubscriberFailurePropagatesBeforeTheInnerSinkReceivesTheEvent(): void
     {
