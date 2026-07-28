@@ -15,6 +15,7 @@ parameters:
         analyse:
             - tests/Fixture/DataRowsDuplicateInline
             - tests/Fixture/DiscoveryAttributeArgumentsInvalid
+            - tests/Fixture/DiscoveryGroupInvalid
             - tests/Fixture/DiscoveryInvalidMethods
             - tests/Fixture/DiscoveryResourceInvalid
     greenlight:

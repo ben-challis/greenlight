@@ -150,17 +150,29 @@ final readonly class Group
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L8)
 
-### `__construct()`
+### `$name`
 
 ```php
-public function __construct(public string $name)
+public string $name;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $name`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L13)
+
+### `__construct()`
+
+```php
+public function __construct(string $name)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L18)
 
 ## `Isolated`
 

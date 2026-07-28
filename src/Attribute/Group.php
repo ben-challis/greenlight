@@ -8,7 +8,19 @@ namespace Greenlight\Attribute;
 final readonly class Group
 {
     /**
-     * @param non-empty-string $name
+     * @var non-empty-string
      */
-    public function __construct(public string $name) {}
+    public string $name;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $name)
+    {
+        if ($name === '') {
+            throw new \InvalidArgumentException('Group names cannot be empty.');
+        }
+
+        $this->name = $name;
+    }
 }

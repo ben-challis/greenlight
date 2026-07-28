@@ -9,6 +9,7 @@ use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -17,6 +18,7 @@ use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysFalse;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\MergedTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\PlainTest;
+use Greenlight\Tests\Fixture\DiscoveryGroupInvalid\EmptyGroupTest;
 
 final class AttributeMergeTest
 {
@@ -137,6 +139,24 @@ final class AttributeMergeTest
         }
 
         Fail::because('Expected discovery to reject an invalid resource name.');
+    }
+
+    #[Test]
+    public function anEmptyGroupNameIsReportedAsAnInvalidAttribute(): void
+    {
+        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryGroupInvalid';
+
+        Expect::that(
+            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]),
+        )
+            ->because('an empty group name cannot enter the execution plan')
+            ->toThrow(
+                DiscoveryError::class,
+                message: \sprintf(
+                    'Attribute on %s::neverDiscovered() is invalid: Group names cannot be empty.',
+                    EmptyGroupTest::class,
+                ),
+            );
     }
 
     #[Test]
