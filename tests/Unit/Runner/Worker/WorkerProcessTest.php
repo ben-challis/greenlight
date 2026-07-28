@@ -133,6 +133,20 @@ final class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function emptyAssignmentsCompleteBeforeTheWorkerDrains(): void
+    {
+        [$workerExit, $serverExit] = $this->runScenario('empty-assignment');
+
+        Expect::that($workerExit)
+            ->because('an empty assignment MUST complete and leave the worker available to drain')
+            ->toBe(0)
+            ->and($serverExit)
+            ->because('the protocol fixture MUST receive the empty completion before it drains the worker')
+            ->toBe(0);
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     #[DataSet('cleanControlChannelEndings')]
     public function controlChannelEndingsStopTheWorkerCleanly(string $scenario): void
     {
@@ -196,12 +210,24 @@ final class WorkerProcessTest
                 exit(0);
             }
 
-            if ($scenario === 'unexpected-then-drain') {
+            if ($scenario === 'empty-assignment') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\ExecutionPlan([]),
+                ));
+                $done = $channel->receive(2.0);
+
+                if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
+                    || $done->summary->total() !== 0
+                    || $done->wantsRecycle !== null
+                ) {
+                    exit(5);
+                }
+            } elseif ($scenario === 'unexpected-then-drain') {
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Hello('unexpected', 'token', 1));
             } elseif ($scenario === 'idle-then-drain') {
                 usleep(100_000);
             } else {
-                exit(5);
+                exit(6);
             }
 
             $channel->send(new Greenlight\Runner\Protocol\Messages\Drain());
