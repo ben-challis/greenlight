@@ -77,17 +77,29 @@ final readonly class TestChannel
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestChannel.php#L16)
 
-### `__construct()`
+### `$number`
 
 ```php
-public function __construct(public int $number)
+public int $number;
 ```
 
 PHPDoc:
 
-- `@param positive-int $number`
+- `@var positive-int`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestChannel.php#L21)
+
+### `__construct()`
+
+```php
+public function __construct(int $number)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestChannel.php#L26)
 
 ### `label()`
 
@@ -99,7 +111,7 @@ PHPDoc:
 
 - `@return non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestChannel.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestChannel.php#L38)
 
 ## `TestId`
 
