@@ -98,7 +98,7 @@ final readonly class SubprocessTest
     }
 
     #[Test]
-    public function readStdoutUntilStopsWaitingWhenTheProcessExits(): void
+    public function readStdoutUntilReportsAProcessThatAlreadyExited(): void
     {
         $process = Subprocess::start(
             $this->workspace->path(),
@@ -106,6 +106,11 @@ final readonly class SubprocessTest
         );
 
         try {
+            $result = $process->complete();
+
+            Expect::that($result->exitCode)->toBe(9)
+                ->and($result->stderr)->toBe('failed');
+
             Expect::that(static fn(): string => $process->readStdoutUntil('ready', 2.0))
                 ->toThrow(\RuntimeException::class, '/Process exited before stdout contained/');
         } finally {
