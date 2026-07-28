@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Acceptance;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+
+final readonly class WatchDiscoveryErrorTest
+{
+    public function __construct(private TempDirectory $tempDirectory) {}
+
+    #[Test]
+    public function watchReportsDiscoveryErrorsAndKeepsWaiting(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'watch-discovery-error');
+        $project->writeFile('tests/WatchProbeTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace WatchDiscoveryError;
+
+            use Greenlight\Attribute\Test;
+
+            final class WatchProbeTest
+            {
+                #[Test]
+                public function passes(): void {}
+            }
+            PHP);
+        $project->configureWithTestFiles(['tests/WatchProbeTest.php'], workers: 1);
+        $process = GreenlightCli::start(
+            $project->directory,
+            ['run', '--watch', '--reporter=plain'],
+        );
+
+        try {
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+            Expect::that($output)
+                ->because('watch mode MUST complete its initial valid run')
+                ->toContain('1 test, 1 passed');
+
+            $project->writeFile('tests/BrokenTest.php', <<<'PHP'
+                <?php
+
+                declare(strict_types=1);
+
+                namespace WatchDiscoveryError;
+
+                final class WrongName {}
+                PHP);
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+            Expect::that($output)
+                ->because('watch mode MUST continue after a discovery error')
+                ->toContain('Detected changes');
+
+            $process->write('q');
+            $result = $process->wait(10.0);
+
+            Expect::that($result->exitCode)
+                ->because('watch mode MUST remain available after a discovery error')
+                ->toBe(0)
+                ->and($result->stderr)
+                ->because('watch mode MUST report the discovery error')
+                ->toContain('BrokenTest.php')
+                ->toContain('WrongName');
+        } finally {
+            $process->terminate();
+        }
+    }
+}
