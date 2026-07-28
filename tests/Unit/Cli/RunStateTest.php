@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\RunState;
+use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 
 final class RunStateTest
@@ -59,6 +60,29 @@ final class RunStateTest
         Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         @\unlink($file);
+    }
+
+    #[Test]
+    public function unreadableStateReadsAsAbsent(): void
+    {
+        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
+        $file = $this->stateFileFor($directory);
+        \file_put_contents($file, '{"failed":["Acme\\\\AlphaTest::one"]}');
+        \chmod($file, 0o000);
+        \clearstatcache(true, $file);
+
+        try {
+            if (\is_readable($file)) {
+                throw new SkipTest('The filesystem does not enforce unreadable file permissions.');
+            }
+
+            Expect::that(RunState::forWorkingDirectory($directory)->failedTests())
+                ->because('unreadable advisory state MUST behave as absent state')
+                ->toBeNull();
+        } finally {
+            \chmod($file, 0o600);
+            @\unlink($file);
+        }
     }
 
     #[Test]
