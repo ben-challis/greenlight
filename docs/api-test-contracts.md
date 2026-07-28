@@ -45,19 +45,29 @@ final class SkipTest extends \Exception
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L13)
 
-### `__construct()`
+### `$reason`
 
 ```php
-public function __construct(
-    public readonly string $reason,
-)
+public readonly string $reason;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $reason`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L18)
+
+### `__construct()`
+
+```php
+public function __construct(string $reason)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException If $reason is empty.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/SkipTest.php#L23)
 
 ## `TestChannel`
 

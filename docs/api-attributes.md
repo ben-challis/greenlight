@@ -284,17 +284,29 @@ final readonly class Skip
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L8)
 
-### `__construct()`
+### `$reason`
 
 ```php
-public function __construct(public string $reason)
+public string $reason;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $reason`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L13)
+
+### `__construct()`
+
+```php
+public function __construct(string $reason)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException If $reason is empty.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L18)
 
 ## `SkipUnless`
 
