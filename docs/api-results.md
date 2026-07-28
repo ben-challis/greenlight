@@ -262,11 +262,23 @@ final readonly class OutcomeTransformation implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L11)
 
+### `$transformedBy`
+
+```php
+public string $transformedBy;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L16)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $transformedBy,
+    string $transformedBy,
     public Outcome $from,
     public Outcome $to,
 )
@@ -274,9 +286,9 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $transformedBy`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L21)
 
 ### `toWire()`
 
@@ -285,7 +297,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L33)
 
 ### `fromWire()`
 
@@ -294,7 +306,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L43)
 
 ## `ResultSummary`
 
