@@ -210,6 +210,14 @@ final class CoverageMapTest
             ['files' => ['/src/A.php' => [['one'], []]]],
             '/positive line numbers/',
         ];
+        yield 'zero line number' => [
+            ['files' => ['/src/A.php' => [[0], []]]],
+            '/positive line numbers/',
+        ];
+        yield 'negative line number' => [
+            ['files' => ['/src/A.php' => [[-1], []]]],
+            '/positive line numbers/',
+        ];
     }
 
     private function sampleA(): CoverageMap
