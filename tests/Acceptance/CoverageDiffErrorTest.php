@@ -16,6 +16,40 @@ final readonly class CoverageDiffErrorTest
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
+    #[DataSet('missingExportLabels')]
+    public function missingCoverageExportsNameTheirRole(string $missingLabel): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-missing-' . $missingLabel);
+        $presentLabel = $missingLabel === 'baseline' ? 'current' : 'baseline';
+        $project->writeFile($presentLabel . '.json', '{"v":1,"files":{}}');
+
+        $result = GreenlightCli::run($project->directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('missing coverage exports name their role')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain(\sprintf(
+                'Greenlight could not read the %s coverage export at "%s.json"',
+                $missingLabel,
+                $missingLabel,
+            ));
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function missingExportLabels(): iterable
+    {
+        yield 'baseline' => ['baseline'];
+        yield 'current' => ['current'];
+    }
+
+    #[Test]
     #[DataSet('invalidExportLabels')]
     public function malformedCoverageExportsNameTheirRole(string $invalidLabel): void
     {
