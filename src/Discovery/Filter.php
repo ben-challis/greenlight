@@ -12,7 +12,7 @@ use Greenlight\Core\Wildcard;
  *
  * A test satisfies an include dimension if it matches one include value. It
  * must satisfy each applicable dimension. An exclude value always has
- * priority.
+ * priority. A filter value cannot be empty.
  *
  * accepts() applies group, class, method, and path filters. Class and method
  * filters match part of the text. A filter with "*" or "?" uses a shell wildcard.
@@ -26,30 +26,71 @@ use Greenlight\Core\Wildcard;
  */
 final readonly class Filter
 {
+    /** @var list<non-empty-string> */
+    public array $includeGroups;
+
+    /** @var list<non-empty-string> */
+    public array $excludeGroups;
+
+    /** @var list<non-empty-string> */
+    public array $includeClasses;
+
+    /** @var list<non-empty-string> */
+    public array $excludeClasses;
+
+    /** @var list<non-empty-string> */
+    public array $includeMethods;
+
+    /** @var list<non-empty-string> */
+    public array $excludeMethods;
+
+    /** @var list<non-empty-string> */
+    public array $includePaths;
+
+    /** @var list<non-empty-string> */
+    public array $excludePaths;
+
+    /** @var list<non-empty-string> */
+    public array $includeIds;
+
+    /** @var list<non-empty-string> */
+    public array $includeExactIds;
+
     /**
-     * @param list<non-empty-string> $includeGroups
-     * @param list<non-empty-string> $excludeGroups
-     * @param list<non-empty-string> $includeClasses
-     * @param list<non-empty-string> $excludeClasses
-     * @param list<non-empty-string> $includeMethods
-     * @param list<non-empty-string> $excludeMethods
-     * @param list<non-empty-string> $includePaths
-     * @param list<non-empty-string> $excludePaths
-     * @param list<non-empty-string> $includeIds
-     * @param list<non-empty-string> $includeExactIds
+     * @param list<string> $includeGroups
+     * @param list<string> $excludeGroups
+     * @param list<string> $includeClasses
+     * @param list<string> $excludeClasses
+     * @param list<string> $includeMethods
+     * @param list<string> $excludeMethods
+     * @param list<string> $includePaths
+     * @param list<string> $excludePaths
+     * @param list<string> $includeIds
+     * @param list<string> $includeExactIds
      */
     public function __construct(
-        public array $includeGroups = [],
-        public array $excludeGroups = [],
-        public array $includeClasses = [],
-        public array $excludeClasses = [],
-        public array $includeMethods = [],
-        public array $excludeMethods = [],
-        public array $includePaths = [],
-        public array $excludePaths = [],
-        public array $includeIds = [],
-        public array $includeExactIds = [],
-    ) {}
+        array $includeGroups = [],
+        array $excludeGroups = [],
+        array $includeClasses = [],
+        array $excludeClasses = [],
+        array $includeMethods = [],
+        array $excludeMethods = [],
+        array $includePaths = [],
+        array $excludePaths = [],
+        array $includeIds = [],
+        array $includeExactIds = [],
+    ) {
+        $this->includeGroups = $this->validated($includeGroups, 'includeGroups');
+        $this->excludeGroups = $this->validated($excludeGroups, 'excludeGroups');
+        $this->includeClasses = $this->validated($includeClasses, 'includeClasses');
+        $this->excludeClasses = $this->validated($excludeClasses, 'excludeClasses');
+        $this->includeMethods = $this->validated($includeMethods, 'includeMethods');
+        $this->excludeMethods = $this->validated($excludeMethods, 'excludeMethods');
+        $this->includePaths = $this->validated($includePaths, 'includePaths');
+        $this->excludePaths = $this->validated($excludePaths, 'excludePaths');
+        $this->includeIds = $this->validated($includeIds, 'includeIds');
+        $this->includeExactIds = $this->validated($includeExactIds, 'includeExactIds');
+    }
 
     public static function all(): self
     {
@@ -128,5 +169,25 @@ final readonly class Filter
     private function anyPrefixMatches(string $path, array $prefixes): bool
     {
         return \array_any($prefixes, static fn(string $prefix): bool => \str_starts_with($path, $prefix));
+    }
+
+    /**
+     * @param list<string> $values
+     *
+     * @return list<non-empty-string>
+     */
+    private function validated(array $values, string $name): array
+    {
+        $validated = [];
+
+        foreach ($values as $value) {
+            if ($value === '') {
+                throw new \InvalidArgumentException(\sprintf('Filter list "%s" must contain only non-empty strings.', $name));
+            }
+
+            $validated[] = $value;
+        }
+
+        return $validated;
     }
 }

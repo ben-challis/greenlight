@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Discovery;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\Filter;
@@ -38,6 +39,39 @@ final class FilterTest
     public function emptyFilterAcceptsEverything(): void
     {
         Expect::that(Filter::all()->accepts('App\FooTest', 'bar', [], '/src/FooTest.php'))->because('empty filter accepts everything')->toBeTrue();
+    }
+
+    /**
+     * @param \Closure(): Filter $create
+     * @param non-empty-string $name
+     */
+    #[Test]
+    #[DataSet('filterListsWithAnEmptyValue')]
+    public function filterListsRejectEmptyValues(\Closure $create, string $name): void
+    {
+        Expect::that($create)
+            ->because('filter list values must not be empty')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: \sprintf('Filter list "%s" must contain only non-empty strings.', $name),
+            );
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): Filter, non-empty-string}>
+     */
+    public static function filterListsWithAnEmptyValue(): iterable
+    {
+        yield 'include groups' => [static fn(): Filter => new Filter(includeGroups: ['']), 'includeGroups'];
+        yield 'exclude groups' => [static fn(): Filter => new Filter(excludeGroups: ['']), 'excludeGroups'];
+        yield 'include classes' => [static fn(): Filter => new Filter(includeClasses: ['']), 'includeClasses'];
+        yield 'exclude classes' => [static fn(): Filter => new Filter(excludeClasses: ['']), 'excludeClasses'];
+        yield 'include methods' => [static fn(): Filter => new Filter(includeMethods: ['']), 'includeMethods'];
+        yield 'exclude methods' => [static fn(): Filter => new Filter(excludeMethods: ['']), 'excludeMethods'];
+        yield 'include paths' => [static fn(): Filter => new Filter(includePaths: ['']), 'includePaths'];
+        yield 'exclude paths' => [static fn(): Filter => new Filter(excludePaths: ['']), 'excludePaths'];
+        yield 'include IDs' => [static fn(): Filter => new Filter(includeIds: ['']), 'includeIds'];
+        yield 'include exact IDs' => [static fn(): Filter => new Filter(includeExactIds: ['']), 'includeExactIds'];
     }
 
     #[Test]
