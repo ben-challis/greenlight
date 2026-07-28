@@ -26,30 +26,71 @@ use Greenlight\Core\Wildcard;
  */
 final readonly class Filter
 {
+    /** @var list<non-empty-string> */
+    public array $includeGroups;
+
+    /** @var list<non-empty-string> */
+    public array $excludeGroups;
+
+    /** @var list<non-empty-string> */
+    public array $includeClasses;
+
+    /** @var list<non-empty-string> */
+    public array $excludeClasses;
+
+    /** @var list<non-empty-string> */
+    public array $includeMethods;
+
+    /** @var list<non-empty-string> */
+    public array $excludeMethods;
+
+    /** @var list<non-empty-string> */
+    public array $includePaths;
+
+    /** @var list<non-empty-string> */
+    public array $excludePaths;
+
+    /** @var list<non-empty-string> */
+    public array $includeIds;
+
+    /** @var list<non-empty-string> */
+    public array $includeExactIds;
+
     /**
-     * @param list<non-empty-string> $includeGroups
-     * @param list<non-empty-string> $excludeGroups
-     * @param list<non-empty-string> $includeClasses
-     * @param list<non-empty-string> $excludeClasses
-     * @param list<non-empty-string> $includeMethods
-     * @param list<non-empty-string> $excludeMethods
-     * @param list<non-empty-string> $includePaths
-     * @param list<non-empty-string> $excludePaths
-     * @param list<non-empty-string> $includeIds
-     * @param list<non-empty-string> $includeExactIds
+     * @param list<string> $includeGroups
+     * @param list<string> $excludeGroups
+     * @param list<string> $includeClasses
+     * @param list<string> $excludeClasses
+     * @param list<string> $includeMethods
+     * @param list<string> $excludeMethods
+     * @param list<string> $includePaths
+     * @param list<string> $excludePaths
+     * @param list<string> $includeIds
+     * @param list<string> $includeExactIds
      */
     public function __construct(
-        public array $includeGroups = [],
-        public array $excludeGroups = [],
-        public array $includeClasses = [],
-        public array $excludeClasses = [],
-        public array $includeMethods = [],
-        public array $excludeMethods = [],
-        public array $includePaths = [],
-        public array $excludePaths = [],
-        public array $includeIds = [],
-        public array $includeExactIds = [],
-    ) {}
+        array $includeGroups = [],
+        array $excludeGroups = [],
+        array $includeClasses = [],
+        array $excludeClasses = [],
+        array $includeMethods = [],
+        array $excludeMethods = [],
+        array $includePaths = [],
+        array $excludePaths = [],
+        array $includeIds = [],
+        array $includeExactIds = [],
+    ) {
+        $this->includeGroups = $this->validateValues('includeGroups', $includeGroups);
+        $this->excludeGroups = $this->validateValues('excludeGroups', $excludeGroups);
+        $this->includeClasses = $this->validateValues('includeClasses', $includeClasses);
+        $this->excludeClasses = $this->validateValues('excludeClasses', $excludeClasses);
+        $this->includeMethods = $this->validateValues('includeMethods', $includeMethods);
+        $this->excludeMethods = $this->validateValues('excludeMethods', $excludeMethods);
+        $this->includePaths = $this->validateValues('includePaths', $includePaths);
+        $this->excludePaths = $this->validateValues('excludePaths', $excludePaths);
+        $this->includeIds = $this->validateValues('includeIds', $includeIds);
+        $this->includeExactIds = $this->validateValues('includeExactIds', $includeExactIds);
+    }
 
     public static function all(): self
     {
@@ -128,5 +169,29 @@ final readonly class Filter
     private function anyPrefixMatches(string $path, array $prefixes): bool
     {
         return \array_any($prefixes, static fn(string $prefix): bool => \str_starts_with($path, $prefix));
+    }
+
+    /**
+     * @param non-empty-string $dimension
+     * @param list<string> $values
+     *
+     * @return list<non-empty-string>
+     */
+    private function validateValues(string $dimension, array $values): array
+    {
+        $validated = [];
+
+        foreach ($values as $value) {
+            if ($value === '') {
+                throw new \InvalidArgumentException(\sprintf(
+                    'Filter "%s" MUST contain only non-empty strings.',
+                    $dimension,
+                ));
+            }
+
+            $validated[] = $value;
+        }
+
+        return $validated;
     }
 }
