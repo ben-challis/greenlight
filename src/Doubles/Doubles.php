@@ -43,13 +43,17 @@ final class Doubles implements Disposable
     private \WeakMap $doubles;
 
     /**
-     * @param non-empty-string|null $proxyDirectory Directory for generated
-     *   proxy classes. The default is a project directory in the system
-     *   temporary directory. A hash of the current working directory
-     *   identifies it.
+     * @param string|null $proxyDirectory Directory for generated proxy
+     *   classes. An empty string is invalid. The default is a project
+     *   directory in the system temporary directory. A hash of the current
+     *   working directory identifies it.
      */
     public function __construct(?string $proxyDirectory = null)
     {
+        if ($proxyDirectory === '') {
+            throw new \InvalidArgumentException('Proxy directory MUST NOT be empty.');
+        }
+
         if ($proxyDirectory === null) {
             $workingDirectory = \getcwd();
 
