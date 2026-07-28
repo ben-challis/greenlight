@@ -46,8 +46,12 @@ final readonly class JsonFrameCodec implements FrameCodec
             throw ProtocolError::malformedFrame('body is not valid JSON: ' . $e->getMessage());
         }
 
-        if (!\is_array($decoded)) {
-            throw ProtocolError::malformedFrame('body decodes to ' . \get_debug_type($decoded) . ', not a map');
+        if (!\is_array($decoded)
+            || (\array_is_list($decoded) && !\str_starts_with(\ltrim($body), '{'))
+        ) {
+            $type = \is_array($decoded) ? 'list' : \get_debug_type($decoded);
+
+            throw ProtocolError::malformedFrame('body decodes to ' . $type . ', not a map');
         }
 
         $envelope = [];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -92,5 +93,39 @@ final class JsonFrameCodecTest
                 ProtocolError::class,
                 message: 'Malformed frame: body decodes to null, not a map.',
             );
+    }
+
+    /**
+     * @param non-empty-string $body
+     */
+    #[Test]
+    #[DataSet('jsonLists')]
+    public function jsonListBodyProducesAProtocolError(string $body): void
+    {
+        $codec = new JsonFrameCodec();
+
+        Expect::that(static fn(): array => $codec->decode($body))
+            ->because('a JSON list is not a protocol envelope map')
+            ->toThrow(
+                ProtocolError::class,
+                message: 'Malformed frame: body decodes to list, not a map.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function jsonLists(): iterable
+    {
+        yield 'empty list' => ['[]'];
+        yield 'non-empty list' => ['[{"v":1,"t":"ready","p":[]}]'];
+    }
+
+    #[Test]
+    public function emptyJsonObjectRemainsAValidMap(): void
+    {
+        Expect::that(new JsonFrameCodec()->decode('{}'))
+            ->because('an empty JSON object is still a protocol map')
+            ->toBe([]);
     }
 }
