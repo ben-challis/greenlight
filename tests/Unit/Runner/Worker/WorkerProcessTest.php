@@ -9,11 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Worker\WorkerProcess;
 use Greenlight\Tests\Support\Subprocess;
 
-final class WorkerProcessTest
+final readonly class WorkerProcessTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function connectionFailureNamesTheExactAddress(): void
     {
@@ -189,6 +192,21 @@ final class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function assignmentArtifactSettingsStageWorkerEvidence(): void
+    {
+        $artifactRoot = $this->tempDirectory->subdirectory('worker-artifact-session');
+        [$workerExit, $serverExit] = $this->runScenario('artifact-assignment', $artifactRoot);
+
+        Expect::that($workerExit)
+            ->because('a worker with artifact settings MUST complete its assignment')
+            ->toBe(0)
+            ->and($serverExit)
+            ->because('the worker MUST stage evidence in the assigned artifact session')
+            ->toBe(0);
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     #[DataSet('cleanControlChannelEndings')]
     public function controlChannelEndingsStopTheWorkerCleanly(string $scenario): void
     {
@@ -213,7 +231,7 @@ final class WorkerProcessTest
     /**
      * @return array{int, int}
      */
-    private function runScenario(string $scenario): array
+    private function runScenario(string $scenario, string $artifactRoot = ''): array
     {
         $root = \dirname(__DIR__, 4);
         $server = Subprocess::start($root, [
@@ -223,6 +241,7 @@ final class WorkerProcessTest
             require $argv[1];
 
             $scenario = $argv[2];
+            $artifactRoot = $argv[3];
             $socketPath = '/tmp/greenlight-worker-' . bin2hex(random_bytes(6)) . '.sock';
             register_shutdown_function(static fn() => @unlink($socketPath));
             $address = 'unix://' . $socketPath;
@@ -316,6 +335,61 @@ final class WorkerProcessTest
                 exit(0);
             }
 
+            if ($scenario === 'artifact-assignment') {
+                $class = Greenlight\Tests\Fixture\WorkerProcess\WorkerAttachmentTest::class;
+                $id = new Greenlight\Core\Test\TestId($class, 'recordsEvidence');
+                $session = new Greenlight\Runner\Artifact\ArtifactSession(
+                    $artifactRoot . '/staging',
+                    $artifactRoot . '/public',
+                );
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\ExecutionPlan([
+                        new Greenlight\Discovery\PlanEntry(
+                            $id,
+                            new Greenlight\Core\Test\TestMetadata(
+                                $class,
+                                'recordsEvidence',
+                                noExpectations: true,
+                            ),
+                        ),
+                    ]),
+                    artifactSession: $session,
+                    artifactConfiguration: new Greenlight\Config\ArtifactConfiguration(
+                        $artifactRoot . '/published',
+                    ),
+                ));
+
+                $finished = null;
+                $done = null;
+
+                do {
+                    $message = $channel->receive(2.0);
+
+                    if ($message instanceof Greenlight\Runner\Protocol\Messages\EventEnvelope
+                        && $message->event instanceof Greenlight\Core\Event\TestFinished
+                    ) {
+                        $finished = $message->event;
+                    }
+
+                    if ($message instanceof Greenlight\Runner\Protocol\Messages\Done) {
+                        $done = $message;
+                    }
+                } while ($message instanceof Greenlight\Runner\Protocol\Message && $done === null);
+
+                $attachment = $finished?->result->attachments[0] ?? null;
+
+                if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
+                    || $done->summary->passed !== 1
+                    || !$attachment instanceof Greenlight\Core\Artifact\StagedAttachment
+                    || file_get_contents($session->stagingDirectory . '/' . $attachment->storageKey) !== 'worker evidence'
+                ) {
+                    exit(10);
+                }
+
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Drain());
+                exit(0);
+            }
+
             if ($scenario === 'empty-assignment-memory-recycles') {
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                     new Greenlight\Discovery\ExecutionPlan([]),
@@ -357,6 +431,7 @@ final class WorkerProcessTest
             PHP,
             $root . '/vendor/autoload.php',
             $scenario,
+            $artifactRoot,
         ]);
 
         try {
