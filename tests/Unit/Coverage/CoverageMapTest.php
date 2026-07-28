@@ -64,6 +64,23 @@ final class CoverageMapTest
     }
 
     #[Test]
+    public function fromRawDropsUnusableDriverEntries(): void
+    {
+        $map = CoverageMap::fromRaw(new RawCoverage([
+            '' => [1 => 1],
+            '/src/A.php' => [1 => 0, 2 => -2, 3 => 1, 4 => -1],
+        ]));
+
+        Expect::that($map->toWire())
+            ->because('raw coverage MUST keep only usable paths and documented driver statuses')
+            ->toBe([
+                'files' => [
+                    '/src/A.php' => [[3], [4]],
+                ],
+            ]);
+    }
+
+    #[Test]
     public function filesAreSortedByPath(): void
     {
         $map = new CoverageMap([
