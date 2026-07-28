@@ -10,6 +10,7 @@ use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+use Greenlight\Tests\Fixture\Doubles\Wide;
 
 final class AnswersTest
 {
@@ -24,6 +25,25 @@ final class AnswersTest
         Expect::that($calculator->add(0, 0))->because('a sequence returns its values in order')->toBe(1)
             ->and($calculator->add(0, 0))->toBe(2)
             ->and($calculator->add(0, 0))->toBe(3);
+
+        $doubles->dispose();
+    }
+
+    #[Test]
+    public function aSequenceCanReturnNull(): void
+    {
+        $doubles = new Doubles();
+        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+            $plan->expects('nullable')
+                ->times(2)
+                ->andReturnsSequence(null, 'ready');
+        });
+
+        Expect::that($wide->nullable('first'))
+            ->because('a null sequence element MUST be consumed as a configured return value')
+            ->toBeNull()
+            ->and($wide->nullable('second'))
+            ->toBe('ready');
 
         $doubles->dispose();
     }
