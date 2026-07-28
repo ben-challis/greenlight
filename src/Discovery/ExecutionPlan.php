@@ -23,7 +23,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
     /**
      * @param list<PlanEntry> $entries
      *
-     * @throws \InvalidArgumentException when entries are not grouped by class
+     * @throws \InvalidArgumentException when entries are not grouped by class or contain duplicate test IDs
      */
     public function __construct(array $entries, public ?int $seed = null)
     {
@@ -46,6 +46,21 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
 
             $seen[$class] = true;
             $current = $class;
+        }
+
+        $ids = [];
+
+        foreach ($entries as $entry) {
+            $id = (string) $entry->id;
+
+            if (isset($ids[$id])) {
+                throw new \InvalidArgumentException(\sprintf(
+                    'Execution plan test ID "%s" occurs more than once.',
+                    $id,
+                ));
+            }
+
+            $ids[$id] = true;
         }
 
         $this->entries = $entries;
@@ -104,7 +119,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
     }
 
     /**
-     * @throws \InvalidArgumentException when entries are not grouped by class
+     * @throws \InvalidArgumentException when entries are not grouped by class or contain duplicate test IDs
      */
     #[\Override]
     public static function fromWire(array $payload): static
