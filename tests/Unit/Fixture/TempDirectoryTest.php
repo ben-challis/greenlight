@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\Subprocess;
 
 final class TempDirectoryTest
 {
@@ -37,6 +38,58 @@ final class TempDirectoryTest
             ->and($directory->path())->toBe($path);
 
         $directory->dispose();
+    }
+
+    #[Test]
+    public function aBlockedTempRootGivesExactGuidance(): void
+    {
+        $directory = new TempDirectory();
+        $blockedRoot = $directory->path() . '/blocked-root';
+
+        if (\file_put_contents($blockedRoot, 'not a directory') === false) {
+            Fail::because('Expected to create a file at the temporary root path.');
+        }
+
+        try {
+            $root = \dirname(__DIR__, 3);
+            $result = Subprocess::run(
+                $root,
+                [
+                    \PHP_BINARY,
+                    '-r',
+                    <<<'PHP'
+                        require $argv[1];
+
+                        try {
+                            new Greenlight\Fixture\TempDirectory()->path();
+                        } catch (RuntimeException $error) {
+                            fwrite(STDOUT, $error->getMessage());
+                            exit(23);
+                        }
+                        PHP,
+                    $root . '/vendor/autoload.php',
+                ],
+                [
+                    'TEMP' => $blockedRoot,
+                    'TMP' => $blockedRoot,
+                    'TMPDIR' => $blockedRoot,
+                    'XDEBUG_MODE' => 'off',
+                ],
+            );
+
+            Expect::that($result->exitCode)
+                ->because('a blocked temp root MUST fail directory creation')
+                ->toBe(23)
+                ->and($result->stdout)
+                ->because('the failure MUST identify the generated directory and cause')
+                ->toMatch(
+                    '/\AFailed to create temp directory "'
+                    . \preg_quote($blockedRoot, '/')
+                    . '\/greenlight-[a-f0-9]{16}": mkdir\(\): Not a directory\.\z/',
+                );
+        } finally {
+            $directory->dispose();
+        }
     }
 
     #[Test]
