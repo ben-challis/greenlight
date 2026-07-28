@@ -39,6 +39,33 @@ final class ErrorTrapTest
     }
 
     #[Test]
+    public function doesNotForwardDiagnosticsToThePreviousHandler(): void
+    {
+        $handled = [];
+
+        \set_error_handler(static function (int $severity, string $message) use (&$handled): bool {
+            $handled[] = [$severity, $message];
+
+            return true;
+        });
+
+        try {
+            ErrorTrap::run(static function (): void {
+                \trigger_error('trapped warning', \E_USER_WARNING);
+            }, $warning);
+
+            Expect::that($warning)
+                ->because('the trap MUST retain the diagnostic for its caller')
+                ->toBe('trapped warning')
+                ->and($handled)
+                ->because('the trap MUST NOT send the diagnostic to the host error handler')
+                ->toBe([]);
+        } finally {
+            \restore_error_handler();
+        }
+    }
+
+    #[Test]
     public function nestedTrapsKeepTheirWarningsSeparateAndRestoreTheOuterTrap(): void
     {
         ErrorTrap::run(static function () use (&$innerWarning): void {
