@@ -407,11 +407,23 @@ final readonly class WorkerRecycled implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L9)
 
+### `$workerId`
+
+```php
+public string $workerId;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L14)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $workerId,
+    string $workerId,
     public RecycleReason $reason,
     public float $occurredAt,
 )
@@ -419,9 +431,9 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $workerId`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L19)
 
 ### `toWire()`
 
@@ -430,7 +442,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L31)
 
 ### `fromWire()`
 
@@ -439,7 +451,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L41)
 
 ## `WorkerSpawned`
 
@@ -451,22 +463,45 @@ final readonly class WorkerSpawned implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L9)
 
+### `$workerId`
+
+```php
+public string $workerId;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L14)
+
+### `$pid`
+
+```php
+public int $pid;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L19)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $workerId,
-    public int $pid,
+    string $workerId,
+    int $pid,
     public float $occurredAt,
 )
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $workerId`
-- `@param positive-int $pid`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L24)
 
 ### `toWire()`
 
@@ -475,7 +510,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L41)
 
 ### `fromWire()`
 
@@ -484,4 +519,4 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L51)
