@@ -103,6 +103,31 @@ final class ProblemDetailsTest
     }
 
     #[Test]
+    public function truncatedDiagnosticsReportTheOmittedEntries(): void
+    {
+        $result = new TestResult(
+            new TestId('Acme\\FailureTest', 'reportsTruncatedDiagnostics'),
+            Outcome::Failed,
+            0.1,
+            0,
+            output: new CapturedOutput(
+                '',
+                diagnostics: [
+                    new Diagnostic(DiagnosticSeverity::Warning, 'first warning', 'FailureTest.php', 13),
+                ],
+                diagnosticsTruncated: true,
+            ),
+        );
+
+        Expect::that(ProblemDetails::render($result))
+            ->because('bounded diagnostics MUST report omitted entries')
+            ->toBe(
+                "  warning: first warning at FailureTest.php:13\n"
+                . "  additional diagnostics omitted\n",
+            );
+    }
+
+    #[Test]
     public function multipleFailureDetailsRenderCompletelyInOrder(): void
     {
         $result = new TestResult(
