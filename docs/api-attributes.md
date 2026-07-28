@@ -453,6 +453,18 @@ final readonly class ExtensionLoaded implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $extension)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -460,7 +472,7 @@ final readonly class ExtensionLoaded implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L28)
 
 ## `ExtensionMissing`
 
@@ -472,6 +484,18 @@ final readonly class ExtensionMissing implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $extension)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -479,7 +503,7 @@ final readonly class ExtensionMissing implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L28)
 
 ## `FunctionAvailable`
 
