@@ -4,37 +4,45 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner;
 
+use Fidry\CpuCoreCounter\CpuCoreCounter;
+use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Support\ProcessResult;
+use Greenlight\Expect\Fail;
+use Greenlight\Runner\CpuCores;
+use Greenlight\Tests\Fixture\Runner\FakeCpuCoreCounter;
+use Greenlight\Tests\Fixture\Runner\FakeNumberOfCpuCoreNotFound;
 use Greenlight\Tests\Support\Subprocess;
 
 final class CpuCoresTest
 {
     #[Test]
+    #[Isolated]
     public function countUsesTheOptionalCpuCounterWhenItIsAvailable(): void
     {
-        $result = $this->runWithFakeOptionalCounter(notFound: false);
+        $this->installFakeOptionalCounter(notFound: false);
 
-        Expect::that($result->exitCode)
-            ->because('the optional CPU counter runs successfully')
-            ->toBe(0)
-            ->and($result->stdout)
-            ->because('the optional CPU counter supplies the exact worker count once')
-            ->toBe('7:1');
+        Expect::that(CpuCores::count())
+            ->because('the optional CPU counter supplies the worker count')
+            ->toBe(7)
+            ->and(FakeCpuCoreCounter::$calls)
+            ->because('the optional CPU counter runs once')
+            ->toBe(1);
     }
 
     #[Test]
+    #[Isolated]
     public function countFallsBackWhenTheOptionalCpuCounterCannotFindACount(): void
     {
-        $result = $this->runWithFakeOptionalCounter(notFound: true);
+        $this->installFakeOptionalCounter(notFound: true);
 
-        Expect::that($result->exitCode)
+        Expect::that(CpuCores::count())
             ->because('the typed not-found error falls through to the built-in probe')
-            ->toBe(0)
-            ->and($result->stdout)
-            ->because('the built-in probe returns a positive count after one optional attempt')
-            ->toMatch('/^[1-9]\d*:1$/D');
+            ->toBeGreaterThan(0)
+            ->and(FakeCpuCoreCounter::$calls)
+            ->because('the fallback follows one optional attempt')
+            ->toBe(1);
     }
 
     #[Test]
@@ -79,33 +87,15 @@ final class CpuCoresTest
             ->toMatch('/^[1-9]\d*$/D');
     }
 
-    private function runWithFakeOptionalCounter(bool $notFound): ProcessResult
+    private function installFakeOptionalCounter(bool $notFound): void
     {
-        $root = \dirname(__DIR__, 3);
+        if (\class_exists(CpuCoreCounter::class, false) || \class_exists(NumberOfCpuCoreNotFound::class, false)) {
+            Fail::because('Expected an isolated worker without loaded optional CPU counter classes.');
+        }
 
-        return Subprocess::run($root, [
-            \PHP_BINARY,
-            '-r',
-            <<<'PHP'
-            require $argv[1];
-
-            class_alias(
-                \Greenlight\Tests\Fixture\Runner\FakeNumberOfCpuCoreNotFound::class,
-                \Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound::class,
-            );
-            class_alias(
-                \Greenlight\Tests\Fixture\Runner\FakeCpuCoreCounter::class,
-                \Fidry\CpuCoreCounter\CpuCoreCounter::class,
-            );
-
-            \Greenlight\Tests\Fixture\Runner\FakeCpuCoreCounter::$notFound = $argv[2] === 'not-found';
-
-            $count = \Greenlight\Runner\CpuCores::count();
-
-            echo $count . ':' . \Greenlight\Tests\Fixture\Runner\FakeCpuCoreCounter::$calls;
-            PHP,
-            $root . '/vendor/autoload.php',
-            $notFound ? 'not-found' : 'available',
-        ]);
+        \class_alias(FakeNumberOfCpuCoreNotFound::class, NumberOfCpuCoreNotFound::class);
+        \class_alias(FakeCpuCoreCounter::class, CpuCoreCounter::class);
+        FakeCpuCoreCounter::$notFound = $notFound;
+        FakeCpuCoreCounter::$calls = 0;
     }
 }
