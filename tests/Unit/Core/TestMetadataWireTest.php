@@ -77,5 +77,6 @@ final class TestMetadataWireTest
         yield 'data-set provider' => ['dataSetProvider', '', null];
         yield 'data-set provider class' => ['dataSetProviderClass', '', null];
         yield 'retry count' => ['retryTimes', 0, 1];
+        yield 'negative retry count' => ['retryTimes', -1, 1];
     }
 }
