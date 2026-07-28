@@ -64,6 +64,28 @@ final class PlanShardTest
     }
 
     #[Test]
+    public function selectedEntriesPreserveTheirPlanOrder(): void
+    {
+        $plan = $this->plan(15);
+        $shard = PlanShard::select($plan, index: 3, count: 4);
+        $actual = \array_map(
+            static fn(PlanEntry $entry): string => (string) $entry->id,
+            $shard->entries,
+        );
+        $expected = [];
+
+        foreach ($plan->entries as $entry) {
+            if (\in_array((string) $entry->id, $actual, true)) {
+                $expected[] = (string) $entry->id;
+            }
+        }
+
+        Expect::that($actual)
+            ->because('sharding MUST preserve class, method, and data-set order')
+            ->toBe($expected);
+    }
+
+    #[Test]
     public function oneShardIsTheWholePlan(): void
     {
         $plan = $this->plan(5);
