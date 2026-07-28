@@ -176,11 +176,15 @@ final readonly class ProxyGenerator
             return null;
         }
 
+        if ($method->isPrivate()) {
+            return null;
+        }
+
         if ($method->name === '__greenlightAttachHandler') {
             throw DoublesError::attachHandlerCollision($method->getDeclaringClass()->name);
         }
 
-        if ($method->isFinal() || $method->isPrivate()) {
+        if ($method->isFinal()) {
             return null;
         }
 
