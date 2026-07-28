@@ -469,6 +469,23 @@ final class TemporalExpectationTest
     }
 
     #[Test]
+    public function consistentlyAcceptsTheMinimumPollingInterval(): void
+    {
+        $clock = new FakePollingClock();
+
+        ExpectationRuntime::withClock($clock, static function (): void {
+            Expect::consistently(static fn(): int => 1)
+                ->pollEvery(0.001)
+                ->for(0.001)
+                ->toBe(1);
+        });
+
+        Expect::that($clock->sleeps)
+            ->because('the minimum consistency polling interval MUST remain valid')
+            ->toBe([0.001]);
+    }
+
+    #[Test]
     public function eventuallyCarriesTheReasonIntoTheFailure(): void
     {
         $clock = new FakePollingClock();
