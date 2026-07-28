@@ -52,6 +52,29 @@ final readonly class ArtifactStoreIntegrityTest
     }
 
     #[Test]
+    public function workerSideCleanupKeepsCoordinatorStaging(): void
+    {
+        $root = $this->tempDirectory->subdirectory('worker-cleanup');
+        $configuration = new ArtifactConfiguration($root);
+        $owner = ArtifactStore::open($configuration, $root, 'run-worker-cleanup');
+        $id = new TestId('Example\EvidenceTest', 'keepsStaging');
+        $attachments = $owner->forAttempt($id, 1, new TestArtifactBudget());
+        $attachments->text('evidence.txt', 'body');
+        $stagingDirectory = $owner->session()->stagingDirectory;
+        $worker = ArtifactStore::fromSession($owner->session(), $configuration);
+
+        try {
+            $worker->cleanup();
+
+            Expect::that(\is_dir($stagingDirectory))
+                ->because('only the orchestrator-owned store MAY remove shared staging')
+                ->toBeTrue();
+        } finally {
+            $owner->cleanup();
+        }
+    }
+
+    #[Test]
     public function unsafeStorageKeysCannotEscapeThePublicationDirectory(): void
     {
         $root = $this->tempDirectory->subdirectory('unsafe-storage-key');
