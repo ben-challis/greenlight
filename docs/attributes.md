@@ -85,6 +85,8 @@ With one argument, references a public static provider method on the test
 class. With two arguments, the first argument is a provider class. The second
 argument is its public static method:
 
+Provider class and method names MUST NOT be empty.
+
 ```php
 #[DataSet('currencies')]
 ```
