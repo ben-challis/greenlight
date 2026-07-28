@@ -7,10 +7,12 @@ namespace Greenlight\Doubles;
 /** @internal */
 final readonly class TypeMatcher implements ArgumentMatcher
 {
-    /**
-     * @param non-empty-string $type
-     */
-    public function __construct(private string $type) {}
+    public function __construct(private string $type)
+    {
+        if (\trim($type) === '') {
+            throw DoublesError::invalidArgumentType();
+        }
+    }
 
     public function matches(mixed $value): bool
     {

@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Argument;
 use Greenlight\Doubles\ArgumentCaptor;
+use Greenlight\Doubles\ArgumentMatcher;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
@@ -96,6 +97,27 @@ final class ArgumentMatchingTest
         }
 
         Fail::because("Expected record('not an int') to fail its type(int) argument matcher.");
+    }
+
+    #[Test]
+    #[DataSet('invalidArgumentTypes')]
+    public function typeMatchersRejectMissingTypeNames(string $type): void
+    {
+        Expect::that(static fn(): ArgumentMatcher => Argument::type($type))
+            ->because('argument type matchers MUST identify a type')
+            ->toThrow(
+                DoublesError::class,
+                message: 'Argument::type() requires a type name that contains a non-space character.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidArgumentTypes(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'spaces' => ['   '];
     }
 
     #[Test]

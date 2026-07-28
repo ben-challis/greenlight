@@ -35,11 +35,7 @@ It also accepts values when `get_debug_type()` returns `$type`.
 public static function type(string $type): ArgumentMatcher
 ```
 
-PHPDoc:
-
-- `@param non-empty-string $type`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L24)
 
 ### `predicate()`
 
@@ -50,7 +46,7 @@ The description identifies the constraint in failure messages.
 public static function predicate(\Closure $predicate, string $description = 'predicate'): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L33)
 
 ### `equals()`
 
@@ -61,7 +57,7 @@ This form states the comparison explicitly.
 public static function equals(mixed $value): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L42)
 
 ### `captor()`
 
@@ -72,7 +68,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L51)
 
 ## `ArgumentCaptor`
 
