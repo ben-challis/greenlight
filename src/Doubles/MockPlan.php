@@ -31,7 +31,7 @@ final readonly class MockPlan
      */
     public function expects(string $method): MethodExpectation
     {
-        $this->assertPlannable($method);
+        $method = $this->assertPlannable($method);
 
         $expectation = new MethodExpectation($method);
         $this->state->expectations[] = $expectation;
@@ -41,8 +41,10 @@ final readonly class MockPlan
 
     /**
      * @param non-empty-string $method
+     *
+     * @return non-empty-string
      */
-    private function assertPlannable(string $method): void
+    private function assertPlannable(string $method): string
     {
         $reflection = new \ReflectionClass($this->state->type);
 
@@ -63,5 +65,7 @@ final readonly class MockPlan
         if ($declared->isFinal()) {
             throw DoublesError::finalMethod($this->state->type, $method);
         }
+
+        return $declared->getName();
     }
 }
