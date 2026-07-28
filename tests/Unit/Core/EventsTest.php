@@ -58,6 +58,35 @@ final class EventsTest
     }
 
     #[Test]
+    public function legacyEventPayloadsDefaultNewOptionalFields(): void
+    {
+        $started = TestClassStarted::fromWire([
+            'class' => 'App\FooTest',
+            'occurredAt' => 1_780_000_000.1,
+        ]);
+        $finished = TestClassFinished::fromWire([
+            'class' => 'App\FooTest',
+            'occurredAt' => 1_780_000_000.2,
+        ]);
+        $run = RunStarted::fromWire([
+            'runId' => 'run-1',
+            'plannedTests' => 1,
+            'workers' => 1,
+            'occurredAt' => 1_780_000_000.0,
+        ]);
+
+        Expect::that($started->workerId)
+            ->because('legacy class-started events have no worker attribution')
+            ->toBe('')
+            ->and($finished->workerId)
+            ->because('legacy class-finished events have no worker attribution')
+            ->toBe('')
+            ->and($run->artifactsDirectory)
+            ->because('legacy run-started events have no artifacts directory')
+            ->toBeNull();
+    }
+
+    #[Test]
     public function runFinishedCarriesSummarySemantics(): void
     {
         $summary = new ResultSummary()
