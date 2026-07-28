@@ -15,13 +15,33 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class ArtifactSession implements WireSerializable
 {
     /**
-     * @param non-empty-string $stagingDirectory
-     * @param non-empty-string $publicDirectory
+     * @var non-empty-string
+     */
+    public string $stagingDirectory;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $publicDirectory;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $stagingDirectory,
-        public string $publicDirectory,
-    ) {}
+        string $stagingDirectory,
+        string $publicDirectory,
+    ) {
+        if ($stagingDirectory === '') {
+            throw new \InvalidArgumentException('Artifact staging directory must not be empty.');
+        }
+
+        if ($publicDirectory === '') {
+            throw new \InvalidArgumentException('Artifact public directory must not be empty.');
+        }
+
+        $this->stagingDirectory = $stagingDirectory;
+        $this->publicDirectory = $publicDirectory;
+    }
 
     #[\Override]
     public function toWire(): array
