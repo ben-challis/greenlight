@@ -19,12 +19,26 @@ use Greenlight\Runner\Protocol\Message;
 final readonly class AttemptStarted implements Message
 {
     /**
-     * @param positive-int $attempt
+     * @var positive-int
+     */
+    public int $attempt;
+
+    /**
+     * @throws \InvalidArgumentException when the attempt number is not positive
      */
     public function __construct(
         public TestId $id,
-        public int $attempt,
-    ) {}
+        int $attempt,
+    ) {
+        if ($attempt < 1) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Attempt numbers MUST be positive. Actual value: %d.',
+                $attempt,
+            ));
+        }
+
+        $this->attempt = $attempt;
+    }
 
     #[\Override]
     public static function tag(): string
