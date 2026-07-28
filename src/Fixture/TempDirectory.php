@@ -72,11 +72,29 @@ final class TempDirectory implements Disposable
     #[\Override]
     public function dispose(): void
     {
-        if ($this->path === null || !\is_dir($this->path)) {
+        if ($this->path === null) {
             return;
         }
 
         $path = $this->path;
+
+        if (\is_link($path)) {
+            if (!ErrorTrap::run(static fn(): bool => \unlink($path), $warning)) {
+                throw new \RuntimeException(\sprintf(
+                    'Failed to remove temp directory symbolic link "%s"%s.',
+                    $path,
+                    $warning === null ? '' : ': ' . $warning,
+                ));
+            }
+
+            $this->path = null;
+
+            return;
+        }
+
+        if (!\is_dir($path)) {
+            return;
+        }
 
         $entries = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
