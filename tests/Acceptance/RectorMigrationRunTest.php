@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
-use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -12,7 +12,8 @@ use Greenlight\Rector\PhpUnitToGreenlightRector;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\RectorProbe;
 
-final readonly class RectorMigrationTest
+#[RequiresResource('analysis-process')]
+final readonly class RectorMigrationRunTest
 {
     private const string CONVERTIBLE = <<<'PHP_WRAP'
     <?php
@@ -170,20 +171,57 @@ final readonly class RectorMigrationTest
             ->toContain('no smtp server');
     }
 
-    #[Test]
-    #[DataSet('unsupportedSources')]
-    public function leavesClassesWithUnsupportedApiUntouched(string $source): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unsupportedFrameworkApiSources(): iterable
     {
-        $probe = RectorProbe::convert($this->tempDirectory, $source, name: 'unsupported');
-
-        Expect::that($probe->changed)->toBeFalse()
-            ->and($probe->code)->toBe($source);
+        yield from self::selectUnsupportedSources([
+            'mock creation',
+            'test dependencies',
+            'class-level fixtures',
+        ]);
     }
 
     /**
      * @return iterable<string, array{string}>
      */
-    public static function unsupportedSources(): iterable
+    public static function unsupportedClassShapeSources(): iterable
+    {
+        yield from self::selectUnsupportedSources([
+            'non-final test hierarchy',
+            'multiple data providers',
+        ]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unsupportedProcessControlSources(): iterable
+    {
+        yield from self::selectUnsupportedSources([
+            'multiple extension requirements',
+            'class process isolation',
+            'preserved process state',
+        ]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unsupportedAssertionSources(): iterable
+    {
+        yield from self::selectUnsupportedSources([
+            'PHP empty semantics',
+            'existing non-repeatable Greenlight attribute',
+            'assertion message without opting in',
+        ]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    private static function unsupportedSources(): iterable
     {
         yield 'mock creation' => [
             <<<'PHP_WRAP'
@@ -444,6 +482,22 @@ final readonly class RectorMigrationTest
         ];
 
         yield 'assertion message without opting in' => [self::MESSAGED];
+    }
+
+    /**
+     * @param list<string> $selected
+     *
+     * @return iterable<string, array{string}>
+     */
+    private static function selectUnsupportedSources(array $selected): iterable
+    {
+        $selected = \array_fill_keys($selected, true);
+
+        foreach (self::unsupportedSources() as $label => $source) {
+            if (isset($selected[$label])) {
+                yield $label => $source;
+            }
+        }
     }
 
     #[Test]

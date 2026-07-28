@@ -10,4 +10,5 @@ return GreenlightConfig::create()
     // Only acceptance tests can safely run these suites as subprocesses.
     ->paths(['tests/Unit', 'tests/Acceptance'])
     ->workers(count: 'auto')
+    ->resourceLimit('analysis-process', 5)
     ->randomizeOrder();
