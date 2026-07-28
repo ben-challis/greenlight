@@ -127,6 +127,11 @@ final class DoublesError extends \LogicException
         return new self(\sprintf('%s declares __greenlightAttachHandler(). This method conflicts with the proxy handler method.', $class));
     }
 
+    public static function handlerPropertyCollision(string $class): self
+    {
+        return new self(\sprintf('%s declares $__greenlightHandler. This property conflicts with the proxy handler storage property.', $class));
+    }
+
     public static function defaultValueNotReproducible(string $parameter, string $class, string $method): self
     {
         return new self(\sprintf(
