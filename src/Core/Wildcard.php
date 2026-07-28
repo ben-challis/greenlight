@@ -26,10 +26,10 @@ final class Wildcard
                 : \str_contains($subject, $pattern);
         }
 
-        $regex = '/^'
+        $regex = '/\A'
             . \strtr(\preg_quote($pattern, '/'), ['\*' => '.*', '\?' => '.'])
-            . '$/'
-            . ($caseInsensitive ? 'iu' : 'u');
+            . '\z/'
+            . ($caseInsensitive ? 'isu' : 'su');
 
         return \preg_match($regex, $subject) === 1;
     }
