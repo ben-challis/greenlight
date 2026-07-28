@@ -198,6 +198,10 @@ final class CoverageMapTest
             ['files' => ['' => [[], []]]],
             '/non-empty file paths/',
         ];
+        yield 'numeric file path' => [
+            ['files' => [0 => [[1], []], '/src/A.php' => [[1], []]]],
+            '/map with string keys/',
+        ];
         yield 'wrong file shape' => [
             ['files' => ['/src/A.php' => [[1]]]],
             '/two-element list/',

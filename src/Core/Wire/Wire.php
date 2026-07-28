@@ -202,7 +202,11 @@ final class Wire
         $map = [];
 
         foreach ($value as $mapKey => $mapValue) {
-            $map[(string) $mapKey] = $mapValue;
+            if (!\is_string($mapKey)) {
+                throw InvalidWirePayload::wrongType($key, 'a map with string keys', $value);
+            }
+
+            $map[$mapKey] = $mapValue;
         }
 
         return $map;
@@ -297,7 +301,11 @@ final class Wire
             $map = [];
 
             foreach ($item as $mapKey => $mapValue) {
-                $map[(string) $mapKey] = $mapValue;
+                if (!\is_string($mapKey)) {
+                    throw InvalidWirePayload::wrongType($key, 'a list of maps with string keys', $item);
+                }
+
+                $map[$mapKey] = $mapValue;
             }
 
             $maps[] = $map;
