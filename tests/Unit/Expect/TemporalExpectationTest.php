@@ -177,6 +177,38 @@ final class TemporalExpectationTest
     }
 
     #[Test]
+    public function eventuallyFailurePreservesRetryableExceptionDiagnostics(): void
+    {
+        $clock = new FakePollingClock();
+        $rendered = \sprintf(
+            "threw %s with message 'not ready'",
+            TransientProbeFailure::class,
+        );
+
+        $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
+            $clock,
+            static fn() => Expect::eventually(
+                static fn(): never => throw new TransientProbeFailure('not ready'),
+            )
+                ->retryOnException(TransientProbeFailure::class)
+                ->pollEvery(0.010)
+                ->within(0.020)
+                ->toBe('ready'),
+        ));
+
+        Expect::that($detail->message)
+            ->because('eventually() failure preserves retryable exception diagnostics')
+            ->toBe(
+                'The eventually() expectation did not pass within 0.020 seconds after 3 observations. '
+                . "Observations: +0.0ms {$rendered} (×3).",
+            )
+            ->and($detail->expected)
+            ->toBeNull()
+            ->and($detail->actual)
+            ->toBe($rendered);
+    }
+
+    #[Test]
     public function errorsAndMatcherMisuseAreNeverRetried(): void
     {
         $clock = new FakePollingClock();
