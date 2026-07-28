@@ -694,11 +694,12 @@ final class ArtifactStore
         ?string $path,
         ?string $part,
     ): void {
+        // writeMetadata() removes its temporary file when it fails. A final
+        // metadata path that remains belongs to an earlier operation.
         foreach ([
             $part,
             $path,
             $this->metadataPath($storageKey) . '.part',
-            $this->metadataPath($storageKey),
         ] as $candidate) {
             if ($candidate !== null) {
                 $this->removeFile($candidate, 'incomplete attachment staging data');
