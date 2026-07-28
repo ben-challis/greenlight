@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Capture;
 
+use Greenlight\Core\ErrorHandlerStack;
 use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Diagnostic;
 use Greenlight\Core\Result\DiagnosticSeverity;
@@ -35,8 +36,8 @@ final class OutputCapture
     /** Contains the ob_get_level() of the capture buffer, or null if inactive. */
     private ?int $bufferLevel = null;
 
-    /** @var (\Closure(int, string, string, int): bool)|null */
-    private ?\Closure $errorHandler = null;
+    /** @var \Closure(int, string, string, int): bool */
+    private \Closure $errorHandler;
 
     public function __construct(
         private readonly int $maxStdoutBytes = self::DEFAULT_MAX_STDOUT_BYTES,
@@ -111,14 +112,9 @@ final class OutputCapture
             \ob_end_clean();
         }
 
-        $active = \set_error_handler(null);
-        \restore_error_handler();
+        ErrorHandlerStack::remove($this->errorHandler);
 
-        if ($active === $this->errorHandler) {
-            \restore_error_handler();
-        }
-
-        $this->errorHandler = null;
+        unset($this->errorHandler);
 
         $captured = new CapturedOutput(
             Utf8::scrub($this->stdout),

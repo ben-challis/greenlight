@@ -123,14 +123,21 @@ final class OutputCaptureTest
     #[Test]
     public function stopPreservesAnErrorHandlerInstalledDuringCapture(): void
     {
-        $baselineHandler = $this->activeErrorHandler();
-        $messages = [];
+        $previousMessages = [];
+        $captureMessages = [];
+
+        \set_error_handler(static function (int $severity, string $message) use (&$previousMessages): bool {
+            $previousMessages[] = [$severity, $message];
+
+            return true;
+        });
+
         $capture = new OutputCapture();
         $capture->start();
 
         \set_error_handler(
-            static function (int $severity, string $message) use (&$messages): bool {
-                $messages[] = [$severity, $message];
+            static function (int $severity, string $message) use (&$captureMessages): bool {
+                $captureMessages[] = [$severity, $message];
 
                 return true;
             },
@@ -139,12 +146,17 @@ final class OutputCaptureTest
         try {
             $capture->stop();
             \trigger_error('after capture', \E_USER_NOTICE);
+            \restore_error_handler();
+            \trigger_error('after caller restore', \E_USER_NOTICE);
 
-            Expect::that($messages)
-                ->because('stop preserves an error handler installed during capture')
-                ->toBe([[\E_USER_NOTICE, 'after capture']]);
+            Expect::that($captureMessages)
+                ->because('stop MUST preserve a handler installed during capture')
+                ->toBe([[\E_USER_NOTICE, 'after capture']])
+                ->and($previousMessages)
+                ->because('one restore MUST return to the handler that preceded capture')
+                ->toBe([[\E_USER_NOTICE, 'after caller restore']]);
         } finally {
-            $this->restoreErrorHandler($baselineHandler);
+            \restore_error_handler();
         }
     }
 
@@ -288,25 +300,4 @@ final class OutputCaptureTest
             ->toThrow(\InvalidArgumentException::class, '/at least 1 entry/');
     }
 
-    private function activeErrorHandler(): ?callable
-    {
-        $probe = static fn(): bool => false;
-        $active = \set_error_handler($probe);
-        \restore_error_handler();
-
-        return $active;
-    }
-
-    private function restoreErrorHandler(?callable $baseline): void
-    {
-        for ($attempt = 0; $attempt < 4; ++$attempt) {
-            if ($this->activeErrorHandler() === $baseline) {
-                return;
-            }
-
-            \restore_error_handler();
-        }
-
-        throw new \RuntimeException('Failed to restore the test error-handler stack.');
-    }
 }
