@@ -58,15 +58,16 @@ final readonly class Done implements Message
     public static function fromWire(array $payload): static
     {
         $coverage = Wire::nullableMap($payload, 'coverage');
+        $reason = Wire::nullableString($payload, 'wantsRecycle');
 
         return new self(
             ResultSummary::fromWire(Wire::map($payload, 'summary')),
             \max(0, Wire::int($payload, 'peakMemoryBytes')),
             $coverage === null ? null : CoverageMap::fromWire($coverage),
             \array_map(TestId::fromWire(...), Wire::listOfMaps($payload, 'leaks')),
-            ($reason = Wire::nullableString($payload, 'wantsRecycle')) === null || $reason === ''
+            $reason === null || $reason === ''
                 ? null
-                : RecycleReason::from($reason),
+                : Wire::enum($payload, 'wantsRecycle', RecycleReason::class),
         );
     }
 }
