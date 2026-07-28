@@ -40,6 +40,7 @@ final class TestCoverageStore
 
     private bool $closed = false;
 
+    /** @throws CoverageError */
     private function __construct(private readonly IgnoreScanner $ignoreScanner)
     {
         $this->spool = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-test-coverage-' . \bin2hex(\random_bytes(8)) . '.jsonl';
@@ -49,6 +50,7 @@ final class TestCoverageStore
         }
     }
 
+    /** @throws CoverageError */
     public static function open(): self
     {
         return new self(new IgnoreScanner());
@@ -65,6 +67,7 @@ final class TestCoverageStore
         }
     }
 
+    /** @throws CoverageError */
     public function record(TestId $id, CoverageMap $coverage): void
     {
         $test = $this->tests[(string) $id] ?? null;
@@ -92,6 +95,7 @@ final class TestCoverageStore
         }
     }
 
+    /** @throws CoverageError */
     public function write(string $target, string $root, string $runId, CoverageMap $aggregate): void
     {
         if ($this->closed) {
@@ -217,6 +221,7 @@ final class TestCoverageStore
 
     /**
      * @param array<string, mixed> $record
+     * @throws CoverageError
      */
     private function append(array $record): void
     {
@@ -230,6 +235,7 @@ final class TestCoverageStore
     /**
      * @param resource $stream
      * @param array<string, mixed> $record
+     * @throws CoverageError
      */
     private function writeLine(mixed $stream, array $record): void
     {

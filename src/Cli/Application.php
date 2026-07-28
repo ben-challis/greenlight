@@ -58,8 +58,8 @@ use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Reporting\TtyReporter;
-use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\CoverageSettings;
+use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\ParallelRunner;
@@ -75,6 +75,7 @@ use Greenlight\Runner\Worker\WorkerProcess;
  * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
  * invalid command-line use.
  *
+ * @internal
  */
 final readonly class Application
 {
@@ -827,6 +828,7 @@ final readonly class Application
         return $shutdown->exitCode() ?? self::EXIT_OK;
     }
 
+    /** @throws CoverageError */
     private function coverageSettings(
         ?CoverageConfiguration $configuration,
         string $workingDirectory,

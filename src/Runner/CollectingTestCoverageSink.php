@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 use Greenlight\Core\Test\TestId;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 
 /**
@@ -21,6 +22,7 @@ final class CollectingTestCoverageSink implements TestCoverageSink
         $this->coverage = CoverageMap::empty();
     }
 
+    /** @throws CoverageError */
     #[\Override]
     public function record(TestId $id, CoverageMap $coverage): void
     {

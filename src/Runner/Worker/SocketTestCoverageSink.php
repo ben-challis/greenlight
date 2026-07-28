@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Worker;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Runner\Protocol\Messages\CoverageChunk;
+use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\TestCoverageSink;
 
@@ -24,6 +25,7 @@ final class SocketTestCoverageSink implements TestCoverageSink
         $this->coverage = CoverageMap::empty();
     }
 
+    /** @throws ProtocolError */
     #[\Override]
     public function record(TestId $id, CoverageMap $coverage): void
     {

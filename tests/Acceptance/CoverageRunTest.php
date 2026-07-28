@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -154,9 +155,9 @@ final readonly class CoverageRunTest
             '--coverage-include=' . $root . '/tests/Fixture/CoverageLib',
         ], 'off');
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('Per-test coverage was requested but cannot be collected')
-            ->and(\is_file($project->path('coverage-out/test-map.jsonl')))->toBeFalse();
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('Per-test coverage was requested but cannot be collected');
+        Expect::that(\is_file($project->path('coverage-out/test-map.jsonl')))->toBeFalse();
     }
 
     #[Test]
@@ -194,24 +195,27 @@ final readonly class CoverageRunTest
 
             $records[] = $record;
         }
-        $tests = \array_values(\array_filter(
-            $records,
-            static fn(array $record): bool => ($record['type'] ?? null) === 'test',
-        ));
-        $mapping = \array_values(\array_filter(
-            $records,
-            static function (array $record): bool {
-                $file = $record['file'] ?? null;
+        $tests = [];
+        $mapping = [];
 
-                return ($record['type'] ?? null) === 'coverage'
-                    && \is_string($file)
-                    && \str_ends_with($file, 'CoverageLib/Math.php');
-            },
-        ));
+        foreach ($records as $record) {
+            if (($record['type'] ?? null) === 'test') {
+                $tests[] = $record;
+            }
 
-        Expect::that($tests)->toHaveCount(1)
-            ->and($tests[0]['renderedId'])->toBe('Greenlight\Tests\Fixture\CoverageSuite\MathTest::addsTwoIntegers')
-            ->and($mapping)->not()->toBeEmpty();
+            $file = $record['file'] ?? null;
+
+            if (($record['type'] ?? null) === 'coverage'
+                && \is_string($file)
+                && \str_ends_with($file, 'CoverageLib/Math.php')
+            ) {
+                $mapping[] = $record;
+            }
+        }
+
+        Expect::that($tests)->toHaveCount(1);
+        Expect::that($tests[0]['renderedId'])->toBe('Greenlight\Tests\Fixture\CoverageSuite\MathTest::addsTwoIntegers');
+        Expect::that($mapping)->not()->toBeEmpty();
     }
 
     #[Test]

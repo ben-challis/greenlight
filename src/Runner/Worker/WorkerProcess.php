@@ -185,6 +185,7 @@ final readonly class WorkerProcess
      * after every worker runtime boundary closes successfully.
      *
      * @throws WireError
+     * @throws CoverageError
      * @throws ProtocolError
      */
     private function runAssignments(

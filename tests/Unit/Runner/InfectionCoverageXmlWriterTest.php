@@ -59,9 +59,9 @@ final readonly class InfectionCoverageXmlWriterTest
         $xpath = new \DOMXPath($file);
         $xpath->registerNamespace('c', 'https://schema.phpunit.de/coverage/1.0');
 
-        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/@path)'))->toBe('src')
-            ->and($xpath->evaluate('string(/c:phpunit/c:file/c:coverage/c:line/c:covered/@by)'))->toBe('Example\SubjectTest::works')
-            ->and($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executable)'))->toBe('2')
-            ->and($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executed)'))->toBe('1');
+        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/@path)'))->toBe('src');
+        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/c:coverage/c:line/c:covered/@by)'))->toBe('Example\SubjectTest::works');
+        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executable)'))->toBe('2');
+        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executed)'))->toBe('1');
     }
 }

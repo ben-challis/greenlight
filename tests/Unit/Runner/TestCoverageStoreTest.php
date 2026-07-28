@@ -94,9 +94,9 @@ final readonly class TestCoverageStoreTest
             static fn(array $record): bool => $record['type'] === 'coverage',
         ));
 
-        Expect::that($tests)->toHaveCount(2)
-            ->and($tests[1]['renderedId'])->toBe('Example\SubjectTest::second[row one]')
-            ->and($coverage[0]['lines'])->toBe([2])
-            ->and($unattributed[0]['lines'])->toBe([6]);
+        Expect::that($tests)->toHaveCount(2);
+        Expect::that($tests[1]['renderedId'])->toBe('Example\SubjectTest::second[row one]');
+        Expect::that($coverage[0]['lines'])->toBe([2]);
+        Expect::that($unattributed[0]['lines'])->toBe([6]);
     }
 }

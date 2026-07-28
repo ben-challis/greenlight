@@ -83,8 +83,8 @@ final readonly class SelectionTest
             '--test-id=SelectionProbe\SelectionProbeTest::also',
         );
 
-        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1)
-            ->and($result->output())->toContain('Exact test selection did not find');
+        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1);
+        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('Exact test selection did not find');
     }
 
     #[Test]
@@ -193,12 +193,12 @@ final readonly class SelectionTest
         $project->writeFile('exact-tests.txt', "\n{$id}\n{$id}\n");
 
         $result = $this->run($project, '--test-id-file=exact-tests.txt');
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($result->output())->toContain('1 test, 1 passed');
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($this->sortedFinishedTestIds($result))->toBe([$id]);
 
         $result = $this->run($project, '--test-id=SelectionProbe\SelectionProbeTest::missing');
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('Exact test selection did not find');
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('Exact test selection did not find');
     }
 
     #[Test]

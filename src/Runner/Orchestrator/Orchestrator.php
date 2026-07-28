@@ -24,6 +24,7 @@ use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Utf8;
 use Greenlight\Core\Wire\WireError;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\ExecutionPlan;
@@ -179,6 +180,7 @@ final class Orchestrator
      *
      * @throws ProtocolError
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws InvalidWirePayload
      * @throws ReportingError
      * @throws WireError
@@ -336,6 +338,7 @@ final class Orchestrator
      * @param resource $server
      * @param non-empty-string $token
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws WireError
@@ -488,6 +491,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws WireError
