@@ -9,6 +9,7 @@ use Greenlight\Coverage\Driver\CoverageDriver;
 use Greenlight\Coverage\Driver\DriverSelector;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
+use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
 
 final class DriverSelectorTest
@@ -29,6 +30,18 @@ final class DriverSelectorTest
 
         Expect::that($selection->driver)->because('an available candidate is selected with no reason')->toBeInstanceOf(AvailableFakeDriver::class)
             ->and($selection->reason)->toBeNull();
+    }
+
+    #[Test]
+    public function firstAvailableCandidateWins(): void
+    {
+        $selection = new DriverSelector([RecordingFakeDriver::class, AvailableFakeDriver::class])->select();
+
+        Expect::that($selection->driver)
+            ->because('candidate order determines coverage-driver preference')
+            ->toBeInstanceOf(RecordingFakeDriver::class)
+            ->and($selection->reason)
+            ->toBeNull();
     }
 
     #[Test]
