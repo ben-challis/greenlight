@@ -11,13 +11,24 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class OutcomeTransformation implements WireSerializable
 {
     /**
-     * @param non-empty-string $transformedBy
+     * @var non-empty-string
+     */
+    public string $transformedBy;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $transformedBy,
+        string $transformedBy,
         public Outcome $from,
         public Outcome $to,
-    ) {}
+    ) {
+        if ($transformedBy === '') {
+            throw new \InvalidArgumentException('Outcome transformation source must not be empty.');
+        }
+
+        $this->transformedBy = $transformedBy;
+    }
 
     #[\Override]
     public function toWire(): array
