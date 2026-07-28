@@ -26,11 +26,24 @@ final class PlanShard
     private function __construct() {}
 
     /**
-     * @param positive-int $index 1-based shard number
-     * @param positive-int $count total shards
+     * @param int $index 1-based shard number
+     * @param int $count total shards
+     *
+     * @throws \InvalidArgumentException
      */
     public static function select(ExecutionPlan $plan, int $index, int $count): ExecutionPlan
     {
+        if ($count < 1) {
+            throw new \InvalidArgumentException('The shard count must be at least 1.');
+        }
+
+        if ($index < 1 || $index > $count) {
+            throw new \InvalidArgumentException(\sprintf(
+                'The shard index must be between 1 and %d.',
+                $count,
+            ));
+        }
+
         if ($count === 1) {
             return $plan;
         }

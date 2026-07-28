@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\DataRow;
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
@@ -68,6 +69,31 @@ final class PlanShardTest
         $plan = $this->plan(5);
 
         Expect::that(PlanShard::select($plan, 1, 1))->because('one shard is the whole plan')->toBe($plan);
+    }
+
+    #[Test]
+    #[DataSet('invalidShards')]
+    public function invalidShardsAreRejected(int $index, int $count, string $message): void
+    {
+        $plan = $this->plan(1);
+
+        Expect::that(static function () use ($plan, $index, $count): void {
+            PlanShard::select($plan, $index, $count);
+        })
+            ->because('invalid shard coordinates MUST NOT select an execution plan')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{int, int, string}>
+     */
+    public static function invalidShards(): iterable
+    {
+        yield 'zero count' => [1, 0, 'The shard count must be at least 1.'];
+        yield 'negative count' => [1, -1, 'The shard count must be at least 1.'];
+        yield 'zero index' => [0, 2, 'The shard index must be between 1 and 2.'];
+        yield 'negative index' => [-1, 2, 'The shard index must be between 1 and 2.'];
+        yield 'index above count' => [3, 2, 'The shard index must be between 1 and 2.'];
     }
 
     private function plan(int $classes): ExecutionPlan
