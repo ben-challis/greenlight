@@ -125,6 +125,7 @@ final class ArtifactStore
         $this->reserve($size);
         $path = null;
         $part = null;
+        $stagingFileCreated = false;
 
         try {
             $path = $this->preparePath($storageKey);
@@ -134,6 +135,8 @@ final class ArtifactStore
             if ($stream === false) {
                 throw AttachmentError::storage('Greenlight did not create the attachment staging file');
             }
+
+            $stagingFileCreated = true;
 
             try {
                 $this->writeFully($stream, $bytes);
@@ -162,7 +165,10 @@ final class ArtifactStore
 
             return $attachment;
         } catch (\Throwable $error) {
-            $this->rollbackStagedAttachment($storageKey, $path, $part);
+            if ($stagingFileCreated) {
+                $this->rollbackStagedAttachment($storageKey, $path, $part);
+            }
+
             $this->release($size);
 
             throw $error;
@@ -200,6 +206,7 @@ final class ArtifactStore
             $this->reserve($size);
             $path = null;
             $part = null;
+            $stagingFileCreated = false;
 
             try {
                 $path = $this->preparePath($storageKey);
@@ -210,6 +217,7 @@ final class ArtifactStore
                     throw AttachmentError::storage('Greenlight did not create the attachment staging file');
                 }
 
+                $stagingFileCreated = true;
                 $hash = \hash_init('sha256');
                 $copied = 0;
 
@@ -266,7 +274,10 @@ final class ArtifactStore
 
                 return $attachment;
             } catch (\Throwable $error) {
-                $this->rollbackStagedAttachment($storageKey, $path, $part);
+                if ($stagingFileCreated) {
+                    $this->rollbackStagedAttachment($storageKey, $path, $part);
+                }
+
                 $this->release($size);
 
                 throw $error;
