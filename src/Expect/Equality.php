@@ -116,7 +116,14 @@ final class Equality
                 return $a === $b;
             }
 
-            return (float) $a === (float) $b;
+            if (\is_float($a) && \is_float($b)) {
+                return $a === $b;
+            }
+
+            $integer = \is_int($a) ? $a : $b;
+            $float = \is_float($a) ? $a : $b;
+
+            return (float) $integer === $float && (int) $float === $integer;
         }
 
         if (\is_array($a) && \is_array($b)) {

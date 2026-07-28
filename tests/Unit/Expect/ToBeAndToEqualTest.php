@@ -66,6 +66,22 @@ final class ToBeAndToEqualTest
     }
 
     #[Test]
+    public function toEqualDoesNotRoundLargeIntegers(): void
+    {
+        $integer = 9_007_199_254_740_993;
+        $roundedFloat = (float) $integer;
+
+        Expect::that($integer)
+            ->because('toEqual() keeps integer precision')
+            ->not()
+            ->toEqual($roundedFloat);
+        Expect::that($roundedFloat)
+            ->because('toEqual() keeps integer precision in both operand orders')
+            ->not()
+            ->toEqual($integer);
+    }
+
+    #[Test]
     public function toEqualKeepsOtherScalarsStrict(): void
     {
         $detail = FailureProbe::detailOf(static fn() => Expect::that('1')->toEqual(1));
