@@ -79,6 +79,11 @@ final class DiscoveryCacheEntryTest
 
         yield 'dependencies are not a map' => [[...$valid, 'dependencies' => 'not a map']];
 
+        yield 'dependency path is not a string' => [[...$valid, 'dependencies' => [
+            0 => ['mtime' => 300, 'size' => 400],
+            '/project/tests/Provider.php' => ['mtime' => 300, 'size' => 400],
+        ]]];
+
         yield 'dependency path is empty' => [[...$valid, 'dependencies' => ['' => ['mtime' => 300, 'size' => 400]]]];
 
         yield 'dependency stat is invalid' => [[...$valid, 'dependencies' => ['/project/tests/Provider.php' => ['mtime' => '300', 'size' => 400]]]];
