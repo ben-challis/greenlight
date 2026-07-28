@@ -14,17 +14,37 @@ use Greenlight\Core\Condition;
 final readonly class SkipUnless
 {
     /**
+     * @var class-string<Condition>
+     */
+    public string $condition;
+
+    /**
      * @var list<mixed>
      */
     public array $arguments;
 
     /**
-     * @param class-string<Condition> $condition
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $condition,
+        string $condition,
         mixed ...$arguments,
     ) {
+        if (!\is_a($condition, Condition::class, true)) {
+            throw new \InvalidArgumentException(
+                'SkipUnless condition MUST name an instantiable Condition class.',
+            );
+        }
+
+        $reflection = new \ReflectionClass($condition);
+
+        if (!$reflection->isInstantiable()) {
+            throw new \InvalidArgumentException(
+                'SkipUnless condition MUST name an instantiable Condition class.',
+            );
+        }
+
+        $this->condition = $condition;
         $this->arguments = \array_values($arguments);
     }
 }

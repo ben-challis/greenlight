@@ -239,14 +239,15 @@ string $condition
 mixed ...$arguments
 ```
 
-`$condition` must be a class-string for `Greenlight\Core\Condition`.
+`$condition` MUST name an instantiable class that implements
+`Greenlight\Core\Condition`.
 
 Skips the test if the condition is false.
 
 Greenlight passes the remaining attribute arguments to the condition
-constructor. Arguments must be scalars or null because Greenlight sends them to
+constructor. Arguments MUST be scalars or null because Greenlight sends them to
 parallel workers. Another argument type causes a discovery error. The
-constructor must only store the arguments. The `isSatisfied()` method must
+constructor MUST only store the arguments. The `isSatisfied()` method MUST
 evaluate the condition without side effects:
 
 ```php
