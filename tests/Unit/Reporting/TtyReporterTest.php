@@ -423,6 +423,21 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function redrawOccursAtTheThrottleBoundary(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, color: false, cursor: true);
+
+        $reporter->onEvent(new TestClassStarted('App\AlphaTest', 0.0));
+        $before = $output->buffer();
+        $reporter->tick(0.05);
+
+        Expect::that($output->buffer())
+            ->because('the redraw interval boundary MUST permit the next frame')
+            ->not()->toBe($before);
+    }
+
+    #[Test]
     public function repaintsRewriteLinesInPlaceWithoutBlankingTheWindow(): void
     {
         $output = new BufferOutput();
