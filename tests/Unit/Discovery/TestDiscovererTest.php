@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Discovery;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
@@ -36,14 +37,27 @@ final class TestDiscovererTest
     }
 
     #[Test]
-    public function rejectsANonpositiveProviderTimeBudgetWithExactGuidance(): void
+    #[DataSet('invalidProviderTimeBudgets')]
+    public function rejectsAnInvalidProviderTimeBudgetWithExactGuidance(float $budgetSeconds): void
     {
         Expect::that(
-            static fn(): TestDiscoverer => new TestDiscoverer(0.0),
+            static fn(): TestDiscoverer => new TestDiscoverer($budgetSeconds),
         )->toThrow(
             \InvalidArgumentException::class,
-            message: 'Set the provider time budget to a value greater than zero seconds.',
+            message: 'Provider time budget seconds must be finite and greater than zero.',
         );
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function invalidProviderTimeBudgets(): iterable
+    {
+        yield 'zero' => [0.0];
+        yield 'negative' => [-1.0];
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 
     #[Test]

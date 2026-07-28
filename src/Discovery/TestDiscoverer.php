@@ -26,8 +26,8 @@ final readonly class TestDiscoverer
     public function __construct(
         private float $providerTimeBudgetSeconds = 5.0,
     ) {
-        if ($providerTimeBudgetSeconds <= 0.0) {
-            throw new \InvalidArgumentException('Set the provider time budget to a value greater than zero seconds.');
+        if (!\is_finite($providerTimeBudgetSeconds) || $providerTimeBudgetSeconds <= 0.0) {
+            throw new \InvalidArgumentException('Provider time budget seconds must be finite and greater than zero.');
         }
 
         $this->metadataFactory = new MetadataFactory();
