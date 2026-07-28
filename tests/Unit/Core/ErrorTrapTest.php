@@ -39,6 +39,27 @@ final class ErrorTrapTest
     }
 
     #[Test]
+    public function nestedTrapsKeepTheirWarningsSeparateAndRestoreTheOuterTrap(): void
+    {
+        ErrorTrap::run(static function () use (&$innerWarning): void {
+            \trigger_error('outer before inner', \E_USER_WARNING);
+
+            ErrorTrap::run(static function (): void {
+                \trigger_error('inner warning', \E_USER_WARNING);
+            }, $innerWarning);
+
+            \trigger_error('outer after inner', \E_USER_WARNING);
+        }, $outerWarning);
+
+        Expect::that($innerWarning)
+            ->because('the inner trap MUST capture its own diagnostic')
+            ->toBe('inner warning')
+            ->and($outerWarning)
+            ->because('the outer trap MUST resume after the inner trap')
+            ->toBe('outer after inner');
+    }
+
+    #[Test]
     public function restoresThePreviousHandlerWhenTheOperationThrows(): void
     {
         $handled = null;
