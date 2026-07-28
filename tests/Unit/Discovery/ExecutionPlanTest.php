@@ -70,6 +70,26 @@ final class ExecutionPlanTest
     }
 
     #[Test]
+    public function rejectsDuplicateTestIdsFromConstructionAndTheWire(): void
+    {
+        $entry = self::entry('App\FooTest', 'a', 'first');
+        $message = 'Execution plan test ID "App\FooTest::a[first]" occurs more than once.';
+
+        Expect::that(static fn(): ExecutionPlan => new ExecutionPlan([$entry, $entry]))
+            ->because('an execution plan MUST contain each test ID exactly once')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+
+        $payload = [
+            'seed' => null,
+            'entries' => [$entry->toWire(), $entry->toWire()],
+        ];
+
+        Expect::that(static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload))
+            ->because('wire decoding MUST reject duplicate test IDs')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    #[Test]
     public function survivesTheWire(): void
     {
         $plan = new ExecutionPlan([
