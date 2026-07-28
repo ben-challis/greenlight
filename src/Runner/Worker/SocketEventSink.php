@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Worker;
 
 use Greenlight\Core\Event\Event;
+use Greenlight\Runner\Protocol\Channel;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\ProtocolError;
-use Greenlight\Runner\Protocol\SocketChannel;
 
 /** @internal */
 final readonly class SocketEventSink implements EventSink
 {
-    public function __construct(private SocketChannel $channel) {}
+    public function __construct(private Channel $channel) {}
 
     /**
      * @throws ProtocolError

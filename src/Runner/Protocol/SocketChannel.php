@@ -17,7 +17,7 @@ use Greenlight\Core\Wire\WireError;
  *
  * @internal
  */
-final class SocketChannel
+final class SocketChannel implements Channel
 {
     private readonly FrameBuffer $buffer;
 
@@ -36,6 +36,7 @@ final class SocketChannel
     /**
      * @throws ProtocolError when the peer is gone or the frame is invalid
      */
+    #[\Override]
     public function send(Message $message): void
     {
         if (!\is_resource($this->stream)) {
@@ -82,6 +83,7 @@ final class SocketChannel
      * @throws InvalidWirePayload
      * @throws WireError
      */
+    #[\Override]
     public function receive(float $timeoutSeconds): ?Message
     {
         $deadline = $this->monotonicTime() + $timeoutSeconds;
@@ -127,6 +129,7 @@ final class SocketChannel
      * @throws InvalidWirePayload
      * @throws WireError
      */
+    #[\Override]
     public function poll(): ?Message
     {
         $body = $this->buffer->next();
@@ -187,6 +190,7 @@ final class SocketChannel
         return \hrtime(true) / 1_000_000_000;
     }
 
+    #[\Override]
     public function isEof(): bool
     {
         return $this->eof;
@@ -200,6 +204,7 @@ final class SocketChannel
         return $this->stream;
     }
 
+    #[\Override]
     public function close(): void
     {
         $this->eof = true;
