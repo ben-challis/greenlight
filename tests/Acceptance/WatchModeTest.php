@@ -75,7 +75,43 @@ final readonly class WatchModeTest
         }
     }
 
-    private function writeProject(): AcceptanceProject
+    #[Test]
+    public function coverageIncludePathsTriggerWatchReruns(): void
+    {
+        $project = $this->writeProject(watchCoverageSource: true);
+        $project->writeFile('source/Observed.php', "<?php\n");
+        $process = GreenlightCli::start(
+            $project->directory,
+            ['run', '--watch', '--reporter=plain'],
+        );
+
+        try {
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+            Expect::that($output)
+                ->because('watch mode MUST complete its initial coverage run')
+                ->toContain('1 test, 1 passed');
+
+            $project->writeFile('source/Observed.php', "<?php\n// changed\n");
+            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+            Expect::that($output)
+                ->because('watch mode MUST observe configured coverage include paths')
+                ->toContain('Detected changes')
+                ->toContain('1 test, 1 passed');
+
+            $process->write('q');
+            $result = $process->wait(10.0);
+
+            Expect::that($result->exitCode)
+                ->because('watch mode exits cleanly after a coverage source change')
+                ->toBe(0);
+        } finally {
+            $process->terminate();
+        }
+    }
+
+    private function writeProject(bool $watchCoverageSource = false): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'watch');
         $project->writeFile('tests/WatchProbeTest.php', <<<'PHP'
@@ -93,7 +129,13 @@ final readonly class WatchModeTest
                 public function passes(): void {}
             }
             PHP);
-        $project->writeFile('greenlight.php', <<<'PHP'
+        $coverage = $watchCoverageSource
+            ? "\n    ->coverage(fn(\$coverage) => \$coverage"
+                . "\n        ->include(__DIR__ . '/source')"
+                . "\n        ->driver('pcov'))"
+            : '';
+        $project->writeFile('greenlight.php', \sprintf(
+            <<<'PHP'
             <?php
 
             declare(strict_types=1);
@@ -104,9 +146,11 @@ final readonly class WatchModeTest
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->workers(1)
+                ->workers(1)%s
                 ->watch(fn($watch) => $watch->debounceMilliseconds(50));
-            PHP);
+            PHP,
+            $coverage,
+        ));
 
         return $project;
     }
