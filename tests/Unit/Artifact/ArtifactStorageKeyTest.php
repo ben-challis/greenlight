@@ -62,6 +62,57 @@ final readonly class ArtifactStorageKeyTest
         }
     }
 
+    #[Test]
+    public function discardedAttachmentsCannotEscapeTheStagingDirectory(): void
+    {
+        $root = $this->tempDirectory->subdirectory('unsafe-discard');
+        $store = ArtifactStore::open(
+            new ArtifactConfiguration($root),
+            $root,
+            'run-unsafe-discard',
+        );
+        $staging = $store->session()->stagingDirectory;
+        $sentinelName = \basename($staging) . '-sentinel';
+        $sentinel = \dirname($staging) . '/' . $sentinelName;
+        $storageKey = '../' . $sentinelName;
+        $attachment = new StagedAttachment(
+            'evidence.txt',
+            AttachmentKind::Text,
+            'text/plain',
+            8,
+            \hash('sha256', 'evidence'),
+            1,
+            'run-unsafe-discard/evidence.txt',
+            AttachmentRetention::OnFailure,
+            $storageKey,
+        );
+        $result = new TestResult(
+            new TestId('Example\EvidenceTest', 'rejectsUnsafeDiscard'),
+            Outcome::Passed,
+            0.1,
+            0,
+            attachments: [$attachment],
+        );
+
+        try {
+            Expect::that(\file_put_contents($sentinel, 'preserve'))
+                ->because('the sentinel file MUST exist before publication')
+                ->toBe(8);
+            Expect::that(static fn(): TestResult => $store->publish($result))
+                ->because('discard MUST validate a staging coordinate before removing files')
+                ->toThrow(
+                    AttachmentError::class,
+                    message: 'Attachment metadata contains an unsafe storage key.',
+                );
+            Expect::that(\file_get_contents($sentinel))
+                ->because('unsafe metadata MUST NOT remove files outside staging')
+                ->toBe('preserve');
+        } finally {
+            @\unlink($sentinel);
+            $store->cleanup();
+        }
+    }
+
     /**
      * @return iterable<string, array{string, non-empty-string}>
      */
