@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\PhpStanExtension;
 
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\ExpectationExtension;
 
-final class DigestExtension implements ExpectationExtension
+final class DigestExtension implements ExpectationExtension, Fake
 {
     #[\Override]
     public function matchers(): array

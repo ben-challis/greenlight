@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Plugins;
 
+use Greenlight\Doubles\Fake;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 
-final readonly class ProbeProvider implements HarnessProvider
+final readonly class ProbeProvider implements HarnessProvider, Fake
 {
     #[\Override]
     public function services(): array
