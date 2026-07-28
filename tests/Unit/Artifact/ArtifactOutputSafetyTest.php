@@ -20,6 +20,23 @@ final readonly class ArtifactOutputSafetyTest
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
+    public function outputDirectoriesRejectNullBytesBeforeFilesystemUse(): void
+    {
+        $workingDirectory = $this->tempDirectory->subdirectory('invalid-output');
+
+        Expect::that(static fn(): ArtifactStore => ArtifactStore::open(
+            new ArtifactConfiguration("published\0outside"),
+            $workingDirectory,
+            'run-1',
+        ))
+            ->because('an attachment output directory MUST be a valid filesystem path')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment output directory is invalid.',
+            );
+    }
+
+    #[Test]
     public function outputDirectorySymlinksCannotRedirectPublication(): void
     {
         $root = $this->tempDirectory->subdirectory('output-symlink');
