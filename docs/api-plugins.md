@@ -33,6 +33,182 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L20)
 
+## `IntegrationFixtureContext`
+
+Namespace: `Greenlight\Plugin`
+
+Orchestrator-side context used while one integration fixture is provisioned.
+
+```php
+interface IntegrationFixtureContext
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L12)
+
+### `runId()`
+
+```php
+public function runId(): string;
+```
+
+PHPDoc:
+
+- `@return non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L17)
+
+### `configuredWorkers()`
+
+```php
+public function configuredWorkers(): int;
+```
+
+PHPDoc:
+
+- `@return positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L22)
+
+### `channels()`
+
+The channel numbers that can be live during this execution.
+
+```php
+public function channels(): array;
+```
+
+PHPDoc:
+
+- `@return non-empty-list<positive-int>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L29)
+
+### `shard()`
+
+```php
+public function shard(): ?array;
+```
+
+PHPDoc:
+
+- `@return array{int, int}|null one-based shard index and shard count`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L34)
+
+### `dependency()`
+
+```php
+public function dependency(string $id, ?int $channel = null): FixtureResource;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L36)
+
+### `defer()`
+
+Registers cleanup immediately. Call this as soon as a real resource is
+acquired so later failures in the same provisioner cannot leak it.
+
+```php
+public function defer(\Closure $cleanup): void;
+```
+
+PHPDoc:
+
+- `@param \Closure(): void $cleanup`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L44)
+
+### `expose()`
+
+Publishes shared data plus optional channel-specific overlays.
+
+```php
+public function expose(FixtureResource $shared, array $channels = []): void;
+```
+
+PHPDoc:
+
+- `@param array<int, FixtureResource> $channels keyed by channel number`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L51)
+
+## `IntegrationFixtureDefinition`
+
+Namespace: `Greenlight\Plugin`
+
+One orchestrator-owned integration fixture and its dependencies.
+
+```php
+final readonly class IntegrationFixtureDefinition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L10)
+
+### `$id`
+
+```php
+public string $id;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L15)
+
+### `$dependsOn`
+
+```php
+public array $dependsOn;
+```
+
+PHPDoc:
+
+- `@var list<non-empty-string>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L20)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string $id,
+    public \Closure $provision,
+    array $dependsOn = [],
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(IntegrationFixtureContext): void $provision`
+- `@param list<string> $dependsOn`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L26)
+
+## `IntegrationFixtureProvider`
+
+Namespace: `Greenlight\Plugin`
+
+Contributes orchestrator-owned infrastructure to an executing test run.
+
+```php
+interface IntegrationFixtureProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L10)
+
+### `integrationFixtures()`
+
+```php
+public function integrationFixtures(): array;
+```
+
+PHPDoc:
+
+- `@return list<IntegrationFixtureDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L15)
+
 ## `Plugin`
 
 Namespace: `Greenlight\Plugin`
@@ -216,3 +392,52 @@ public function afterTest(TestContext $context, TestResult $result): TestResult;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestLifecycleSubscriber.php#L29)
+
+## `WorkerBootstrapContext`
+
+Namespace: `Greenlight\Plugin`
+
+Worker-local view of orchestrator-provisioned integration resources.
+
+```php
+final readonly class WorkerBootstrapContext
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L13)
+
+### `__construct()`
+
+```php
+public function __construct(
+    public string $workerId,
+    public TestChannel $channel,
+    public IntegrationResources $resources,
+)
+```
+
+PHPDoc:
+
+- `@param non-empty-string $workerId`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L18)
+
+## `WorkerBootstrapSubscriber`
+
+Namespace: `Greenlight\Plugin`
+
+Worker-side initialization after fixture data arrives and before harness
+providers and service resolvers are consumed.
+
+```php
+interface WorkerBootstrapSubscriber extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapSubscriber.php#L11)
+
+### `onWorkerBootstrap()`
+
+```php
+public function onWorkerBootstrap(WorkerBootstrapContext $context): void;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapSubscriber.php#L13)
