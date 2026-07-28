@@ -103,12 +103,19 @@ final class ProxyGenerationTest
     {
         // The Clock constructor throws. Creation of the double without an
         // exception shows that Greenlight did not run the constructor.
-        $doubles = new Doubles();
-        $clock = $doubles->stub(Clock::class);
+        $directory = \sys_get_temp_dir() . '/greenlight-doubles-' . \bin2hex(\random_bytes(6));
+        $doubles = new Doubles($directory);
 
-        Expect::that($clock)->because('class doubles never run the doubled constructor')->toBeInstanceOf(Clock::class);
+        try {
+            $clock = $doubles->stub(Clock::class);
 
-        $doubles->dispose();
+            Expect::that($clock)
+                ->because('a freshly generated class double never runs the doubled constructor')
+                ->toBeInstanceOf(Clock::class);
+        } finally {
+            $doubles->dispose();
+            $this->removeDirectory($directory);
+        }
     }
 
     #[Test]
