@@ -29,6 +29,10 @@ final class DecimalIntegerTest
         yield 'zero padded' => ['0000', 0];
         yield 'machine maximum' => [(string) \PHP_INT_MAX, \PHP_INT_MAX];
         yield 'padded machine maximum' => ['000' . \PHP_INT_MAX, \PHP_INT_MAX];
+        yield 'same-width overflow' => [
+            \substr((string) \PHP_INT_MAX, 0, -1) . '8',
+            null,
+        ];
         yield 'overflow' => [\PHP_INT_MAX . '0', null];
         yield 'negative' => ['-1', null];
         yield 'fraction' => ['1.0', null];
