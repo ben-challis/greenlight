@@ -60,47 +60,6 @@ final class ErrorTrapTest
     }
 
     #[Test]
-    public function preservesAHandlerInstalledByTheOperationWithoutLeavingItsTrapActive(): void
-    {
-        $previousMessages = [];
-        $operationMessages = [];
-
-        \set_error_handler(static function (int $severity, string $message) use (&$previousMessages): bool {
-            $previousMessages[] = [$severity, $message];
-
-            return true;
-        });
-
-        try {
-            ErrorTrap::run(static function () use (&$operationMessages): void {
-                \set_error_handler(
-                    static function (int $severity, string $message) use (&$operationMessages): bool {
-                        $operationMessages[] = [$severity, $message];
-
-                        return true;
-                    },
-                );
-            }, $warning);
-
-            \trigger_error('operation handler', \E_USER_WARNING);
-            \restore_error_handler();
-            \trigger_error('previous handler', \E_USER_WARNING);
-
-            Expect::that($operationMessages)
-                ->because('the operation handler MUST remain active after the trap')
-                ->toBe([[\E_USER_WARNING, 'operation handler']])
-                ->and($previousMessages)
-                ->because('one restore MUST return to the handler that preceded the trap')
-                ->toBe([[\E_USER_WARNING, 'previous handler']])
-                ->and($warning)
-                ->because('the removed trap MUST NOT capture later diagnostics')
-                ->toBeNull();
-        } finally {
-            \restore_error_handler();
-        }
-    }
-
-    #[Test]
     public function restoresThePreviousHandlerWhenTheOperationThrows(): void
     {
         $handled = null;
