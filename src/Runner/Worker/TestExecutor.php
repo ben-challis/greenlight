@@ -44,9 +44,9 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
  *
  * An `After` hook runs if constructor injection created a test instance. It
  * runs even when a previous test-body operation did not complete.
- * `applyAfterSubscribers()` validates each outcome change against the
- * transformation log. Greenlight removes each reference to the test instance
- * when the attempt ends.
+ * `applyAfterSubscribers()` preserves the test identity. It validates each
+ * outcome change against the transformation log. Greenlight removes each
+ * reference to the test instance when the attempt ends.
  *
  * @internal
  */
@@ -306,8 +306,8 @@ final readonly class TestExecutor
     }
 
     /**
-     * Runs afterTest() subscribers and validates each outcome change against
-     * the transformation log.
+     * Runs afterTest() subscribers. It preserves the test identity and validates
+     * each outcome change against the transformation log.
      *
      * A change without a new transformation-log entry has no source. This
      * condition causes a test error that identifies the plugin.
@@ -342,6 +342,19 @@ final readonly class TestExecutor
                         )),
                     ]);
                 }
+
+                continue;
+            }
+
+            if (!$replacement->id->equals($result->id)) {
+                $result = $result->erroredBy(
+                    ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
+                        'Plugin "%s" changed the test identity during afterTest() from "%s" to "%s".',
+                        $subscriber::class,
+                        $result->id,
+                        $replacement->id,
+                    ))),
+                );
 
                 continue;
             }
