@@ -26,11 +26,14 @@ final readonly class DataSet
      * arguments, it names the provider class and `$method` names the provider
      * method.
      *
-     * @param non-empty-string $provider
-     * @param non-empty-string|null $method
+     * @throws \InvalidArgumentException
      */
     public function __construct(string $provider, ?string $method = null)
     {
+        if ($provider === '' || $method === '') {
+            throw new \InvalidArgumentException('Data-set provider names cannot be empty.');
+        }
+
         $this->provider = $method ?? $provider;
         $this->providerClass = $method === null ? null : $provider;
     }

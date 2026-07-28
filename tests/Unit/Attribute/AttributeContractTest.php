@@ -51,6 +51,28 @@ final class AttributeContractTest
     }
 
     #[Test]
+    #[DataSet('emptyDataSetProviderNames')]
+    public function dataSetRejectsEmptyProviderNames(string $provider, ?string $method): void
+    {
+        Expect::that(static fn(): DataSet => new DataSet($provider, $method))
+            ->because('a data-set provider name MUST NOT be empty')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Data-set provider names cannot be empty.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{string, string|null}>
+     */
+    public static function emptyDataSetProviderNames(): iterable
+    {
+        yield 'local provider' => ['', null];
+        yield 'external provider class' => ['', 'rows'];
+        yield 'external provider method' => [self::class, ''];
+    }
+
+    #[Test]
     public function methodOrClassAttributesTargetBoth(): void
     {
         foreach ([Skip::class, SkipUnless::class, Retry::class, Timeout::class, Isolated::class] as $attribute) {
