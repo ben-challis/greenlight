@@ -135,10 +135,13 @@ final class Doubles implements Disposable
         }
 
         $state = $this->doubles[$double];
+        $reflection = new \ReflectionClass($state->type);
 
-        if (!\method_exists($state->type, $method)) {
+        if (!$reflection->hasMethod($method)) {
             throw DoublesError::noSuchRecordedMethod($state->type, $method);
         }
+
+        $method = $reflection->getMethod($method)->getName();
 
         return $state->recordedCalls[$method] ?? [];
     }
