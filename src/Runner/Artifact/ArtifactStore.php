@@ -290,6 +290,7 @@ final class ArtifactStore
     public function discard(StagedAttachment $attachment): void
     {
         $storageKey = $attachment->storageKey;
+        $this->assertSafeStorageKey($storageKey);
         $this->removeFile($this->metadataPath($storageKey), 'attachment recovery metadata');
         $this->removeFile($this->session->stagingDirectory . '/' . $storageKey, 'attachment staging file');
         $this->release($attachment->sizeBytes);
@@ -326,10 +327,7 @@ final class ArtifactStore
             }
 
             $storageKey = $attachment->storageKey;
-
-            if (!$this->safeStorageKey($storageKey)) {
-                throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
-            }
+            $this->assertSafeStorageKey($storageKey);
 
             $source = $this->session->stagingDirectory . '/' . $storageKey;
             $destination = $this->outputDirectory . '/' . $storageKey;
@@ -743,16 +741,18 @@ final class ArtifactStore
         return $this->session->stagingDirectory . '/' . $storageKey . '.meta.json';
     }
 
-    private function safeStorageKey(string $storageKey): bool
+    private function assertSafeStorageKey(string $storageKey): void
     {
         if ($storageKey === '' || \str_starts_with($storageKey, '/') || \str_contains($storageKey, '\\')) {
-            return false;
+            throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
         }
 
-        return \array_all(
+        if (!\array_all(
             \explode('/', $storageKey),
             static fn(string $segment): bool => !\in_array($segment, ['', '.', '..'], true),
-        );
+        )) {
+            throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
+        }
     }
 
     private function createDirectorySafely(string $directory): void
