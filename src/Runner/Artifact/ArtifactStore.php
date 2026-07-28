@@ -139,7 +139,7 @@ final class ArtifactStore
             $stagingFileCreated = true;
 
             try {
-                $this->writeFully($stream, $bytes);
+                StreamWriter::writeFully($stream, $bytes);
             } finally {
                 \fclose($stream);
             }
@@ -235,7 +235,7 @@ final class ArtifactStore
 
                         $copied += \strlen($chunk);
                         \hash_update($hash, $chunk);
-                        $this->writeFully($destination, $chunk);
+                        StreamWriter::writeFully($destination, $chunk);
                     }
                 } finally {
                     \fclose($destination);
@@ -475,25 +475,6 @@ final class ArtifactStore
                 $size,
                 $configuration->maxAttachmentBytes,
             ));
-        }
-    }
-
-    /**
-     * @param resource $stream
-     */
-    private function writeFully($stream, string $bytes): void
-    {
-        $offset = 0;
-        $length = \strlen($bytes);
-
-        while ($offset < $length) {
-            $written = \fwrite($stream, \substr($bytes, $offset));
-
-            if ($written === false || $written === 0) {
-                throw AttachmentError::storage('Failed to write the complete attachment');
-            }
-
-            $offset += $written;
         }
     }
 
@@ -744,7 +725,7 @@ final class ArtifactStore
                 }
 
                 if ($chunk !== '') {
-                    $this->writeFully($destination, $chunk);
+                    StreamWriter::writeFully($destination, $chunk);
                 }
             }
 
