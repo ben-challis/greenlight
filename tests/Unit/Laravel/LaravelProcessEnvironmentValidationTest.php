@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Laravel;
+
+use Greenlight\Attribute\SkipUnless;
+use Greenlight\Attribute\Test;
+use Greenlight\Condition\ClassAvailable;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Laravel\LaravelProcessState;
+use Illuminate\Foundation\Application as LaravelApplication;
+
+final readonly class LaravelProcessEnvironmentValidationTest
+{
+    public function __construct(private EnvironmentSandbox $environment) {}
+
+    #[Test]
+    #[SkipUnless(ClassAvailable::class, LaravelApplication::class)]
+    public function aNullByteEnvironmentIsRejectedBeforeProcessStateChanges(): void
+    {
+        $this->environment->set('APP_ENV', 'before-laravel');
+
+        Expect::that(static fn(): LaravelProcessState => LaravelProcessState::setEnvironment("testing\0truncated"))
+            ->because('a NUL environment MUST be rejected before putenv truncates it')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Laravel environment MUST NOT contain a null byte.',
+            )
+            ->and([
+                \getenv('APP_ENV'),
+                $_ENV['APP_ENV'] ?? null,
+                $_SERVER['APP_ENV'] ?? null,
+            ])
+            ->because('a rejected Laravel environment MUST NOT change process state')
+            ->toBe(['before-laravel', 'before-laravel', 'before-laravel']);
+    }
+}
