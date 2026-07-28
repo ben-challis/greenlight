@@ -157,6 +157,42 @@ final class TestResultTest
     }
 
     #[Test]
+    public function errorTransitionPreservesEarlierFailureEvidence(): void
+    {
+        $failure = new FailureDetail('The assertion failed.', 'ready', 'waiting');
+        $original = new TestResult(
+            new TestId('App\FooTest', 'bar'),
+            Outcome::Failed,
+            0.25,
+            1024,
+            attempts: 2,
+            failures: [$failure],
+            expectations: 3,
+        );
+        $error = new ThrowableDetail(
+            \RuntimeException::class,
+            'Teardown failed.',
+            '/app/tests/FooTest.php',
+            42,
+        );
+
+        $errored = $original->erroredBy($error);
+
+        Expect::that($errored->outcome)
+            ->because('a later lifecycle error MUST replace the final outcome')
+            ->toBe(Outcome::Errored)
+            ->and($errored->error)
+            ->because('the lifecycle error MUST remain available for diagnostics')
+            ->toBe($error)
+            ->and($errored->failures)
+            ->because('a later lifecycle error MUST NOT discard earlier failure evidence')
+            ->toBe([$failure])
+            ->and([$errored->attempts, $errored->expectations])
+            ->because('a later lifecycle error MUST preserve completed attempt state')
+            ->toBe([2, 3]);
+    }
+
+    #[Test]
     public function rejectsInvalidAttemptCounts(): void
     {
         $id = new TestId('App\FooTest', 'bar');
