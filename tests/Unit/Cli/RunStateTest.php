@@ -63,6 +63,39 @@ final class RunStateTest
     }
 
     #[Test]
+    public function malformedEntriesAreDiscardedWithoutLosingValidState(): void
+    {
+        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
+        $file = $this->stateFileFor($directory);
+        $state = RunState::forWorkingDirectory($directory);
+
+        \file_put_contents($file, \json_encode([
+            'failed' => ['Acme\AlphaTest::one', '', 42, null],
+            'classSeconds' => [
+                'Acme\AlphaTest' => 1.25,
+                'Acme\BetaTest' => 2,
+                '' => 3,
+                12 => 4,
+                'Acme\InvalidTest' => 'slow',
+            ],
+        ], \JSON_THROW_ON_ERROR));
+
+        try {
+            Expect::that($state->failedTests())
+                ->because('invalid failed-test entries MUST NOT hide valid IDs')
+                ->toBe(['Acme\AlphaTest::one'])
+                ->and($state->classSeconds())
+                ->because('invalid duration entries MUST NOT hide valid timings')
+                ->toBe([
+                    'Acme\AlphaTest' => 1.25,
+                    'Acme\BetaTest' => 2.0,
+                ]);
+        } finally {
+            @\unlink($file);
+        }
+    }
+
+    #[Test]
     public function unreadableStateReadsAsAbsent(): void
     {
         $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
