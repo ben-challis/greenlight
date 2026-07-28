@@ -41,4 +41,19 @@ final class ParsedArgumentsTest
             ->and($arguments->has('missing'))
             ->toBeFalse();
     }
+
+    #[Test]
+    public function valuesPreserveFalseyStrings(): void
+    {
+        $arguments = new ParsedArguments(null, [
+            'option' => ['', null, '0'],
+        ]);
+
+        Expect::that($arguments->values('option'))
+            ->because('repeatable option values MUST remove only absent null entries')
+            ->toBe(['', '0'])
+            ->and($arguments->value('option'))
+            ->because('a singular option lookup MUST preserve a final zero string')
+            ->toBe('0');
+    }
 }
