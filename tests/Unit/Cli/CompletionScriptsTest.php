@@ -74,6 +74,26 @@ final class CompletionScriptsTest
     }
 
     #[Test]
+    public function optionalValuesDoNotBecomeRequiredInFish(): void
+    {
+        $scripts = new CompletionScripts([
+            new OptionSpec('bail', OptionValue::Optional),
+        ]);
+
+        foreach (['bash', 'zsh'] as $shell) {
+            Expect::that($scripts->render($shell))
+                ->because('shells with equals-form completion MUST offer the optional value')
+                ->toContain('--bail=');
+        }
+
+        Expect::that($scripts->render('fish'))
+            ->because('fish MUST register an optional-value flag without requiring its argument')
+            ->toContain("complete -c greenlight -l bail\n")
+            ->not()
+            ->toContain('complete -c greenlight -l bail -r');
+    }
+
+    #[Test]
     public function returnsNullForAnUnknownShell(): void
     {
         Expect::that($this->scripts()->render('powershell'))->because('returns null for an unknown shell')->toBeNull();
