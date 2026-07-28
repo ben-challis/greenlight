@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\LcovExporter;
@@ -45,5 +46,31 @@ final class LcovExporterTest
     {
         Expect::that(new LcovExporter()->export(CoverageMap::empty()))->because('empty map produces an empty tracefile')
             ->toBe([LcovExporter::FILE_NAME => '']);
+    }
+
+    /**
+     * @param non-empty-string $path
+     */
+    #[Test]
+    #[DataSet('pathsThatCanInjectRecords')]
+    public function lineBreaksInFilePathsAreRejected(string $path): void
+    {
+        $map = new CoverageMap([new FileCoverage($path, [1], [])]);
+
+        Expect::that(static fn(): array => new LcovExporter()->export($map))
+            ->because('LCOV SF records MUST stay on one line')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'LCOV file paths MUST NOT contain line breaks.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function pathsThatCanInjectRecords(): iterable
+    {
+        yield 'line feed' => ["/src/A.php\nDA:999,1"];
+        yield 'carriage return' => ["/src/A.php\rDA:999,1"];
     }
 }

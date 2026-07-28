@@ -9,7 +9,8 @@ use Greenlight\Coverage\CoverageMap;
 /**
  * Each file produces one SF record and one DA record for each executable
  * line. A DA record has a hit count of one or zero. LF and LH contain line
- * totals.
+ * totals. Each SF record stays on one line. A source path cannot contain a
+ * line break.
  *
  * @internal
  */
@@ -23,6 +24,10 @@ final readonly class LcovExporter implements CoverageExporter
         $out = '';
 
         foreach ($map->files() as $path => $file) {
+            if (\strpbrk($path, "\r\n") !== false) {
+                throw new \InvalidArgumentException('LCOV file paths MUST NOT contain line breaks.');
+            }
+
             $out .= 'SF:' . $path . "\n";
 
             $hits = [];
