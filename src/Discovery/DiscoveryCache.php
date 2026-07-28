@@ -9,9 +9,10 @@ use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 
 /**
- * Stores one discovery cache entry for each file. The path, mtime, size, and
- * external provider files identify an entry. Entries do not contain filter
- * results. Thus, a filter change does not require another parse operation.
+ * Stores one discovery cache entry for each file. The path, modification time,
+ * size, content hash, and external provider files identify an entry. Entries
+ * do not contain filter results. Thus, a filter change does not require
+ * another parse operation.
  *
  * Discovery parses the file after a cache miss, stale file, corrupt cache, or
  * version mismatch. A data provider can change output without a file change.
@@ -73,7 +74,12 @@ final class DiscoveryCache
 
         $stat = $this->stat($file);
 
-        if ($stat === null || $stat['mtime'] !== $cached->mtime || $stat['size'] !== $cached->size) {
+        if (
+            $stat === null
+            || $stat['mtime'] !== $cached->mtime
+            || $stat['size'] !== $cached->size
+            || $stat['contentHash'] !== $cached->contentHash
+        ) {
             return null;
         }
 
@@ -113,13 +119,14 @@ final class DiscoveryCache
             $stat['size'],
             \array_map(static fn(PlanEntry $entry): array => $entry->toWire(), $entries),
             $this->providerDependencies($entries),
+            $stat['contentHash'],
         );
     }
 
     /**
      * @param list<PlanEntry> $entries
      *
-     * @return array<non-empty-string, array{mtime: int, size: int}>
+     * @return array<non-empty-string, array{mtime: int, size: int, contentHash?: string}>
      */
     private function providerDependencies(array $entries): array
     {
@@ -148,7 +155,9 @@ final class DiscoveryCache
                 $stat = $this->stat($file);
 
                 if ($stat !== null) {
-                    $dependencies[$file] = $stat;
+                    $dependencies[$file] = $stat['contentHash'] === null
+                        ? ['mtime' => $stat['mtime'], 'size' => $stat['size']]
+                        : ['mtime' => $stat['mtime'], 'size' => $stat['size'], 'contentHash' => $stat['contentHash']];
                 }
             }
         }
@@ -157,19 +166,26 @@ final class DiscoveryCache
     }
 
     /**
-     * @return array{mtime: int, size: int}|null
+     * @return array{mtime: int, size: int, contentHash: ?non-empty-string}|null
      */
     private function stat(string $file): ?array
     {
+        \clearstatcache(true, $file);
+
         return ErrorTrap::run(static function () use ($file): ?array {
             $mtime = \filemtime($file);
             $size = \filesize($file);
+            $contentHash = \sha1_file($file);
 
             if (!\is_int($mtime) || !\is_int($size)) {
                 return null;
             }
 
-            return ['mtime' => $mtime, 'size' => $size];
+            return [
+                'mtime' => $mtime,
+                'size' => $size,
+                'contentHash' => \is_string($contentHash) ? $contentHash : null,
+            ];
         });
     }
 
