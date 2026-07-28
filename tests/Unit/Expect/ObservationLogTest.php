@@ -36,6 +36,22 @@ final class ObservationLogTest
     }
 
     #[Test]
+    public function compressesRepeatsInTheLatestChangedValue(): void
+    {
+        $log = new ObservationLog(0.0);
+        $log->record(0.0, 'first');
+        $log->record(0.001, 'changed');
+        $log->record(0.002, 'changed');
+
+        Expect::that($log->count())
+            ->because('the observation count includes repeated tail values')
+            ->toBe(3)
+            ->and($log->render())
+            ->because('consecutive tail values are one group with a repeat count')
+            ->toBe("+0.0ms first\n+1.0ms changed (×2)");
+    }
+
+    #[Test]
     public function renderedHistoryIsBoundedWithATruncationMarker(): void
     {
         $log = new ObservationLog(0.0);
