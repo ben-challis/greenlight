@@ -11,6 +11,17 @@ use Greenlight\Expect\Expect;
 final class FileCoverageTest
 {
     #[Test]
+    public function emptyFilePathsAreRejected(): void
+    {
+        Expect::that(static fn(): FileCoverage => new FileCoverage('', [], []))
+            ->because('coverage entries MUST identify a file')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Use a non-empty coverage file path.',
+            );
+    }
+
+    #[Test]
     public function lineListsAreSortedAndDeduplicated(): void
     {
         $file = new FileCoverage('/src/A.php', [9, 3, 3, 5], [12, 7, 12]);
