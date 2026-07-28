@@ -260,7 +260,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L101)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L105)
 
 ### `fromWire()`
 
@@ -269,7 +269,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L123)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L127)
 
 ## `InvalidWirePayload`
 
