@@ -15,12 +15,12 @@ final class FailTest
     #[Test]
     public function throwsWithTheGivenReason(): void
     {
-        try {
-            Fail::because('The required value was not found.');
-        } catch (ExpectationFailed $failure) {
-            Expect::that($failure->getMessage())
-                ->toStartWith('The required value was not found. (at ');
-        }
+        Expect::that(static fn() => Fail::because('The required value was not found.'))
+            ->because('an explicit failure MUST throw with its reason and call site')
+            ->toThrow(
+                ExpectationFailed::class,
+                matching: '/^The required value was not found\. \(at .+:\d+\)$/',
+            );
     }
 
     #[Test]
