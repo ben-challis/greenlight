@@ -137,6 +137,27 @@ final readonly class RectorMigrationRunTest
 
     PHP_WRAP;
 
+    private const string MATCHED_EXCEPTION = <<<'PHP_WRAP'
+    <?php
+
+    declare(strict_types=1);
+
+    namespace App\Tests;
+
+    use PHPUnit\Framework\TestCase;
+
+    final class ProbeTest extends TestCase
+    {
+        public function testRejectsInvalidCode(): void
+        {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessageMatches('/code=\d+/');
+            throw new \RuntimeException('Invalid code=42');
+        }
+    }
+
+    PHP_WRAP;
+
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
@@ -169,6 +190,30 @@ final readonly class RectorMigrationRunTest
         Expect::that($run->exitCode)->toBe(0)
             ->and($run->stdout)->toContain('7 tests, 6 passed, 1 skipped')
             ->toContain('no smtp server');
+    }
+
+    #[Test]
+    public function preservesExceptionMessagePatternsAndTheResultRunsGreen(): void
+    {
+        $probe = RectorProbe::convert($this->tempDirectory, self::MATCHED_EXCEPTION, name: 'exception-message-pattern');
+
+        Expect::that($probe->changed)
+            ->because('the exception test MUST be convertible')
+            ->toBeTrue()
+            ->and($probe->code)
+            ->because('the PHPUnit message pattern MUST remain the Greenlight matcher pattern')
+            ->toContain(
+                "->toThrow(\\RuntimeException::class, matching: '/code=\\d+/');",
+            );
+
+        $this->writeGreenlightConfig($probe->directory);
+        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+
+        Expect::that($run->exitCode)
+            ->because('the converted exception matcher MUST preserve runtime behavior')
+            ->toBe(0)
+            ->and($run->stdout)
+            ->toContain('1 test, 1 passed');
     }
 
     /**
