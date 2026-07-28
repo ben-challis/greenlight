@@ -26,13 +26,29 @@ final class ArgumentParser
 
     /**
      * @param list<OptionSpec> $specs
+     *
+     * @throws \InvalidArgumentException when option names or aliases conflict
      */
     public function __construct(array $specs)
     {
         foreach ($specs as $spec) {
+            if (isset($this->byName[$spec->name])) {
+                throw new \InvalidArgumentException(\sprintf(
+                    'Option "--%s" is defined more than once.',
+                    $spec->name,
+                ));
+            }
+
             $this->byName[$spec->name] = $spec;
 
             if ($spec->short !== null) {
+                if (isset($this->byShort[$spec->short])) {
+                    throw new \InvalidArgumentException(\sprintf(
+                        'Short option "-%s" is assigned to more than one option.',
+                        $spec->short,
+                    ));
+                }
+
                 $this->byShort[$spec->short] = $spec;
             }
         }
