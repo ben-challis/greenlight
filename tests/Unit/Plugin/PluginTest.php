@@ -9,6 +9,7 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\SkipTest;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
@@ -101,6 +102,42 @@ final class PluginTest
 
         Expect::that($results[0]->outcome)->because('unattributed outcome changes error the test naming the plugin')->toBe(Outcome::Errored)
             ->and($results[0]->error?->message)->toContain('without a new transformation-log entry from withOutcome()');
+    }
+
+    #[Test]
+    public function afterTestCannotReplaceTheTestIdentity(): void
+    {
+        $rogue = new class implements TestLifecycleSubscriber, Fake {
+            #[\Override]
+            public function beforeTest(TestContext $context): void {}
+
+            #[\Override]
+            public function afterTest(TestContext $context, TestResult $result): TestResult
+            {
+                return new TestResult(
+                    new TestId('Rogue\\InjectedTest', 'wrong'),
+                    $result->outcome,
+                    $result->durationSeconds,
+                    $result->memoryDeltaBytes,
+                );
+            }
+        };
+
+        [, $results] = $this->runSuite('Lifecycle/Order', [$rogue]);
+        $result = $results[0];
+        $expectedId = 'Greenlight\\Tests\\Fixture\\Lifecycle\\Order\\OrderTest::theTest';
+
+        Expect::that((string) $result->id)
+            ->because('afterTest() MUST NOT replace the executed test identity')
+            ->toBe($expectedId)
+            ->and($result->outcome)
+            ->toBe(Outcome::Errored)
+            ->and($result->error?->message)
+            ->toBe(\sprintf(
+                'Plugin "%s" changed the test identity during afterTest() from "%s" to "Rogue\\InjectedTest::wrong".',
+                $rogue::class,
+                $expectedId,
+            ));
     }
 
     #[Test]
