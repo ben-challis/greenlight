@@ -36,4 +36,27 @@ final readonly class IdeHelperTest
             ->and($result->output())->toContain('The configuration has no extension matchers')
             ->and(\is_file($target . '.none'))->toBeFalse();
     }
+
+    #[Test]
+    public function invalidConfigurationFailsBeforeWritingAHelper(): void
+    {
+        $project = \dirname(__DIR__) . '/Fixture/ConfigFiles/WrongReturn';
+        $config = $project . '/greenlight.php';
+        $result = GreenlightCli::run($project, ['ide-helper', '--no-ansi']);
+
+        Expect::that($result->exitCode)
+            ->because('ide-helper MUST report configuration errors before it writes output')
+            ->toBe(1)
+            ->and($result->stderr)
+            ->toBe(
+                \sprintf(
+                    'greenlight: Configuration file "%s" returned string. It must return a '
+                    . 'Greenlight\Config\GreenlightConfig instance. End the file with '
+                    . '"return GreenlightConfig::create()->...;".',
+                    $config,
+                ),
+            )
+            ->and($result->stdout)
+            ->toBe('');
+    }
 }
