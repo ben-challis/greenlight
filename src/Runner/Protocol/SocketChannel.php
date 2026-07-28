@@ -102,9 +102,13 @@ final class SocketChannel
             $except = null;
             $microseconds = (int) \min($left * 1_000_000, 200_000);
 
-            $ready = ErrorTrap::run(
-                static fn(): int|false => \stream_select($read, $write, $except, 0, \max(1, $microseconds)),
-            );
+            try {
+                $ready = ErrorTrap::run(
+                    static fn(): int|false => \stream_select($read, $write, $except, 0, \max(1, $microseconds)),
+                );
+            } catch (\ValueError) {
+                return null;
+            }
 
             if ($ready === false) {
                 return null;
