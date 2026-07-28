@@ -72,11 +72,23 @@ final readonly class RunFinished implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L10)
 
+### `$runId`
+
+```php
+public string $runId;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L15)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $runId,
+    string $runId,
     public ResultSummary $summary,
     public float $durationSeconds,
     public float $occurredAt,
@@ -85,9 +97,9 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $runId`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L20)
 
 ### `toWire()`
 
@@ -96,7 +108,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L37)
 
 ### `fromWire()`
 
@@ -105,7 +117,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L48)
 
 ## `RunStarted`
 
@@ -117,13 +129,49 @@ final readonly class RunStarted implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L9)
 
+### `$runId`
+
+```php
+public string $runId;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L14)
+
+### `$plannedTests`
+
+```php
+public int $plannedTests;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L19)
+
+### `$workers`
+
+```php
+public int $workers;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L24)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $runId,
-    public int $plannedTests,
-    public int $workers,
+    string $runId,
+    int $plannedTests,
+    int $workers,
     public float $occurredAt,
     public ?string $artifactsDirectory = null,
 )
@@ -131,11 +179,9 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $runId`
-- `@param non-negative-int $plannedTests`
-- `@param positive-int $workers`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L29)
 
 ### `toWire()`
 
@@ -144,7 +190,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L59)
 
 ### `fromWire()`
 
@@ -153,7 +199,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L71)
 
 ## `SuiteFinished`
 

@@ -10,14 +10,29 @@ use Greenlight\Core\Wire\Wire;
 final readonly class RunFinished implements Event
 {
     /**
-     * @param non-empty-string $runId
+     * @var non-empty-string
+     */
+    public string $runId;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $runId,
+        string $runId,
         public ResultSummary $summary,
         public float $durationSeconds,
         public float $occurredAt,
-    ) {}
+    ) {
+        if ($runId === '') {
+            throw new \InvalidArgumentException('RunFinished requires a non-empty run ID.');
+        }
+
+        if ($durationSeconds < 0.0) {
+            throw new \InvalidArgumentException('RunFinished duration cannot be negative.');
+        }
+
+        $this->runId = $runId;
+    }
 
     #[\Override]
     public function toWire(): array
