@@ -349,7 +349,7 @@ final class ArtifactStore
             }
 
             try {
-                $this->copyFile($source, $part);
+                FileCopier::copy($source, $part);
 
                 if (\filesize($part) !== $attachment->sizeBytes || \hash_file('sha256', $part) !== $attachment->sha256) {
                     throw AttachmentError::storage('Published attachment content does not match its metadata');
@@ -696,45 +696,6 @@ final class ArtifactStore
 
         if (!\unlink($path)) {
             throw AttachmentError::storage('Greenlight did not remove ' . $description);
-        }
-    }
-
-    private function copyFile(string $sourcePath, string $destinationPath): void
-    {
-        $source = \fopen($sourcePath, 'rb');
-        $destination = \fopen($destinationPath, 'xb');
-
-        if ($source === false || $destination === false) {
-            if (\is_resource($source)) {
-                \fclose($source);
-            }
-
-            if (\is_resource($destination)) {
-                \fclose($destination);
-            }
-
-            throw AttachmentError::storage('Failed to copy attachment into its output directory');
-        }
-
-        try {
-            while (!\feof($source)) {
-                $chunk = \fread($source, self::COPY_CHUNK_BYTES);
-
-                if ($chunk === false) {
-                    throw AttachmentError::storage('Failed to read attachment staging content');
-                }
-
-                if ($chunk !== '') {
-                    StreamWriter::writeFully($destination, $chunk);
-                }
-            }
-
-            if (!\fflush($destination)) {
-                throw AttachmentError::storage('Failed to flush the published attachment');
-            }
-        } finally {
-            \fclose($destination);
-            \fclose($source);
         }
     }
 
