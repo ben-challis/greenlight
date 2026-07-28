@@ -77,6 +77,54 @@ final class JUnitReporterTest
     }
 
     #[Test]
+    public function multipleFailureDetailsRemainDistinct(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\MultipleFailureTest', 'checksEveryValue'),
+            Outcome::Failed,
+            0.001,
+            2,
+            failures: [
+                new FailureDetail('first failure'),
+                new FailureDetail('second failure'),
+            ],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('multiple failure details produce valid JUnit XML')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        if ($document === false) {
+            return;
+        }
+
+        $failures = $document->xpath('//failure');
+
+        Expect::that((string) $document['failures'])
+            ->because('one failed test contributes one suite failure')
+            ->toBe('1')
+            ->and($failures)
+            ->because('each failure detail remains visible to JUnit consumers')
+            ->toHaveCount(2);
+
+        if (!\is_array($failures) || \count($failures) !== 2) {
+            return;
+        }
+
+        Expect::that((string) $failures[0]['message'])
+            ->because('failure details retain their encounter order')
+            ->toBe('first failure')
+            ->and((string) $failures[1]['message'])
+            ->toBe('second failure');
+    }
+
+    #[Test]
     public function testDurationsProvideTheTotalWithoutARunFinishedEvent(): void
     {
         $output = new BufferOutput();
