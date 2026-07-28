@@ -276,6 +276,27 @@ final readonly class SubprocessCoverageTest
         }
     }
 
+    #[Test]
+    public function drainRestoresZeroRelayValuesExactly(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '0');
+        $sandbox->set(SubprocessCoverage::INCLUDE_ENV, '0');
+
+        try {
+            $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
+            $shared->drain();
+
+            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+                ->because('drain MUST restore falsey relay values exactly')
+                ->toBe('0')
+                ->and(\getenv(SubprocessCoverage::INCLUDE_ENV))
+                ->toBe('0');
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
     private function dump(string $directory, string $name, CoverageMap $map): void
     {
         $export = new JsonExporter()->export($map);
