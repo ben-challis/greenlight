@@ -62,12 +62,25 @@ Namespace: `Greenlight\Core\Result`
 
 Greenlight converts the message and file to valid UTF-8 before the
 diagnostic crosses the wire. These values originate in user code.
+The line number MUST be greater than zero.
 
 ```php
 final readonly class Diagnostic implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L16)
+
+### `$line`
+
+```php
+public int $line;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L21)
 
 ### `__construct()`
 
@@ -76,11 +89,15 @@ public function __construct(
     public DiagnosticSeverity $severity,
     public string $message,
     public string $file,
-    public int $line,
+    int $line,
 )
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L17)
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L26)
 
 ### `toWire()`
 
@@ -89,7 +106,7 @@ public function __construct(
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L39)
 
 ### `fromWire()`
 
@@ -98,7 +115,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L50)
 
 ## `DiagnosticSeverity`
 
