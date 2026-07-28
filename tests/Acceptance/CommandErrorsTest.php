@@ -36,6 +36,18 @@ final readonly class CommandErrorsTest
     }
 
     #[Test]
+    public function profileReportWithoutInputIsAUsageError(): void
+    {
+        $result = GreenlightCli::run(\dirname(__DIR__, 2), ['profile:report']);
+
+        Expect::that($result->exitCode)
+            ->because('profile report without input is a usage error')
+            ->toBe(64)
+            ->and($result->stderr)
+            ->toBe('profile:report requires --input=<path to a JSONL stream>.');
+    }
+
+    #[Test]
     public function profileReportWithAMissingInputFileFailsCleanly(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'command-errors');
