@@ -146,7 +146,7 @@ for the full lifecycle and hard-termination limits.
 #### Secrets
 
 Put credentials in `secrets`, not `values`. `SensitiveValue::reveal()` returns
-the string; object dumps and exports redact it. Resources travel over the local
+the string. Object dumps and exports redact it. Resources travel over the local
 authenticated worker socket, not through environment variables or command
 arguments.
 
@@ -191,7 +191,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 ```
 
 `WorkerBootstrapContext` contains the `workerId`, `TestChannel`, and
-`IntegrationResources`. Subscribers may implement `Prioritized`; lower values
+`IntegrationResources`. Subscribers may implement `Prioritized`. Lower values
 run first. An exception fails the run before tests begin.
 
 ### TestLifecycleSubscriber
@@ -276,7 +276,7 @@ Run subscribers receive the event stream in the orchestrator process. The
 stream contains run, worker, class, and test events.
 
 This side is observation-only. Results cannot be changed across the process
-boundary. Integration fixture provisioning completes before `RunStarted`;
+boundary. Integration fixture provisioning completes before `RunStarted`.
 `RunFinished` is delivered before fixture teardown begins. If a run subscriber
 throws, the run fails and fixtures are still torn down.
 

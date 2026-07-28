@@ -80,7 +80,7 @@ final class OrchestratorTest
                 [, , $address, $workerId, $token] = $argv;
                 $socket = stream_socket_client($address);
                 $json = json_encode([
-                    'v' => 1,
+                    'v' => 2,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -196,8 +196,24 @@ final class OrchestratorTest
                     fflush($socket);
                 };
 
+                $read = static function (int $length) use ($socket): string {
+                    $bytes = '';
+
+                    while (strlen($bytes) < $length) {
+                        $chunk = fread($socket, $length - strlen($bytes));
+
+                        if ($chunk === false || $chunk === '') {
+                            exit(1);
+                        }
+
+                        $bytes .= $chunk;
+                    }
+
+                    return $bytes;
+                };
+
                 $send([
-                    'v' => 1,
+                    'v' => 2,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -205,6 +221,11 @@ final class OrchestratorTest
                         'pid' => getmypid(),
                     ],
                 ]);
+                $length = unpack('Nlength', $read(4))['length'];
+                $read($length);
+                $send(['v' => 2, 't' => 'ready', 'p' => []]);
+                $length = unpack('Nlength', $read(4))['length'];
+                $read($length);
 
                 foreach (%s as $message) {
                     $send($message);
@@ -240,7 +261,7 @@ final class OrchestratorTest
 
         yield 'no active test' => [
             [[
-                'v' => 1,
+                'v' => 2,
                 't' => 'attempt-started',
                 'p' => ['id' => $id, 'attempt' => 1],
             ]],
@@ -251,7 +272,7 @@ final class OrchestratorTest
         yield 'attempt number jumps' => [
             [
                 [
-                    'v' => 1,
+                    'v' => 2,
                     't' => 'event',
                     'p' => [
                         'event' => 'test-started',
@@ -259,7 +280,7 @@ final class OrchestratorTest
                     ],
                 ],
                 [
-                    'v' => 1,
+                    'v' => 2,
                     't' => 'attempt-started',
                     'p' => ['id' => $id, 'attempt' => 2],
                 ],
@@ -283,8 +304,24 @@ final class OrchestratorTest
                 fflush($socket);
             };
 
+            $read = static function (int $length) use ($socket): string {
+                $bytes = '';
+
+                while (strlen($bytes) < $length) {
+                    $chunk = fread($socket, $length - strlen($bytes));
+
+                    if ($chunk === false || $chunk === '') {
+                        exit(1);
+                    }
+
+                    $bytes .= $chunk;
+                }
+
+                return $bytes;
+            };
+
             $send([
-                'v' => 1,
+                'v' => 2,
                 't' => 'hello',
                 'p' => [
                     'workerId' => $workerId,
@@ -292,8 +329,10 @@ final class OrchestratorTest
                     'pid' => getmypid(),
                 ],
             ]);
+            $length = unpack('Nlength', $read(4))['length'];
+            $read($length);
             $send([
-                'v' => 1,
+                'v' => 2,
                 't' => 'fatal',
                 'p' => [
                     'detail' => [
