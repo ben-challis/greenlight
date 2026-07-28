@@ -43,6 +43,27 @@ final class ArgumentParserTest
     }
 
     #[Test]
+    public function optionsCanSurroundTheCommandWithoutChangingTheirMeaning(): void
+    {
+        $parsed = self::parser()->parse([
+            '--workers=4',
+            'run',
+            '--group=slow',
+            '--seed=123',
+        ]);
+
+        Expect::that($parsed->command)
+            ->because('option position MUST NOT change the selected command')
+            ->toBe('run')
+            ->and($parsed->value('workers'))
+            ->toBe('4')
+            ->and($parsed->values('group'))
+            ->toBe(['slow'])
+            ->and($parsed->value('seed'))
+            ->toBe('123');
+    }
+
+    #[Test]
     public function shortAliasesMapToTheirLongOptions(): void
     {
         Expect::that(self::parser()->parse(['-h'])->has('help'))->because('short aliases map to their long options')->toBeTrue();
