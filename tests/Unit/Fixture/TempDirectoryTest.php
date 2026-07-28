@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Fixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
@@ -198,6 +199,39 @@ final class TempDirectoryTest
         $directory->dispose();
 
         Expect::that(\file_exists($path))->because('dispose removes the directory including nested files')->toBeFalse();
+    }
+
+    #[Test]
+    public function disposeReportsAnEntryThatItCannotRemove(): void
+    {
+        $directory = new TempDirectory();
+        $path = $directory->path();
+        $file = $path . '/locked.txt';
+        \file_put_contents($file, 'keep');
+        \chmod($path, 0o500);
+        \clearstatcache(true, $path);
+
+        try {
+            if (\is_writable($path)) {
+                throw new SkipTest('The filesystem does not enforce directory write permissions.');
+            }
+
+            Expect::that(static function () use ($directory): void {
+                $directory->dispose();
+            })
+                ->because('fixture cleanup MUST report the entry that it cannot remove')
+                ->toThrow(
+                    \RuntimeException::class,
+                    message: \sprintf(
+                        'Failed to remove "%s" while disposing temp directory "%s".',
+                        $file,
+                        $path,
+                    ),
+                );
+        } finally {
+            \chmod($path, 0o700);
+            $directory->dispose();
+        }
     }
 
     #[Test]
