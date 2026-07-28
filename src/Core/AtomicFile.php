@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Core;
 
 use Random\RandomException;
+use Random\Randomizer;
 
 /**
  * Writes shared state files as atomic operations.
@@ -25,10 +26,10 @@ final class AtomicFile
     /**
      * @throws AtomicFileError
      */
-    public static function write(string $path, string $contents): void
+    public static function write(string $path, string $contents, ?Randomizer $randomizer = null): void
     {
         try {
-            $suffix = \bin2hex(\random_bytes(8));
+            $suffix = \bin2hex(($randomizer ?? new Randomizer())->getBytes(8));
         } catch (RandomException $exception) {
             throw AtomicFileError::cannotNameTemporary($path, $exception);
         }
