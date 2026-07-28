@@ -32,7 +32,7 @@ public function directory(string $directory): self
 public function maxAttachmentsPerTest(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L34)
 
 ### `maxAttachmentSize()`
 
@@ -40,7 +40,7 @@ public function maxAttachmentsPerTest(int $count): self
 public function maxAttachmentSize(string $size): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L45)
 
 ### `maxTestSize()`
 
@@ -48,7 +48,7 @@ public function maxAttachmentSize(string $size): self
 public function maxTestSize(string $size): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L52)
 
 ### `maxRunAttachments()`
 
@@ -56,7 +56,7 @@ public function maxTestSize(string $size): self
 public function maxRunAttachments(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L59)
 
 ### `maxRunSize()`
 
@@ -64,7 +64,7 @@ public function maxRunAttachments(int $count): self
 public function maxRunSize(string $size): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L70)
 
 ## `CoverageBuilder`
 
