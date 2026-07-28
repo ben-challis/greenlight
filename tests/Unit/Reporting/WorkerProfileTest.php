@@ -49,6 +49,30 @@ final class WorkerProfileTest
     }
 
     #[Test]
+    public function repeatedLifecycleEventsPreserveTheInitialTimestamps(): void
+    {
+        $profile = new WorkerProfile();
+        $profile->spawned(10.0);
+        $profile->spawned(20.0);
+        $profile->classStarted(12.0);
+        $profile->classStarted(14.0);
+        $profile->classFinished(15.0);
+
+        Expect::that($profile->spawnedAt)
+            ->because('repeated lifecycle events MUST NOT replace the first worker spawn time')
+            ->toBe(10.0)
+            ->and($profile->firstClassAt)
+            ->because('repeated lifecycle events MUST NOT replace the first class start time')
+            ->toBe(12.0)
+            ->and($profile->bootLatency())
+            ->because('boot latency MUST use the first observed lifecycle timestamps')
+            ->toBe(2.0)
+            ->and($profile->window())
+            ->because('the worker window MUST start at the first observed spawn')
+            ->toBe(5.0);
+    }
+
+    #[Test]
     public function incompleteTimingDataDoesNotInventMetrics(): void
     {
         $profile = new WorkerProfile();
