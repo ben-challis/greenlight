@@ -2,13 +2,17 @@
 
 declare(strict_types=1);
 
+use Rector\Caching\ValueObject\Storage\FileCacheStorage;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 
 return RectorConfig::configure()
     ->withPaths([__DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/tools'])
-    ->withCache(__DIR__ . '/build/cache/rector')
+    ->withCache(
+        cacheClass: FileCacheStorage::class,
+        cacheDirectory: __DIR__ . '/build/cache/rector',
+    )
     ->withSkip([
         // Empty test methods and hooks have a purpose in a test framework.
         RemoveEmptyClassMethodRector::class,
