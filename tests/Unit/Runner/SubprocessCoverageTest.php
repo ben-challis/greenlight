@@ -205,6 +205,34 @@ final readonly class SubprocessCoverageTest
     }
 
     #[Test]
+    public function anUnavailableRelayDirectoryDoesNotBreakTheSubprocess(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $directory = $this->tempDirectory->path() . '/missing/relay';
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+
+        try {
+            $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
+
+            if (!$relay instanceof SubprocessCoverage) {
+                Fail::because('Expected the available fake driver to start subprocess coverage.');
+            }
+
+            $relay->write();
+
+            Expect::that(RecordingFakeDriver::started())
+                ->because('a failed relay write MUST still stop the coverage driver')
+                ->toBeFalse()
+                ->and(\file_exists($directory))
+                ->because('a failed relay write MUST NOT create an incomplete relay directory')
+                ->toBeFalse();
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
+    #[Test]
     public function emptyCoverageDoesNotWriteARelayFile(): void
     {
         $sandbox = new EnvironmentSandbox();
