@@ -147,6 +147,20 @@ final class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function aPassingAssignmentReportsTestCountRecycling(): void
+    {
+        [$workerExit, $serverExit] = $this->runScenario('passing-assignment-recycles');
+
+        Expect::that($workerExit)
+            ->because('a worker that reaches its test-count budget MUST exit cleanly')
+            ->toBe(0)
+            ->and($serverExit)
+            ->because('the protocol fixture MUST receive the completed result and recycle reason')
+            ->toBe(0);
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     #[DataSet('cleanControlChannelEndings')]
     public function controlChannelEndingsStopTheWorkerCleanly(string $scenario): void
     {
@@ -210,6 +224,35 @@ final class WorkerProcessTest
                 exit(0);
             }
 
+            if ($scenario === 'passing-assignment-recycles') {
+                $class = Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::class;
+                $id = new Greenlight\Core\Test\TestId($class, 'one');
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\ExecutionPlan([
+                        new Greenlight\Discovery\PlanEntry(
+                            $id,
+                            new Greenlight\Core\Test\TestMetadata($class, 'one'),
+                        ),
+                    ]),
+                    recycleAfterTests: 1,
+                ));
+
+                do {
+                    $recycling = $channel->receive(2.0);
+                } while ($recycling instanceof Greenlight\Runner\Protocol\Message
+                    && !$recycling instanceof Greenlight\Runner\Protocol\Messages\Recycling);
+
+                if (!$recycling instanceof Greenlight\Runner\Protocol\Messages\Recycling
+                    || $recycling->reason !== Greenlight\Core\Event\RecycleReason::TestCount
+                    || $recycling->summary->passed !== 1
+                    || $recycling->remaining !== []
+                ) {
+                    exit(5);
+                }
+
+                exit(0);
+            }
+
             if ($scenario === 'empty-assignment') {
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                     new Greenlight\Discovery\ExecutionPlan([]),
@@ -220,14 +263,14 @@ final class WorkerProcessTest
                     || $done->summary->total() !== 0
                     || $done->wantsRecycle !== null
                 ) {
-                    exit(5);
+                    exit(6);
                 }
             } elseif ($scenario === 'unexpected-then-drain') {
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Hello('unexpected', 'token', 1));
             } elseif ($scenario === 'idle-then-drain') {
                 usleep(100_000);
             } else {
-                exit(6);
+                exit(7);
             }
 
             $channel->send(new Greenlight\Runner\Protocol\Messages\Drain());
