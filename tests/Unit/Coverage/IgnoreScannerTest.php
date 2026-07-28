@@ -147,6 +147,28 @@ final class IgnoreScannerTest
     }
 
     #[Test]
+    public function annotationIgnoresAReferenceReturningDeclaration(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                /** @codeCoverageIgnore */
+                public function &dropped(): int
+                {
+                    static $value = 1;
+
+                    return $value;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))
+            ->because('annotation ignores a reference-returning declaration')
+            ->toBe([5, 6, 7, 8, 9, 10]);
+    }
+
+    #[Test]
     public function startEndCommentsIgnoreTheEnclosedRange(): void
     {
         $source = <<<'PHP'
