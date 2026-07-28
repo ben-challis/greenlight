@@ -42,6 +42,21 @@ final class ResultPolicyTest
     }
 
     #[Test]
+    public function wildcardIgnoresAreCaseInsensitiveAndMatchTheWholeMessage(): void
+    {
+        $policy = new ResultPolicy(failOnDeprecation: true, ignoreDeprecations: ['LEGACY *']);
+        $matching = $this->passedWithDeprecation('legacy api');
+        $prefixed = $this->passedWithDeprecation('prefix legacy api');
+
+        Expect::that($policy->apply($matching))
+            ->because('a wildcard ignore MUST match without case sensitivity')
+            ->toBe($matching)
+            ->and($policy->apply($prefixed)->outcome)
+            ->because('a wildcard ignore MUST match the complete deprecation message')
+            ->toBe(Outcome::Failed);
+    }
+
+    #[Test]
     public function aNonPassingResultIsNeverRewritten(): void
     {
         $before = new TestResult(
@@ -178,7 +193,7 @@ final class ResultPolicyTest
             ]);
     }
 
-    private function passedWithDeprecation(): TestResult
+    private function passedWithDeprecation(string $message = 'rusty api'): TestResult
     {
         return new TestResult(
             new TestId('App\ProbeTest', 'probes'),
@@ -187,7 +202,7 @@ final class ResultPolicyTest
             memoryDeltaBytes: 0,
             attempts: 2,
             output: new CapturedOutput('', [
-                new Diagnostic(DiagnosticSeverity::Deprecation, 'rusty api', '/src/a.php', 3),
+                new Diagnostic(DiagnosticSeverity::Deprecation, $message, '/src/a.php', 3),
             ]),
             expectations: 5,
         );
