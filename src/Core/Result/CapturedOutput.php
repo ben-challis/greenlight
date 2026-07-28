@@ -17,14 +17,35 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class CapturedOutput implements WireSerializable
 {
     /**
-     * @param list<Diagnostic> $diagnostics
+     * @var list<Diagnostic>
+     */
+    public array $diagnostics;
+
+    /**
+     * @param array<mixed> $diagnostics
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         public string $stdout,
-        public array $diagnostics = [],
+        array $diagnostics = [],
         public bool $stdoutTruncated = false,
         public bool $diagnosticsTruncated = false,
-    ) {}
+    ) {
+        $validatedDiagnostics = [];
+
+        foreach ($diagnostics as $index => $diagnostic) {
+            if ($index !== \count($validatedDiagnostics) || !$diagnostic instanceof Diagnostic) {
+                throw new \InvalidArgumentException(
+                    'Captured output diagnostics MUST be a list of Diagnostic instances.',
+                );
+            }
+
+            $validatedDiagnostics[] = $diagnostic;
+        }
+
+        $this->diagnostics = $validatedDiagnostics;
+    }
 
     #[\Override]
     public function toWire(): array
