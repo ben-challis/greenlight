@@ -74,7 +74,7 @@ final readonly class PluginRegistry
     {
         $definitions = [];
 
-        foreach ($this->ofType(HarnessProvider::class) as $provider) {
+        foreach ($this->sorted($this->ofType(HarnessProvider::class)) as $provider) {
             $definitions = [...$definitions, ...$provider->services()];
         }
 
