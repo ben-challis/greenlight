@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Coverage;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Core\ErrorTrap;
+use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\Export\HtmlExporter;
+use Greenlight\Coverage\FileCoverage;
+use Greenlight\Expect\Expect;
+use Greenlight\Tests\Fixture\Coverage\UnreadableAfterStatStream;
+
+final readonly class HtmlExporterSourceFailureTest
+{
+    private const string SCHEME = 'greenlight-unreadable-after-stat';
+
+    #[Test]
+    public function sourceReadFailureFallsBackToLineNumbersOnly(): void
+    {
+        if (!\stream_wrapper_register(self::SCHEME, UnreadableAfterStatStream::class)) {
+            throw new \RuntimeException('Greenlight did not register the unreadable source stream.');
+        }
+
+        try {
+            $path = self::SCHEME . '://Source.php';
+            $map = new CoverageMap([
+                new FileCoverage($path, [2], [4]),
+            ]);
+
+            Expect::that(\is_file($path) && \is_readable($path))
+                ->because('the source passes the exporter readability checks')
+                ->toBeTrue();
+
+            $pages = ErrorTrap::run(
+                static fn(): array => new HtmlExporter()->export($map),
+                $warning,
+            );
+            $page = $pages[HtmlExporter::pageName($path)];
+
+            Expect::that($warning)
+                ->because('the source becomes unreadable when the exporter opens it')
+                ->not()->toBeNull()
+                ->and($page)
+                ->because('a late read failure shows only coverage line numbers')
+                ->toContain('<span class="cov"><span class="num">2</span></span>')
+                ->toContain('<span class="unc"><span class="num">4</span></span>');
+        } finally {
+            \stream_wrapper_unregister(self::SCHEME);
+        }
+    }
+}
