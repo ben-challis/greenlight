@@ -53,6 +53,17 @@ final readonly class WatchTest
     }
 
     #[Test]
+    public function debounceFiresAtTheExactQuietPeriodBoundary(): void
+    {
+        $debouncer = new Debouncer(0.5);
+        $debouncer->noteChange(4.0);
+
+        Expect::that($debouncer->shouldFire(4.5))
+            ->because('the quiet period includes its exact boundary')
+            ->toBeTrue();
+    }
+
+    #[Test]
     public function statDetectorReportsTouchedNewAndDeletedFiles(): void
     {
         $dir = \sys_get_temp_dir() . '/greenlight-watch-' . \bin2hex(\random_bytes(4));
