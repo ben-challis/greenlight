@@ -25,16 +25,31 @@ use Greenlight\Runner\Protocol\Message;
 final readonly class Done implements Message
 {
     /**
-     * @param non-negative-int $peakMemoryBytes
+     * @var non-negative-int
+     */
+    public int $peakMemoryBytes;
+
+    /**
      * @param list<TestId> $leaks
+     *
+     * @throws \InvalidArgumentException when peak memory is negative
      */
     public function __construct(
         public ResultSummary $summary,
-        public int $peakMemoryBytes,
+        int $peakMemoryBytes,
         public ?CoverageMap $coverage = null,
         public array $leaks = [],
         public ?RecycleReason $wantsRecycle = null,
-    ) {}
+    ) {
+        if ($peakMemoryBytes < 0) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Done message peak memory MUST NOT be negative. Actual value: %d.',
+                $peakMemoryBytes,
+            ));
+        }
+
+        $this->peakMemoryBytes = $peakMemoryBytes;
+    }
 
     #[\Override]
     public static function tag(): string
