@@ -45,4 +45,21 @@ final class LeakDetectorTest
             ->because('a leak MUST be reported one time')
             ->toBe([]);
     }
+
+    #[Test]
+    public function sweepReportsEveryRetainedInstanceInWatchOrder(): void
+    {
+        $detector = new LeakDetector();
+        $firstId = new TestId('Example\FirstRetainedTest', 'retainsItself');
+        $secondId = new TestId('Example\SecondRetainedTest', 'retainsItself');
+        $first = new \stdClass();
+        $second = new \stdClass();
+
+        $detector->watch($firstId, $first);
+        $detector->watch($secondId, $second);
+
+        Expect::that($detector->sweep())
+            ->because('a sweep MUST report every retained instance in watch order')
+            ->toBe([$firstId, $secondId]);
+    }
 }
