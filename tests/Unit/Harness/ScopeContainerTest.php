@@ -12,6 +12,7 @@ use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Tests\Fixture\Harness\FailingDisposable;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
+use Greenlight\Tests\Fixture\Lifecycle\Services\SecondaryServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 
@@ -51,23 +52,45 @@ final class ScopeContainerTest
         TraceLog::drain();
 
         $container = new ScopeContainer();
-        $probeDefinition = new ServiceDefinition(ServiceProbe::class, Scope::PerTest, static fn(): ServiceProbe => new ServiceProbe());
-        $otherDefinition = new ServiceDefinition(\ArrayObject::class, Scope::PerTest, static fn(): \ArrayObject => new \ArrayObject());
+        $probeDefinition = new ServiceDefinition(
+            ServiceProbe::class,
+            Scope::PerTest,
+            static fn(): ServiceProbe => new ServiceProbe(),
+        );
+        $secondaryDefinition = new ServiceDefinition(
+            SecondaryServiceProbe::class,
+            Scope::PerTest,
+            static fn(): SecondaryServiceProbe => new SecondaryServiceProbe(),
+        );
 
         $probe = $container->get($probeDefinition);
-        $container->get($otherDefinition);
+        $secondary = $container->get($secondaryDefinition);
 
-        if (!$probe instanceof ServiceProbe) {
-            Fail::because(\sprintf(
-                'Expected ScopeContainer::get() to return ServiceProbe, got %s.',
-                \get_debug_type($probe),
-            ));
+        if (!$probe instanceof ServiceProbe || !$secondary instanceof SecondaryServiceProbe) {
+            Fail::because('Expected ScopeContainer::get() to return both disposable service probes.');
         }
 
         $probe->touch();
-        $container->dispose();
+        $secondary->touch();
+        $firstFailures = $container->dispose();
+        $secondFailures = $container->dispose();
 
-        Expect::that(TraceLog::drain())->because('touched services dispose in reverse creation order')->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
+        Expect::that($firstFailures)
+            ->because('disposing touched services succeeds')
+            ->toBe([])
+            ->and($secondFailures)
+            ->because('a disposed scope does not dispose its services twice')
+            ->toBe([])
+            ->and(TraceLog::drain())
+            ->because('touched services dispose in reverse creation order')
+            ->toBe([
+                'probe1:created',
+                'probe1:touched',
+                'secondary:created',
+                'secondary:touched',
+                'secondary:disposed',
+                'probe1:disposed',
+            ]);
     }
 
     #[Test]

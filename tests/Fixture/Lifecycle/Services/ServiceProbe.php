@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Lifecycle\Services;
 
+use Greenlight\Doubles\Fake;
 use Greenlight\Harness\Disposable;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 
-final class ServiceProbe implements Disposable
+final class ServiceProbe implements Disposable, Fake
 {
     private static int $instances = 0;
 
