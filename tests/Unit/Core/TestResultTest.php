@@ -8,8 +8,12 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Artifact\AttachmentKind;
+use Greenlight\Core\Result\CapturedOutput;
+use Greenlight\Core\Result\Diagnostic;
+use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\OutcomeTransformation;
 use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -30,6 +34,25 @@ final class TestResultTest
             2,
             [new FailureDetail('expected 1, got 2', '1', '2', new SourceLocation('/app/tests/FooTest.php', 12))],
             ThrowableDetail::fromThrowable(new \RuntimeException('boom')),
+            skipReason: 'known issue',
+            transformations: [
+                new OutcomeTransformation('quarantine-plugin', Outcome::Passed, Outcome::Skipped),
+                new OutcomeTransformation('result-policy', Outcome::Skipped, Outcome::Failed),
+            ],
+            output: new CapturedOutput(
+                "first line\nsecond line",
+                [
+                    new Diagnostic(
+                        DiagnosticSeverity::Warning,
+                        'deprecated call',
+                        '/app/src/Foo.php',
+                        21,
+                    ),
+                ],
+                stdoutTruncated: true,
+                diagnosticsTruncated: true,
+            ),
+            risky: true,
             expectations: 7,
             attachments: [
                 new Attachment(
@@ -55,6 +78,36 @@ final class TestResultTest
         Expect::that($restored->failures[0]->message)->because('survives the wire with full payload')->toBe('expected 1, got 2');
         Expect::that((string) $restored->failures[0]->location)->because('survives the wire with full payload')->toBe('/app/tests/FooTest.php:12');
         Expect::that($restored->error?->class)->because('survives the wire with full payload')->toBe(\RuntimeException::class);
+        Expect::that($restored->skipReason)->because('survives the wire with full payload')->toBe('known issue');
+        Expect::that(\array_map(
+            static fn(OutcomeTransformation $transformation): array => [
+                $transformation->transformedBy,
+                $transformation->from,
+                $transformation->to,
+            ],
+            $restored->transformations,
+        ))
+            ->because('transformation provenance and order survive the wire')
+            ->toBe([
+                ['quarantine-plugin', Outcome::Passed, Outcome::Skipped],
+                ['result-policy', Outcome::Skipped, Outcome::Failed],
+            ]);
+        Expect::that($restored->output?->stdout)
+            ->because('captured output and truncation state survive the wire')
+            ->toBe("first line\nsecond line")
+            ->and($restored->output?->diagnostics[0]->severity)
+            ->toBe(DiagnosticSeverity::Warning)
+            ->and($restored->output?->diagnostics[0]->message)
+            ->toBe('deprecated call')
+            ->and($restored->output?->diagnostics[0]->file)
+            ->toBe('/app/src/Foo.php')
+            ->and($restored->output?->diagnostics[0]->line)
+            ->toBe(21)
+            ->and($restored->output?->stdoutTruncated)
+            ->toBeTrue()
+            ->and($restored->output?->diagnosticsTruncated)
+            ->toBeTrue();
+        Expect::that($restored->risky)->because('survives the wire with full payload')->toBeTrue();
         Expect::that($restored->expectations)->because('survives the wire with full payload')->toBe(7);
         Expect::that($restored->attachments)->because('survives the wire with full payload')->toHaveCount(1);
         Expect::that($restored->attachments[0]->name)->because('survives the wire with full payload')->toBe('response.json');
