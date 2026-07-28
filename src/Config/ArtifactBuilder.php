@@ -22,6 +22,10 @@ final class ArtifactBuilder
             throw new InvalidConfiguration('Artifact directory cannot be empty.');
         }
 
+        if (\str_contains($directory, "\0")) {
+            throw new InvalidConfiguration('Artifact directory cannot contain a null byte.');
+        }
+
         $this->directory = $directory;
 
         return $this;
