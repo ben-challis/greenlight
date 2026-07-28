@@ -8,6 +8,7 @@ use Greenlight\Attribute\CoverageIgnore;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\CallableType;
+use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\IntersectionType;
@@ -61,6 +62,8 @@ final class NativeType
             'int' => new IntegerType(),
             'float' => new FloatType(),
             'bool' => new BooleanType(),
+            'true' => new ConstantBooleanType(true),
+            'false' => new ConstantBooleanType(false),
             'array' => new ArrayType(new MixedType(), new MixedType()),
             'iterable' => new IterableType(new MixedType(), new MixedType()),
             'callable' => new CallableType(),

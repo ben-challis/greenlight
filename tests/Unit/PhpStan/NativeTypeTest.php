@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\NativeType;
+use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\VerbosityLevel;
 
 final class NativeTypeTest
@@ -39,6 +40,20 @@ final class NativeTypeTest
             ->toBe($expected);
     }
 
+    #[Test]
+    #[DataSet('literalBooleanTypes')]
+    public function reflectedLiteralBooleansRemainBooleanTypes(string $method, bool $expected): void
+    {
+        $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
+        $mapped = NativeType::fromReflection($type);
+
+        Expect::that($mapped::class)
+            ->because('literal native booleans map to PHPStan boolean constants')
+            ->toBe(ConstantBooleanType::class)
+            ->and($mapped->describe(VerbosityLevel::typeOnly()))
+            ->toBe($expected ? 'true' : 'false');
+    }
+
     /**
      * @return iterable<string, array{non-empty-string, non-empty-string}>
      */
@@ -64,6 +79,15 @@ final class NativeTypeTest
         yield 'class' => ['class', [\DateTimeInterface::class]];
     }
 
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function literalBooleanTypes(): iterable
+    {
+        yield 'true' => ['literalTrue', true];
+        yield 'false' => ['literalFalse', false];
+    }
+
     /** @param mixed $value */
     public function untyped($value): mixed
     {
@@ -76,6 +100,16 @@ final class NativeTypeTest
     }
 
     public function union(int|string $value): int|string
+    {
+        return $value;
+    }
+
+    public function literalTrue(true $value): true
+    {
+        return $value;
+    }
+
+    public function literalFalse(false $value): false
     {
         return $value;
     }
