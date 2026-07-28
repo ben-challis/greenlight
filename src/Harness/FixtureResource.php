@@ -74,7 +74,7 @@ final readonly class FixtureResource implements WireSerializable
         $value = $this->value($key);
 
         if (!\is_string($value)) {
-            throw $this->wrongType($key, 'string', $value);
+            throw $this->wrongType($key, 'a string', $value);
         }
 
         return $value;
@@ -85,7 +85,7 @@ final readonly class FixtureResource implements WireSerializable
         $value = $this->value($key);
 
         if (!\is_int($value)) {
-            throw $this->wrongType($key, 'integer', $value);
+            throw $this->wrongType($key, 'an integer', $value);
         }
 
         return $value;
@@ -96,7 +96,7 @@ final readonly class FixtureResource implements WireSerializable
         $value = $this->value($key);
 
         if (!\is_float($value) && !\is_int($value)) {
-            throw $this->wrongType($key, 'float', $value);
+            throw $this->wrongType($key, 'a float', $value);
         }
 
         return (float) $value;
@@ -107,7 +107,7 @@ final readonly class FixtureResource implements WireSerializable
         $value = $this->value($key);
 
         if (!\is_bool($value)) {
-            throw $this->wrongType($key, 'boolean', $value);
+            throw $this->wrongType($key, 'a boolean', $value);
         }
 
         return $value;
@@ -121,7 +121,7 @@ final readonly class FixtureResource implements WireSerializable
         $value = $this->value($key);
 
         if (!\is_array($value) || !\array_is_list($value)) {
-            throw $this->wrongType($key, 'list', $value);
+            throw $this->wrongType($key, 'a list', $value);
         }
 
         return $value;
@@ -135,7 +135,7 @@ final readonly class FixtureResource implements WireSerializable
         $value = $this->value($key);
 
         if (!\is_array($value) || \array_is_list($value)) {
-            throw $this->wrongType($key, 'map', $value);
+            throw $this->wrongType($key, 'a map', $value);
         }
 
         /** @var array<string, mixed> $value */
@@ -214,7 +214,7 @@ final readonly class FixtureResource implements WireSerializable
     private function wrongType(string $key, string $expected, mixed $actual): \UnexpectedValueException
     {
         return new \UnexpectedValueException(\sprintf(
-            'Fixture resource value "%s" must be a %s, got %s.',
+            'Fixture resource value "%s" must be %s, got %s.',
             $key,
             $expected,
             \get_debug_type($actual),
