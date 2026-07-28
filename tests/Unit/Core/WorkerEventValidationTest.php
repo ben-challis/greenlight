@@ -42,6 +42,22 @@ final readonly class WorkerEventValidationTest
             );
     }
 
+    #[Test]
+    #[DataSet('nonPositivePids')]
+    public function aSpawnedWorkerRejectsANonPositiveWirePid(int $pid): void
+    {
+        Expect::that(static fn(): WorkerSpawned => WorkerSpawned::fromWire([
+            'workerId' => 'worker-1',
+            'pid' => $pid,
+            'occurredAt' => 1.0,
+        ]))
+            ->because('a spawned-worker wire event MUST identify a positive process ID')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Worker PID MUST be greater than zero.',
+            );
+    }
+
     /**
      * @return iterable<string, array{int}>
      */

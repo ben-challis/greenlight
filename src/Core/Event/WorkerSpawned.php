@@ -53,7 +53,7 @@ final readonly class WorkerSpawned implements Event
     {
         return new self(
             Wire::nonEmptyString($payload, 'workerId'),
-            \max(1, Wire::int($payload, 'pid')),
+            Wire::int($payload, 'pid'),
             Wire::float($payload, 'occurredAt'),
         );
     }
