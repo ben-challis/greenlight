@@ -7,8 +7,12 @@ namespace Greenlight\Tests\Unit\Core;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\AtomicFile;
 use Greenlight\Core\AtomicFileError;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Random\Engine;
+use Random\RandomException;
+use Random\Randomizer;
 
 final readonly class AtomicFileTest
 {
@@ -46,6 +50,50 @@ final readonly class AtomicFileTest
         Expect::that(\glob($path . '.tmp-*'))
             ->because('a failed temporary write leaves no temporary file')
             ->toBe([]);
+    }
+
+    #[Test]
+    public function randomNameFailurePreservesItsCauseWithoutWritingAFile(): void
+    {
+        $path = $this->tempDirectory->path() . '/state.json';
+        $cause = new RandomException('entropy unavailable');
+        $randomizer = new Randomizer(new readonly class ($cause) implements Engine, Fake {
+            public function __construct(private RandomException $cause) {}
+
+            #[\Override]
+            public function generate(): never
+            {
+                throw $this->cause;
+            }
+        });
+        $capture = new class implements Fake {
+            public ?AtomicFileError $error = null;
+        };
+
+        Expect::that(static function () use ($path, $randomizer, $capture): void {
+            try {
+                AtomicFile::write($path, 'content', $randomizer);
+            } catch (AtomicFileError $error) {
+                $capture->error = $error;
+
+                throw $error;
+            }
+        })
+            ->because('the temporary-name failure MUST identify its target and cause')
+            ->toThrow(
+                AtomicFileError::class,
+                message: \sprintf(
+                    'Cannot generate a temporary name for "%s": entropy unavailable',
+                    $path,
+                ),
+            );
+
+        Expect::that($capture->error?->getPrevious())
+            ->because('the temporary-name failure MUST preserve its original cause')
+            ->toBe($cause)
+            ->and(\file_exists($path))
+            ->because('an entropy failure MUST NOT create the target file')
+            ->toBeFalse();
     }
 
     #[Test]
