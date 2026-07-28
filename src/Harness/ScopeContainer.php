@@ -72,14 +72,26 @@ final class ScopeContainer
     private function instantiate(ServiceDefinition $definition): object
     {
         $reflection = new \ReflectionClass($definition->type);
+        $factory = static function () use ($definition): object {
+            $service = ($definition->factory)();
+
+            if (!$service instanceof $definition->type) {
+                throw UnresolvableService::factoryTypeMismatch(
+                    $definition->type,
+                    $service::class,
+                );
+            }
+
+            return $service;
+        };
 
         try {
-            return $reflection->newLazyProxy(static fn(): object => ($definition->factory)());
+            return $reflection->newLazyProxy($factory);
         } catch (\ReflectionException|\Error) {
             // Greenlight constructs a class immediately if PHP cannot create a
             // lazy proxy for it. The factory has not run, so this catch does
             // not hide a factory error.
-            return ($definition->factory)();
+            return $factory();
         }
     }
 }
