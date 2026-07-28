@@ -54,7 +54,12 @@ final class TerminalCapabilitiesTest
         foreach (['', '0', 'false', 'FALSE', false] as $value) {
             $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['CI' => $value], noAnsiFlag: false);
 
-            Expect::that($capabilities->interactive)->toBeTrue();
+            Expect::that($capabilities->interactive)
+                ->because('a falsey CI value MUST preserve terminal interactivity')
+                ->toBeTrue()
+                ->and($capabilities->color)
+                ->because('a falsey CI value MUST preserve terminal color')
+                ->toBeTrue();
         }
     }
 
