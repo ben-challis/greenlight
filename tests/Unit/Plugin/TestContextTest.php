@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
@@ -65,6 +66,16 @@ final class TestContextTest
                 AttachmentError::class,
                 message: 'Attachments are not available outside an active test attempt.',
             );
+    }
+
+    #[Test]
+    public function skipStopsTheAttemptWithTheExactReason(): void
+    {
+        $context = $this->context(new HarnessScopes(new HarnessRegistry()));
+
+        Expect::that(static fn(): never => $context->skip('dependency is unavailable'))
+            ->because('a plugin skip MUST preserve its reason for the test result')
+            ->toThrow(SkipTest::class, message: 'dependency is unavailable');
     }
 
     private function context(HarnessScopes $scopes): TestContext
