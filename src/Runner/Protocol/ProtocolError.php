@@ -59,6 +59,19 @@ final class ProtocolError extends \RuntimeException
         ));
     }
 
+    public static function remainderMismatch(
+        string $workerId,
+        string $expected,
+        string $reported,
+    ): self {
+        return new self(\sprintf(
+            'Worker "%s" reported remaining tests %s. Greenlight expected %s from its active assignment.',
+            $workerId,
+            $reported,
+            $expected,
+        ));
+    }
+
     public static function unexpectedAttempt(
         string $workerId,
         string $reportedTest,
