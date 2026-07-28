@@ -141,8 +141,8 @@ for (const section of sections) {
     shortNameCounts.set(type.shortName, (shortNameCounts.get(type.shortName) ?? 0) + 1);
   }
 
-  // Qualify colliding short names so every heading and anchor stays unique,
-  // for example the Laravel and Symfony Service attributes.
+  // Qualify short names that occur more than once. This rule keeps each
+  // section title and anchor unique. Examples are the Laravel and Symfony Service attributes.
   for (const type of types) {
     type.headingName =
       (shortNameCounts.get(type.shortName) ?? 0) > 1
