@@ -69,18 +69,18 @@ final class WireTest
     #[Test]
     public function failuresNameTheOffendingKey(): void
     {
-        try {
-            Wire::string([], 'runId');
-        } catch (InvalidWirePayload $e) {
-            Expect::that($e->getMessage())->toContain('runId');
-        }
-
-        try {
-            Wire::int(['count' => 'many'], 'count');
-        } catch (InvalidWirePayload $e) {
-            Expect::that($e->getMessage())->toContain('count');
-            Expect::that($e->getMessage())->toContain('string');
-        }
+        Expect::that(static fn(): string => Wire::string([], 'runId'))
+            ->because('a missing field MUST name its wire key')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload is missing the "runId" key.',
+            );
+        Expect::that(static fn(): int => Wire::int(['count' => 'many'], 'count'))
+            ->because('an invalid field MUST name its wire key and actual type')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "count" must be an integer, got string.',
+            );
     }
 
     #[Test]
