@@ -48,6 +48,16 @@ final class UnresolvableService extends \RuntimeException
         ));
     }
 
+    public static function factoryTypeMismatch(string $type, string $actual): self
+    {
+        return new self(\sprintf(
+            'Service definition for type "%s" created "%s". Its factory MUST return an instance of "%s".',
+            $type,
+            $actual,
+            $type,
+        ));
+    }
+
     public static function unsupportedParameter(string $parameter, string $consumer): self
     {
         return new self(\sprintf(
