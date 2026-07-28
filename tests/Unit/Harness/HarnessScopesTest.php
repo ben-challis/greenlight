@@ -208,6 +208,58 @@ final class HarnessScopesTest
         })->because('without resolvers the original message stands')->toThrow(UnresolvableService::class, matching: '/exact types only\.$/');
     }
 
+    #[Test]
+    #[DataSet('serviceLifetimes')]
+    public function servicesRespectTheirLifetimeAcrossScopeReopening(Scope $scope, bool $reused): void
+    {
+        $registry = new HarnessRegistry([
+            new ServiceDefinition(
+                \ArrayObject::class,
+                $scope,
+                static fn(): \ArrayObject => new \ArrayObject(),
+            ),
+        ]);
+        $scopes = new HarnessScopes($registry);
+        $scopes->openClass();
+        $scopes->openTest();
+
+        $first = $scopes->resolve(\ArrayObject::class, 'test');
+
+        if (!$first instanceof \ArrayObject) {
+            Fail::because(\sprintf(
+                'Expected HarnessScopes::resolve() to return ArrayObject, got %s.',
+                \get_debug_type($first),
+            ));
+        }
+
+        $first->append('first scope');
+        $scopes->closeTest();
+        $scopes->closeClass();
+
+        if ($scope === Scope::PerTest || $scope === Scope::PerClass) {
+            $message = $scope === Scope::PerTest
+                ? 'No test scope is open.'
+                : 'No class scope is open.';
+
+            Expect::that(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
+                ->because('closing a scope MUST make its services unavailable')
+                ->toThrow(\LogicException::class, message: $message);
+        } else {
+            Expect::that($scopes->resolve(\ArrayObject::class, 'test'))
+                ->because('closing narrower scopes MUST preserve broader services')
+                ->toBe($first);
+        }
+
+        $scopes->openClass();
+        $scopes->openTest();
+
+        $second = $scopes->resolve(\ArrayObject::class, 'test');
+
+        Expect::that($second === $first)
+            ->because('a service instance MUST follow its configured scope lifetime')
+            ->toBe($reused);
+    }
+
     /**
      * @return iterable<string, array{Scope, non-empty-string}>
      */
@@ -215,5 +267,16 @@ final class HarnessScopesTest
     {
         yield 'class' => [Scope::PerClass, 'No class scope is open.'];
         yield 'test' => [Scope::PerTest, 'No test scope is open.'];
+    }
+
+    /**
+     * @return iterable<string, array{Scope, bool}>
+     */
+    public static function serviceLifetimes(): iterable
+    {
+        yield 'per test' => [Scope::PerTest, false];
+        yield 'per class' => [Scope::PerClass, false];
+        yield 'per suite' => [Scope::PerSuite, true];
+        yield 'per run' => [Scope::PerRun, true];
     }
 }
