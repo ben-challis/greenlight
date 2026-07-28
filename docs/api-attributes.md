@@ -396,6 +396,18 @@ final readonly class ClassAvailable implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $class)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L22)
+
 ### `isSatisfied()`
 
 ```php
@@ -403,7 +415,7 @@ final readonly class ClassAvailable implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L31)
 
 ## `EnvironmentVariableEquals`
 
