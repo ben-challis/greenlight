@@ -179,10 +179,23 @@ final readonly class HtmlExporter implements CoverageExporter
 
     private function displayPath(string $path): string
     {
-        $root = \rtrim($this->projectRoot, '/');
+        $root = \rtrim($this->projectRoot, '/\\');
 
-        if ($root !== '' && \str_starts_with($path, $root . '/')) {
-            return \substr($path, \strlen($root) + 1);
+        if ($root === '') {
+            return $path;
+        }
+
+        $windowsPath = \preg_match('/^(?:[A-Za-z]:[\/\\\\]|\\\\\\\\)/', $root) === 1;
+
+        foreach (['/', '\\'] as $separator) {
+            $prefix = $root . $separator;
+            $insideRoot = $windowsPath
+                ? \strncasecmp($path, $prefix, \strlen($prefix)) === 0
+                : \str_starts_with($path, $prefix);
+
+            if ($insideRoot) {
+                return \substr($path, \strlen($prefix));
+            }
         }
 
         return $path;
