@@ -94,6 +94,27 @@ final class MockTest
     }
 
     #[Test]
+    public function disposalAggregatesEveryUnmetExpectationInPlanOrder(): void
+    {
+        $doubles = new Doubles();
+        $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+            $plan->expects('add')->once()->andReturns(0);
+            $plan->expects('describe')->once()->andReturns('');
+        });
+
+        Expect::that(static fn() => $doubles->dispose())
+            ->because('disposal MUST report every unmet expectation in plan order')
+            ->toThrow(
+                ExpectationFailed::class,
+                message: "2 expectations failed:\n"
+                    . '1) Calls to ' . Calculator::class . '::add(): 0 times. '
+                    . "The expectation requires exactly 1 time.\n"
+                    . '2) Calls to ' . Calculator::class . '::describe(): 0 times. '
+                    . 'The expectation requires exactly 1 time.',
+            );
+    }
+
+    #[Test]
     public function anUnplannedExpectationDefaultsToAtLeastOnce(): void
     {
         $doubles = new Doubles();
