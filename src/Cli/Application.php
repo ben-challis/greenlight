@@ -73,6 +73,7 @@ use Greenlight\Runner\Worker\WorkerProcess;
  * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
  * invalid command-line use.
  *
+ * @internal
  */
 final readonly class Application
 {
