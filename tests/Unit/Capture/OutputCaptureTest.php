@@ -196,6 +196,24 @@ final class OutputCaptureTest
     }
 
     #[Test]
+    public function diagnosticsExactlyAtTheBoundAreNotFlaggedAsTruncated(): void
+    {
+        $capture = new OutputCapture(maxDiagnostics: 2);
+        $capture->start();
+
+        \trigger_error('one', \E_USER_NOTICE);
+        \trigger_error('two', \E_USER_NOTICE);
+
+        $captured = $capture->stop();
+
+        Expect::that($captured->diagnostics)
+            ->because('diagnostics at the retention bound MUST remain complete')
+            ->toHaveCount(2)
+            ->and($captured->diagnosticsTruncated)
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function binaryBytesInCapturedStdoutAreScrubbed(): void
     {
         $capture = new OutputCapture();
