@@ -78,4 +78,28 @@ final class BaselineDiffTest
         Expect::that($report->totalDelta())->because('improved coverage is not a regression')->toBeWithin(0.001, 50.0)
             ->and($report->hasRegressions())->toBeFalse();
     }
+
+    #[Test]
+    public function anOverallGainDoesNotHideANewlyUncoveredLine(): void
+    {
+        $baseline = new CoverageMap([
+            new FileCoverage('/src/A.php', [1], [2]),
+        ]);
+        $current = new CoverageMap([
+            new FileCoverage('/src/A.php', [2], [1]),
+            new FileCoverage('/src/B.php', [1, 2, 3, 4], []),
+        ]);
+
+        $report = BaselineDiff::between($baseline, $current);
+
+        Expect::that($report->totalDelta())
+            ->because('the added covered file MUST produce an overall coverage gain')
+            ->toBeGreaterThan(0.0)
+            ->and($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
+            ->because('the diff MUST preserve the line-level regression')
+            ->toBe([1])
+            ->and($report->hasRegressions())
+            ->because('an overall gain MUST NOT hide a newly uncovered line')
+            ->toBeTrue();
+    }
 }
