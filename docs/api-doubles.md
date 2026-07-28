@@ -192,7 +192,7 @@ public function __construct(?string $proxyDirectory = null)
 
 PHPDoc:
 
-- `@param non-empty-string|null $proxyDirectory Directory for generated proxy classes. The default is a project directory in the system temporary directory. A hash of the current working directory identifies it.`
+- `@param string|null $proxyDirectory Directory for generated proxy classes. An empty string is invalid. The default is a project directory in the system temporary directory. A hash of the current working directory identifies it.`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L51)
 
@@ -212,7 +212,7 @@ PHPDoc:
 - `@param \Closure(MockPlan): void|null $plan`
 - `@return T`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L83)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L87)
 
 ### `stub()`
 
@@ -230,7 +230,7 @@ PHPDoc:
 - `@param class-string<T> $type`
 - `@return T`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L99)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L103)
 
 ### `spy()`
 
@@ -248,7 +248,7 @@ PHPDoc:
 - `@param class-string<T> $type`
 - `@return T`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L119)
 
 ### `callsTo()`
 
@@ -263,7 +263,7 @@ PHPDoc:
 
 - `@return list<list<mixed>>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L126)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L130)
 
 ### `dispose()`
 
@@ -275,7 +275,7 @@ One `ExpectationFailed` contains the details for all unmet expectations.
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L139)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L143)
 
 ## `Fake`
 
