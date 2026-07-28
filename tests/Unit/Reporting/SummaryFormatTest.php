@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
@@ -14,6 +15,38 @@ use Greenlight\Reporting\SummaryFormat;
 
 final class SummaryFormatTest
 {
+    #[Test]
+    public function testsRendersEveryOutcomeCount(): void
+    {
+        $line = SummaryFormat::tests(
+            new ResultSummary(passed: 2, failed: 1, errored: 1, skipped: 1),
+            7,
+            new Style(ansi: false),
+        );
+
+        Expect::that($line)
+            ->because(
+                'the final summary shows each test outcome and the expectation count',
+            )
+            ->toBe('5 tests, 2 passed, 1 failed, 1 errored, 1 skipped, 7 expectations');
+    }
+
+    #[Test]
+    public function testsOmitsZeroOutcomesAndUsesSingularCounts(): void
+    {
+        $line = SummaryFormat::tests(
+            new ResultSummary(passed: 1),
+            1,
+            new Style(ansi: false),
+        );
+
+        Expect::that($line)
+            ->because(
+                'the final summary omits unused outcomes and singularizes counts',
+            )
+            ->toBe('1 test, 1 passed, 1 expectation');
+    }
+
     #[Test]
     public function aSingleTestPerReasonStaysInline(): void
     {
