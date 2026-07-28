@@ -56,6 +56,7 @@ final class Equality
     {
         if (\is_array($value)) {
             $parts = [];
+            \ksort($value, \SORT_STRING);
 
             foreach ($value as $key => $item) {
                 $parts[] = \var_export($key, true) . '=>' . self::sortKey($item, $seen);
