@@ -103,6 +103,36 @@ final class ProblemDetailsTest
     }
 
     #[Test]
+    public function multipleFailureDetailsRenderCompletelyInOrder(): void
+    {
+        $result = new TestResult(
+            new TestId('Acme\\FailureTest', 'failsMoreThanOnce'),
+            Outcome::Failed,
+            0.1,
+            0,
+            failures: [
+                new FailureDetail('first mismatch', expected: 'alpha', actual: 'beta'),
+                new FailureDetail(
+                    'second mismatch',
+                    location: new SourceLocation('FailureTest.php', 24),
+                ),
+            ],
+        );
+
+        $expected = <<<'TXT'
+              first mismatch
+              expected: alpha
+              actual: beta
+              second mismatch
+              at FailureTest.php:24
+            TXT;
+
+        Expect::that(ProblemDetails::render($result))
+            ->because('shared problem details MUST retain multiple failures in encounter order')
+            ->toBe($expected . "\n");
+    }
+
+    #[Test]
     public function throwableDetailsRenderWithTheirStack(): void
     {
         $result = new TestResult(
