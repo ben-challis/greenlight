@@ -176,7 +176,7 @@ final class Orchestrator
         $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
 
         $token = \bin2hex(\random_bytes(16));
-        [$server, $address, $socketPath] = $this->listen();
+        $server = ServerSocket::listen();
 
         try {
             while (true) {
@@ -184,13 +184,13 @@ final class Orchestrator
                     $this->drainAll();
                 }
 
-                $this->spawnUpTo($workerCount, $address, $token, $sink, $spawnBudget);
+                $this->spawnUpTo($workerCount, $server->address, $token, $sink, $spawnBudget);
 
                 if ($this->finished()) {
                     break;
                 }
 
-                $this->tick($server, $token, $sink);
+                $this->tick($server->stream(), $token, $sink);
                 $this->ticker?->tick(\microtime(true));
             }
         } finally {
@@ -198,53 +198,10 @@ final class Orchestrator
                 $handle->terminate();
             }
 
-            ErrorTrap::run(static function () use ($server, $socketPath): void {
-                \fclose($server);
-
-                if ($socketPath !== null) {
-                    \unlink($socketPath);
-                    \rmdir(\dirname($socketPath));
-                }
-            });
+            $server->close();
         }
 
         return $this->summary;
-    }
-
-    /**
-     * @return array{resource, non-empty-string, non-empty-string|null} server, address, unix socket path when used
-     */
-    private function listen(): array
-    {
-        // Put Unix sockets in the temporary directory. sun_path has a limit of
-        // approximately 100 bytes, and long project paths can exceed it.
-        $socketPath = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-' . \bin2hex(\random_bytes(6)) . '/orchestrator.sock';
-
-        $server = ErrorTrap::run(static function () use ($socketPath) {
-            \mkdir(\dirname($socketPath), 0o700, true);
-
-            return \stream_socket_server('unix://' . $socketPath, $errorCode, $errorMessage);
-        });
-
-        if (\is_resource($server)) {
-            return [$server, 'unix://' . $socketPath, $socketPath];
-        }
-
-        $server = ErrorTrap::run(static function () use (&$errorCode, &$errorMessage) {
-            return \stream_socket_server('tcp://127.0.0.1:0', $errorCode, $errorMessage);
-        });
-
-        if (!\is_resource($server)) {
-            throw ProtocolError::malformedFrame('Greenlight did not open an orchestrator socket: ' . $errorMessage);
-        }
-
-        $name = \stream_socket_get_name($server, false);
-
-        if ($name === false || $name === '') {
-            throw ProtocolError::malformedFrame('Greenlight did not resolve the orchestrator socket address');
-        }
-
-        return [$server, 'tcp://' . $name, null];
     }
 
     /**

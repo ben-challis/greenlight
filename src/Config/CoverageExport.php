@@ -8,8 +8,25 @@ namespace Greenlight\Config;
 final readonly class CoverageExport
 {
     /**
-     * @param non-empty-string $format
-     * @param non-empty-string $target
+     * @var non-empty-string
      */
-    public function __construct(public string $format, public string $target) {}
+    public string $format;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $target;
+
+    /**
+     * @throws InvalidConfiguration
+     */
+    public function __construct(string $format, string $target)
+    {
+        if ($format === '' || $target === '') {
+            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
+        }
+
+        $this->format = $format;
+        $this->target = $target;
+    }
 }

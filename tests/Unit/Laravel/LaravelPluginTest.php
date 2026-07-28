@@ -393,6 +393,33 @@ final class LaravelPluginTest
     }
 
     #[Test]
+    public function afterTestRemovesAnEnvironmentThatWasInitiallyAbsent(): void
+    {
+        $this->environment->unset('APP_ENV');
+        $plugin = $this->plugin();
+
+        $plugin->resolve(Greeter::class, []);
+
+        Expect::that(\getenv('APP_ENV'))
+            ->because('Laravel boot MUST set the configured application environment')
+            ->toBe('testing')
+            ->and($_ENV['APP_ENV'] ?? null)
+            ->toBe('testing')
+            ->and($_SERVER['APP_ENV'] ?? null)
+            ->toBe('testing');
+
+        $plugin->afterTest($this->context(), $this->result());
+
+        Expect::that(\getenv('APP_ENV'))
+            ->because('application release MUST remove an environment that was initially absent')
+            ->toBeFalse()
+            ->and(\array_key_exists('APP_ENV', $_ENV))
+            ->toBeFalse()
+            ->and(\array_key_exists('APP_ENV', $_SERVER))
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function bootLeavesTheGlobalHandlerStackUnchanged(): void
     {
         $errorBefore = \set_error_handler(null);

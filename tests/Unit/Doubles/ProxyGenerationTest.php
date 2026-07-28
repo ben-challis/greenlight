@@ -160,6 +160,24 @@ final class ProxyGenerationTest
     }
 
     #[Test]
+    public function unavailableInternalDefaultsAreRejectedBeforeProxyGeneration(): void
+    {
+        $doubles = new Doubles();
+
+        try {
+            Expect::that(static fn(): object => $doubles->stub(\ReflectionClass::class))
+                ->because('an unavailable internal default cannot produce a valid proxy signature')
+                ->toThrow(
+                    DoublesError::class,
+                    message: 'Doubles cannot reproduce the default value of parameter $default '
+                        . 'from ReflectionClass::getStaticPropertyValue() in a proxy.',
+                );
+        } finally {
+            $doubles->dispose();
+        }
+    }
+
+    #[Test]
     public function wideSignaturesRoundTripThroughTheProxy(): void
     {
         $doubles = new Doubles();
