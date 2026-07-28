@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
+use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Artifact\AttachmentError;
 
 /**
@@ -32,5 +33,6 @@ final class StreamWriter
         }
     }
 
+    #[CoverageIgnore]
     private function __construct() {}
 }
