@@ -18,6 +18,14 @@ final class IgnoreScannerTest
     }
 
     #[Test]
+    public function nullByteFilePathYieldsNoIgnoredLines(): void
+    {
+        Expect::that(new IgnoreScanner()->ignoredLines("/invalid\0path.php"))
+            ->because('null byte file path yields no ignored lines')
+            ->toBe([]);
+    }
+
+    #[Test]
     public function fileWithoutMarkersYieldsNoIgnoredLines(): void
     {
         $source = <<<'PHP'

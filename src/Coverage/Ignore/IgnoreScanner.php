@@ -37,6 +37,10 @@ final readonly class IgnoreScanner
      */
     public function ignoredLines(string $path): array
     {
+        if (\str_contains($path, "\0")) {
+            return [];
+        }
+
         $source = ErrorTrap::run(static fn(): string|false => \file_get_contents($path), $warning);
 
         if (!\is_string($source)) {
