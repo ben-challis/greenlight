@@ -34,7 +34,11 @@ final class ValueRendererTest
     #[Test]
     public function escapesControlCharactersInStrings(): void
     {
-        Expect::that(new ValueRenderer()->render("a\nb\tc"))->because('escapes control characters in strings')->toBe("'a\\nb\\tc'");
+        $rendered = new ValueRenderer()->render("backslash\\ newline\ncarriage\r tab\t nul\0");
+
+        Expect::that($rendered)
+            ->because('diagnostic strings escape every control character onto one line')
+            ->toBe("'backslash\\\\ newline\\ncarriage\\r tab\\t nul\\0'");
     }
 
     #[Test]
