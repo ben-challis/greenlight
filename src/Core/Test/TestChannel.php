@@ -16,9 +16,21 @@ namespace Greenlight\Core\Test;
 final readonly class TestChannel
 {
     /**
-     * @param positive-int $number
+     * @var positive-int
      */
-    public function __construct(public int $number) {}
+    public int $number;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(int $number)
+    {
+        if ($number < 1) {
+            throw new \InvalidArgumentException('Test channel number MUST be greater than zero.');
+        }
+
+        $this->number = $number;
+    }
 
     /**
      * @return non-empty-string
