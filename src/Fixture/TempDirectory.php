@@ -16,10 +16,12 @@ final class TempDirectory implements Disposable
 {
     private ?string $path = null;
 
+    public function __construct(private readonly ?string $temporaryRoot = null) {}
+
     public function path(): string
     {
         if ($this->path === null) {
-            $systemTemporaryRoot = \sys_get_temp_dir();
+            $systemTemporaryRoot = $this->temporaryRoot ?? \sys_get_temp_dir();
             $resolvedTemporaryRoot = \realpath($systemTemporaryRoot);
             $temporaryRoot = $resolvedTemporaryRoot === false ? $systemTemporaryRoot : $resolvedTemporaryRoot;
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
