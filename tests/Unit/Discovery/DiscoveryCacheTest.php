@@ -10,9 +10,12 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
 
 final class DiscoveryCacheTest
 {
+    private const string STATABLE_FILE_SCHEME = 'greenlight-statable-file';
+
     #[Test]
     public function hitsServeFromCacheAndAnyChangeInvalidates(): void
     {
@@ -381,6 +384,33 @@ final class DiscoveryCacheTest
                 ->because('a vanished source MUST not create an empty cache document')
                 ->toBeFalse();
         } finally {
+            @\unlink($cacheFile);
+        }
+    }
+
+    #[Test]
+    public function anUnencodableSourcePathDisablesPersistenceCleanly(): void
+    {
+        $directory = \sys_get_temp_dir() . '/greenlight-binary-path-' . \bin2hex(\random_bytes(6));
+        $source = self::STATABLE_FILE_SCHEME . "://Invalid-\xFF-Test.php";
+        $cacheFile = $this->cacheFile($directory);
+        if (!\stream_wrapper_register(self::STATABLE_FILE_SCHEME, StatableFileStream::class)) {
+            Fail::because('Expected to register the statable-file stream.');
+        }
+
+        $cache = DiscoveryCache::forDirectories([$directory]);
+
+        try {
+            $cache->store($source, []);
+
+            Expect::that($cache->persist())
+                ->because('an unencodable source path MUST disable advisory cache persistence cleanly')
+                ->toBeFalse()
+                ->and(\is_file($cacheFile))
+                ->because('failed cache encoding MUST not leave a cache document')
+                ->toBeFalse();
+        } finally {
+            \stream_wrapper_unregister(self::STATABLE_FILE_SCHEME);
             @\unlink($cacheFile);
         }
     }
