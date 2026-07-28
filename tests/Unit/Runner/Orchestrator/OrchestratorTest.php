@@ -578,7 +578,7 @@ final class OrchestratorTest
                 };
 
                 $send([
-                    'v' => 1,
+                    'v' => 2,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -588,8 +588,11 @@ final class OrchestratorTest
                 ]);
                 $length = unpack('Nlength', $read(4))['length'];
                 $read($length);
+                $send(['v' => 2, 't' => 'ready', 'p' => []]);
+                $length = unpack('Nlength', $read(4))['length'];
+                $read($length);
                 $send([
-                    'v' => 1,
+                    'v' => 2,
                     't' => 'recycling',
                     'p' => json_decode(
                         base64_decode(%s),
