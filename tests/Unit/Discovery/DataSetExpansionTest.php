@@ -15,6 +15,7 @@ use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Discovery\FakeMonotonicClock;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\InvalidKeyProvider;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest;
+use Greenlight\Tests\Fixture\DiscoveryProviderDuplicate\DuplicateKeysTest;
 
 final class DataSetExpansionTest
 {
@@ -231,9 +232,16 @@ final class DataSetExpansionTest
     #[Test]
     public function duplicateKeysAreRejected(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderDuplicate');
-
-        Expect::that($message)->because('duplicate keys are rejected')->toContain('more than once');
-        Expect::that($message)->because('duplicate keys are rejected')->toContain('same key');
+        Expect::that(
+            fn(): ExecutionPlan => new TestDiscoverer()->discover([
+                $this->fixtureDir('DiscoveryProviderDuplicate'),
+            ]),
+        )
+            ->because('a data-set provider MUST NOT yield the same key more than once')
+            ->toThrow(
+                DiscoveryError::class,
+                message: 'Data sets for ' . DuplicateKeysTest::class . '::needsData() contain key "same key" more than once. '
+                    . 'Use each key only once for the test method.',
+            );
     }
 }
