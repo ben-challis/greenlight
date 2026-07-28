@@ -33,8 +33,8 @@ final readonly class XmlExporterPathTest
             ->because('Clover file paths MUST be escaped as XML attributes')
             ->toContain('A&amp;B&quot;&apos;&lt;Coverage&gt;.php')
             ->and($cloverFiles)
-            ->not()
-            ->toBeFalse();
+            ->because('the Clover document MUST contain exactly one file')
+            ->toHaveCount(1);
         \assert(\is_array($cloverFiles) && isset($cloverFiles[0]));
 
         Expect::that((string) $cloverFiles[0]['name'])
@@ -44,8 +44,8 @@ final readonly class XmlExporterPathTest
             ->because('Cobertura file paths MUST be escaped as XML attributes')
             ->toContain('A&amp;B&quot;&apos;&lt;Coverage&gt;.php')
             ->and($coberturaClasses)
-            ->not()
-            ->toBeFalse();
+            ->because('the Cobertura document MUST contain exactly one class')
+            ->toHaveCount(1);
         \assert(\is_array($coberturaClasses) && isset($coberturaClasses[0]));
 
         Expect::that((string) $coberturaClasses[0]['filename'])
