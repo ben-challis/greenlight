@@ -89,6 +89,7 @@ final class ValueRenderer
     {
         $printable = \strtr($value, [
             '\\' => '\\\\',
+            "'" => "\\'",
             "\n" => '\n',
             "\r" => '\r',
             "\t" => '\t',
