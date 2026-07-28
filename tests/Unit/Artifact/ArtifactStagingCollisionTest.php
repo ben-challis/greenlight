@@ -102,16 +102,58 @@ final readonly class ArtifactStagingCollisionTest
             ->toBe('evidence.txt');
     }
 
+    #[Test]
+    public function finalStagingCollisionPreservesTheExistingFileAndReleasesQuota(): void
+    {
+        $root = $this->tempDirectory->subdirectory('final-staging-collision');
+        [$store, $configuration, $path] = $this->store($root, '');
+
+        Expect::that(static fn() => $store->stageBytes(
+            'evidence',
+            'evidence.txt',
+            'Example-EvidenceTest/attempt-1/01-evidence.txt',
+            'text/plain',
+            AttachmentKind::Text,
+            1,
+            AttachmentRetention::OnFailure,
+            $configuration,
+        ))
+            ->because('a final staging collision MUST reject the attachment')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment staging path already exists.',
+            )
+            ->and((string) \file_get_contents($path))
+            ->because('a rejected attachment MUST NOT replace the existing staging file')
+            ->toBe('occupied');
+
+        \unlink($path);
+        $staged = $store->stageBytes(
+            'evidence',
+            'evidence.txt',
+            'Example-EvidenceTest/attempt-1/01-evidence.txt',
+            'text/plain',
+            AttachmentKind::Text,
+            1,
+            AttachmentRetention::OnFailure,
+            $configuration,
+        );
+
+        Expect::that($staged->name)
+            ->because('a final staging collision MUST release its run quota')
+            ->toBe('evidence.txt');
+    }
+
     /**
      * @return array{ArtifactStore, ArtifactConfiguration, non-empty-string}
      */
-    private function store(string $root): array
+    private function store(string $root, string $collisionSuffix = '.part'): array
     {
         $staging = $root . '/staging';
         $storageKey = 'Example-EvidenceTest/attempt-1/01-evidence.txt';
-        $part = $staging . '/' . $storageKey . '.part';
-        \mkdir(\dirname($part), 0o777, true);
-        \file_put_contents($part, 'occupied');
+        $collision = $staging . '/' . $storageKey . $collisionSuffix;
+        \mkdir(\dirname($collision), 0o777, true);
+        \file_put_contents($collision, 'occupied');
         $configuration = new ArtifactConfiguration(
             $root . '/published',
             maxRunAttachments: 1,
@@ -121,6 +163,6 @@ final readonly class ArtifactStagingCollisionTest
             $configuration,
         );
 
-        return [$store, $configuration, $part];
+        return [$store, $configuration, $collision];
     }
 }
