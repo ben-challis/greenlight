@@ -7,6 +7,8 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
+use Greenlight\Core\Event\RecycleReason;
+use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
@@ -330,6 +332,37 @@ final class OrchestratorTest
         Expect::that($summary->isSuccessful())->because('resource wait starts a new progress window before assignment')->toBeTrue();
     }
 
+    #[Test]
+    #[Timeout(30.0)]
+    public function cumulativeTestCountRecyclesAWorkerAfterSeparateAssignments(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $sink = new CollectingEventSink();
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+            recycleAfterTests: 2,
+        );
+
+        $summary = $orchestrator->run($this->twoClassPassingPlan(), $sink, 1);
+        $recycled = [];
+
+        foreach ($sink->events as $event) {
+            if ($event instanceof WorkerRecycled) {
+                $recycled[] = $event;
+            }
+        }
+
+        Expect::that($summary->passed)
+            ->because('the worker completes both assignments before it reaches its cumulative test budget')
+            ->toBe(2)
+            ->and($recycled)
+            ->because('the cumulative test budget recycles the worker after its second assignment')
+            ->toHaveCount(1)
+            ->and($recycled[0]->reason)
+            ->toBe(RecycleReason::TestCount);
+    }
+
     private function plan(): ExecutionPlan
     {
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
@@ -356,6 +389,17 @@ final class OrchestratorTest
         return new ExecutionPlan([
             new PlanEntry($slow, new TestMetadata($slow->class, $slow->method, resources: ['database'])),
             new PlanEntry($waiting, new TestMetadata($waiting->class, $waiting->method, resources: ['database'])),
+        ]);
+    }
+
+    private function twoClassPassingPlan(): ExecutionPlan
+    {
+        $clean = new TestId(CleanTest::class, 'passesAndIsCollectable');
+        $waiting = new TestId(WaitingResourceTest::class, 'runsAfterTheWait');
+
+        return new ExecutionPlan([
+            new PlanEntry($clean, new TestMetadata($clean->class, $clean->method)),
+            new PlanEntry($waiting, new TestMetadata($waiting->class, $waiting->method)),
         ]);
     }
 }
