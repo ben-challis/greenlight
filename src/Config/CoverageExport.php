@@ -26,6 +26,10 @@ final readonly class CoverageExport
             throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
         }
 
+        if (\str_contains($target, "\0")) {
+            throw new InvalidConfiguration('Coverage export target cannot contain a null byte.');
+        }
+
         $this->format = $format;
         $this->target = $target;
     }
