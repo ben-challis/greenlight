@@ -270,9 +270,9 @@ final class GreenlightConfig
             if ($pattern === '') {
                 throw new InvalidConfiguration('ignoreDeprecationsMatching() patterns cannot be empty.');
             }
-
-            $this->ignoreDeprecations[] = $pattern;
         }
+
+        \array_push($this->ignoreDeprecations, ...\array_values($patterns));
 
         return $this;
     }

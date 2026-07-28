@@ -25,6 +25,23 @@ final class CoverageBuilderTest
     }
 
     #[Test]
+    public function aRejectedIncludeCallDoesNotRetainEarlierPaths(): void
+    {
+        $builder = new CoverageBuilder()->include('src/Base');
+
+        Expect::that(static fn(): CoverageBuilder => $builder->include('src/Partial', ''))
+            ->because('a rejected include list does not partially change coverage')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Coverage include paths cannot be empty.',
+            );
+
+        Expect::that($builder->toConfiguration()->includePaths)
+            ->because('a rejected include call retains only prior paths')
+            ->toBe(['src/Base']);
+    }
+
+    #[Test]
     public function anEmptyDriverNameIsRejected(): void
     {
         Expect::that(static function (): void {

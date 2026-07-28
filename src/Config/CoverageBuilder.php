@@ -31,9 +31,9 @@ final class CoverageBuilder
             if ($path === '') {
                 throw new InvalidConfiguration('Coverage include paths cannot be empty.');
             }
-
-            $this->includePaths[] = $path;
         }
+
+        \array_push($this->includePaths, ...\array_values($paths));
 
         return $this;
     }

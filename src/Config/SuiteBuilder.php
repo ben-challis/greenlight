@@ -31,9 +31,9 @@ final class SuiteBuilder
             if ($path === '') {
                 throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $this->name));
             }
-
-            $this->paths[] = $path;
         }
+
+        \array_push($this->paths, ...\array_values($paths));
 
         return $this;
     }
@@ -47,9 +47,9 @@ final class SuiteBuilder
             if ($tag === '') {
                 throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty tag.', $this->name));
             }
-
-            $this->tags[] = $tag;
         }
+
+        \array_push($this->tags, ...\array_values($tags));
 
         return $this;
     }
