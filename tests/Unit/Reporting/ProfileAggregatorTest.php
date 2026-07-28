@@ -118,6 +118,32 @@ final class ProfileAggregatorTest
     }
 
     #[Test]
+    public function utilizationColorsChangeAtTheExactBandBoundaries(): void
+    {
+        $aggregator = new ProfileAggregator();
+        $events = [
+            new RunStarted('run-1', 2, 2, 100.0),
+            new WorkerSpawned('ninety', 11, 100.0),
+            new WorkerSpawned('seventy', 12, 100.0),
+            new TestClassStarted('Acme\NinetyTest', 100.1, 'ninety'),
+            new TestClassStarted('Acme\SeventyTest', 100.3, 'seventy'),
+            new TestClassFinished('Acme\NinetyTest', 101.0, 'ninety'),
+            new TestClassFinished('Acme\SeventyTest', 101.0, 'seventy'),
+            new RunFinished('run-1', new ResultSummary(passed: 2), 1.0, 101.0),
+        ];
+
+        foreach ($events as $event) {
+            $aggregator->onEvent($event);
+        }
+
+        Expect::that($aggregator->render(new Style(ansi: true)))
+            ->because('90 percent is the first green utilization value')
+            ->toContain("0.900s   \x1b[32m90%\x1b[0m\n")
+            ->because('70 percent is the first yellow utilization value')
+            ->toContain("0.700s   \x1b[33m70%\x1b[0m\n");
+    }
+
+    #[Test]
     public function withoutAFinishedRunNothingRenders(): void
     {
         $aggregator = new ProfileAggregator();
