@@ -19,6 +19,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Tests\Fixture\CrashDiagnostics\CrashDiagnosticsTest;
+use Greenlight\Tests\Fixture\CrashUnicodeDiagnostics\CrashUnicodeDiagnosticsTest;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
@@ -496,6 +497,34 @@ final class OrchestratorTest
             );
     }
 
+    #[Test]
+    #[Timeout(30.0)]
+    public function crashedWorkerKeepsACompleteUnicodeDiagnosticTail(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $sink = new CollectingEventSink();
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+        );
+
+        $summary = $orchestrator->run($this->crashUnicodeDiagnosticsPlan(), $sink, 1);
+        $results = $sink->results();
+
+        Expect::that($summary->errored)
+            ->because('a worker crash MUST produce one synthetic error result')
+            ->toBe(1)
+            ->and($results)
+            ->toHaveCount(1)
+            ->and($results[0]->error?->message)
+            ->because('the diagnostic tail MUST contain only complete Unicode characters within its byte limit')
+            ->toBe(
+                "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"
+                . "Worker output:\n"
+                . \str_repeat('y', 2046),
+            );
+    }
+
     private function plan(): ExecutionPlan
     {
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
@@ -614,6 +643,15 @@ final class OrchestratorTest
     private function crashDiagnosticsPlan(): ExecutionPlan
     {
         $id = new TestId(CrashDiagnosticsTest::class, 'writesDiagnosticsThenExits');
+
+        return new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+    }
+
+    private function crashUnicodeDiagnosticsPlan(): ExecutionPlan
+    {
+        $id = new TestId(CrashUnicodeDiagnosticsTest::class, 'writesUnicodeDiagnosticsThenExits');
 
         return new ExecutionPlan([
             new PlanEntry($id, new TestMetadata($id->class, $id->method)),

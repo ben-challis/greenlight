@@ -15,8 +15,8 @@ use Greenlight\Core\Wire\Utf8;
  *
  * If output is too long, Greenlight keeps the first part. This part usually
  * contains useful error information. The final part frequently contains
- * repeated information. A cut can divide a multibyte character. The final
- * conversion then replaces the incomplete bytes with U+FFFD.
+ * repeated information. Greenlight removes a partial multibyte character at
+ * the size limit.
  *
  * @internal
  */
@@ -120,8 +120,13 @@ final class OutputCapture
 
         $this->errorHandler = null;
 
+        $scrubbedStdout = Utf8::scrub($this->stdout);
+        $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
+        $this->stdoutTruncated = $this->stdoutTruncated
+            || \strlen($boundedStdout) < \strlen($scrubbedStdout);
+
         $captured = new CapturedOutput(
-            Utf8::scrub($this->stdout),
+            $boundedStdout,
             $this->diagnostics,
             $this->stdoutTruncated,
             $this->diagnosticsTruncated,
@@ -140,19 +145,20 @@ final class OutputCapture
      */
     private function appendChunk(string $chunk, int $phase): string
     {
-        $remaining = $this->maxStdoutBytes - \strlen($this->stdout);
-
-        if ($remaining >= \strlen($chunk)) {
-            $this->stdout .= $chunk;
-        } else {
-            if ($remaining > 0) {
-                $this->stdout .= \substr($chunk, 0, $remaining);
-            }
-
-            if ($chunk !== '') {
-                $this->stdoutTruncated = true;
-            }
+        if ($this->stdoutTruncated || $chunk === '') {
+            return '';
         }
+
+        $combined = $this->stdout . $chunk;
+
+        if (\strlen($combined) <= $this->maxStdoutBytes) {
+            $this->stdout = $combined;
+
+            return '';
+        }
+
+        $this->stdout = Utf8::headBytes($combined, $this->maxStdoutBytes);
+        $this->stdoutTruncated = true;
 
         return '';
     }
