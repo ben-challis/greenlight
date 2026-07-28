@@ -68,6 +68,22 @@ final class TerminalCapabilitiesTest
     }
 
     #[Test]
+    public function aZeroNoColorValueStillDisablesColor(): void
+    {
+        $capabilities = TerminalCapabilities::detect(
+            stdoutIsTty: true,
+            env: ['NO_COLOR' => '0'],
+            noAnsiFlag: false,
+        );
+
+        Expect::that($capabilities->interactive)
+            ->because('a zero NO_COLOR value keeps interactivity but disables color')
+            ->toBeTrue()
+            ->and($capabilities->color)
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function anEmptyNoColorIsIgnored(): void
     {
         $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['NO_COLOR' => ''], noAnsiFlag: false);
