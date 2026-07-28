@@ -205,6 +205,27 @@ final class OutputCaptureTest
     }
 
     #[Test]
+    public function truncationDoesNotKeepAPartialUnicodeCharacter(): void
+    {
+        $capture = new OutputCapture(maxStdoutBytes: 4);
+        $capture->start();
+
+        echo 'ab€cd';
+
+        $captured = $capture->stop();
+
+        Expect::that($captured->stdout)
+            ->because('captured output MUST contain only complete Unicode characters within its byte limit')
+            ->toBe('ab');
+        Expect::that(\strlen($captured->stdout))
+            ->because('captured output MUST stay within its byte limit')
+            ->toBeLessThanOrEqual(4);
+        Expect::that($captured->stdoutTruncated)
+            ->because('captured output beyond the byte limit MUST be marked as truncated')
+            ->toBeTrue();
+    }
+
+    #[Test]
     public function diagnosticsBeyondTheBoundAreDroppedAndFlagged(): void
     {
         $capture = new OutputCapture(maxDiagnostics: 2);
