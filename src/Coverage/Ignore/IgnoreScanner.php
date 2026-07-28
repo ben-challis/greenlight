@@ -246,7 +246,7 @@ final readonly class IgnoreScanner
                 $slash = \strrpos($token->text, '\\');
                 $name = $slash === false ? $token->text : \substr($token->text, $slash + 1);
 
-                if ($name === self::ATTRIBUTE) {
+                if (\strcasecmp($name, self::ATTRIBUTE) === 0) {
                     $matched = true;
                 }
 
