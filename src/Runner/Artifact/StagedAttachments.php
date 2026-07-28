@@ -199,7 +199,12 @@ final class StagedAttachments implements Attachments
             throw AttachmentError::invalidName($name);
         }
 
-        if (\preg_match('~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*[^=\s]+=(?:"[^"]*"|[^;\s]+))*$~', $mediaType) !== 1) {
+        if (\preg_match('/[\x00-\x1F\x7F]/', $mediaType) === 1
+            || \preg_match(
+                '~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*[^=\s]+=(?:"[^"]*"|[^;\s]+))*$~',
+                $mediaType,
+            ) !== 1
+        ) {
             throw AttachmentError::invalidMediaType($mediaType);
         }
     }
