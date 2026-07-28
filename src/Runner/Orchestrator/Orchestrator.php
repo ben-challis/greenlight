@@ -474,6 +474,7 @@ final class Orchestrator
                     $this->onAttemptStarted($handle, $message);
                 } elseif ($message instanceof Recycling) {
                     $this->crossCheck($handle, $message->summary);
+                    $this->assertRemainder($handle, $message->remaining);
                     $this->mergeCoverage($message->coverage);
                     $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
                     $this->releaseAssignment($handle);
@@ -812,6 +813,33 @@ final class Orchestrator
         foreach ($byClass as $entries) {
             $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan($entries), false));
         }
+    }
+
+    /**
+     * @param list<TestId> $reported
+     */
+    private function assertRemainder(WorkerHandle $handle, array $reported): void
+    {
+        $expected = $this->renderIds($handle->unfinished());
+        $actual = $this->renderIds($reported);
+
+        if ($actual !== $expected) {
+            throw ProtocolError::remainderMismatch(
+                $handle->workerId,
+                '[' . \implode(', ', $expected) . ']',
+                '[' . \implode(', ', $actual) . ']',
+            );
+        }
+    }
+
+    /**
+     * @param list<TestId> $ids
+     *
+     * @return list<string>
+     */
+    private function renderIds(array $ids): array
+    {
+        return \array_map(static fn(TestId $id): string => (string) $id, $ids);
     }
 
     private function releaseAssignment(WorkerHandle $handle): void

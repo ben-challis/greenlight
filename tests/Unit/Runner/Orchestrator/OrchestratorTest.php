@@ -324,55 +324,73 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aRecyclingWorkerWithAMismatchedSummaryFailsTheRun(): void
     {
-        $script = <<<'PHP'
-            [, , $address, $workerId, $token] = $argv;
-            $socket = stream_socket_client($address);
+        $orchestrator = $this->recyclingWorker([
+            'reason' => 'test-count',
+            'remaining' => [],
+            'summary' => ['passed' => 1, 'failed' => 0, 'errored' => 0, 'skipped' => 0],
+            'coverage' => null,
+        ]);
 
-            $send = static function (array $message) use ($socket): void {
-                $json = json_encode($message, JSON_THROW_ON_ERROR);
-                fwrite($socket, pack('N', strlen($json)) . $json);
-                fflush($socket);
-            };
-
-            $read = static function (int $length) use ($socket): string {
-                $bytes = '';
-
-                while (strlen($bytes) < $length) {
-                    $chunk = fread($socket, $length - strlen($bytes));
-
-                    if ($chunk === false || $chunk === '') {
-                        exit(1);
-                    }
-
-                    $bytes .= $chunk;
-                }
-
-                return $bytes;
-            };
-
-            $send(['v' => 1, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
-            $length = unpack('Nlength', $read(4))['length'];
-            $read($length);
-            $send([
-                'v' => 1,
-                't' => 'recycling',
-                'p' => [
-                    'reason' => 'test-count',
-                    'remaining' => [],
-                    'summary' => ['passed' => 1, 'failed' => 0, 'errored' => 0, 'skipped' => 0],
-                    'coverage' => null,
-                ],
-            ]);
-            sleep(60);
-            PHP;
-
-        $orchestrator = new Orchestrator(
-            workerCommand: [\PHP_BINARY, '-r', $script],
-            workingDirectory: \sys_get_temp_dir(),
-        );
-
-        Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a recycling worker with a mismatched summary fails the run')
+        Expect::that(
+            fn(): ResultSummary => $orchestrator->run(
+                $this->plan(),
+                new CollectingEventSink(),
+                1,
+            ),
+        )
+            ->because('a recycling worker with a mismatched summary fails the run')
             ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream totals/');
+    }
+
+    /**
+     * @param list<array{class: string, method: string, dataSetKey: ?string}> $remaining
+     */
+    #[Test]
+    #[DataSet('invalidRecyclingRemainders')]
+    #[Timeout(30.0)]
+    public function aRecyclingWorkerMustReportItsExactRemainder(
+        array $remaining,
+        string $reported,
+    ): void {
+        $orchestrator = $this->recyclingWorker([
+            'reason' => 'test-count',
+            'remaining' => $remaining,
+            'summary' => ['passed' => 0, 'failed' => 0, 'errored' => 0, 'skipped' => 0],
+            'coverage' => null,
+        ]);
+
+        Expect::that(
+            fn(): ResultSummary => $orchestrator->run(
+                $this->plan(),
+                new CollectingEventSink(),
+                1,
+            ),
+        )
+            ->because('a worker MUST report the exact unfinished assignment')
+            ->toThrow(
+                ProtocolError::class,
+                message: 'Worker "w-1" reported remaining tests ' . $reported . '. '
+                    . 'Greenlight expected [Example\NeverExecutedTest::irrelevant] from its active assignment.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{
+     *     list<array{class: string, method: string, dataSetKey: ?string}>,
+     *     string
+     * }>
+     */
+    public static function invalidRecyclingRemainders(): iterable
+    {
+        yield 'unknown replacement' => [
+            [[
+                'class' => 'Example\UnknownTest',
+                'method' => 'neverPlanned',
+                'dataSetKey' => null,
+            ]],
+            '[Example\UnknownTest::neverPlanned]',
+        ];
+        yield 'omitted assignment' => [[], '[]'];
     }
 
     #[Test]
@@ -485,6 +503,70 @@ final class OrchestratorTest
         return new ExecutionPlan([
             new PlanEntry($id, new TestMetadata($id->class, $id->method)),
         ]);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function recyclingWorker(array $payload): Orchestrator
+    {
+        $encoded = \base64_encode(\json_encode($payload, \JSON_THROW_ON_ERROR));
+        $script = \sprintf(
+            <<<'PHP'
+                [, , $address, $workerId, $token] = $argv;
+                $socket = stream_socket_client($address);
+
+                $send = static function (array $message) use ($socket): void {
+                    $json = json_encode($message, JSON_THROW_ON_ERROR);
+                    fwrite($socket, pack('N', strlen($json)) . $json);
+                    fflush($socket);
+                };
+
+                $read = static function (int $length) use ($socket): string {
+                    $bytes = '';
+
+                    while (strlen($bytes) < $length) {
+                        $chunk = fread($socket, $length - strlen($bytes));
+
+                        if ($chunk === false || $chunk === '') {
+                            exit(1);
+                        }
+
+                        $bytes .= $chunk;
+                    }
+
+                    return $bytes;
+                };
+
+                $send([
+                    'v' => 1,
+                    't' => 'hello',
+                    'p' => [
+                        'workerId' => $workerId,
+                        'token' => $token,
+                        'pid' => getmypid(),
+                    ],
+                ]);
+                $length = unpack('Nlength', $read(4))['length'];
+                $read($length);
+                $send([
+                    'v' => 1,
+                    't' => 'recycling',
+                    'p' => json_decode(
+                        base64_decode(%s),
+                        true,
+                        flags: JSON_THROW_ON_ERROR,
+                    ),
+                ]);
+                stream_get_contents($socket);
+                PHP,
+            \var_export($encoded, true),
+        );
+
+        return new Orchestrator(
+            workerCommand: [\PHP_BINARY, '-r', $script],
+            workingDirectory: \sys_get_temp_dir(),
+        );
     }
 
     private function passingPlan(): ExecutionPlan
