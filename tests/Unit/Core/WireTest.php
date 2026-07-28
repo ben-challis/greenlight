@@ -95,6 +95,46 @@ final class WireTest
     }
 
     #[Test]
+    public function mapReadersRejectNonEmptyLists(): void
+    {
+        $list = ['field' => ['first', 'second']];
+        $listOfLists = ['field' => [['first']]];
+
+        Expect::that(static fn(): array => Wire::map($list, 'field'))
+            ->because('a non-empty list is not a wire map')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "field" must be a map, got array.',
+            )
+            ->and(static fn(): ?array => Wire::nullableMap($list, 'field'))
+            ->because('a nullable wire map MUST validate its non-null shape')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "field" must be a map, got array.',
+            )
+            ->and(static fn(): array => Wire::listOfMaps($listOfLists, 'field'))
+            ->because('each item in a wire list of maps MUST be a map')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "field" must be a list of maps, got array.',
+            );
+    }
+
+    #[Test]
+    public function mapReadersKeepEmptyMaps(): void
+    {
+        $emptyMap = ['field' => []];
+
+        Expect::that(Wire::map($emptyMap, 'field'))
+            ->because('an empty decoded JSON object is a valid wire map')
+            ->toBe([])
+            ->and(Wire::nullableMap($emptyMap, 'field'))
+            ->toBe([])
+            ->and(Wire::listOfMaps(['field' => [[]]], 'field'))
+            ->toBe([[]]);
+    }
+
+    #[Test]
     #[DataSet('nonFiniteFloats')]
     public function floatReadersRejectNonFiniteValues(float $value): void
     {
