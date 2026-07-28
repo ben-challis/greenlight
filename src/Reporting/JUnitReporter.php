@@ -10,6 +10,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Wire\Utf8;
 use Greenlight\Reporting\Output\Output;
 
 /**
@@ -124,7 +125,7 @@ final class JUnitReporter implements Reporter
 
     private function attribute(string $value): string
     {
-        return \htmlspecialchars($value, \ENT_XML1 | \ENT_COMPAT, 'UTF-8');
+        return \htmlspecialchars($this->xml($value), \ENT_XML1 | \ENT_COMPAT, 'UTF-8');
     }
 
     private function renderCase(TestResult $result): string
@@ -150,8 +151,8 @@ final class JUnitReporter implements Reporter
         }
 
         $writer->startElement('testcase');
-        $writer->writeAttribute('name', $name);
-        $writer->writeAttribute('classname', $result->id->class);
+        $writer->writeAttribute('name', $this->xml($name));
+        $writer->writeAttribute('classname', $this->xml($result->id->class));
         $writer->writeAttribute('assertions', (string) $result->expectations);
         $writer->writeAttribute('time', $this->time($result->durationSeconds));
 
@@ -159,7 +160,7 @@ final class JUnitReporter implements Reporter
             foreach ($result->failures as $failure) {
                 $writer->startElement('failure');
                 $writer->writeAttribute('type', 'failure');
-                $writer->writeAttribute('message', $failure->message);
+                $writer->writeAttribute('message', $this->xml($failure->message));
 
                 $body = [];
 
@@ -176,7 +177,7 @@ final class JUnitReporter implements Reporter
                 }
 
                 if ($body !== []) {
-                    $writer->text(\implode("\n", $body));
+                    $writer->text($this->xml(\implode("\n", $body)));
                 }
 
                 $writer->endElement();
@@ -187,12 +188,12 @@ final class JUnitReporter implements Reporter
 
         if ($result->outcome === Outcome::Errored && $error instanceof ThrowableDetail) {
             $writer->startElement('error');
-            $writer->writeAttribute('type', $error->class);
-            $writer->writeAttribute('message', $error->message);
+            $writer->writeAttribute('type', $this->xml($error->class));
+            $writer->writeAttribute('message', $this->xml($error->message));
 
             $body = $error->stackFrames;
             $body[] = 'at ' . $error->file . ':' . $error->line;
-            $writer->text(\implode("\n", $body));
+            $writer->text($this->xml(\implode("\n", $body)));
 
             $writer->endElement();
         }
@@ -201,7 +202,7 @@ final class JUnitReporter implements Reporter
             $writer->startElement('skipped');
 
             if ($result->skipReason !== null) {
-                $writer->writeAttribute('message', $result->skipReason);
+                $writer->writeAttribute('message', $this->xml($result->skipReason));
             }
 
             $writer->endElement();
@@ -209,10 +210,10 @@ final class JUnitReporter implements Reporter
 
         if ($result->attachments !== []) {
             $writer->startElement('system-out');
-            $writer->text(\implode("\n", \array_map(
+            $writer->text($this->xml(\implode("\n", \array_map(
                 static fn($attachment): string => '[[ATTACHMENT|' . $attachment->path . ']]',
                 $result->attachments,
-            )));
+            ))));
             $writer->endElement();
         }
 
@@ -224,6 +225,15 @@ final class JUnitReporter implements Reporter
         $lines = \array_slice($lines, 2, -2);
 
         return \implode("\n", $lines) . "\n";
+    }
+
+    private function xml(string $value): string
+    {
+        return (string) \preg_replace(
+            '/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u',
+            "\u{FFFD}",
+            Utf8::scrub($value),
+        );
     }
 
     private function time(float $seconds): string
