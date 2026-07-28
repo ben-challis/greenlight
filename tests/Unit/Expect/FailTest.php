@@ -36,6 +36,18 @@ final class FailTest
     }
 
     #[Test]
+    public function anEmptyReasonUsesAClearFallback(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Fail::because(''),
+        );
+
+        Expect::that($detail->message)
+            ->because('an explicit failure always has a reason')
+            ->toBe('The test failed without a reason.');
+    }
+
+    #[Test]
     public function failureLocationPointsAtTheCallSite(): void
     {
         $line = __LINE__ + 1;
