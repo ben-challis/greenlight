@@ -12,6 +12,20 @@ use Greenlight\Runner\Worker\LeakDetector;
 final class LeakDetectorTest
 {
     #[Test]
+    public function anExplicitModeSnapshotControlsTheEnvironmentWarning(): void
+    {
+        Expect::that(LeakDetector::environmentWarning(['develop']))
+            ->because('Xdebug develop mode MUST explain its leak-detection false positives')
+            ->toBe(
+                'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports '
+                . 'false positives. Rerun with XDEBUG_MODE=off to get correct results.',
+            )
+            ->and(LeakDetector::environmentWarning(['coverage']))
+            ->because('Xdebug modes without develop MUST NOT warn about leak detection')
+            ->toBeNull();
+    }
+
+    #[Test]
     public function sweepDropsCollectedInstancesAndReportsRetainedInstancesOnce(): void
     {
         $detector = new LeakDetector();

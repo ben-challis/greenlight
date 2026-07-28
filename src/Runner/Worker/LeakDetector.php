@@ -30,11 +30,17 @@ final class LeakDetector
     private array $watched = [];
 
     /**
+     * @param list<string>|null $xdebugModes Explicit mode snapshot. A null value reads the environment.
+     *
      * @return non-empty-string|null A warning if the environment can cause incorrect leak reports
      */
-    public static function environmentWarning(): ?string
+    public static function environmentWarning(?array $xdebugModes = null): ?string
     {
-        if (!\extension_loaded('xdebug') || !\in_array('develop', self::xdebugModes(), true)) {
+        if (!\in_array(
+            'develop',
+            $xdebugModes ?? (\extension_loaded('xdebug') ? self::xdebugModes() : []),
+            true,
+        )) {
             return null;
         }
 
