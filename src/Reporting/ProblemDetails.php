@@ -92,6 +92,10 @@ final class ProblemDetails
                     $diagnostic->line,
                 );
             }
+
+            if ($captured->diagnosticsTruncated) {
+                $lines[] = '  additional diagnostics omitted';
+            }
         }
 
         if ($result->attachments !== []) {
