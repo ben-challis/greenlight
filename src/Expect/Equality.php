@@ -91,8 +91,10 @@ final class Equality
 
             $seen[] = $id;
             $parts = [];
+            $properties = \get_mangled_object_vars($value);
+            \ksort($properties, \SORT_STRING);
 
-            foreach (\get_mangled_object_vars($value) as $name => $item) {
+            foreach ($properties as $name => $item) {
                 $parts[] = $name . '=>' . self::sortKey($item, $seen);
             }
 
