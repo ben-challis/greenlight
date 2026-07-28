@@ -125,7 +125,12 @@ final class DiscoveryCacheTest
     {
         $className = 'WireProbe' . \bin2hex(\random_bytes(6)) . 'Test';
         $directory = $this->writeFixture($className);
-        $source = $directory . '/' . $className . '.php';
+        $source = \realpath($directory . '/' . $className . '.php');
+
+        if (!\is_string($source)) {
+            Fail::because('Expected the discovery fixture to have a canonical path.');
+        }
+
         $cacheFile = $this->cacheFile($directory);
         $loader = static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
