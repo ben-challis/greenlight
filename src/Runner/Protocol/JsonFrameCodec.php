@@ -17,7 +17,22 @@ final readonly class JsonFrameCodec implements FrameCodec
 {
     public const int DEFAULT_MAX_FRAME_BYTES = 8 * 1024 * 1024;
 
-    public function __construct(public int $maxFrameBytes = self::DEFAULT_MAX_FRAME_BYTES) {}
+    /**
+     * @var positive-int
+     */
+    public int $maxFrameBytes;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(int $maxFrameBytes = self::DEFAULT_MAX_FRAME_BYTES)
+    {
+        if ($maxFrameBytes < 1) {
+            throw new \InvalidArgumentException('Maximum frame size must be greater than zero.');
+        }
+
+        $this->maxFrameBytes = $maxFrameBytes;
+    }
 
     #[\Override]
     public function encode(array $envelope): string
