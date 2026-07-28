@@ -135,6 +135,32 @@ final class WireTest
     }
 
     #[Test]
+    public function mapReadersRejectNumericKeysInMixedMaps(): void
+    {
+        $map = ['field' => [0 => 'numeric', 'named' => 'value']];
+        $listOfMaps = ['field' => [[0 => 'numeric', 'named' => 'value']]];
+
+        Expect::that(static fn(): array => Wire::map($map, 'field'))
+            ->because('wire maps MUST have string keys')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "field" must be a map with string keys, got array.',
+            )
+            ->and(static fn(): ?array => Wire::nullableMap($map, 'field'))
+            ->because('nullable wire maps MUST validate non-null keys')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "field" must be a map with string keys, got array.',
+            )
+            ->and(static fn(): array => Wire::listOfMaps($listOfMaps, 'field'))
+            ->because('each wire map in a list MUST have string keys')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "field" must be a list of maps with string keys, got array.',
+            );
+    }
+
+    #[Test]
     #[DataSet('nonFiniteFloats')]
     public function floatReadersRejectNonFiniteValues(float $value): void
     {
