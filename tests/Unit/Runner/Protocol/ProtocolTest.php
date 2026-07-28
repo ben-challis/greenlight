@@ -138,6 +138,22 @@ final class ProtocolTest
     }
 
     #[Test]
+    public function legacyAssignmentPayloadsDefaultArtifactFields(): void
+    {
+        $payload = new Assign(new ExecutionPlan([]))->toWire();
+        unset($payload['artifactSession'], $payload['artifactConfiguration']);
+
+        $assign = Assign::fromWire($payload);
+
+        Expect::that($assign->artifactSession)
+            ->because('legacy assignments have no artifact session')
+            ->toBeNull()
+            ->and($assign->artifactConfiguration)
+            ->because('legacy assignments have no artifact configuration')
+            ->toBeNull();
+    }
+
+    #[Test]
     public function oversizedFramesAreRejectedOnBothSides(): void
     {
         $codec = new JsonFrameCodec(maxFrameBytes: 64);
