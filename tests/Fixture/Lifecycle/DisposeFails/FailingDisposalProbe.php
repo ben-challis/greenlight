@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Lifecycle\DisposeFails;
 
+use Greenlight\Doubles\Fake;
 use Greenlight\Harness\Disposable;
 
-final class FailingDisposalProbe implements Disposable
+final class FailingDisposalProbe implements Disposable, Fake
 {
     public function touch(): void {}
 

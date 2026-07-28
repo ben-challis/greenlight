@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Laravel;
 
+use Greenlight\Doubles\Fake;
 use Illuminate\Contracts\Console\Kernel;
 
 /**
  * Throws when the bridge starts the console kernel.
  */
-final class ThrowingKernel implements Kernel
+final class ThrowingKernel implements Kernel, Fake
 {
     #[\Override]
     public function bootstrap(): void

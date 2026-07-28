@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose;
 
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Disposable;
 
-final class VerifyingProbe implements Disposable
+final class VerifyingProbe implements Disposable, Fake
 {
     public int $touches = 0;
 

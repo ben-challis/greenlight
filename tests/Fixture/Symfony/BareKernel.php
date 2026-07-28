@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Symfony;
 
+use Greenlight\Doubles\Fake;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -17,7 +18,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
  * withTestContainer() omits services_resetter; withoutTestContainer() also
  * omits the test container.
  */
-final class BareKernel implements KernelInterface
+final class BareKernel implements KernelInterface, Fake
 {
     private function __construct(private readonly Container $container) {}
 
