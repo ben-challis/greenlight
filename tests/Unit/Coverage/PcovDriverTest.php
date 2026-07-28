@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Driver\PcovDriver;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
+use Greenlight\Tests\Fixture\Coverage\FakePcovRuntime;
 
 final class PcovDriverTest
 {
@@ -55,5 +58,60 @@ final class PcovDriverTest
                 \LogicException::class,
                 message: 'The pcov collection window is already open. Call stop() before start().',
             );
+    }
+
+    #[Test]
+    #[Isolated]
+    public function collectionLifecycleNormalizesExtensionPayloadsAndClearsState(): void
+    {
+        $this->installFakePcovFunctions();
+        $driver = new \ReflectionClass(PcovDriver::class)->newInstanceWithoutConstructor();
+
+        FakePcovRuntime::$calls = [];
+        $driver->start();
+        $coverage = $driver->stop();
+
+        Expect::that($coverage->lines)
+            ->because('PCOV collection keeps only integer line statuses from valid file entries')
+            ->toBe([
+                '/src/Example.php' => [
+                    10 => 1,
+                    11 => -1,
+                ],
+            ])
+            ->and(FakePcovRuntime::$calls)
+            ->because('PCOV collection MUST stop and clear extension state after reading it')
+            ->toBe(['start', 'collect', 'stop', 'clear']);
+    }
+
+    private function installFakePcovFunctions(): void
+    {
+        if (\function_exists('pcov\start')) {
+            Fail::because('Expected an isolated worker without loaded PCOV functions.');
+        }
+
+        eval(<<<'PHP'
+            namespace pcov;
+
+            function start(): void
+            {
+                \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::start();
+            }
+
+            function collect(): array
+            {
+                return \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::collect();
+            }
+
+            function stop(): void
+            {
+                \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::stop();
+            }
+
+            function clear(): void
+            {
+                \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::clear();
+            }
+            PHP);
     }
 }
