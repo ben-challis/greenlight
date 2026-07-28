@@ -135,6 +135,18 @@ final class ToBeAndToEqualTest
     }
 
     #[Test]
+    public function toEqualDistinguishesDateTimesOneMicrosecondApart(): void
+    {
+        $instant = new \DateTimeImmutable('2024-01-01T12:00:00.123456+00:00');
+        $nextMicrosecond = new \DateTimeImmutable('2024-01-01T12:00:00.123457+00:00');
+
+        Expect::that($instant)
+            ->because('date time equality MUST preserve microsecond precision')
+            ->not()
+            ->toEqual($nextMicrosecond);
+    }
+
+    #[Test]
     public function toEqualTerminatesOnCyclicStructures(): void
     {
         $first = new Node();
