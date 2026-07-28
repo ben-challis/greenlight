@@ -71,6 +71,22 @@ final class WorkerTest
     }
 
     #[Test]
+    public function afterHooksContinueAfterACleanupFailure(): void
+    {
+        TraceLog::drain();
+        [, $results] = $this->runFixture('AfterFailureContinues');
+
+        Expect::that(TraceLog::drain())
+            ->because('later cleanup MUST run after an earlier after-hook throws')
+            ->toBe(['test', 'failing cleanup', 'final cleanup'])
+            ->and($results[0]->outcome)
+            ->toBe(Outcome::Errored)
+            ->and($results[0]->error?->message)
+            ->because('the first teardown error MUST remain primary')
+            ->toBe('after broke');
+    }
+
+    #[Test]
     public function retriesUntilPassingAndRecordsAttempts(): void
     {
         RetriesTest::$attempts = 0;
