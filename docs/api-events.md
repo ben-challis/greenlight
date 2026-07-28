@@ -165,17 +165,29 @@ final readonly class SuiteFinished implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L9)
 
-### `__construct()`
+### `$suite`
 
 ```php
-public function __construct(public string $suite, public float $occurredAt)
+public string $suite;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $suite`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L14)
+
+### `__construct()`
+
+```php
+public function __construct(string $suite, public float $occurredAt)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L19)
 
 ### `toWire()`
 
@@ -184,7 +196,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L28)
 
 ### `fromWire()`
 
@@ -193,7 +205,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L37)
 
 ## `SuiteStarted`
 
@@ -205,17 +217,29 @@ final readonly class SuiteStarted implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L9)
 
-### `__construct()`
+### `$suite`
 
 ```php
-public function __construct(public string $suite, public float $occurredAt)
+public string $suite;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $suite`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L14)
+
+### `__construct()`
+
+```php
+public function __construct(string $suite, public float $occurredAt)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L19)
 
 ### `toWire()`
 
@@ -224,7 +248,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L28)
 
 ### `fromWire()`
 
@@ -233,7 +257,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L37)
 
 ## `TestClassFinished`
 
