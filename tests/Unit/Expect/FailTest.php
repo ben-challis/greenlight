@@ -15,12 +15,12 @@ final class FailTest
     #[Test]
     public function throwsWithTheGivenReason(): void
     {
-        try {
-            Fail::because('The required value was not found.');
-        } catch (ExpectationFailed $failure) {
-            Expect::that($failure->getMessage())
-                ->toStartWith('The required value was not found. (at ');
-        }
+        Expect::that(static fn() => Fail::because('The required value was not found.'))
+            ->because('an explicit failure MUST throw with its reason and call site')
+            ->toThrow(
+                ExpectationFailed::class,
+                matching: '/^The required value was not found\. \(at .+:\d+\)$/',
+            );
     }
 
     #[Test]
@@ -33,6 +33,18 @@ final class FailTest
         Expect::that($detail->message)->because('carries structured failure detail')->toBe('The result was unusable.');
         Expect::that($detail->expected)->because('carries structured failure detail')->toBeNull();
         Expect::that($detail->actual)->because('carries structured failure detail')->toBeNull();
+    }
+
+    #[Test]
+    public function anEmptyReasonUsesAClearFallback(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Fail::because(''),
+        );
+
+        Expect::that($detail->message)
+            ->because('an explicit failure always has a reason')
+            ->toBe('The test failed without a reason.');
     }
 
     #[Test]
