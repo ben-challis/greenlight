@@ -1,0 +1,68 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Acceptance;
+
+use Greenlight\Attribute\RequiresResource;
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\PhpStanProbe;
+
+#[RequiresResource('analysis-process')]
+final readonly class PhpStanNativeMatcherTypeTest
+{
+    public function __construct(private TempDirectory $tempDirectory) {}
+
+    #[Test]
+    public function nativeMatcherTypesKeepNullableUnionAndIntersectionShapes(): void
+    {
+        $root = \dirname(__DIR__, 2);
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+            use Greenlight\Tests\Fixture\PhpStanNativeType\SerializableString;
+
+            function greenlightGoodNativeTypeProbe(): void
+            {
+                Expect::that(null)->toAcceptNullableDateTime();
+                Expect::that(new DateTimeImmutable())->toAcceptNullableDateTime();
+                Expect::that(1)->toAcceptIntegerOrString();
+                Expect::that('one')->toAcceptIntegerOrString();
+                Expect::that(new SerializableString())->toAcceptSerializableString();
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightBadNativeTypeProbe(): void
+            {
+                Expect::that(1)->toAcceptNullableDateTime();
+                Expect::that([])->toAcceptIntegerOrString();
+                Expect::that(new stdClass())->toAcceptSerializableString();
+            }
+            PHP,
+            $root . '/tests/Fixture/PhpStanNativeType/probe.neon',
+        );
+
+        Expect::that($probe->exitCode)
+            ->because('native matcher types keep nullable union and intersection shapes')
+            ->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and($probe->errors)->toBe([
+                'Extension matcher toAcceptNullableDateTime() requires subject type DateTimeInterface|null, but the subject has type int.',
+                'Extension matcher toAcceptIntegerOrString() requires subject type int|string, but the subject has type array.',
+                'Extension matcher toAcceptSerializableString() requires subject type JsonSerializable&Stringable, but the subject has type stdClass.',
+            ]);
+    }
+}

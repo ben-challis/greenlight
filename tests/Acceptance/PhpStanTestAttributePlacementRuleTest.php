@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 
+#[RequiresResource('analysis-process')]
 final readonly class PhpStanTestAttributePlacementRuleTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
