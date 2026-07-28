@@ -69,7 +69,12 @@ final readonly class DataSetExpander
         $position = 0;
 
         foreach ($class->getMethod($testMethod)->getAttributes(DataRow::class) as $attribute) {
-            $row = $attribute->newInstance();
+            try {
+                $row = $attribute->newInstance();
+            } catch (\Throwable $e) {
+                throw DiscoveryError::invalidAttribute($className . '::' . $testMethod . '()', $e);
+            }
+
             $key = $row->label ?? \sprintf('#%d', $position);
 
             if (\array_key_exists($key, $rows)) {

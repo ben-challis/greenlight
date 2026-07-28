@@ -68,21 +68,33 @@ final readonly class DataRow
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L15)
 
+### `$label`
+
+```php
+public ?string $label;
+```
+
+PHPDoc:
+
+- `@var non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L20)
+
 ### `__construct()`
 
 ```php
 public function __construct(
     public array $arguments,
-    public ?string $label = null,
+    ?string $label = null,
 )
 ```
 
 PHPDoc:
 
 - `@param array<mixed> $arguments`
-- `@param non-empty-string|null $label`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L27)
 
 ## `DataSet`
 
