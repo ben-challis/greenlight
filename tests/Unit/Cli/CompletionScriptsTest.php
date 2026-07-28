@@ -94,6 +94,14 @@ final class CompletionScriptsTest
     }
 
     #[Test]
+    public function fishPreservesShortAliasesFromTheOptionSpecifications(): void
+    {
+        Expect::that($this->scripts()->render('fish'))
+            ->because('fish completion MUST include each configured short option alias')
+            ->toContain('complete -c greenlight -l help -s h');
+    }
+
+    #[Test]
     public function returnsNullForAnUnknownShell(): void
     {
         Expect::that($this->scripts()->render('powershell'))->because('returns null for an unknown shell')->toBeNull();
