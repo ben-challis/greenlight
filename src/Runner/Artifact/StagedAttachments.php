@@ -87,6 +87,14 @@ final class StagedAttachments implements Attachments
         AttachmentRetention $retention = AttachmentRetention::OnFailure,
     ): void {
         $this->guard($name, $mediaType ?? 'application/octet-stream');
+
+        if (\str_contains($sourcePath, "\0")) {
+            throw AttachmentError::source(
+                \strtr($sourcePath, ["\0" => '\0']),
+                'contains a null byte',
+            );
+        }
+
         $this->recordAttempt();
         $sequence = \count($this->attachments) + 1;
         $storageKey = $this->storageKey($name, $sequence);
