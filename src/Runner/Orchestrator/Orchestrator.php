@@ -711,7 +711,7 @@ final class Orchestrator
             }
 
             if ($handle->inFlight === null) {
-                if ($handle->assigned === null) {
+                if ($handle->assigned === null && $handle->ready) {
                     // The scheduler keeps this connected worker idle until a
                     // resource lease is available.
                     continue;

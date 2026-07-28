@@ -12,7 +12,7 @@ use Greenlight\Core\Wire\WireSerializable;
  * JSON-safe information exposed by one orchestrator-owned integration fixture.
  *
  * Ordinary values and secrets are kept separate so debug output can redact
- * credentials. Secrets are strings and require an explicit reveal() call.
+ * credentials. Secrets are strings and require an explicit `reveal()` call.
  */
 final readonly class FixtureResource implements WireSerializable
 {
