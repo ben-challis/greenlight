@@ -48,6 +48,18 @@ final class ObservationLogTest
     }
 
     #[Test]
+    public function renderedHistoryAtTheByteLimitIsNotTruncated(): void
+    {
+        $value = \str_repeat('x', 2_041);
+        $log = new ObservationLog(0.0);
+        $log->record(0.0, $value);
+
+        Expect::that($log->render())
+            ->because('history at the byte limit MUST remain unchanged')
+            ->toBe('+0.0ms ' . $value);
+    }
+
+    #[Test]
     public function anIdenticalTailGroupDoesNotRepeatTheFirstObservation(): void
     {
         $log = new ObservationLog(0.0);
