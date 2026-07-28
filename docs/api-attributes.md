@@ -334,6 +334,18 @@ final readonly class SkipUnless
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L14)
 
+### `$condition`
+
+```php
+public string $condition;
+```
+
+PHPDoc:
+
+- `@var class-string<Condition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L19)
+
 ### `$arguments`
 
 ```php
@@ -344,22 +356,22 @@ PHPDoc:
 
 - `@var list<mixed>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L24)
 
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $condition,
+    string $condition,
     mixed ...$arguments,
 )
 ```
 
 PHPDoc:
 
-- `@param class-string<Condition> $condition`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L29)
 
 ## `Test`
 
