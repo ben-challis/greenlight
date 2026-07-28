@@ -27,7 +27,7 @@ public function set(string $name, string $value): void
 
 PHPDoc:
 
-- `@throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.`
+- `@throws \InvalidArgumentException If $name is invalid or $value contains a null byte.`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L23)
 
@@ -41,7 +41,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L41)
 
 ### `dispose()`
 
@@ -50,7 +50,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L50)
 
 ## `TempDirectory`
 
