@@ -92,6 +92,13 @@ final class WildcardTest
             true,
         ];
 
+        yield 'question mark matches one UTF-8 character' => [
+            'Tést',
+            'T?st',
+            false,
+            true,
+        ];
+
         yield 'question mark does not match zero characters' => [
             'Tst',
             'T?st',
