@@ -311,6 +311,28 @@ final readonly class AttachmentsTest
     }
 
     #[Test]
+    public function rejectsASymlinkedStagingDirectoryExactly(): void
+    {
+        $root = $this->tempDirectory->subdirectory('symlinked-staging');
+        $target = $root . '/target';
+        $staging = $root . '/staging';
+        \mkdir($target);
+        \symlink($target, $staging);
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-1'),
+            new ArtifactConfiguration($root . '/published'),
+        );
+
+        Expect::that(static fn() => $store->recordAttempt(
+            new TestId('Example\EvidenceTest', 'symlinkedStaging'),
+            1,
+        ))->toThrow(
+            AttachmentError::class,
+            message: 'Attachment staging directory is unsafe.',
+        );
+    }
+
+    #[Test]
     public function reportsAnExistingStagingPartExactly(): void
     {
         $root = $this->tempDirectory->subdirectory('existing-staging-part');
