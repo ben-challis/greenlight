@@ -60,7 +60,7 @@ final class FilterTest
     }
 
     #[Test]
-    public function classFiltersMatchBySubstringOrWildcard(): void
+    public function classFiltersMatchBySubstringOrWildcardAndExclusionWins(): void
     {
         $substring = new Filter(includeClasses: ['Invoice']);
 
@@ -76,6 +76,11 @@ final class FilterTest
 
         Expect::that($question->accepts('App\V1Test', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
         Expect::that($question->accepts('App\V12Test', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
+        $excluded = new Filter(includeClasses: ['App\\'], excludeClasses: ['Legacy']);
+
+        Expect::that($excluded->accepts('App\\LegacyTest', 'm', [], '/f'))
+            ->because('class exclusion MUST take priority over inclusion')
+            ->toBeFalse();
     }
 
     #[Test]
