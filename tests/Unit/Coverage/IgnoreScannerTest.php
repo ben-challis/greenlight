@@ -97,6 +97,26 @@ final class IgnoreScannerTest
     }
 
     #[Test]
+    public function attributeNamesFollowPhpCaseInsensitivity(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                #[\gReEnLiGhT\aTtRiBuTe\cOvErAgEiGnOrE]
+                public function dropped(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))
+            ->because('CoverageIgnore attribute names MUST follow PHP case-insensitive class-name rules')
+            ->toBe([5, 6, 7, 8]);
+    }
+
+    #[Test]
     public function unrelatedAttributesDoNotIgnore(): void
     {
         $source = <<<'PHP'

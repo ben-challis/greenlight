@@ -120,6 +120,16 @@ final class CliOverridesTest
     }
 
     #[Test]
+    public function validShardKeepsIndexAndCountOrder(): void
+    {
+        $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['shard' => ['2/3']]));
+
+        Expect::that($overrides->shard)
+            ->because('--shard MUST keep the selected index before the total count')
+            ->toBe([2, 3]);
+    }
+
+    #[Test]
     public function shardOutOfRangeNamesTheValidRange(): void
     {
         try {

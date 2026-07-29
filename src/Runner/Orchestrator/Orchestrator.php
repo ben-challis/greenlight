@@ -99,10 +99,6 @@ final class Orchestrator
 
     private bool $retryWaitingWorkers = false;
 
-    private int $spawnedCount = 0;
-
-    private int $spawnBudget = 0;
-
     private ?ChannelAllocator $channels = null;
 
     private int $initialWorkerTarget = 0;
@@ -187,10 +183,7 @@ final class Orchestrator
 
         $this->initialWorkerTarget = \min($workerCount, $this->pendingUnits());
 
-        // Worker replacement and crash containment can start replacement
-        // processes. Permit only a small number for each planned test. A
-        // larger number indicates a replacement loop and must fail the run.
-        $this->spawnBudget = \count($plan->entries) + $workerCount * 8 + 16;
+        $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
 
         $token = \bin2hex(\random_bytes(16));
         $server = ServerSocket::listen();
@@ -201,7 +194,7 @@ final class Orchestrator
                     $this->drainAll();
                 }
 
-                $this->spawnUpTo($workerCount, $server->address, $token, $sink);
+                $this->spawnUpTo($workerCount, $server->address, $token, $sink, $spawnBudget);
 
                 if ($this->finished()) {
                     break;
@@ -226,15 +219,20 @@ final class Orchestrator
      * @param non-empty-string $address
      * @param non-empty-string $token
      */
-    private function spawnUpTo(int $workerCount, string $address, string $token, EventSink $sink): void
-    {
+    private function spawnUpTo(
+        int $workerCount,
+        string $address,
+        string $token,
+        EventSink $sink,
+        WorkerSpawnBudget $spawnBudget,
+    ): void {
         // Isolated and reused workers use the same worker pool. The active
         // count below limits live workers to the worker count. Thus, the
         // allocator has a channel for each possible live worker.
         $channels = $this->channels ??= new ChannelAllocator($workerCount);
 
         while (!$this->draining && $this->pendingUnits() > $this->unassignedActiveCount() && $this->activeCount() < $workerCount) {
-            $workerId = 'w-' . ++$this->spawnedCount;
+            $workerId = $spawnBudget->nextWorkerId();
 
             $command = [...$this->workerCommand, '__worker', $address, $workerId, $token];
             $descriptors = [
@@ -242,14 +240,6 @@ final class Orchestrator
                 1 => ['pipe', 'w'],
                 2 => ['pipe', 'w'],
             ];
-
-            if ($this->spawnedCount > $this->spawnBudget) {
-                throw ProtocolError::malformedFrame(\sprintf(
-                    'Greenlight started %d workers for this execution plan. '
-                    . 'This count indicates a worker replacement loop',
-                    $this->spawnedCount,
-                ));
-            }
 
             $channelNumber = $channels->allocate();
             // The env parameter of proc_open replaces the complete

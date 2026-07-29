@@ -37,7 +37,7 @@ final class SlowTests
 
     public function record(TestFinished $event): void
     {
-        if ($event->result->durationSeconds < self::THRESHOLD_SECONDS) {
+        if ($event->result->durationSeconds <= self::THRESHOLD_SECONDS) {
             return;
         }
 

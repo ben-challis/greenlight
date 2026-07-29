@@ -36,6 +36,22 @@ final class ObservationLogTest
     }
 
     #[Test]
+    public function compressesRepeatsInTheLatestChangedValue(): void
+    {
+        $log = new ObservationLog(0.0);
+        $log->record(0.0, 'first');
+        $log->record(0.001, 'changed');
+        $log->record(0.002, 'changed');
+
+        Expect::that($log->count())
+            ->because('the observation count includes repeated tail values')
+            ->toBe(3)
+            ->and($log->render())
+            ->because('consecutive tail values are one group with a repeat count')
+            ->toBe("+0.0ms first\n+1.0ms changed (×2)");
+    }
+
+    #[Test]
     public function renderedHistoryIsBoundedWithATruncationMarker(): void
     {
         $log = new ObservationLog(0.0);
@@ -57,6 +73,17 @@ final class ObservationLogTest
         Expect::that($log->render())
             ->because('history at the byte limit MUST remain unchanged')
             ->toBe('+0.0ms ' . $value);
+    }
+
+    #[Test]
+    public function truncationDoesNotSplitAUnicodeCharacter(): void
+    {
+        $log = new ObservationLog(0.0);
+        $log->record(0.0, \str_repeat('€', 1_000));
+
+        Expect::that($log->render())
+            ->because('bounded observation history MUST remain valid UTF-8')
+            ->toBe('+0.0ms ' . \str_repeat('€', 679) . '...');
     }
 
     #[Test]

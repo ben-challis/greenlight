@@ -9,17 +9,52 @@ use Greenlight\Core\Wire\Wire;
 final readonly class RunStarted implements Event
 {
     /**
-     * @param non-empty-string $runId
-     * @param non-negative-int $plannedTests
-     * @param positive-int $workers
+     * @var non-empty-string
+     */
+    public string $runId;
+
+    /**
+     * @var non-negative-int
+     */
+    public int $plannedTests;
+
+    /**
+     * @var positive-int
+     */
+    public int $workers;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $runId,
-        public int $plannedTests,
-        public int $workers,
+        string $runId,
+        int $plannedTests,
+        int $workers,
         public float $occurredAt,
         public ?string $artifactsDirectory = null,
-    ) {}
+    ) {
+        if ($runId === '') {
+            throw new \InvalidArgumentException('RunStarted requires a non-empty run ID.');
+        }
+
+        if ($plannedTests < 0) {
+            throw new \InvalidArgumentException(\sprintf(
+                'RunStarted requires a non-negative planned test count. Actual value: %d.',
+                $plannedTests,
+            ));
+        }
+
+        if ($workers < 1) {
+            throw new \InvalidArgumentException(\sprintf(
+                'RunStarted requires at least one worker. Actual value: %d.',
+                $workers,
+            ));
+        }
+
+        $this->runId = $runId;
+        $this->plannedTests = $plannedTests;
+        $this->workers = $workers;
+    }
 
     #[\Override]
     public function toWire(): array

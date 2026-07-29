@@ -15,6 +15,43 @@ use Greenlight\Runner\Orchestrator\Distributor;
 final class DistributorTest
 {
     #[Test]
+    public function isolatedEntriesBecomeSingletonUnitsInPlanOrder(): void
+    {
+        $plan = new ExecutionPlan([
+            $this->entry('ExampleTest', 'pooled', []),
+            $this->entry('ExampleTest', 'isolatedOne', [], isolated: true),
+            $this->entry('ExampleTest', 'isolatedTwo', [], isolated: true),
+            $this->entry('OtherTest', 'pooled', []),
+        ], 42);
+
+        [$pooled, $isolated] = new Distributor()->units($plan);
+
+        Expect::that($pooled)
+            ->because(
+                'pooled entries stay grouped by class and isolated entries each get a unit',
+            )
+            ->toHaveCount(2)
+            ->and((string) $pooled[0]->plan->entries[0]->id)
+            ->toBe('ExampleTest::pooled')
+            ->and((string) $pooled[1]->plan->entries[0]->id)
+            ->toBe('OtherTest::pooled')
+            ->and($isolated)
+            ->toHaveCount(2)
+            ->and($isolated[0]->plan->entries)
+            ->toHaveCount(1)
+            ->and((string) $isolated[0]->plan->entries[0]->id)
+            ->toBe('ExampleTest::isolatedOne')
+            ->and($isolated[0]->plan->seed)
+            ->toBe(42)
+            ->and($isolated[1]->plan->entries)
+            ->toHaveCount(1)
+            ->and((string) $isolated[1]->plan->entries[0]->id)
+            ->toBe('ExampleTest::isolatedTwo')
+            ->and($isolated[1]->plan->seed)
+            ->toBe(42);
+    }
+
+    #[Test]
     public function classUnitsHoldTheUnionOfEveryEntryRequirement(): void
     {
         $plan = new ExecutionPlan([

@@ -27,9 +27,13 @@ final readonly class TestResult implements WireSerializable
     public int $attempts;
 
     /**
+     * @var non-negative-int
+     */
+    public int $expectations;
+
+    /**
      * @param list<FailureDetail> $failures
      * @param list<OutcomeTransformation> $transformations
-     * @param non-negative-int $expectations
      * @param list<Attachment> $attachments
      *
      * @throws \InvalidArgumentException
@@ -46,7 +50,7 @@ final readonly class TestResult implements WireSerializable
         public array $transformations = [],
         public ?CapturedOutput $output = null,
         public bool $risky = false,
-        public int $expectations = 0,
+        int $expectations = 0,
         public array $attachments = [],
     ) {
         if (!\is_finite($durationSeconds) || $durationSeconds < 0.0) {
@@ -57,7 +61,12 @@ final readonly class TestResult implements WireSerializable
             throw new \InvalidArgumentException('Attempts must be at least 1.');
         }
 
+        if ($expectations < 0) {
+            throw new \InvalidArgumentException('Expectation count MUST NOT be negative.');
+        }
+
         $this->attempts = $attempts;
+        $this->expectations = $expectations;
     }
 
     /**

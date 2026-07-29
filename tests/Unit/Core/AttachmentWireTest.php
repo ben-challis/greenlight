@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Core;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\Attachment;
 use Greenlight\Core\Artifact\AttachmentKind;
@@ -64,7 +65,8 @@ final class AttachmentWireTest
     }
 
     #[Test]
-    public function wireDecodingNormalizesNumericBounds(): void
+    #[DataSet('nonPositiveAttempts')]
+    public function wireDecodingNormalizesNumericBounds(int $attempt): void
     {
         $attachment = Attachment::fromWire([
             'name' => 'response.json',
@@ -72,7 +74,7 @@ final class AttachmentWireTest
             'mediaType' => 'application/json',
             'sizeBytes' => -1,
             'sha256' => \str_repeat('a', 64),
-            'attempt' => 0,
+            'attempt' => $attempt,
             'path' => 'build/artifacts/response.json',
             'retention' => AttachmentRetention::Always->value,
         ]);
@@ -80,5 +82,14 @@ final class AttachmentWireTest
         Expect::that([$attachment->sizeBytes, $attachment->attempt])
             ->because('attachment wire decoding MUST preserve its numeric bounds')
             ->toBe([0, 1]);
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function nonPositiveAttempts(): iterable
+    {
+        yield 'zero attempt' => [0];
+        yield 'negative attempt' => [-1];
     }
 }

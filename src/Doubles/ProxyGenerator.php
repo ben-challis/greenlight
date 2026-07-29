@@ -117,6 +117,14 @@ final readonly class ProxyGenerator
      */
     private function renderBody(\ReflectionClass $reflection): string
     {
+        if ($reflection->hasProperty(self::HANDLER_PROPERTY)) {
+            $property = $reflection->getProperty(self::HANDLER_PROPERTY);
+
+            if (!$property->isPrivate()) {
+                throw DoublesError::handlerPropertyCollision($property->getDeclaringClass()->name);
+            }
+        }
+
         $sections = [
             \sprintf("    private \\Greenlight\\Doubles\\CallHandler \$%s;\n", self::HANDLER_PROPERTY),
             \sprintf(
@@ -176,11 +184,15 @@ final readonly class ProxyGenerator
             return null;
         }
 
+        if ($method->isPrivate()) {
+            return null;
+        }
+
         if ($method->name === '__greenlightAttachHandler') {
             throw DoublesError::attachHandlerCollision($method->getDeclaringClass()->name);
         }
 
-        if ($method->isFinal() || $method->isPrivate()) {
+        if ($method->isFinal()) {
             return null;
         }
 

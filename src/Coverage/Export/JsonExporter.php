@@ -42,7 +42,10 @@ final readonly class JsonExporter implements CoverageExporter
             ],
         ];
 
-        return [self::FILE_NAME => \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES) . "\n"];
+        return [self::FILE_NAME => \json_encode(
+            $document,
+            \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE,
+        ) . "\n"];
     }
 
     /**
@@ -52,32 +55,33 @@ final readonly class JsonExporter implements CoverageExporter
     public static function import(string $json): CoverageMap
     {
         try {
-            $document = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
+            $document = \json_decode($json, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             throw CoverageError::invalidJson($e->getMessage());
         }
 
-        if (!\is_array($document)) {
+        if (!$document instanceof \stdClass) {
             throw CoverageError::invalidJson('use an object at the top level.');
         }
 
-        if (($document['v'] ?? null) !== self::VERSION) {
+        if (($document->v ?? null) !== self::VERSION) {
             throw CoverageError::invalidJson(\sprintf('unsupported or missing schema version, expected %d.', self::VERSION));
         }
 
-        $rawFiles = $document['files'] ?? null;
+        $rawFiles = $document->files ?? null;
 
-        if (!\is_array($rawFiles)) {
+        if (!$rawFiles instanceof \stdClass) {
             throw CoverageError::invalidJson('use an object for "files".');
         }
 
         $files = [];
 
-        foreach ($rawFiles as $path => $entry) {
-            if (!\is_string($path) || $path === '' || !\is_array($entry)) {
+        foreach (\get_object_vars($rawFiles) as $path => $entry) {
+            if (!\is_string($path) || $path === '' || !$entry instanceof \stdClass) {
                 throw CoverageError::invalidJson('map each file path in "files" to an object.');
             }
 
+            $entry = \get_object_vars($entry);
             $files[] = new FileCoverage(
                 $path,
                 self::lineList($entry, 'covered', $path),

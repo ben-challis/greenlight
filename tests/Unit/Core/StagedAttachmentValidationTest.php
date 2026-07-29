@@ -59,17 +59,27 @@ final class StagedAttachmentValidationTest
     }
 
     #[Test]
-    public function wireDecodingNormalizesNumericBounds(): void
+    #[DataSet('nonPositiveAttempts')]
+    public function wireDecodingNormalizesNumericBounds(int $attempt): void
     {
         $staged = StagedAttachment::fromWire([
             ...self::wirePayload(),
             'sizeBytes' => -1,
-            'attempt' => 0,
+            'attempt' => $attempt,
         ]);
 
         Expect::that([$staged->sizeBytes, $staged->attempt, $staged->storageKey])
             ->because('staged attachment wire decoding preserves its numeric bounds and coordinate')
             ->toBe([0, 1, 'test/attempt-1/01-artifact.txt']);
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function nonPositiveAttempts(): iterable
+    {
+        yield 'zero attempt' => [0];
+        yield 'negative attempt' => [-1];
     }
 
     /**

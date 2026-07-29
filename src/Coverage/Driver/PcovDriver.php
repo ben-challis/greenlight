@@ -51,10 +51,19 @@ final class PcovDriver implements CoverageDriver
             throw new \LogicException('The pcov collection window is not open. Call start() before stop().');
         }
 
-        $collected = \pcov\collect();
-        \pcov\stop();
-        \pcov\clear();
-        $this->collecting = false;
+        try {
+            $collected = \pcov\collect();
+        } finally {
+            try {
+                \pcov\stop();
+            } finally {
+                try {
+                    \pcov\clear();
+                } finally {
+                    $this->collecting = false;
+                }
+            }
+        }
 
         return new RawCoverage($this->normalize($collected));
     }

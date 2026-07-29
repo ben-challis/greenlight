@@ -15,6 +15,7 @@ use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
 use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension as ExpectEvenNumbersExtension;
 use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
 use Greenlight\Tests\Fixture\Laravel\ThrowingKernel;
+use Greenlight\Tests\Fixture\Laravel\VisitCounter as LaravelVisitCounter;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Skips\AlwaysCondition;
 use Greenlight\Tests\Fixture\Lifecycle\Skips\NeverCondition;
@@ -25,6 +26,7 @@ use Greenlight\Tests\Fixture\Plugins\EvenNumbersExtension as PluginEvenNumbersEx
 use Greenlight\Tests\Fixture\Plugins\ProbeProvider;
 use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Fixture\Symfony\BareKernel;
+use Greenlight\Tests\Fixture\Symfony\VisitCounter as SymfonyVisitCounter;
 use Greenlight\Tests\Unit\Reporting\RecordingReporter;
 use Greenlight\Tests\Unit\Reporting\RecordingTickingReporter;
 use Illuminate\Foundation\Application as LaravelApplication;
@@ -72,8 +74,10 @@ final class FakeFixtureTest
         yield ProbeProvider::class => [ProbeProvider::class];
         yield QuarantinePlugin::class => [QuarantinePlugin::class];
         yield BareKernel::class => [BareKernel::class];
+        yield LaravelVisitCounter::class => [LaravelVisitCounter::class];
         yield RecordingReporter::class => [RecordingReporter::class];
         yield RecordingTickingReporter::class => [RecordingTickingReporter::class];
+        yield SymfonyVisitCounter::class => [SymfonyVisitCounter::class];
     }
 
     /**

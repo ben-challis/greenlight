@@ -26,6 +26,27 @@ final readonly class SeedOrderTest
     }
 
     #[Test]
+    public function zeroIsAnActiveSeed(): void
+    {
+        $project = $this->writeProject();
+        $plan = GreenlightCli::run($project->directory, ['run', '--dry-run', '--seed=0']);
+
+        Expect::that($plan->exitCode)
+            ->because('zero MUST be accepted as a seed')
+            ->toBe(0)
+            ->and($plan->stdoutLines())
+            ->toContain('  order: random (seed 0)');
+
+        $run = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=0']);
+
+        Expect::that($run->exitCode)
+            ->because('an active zero seed MUST be announced in the run header')
+            ->toBe(0)
+            ->and($run->stdout)
+            ->toContain('seed: 0');
+    }
+
+    #[Test]
     public function someSeedReordersTheClassesAwayFromDeclarationOrder(): void
     {
         $project = $this->writeProject();

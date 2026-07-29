@@ -58,6 +58,7 @@ final class TestResultWireTest
     {
         yield 'duration' => ['durationSeconds', -0.25, 0.0];
         yield 'attempts' => ['attempts', 0, 1];
+        yield 'negative attempts' => ['attempts', -1, 1];
         yield 'expectations' => ['expectations', -1, 0];
     }
 

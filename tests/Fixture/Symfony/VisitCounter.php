@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Symfony;
 
+use Greenlight\Doubles\Fake;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * ResetInterface lets services_resetter clear state between tests.
  */
-final class VisitCounter implements ResetInterface
+final class VisitCounter implements Fake, ResetInterface
 {
     private int $visits = 0;
 
