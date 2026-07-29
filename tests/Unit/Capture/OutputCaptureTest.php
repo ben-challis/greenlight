@@ -122,6 +122,32 @@ final class OutputCaptureTest
     }
 
     #[Test]
+    public function unsupportedEngineLevelsRemainAvailableToPhp(): void
+    {
+        $capture = new OutputCapture();
+        $capture->start();
+
+        try {
+            $handler = $this->activeErrorHandler();
+
+            if (!$handler instanceof \Closure) {
+                throw new \RuntimeException('Output capture did not install its error handler.');
+            }
+
+            $handled = $handler(\E_ERROR, 'engine failure', __FILE__, __LINE__);
+        } finally {
+            $captured = $capture->stop();
+        }
+
+        Expect::that($handled)
+            ->because('PHP MUST handle diagnostic levels that Greenlight does not capture')
+            ->toBeFalse()
+            ->and($captured->diagnostics)
+            ->because('unsupported diagnostic levels MUST NOT become test diagnostics')
+            ->toBe([]);
+    }
+
+    #[Test]
     public function stopPreservesAnErrorHandlerInstalledDuringCapture(): void
     {
         $baselineHandler = $this->activeErrorHandler();
