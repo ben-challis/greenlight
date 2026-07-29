@@ -85,6 +85,20 @@ final class WildcardTest
             true,
         ];
 
+        yield 'star matches across line breaks' => [
+            "first\nsecond",
+            'first*second',
+            false,
+            true,
+        ];
+
+        yield 'case-insensitive star matches across line breaks' => [
+            "FIRST\nSECOND",
+            'first*second',
+            true,
+            true,
+        ];
+
         yield 'question mark matches exactly one character' => [
             'Test',
             'T?st',
@@ -99,6 +113,13 @@ final class WildcardTest
             true,
         ];
 
+        yield 'question mark matches one line break' => [
+            "first\nsecond",
+            'first?second',
+            false,
+            true,
+        ];
+
         yield 'question mark does not match zero characters' => [
             'Tst',
             'T?st',
@@ -109,6 +130,13 @@ final class WildcardTest
         yield 'question mark does not match many characters' => [
             'Toast',
             'T?st',
+            false,
+            false,
+        ];
+
+        yield 'wildcard pattern rejects unmatched trailing line breaks' => [
+            "first\nsecond\n",
+            'first*second',
             false,
             false,
         ];
