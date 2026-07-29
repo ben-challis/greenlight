@@ -13,6 +13,7 @@ use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\Integration\IntegrationFixtureManager;
+use Greenlight\Tests\Fixture\Plugins\FakeIntegrationFixtureProvider;
 
 final class IntegrationFixtureManagerTest
 {
@@ -230,6 +231,28 @@ final class IntegrationFixtureManagerTest
             ->toThrow(
                 IntegrationFixtureError::class,
                 message: 'Integration fixture "database" is declared more than once.',
+            );
+    }
+
+    #[Test]
+    public function invalidProviderEntriesAreRejectedAtThePluginBoundary(): void
+    {
+        $provider = new FakeIntegrationFixtureProvider([]);
+        new \ReflectionProperty($provider, 'definitions')->setValue($provider, [new \stdClass()]);
+
+        Expect::that(fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-8',
+            1,
+            1,
+            null,
+        ))
+            ->because('integration fixture providers MUST return fixture definitions')
+            ->toThrow(
+                IntegrationFixtureError::class,
+                message: 'Integration fixture provider "'
+                    . FakeIntegrationFixtureProvider::class
+                    . '" returned stdClass. It MUST return IntegrationFixtureDefinition instances.',
             );
     }
 
