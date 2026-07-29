@@ -48,6 +48,18 @@ final class FailTest
     }
 
     #[Test]
+    public function aZeroStringReasonRemainsTheFailureMessage(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Fail::because('0'),
+        );
+
+        Expect::that($detail->message)
+            ->because('an explicit failure MUST preserve a zero-string reason')
+            ->toBe('0');
+    }
+
+    #[Test]
     public function failureLocationPointsAtTheCallSite(): void
     {
         $line = __LINE__ + 1;
