@@ -8,7 +8,22 @@ use Greenlight\Core\Condition;
 
 final readonly class ExtensionLoaded implements Condition
 {
-    public function __construct(private string $extension) {}
+    /**
+     * @var non-empty-string
+     */
+    private string $extension;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $extension)
+    {
+        if ($extension === '') {
+            throw new \InvalidArgumentException('Extension name MUST NOT be empty.');
+        }
+
+        $this->extension = $extension;
+    }
 
     #[\Override]
     public function isSatisfied(): bool
