@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Worker\ClassContext;
+use Greenlight\Tests\Fixture\Runner\Worker\CachedDataSetProbe;
 use Greenlight\Tests\Fixture\Runner\Worker\ClassContextDataProbe;
 
 final class ClassContextTest
@@ -53,5 +54,25 @@ final class ClassContextTest
                     ClassContextDataProbe::class,
                 ),
             );
+    }
+
+    #[Test]
+    public function dataProvidersRunOncePerClassContext(): void
+    {
+        CachedDataSetProbe::$providerCalls = 0;
+        $context = ClassContext::for(CachedDataSetProbe::class);
+
+        $first = $context->argumentsFor('rows', null, 'accepts', 'first');
+        $second = $context->argumentsFor('rows', null, 'accepts', 'second');
+
+        Expect::that($first)
+            ->because('the class context MUST return the first cached data row')
+            ->toBe(['alpha'])
+            ->and($second)
+            ->because('the class context MUST return another row from the same cache')
+            ->toBe(['beta'])
+            ->and(CachedDataSetProbe::$providerCalls)
+            ->because('the class context MUST evaluate its data provider only once')
+            ->toBe(1);
     }
 }
