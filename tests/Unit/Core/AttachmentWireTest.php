@@ -39,6 +39,26 @@ final class AttachmentWireTest
     }
 
     #[Test]
+    public function explicitStagedRetentionSurvivesWireDecoding(): void
+    {
+        $staged = StagedAttachment::fromWire([
+            'name' => 'response.json',
+            'kind' => AttachmentKind::Value->value,
+            'mediaType' => 'application/json',
+            'sizeBytes' => 2,
+            'sha256' => \str_repeat('a', 64),
+            'attempt' => 1,
+            'path' => 'build/artifacts/response.json',
+            'retention' => AttachmentRetention::Always->value,
+            'storageKey' => 'attempt/response.json',
+        ]);
+
+        Expect::that($staged->retention)
+            ->because('explicit staged attachment retention MUST survive wire decoding')
+            ->toBe(AttachmentRetention::Always);
+    }
+
+    #[Test]
     public function payloadsWithoutRetentionUseTheBackwardCompatibleDefault(): void
     {
         $payload = [
