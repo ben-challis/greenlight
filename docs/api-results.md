@@ -579,26 +579,60 @@ final readonly class ThrowableDetail implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L12)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L19)
+
+### `$file`
+
+```php
+public string $file;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L24)
+
+### `$line`
+
+```php
+public int $line;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L29)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
+    string $class,
     public string $message,
-    public string $file,
-    public int $line,
+    string $file,
+    int $line,
     public array $stackFrames = [],
 )
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $class`
-- `@param non-empty-string $file`
-- `@param positive-int $line`
 - `@param list<string> $stackFrames`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L36)
 
 ### `fromThrowable()`
 
@@ -606,7 +640,7 @@ PHPDoc:
 public static function fromThrowable(\Throwable $throwable): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L60)
 
 ### `toWire()`
 
@@ -615,7 +649,7 @@ public static function fromThrowable(\Throwable $throwable): self
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L94)
 
 ### `fromWire()`
 
@@ -624,4 +658,4 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L76)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L106)
