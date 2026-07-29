@@ -27,12 +27,11 @@ final readonly class PathFilter
         $prefixes = [];
 
         foreach ($includeDirectories as $directory) {
-            $trimmed = \rtrim($directory, '/');
-
-            if ($trimmed === '') {
+            if ($directory === '') {
                 throw new \InvalidArgumentException('Use nonempty paths for coverage include directories.');
             }
 
+            $trimmed = \rtrim($directory, '/');
             $prefixes[] = $trimmed . '/';
         }
 
