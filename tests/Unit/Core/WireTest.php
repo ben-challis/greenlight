@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Expect\Expect;
@@ -181,6 +182,28 @@ final class WireTest
     }
 
     #[Test]
+    public function readsBackedEnumValues(): void
+    {
+        Expect::that(Wire::enum(['reason' => 'crash'], 'reason', RecycleReason::class))
+            ->because('wire enum values MUST resolve to their backed enum case')
+            ->toBe(RecycleReason::Crash);
+    }
+
+    #[Test]
+    #[DataSet('invalidEnumValues')]
+    public function rejectsInvalidBackedEnumValues(string $value, string $expected): void
+    {
+        Expect::that(
+            static fn(): \BackedEnum => Wire::enum(['reason' => $value], 'reason', RecycleReason::class),
+        )
+            ->because('invalid wire enum values MUST identify the field constraint')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: $expected,
+            );
+    }
+
+    #[Test]
     #[DataSet('invalidReaderCases')]
     public function typedReadersRejectInvalidFields(string $reader, string $expected): void
     {
@@ -233,5 +256,20 @@ final class WireTest
         ];
         yield 'negative infinity' => [-\INF];
         yield 'not a number' => [\NAN];
+    }
+
+    /**
+     * @return iterable<string, array{string, non-empty-string}>
+     */
+    public static function invalidEnumValues(): iterable
+    {
+        yield 'empty value' => [
+            '',
+            'Wire payload key "reason" must be a non-empty string, got string.',
+        ];
+        yield 'unknown value' => [
+            'unknown',
+            'Wire payload key "reason" must be a Greenlight\Core\Event\RecycleReason value, got string.',
+        ];
     }
 }
