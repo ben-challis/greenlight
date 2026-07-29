@@ -26,18 +26,22 @@ final class ServerSocket
         private readonly ?string $unixPath,
     ) {}
 
-    public static function listen(?string $temporaryDirectory = null): self
-    {
+    public static function listen(
+        ?string $temporaryDirectory = null,
+        ?ServerSocketRuntime $runtime = null,
+    ): self {
         $temporaryDirectory ??= \sys_get_temp_dir();
+        $runtime ??= new NativeServerSocketRuntime();
         $socketPath = \rtrim($temporaryDirectory, '/')
             . '/gl-' . \bin2hex(\random_bytes(6)) . '/s';
         $server = false;
+        $errorMessage = null;
 
         if (\strlen($socketPath) <= self::PORTABLE_UNIX_PATH_BYTES) {
-            $server = ErrorTrap::run(static function () use ($socketPath) {
+            $server = ErrorTrap::run(static function () use ($runtime, $socketPath, &$errorMessage) {
                 \mkdir(\dirname($socketPath), 0o700, true);
 
-                return \stream_socket_server('unix://' . $socketPath, $errorCode, $errorMessage);
+                return $runtime->listen('unix://' . $socketPath, $errorMessage);
             });
         }
 
@@ -45,19 +49,23 @@ final class ServerSocket
             return new self($server, 'unix://' . $socketPath, $socketPath);
         }
 
-        $server = ErrorTrap::run(static function () use (&$errorCode, &$errorMessage) {
-            return \stream_socket_server('tcp://127.0.0.1:0', $errorCode, $errorMessage);
+        ErrorTrap::run(static fn(): bool => \rmdir(\dirname($socketPath)));
+
+        $server = ErrorTrap::run(static function () use ($runtime, &$errorMessage) {
+            return $runtime->listen('tcp://127.0.0.1:0', $errorMessage);
         });
 
         if (!\is_resource($server)) {
             throw ProtocolError::malformedFrame(
-                'Greenlight did not open an orchestrator socket: ' . $errorMessage,
+                'Greenlight did not open an orchestrator socket: ' . ($errorMessage ?? 'unknown error'),
             );
         }
 
-        $name = \stream_socket_get_name($server, false);
+        $name = $runtime->name($server);
 
         if ($name === false || $name === '') {
+            ErrorTrap::run(static fn(): bool => \fclose($server));
+
             throw ProtocolError::malformedFrame(
                 'Greenlight did not resolve the orchestrator socket address',
             );
