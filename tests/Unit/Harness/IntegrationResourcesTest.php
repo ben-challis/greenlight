@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Harness;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\FixtureResource;
@@ -94,5 +95,31 @@ final class IntegrationResourcesTest
             ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/')
             ->and(static fn(): FixtureResource => FixtureResource::from(secrets: ['token' => "\xB1\x31"]))
             ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/');
+    }
+
+    /**
+     * @param array<mixed> $secrets
+     */
+    #[Test]
+    #[DataSet('invalidSecretTypes')]
+    public function secretMapsRejectInvalidRuntimeTypes(array $secrets): void
+    {
+        Expect::that(static fn(): FixtureResource => FixtureResource::from(
+            secrets: $secrets,
+        ))
+            ->because('fixture secret maps MUST reject invalid runtime types at their boundary')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Fixture secrets must be a map of non-empty UTF-8 string keys to UTF-8 strings.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{array<mixed>}>
+     */
+    public static function invalidSecretTypes(): iterable
+    {
+        yield 'integer key' => [[0 => 'secret']];
+        yield 'integer value' => [['token' => 123]];
     }
 }

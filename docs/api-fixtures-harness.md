@@ -143,7 +143,7 @@ public static function from(array $values = [], #[\SensitiveParameter] array $se
 PHPDoc:
 
 - `@param array<string, mixed> $values`
-- `@param array<string, string> $secrets`
+- `@param array<mixed> $secrets`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L40)
 
@@ -153,7 +153,7 @@ PHPDoc:
 public static function empty(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L61)
 
 ### `has()`
 
@@ -161,7 +161,7 @@ public static function empty(): self
 public function has(string $key): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L66)
 
 ### `value()`
 
@@ -169,7 +169,7 @@ public function has(string $key): bool
 public function value(string $key): mixed
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L71)
 
 ### `string()`
 
@@ -177,7 +177,7 @@ public function value(string $key): mixed
 public function string(string $key): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L72)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L80)
 
 ### `int()`
 
@@ -185,7 +185,7 @@ public function string(string $key): string
 public function int(string $key): int
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L83)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L91)
 
 ### `float()`
 
@@ -193,7 +193,7 @@ public function int(string $key): int
 public function float(string $key): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L94)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L102)
 
 ### `bool()`
 
@@ -201,7 +201,7 @@ public function float(string $key): float
 public function bool(string $key): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L113)
 
 ### `list()`
 
@@ -213,7 +213,7 @@ PHPDoc:
 
 - `@return list<mixed>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L119)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L127)
 
 ### `map()`
 
@@ -225,7 +225,7 @@ PHPDoc:
 
 - `@return array<string, mixed>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L133)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L141)
 
 ### `secret()`
 
@@ -233,7 +233,7 @@ PHPDoc:
 public function secret(string $key): SensitiveValue
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L145)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L153)
 
 ### `mergedWith()`
 
@@ -241,7 +241,7 @@ public function secret(string $key): SensitiveValue
 public function mergedWith(self $channel): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L156)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L164)
 
 ### `toWire()`
 
@@ -250,7 +250,7 @@ public function mergedWith(self $channel): self
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L164)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L172)
 
 ### `fromWire()`
 
@@ -259,7 +259,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L173)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L181)
 
 ### `__debugInfo()`
 
@@ -271,7 +271,7 @@ PHPDoc:
 
 - `@return array{values: array<string, mixed>, secrets: array<string, string>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L198)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/FixtureResource.php#L206)
 
 ## `IntegrationResources`
 
