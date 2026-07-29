@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ResultSummary;
@@ -16,12 +17,13 @@ use Greenlight\Runner\Protocol\Messages\Hello;
 final class WorkerMessageWireTest
 {
     #[Test]
-    public function helloNormalizesANonpositiveProcessId(): void
+    #[DataSet('nonpositiveIntegers')]
+    public function helloNormalizesANonpositiveProcessId(int $number): void
     {
         $hello = Hello::fromWire([
             'workerId' => 'worker-1',
             'token' => 'run-token',
-            'pid' => 0,
+            'pid' => $number,
         ]);
 
         Expect::that($hello->pid)
@@ -30,16 +32,26 @@ final class WorkerMessageWireTest
     }
 
     #[Test]
-    public function attemptStartedNormalizesANonpositiveAttempt(): void
+    #[DataSet('nonpositiveIntegers')]
+    public function attemptStartedNormalizesANonpositiveAttempt(int $number): void
     {
         $attempt = AttemptStarted::fromWire([
             'id' => new TestId('App\ExampleTest', 'checksValue')->toWire(),
-            'attempt' => -3,
+            'attempt' => $number,
         ]);
 
         Expect::that($attempt->attempt)
             ->because('a decoded attempt number MUST be positive')
             ->toBe(1);
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function nonpositiveIntegers(): iterable
+    {
+        yield 'zero' => [0];
+        yield 'negative' => [-3];
     }
 
     #[Test]
