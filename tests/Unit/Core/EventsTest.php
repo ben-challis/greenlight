@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Core;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
@@ -55,6 +56,83 @@ final class EventsTest
             Expect::that($restored->occurredAt)->toBe($event->occurredAt);
             Expect::that($restored->toWire())->toBe($event->toWire());
         }
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    #[Test]
+    #[DataSet('runAndSuiteEvents')]
+    public function runAndSuiteEventsKeepTheirPublishedWireFields(
+        string $kind,
+        Event $event,
+        array $payload,
+    ): void {
+        Expect::that($event->toWire())
+            ->because(\sprintf('%s events MUST preserve their published fields', $kind))
+            ->toBe($payload);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, Event, array<string, mixed>}>
+     */
+    public static function runAndSuiteEvents(): iterable
+    {
+        $at = 1_780_000_000.123456;
+
+        yield 'run started' => [
+            'run-started',
+            new RunStarted(
+                'run-1',
+                100,
+                8,
+                $at,
+                '/project/build/greenlight-artifacts/run-1',
+            ),
+            [
+                'runId' => 'run-1',
+                'plannedTests' => 100,
+                'workers' => 8,
+                'occurredAt' => $at,
+                'artifactsDirectory' => '/project/build/greenlight-artifacts/run-1',
+            ],
+        ];
+        yield 'run finished' => [
+            'run-finished',
+            new RunFinished(
+                'run-1',
+                new ResultSummary(passed: 3, failed: 1, errored: 2, skipped: 4),
+                12.5,
+                $at,
+            ),
+            [
+                'runId' => 'run-1',
+                'summary' => [
+                    'passed' => 3,
+                    'failed' => 1,
+                    'errored' => 2,
+                    'skipped' => 4,
+                ],
+                'durationSeconds' => 12.5,
+                'occurredAt' => $at,
+            ],
+        ];
+        yield 'suite started' => [
+            'suite-started',
+            new SuiteStarted('unit', $at),
+            [
+                'suite' => 'unit',
+                'occurredAt' => $at,
+            ],
+        ];
+        yield 'suite finished' => [
+            'suite-finished',
+            new SuiteFinished('unit', $at),
+            [
+                'suite' => 'unit',
+                'occurredAt' => $at,
+            ],
+        ];
     }
 
     #[Test]
