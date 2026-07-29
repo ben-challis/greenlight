@@ -15,7 +15,7 @@ final class FilterValidationTest
     #[DataSet('filterDimensions')]
     public function emptyFilterValuesAreRejected(string $dimension): void
     {
-        Expect::that(static fn(): Filter => self::withEmptyValue($dimension))
+        Expect::that(static fn(): Filter => self::withValue($dimension, ''))
             ->because('an empty filter value MUST NOT broaden or suppress test selection')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -24,6 +24,17 @@ final class FilterValidationTest
                     $dimension,
                 ),
             );
+    }
+
+    #[Test]
+    #[DataSet('filterDimensions')]
+    public function zeroFilterValuesAreRetained(string $dimension): void
+    {
+        $filter = self::withValue($dimension, '0');
+
+        Expect::that(\get_object_vars($filter)[$dimension] ?? null)
+            ->because('a non-empty falsey filter value MUST retain its selection meaning')
+            ->toBe(['0']);
     }
 
     /**
@@ -43,19 +54,19 @@ final class FilterValidationTest
         yield 'included exact test ID' => ['includeExactIds'];
     }
 
-    private static function withEmptyValue(string $dimension): Filter
+    private static function withValue(string $dimension, string $value): Filter
     {
         return match ($dimension) {
-            'includeGroups' => new Filter(includeGroups: ['']),
-            'excludeGroups' => new Filter(excludeGroups: ['']),
-            'includeClasses' => new Filter(includeClasses: ['']),
-            'excludeClasses' => new Filter(excludeClasses: ['']),
-            'includeMethods' => new Filter(includeMethods: ['']),
-            'excludeMethods' => new Filter(excludeMethods: ['']),
-            'includePaths' => new Filter(includePaths: ['']),
-            'excludePaths' => new Filter(excludePaths: ['']),
-            'includeIds' => new Filter(includeIds: ['']),
-            'includeExactIds' => new Filter(includeExactIds: ['']),
+            'includeGroups' => new Filter(includeGroups: [$value]),
+            'excludeGroups' => new Filter(excludeGroups: [$value]),
+            'includeClasses' => new Filter(includeClasses: [$value]),
+            'excludeClasses' => new Filter(excludeClasses: [$value]),
+            'includeMethods' => new Filter(includeMethods: [$value]),
+            'excludeMethods' => new Filter(excludeMethods: [$value]),
+            'includePaths' => new Filter(includePaths: [$value]),
+            'excludePaths' => new Filter(excludePaths: [$value]),
+            'includeIds' => new Filter(includeIds: [$value]),
+            'includeExactIds' => new Filter(includeExactIds: [$value]),
             default => throw new \LogicException(\sprintf('Unknown filter dimension "%s".', $dimension)),
         };
     }
