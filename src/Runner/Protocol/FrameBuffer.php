@@ -17,7 +17,22 @@ final class FrameBuffer
 {
     private string $buffer = '';
 
-    public function __construct(private readonly int $maxFrameBytes = JsonFrameCodec::DEFAULT_MAX_FRAME_BYTES) {}
+    /**
+     * @var positive-int
+     */
+    private readonly int $maxFrameBytes;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(int $maxFrameBytes = JsonFrameCodec::DEFAULT_MAX_FRAME_BYTES)
+    {
+        if ($maxFrameBytes < 1) {
+            throw new \InvalidArgumentException('Maximum frame size must be greater than zero.');
+        }
+
+        $this->maxFrameBytes = $maxFrameBytes;
+    }
 
     public function feed(string $bytes): void
     {
