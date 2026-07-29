@@ -47,6 +47,14 @@ final class DiscoveryErrorTest
     }
 
     #[Test]
+    public function unreadableFilesPreserveAZeroStringReason(): void
+    {
+        Expect::that(DiscoveryError::unreadableFile('/project/tests/ExampleTest.php', '0')->getMessage())
+            ->because('an unreadable-file diagnostic MUST preserve a zero-string reason')
+            ->toBe('Greenlight cannot read test file "/project/tests/ExampleTest.php": 0.');
+    }
+
+    #[Test]
     public function dataProviderErrorsGiveExactGuidance(): void
     {
         $cause = new \RuntimeException('provider failed');
