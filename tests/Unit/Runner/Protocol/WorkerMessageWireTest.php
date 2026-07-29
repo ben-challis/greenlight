@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
@@ -81,5 +82,19 @@ final class WorkerMessageWireTest
             ->because('valid Done fields MUST survive decoding')
             ->toBe(2048)
             ->and($withRecycle->wantsRecycle)->toBe(RecycleReason::TestCount);
+    }
+
+    #[Test]
+    public function doneRejectsAnUnknownRecycleReasonAsAProtocolError(): void
+    {
+        $payload = new Done(new ResultSummary(), 2048)->toWire();
+        $payload['wantsRecycle'] = 'unknown';
+
+        Expect::that(static fn(): Done => Done::fromWire($payload))
+            ->because('unknown worker recycle reasons MUST be protocol errors')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "wantsRecycle" must be a Greenlight\Core\Event\RecycleReason value, got string.',
+            );
     }
 }
