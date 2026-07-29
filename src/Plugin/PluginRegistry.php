@@ -72,7 +72,7 @@ final readonly class PluginRegistry
      */
     public function integrationFixtureProviders(): array
     {
-        return $this->ofType(IntegrationFixtureProvider::class);
+        return $this->sorted($this->ofType(IntegrationFixtureProvider::class));
     }
 
     public function bootstrapWorker(WorkerBootstrapContext $context): void
