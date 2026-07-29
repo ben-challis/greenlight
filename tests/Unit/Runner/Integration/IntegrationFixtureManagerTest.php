@@ -87,6 +87,29 @@ final class IntegrationFixtureManagerTest
     }
 
     #[Test]
+    public function fixturesThatDoNotExposeResourcesRemainAvailableAsEmptyResources(): void
+    {
+        $session = IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([
+                $this->provider([
+                    new IntegrationFixtureDefinition('database', static function (): void {}),
+                ]),
+            ]),
+            'run-2',
+            2,
+            2,
+            null,
+        );
+
+        Expect::that($session->forChannel(1)->fixture('database')->toWire())
+            ->because('every provisioned fixture MUST remain available even when it exposes no resources')
+            ->toBe([
+                'values' => [],
+                'secrets' => [],
+            ]);
+    }
+
+    #[Test]
     public function partialProvisioningCleansEverythingAlreadyAcquired(): void
     {
         $trace = [];
