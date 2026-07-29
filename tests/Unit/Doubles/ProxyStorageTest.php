@@ -40,6 +40,14 @@ final readonly class ProxyStorageTest
     }
 
     #[Test]
+    public function aProxyDirectoryErrorPreservesAZeroStringReason(): void
+    {
+        Expect::that(DoublesError::proxyDirectoryNotCreated('/tmp/proxies', '0')->getMessage())
+            ->because('a proxy-directory diagnostic MUST preserve a zero-string reason')
+            ->toBe('Doubles could not create the proxy directory /tmp/proxies: 0.');
+    }
+
+    #[Test]
     public function aProxyFileCollisionPreservesTheFileWriteFailure(): void
     {
         $sourceDirectory = $this->tempDirectory->subdirectory('proxy-file-discovery');
