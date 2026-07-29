@@ -12,7 +12,19 @@ namespace Greenlight\Laravel;
 final readonly class Service
 {
     /**
-     * @param non-empty-string $id
+     * @var non-empty-string
      */
-    public function __construct(public string $id) {}
+    public string $id;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $id)
+    {
+        if ($id === '') {
+            throw new \InvalidArgumentException('Service identifier must not be empty.');
+        }
+
+        $this->id = $id;
+    }
 }

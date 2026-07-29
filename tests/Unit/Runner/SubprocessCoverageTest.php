@@ -19,6 +19,7 @@ use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
+use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessCoverageTest
 {
@@ -49,6 +50,67 @@ final readonly class SubprocessCoverageTest
         } finally {
             $sandbox->dispose();
         }
+    }
+
+    #[Test]
+    public function openRejectsABlockedSystemTempDirectory(): void
+    {
+        $blocker = $this->tempDirectory->path() . '/not-a-directory';
+
+        Expect::that(\file_put_contents($blocker, 'blocked'))
+            ->because('the test setup MUST create the blocking file')
+            ->toBe(7);
+
+        $root = \dirname(__DIR__, 3);
+        $result = Subprocess::run($root, [
+            \PHP_BINARY,
+            '-n',
+            '-d',
+            'sys_temp_dir=' . $blocker,
+            '-r',
+            <<<'PHP'
+            $source = $argv[1];
+
+            spl_autoload_register(static function (string $class) use ($source): void {
+                $prefix = 'Greenlight\\';
+
+                if (!str_starts_with($class, $prefix)) {
+                    return;
+                }
+
+                $path = $source . '/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
+
+                if (is_file($path)) {
+                    require $path;
+                }
+            });
+
+            $blocker = $argv[2];
+            $message = '/^Failed to create shared coverage directory "'
+                . preg_quote($blocker, '/')
+                . '\/greenlight-coverage-[0-9a-f]{12}": mkdir\(\): Not a directory\.$/D';
+
+            \Greenlight\Expect\Expect::that(
+                static fn(): \Greenlight\Runner\SharedCoverageDirectory =>
+                    \Greenlight\Runner\SharedCoverageDirectory::open(new \Greenlight\Runner\CoverageSettings([])),
+            )
+                ->because('coverage setup MUST reject a blocked system temp directory')
+                ->toThrow(\Greenlight\Coverage\CoverageError::class, matching: $message);
+
+            fwrite(STDOUT, 'matched');
+            PHP,
+            $root . '/src',
+            $blocker,
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('coverage setup MUST fail before it exports a nonexistent relay directory')
+            ->toBe(0)
+            ->and($result->stdout)
+            ->because('the child MUST emit success only after the exact coverage error matches')
+            ->toBe('matched')
+            ->and($result->stderr)
+            ->toBe('');
     }
 
     #[Test]

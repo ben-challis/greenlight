@@ -24,6 +24,27 @@ final class AttachmentFormatTest
     }
 
     #[Test]
+    public function attachmentMetadataRendersExactly(): void
+    {
+        $attachments = $this->attachments(1);
+
+        Expect::that(AttachmentFormat::render($this->result($attachments), '    '))
+            ->because(
+                'human-readable attachment metadata includes its type, size, and path',
+            )
+            ->toBe(
+                "    attachments:\n"
+                . "      attachment-1.txt (text/plain, 5 bytes): "
+                . "build/attachments/attachment-1.txt\n",
+            )
+            ->and(AttachmentFormat::paths($attachments))
+            ->because(
+                'machine-readable attachment metadata includes its name and path',
+            )
+            ->toBe('attachment-1.txt: build/attachments/attachment-1.txt');
+    }
+
+    #[Test]
     public function attachmentListsAreBoundedAndReportTheRemainder(): void
     {
         $attachments = $this->attachments(12);

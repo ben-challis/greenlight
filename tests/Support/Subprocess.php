@@ -131,6 +131,16 @@ final class Subprocess
     public function readStdoutUntil(string $needle, float $timeoutSeconds): string
     {
         $offset = \strlen($this->stdout);
+
+        if ($this->finished) {
+            throw new \RuntimeException(\sprintf(
+                "Process exited before stdout contained '%s'. Stdout:\n%s\nStderr:\n%s",
+                $needle,
+                $this->stdout,
+                $this->stderr,
+            ));
+        }
+
         $deadline = \microtime(true) + $timeoutSeconds;
 
         while (\microtime(true) < $deadline) {

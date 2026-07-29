@@ -342,6 +342,16 @@ final readonly class ProxyGenerator
                 return '\\' . $context->name . '::' . \substr($constant, 6);
             }
 
+            if (\str_starts_with($constant, 'parent::')) {
+                $parent = $context->getParentClass();
+
+                if ($parent === false) {
+                    throw DoublesError::parentTypeWithoutParent($context->name);
+                }
+
+                return '\\' . $parent->name . '::' . \substr($constant, 8);
+            }
+
             return '\\' . $constant;
         }
 

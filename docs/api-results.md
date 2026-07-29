@@ -192,11 +192,23 @@ final readonly class FailureDetail implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L14)
 
+### `$message`
+
+```php
+public string $message;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L19)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $message,
+    string $message,
     public ?string $expected = null,
     public ?string $actual = null,
     public ?SourceLocation $location = null,
@@ -205,9 +217,9 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $message`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L24)
 
 ### `toWire()`
 
@@ -216,7 +228,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L37)
 
 ### `fromWire()`
 
@@ -225,7 +237,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L48)
 
 ## `Outcome`
 
@@ -350,25 +362,70 @@ final readonly class ResultSummary implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L11)
 
+### `$passed`
+
+```php
+public int $passed;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L16)
+
+### `$failed`
+
+```php
+public int $failed;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L21)
+
+### `$errored`
+
+```php
+public int $errored;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L26)
+
+### `$skipped`
+
+```php
+public int $skipped;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L31)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public int $passed = 0,
-    public int $failed = 0,
-    public int $errored = 0,
-    public int $skipped = 0,
+    int $passed = 0,
+    int $failed = 0,
+    int $errored = 0,
+    int $skipped = 0,
 )
 ```
 
 PHPDoc:
 
-- `@param non-negative-int $passed`
-- `@param non-negative-int $failed`
-- `@param non-negative-int $errored`
-- `@param non-negative-int $skipped`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L36)
 
 ### `add()`
 
@@ -376,7 +433,7 @@ PHPDoc:
 public function add(Outcome $outcome): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L64)
 
 ### `total()`
 
@@ -388,7 +445,7 @@ PHPDoc:
 
 - `@return non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L77)
 
 ### `isSuccessful()`
 
@@ -396,7 +453,7 @@ PHPDoc:
 public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L82)
 
 ### `toWire()`
 
@@ -405,7 +462,7 @@ public function isSuccessful(): bool
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L87)
 
 ### `fromWire()`
 
@@ -414,7 +471,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L98)
 
 ## `SourceLocation`
 
@@ -426,18 +483,41 @@ final readonly class SourceLocation implements WireSerializable, \Stringable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L10)
 
-### `__construct()`
+### `$file`
 
 ```php
-public function __construct(public string $file, public int $line)
+public string $file;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $file`
-- `@param positive-int $line`
+- `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L15)
+
+### `$line`
+
+```php
+public int $line;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L20)
+
+### `__construct()`
+
+```php
+public function __construct(string $file, int $line)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L25)
 
 ### `__toString()`
 
@@ -446,7 +526,7 @@ PHPDoc:
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L39)
 
 ### `toWire()`
 
@@ -455,7 +535,7 @@ public function __toString(): string
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L45)
 
 ### `fromWire()`
 
@@ -464,7 +544,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L54)
 
 ## `TestResult`
 
@@ -579,26 +659,60 @@ final readonly class ThrowableDetail implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L12)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L19)
+
+### `$file`
+
+```php
+public string $file;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L24)
+
+### `$line`
+
+```php
+public int $line;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L29)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
+    string $class,
     public string $message,
-    public string $file,
-    public int $line,
+    string $file,
+    int $line,
     public array $stackFrames = [],
 )
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $class`
-- `@param non-empty-string $file`
-- `@param positive-int $line`
 - `@param list<string> $stackFrames`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L36)
 
 ### `fromThrowable()`
 
@@ -606,7 +720,7 @@ PHPDoc:
 public static function fromThrowable(\Throwable $throwable): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L60)
 
 ### `toWire()`
 
@@ -615,7 +729,7 @@ public static function fromThrowable(\Throwable $throwable): self
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L94)
 
 ### `fromWire()`
 
@@ -624,4 +738,4 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L76)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L106)

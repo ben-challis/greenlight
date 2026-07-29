@@ -39,6 +39,20 @@ final class PlanOrderTest
     }
 
     #[Test]
+    public function duplicatePriorityClassesDoNotDuplicateTests(): void
+    {
+        $plan = $this->plan(['Acme\A', 'Acme\B']);
+
+        $ordered = PlanOrder::schedule($plan, ['Acme\B', 'Acme\B', 'Acme\Missing', 'Acme\B'], []);
+
+        Expect::that($this->classes($ordered))
+            ->because('priority inputs MUST preserve each planned test exactly once')
+            ->toBe(['Acme\B', 'Acme\A'])
+            ->and($ordered->count())
+            ->toBe(2);
+    }
+
+    #[Test]
     public function withNothingRecordedThePlanIsUntouched(): void
     {
         $plan = $this->plan(['Acme\B', 'Acme\A']);

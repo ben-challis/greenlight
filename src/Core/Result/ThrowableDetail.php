@@ -14,18 +14,48 @@ final readonly class ThrowableDetail implements WireSerializable
     private const int MAX_STACK_FRAMES = 32;
 
     /**
-     * @param non-empty-string $class
-     * @param non-empty-string $file
-     * @param positive-int $line
+     * @var non-empty-string
+     */
+    public string $class;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $file;
+
+    /**
+     * @var positive-int
+     */
+    public int $line;
+
+    /**
      * @param list<string> $stackFrames
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $class,
+        string $class,
         public string $message,
-        public string $file,
-        public int $line,
+        string $file,
+        int $line,
         public array $stackFrames = [],
-    ) {}
+    ) {
+        if ($class === '') {
+            throw new \InvalidArgumentException('Throwable detail class must not be empty.');
+        }
+
+        if ($file === '') {
+            throw new \InvalidArgumentException('Throwable detail file must not be empty.');
+        }
+
+        if ($line < 1) {
+            throw new \InvalidArgumentException('Throwable detail line must be at least 1.');
+        }
+
+        $this->class = $class;
+        $this->file = $file;
+        $this->line = $line;
+    }
 
     public static function fromThrowable(\Throwable $throwable): self
     {

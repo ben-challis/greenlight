@@ -8,7 +8,22 @@ use Greenlight\Core\Condition;
 
 final readonly class EnvironmentVariableEquals implements Condition
 {
-    public function __construct(private string $name, private string $value) {}
+    /**
+     * @var non-empty-string
+     */
+    private string $name;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $name, private string $value)
+    {
+        if ($name === '') {
+            throw new \InvalidArgumentException('Environment variable name MUST NOT be empty.');
+        }
+
+        $this->name = $name;
+    }
 
     #[\Override]
     public function isSatisfied(): bool

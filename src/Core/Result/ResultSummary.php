@@ -11,17 +11,55 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class ResultSummary implements WireSerializable
 {
     /**
-     * @param non-negative-int $passed
-     * @param non-negative-int $failed
-     * @param non-negative-int $errored
-     * @param non-negative-int $skipped
+     * @var non-negative-int
+     */
+    public int $passed;
+
+    /**
+     * @var non-negative-int
+     */
+    public int $failed;
+
+    /**
+     * @var non-negative-int
+     */
+    public int $errored;
+
+    /**
+     * @var non-negative-int
+     */
+    public int $skipped;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public int $passed = 0,
-        public int $failed = 0,
-        public int $errored = 0,
-        public int $skipped = 0,
-    ) {}
+        int $passed = 0,
+        int $failed = 0,
+        int $errored = 0,
+        int $skipped = 0,
+    ) {
+        if ($passed < 0) {
+            throw new \InvalidArgumentException('Result summary passed count MUST NOT be negative.');
+        }
+
+        if ($failed < 0) {
+            throw new \InvalidArgumentException('Result summary failed count MUST NOT be negative.');
+        }
+
+        if ($errored < 0) {
+            throw new \InvalidArgumentException('Result summary errored count MUST NOT be negative.');
+        }
+
+        if ($skipped < 0) {
+            throw new \InvalidArgumentException('Result summary skipped count MUST NOT be negative.');
+        }
+
+        $this->passed = $passed;
+        $this->failed = $failed;
+        $this->errored = $errored;
+        $this->skipped = $skipped;
+    }
 
     public function add(Outcome $outcome): self
     {

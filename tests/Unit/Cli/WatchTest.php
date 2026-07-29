@@ -131,6 +131,61 @@ final readonly class WatchTest
     }
 
     #[Test]
+    public function loopReportsThePluralForAMultiFileChange(): void
+    {
+        $detector = new class implements ChangeDetector, Fake {
+            private int $polls = 0;
+
+            #[\Override]
+            public function poll(): array
+            {
+                ++$this->polls;
+
+                return $this->polls === 1
+                    ? []
+                    : ['/tmp/FirstTest.php', '/tmp/SecondTest.php'];
+            }
+        };
+        $keys = new class implements KeyInput, Fake {
+            #[\Override]
+            public function poll(): ?string
+            {
+                return null;
+            }
+        };
+        $clock = new class implements WatchClock, Fake {
+            #[\Override]
+            public function now(): float
+            {
+                return 1.0;
+            }
+
+            #[\Override]
+            public function sleep(float $seconds): void
+            {
+                Fail::because('A zero quiet period MUST run without sleeping.');
+            }
+        };
+        $output = '';
+
+        new WatchLoop(
+            $detector,
+            new Debouncer(0.0),
+            $keys,
+            $clock,
+            static function (string $text) use (&$output): void {
+                $output .= $text;
+            },
+        )->run(static fn(array $priorityClasses): array => [], maxIterations: 2);
+
+        $ready = "\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n";
+
+        Expect::that($output)
+            ->because('a multi-file watch batch MUST use the plural notification')
+            ->toBe($ready . "Detected changes in 2 files.\n" . $ready);
+    }
+
+    #[Test]
     public function loopRecordsTheBaselineBeforeTheInitialRunAndReadyOutput(): void
     {
         $events = [];

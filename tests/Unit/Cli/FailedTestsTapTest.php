@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\FailedTestsTap;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
@@ -15,6 +16,24 @@ use Greenlight\Tests\Support\CollectingEventSink;
 
 final class FailedTestsTapTest
 {
+    #[Test]
+    public function forwardsLifecycleEventsWithoutRecordingRunState(): void
+    {
+        $inner = new CollectingEventSink();
+        $tap = new FailedTestsTap($inner);
+        $event = new RunStarted('run-1', 3, 2, 1.0);
+
+        $tap->emit($event);
+
+        Expect::that($inner->events)
+            ->because('the tap MUST forward lifecycle events unchanged')
+            ->toBe([$event])
+            ->and($tap->failedTests())
+            ->toBe([])
+            ->and($tap->classSeconds())
+            ->toBe([]);
+    }
+
     #[Test]
     public function recordsFailuresAndClassDurationsWhileForwardingEveryEvent(): void
     {

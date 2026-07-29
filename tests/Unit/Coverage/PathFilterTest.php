@@ -36,6 +36,18 @@ final class PathFilterTest
     }
 
     #[Test]
+    public function filesystemRootIsAValidIncludeDirectory(): void
+    {
+        $filter = new PathFilter(['/']);
+
+        Expect::that($filter->accepts('/project/src/A.php'))
+            ->because('the filesystem root MUST remain a valid coverage include directory')
+            ->toBeTrue()
+            ->and($filter->accepts('relative.php'))
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function emptyDirectoryEntriesAreRejected(): void
     {
         Expect::that(static fn(): PathFilter => new PathFilter(['']))->because('empty directory entries are rejected')

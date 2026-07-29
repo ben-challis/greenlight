@@ -480,7 +480,7 @@ final readonly class EnvironmentVariableEquals implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L28)
 
 ## `EnvironmentVariableSet`
 
@@ -492,6 +492,18 @@ final readonly class EnvironmentVariableSet implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $name)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -499,7 +511,7 @@ final readonly class EnvironmentVariableSet implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L28)
 
 ## `ExtensionLoaded`
 
@@ -573,6 +585,18 @@ final readonly class FunctionAvailable implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L9)
 
+### `__construct()`
+
+```php
+public function __construct(string $function)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L19)
+
 ### `isSatisfied()`
 
 ```php
@@ -580,7 +604,7 @@ final readonly class FunctionAvailable implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L28)
 
 ## `OperatingSystemFamily`
 
@@ -594,6 +618,18 @@ final readonly class OperatingSystemFamily implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L10)
 
+### `__construct()`
+
+```php
+public function __construct(string $family)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L20)
+
 ### `isSatisfied()`
 
 ```php
@@ -601,7 +637,7 @@ final readonly class OperatingSystemFamily implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L29)
 
 ## `PhpVersionAtLeast`
 

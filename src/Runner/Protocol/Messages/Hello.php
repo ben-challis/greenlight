@@ -16,15 +16,47 @@ use Greenlight\Runner\Protocol\Message;
 final readonly class Hello implements Message
 {
     /**
-     * @param non-empty-string $workerId
-     * @param non-empty-string $token
-     * @param positive-int $pid
+     * @var non-empty-string
+     */
+    public string $workerId;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $token;
+
+    /**
+     * @var positive-int
+     */
+    public int $pid;
+
+    /**
+     * @throws \InvalidArgumentException when a value does not identify a worker
      */
     public function __construct(
-        public string $workerId,
-        public string $token,
-        public int $pid,
-    ) {}
+        string $workerId,
+        string $token,
+        int $pid,
+    ) {
+        if ($workerId === '') {
+            throw new \InvalidArgumentException('Hello messages require a nonempty worker ID.');
+        }
+
+        if ($token === '') {
+            throw new \InvalidArgumentException('Hello messages require a nonempty authentication token.');
+        }
+
+        if ($pid < 1) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Hello messages require a positive process ID. Actual value: %d.',
+                $pid,
+            ));
+        }
+
+        $this->workerId = $workerId;
+        $this->token = $token;
+        $this->pid = $pid;
+    }
 
     #[\Override]
     public static function tag(): string

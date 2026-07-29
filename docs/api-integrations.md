@@ -79,17 +79,29 @@ final readonly class Service
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L12)
 
-### `__construct()`
+### `$id`
 
 ```php
-public function __construct(public string $id)
+public string $id;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $id`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L17)
+
+### `__construct()`
+
+```php
+public function __construct(string $id)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L22)
 
 ## `PhpUnitToGreenlightRector`
 
@@ -172,17 +184,29 @@ final readonly class Service
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/Service.php#L12)
 
-### `__construct()`
+### `$id`
 
 ```php
-public function __construct(public string $id)
+public string $id;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $id`
+- `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/Service.php#L17)
+
+### `__construct()`
+
+```php
+public function __construct(string $id)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/Service.php#L22)
 
 ## `SymfonyPlugin`
 

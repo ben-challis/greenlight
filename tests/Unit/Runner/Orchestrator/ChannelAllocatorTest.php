@@ -4,12 +4,34 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\ChannelAllocator;
 
 final readonly class ChannelAllocatorTest
 {
+    #[Test]
+    #[DataSet('invalidBounds')]
+    public function rejectsInvalidBounds(int $bound): void
+    {
+        Expect::that(static fn(): ChannelAllocator => new ChannelAllocator($bound))
+            ->because('a channel allocator MUST have at least one channel')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'The channel bound must be at least 1.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function invalidBounds(): iterable
+    {
+        yield 'zero' => [0];
+        yield 'negative' => [-1];
+    }
+
     #[Test]
     public function allocatesTheLowestFreeChannelFirst(): void
     {

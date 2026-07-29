@@ -107,6 +107,33 @@ final class GithubReporterTest
     }
 
     #[Test]
+    #[DataSet('partialDiffs')]
+    public function partialFailureDiffsRetainTheAvailableSide(
+        ?string $expected,
+        ?string $actual,
+        string $diff,
+    ): void {
+        $output = new BufferOutput();
+        $reporter = new GithubReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\PartialDiffTest', 'reports'),
+            Outcome::Failed,
+            0.001,
+            0,
+            failures: [
+                new FailureDetail('Values differ.', $expected, $actual),
+            ],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('a GitHub annotation MUST retain each available diff side independently')
+            ->toBe('::error::Acme\PartialDiffTest::reports: Values differ.' . $diff . "\n");
+    }
+
+    #[Test]
     #[DataSet('outcomesWithoutDetails')]
     public function outcomesWithoutDetailsStillProduceAnnotations(Outcome $outcome, string $summary): void
     {
@@ -182,6 +209,16 @@ final class GithubReporterTest
                 . '%0Aattachments:%0Arequest.log: build/request.log'
                 . "\n",
             );
+    }
+
+    /**
+     * @return iterable<string, array{?string, ?string, string}>
+     */
+    public static function partialDiffs(): iterable
+    {
+        yield 'expected only' => ['left', null, '%0Aexpected: left'];
+
+        yield 'actual only' => [null, 'right', '%0Aactual: right'];
     }
 
     /**

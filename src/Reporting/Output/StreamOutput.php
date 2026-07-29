@@ -24,8 +24,14 @@ final class StreamOutput implements Output
     #[\Override]
     public function write(string $text): void
     {
-        if (\fwrite($this->stream, $text) === false) {
-            throw ReportingError::writeFailed();
+        while ($text !== '') {
+            $written = \fwrite($this->stream, $text);
+
+            if ($written === false || $written === 0) {
+                throw ReportingError::writeFailed();
+            }
+
+            $text = \substr($text, $written);
         }
     }
 }

@@ -73,11 +73,14 @@ final class StdinKeyInputTest
     }
 
     #[Test]
-    public function nonTerminalInputDoesNotChangeTheTerminalMode(): void
+    public function nonTerminalInputBecomesNonBlockingWithoutChangingTerminalMode(): void
     {
+        $blocking = [];
         $commands = [];
         $input = new StdinKeyInput(
-            configureBlocking: static function (bool $enabled): void {},
+            configureBlocking: static function (bool $enabled) use (&$blocking): void {
+                $blocking[] = $enabled;
+            },
             isTty: static fn(): bool => false,
             read: static fn(): false => false,
             runShellCommand: static function (string $command) use (&$commands): null {
@@ -89,7 +92,10 @@ final class StdinKeyInputTest
 
         $input->restore();
 
-        Expect::that($commands)
+        Expect::that($blocking)
+            ->because('non-terminal input MUST remain non-blocking')
+            ->toBe([false])
+            ->and($commands)
             ->because('non-terminal input does not change terminal mode')
             ->toBe([]);
     }

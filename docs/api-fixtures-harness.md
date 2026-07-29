@@ -443,11 +443,23 @@ final readonly class ServiceDefinition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L11)
 
+### `$type`
+
+```php
+public string $type;
+```
+
+PHPDoc:
+
+- `@var class-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L16)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $type,
+    string $type,
     public Scope $scope,
     public \Closure $factory,
 )
@@ -456,10 +468,11 @@ public function __construct(
 PHPDoc:
 
 - `@template T of object`
-- `@param class-string<T> $type`
+- `@param class-string<T>|'' $type`
 - `@param \Closure(): T $factory`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L26)
 
 ## `ServiceResolver`
 
