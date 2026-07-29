@@ -56,6 +56,34 @@ final class TestMetadataWireTest
             );
     }
 
+    #[Test]
+    #[DataSet('invalidTimeouts')]
+    public function invalidTimeoutsAreRejectedOnBothSides(float $seconds): void
+    {
+        Expect::that(
+            static fn(): TestMetadata => new TestMetadata(
+                'App\ExampleTest',
+                'checksValue',
+                timeoutSeconds: $seconds,
+            ),
+        )
+            ->because('invalid timeouts are rejected by direct construction')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Timeout seconds must be finite and greater than zero.',
+            );
+
+        $payload = new TestMetadata('App\ExampleTest', 'checksValue')->toWire();
+        $payload['timeoutSeconds'] = $seconds;
+
+        Expect::that(static fn(): TestMetadata => TestMetadata::fromWire($payload))
+            ->because('invalid timeouts are rejected as wire protocol errors')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "timeoutSeconds" must be a finite float greater than zero or null, got float.',
+            );
+    }
+
     /**
      * @return iterable<string, array{non-empty-string, mixed}>
      */
@@ -78,5 +106,16 @@ final class TestMetadataWireTest
         yield 'data-set provider class' => ['dataSetProviderClass', '', null];
         yield 'retry count' => ['retryTimes', 0, 1];
         yield 'negative retry count' => ['retryTimes', -1, 1];
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function invalidTimeouts(): iterable
+    {
+        yield 'zero' => [0.0];
+        yield 'negative' => [-0.5];
+        yield 'positive infinity' => [\INF];
+        yield 'not a number' => [\NAN];
     }
 }
