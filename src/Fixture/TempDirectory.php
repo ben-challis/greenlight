@@ -95,6 +95,8 @@ final class TempDirectory implements Disposable
         }
 
         if (!\is_dir($path)) {
+            $this->path = null;
+
             return;
         }
 
@@ -122,5 +124,7 @@ final class TempDirectory implements Disposable
                 $warning === null ? '' : ': ' . $warning,
             ));
         }
+
+        $this->path = null;
     }
 }
