@@ -58,7 +58,20 @@ final class TempDirectory implements Disposable
             }
         }
 
-        $path = $this->path() . '/' . $name;
+        $root = $this->path();
+        $prefix = $root;
+        $this->assertNotSymbolicLink($prefix);
+
+        foreach (\explode('/', $name) as $segment) {
+            $prefix .= '/' . $segment;
+            $this->assertNotSymbolicLink($prefix);
+
+            if (!\file_exists($prefix)) {
+                break;
+            }
+        }
+
+        $path = $root . '/' . $name;
 
         if (!\is_dir($path) && !ErrorTrap::run(static fn(): bool => \mkdir($path, 0700, true), $warning)) {
             throw new \RuntimeException(\sprintf(
@@ -69,6 +82,16 @@ final class TempDirectory implements Disposable
         }
 
         return $path;
+    }
+
+    private function assertNotSymbolicLink(string $path): void
+    {
+        if (\is_link($path)) {
+            throw new \RuntimeException(\sprintf(
+                'Subdirectory path "%s" contains a symbolic link.',
+                $path,
+            ));
+        }
     }
 
     #[\Override]

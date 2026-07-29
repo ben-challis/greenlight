@@ -94,7 +94,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L97)
 
 ## `Disposable`
 
