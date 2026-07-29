@@ -75,7 +75,7 @@ final readonly class IntegrationResources implements WireSerializable
         $fixtures = [];
 
         foreach ($raw as $id => $resource) {
-            if ($id === '' || !\is_array($resource)) {
+            if ($id === '' || \preg_match('//u', $id) !== 1 || !\is_array($resource)) {
                 throw InvalidWirePayload::wrongType('fixtures', 'a map of fixture resource payloads', $resource);
             }
 
