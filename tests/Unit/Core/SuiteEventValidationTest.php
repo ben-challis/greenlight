@@ -28,6 +28,24 @@ final readonly class SuiteEventValidationTest
     }
 
     /**
+     * @param class-string<SuiteStarted|SuiteFinished> $eventClass
+     */
+    #[Test]
+    #[DataSet('suiteEvents')]
+    public function retainsAZeroSuiteName(string $eventClass): void
+    {
+        $event = new $eventClass('0', 1.0);
+        $decoded = $eventClass::fromWire($event->toWire());
+
+        Expect::that($event->suite)
+            ->because('a suite lifecycle event MUST retain each non-empty suite name')
+            ->toBe('0')
+            ->and($decoded->suite)
+            ->because('the suite name MUST survive the wire')
+            ->toBe('0');
+    }
+
+    /**
      * @return iterable<string, array{class-string<SuiteStarted|SuiteFinished>}>
      */
     public static function suiteEvents(): iterable
