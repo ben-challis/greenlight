@@ -31,14 +31,35 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class ResultPolicy implements WireSerializable
 {
     /**
-     * @param list<non-empty-string> $ignoreDeprecations
+     * @var list<non-empty-string>
+     */
+    public array $ignoreDeprecations;
+
+    /**
+     * @param array<mixed> $ignoreDeprecations
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         public bool $failOnDeprecation = false,
         public bool $failOnNotice = false,
-        public array $ignoreDeprecations = [],
+        array $ignoreDeprecations = [],
         public bool $failOnRisky = false,
-    ) {}
+    ) {
+        $validatedPatterns = [];
+
+        foreach ($ignoreDeprecations as $index => $pattern) {
+            if ($index !== \count($validatedPatterns) || !\is_string($pattern) || $pattern === '') {
+                throw new \InvalidArgumentException(
+                    'Deprecation ignore patterns MUST be a list of non-empty strings.',
+                );
+            }
+
+            $validatedPatterns[] = $pattern;
+        }
+
+        $this->ignoreDeprecations = $validatedPatterns;
+    }
 
     public function isNoOp(): bool
     {

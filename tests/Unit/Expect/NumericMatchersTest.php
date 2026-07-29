@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Expect;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
@@ -170,6 +171,15 @@ final class NumericMatchersTest
     }
 
     #[Test]
+    #[DataSet('toleranceBoundaries')]
+    public function toBeWithinIncludesTheToleranceBoundary(float $subject): void
+    {
+        Expect::that($subject)
+            ->because('toBeWithin() MUST include the exact tolerance boundary')
+            ->toBeWithin(0.1, 1.0);
+    }
+
+    #[Test]
     public function toBeWithinFails(): void
     {
         $detail = FailureProbe::detailOf(
@@ -195,5 +205,14 @@ final class NumericMatchersTest
 
         Expect::that($detail->message)->because('toBeWithin() guards the subject type')
             ->toBe('toBeWithin() requires an int or float subject. The subject type is string.');
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function toleranceBoundaries(): iterable
+    {
+        yield 'lower boundary' => [0.9];
+        yield 'upper boundary' => [1.1];
     }
 }
