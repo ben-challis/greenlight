@@ -594,6 +594,18 @@ final readonly class OperatingSystemFamily implements Condition
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L10)
 
+### `__construct()`
+
+```php
+public function __construct(string $family)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L20)
+
 ### `isSatisfied()`
 
 ```php
@@ -601,7 +613,7 @@ final readonly class OperatingSystemFamily implements Condition
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L29)
 
 ## `PhpVersionAtLeast`
 

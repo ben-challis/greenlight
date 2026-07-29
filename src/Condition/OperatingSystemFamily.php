@@ -9,7 +9,22 @@ use Greenlight\Core\Condition;
 /** Compares the value to `PHP_OS_FAMILY` without case sensitivity. */
 final readonly class OperatingSystemFamily implements Condition
 {
-    public function __construct(private string $family) {}
+    /**
+     * @var non-empty-string
+     */
+    private string $family;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $family)
+    {
+        if ($family === '') {
+            throw new \InvalidArgumentException('Operating system family MUST NOT be empty.');
+        }
+
+        $this->family = $family;
+    }
 
     #[\Override]
     public function isSatisfied(): bool
