@@ -47,6 +47,12 @@ final readonly class PhpStanTestMethodRuleTest
                 {
                     echo $value;
                 }
+
+                #[Test]
+                public function testMethodWithVariadicParameter(string ...$values): void
+                {
+                    echo \implode('', $values);
+                }
             }
 
             abstract class GoodAbstractProbe
