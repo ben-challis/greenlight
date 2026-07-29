@@ -58,7 +58,7 @@ final class TestMetadataWireTest
 
     #[Test]
     #[DataSet('invalidTimeouts')]
-    public function invalidTimeoutsAreRejectedOnBothSides(float $seconds): void
+    public function invalidTimeoutsAreRejectedOnBothSides(float $seconds, string $wireMessage): void
     {
         Expect::that(
             static fn(): TestMetadata => new TestMetadata(
@@ -80,7 +80,7 @@ final class TestMetadataWireTest
             ->because('invalid timeouts are rejected as wire protocol errors')
             ->toThrow(
                 InvalidWirePayload::class,
-                message: 'Wire payload key "timeoutSeconds" must be a finite float greater than zero or null, got float.',
+                message: $wireMessage,
             );
     }
 
@@ -109,13 +109,16 @@ final class TestMetadataWireTest
     }
 
     /**
-     * @return iterable<string, array{float}>
+     * @return iterable<string, array{float, non-empty-string}>
      */
     public static function invalidTimeouts(): iterable
     {
-        yield 'zero' => [0.0];
-        yield 'negative' => [-0.5];
-        yield 'positive infinity' => [\INF];
-        yield 'not a number' => [\NAN];
+        $positive = 'Wire payload key "timeoutSeconds" must be a finite float greater than zero or null, got float.';
+        $finite = 'Wire payload key "timeoutSeconds" must be a finite float or null, got float.';
+
+        yield 'zero' => [0.0, $positive];
+        yield 'negative' => [-0.5, $positive];
+        yield 'positive infinity' => [\INF, $finite];
+        yield 'not a number' => [\NAN, $finite];
     }
 }
