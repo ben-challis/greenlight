@@ -39,4 +39,17 @@ final readonly class CyclicEqualityTopologyTest
             ->not()
             ->toEqual($right);
     }
+
+    #[Test]
+    public function deepEqualityPreservesSharedObjectRelationshipsOnTheRight(): void
+    {
+        $left = (object) ['first' => new \stdClass(), 'second' => new \stdClass()];
+        $shared = new \stdClass();
+        $right = (object) ['first' => $shared, 'second' => $shared];
+
+        Expect::that($left)
+            ->because('deep equality MUST distinguish duplicating state from sharing one object')
+            ->not()
+            ->toEqual($right);
+    }
 }
