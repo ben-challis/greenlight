@@ -181,7 +181,7 @@ public function __construct(
 PHPDoc:
 
 - `@param \Closure(IntegrationFixtureContext): void $provision`
-- `@param list<string> $dependsOn`
+- `@param list<mixed> $dependsOn`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L26)
 

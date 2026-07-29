@@ -61,4 +61,32 @@ final readonly class IntegrationFixtureDefinitionTest
             'Integration fixture "database" declares dependency "network" more than once.',
         ];
     }
+
+    /**
+     * @param list<mixed> $dependencies
+     */
+    #[Test]
+    #[DataSet('invalidRuntimeDependencies')]
+    public function invalidRuntimeDependencyTypesAreRejected(array $dependencies): void
+    {
+        Expect::that(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+            'database',
+            static function (): void {},
+            $dependencies,
+        ))
+            ->because('integration fixture dependencies MUST reject invalid runtime types at their boundary')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Integration fixture "database" has an invalid dependency ID.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{array<mixed>}>
+     */
+    public static function invalidRuntimeDependencies(): iterable
+    {
+        yield 'integer' => [[123]];
+        yield 'object' => [[new \stdClass()]];
+    }
 }
