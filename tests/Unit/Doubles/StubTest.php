@@ -31,7 +31,12 @@ final class StubTest
         $stub = $doubles->stub(Stubbable::class);
 
         Expect::that(static fn(): string => $stub->name())->because('each call is an authoring error')
-            ->toThrow(DoublesError::class, '/Stubs only satisfy a type/');
+            ->toThrow(
+                DoublesError::class,
+                message: 'Code called "name()" on the stub of "' . Stubbable::class . '". '
+                    . 'Stubs only satisfy a type. '
+                    . 'Use mock() with explicit expectations for interactions.',
+            );
 
         $doubles->dispose();
     }
@@ -44,7 +49,12 @@ final class StubTest
 
         Expect::that(static function () use ($stub): void {
             $stub->touch();
-        })->because('even void calls are authoring errors')->toThrow(DoublesError::class, '/Stubs only satisfy a type/');
+        })->because('even void calls are authoring errors')->toThrow(
+            DoublesError::class,
+            message: 'Code called "touch()" on the stub of "' . Stubbable::class . '". '
+                . 'Stubs only satisfy a type. '
+                . 'Use mock() with explicit expectations for interactions.',
+        );
 
         $doubles->dispose();
     }
