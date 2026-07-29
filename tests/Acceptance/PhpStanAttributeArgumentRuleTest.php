@@ -60,12 +60,17 @@ final readonly class PhpStanAttributeArgumentRuleTest
 
             #[SkipUnless(extra: ['APP_ENV'], condition: EnvironmentVariableSet::class)]
             final class BadNamedAttributeArgumentProbe {}
+
+            #[RequiresResource(name: 'Postgres primary')]
+            #[Retry(times: 0)]
+            #[Timeout(seconds: 0.0)]
+            final class BadNamedDomainAttributeArgumentProbe {}
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(5)
+            ->and(\count($probe->errors))->toBe(8)
             ->and($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
             ->toContain('#[Retry] times must be at least 1')
             ->toContain('#[SkipUnless] argument 1 must be a scalar or null')
