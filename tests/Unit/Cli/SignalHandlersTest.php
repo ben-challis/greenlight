@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\SignalHandlers;
 use Greenlight\Core\GracefulShutdown;
@@ -13,6 +14,30 @@ use Greenlight\Tests\Fixture\Cli\RecordingSignalOperations;
 
 final class SignalHandlersTest
 {
+    #[Test]
+    #[DataSet('supportedSignals')]
+    public function eachSupportedSignalGetsAGracefulFirstHandler(int $index, int $signal): void
+    {
+        $operations = new RecordingSignalOperations(available: true);
+        $shutdown = new GracefulShutdown();
+
+        SignalHandlers::install($shutdown, $operations);
+
+        $handler = $operations->registrations[$index]['handler'] ?? null;
+
+        if (!\is_callable($handler)) {
+            Fail::because('Expected each supported signal to get a callable first handler.');
+        }
+
+        $handler($signal);
+
+        Expect::that($shutdown->requested())
+            ->because('each supported signal MUST request graceful shutdown on first delivery')
+            ->toBeTrue()
+            ->and($shutdown->exitCode())
+            ->toBe(128 + $signal);
+    }
+
     #[Test]
     public function unavailableSignalOperationsAreAStrictNoOp(): void
     {
@@ -63,5 +88,15 @@ final class SignalHandlersTest
             ->and($operations->registrations[3] ?? null)
             ->because('the first signal restores the default SIGTERM handler')
             ->toBe(['signal' => \SIGTERM, 'handler' => \SIG_DFL]);
+    }
+
+    /**
+     * @return iterable<string, array{non-negative-int, positive-int}>
+     */
+    public static function supportedSignals(): iterable
+    {
+        yield 'SIGINT' => [0, \SIGINT];
+
+        yield 'SIGTERM' => [1, \SIGTERM];
     }
 }
