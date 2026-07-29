@@ -142,4 +142,24 @@ final readonly class AtomicFileTest
             ->because('the rename diagnostic omits punctuation for a missing warning')
             ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json".');
     }
+
+    #[Test]
+    public function temporaryWriteErrorsPreserveZeroStringWarnings(): void
+    {
+        $write = AtomicFileError::cannotWriteTemporary('/state.json.tmp-1-abcd', '0');
+
+        Expect::that($write->getMessage())
+            ->because('the temporary-write diagnostic MUST preserve a zero-string warning')
+            ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd": 0.');
+    }
+
+    #[Test]
+    public function renameErrorsPreserveZeroStringWarnings(): void
+    {
+        $rename = AtomicFileError::cannotRename('/state.json.tmp-1-abcd', '/state.json', '0');
+
+        Expect::that($rename->getMessage())
+            ->because('the rename diagnostic MUST preserve a zero-string warning')
+            ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json": 0.');
+    }
 }
