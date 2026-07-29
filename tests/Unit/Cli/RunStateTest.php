@@ -48,6 +48,36 @@ final class RunStateTest
     }
 
     #[Test]
+    public function invalidCachedClassDurationsAreIgnored(): void
+    {
+        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
+        $file = $this->stateFileFor($directory);
+        \file_put_contents($file, <<<'JSON'
+            {
+                "classSeconds": {
+                    "Acme\\ValidTest": 1.25,
+                    "Acme\\ZeroDurationTest": 0,
+                    "Acme\\NegativeTest": -1,
+                    "Acme\\OverflowTest": 1e400,
+                    "Acme\\StringTest": "2.5",
+                    "": 3
+                }
+            }
+            JSON);
+
+        try {
+            Expect::that(RunState::forWorkingDirectory($directory)->classSeconds())
+                ->because('cached durations MUST be finite, non-negative numbers for named classes')
+                ->toBe([
+                    'Acme\ValidTest' => 1.25,
+                    'Acme\ZeroDurationTest' => 0.0,
+                ]);
+        } finally {
+            @\unlink($file);
+        }
+    }
+
+    #[Test]
     public function corruptStateReadsAsAbsent(): void
     {
         $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
