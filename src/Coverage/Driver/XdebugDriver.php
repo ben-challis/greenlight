@@ -55,9 +55,15 @@ final class XdebugDriver implements CoverageDriver
             throw new \LogicException('The Xdebug collection window is not open. Call start() before stop().');
         }
 
-        $collected = $this->runtime->collect();
-        $this->runtime->stop();
-        $this->collecting = false;
+        try {
+            $collected = $this->runtime->collect();
+        } finally {
+            try {
+                $this->runtime->stop();
+            } finally {
+                $this->collecting = false;
+            }
+        }
 
         return new RawCoverage($this->normalize($collected));
     }
