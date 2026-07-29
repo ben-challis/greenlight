@@ -662,7 +662,7 @@ final class Expectation
         );
 
         return $this->verify(
-            \abs($subject - $of) <= $delta,
+            $subject >= $of - $delta && $subject <= $of + $delta,
             'to be ' . $bounds,
             $bounds,
         );
