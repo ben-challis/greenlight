@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
+use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 
@@ -30,19 +31,19 @@ final class ConfigLoaderTest
     #[Test]
     public function missingFileNamesTheDirectoryAndSuggestsAFix(): void
     {
-        try {
-            new ConfigLoader()->loadFromDirectory(self::fixtureDir('Empty'));
-        } catch (ConfigFileError $error) {
-            Expect::that($error->getMessage())->toContain('greenlight.php');
-            Expect::that($error->getMessage())->toContain(self::fixtureDir('Empty'));
+        $directory = self::fixtureDir('Empty');
 
-            return;
-        }
-
-        Fail::because(\sprintf(
-            'Expected ConfigLoader::loadFromDirectory() to throw ConfigFileError for missing greenlight.php in "%s".',
-            self::fixtureDir('Empty'),
-        ));
+        Expect::that(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory($directory))
+            ->because('a missing default configuration MUST give both available fixes')
+            ->toThrow(
+                ConfigFileError::class,
+                message: \sprintf(
+                    'No greenlight.php found in "%s". Create one that returns '
+                    . 'GreenlightConfig::create(). Alternatively, use --config=<path> '
+                    . 'to select a configuration file.',
+                    $directory,
+                ),
+            );
     }
 
     #[Test]
