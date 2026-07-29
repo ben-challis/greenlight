@@ -88,15 +88,18 @@ final readonly class IntegrationFixtureRunTest
     }
 
     #[Test]
-    public function cleanupFailureFailsAnOtherwiseSuccessfulRun(): void
+    #[DataSet('workerCounts')]
+    public function cleanupFailureFailsAnOtherwiseSuccessfulRun(int $workers): void
     {
-        $project = $this->writeProject('cleanup-failure', workers: 1, failCleanup: true);
+        $project = $this->writeProject('cleanup-failure-' . $workers, workers: $workers, failCleanup: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         Expect::that($result->exitCode)->toBe(1)
             ->and($result->output())->toContain('Integration fixture teardown failed.')
             ->and($result->output())->toContain('intentional fixture cleanup failure')
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([]);
+            ->not()->toContain('fixture-secret')
+            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
+            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -173,6 +176,15 @@ final readonly class IntegrationFixtureRunTest
     {
         yield 'in-process' => [1, 1];
         yield 'parallel' => [2, 2];
+    }
+
+    /**
+     * @return iterable<string, array{positive-int}>
+     */
+    public static function workerCounts(): iterable
+    {
+        yield 'in-process' => [1];
+        yield 'parallel' => [2];
     }
 
     /**
