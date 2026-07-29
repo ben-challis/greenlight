@@ -42,4 +42,33 @@ final class ExactFrameLimitTest
             ->and($buffer->hasPendingBytes())
             ->toBeFalse();
     }
+
+    #[Test]
+    public function unicodeBodyAtTheExactByteLimitRoundTrips(): void
+    {
+        $emptyEnvelope = ['payload' => '€'];
+        $emptyJson = \json_encode($emptyEnvelope, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
+        $envelope = [
+            'payload' => '€' . \str_repeat('x', self::LIMIT - \strlen($emptyJson)),
+        ];
+        $body = \json_encode($envelope, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
+
+        Expect::that(\strlen($body))
+            ->because('the Unicode frame fixture MUST reach the exact byte limit')
+            ->toBe(self::LIMIT);
+
+        $buffer = new FrameBuffer(self::LIMIT);
+        $buffer->feed(\pack('N', \strlen($body)) . $body);
+        $decodedBody = $buffer->next();
+
+        if ($decodedBody === null) {
+            Fail::because('A Unicode frame body at the configured byte limit MUST be complete.');
+        }
+
+        Expect::that(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
+            ->because('frame lengths MUST count Unicode bytes, not characters')
+            ->toBe($envelope)
+            ->and($buffer->hasPendingBytes())
+            ->toBeFalse();
+    }
 }
