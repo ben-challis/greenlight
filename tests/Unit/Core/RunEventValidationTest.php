@@ -10,9 +10,31 @@ use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\JsonWire;
 
 final readonly class RunEventValidationTest
 {
+    /**
+     * @param \Closure(): (RunStarted|RunFinished) $create
+     */
+    #[Test]
+    #[DataSet('validRunEvents')]
+    public function runEventsRetainAZeroRunId(\Closure $create): void
+    {
+        $event = $create();
+        $decoded = match ($event::class) {
+            RunStarted::class => RunStarted::fromWire(JsonWire::roundTrip($event->toWire())),
+            RunFinished::class => RunFinished::fromWire(JsonWire::roundTrip($event->toWire())),
+        };
+
+        Expect::that($event->runId)
+            ->because('a run event MUST retain each non-empty run ID')
+            ->toBe('0')
+            ->and($decoded->runId)
+            ->because('the run ID MUST survive the wire')
+            ->toBe('0');
+    }
+
     #[Test]
     #[DataSet('invalidRunStarts')]
     public function runStartRejectsInvalidIdentityAndCounts(
@@ -59,6 +81,20 @@ final readonly class RunEventValidationTest
             0,
             -1,
             'RunStarted requires at least one worker. Actual value: -1.',
+        ];
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): (RunStarted|RunFinished)}>
+     */
+    public static function validRunEvents(): iterable
+    {
+        yield 'started' => [
+            static fn(): RunStarted => new RunStarted('0', 0, 1, 1.0),
+        ];
+
+        yield 'finished' => [
+            static fn(): RunFinished => new RunFinished('0', new ResultSummary(), 0.0, 1.0),
         ];
     }
 
