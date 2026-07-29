@@ -115,6 +115,27 @@ final readonly class IntegrationFixtureRunTest
 
     #[Test]
     #[DataSet('workerCounts')]
+    public function transportValidationAndRollbackFailuresAreBothReported(int $workers): void
+    {
+        $project = $this->writeTransportFailureProject($workers);
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())
+            ->because('the transport failure MUST remain the primary provisioning failure')
+            ->toContain('Integration fixture "resource catalog" failed to provision')
+            ->toContain('exceed the 1 MiB transport limit')
+            ->and($result->output())
+            ->because('rollback failures MUST remain visible after transport validation fails')
+            ->toContain('Additionally, cleanup for integration fixture "oversized" failed')
+            ->toContain('intentional transport rollback failure')
+            ->not()->toContain('fixture-secret')
+            ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
+            ->and($this->lines($project->path('markers/rolled-back.log')))->toBe(['rolled back']);
+    }
+
+    #[Test]
+    #[DataSet('workerCounts')]
     public function cleanupFailureFailsAnOtherwiseSuccessfulRun(int $workers): void
     {
         $project = $this->writeProject('cleanup-failure-' . $workers, workers: $workers, failCleanup: true);
@@ -231,6 +252,83 @@ final readonly class IntegrationFixtureRunTest
         $matches = \glob($pattern);
 
         return \is_array($matches) ? $matches : [];
+    }
+
+    private function writeTransportFailureProject(int $workers): AcceptanceProject
+    {
+        $project = AcceptanceProject::create(
+            $this->tempDirectory,
+            'integration-fixtures-transport-failure-' . $workers,
+        );
+        $project->writeFile('markers/.gitkeep', '');
+        $markerDirectory = \var_export($project->path('markers'), true);
+
+        $project->writeFile('tests/TransportProbeTest.php', <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\\Attribute\\Test;
+
+            final class TransportProbeTest
+            {
+                #[Test]
+                public function executes(): void
+                {
+                    \\file_put_contents({$markerDirectory} . '/executed.log', "executed\\n");
+                }
+            }
+            PHP);
+
+        $project->writeFile('greenlight.php', <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\\Config\\GreenlightConfig;
+            use Greenlight\\Doubles\\Fake;
+            use Greenlight\\Harness\\FixtureResource;
+            use Greenlight\\Plugin\\IntegrationFixtureContext;
+            use Greenlight\\Plugin\\IntegrationFixtureDefinition;
+            use Greenlight\\Plugin\\IntegrationFixtureProvider;
+
+            require_once __DIR__ . '/tests/TransportProbeTest.php';
+
+            \$provider = new readonly class ({$markerDirectory}) implements Fake, IntegrationFixtureProvider {
+                public function __construct(private string \$markerDirectory) {}
+
+                #[\\Override]
+                public function integrationFixtures(): array
+                {
+                    return [
+                        new IntegrationFixtureDefinition(
+                            'oversized',
+                            function (IntegrationFixtureContext \$context): void {
+                                \$context->defer(function (): void {
+                                    \\file_put_contents(
+                                        \$this->markerDirectory . '/rolled-back.log',
+                                        "rolled back\\n",
+                                    );
+
+                                    throw new RuntimeException('intentional transport rollback failure');
+                                });
+                                \$context->expose(FixtureResource::from(
+                                    values: ['payload' => \\str_repeat('x', 1_048_576)],
+                                    secrets: ['token' => 'fixture-secret'],
+                                ));
+                            },
+                        ),
+                    ];
+                }
+            };
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers({$workers})
+                ->plugins(\$provider);
+            PHP);
+
+        return $project;
     }
 
     private function writeProject(
