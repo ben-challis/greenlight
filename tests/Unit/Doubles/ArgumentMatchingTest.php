@@ -221,8 +221,9 @@ final class ArgumentMatchingTest
     #[Test]
     public function aCaptorWithoutCapturesRefusesToProduceAValue(): void
     {
-        Expect::that(static fn(): mixed => Argument::captor()->value())->because('a captor without captures refuses to produce a value')
-            ->toThrow(DoublesError::class, '/captor has no value/');
+        Expect::that(static fn(): mixed => Argument::captor()->value())
+            ->because('a captor without captures refuses to produce a value')
+            ->toThrow(DoublesError::class, message: 'The captor has no value. No matched call supplied a value.');
     }
 
     #[Test]
@@ -287,7 +288,8 @@ final class ArgumentMatchingTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->captureArgument(-1);
-        }))->because('capture argument rejects negative positions')->toThrow(DoublesError::class, '/-1/');
+        }))->because('capture argument rejects negative positions')
+            ->toThrow(DoublesError::class, message: 'captureArgument(-1) requires a position of zero or more.');
     }
 
     #[Test]
