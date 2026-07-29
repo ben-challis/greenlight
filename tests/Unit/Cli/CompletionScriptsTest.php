@@ -74,6 +74,28 @@ final class CompletionScriptsTest
     }
 
     #[Test]
+    public function offersTheAutomaticWorkerCountForEveryShell(): void
+    {
+        $scripts = $this->scripts();
+
+        Expect::that($scripts->render('bash'))
+            ->because('Bash MUST complete the automatic worker count for the workers flag')
+            ->toContain('--workers=*)')
+            ->and($scripts->render('bash'))
+            ->toContain('compgen -W "auto" -P "--workers="');
+
+        Expect::that($scripts->render('zsh'))
+            ->because('Zsh MUST complete the automatic worker count for the workers flag')
+            ->toContain("compset -P '--workers='")
+            ->and($scripts->render('zsh'))
+            ->toContain('compadd -- auto');
+
+        Expect::that($scripts->render('fish'))
+            ->because('Fish MUST complete the automatic worker count for the workers flag')
+            ->toContain("complete -c greenlight -l workers -x -a 'auto'");
+    }
+
+    #[Test]
     public function optionalValuesDoNotBecomeRequiredInFish(): void
     {
         $scripts = new CompletionScripts([
