@@ -29,12 +29,14 @@ final class ArtifactStore
         private readonly ArtifactConfiguration $configuration,
         private readonly ?string $outputDirectory,
         private readonly bool $ownsStaging,
+        private readonly FileCopier $fileCopier,
     ) {}
 
     public static function open(
         ArtifactConfiguration $configuration,
         string $workingDirectory,
         string $runId,
+        ?FileCopier $fileCopier = null,
     ): self {
         $configured = \rtrim($configuration->directory, '/');
 
@@ -61,14 +63,27 @@ final class ArtifactStore
         $staging = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-artifacts-'
             . \substr(\hash('sha256', $runId), 0, 16)
             . '-' . \bin2hex(\random_bytes(6));
-        return new self(new ArtifactSession($staging, $output), $configuration, $output, true);
+        return new self(
+            new ArtifactSession($staging, $output),
+            $configuration,
+            $output,
+            true,
+            $fileCopier ?? new NativeFileCopier(),
+        );
     }
 
     public static function fromSession(
         ArtifactSession $session,
         ArtifactConfiguration $configuration,
+        ?FileCopier $fileCopier = null,
     ): self {
-        return new self($session, $configuration, null, false);
+        return new self(
+            $session,
+            $configuration,
+            null,
+            false,
+            $fileCopier ?? new NativeFileCopier(),
+        );
     }
 
     public function session(): ArtifactSession
@@ -347,7 +362,7 @@ final class ArtifactStore
             }
 
             try {
-                FileCopier::copy($source, $part);
+                $this->fileCopier->copy($source, $part);
 
                 if (\filesize($part) !== $attachment->sizeBytes || \hash_file('sha256', $part) !== $attachment->sha256) {
                     throw AttachmentError::storage('Published attachment content does not match its metadata');

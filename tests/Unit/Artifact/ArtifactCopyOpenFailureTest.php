@@ -9,7 +9,7 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
-use Greenlight\Runner\Artifact\FileCopier;
+use Greenlight\Runner\Artifact\NativeFileCopier;
 use Greenlight\Tests\Fixture\Artifact\TrackedOpenStream;
 
 final readonly class ArtifactCopyOpenFailureTest
@@ -30,7 +30,7 @@ final readonly class ArtifactCopyOpenFailureTest
         try {
             TrackedOpenStream::reset();
 
-            Expect::that(static fn() => FileCopier::copy(
+            Expect::that(static fn() => new NativeFileCopier()->copy(
                 $root . '/missing-source.txt',
                 self::SCHEME . '://destination',
             ))
@@ -46,7 +46,7 @@ final readonly class ArtifactCopyOpenFailureTest
 
             TrackedOpenStream::reset();
 
-            Expect::that(static fn() => FileCopier::copy(
+            Expect::that(static fn() => new NativeFileCopier()->copy(
                 self::SCHEME . '://source',
                 $root . '/missing/destination.txt',
             ))

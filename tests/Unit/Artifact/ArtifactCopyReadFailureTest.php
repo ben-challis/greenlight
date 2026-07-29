@@ -9,7 +9,7 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
-use Greenlight\Runner\Artifact\FileCopier;
+use Greenlight\Runner\Artifact\NativeFileCopier;
 use Greenlight\Tests\Fixture\Artifact\UnreadableCopySourceStream;
 
 final readonly class ArtifactCopyReadFailureTest
@@ -29,7 +29,7 @@ final readonly class ArtifactCopyReadFailureTest
             UnreadableCopySourceStream::reset();
             $destination = $this->tempDirectory->path() . '/destination.txt';
 
-            Expect::that(static fn() => FileCopier::copy(
+            Expect::that(static fn() => new NativeFileCopier()->copy(
                 self::SCHEME . '://source',
                 $destination,
             ))
