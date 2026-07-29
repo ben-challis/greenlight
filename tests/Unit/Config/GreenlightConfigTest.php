@@ -108,6 +108,39 @@ final class GreenlightConfigTest
         Expect::that($configuration->randomSeed)->because('randomize order without seed still enables randomization')->toBe(null);
     }
 
+    #[Test]
+    public function aRejectedWorkerConfigurationDoesNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = GreenlightConfig::create()->workers(
+            count: 2,
+            recycleAfterTests: 10,
+            recycleAboveMemory: '64M',
+        );
+
+        Expect::that(static fn(): GreenlightConfig => $builder->workers(
+            count: 8,
+            recycleAfterTests: 0,
+            recycleAboveMemory: '128M',
+        ))
+            ->because('a rejected worker configuration does not partially change the builder')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'recycleAfterTests must be at least 1, got 0.',
+            );
+
+        $configuration = $builder->build();
+
+        Expect::that($configuration->workers->fixed)
+            ->because('a rejected worker configuration retains the prior worker count')
+            ->toBe(2)
+            ->and($configuration->recycleAfterTests)
+            ->because('a rejected worker configuration retains the prior test limit')
+            ->toBe(10)
+            ->and($configuration->recycleAboveMemoryBytes)
+            ->because('a rejected worker configuration retains the prior memory limit')
+            ->toBe(64 * 1024 * 1024);
+    }
+
     /**
      * @param \Closure(): void $callable
      */

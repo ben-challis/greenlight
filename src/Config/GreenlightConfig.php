@@ -145,12 +145,13 @@ final class GreenlightConfig
         ?int $recycleAfterTests = null,
         string $recycleAboveMemory = self::DEFAULT_RECYCLE_ABOVE_MEMORY,
     ): self {
-        $this->workers = $this->workerCount($count);
+        $workers = $this->workerCount($count);
 
         if ($recycleAfterTests !== null && $recycleAfterTests < 1) {
             throw new InvalidConfiguration(\sprintf('recycleAfterTests must be at least 1, got %d.', $recycleAfterTests));
         }
 
+        $this->workers = $workers;
         $this->recycleAfterTests = $recycleAfterTests;
         $this->recycleAboveMemory = $recycleAboveMemory;
 
