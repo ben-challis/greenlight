@@ -149,4 +149,31 @@ final class IntegrationResourcesTest
         yield 'integer key' => [[0 => 'secret']];
         yield 'integer value' => [['token' => 123]];
     }
+
+    /**
+     * @param array<mixed> $values
+     */
+    #[Test]
+    #[DataSet('invalidValueMapKeys')]
+    public function valueMapsRejectInvalidRuntimeKeys(array $values): void
+    {
+        $from = new \ReflectionMethod(FixtureResource::class, 'from');
+
+        Expect::that(static fn(): mixed => $from->invoke(null, $values))
+            ->because('fixture value maps MUST reject invalid runtime keys at their boundary')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Fixture resource maps need non-empty UTF-8 string keys.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{array<mixed>}>
+     */
+    public static function invalidValueMapKeys(): iterable
+    {
+        yield 'integer key' => [[0 => 'value']];
+        yield 'empty key' => [['' => 'value']];
+        yield 'invalid UTF-8 key' => [["\xB1\x31" => 'value']];
+    }
 }
