@@ -85,7 +85,7 @@ final class PluginTest
     #[Test]
     public function unattributedOutcomeChangesErrorTheTestNamingThePlugin(): void
     {
-        $rogue = new class implements TestLifecycleSubscriber {
+        $rogue = new class implements TestLifecycleSubscriber, Fake {
             #[\Override]
             public function beforeTest(TestContext $context): void {}
 
@@ -99,9 +99,17 @@ final class PluginTest
         };
 
         [, $results] = $this->runSuite('Lifecycle/Order', [$rogue]);
+        $message = \sprintf(
+            'Plugin "%s" changed the outcome from passed to skipped without a new '
+            . 'transformation-log entry from withOutcome().',
+            $rogue::class,
+        );
 
-        Expect::that($results[0]->outcome)->because('unattributed outcome changes error the test naming the plugin')->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)->toContain('without a new transformation-log entry from withOutcome()');
+        Expect::that($results[0]->outcome)
+            ->because('unattributed outcome changes error the test naming the plugin')
+            ->toBe(Outcome::Errored)
+            ->and($results[0]->error?->message)
+            ->toBe($message);
     }
 
     #[Test]
@@ -143,7 +151,7 @@ final class PluginTest
     #[Test]
     public function throwingBeforeTestErrorsTheTestNamingThePlugin(): void
     {
-        $broken = new class implements TestLifecycleSubscriber {
+        $broken = new class implements TestLifecycleSubscriber, Fake {
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
@@ -158,10 +166,16 @@ final class PluginTest
         };
 
         [, $results] = $this->runSuite('Lifecycle/Order', [$broken]);
+        $message = \sprintf(
+            'Plugin "%s" caused an error during beforeTest(): plugin exploded',
+            $broken::class,
+        );
 
-        Expect::that($results[0]->outcome)->because('throwing before test errors the test naming the plugin')->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)->toContain('caused an error during beforeTest()')
-            ->toContain('plugin exploded');
+        Expect::that($results[0]->outcome)
+            ->because('throwing before test errors the test naming the plugin')
+            ->toBe(Outcome::Errored)
+            ->and($results[0]->error?->message)
+            ->toBe($message);
     }
 
     #[Test]
@@ -179,6 +193,10 @@ final class PluginTest
         };
 
         [, $results] = $this->runSuite('RunFailingSuite', [$broken]);
+        $pluginFailure = \sprintf(
+            'Plugin "%s" caused an error during afterTest(): plugin exploded',
+            $broken::class,
+        );
 
         $byMethod = [];
 
@@ -187,17 +205,22 @@ final class PluginTest
         }
 
         // The passed test becomes an error that names the plugin.
-        Expect::that($byMethod['passes']->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
-            ->and($byMethod['passes']->error?->message)->toContain('caused an error during afterTest()')
-            ->toContain('plugin exploded');
+        Expect::that($byMethod['passes']->outcome)
+            ->because('throwing after test keeps the outcome and records the plugin failure')
+            ->toBe(Outcome::Errored)
+            ->and($byMethod['passes']->error?->message)
+            ->toBe($pluginFailure);
 
         // The test keeps its original error. Greenlight records the plugin
         // failure as a failure detail.
         $errored = $byMethod['explodes'];
-        Expect::that($errored->outcome)->because('throwing after test keeps the outcome and records the plugin failure')->toBe(Outcome::Errored)
-            ->and($errored->error?->message)->toContain('intentional boom')
-            ->and($errored->failures[0]->message ?? '')->toContain('caused an error during afterTest()')
-            ->toContain('plugin exploded');
+        Expect::that($errored->outcome)
+            ->because('throwing after test keeps the outcome and records the plugin failure')
+            ->toBe(Outcome::Errored)
+            ->and($errored->error?->message)
+            ->toContain('intentional boom')
+            ->and($errored->failures[0]->message ?? '')
+            ->toBe($pluginFailure);
 
         // The test keeps its assertion failure. Greenlight adds the plugin
         // failure after it and does not replace either failure with an error.
@@ -213,8 +236,7 @@ final class PluginTest
             ->and($failed->failures[0]->message)
             ->toContain('intentional assertion failure')
             ->and($failed->failures[1]->message)
-            ->toContain('caused an error during afterTest()')
-            ->toContain('plugin exploded');
+            ->toBe($pluginFailure);
     }
 
     #[Test]
