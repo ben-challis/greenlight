@@ -75,6 +75,27 @@ final class MemorySizeTest
     }
 
     #[Test]
+    #[DataSet('largestSafeSuffixedSizes')]
+    public function parsesTheLargestSafeSuffixedByteCount(string $input, int $expectedBytes): void
+    {
+        Expect::that(MemorySize::parseToBytes($input))
+            ->because('the largest byte count that fits in a platform integer MUST be accepted')
+            ->toBe($expectedBytes);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, int}>
+     */
+    public static function largestSafeSuffixedSizes(): iterable
+    {
+        foreach (['K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3] as $suffix => $multiplier) {
+            $number = \intdiv(\PHP_INT_MAX, $multiplier);
+
+            yield $suffix . ' suffix' => [$number . $suffix, $number * $multiplier];
+        }
+    }
+
+    #[Test]
     public function formatsBytesBackToShortestExactForm(): void
     {
         Expect::that(MemorySize::format(268435456))->because('formats bytes back to shortest exact form')->toBe('256M');
