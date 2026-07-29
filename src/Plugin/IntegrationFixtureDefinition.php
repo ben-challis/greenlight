@@ -21,7 +21,7 @@ final readonly class IntegrationFixtureDefinition
 
     /**
      * @param \Closure(IntegrationFixtureContext): void $provision
-     * @param list<string> $dependsOn
+     * @param list<mixed> $dependsOn
      */
     public function __construct(
         string $id,
@@ -33,9 +33,10 @@ final readonly class IntegrationFixtureDefinition
         }
 
         $seen = [];
+        $validatedDependencies = [];
 
         foreach ($dependsOn as $dependency) {
-            if ($dependency === '' || \preg_match('//u', $dependency) !== 1) {
+            if (!\is_string($dependency) || $dependency === '' || \preg_match('//u', $dependency) !== 1) {
                 throw new \InvalidArgumentException(\sprintf('Integration fixture "%s" has an invalid dependency ID.', $id));
             }
 
@@ -48,9 +49,10 @@ final readonly class IntegrationFixtureDefinition
             }
 
             $seen[$dependency] = true;
+            $validatedDependencies[] = $dependency;
         }
 
         $this->id = $id;
-        $this->dependsOn = $dependsOn;
+        $this->dependsOn = $validatedDependencies;
     }
 }
