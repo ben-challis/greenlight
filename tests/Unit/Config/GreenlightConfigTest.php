@@ -119,18 +119,40 @@ final class GreenlightConfigTest
     }
 
     /**
+     * @param list<string> $paths
+     */
+    #[Test]
+    #[DataSet('invalidPaths')]
+    public function invalidPathsGiveExactGuidance(array $paths, string $message): void
+    {
+        Expect::that(static function () use ($paths): void {
+            GreenlightConfig::create()->paths($paths);
+        })
+            ->because('each invalid path shape MUST identify the required fix')
+            ->toThrow(InvalidConfiguration::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{list<string>, non-empty-string}>
+     */
+    public static function invalidPaths(): iterable
+    {
+        yield 'no directories' => [
+            [],
+            'paths() needs at least one directory.',
+        ];
+
+        yield 'empty directory' => [
+            [''],
+            'Test paths cannot be empty strings.',
+        ];
+    }
+
+    /**
      * @return iterable<string, array{\Closure(): void}>
      */
     public static function invalidInputs(): iterable
     {
-        yield 'empty paths' => [static function (): void {
-            GreenlightConfig::create()->paths([]);
-        }];
-
-        yield 'empty path string' => [static function (): void {
-            GreenlightConfig::create()->paths(['']);
-        }];
-
         yield 'empty suite name' => [static function (): void {
             GreenlightConfig::create()->suite('', static fn(SuiteBuilder $suite) => $suite->in('tests'));
         }];
