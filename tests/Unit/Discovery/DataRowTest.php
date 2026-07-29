@@ -13,6 +13,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DataRows\InlineRowsTest;
 use Greenlight\Tests\Fixture\DataRowsConflict\DuplicateRowKeyTest;
 use Greenlight\Tests\Fixture\DataRowsDuplicateInline\DuplicateInlineRowKeyTest;
+use Greenlight\Tests\Fixture\DataRowsZeroLabel\ZeroLabelRowTest;
 
 final class DataRowTest
 {
@@ -24,6 +25,20 @@ final class DataRowTest
         Expect::that(\array_keys($rows))->because('inline rows expand with labels and positions')->toBe(['small', '#1'])
             ->and($rows['small'])->toBe([1, 2, 3])
             ->and($rows['#1'])->toBe([10, 20, 30]);
+    }
+
+    #[Test]
+    public function aZeroStringInlineLabelRemainsThePlanDataSetKey(): void
+    {
+        $plan = new TestDiscoverer()->discover(
+            [\dirname(__DIR__, 2) . '/Fixture/DataRowsZeroLabel'],
+            Filter::all(),
+        );
+        $ids = \array_map(static fn($entry): string => (string) $entry->id, $plan->entries);
+
+        Expect::that($ids)
+            ->because('a zero-string inline label MUST remain the plan data-set key')
+            ->toBe([ZeroLabelRowTest::class . '::accepts[0]']);
     }
 
     #[Test]
