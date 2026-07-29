@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
@@ -65,19 +66,43 @@ final readonly class HtmlExporterTest
     }
 
     #[Test]
-    public function indexTintsPercentagesByCoverageLevel(): void
-    {
+    #[DataSet('coverageLevelBoundaries')]
+    public function indexTintsPercentageAtCoverageLevelBoundaries(
+        int $coveredLineCount,
+        int $executableLineCount,
+        string $expectedClass,
+        string $expectedPercentage,
+    ): void {
+        $lines = \range(1, $executableLineCount);
         $map = new CoverageMap([
-            new FileCoverage('/src/High.php', [1, 2, 3, 4, 5, 6, 7, 8, 9], [10]),
-            new FileCoverage('/src/Mid.php', [1], [2]),
-            new FileCoverage('/src/Low.php', [], [1]),
+            new FileCoverage(
+                '/src/Boundary.php',
+                \array_slice($lines, 0, $coveredLineCount),
+                \array_slice($lines, $coveredLineCount),
+            ),
         ]);
 
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
-        Expect::that($index)->because('index tints percentages by coverage level')->toContain('class="hi"')
-            ->toContain('class="mid"')
-            ->toContain('class="lo"');
+        Expect::that($index)
+            ->because('the index MUST tint percentages at the coverage-level boundaries')
+            ->toContain(\sprintf(
+                '<td class="%s">%s</td><td>%d/%d</td>',
+                $expectedClass,
+                $expectedPercentage,
+                $coveredLineCount,
+                $executableLineCount,
+            ));
+    }
+
+    /**
+     * @return iterable<string, array{int, int, 'hi'|'mid'|'lo', string}>
+     */
+    public static function coverageLevelBoundaries(): iterable
+    {
+        yield 'high starts at 90 percent' => [9, 10, 'hi', '90.00%'];
+        yield 'middle starts at 50 percent' => [1, 2, 'mid', '50.00%'];
+        yield 'low is below 50 percent' => [0, 1, 'lo', '0.00%'];
     }
 
     #[Test]
