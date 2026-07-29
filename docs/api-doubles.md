@@ -272,7 +272,7 @@ One `ExpectationFailed` contains the details for all unmet expectations.
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L153)
 
 ## `Fake`
 
