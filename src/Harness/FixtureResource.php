@@ -35,19 +35,27 @@ final readonly class FixtureResource implements WireSerializable
 
     /**
      * @param array<string, mixed> $values
-     * @param array<string, string> $secrets
+     * @param array<mixed> $secrets
      */
     public static function from(array $values = [], #[\SensitiveParameter] array $secrets = []): self
     {
         self::validateMap($values, 'values');
+        $validatedSecrets = [];
 
         foreach ($secrets as $key => $secret) {
-            if ($key === '' || !self::validUtf8($key) || !self::validUtf8($secret)) {
+            if (!\is_string($key)
+                || $key === ''
+                || !self::validUtf8($key)
+                || !\is_string($secret)
+                || !self::validUtf8($secret)
+            ) {
                 throw new \InvalidArgumentException('Fixture secrets must be a map of non-empty UTF-8 string keys to UTF-8 strings.');
             }
+
+            $validatedSecrets[$key] = $secret;
         }
 
-        return new self($values, $secrets);
+        return new self($values, $validatedSecrets);
     }
 
     public static function empty(): self
