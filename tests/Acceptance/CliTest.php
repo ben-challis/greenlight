@@ -198,6 +198,25 @@ final readonly class CliTest
         yield 'empty token' => [['__worker', 'tcp://127.0.0.1:1', 'worker-1', '']];
     }
 
+    #[Test]
+    public function anInternalWorkerConnectionFailureExitsWithADiagnostic(): void
+    {
+        $result = $this->runCli([
+            '__worker',
+            'invalid://worker',
+            'worker-1',
+            'secret-token',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('an internal worker connection failure MUST report a failed process')
+            ->toBe(1)
+            ->and($result->stderr)
+            ->toStartWith('The worker did not connect to invalid://worker:')
+            ->and($result->stdout)
+            ->toBe('');
+    }
+
     /**
      * @param list<string> $arguments
      */
