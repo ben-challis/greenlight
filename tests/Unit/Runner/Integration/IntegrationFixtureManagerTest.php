@@ -263,6 +263,39 @@ final class IntegrationFixtureManagerTest
         ))->toThrow(IntegrationFixtureError::class, matching: '/undeclared dependency "network"/');
     }
 
+    #[Test]
+    public function aFixtureCannotReadADependencyForAChannelOutsideTheRun(): void
+    {
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition(
+                'network',
+                static fn(IntegrationFixtureContext $context) => $context->expose(
+                    FixtureResource::from(['host' => '127.0.0.1']),
+                ),
+            ),
+            new IntegrationFixtureDefinition(
+                'database',
+                static function (IntegrationFixtureContext $context): void {
+                    $context->dependency('network', 2);
+                },
+                ['network'],
+            ),
+        ]);
+
+        Expect::that(fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-9',
+            1,
+            1,
+            null,
+        ))->because('fixture dependencies MUST remain isolated to channels in the current run')
+            ->toThrow(
+                IntegrationFixtureError::class,
+                message: 'Integration fixture "database" failed to provision: '
+                    . 'Channel 2 is not part of this integration fixture run.',
+            );
+    }
+
     /**
      * @param list<IntegrationFixtureDefinition> $definitions
      */
