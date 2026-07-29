@@ -82,6 +82,22 @@ final class AttributeContractTest
     }
 
     #[Test]
+    public function groupRejectsAnEmptyName(): void
+    {
+        Expect::that(static fn(): Group => new Group(''))
+            ->because('group names cannot be empty')
+            ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
+    }
+
+    #[Test]
+    public function groupPreservesAZeroStringName(): void
+    {
+        Expect::that(new Group('0')->name)
+            ->because('the group attribute MUST preserve a zero-string name')
+            ->toBe('0');
+    }
+
+    #[Test]
     public function resourceRequirementsAreRepeatableOnMethodsAndClasses(): void
     {
         Expect::that($this->flags(RequiresResource::class))->because('resource requirements are repeatable on methods and classes')
