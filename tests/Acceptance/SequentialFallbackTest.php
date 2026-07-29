@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -15,7 +16,8 @@ final readonly class SequentialFallbackTest
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
-    public function disabledProcOpenFallsBackToInProcess(): void
+    #[DataSet('unavailableParallelCapabilities')]
+    public function unavailableParallelCapabilitiesFallBackToInProcess(string $function): void
     {
         // An isolated project prevents a conflict with another acceptance
         // test in the same directory.
@@ -23,10 +25,22 @@ final readonly class SequentialFallbackTest
         $result = GreenlightCli::run(
             $project->directory,
             ['run', '--workers=4', '--reporter=plain'],
-            phpArguments: ['-d', 'disable_functions=proc_open'],
+            phpArguments: ['-d', 'disable_functions=' . $function],
         );
-        Expect::that($result->exitCode)->because('the runner uses in-process execution when PHP disables proc_open')->toBe(0)
+
+        Expect::that($result->exitCode)
+            ->because(\sprintf('the runner uses in-process execution when PHP disables %s', $function))
+            ->toBe(0)
             ->and($result->output())->toContain('7 tests, 7 passed')
-            ->not()->toContain('proc_open');
+            ->not()->toContain($function);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function unavailableParallelCapabilities(): iterable
+    {
+        yield 'process creation' => ['proc_open'];
+        yield 'socket server' => ['stream_socket_server'];
     }
 }
