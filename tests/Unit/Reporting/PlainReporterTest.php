@@ -114,4 +114,28 @@ final class PlainReporterTest
             ->because('successful risky tests MUST render exact actionable guidance')
             ->toBe($expected . "\n");
     }
+
+    #[Test]
+    public function failedRiskyTestsDoNotRenderRiskyGuidance(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new PlainReporter($output);
+        $reporter->onEvent(new TestFinished(
+            new TestResult(
+                new TestId('Acme\\RiskyTest', 'failsWithoutExpectations'),
+                Outcome::Failed,
+                0.01,
+                0,
+                risky: true,
+            ),
+            1_750_000_000.5,
+        ));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('a failed test MUST NOT also appear in successful risky-test guidance')
+            ->toContain('FAIL Acme\\RiskyTest::failsWithoutExpectations')
+            ->not()
+            ->toContain('Risky tests:');
+    }
 }
