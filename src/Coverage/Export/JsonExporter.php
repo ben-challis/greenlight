@@ -42,7 +42,10 @@ final readonly class JsonExporter implements CoverageExporter
             ],
         ];
 
-        return [self::FILE_NAME => \json_encode($document, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES) . "\n"];
+        return [self::FILE_NAME => \json_encode(
+            $document,
+            \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE,
+        ) . "\n"];
     }
 
     /**
