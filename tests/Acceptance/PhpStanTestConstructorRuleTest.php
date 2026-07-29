@@ -114,4 +114,62 @@ final readonly class PhpStanTestConstructorRuleTest
             ->toContain('Greenlight cannot resolve constructor parameter $object of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $value of test class GreenlightTestConstructorProbe\InvalidInheritedTestConstructorProbe');
     }
+
+    #[Test]
+    public function scalarVariadicConstructorParametersAreRejected(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightTestConstructorVariadicProbe;
+
+            use Greenlight\Attribute\Test;
+
+            interface Service {}
+
+            final class GoodTestConstructorProbe
+            {
+                public function __construct(Service ...$services)
+                {
+                    echo \count($services);
+                }
+
+                #[Test]
+                public function testMethod(): void {}
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace GreenlightTestConstructorVariadicProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class ScalarVariadicConstructorProbe
+            {
+                public function __construct(int ...$values)
+                {
+                    echo \count($values);
+                }
+
+                #[Test]
+                public function testMethod(): void {}
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->because('scalar variadic parameters cannot be resolved')->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and($probe->errors)->toHaveCount(1)
+            ->and($probe->messages())->toContain(
+                'Greenlight cannot resolve constructor parameter $values of test class '
+                . 'GreenlightTestConstructorVariadicProbe\ScalarVariadicConstructorProbe',
+            );
+    }
 }
