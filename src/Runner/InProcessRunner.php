@@ -8,6 +8,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\GracefulShutdown;
+use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Discovery\DiscoveryCache;
@@ -20,7 +21,6 @@ use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\PublishingEventSink;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\Integration\IntegrationFixtureManager;
-use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
@@ -80,9 +80,17 @@ final readonly class InProcessRunner
             }
 
             $sink = new PublishingEventSink($artifactStore, $sink);
-            $fixtures = \count($plan) === 0
-                ? new ProvisionedIntegrationFixtures()
-                : IntegrationFixtureManager::provision($orchestratorSide, $runId, 1, 1, $configuration->shard);
+
+            if (\count($plan) === 0) {
+                $sink->emit(new RunStarted($runId, 0, 1, \microtime(true), $artifactStore->publicDirectory()));
+                $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
+                $summary = new ResultSummary();
+                $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+
+                return new RunResult($summary, 0, $durationSeconds, $seed);
+            }
+
+            $fixtures = IntegrationFixtureManager::provision($orchestratorSide, $runId, 1, 1, $configuration->shard);
             $collector = null;
             $collectingCoverage = false;
 
