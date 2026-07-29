@@ -264,6 +264,41 @@ final class IntegrationFixtureManagerTest
     }
 
     #[Test]
+    public function duplicateResourceExposureFailsProvisioningAndStillCleansUp(): void
+    {
+        $cleaned = false;
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition(
+                'database',
+                function (IntegrationFixtureContext $context) use (&$cleaned): void {
+                    $context->defer(static function () use (&$cleaned): void {
+                        $cleaned = true;
+                    });
+                    $context->expose(FixtureResource::from(['version' => 1]));
+                    $context->expose(FixtureResource::from(['version' => 2]));
+                },
+            ),
+        ]);
+
+        Expect::that(fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-6',
+            1,
+            1,
+            null,
+        ))
+            ->because('one fixture MUST NOT overwrite resources that it already exposed')
+            ->toThrow(
+                IntegrationFixtureError::class,
+                matching: '/Integration fixture "database" exposed resources more than once\./',
+            );
+
+        Expect::that($cleaned)
+            ->because('duplicate exposure MUST roll back resources already acquired by the fixture')
+            ->toBeTrue();
+    }
+
+    #[Test]
     public function providerFailuresAreReportedAsIntegrationFixtureErrors(): void
     {
         $provider = new class implements Fake, IntegrationFixtureProvider {
