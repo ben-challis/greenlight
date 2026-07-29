@@ -78,7 +78,7 @@ final class ScopeContainer
             if (!$service instanceof $definition->type) {
                 throw UnresolvableService::factoryTypeMismatch(
                     $definition->type,
-                    $service::class,
+                    \get_debug_type($service),
                 );
             }
 
