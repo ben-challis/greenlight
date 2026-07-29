@@ -5,24 +5,46 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\DataSet;
-use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Driver\PcovDriver;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
-use Greenlight\Tests\Fixture\Coverage\FailingPcovRuntime;
+use Greenlight\Tests\Fixture\Coverage\FailingPcovDriverRuntime;
 
 final class PcovDriverFailureTest
 {
     #[Test]
-    #[Isolated]
+    public function startFailureLeavesTheCollectionWindowClosed(): void
+    {
+        $runtime = new FailingPcovDriverRuntime();
+        $runtime->startFailure = new \RuntimeException('PCOV start failed.');
+        $driver = new PcovDriver($runtime);
+
+        Expect::that(static function () use ($driver): void {
+            $driver->start();
+        })
+            ->because('a PCOV start failure MUST remain the reported failure')
+            ->toThrow(
+                \RuntimeException::class,
+                message: 'PCOV start failed.',
+            )
+            ->and($runtime->calls)
+            ->because('a PCOV start failure MUST stop before collection begins')
+            ->toBe(['start']);
+
+        Expect::that(static fn(): mixed => $driver->stop())
+            ->because('a PCOV start failure MUST leave its collection window closed')
+            ->toThrow(
+                \LogicException::class,
+                message: 'The pcov collection window is not open. Call start() before stop().',
+            );
+    }
+
+    #[Test]
     public function collectionFailureStopsAndClearsTheRuntimeAndClosesTheWindow(): void
     {
-        $this->installFakePcovFunctions();
-        $driver = new \ReflectionClass(PcovDriver::class)->newInstanceWithoutConstructor();
-
-        FailingPcovRuntime::reset();
-        FailingPcovRuntime::$collectFailure = new \RuntimeException('PCOV collection failed.');
+        $runtime = new FailingPcovDriverRuntime();
+        $runtime->collectFailure = new \RuntimeException('PCOV collection failed.');
+        $driver = new PcovDriver($runtime);
         $driver->start();
 
         Expect::that(static fn(): mixed => $driver->stop())
@@ -31,7 +53,7 @@ final class PcovDriverFailureTest
                 \RuntimeException::class,
                 message: 'PCOV collection failed.',
             )
-            ->and(FailingPcovRuntime::$calls)
+            ->and($runtime->calls)
             ->because('a PCOV collection failure MUST still stop and clear extension state')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 
@@ -47,23 +69,20 @@ final class PcovDriverFailureTest
      * @param 'stop'|'clear' $operation
      */
     #[Test]
-    #[Isolated]
     #[DataSet('cleanupFailures')]
     public function cleanupFailuresStillClearStateAndCloseTheWindow(
         string $operation,
         string $message,
     ): void {
-        $this->installFakePcovFunctions();
-        $driver = new \ReflectionClass(PcovDriver::class)->newInstanceWithoutConstructor();
-
-        FailingPcovRuntime::reset();
+        $runtime = new FailingPcovDriverRuntime();
 
         if ($operation === 'stop') {
-            FailingPcovRuntime::$stopFailure = new \RuntimeException($message);
+            $runtime->stopFailure = new \RuntimeException($message);
         } else {
-            FailingPcovRuntime::$clearFailure = new \RuntimeException($message);
+            $runtime->clearFailure = new \RuntimeException($message);
         }
 
+        $driver = new PcovDriver($runtime);
         $driver->start();
 
         Expect::that(static fn(): mixed => $driver->stop())
@@ -72,7 +91,7 @@ final class PcovDriverFailureTest
                 \RuntimeException::class,
                 message: $message,
             )
-            ->and(FailingPcovRuntime::$calls)
+            ->and($runtime->calls)
             ->because('PCOV cleanup MUST attempt clear even if stop fails')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 
@@ -92,36 +111,5 @@ final class PcovDriverFailureTest
         yield 'stop failure' => ['stop', 'PCOV stop failed.'];
 
         yield 'clear failure' => ['clear', 'PCOV clear failed.'];
-    }
-
-    private function installFakePcovFunctions(): void
-    {
-        if (\function_exists('pcov\start')) {
-            Fail::because('Expected an isolated worker without loaded PCOV functions.');
-        }
-
-        eval(<<<'PHP'
-            namespace pcov;
-
-            function start(): void
-            {
-                \Greenlight\Tests\Fixture\Coverage\FailingPcovRuntime::start();
-            }
-
-            function collect(): array
-            {
-                return \Greenlight\Tests\Fixture\Coverage\FailingPcovRuntime::collect();
-            }
-
-            function stop(): void
-            {
-                \Greenlight\Tests\Fixture\Coverage\FailingPcovRuntime::stop();
-            }
-
-            function clear(): void
-            {
-                \Greenlight\Tests\Fixture\Coverage\FailingPcovRuntime::clear();
-            }
-            PHP);
     }
 }

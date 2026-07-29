@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
-use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Driver\PcovDriver;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
-use Greenlight\Tests\Fixture\Coverage\FakePcovRuntime;
+use Greenlight\Tests\Fixture\Coverage\FakePcovDriverRuntime;
 
 final class PcovDriverTest
 {
@@ -42,7 +40,7 @@ final class PcovDriverTest
     #[Test]
     public function reportsInvalidCollectionStateExactly(): void
     {
-        $driver = new \ReflectionClass(PcovDriver::class)->newInstanceWithoutConstructor();
+        $driver = new PcovDriver(new FakePcovDriverRuntime());
 
         Expect::that(static fn(): mixed => $driver->stop())
             ->toThrow(
@@ -50,8 +48,7 @@ final class PcovDriverTest
                 message: 'The pcov collection window is not open. Call start() before stop().',
             );
 
-        $collecting = new \ReflectionProperty(PcovDriver::class, 'collecting');
-        $collecting->setValue($driver, true);
+        $driver->start();
 
         Expect::that(static fn() => $driver->start())
             ->toThrow(
@@ -61,13 +58,11 @@ final class PcovDriverTest
     }
 
     #[Test]
-    #[Isolated]
     public function collectionLifecycleNormalizesExtensionPayloadsAndClearsState(): void
     {
-        $this->installFakePcovFunctions();
-        $driver = new \ReflectionClass(PcovDriver::class)->newInstanceWithoutConstructor();
+        $runtime = new FakePcovDriverRuntime();
+        $driver = new PcovDriver($runtime);
 
-        FakePcovRuntime::$calls = [];
         $driver->start();
         $coverage = $driver->stop();
 
@@ -79,39 +74,8 @@ final class PcovDriverTest
                     11 => -1,
                 ],
             ])
-            ->and(FakePcovRuntime::$calls)
+            ->and($runtime->calls)
             ->because('PCOV collection MUST stop and clear extension state after reading it')
             ->toBe(['start', 'collect', 'stop', 'clear']);
-    }
-
-    private function installFakePcovFunctions(): void
-    {
-        if (\function_exists('pcov\start')) {
-            Fail::because('Expected an isolated worker without loaded PCOV functions.');
-        }
-
-        eval(<<<'PHP'
-            namespace pcov;
-
-            function start(): void
-            {
-                \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::start();
-            }
-
-            function collect(): array
-            {
-                return \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::collect();
-            }
-
-            function stop(): void
-            {
-                \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::stop();
-            }
-
-            function clear(): void
-            {
-                \Greenlight\Tests\Fixture\Coverage\FakePcovRuntime::clear();
-            }
-            PHP);
     }
 }

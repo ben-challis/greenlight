@@ -20,11 +20,15 @@ final class PcovDriver implements CoverageDriver
 {
     private bool $collecting = false;
 
-    public function __construct()
+    private readonly PcovRuntime $runtime;
+
+    public function __construct(?PcovRuntime $runtime = null)
     {
-        if (!self::isAvailable()) {
+        if (!$runtime instanceof PcovRuntime && !self::isAvailable()) {
             throw CoverageError::driverUnavailable('pcov', 'Install and enable the pcov extension.');
         }
+
+        $this->runtime = $runtime ?? new NativePcovRuntime();
     }
 
     #[\Override]
@@ -40,7 +44,7 @@ final class PcovDriver implements CoverageDriver
             throw new \LogicException('The pcov collection window is already open. Call stop() before start().');
         }
 
-        \pcov\start();
+        $this->runtime->start();
         $this->collecting = true;
     }
 
@@ -52,13 +56,13 @@ final class PcovDriver implements CoverageDriver
         }
 
         try {
-            $collected = \pcov\collect();
+            $collected = $this->runtime->collect();
         } finally {
             try {
-                \pcov\stop();
+                $this->runtime->stop();
             } finally {
                 try {
-                    \pcov\clear();
+                    $this->runtime->clear();
                 } finally {
                     $this->collecting = false;
                 }
