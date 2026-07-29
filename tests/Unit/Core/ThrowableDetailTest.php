@@ -10,6 +10,7 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Tests\Support\ThrowableDetailStaticFrame;
 
 final class ThrowableDetailTest
 {
@@ -34,6 +35,26 @@ final class ThrowableDetailTest
                 . ':'
                 . $callLine,
             );
+    }
+
+    #[Test]
+    public function rendersInternalStaticMethodStackFrames(): void
+    {
+        $threw = null;
+
+        try {
+            \array_map(ThrowableDetailStaticFrame::fail(...), [null]);
+        } catch (\RuntimeException $exception) {
+            $threw = $exception;
+        }
+
+        if (!$threw instanceof \RuntimeException) {
+            Fail::because('Expected the internal stack frame helper to throw.');
+        }
+
+        Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
+            ->because('an internal throwable frame MUST identify its static method without a source location')
+            ->toBe(ThrowableDetailStaticFrame::class . '::fail at [internal]');
     }
 
     #[Test]
