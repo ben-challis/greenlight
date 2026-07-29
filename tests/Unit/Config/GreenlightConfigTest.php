@@ -149,37 +149,76 @@ final class GreenlightConfigTest
     }
 
     /**
+     * @param \Closure(): void $configure
+     */
+    #[Test]
+    #[DataSet('invalidSuites')]
+    public function invalidSuitesGiveExactGuidance(\Closure $configure, string $message): void
+    {
+        Expect::that($configure)
+            ->because('each invalid suite definition MUST identify the required fix')
+            ->toThrow(InvalidConfiguration::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): void, non-empty-string}>
+     */
+    public static function invalidSuites(): iterable
+    {
+        yield 'empty name' => [
+            static function (): void {
+                GreenlightConfig::create()->suite(
+                    '',
+                    static fn(SuiteBuilder $suite) => $suite->in('tests'),
+                );
+            },
+            'Suite names cannot be empty.',
+        ];
+
+        yield 'duplicate name' => [
+            static function (): void {
+                GreenlightConfig::create()
+                    ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'))
+                    ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'));
+            },
+            'Suite "unit" is declared twice.',
+        ];
+
+        yield 'no paths' => [
+            static function (): void {
+                GreenlightConfig::create()
+                    ->suite('unit', static function (SuiteBuilder $suite): void {})
+                    ->build();
+            },
+            'Suite "unit" has no paths. Call in() with at least one directory inside its configurator.',
+        ];
+
+        yield 'empty path' => [
+            static function (): void {
+                GreenlightConfig::create()->suite(
+                    'unit',
+                    static fn(SuiteBuilder $suite) => $suite->in(''),
+                );
+            },
+            'Suite "unit" was given an empty path.',
+        ];
+
+        yield 'empty tag' => [
+            static function (): void {
+                GreenlightConfig::create()->suite(
+                    'unit',
+                    static fn(SuiteBuilder $suite) => $suite->in('tests')->tag(''),
+                );
+            },
+            'Suite "unit" was given an empty tag.',
+        ];
+    }
+
+    /**
      * @return iterable<string, array{\Closure(): void}>
      */
     public static function invalidInputs(): iterable
     {
-        yield 'empty suite name' => [static function (): void {
-            GreenlightConfig::create()->suite('', static fn(SuiteBuilder $suite) => $suite->in('tests'));
-        }];
-
-        yield 'duplicate suite' => [static function (): void {
-            GreenlightConfig::create()
-                ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'))
-                ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests'));
-        }];
-
-        yield 'suite without paths' => [static function (): void {
-            GreenlightConfig::create()
-                ->suite('unit', static function (SuiteBuilder $suite): void {})
-                ->build();
-        }];
-
-        yield 'empty suite path' => [static function (): void {
-            GreenlightConfig::create()->suite('unit', static fn(SuiteBuilder $suite) => $suite->in(''));
-        }];
-
-        yield 'empty suite tag' => [static function (): void {
-            GreenlightConfig::create()->suite(
-                'unit',
-                static fn(SuiteBuilder $suite) => $suite->in('tests')->tag(''),
-            );
-        }];
-
         yield 'zero workers' => [static function (): void {
             GreenlightConfig::create()->workers(count: 0);
         }];
