@@ -10,9 +10,31 @@ use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\JsonWire;
 
 final readonly class WorkerEventValidationTest
 {
+    /**
+     * @param \Closure(): (WorkerSpawned|WorkerRecycled) $create
+     */
+    #[Test]
+    #[DataSet('validWorkerEvents')]
+    public function workerEventsRetainAZeroWorkerId(\Closure $create): void
+    {
+        $event = $create();
+        $decoded = match ($event::class) {
+            WorkerSpawned::class => WorkerSpawned::fromWire(JsonWire::roundTrip($event->toWire())),
+            WorkerRecycled::class => WorkerRecycled::fromWire(JsonWire::roundTrip($event->toWire())),
+        };
+
+        Expect::that($event->workerId)
+            ->because('a worker event MUST retain each non-empty worker ID')
+            ->toBe('0')
+            ->and($decoded->workerId)
+            ->because('the worker ID MUST survive the wire')
+            ->toBe('0');
+    }
+
     #[Test]
     public function workerEventsRejectAnEmptyWorkerId(): void
     {
@@ -56,6 +78,20 @@ final readonly class WorkerEventValidationTest
                 \InvalidArgumentException::class,
                 message: 'Worker PID MUST be greater than zero.',
             );
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): (WorkerSpawned|WorkerRecycled)}>
+     */
+    public static function validWorkerEvents(): iterable
+    {
+        yield 'spawned' => [
+            static fn(): WorkerSpawned => new WorkerSpawned('0', 1, 1.0),
+        ];
+
+        yield 'recycled' => [
+            static fn(): WorkerRecycled => new WorkerRecycled('0', RecycleReason::TestCount, 1.0),
+        ];
     }
 
     /**
