@@ -30,6 +30,7 @@ final class ArtifactStore
         private readonly ?string $outputDirectory,
         private readonly bool $ownsStaging,
         private readonly FileCopier $fileCopier,
+        private readonly FileRenamer $fileRenamer,
     ) {}
 
     public static function open(
@@ -37,6 +38,7 @@ final class ArtifactStore
         string $workingDirectory,
         string $runId,
         ?FileCopier $fileCopier = null,
+        ?FileRenamer $fileRenamer = null,
     ): self {
         $configured = \rtrim($configuration->directory, '/');
 
@@ -69,6 +71,7 @@ final class ArtifactStore
             $output,
             true,
             $fileCopier ?? new NativeFileCopier(),
+            $fileRenamer ?? new NativeFileRenamer(),
         );
     }
 
@@ -76,6 +79,7 @@ final class ArtifactStore
         ArtifactSession $session,
         ArtifactConfiguration $configuration,
         ?FileCopier $fileCopier = null,
+        ?FileRenamer $fileRenamer = null,
     ): self {
         return new self(
             $session,
@@ -83,6 +87,7 @@ final class ArtifactStore
             null,
             false,
             $fileCopier ?? new NativeFileCopier(),
+            $fileRenamer ?? new NativeFileRenamer(),
         );
     }
 
@@ -161,7 +166,7 @@ final class ArtifactStore
 
             \chmod($part, 0o600);
 
-            if (!\rename($part, $path)) {
+            if (!$this->fileRenamer->rename($part, $path)) {
                 throw AttachmentError::storage('Failed to finalize attachment staging file');
             }
 
@@ -270,7 +275,7 @@ final class ArtifactStore
 
                 \chmod($part, 0o600);
 
-                if (!\rename($part, $path)) {
+                if (!$this->fileRenamer->rename($part, $path)) {
                     throw AttachmentError::storage('Failed to finalize attachment staging file');
                 }
 
@@ -370,7 +375,7 @@ final class ArtifactStore
 
                 \chmod($part, 0o600);
 
-                if (!\rename($part, $destination)) {
+                if (!$this->fileRenamer->rename($part, $destination)) {
                     throw AttachmentError::storage('Failed to publish attachment');
                 }
             } catch (\Throwable $error) {
@@ -628,7 +633,7 @@ final class ArtifactStore
 
         \chmod($part, 0o600);
 
-        if (!\rename($part, $path)) {
+        if (!$this->fileRenamer->rename($part, $path)) {
             @\unlink($part);
 
             throw AttachmentError::storage('Failed to finalize attachment recovery metadata');
@@ -658,7 +663,7 @@ final class ArtifactStore
 
         \chmod($part, 0o600);
 
-        if (!\rename($part, $path)) {
+        if (!$this->fileRenamer->rename($part, $path)) {
             @\unlink($part);
 
             throw AttachmentError::storage('Greenlight did not finalize the current test attempt record');
