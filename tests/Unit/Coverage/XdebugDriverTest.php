@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Coverage\CoverageError;
@@ -12,6 +13,7 @@ use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Coverage\PathFilter;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Coverage\Adder;
+use Greenlight\Tests\Fixture\Coverage\FakeXdebugRuntime;
 
 final class XdebugDriverTest
 {
@@ -60,6 +62,46 @@ final class XdebugDriverTest
             ->toThrow(
                 \LogicException::class,
                 message: 'The Xdebug collection window is already open. Call stop() before start().',
+            );
+    }
+
+    #[Test]
+    #[Isolated]
+    public function collectionLifecycleUsesAllLineFlagsAndClosesTheWindow(): void
+    {
+        if (!\defined('XDEBUG_CC_UNUSED')) {
+            \define('XDEBUG_CC_UNUSED', 1);
+        }
+
+        if (!\defined('XDEBUG_CC_DEAD_CODE')) {
+            \define('XDEBUG_CC_DEAD_CODE', 2);
+        }
+
+        $runtime = new FakeXdebugRuntime();
+        $driver = new XdebugDriver($runtime);
+        $driver->start();
+        $coverage = $driver->stop();
+
+        Expect::that($coverage->lines)
+            ->because('Xdebug collection MUST return the extension line data')
+            ->toBe([
+                '/src/Example.php' => [
+                    10 => 1,
+                    11 => -1,
+                ],
+            ])
+            ->and($runtime->flags)
+            ->because('Xdebug collection MUST request unused and dead code analysis')
+            ->toBe(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE)
+            ->and($runtime->calls)
+            ->because('Xdebug collection MUST read and stop the extension before closing its window')
+            ->toBe(['start', 'collect', 'stop']);
+
+        Expect::that(static fn(): mixed => $driver->stop())
+            ->because('a completed Xdebug collection MUST close its window')
+            ->toThrow(
+                \LogicException::class,
+                message: 'The Xdebug collection window is not open. Call start() before stop().',
             );
     }
 
