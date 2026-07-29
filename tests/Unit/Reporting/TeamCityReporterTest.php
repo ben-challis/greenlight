@@ -74,6 +74,29 @@ final class TeamCityReporterTest
     }
 
     #[Test]
+    public function zeroStringFailureMessagesRemainDistinctFromMissingDetails(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TeamCityReporter($output);
+        $result = new TestResult(
+            new TestId('Acme\FailureTest', 'fails'),
+            Outcome::Failed,
+            0.001,
+            0,
+            failures: [new FailureDetail('0')],
+        );
+
+        $reporter->onEvent(new TestFinished($result, 1.0));
+
+        Expect::that($output->buffer())
+            ->because('a zero-string failure message MUST remain distinct from missing failure details')
+            ->toBe(
+                "##teamcity[testFailed name='Acme\FailureTest::fails' message='0' flowId='Acme\FailureTest']\n"
+                . "##teamcity[testFinished name='Acme\FailureTest::fails' duration='1' flowId='Acme\FailureTest']\n",
+            );
+    }
+
+    #[Test]
     public function incompleteAndMultipleFailureDetailsRemainReportable(): void
     {
         $output = new BufferOutput();
