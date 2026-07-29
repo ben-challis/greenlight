@@ -41,18 +41,22 @@ final class PlanOrder
         }
 
         $order = [];
+        $prioritized = [];
 
         foreach ($priorityClasses as $class) {
-            if (isset($byClass[$class])) {
-                $order[] = $class;
+            if (!isset($byClass[$class]) || isset($prioritized[$class])) {
+                continue;
             }
+
+            $order[] = $class;
+            $prioritized[$class] = true;
         }
 
         $known = [];
         $unknown = [];
 
         foreach (\array_keys($byClass) as $class) {
-            if (\in_array($class, $order, true)) {
+            if (isset($prioritized[$class])) {
                 continue;
             }
 
