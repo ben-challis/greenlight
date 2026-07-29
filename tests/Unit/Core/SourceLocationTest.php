@@ -51,4 +51,23 @@ final class SourceLocationTest
         yield 'zero' => [0];
         yield 'negative' => [-10];
     }
+
+    #[Test]
+    #[DataSet('invalidLocations')]
+    public function rejectsInvalidConstruction(string $file, int $line, string $message): void
+    {
+        Expect::that(static fn(): SourceLocation => new SourceLocation($file, $line))
+            ->because('source locations MUST identify a file and a positive line')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{string, int, non-empty-string}>
+     */
+    public static function invalidLocations(): iterable
+    {
+        yield 'empty file' => ['', 1, 'Source location file must not be empty.'];
+        yield 'zero line' => ['/project/tests/PaymentTest.php', 0, 'Source location line must be at least 1.'];
+        yield 'negative line' => ['/project/tests/PaymentTest.php', -10, 'Source location line must be at least 1.'];
+    }
 }

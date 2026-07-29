@@ -471,18 +471,41 @@ final readonly class SourceLocation implements WireSerializable, \Stringable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L10)
 
-### `__construct()`
+### `$file`
 
 ```php
-public function __construct(public string $file, public int $line)
+public string $file;
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $file`
-- `@param positive-int $line`
+- `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L15)
+
+### `$line`
+
+```php
+public int $line;
+```
+
+PHPDoc:
+
+- `@var positive-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L20)
+
+### `__construct()`
+
+```php
+public function __construct(string $file, int $line)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L25)
 
 ### `__toString()`
 
@@ -491,7 +514,7 @@ PHPDoc:
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L39)
 
 ### `toWire()`
 
@@ -500,7 +523,7 @@ public function __toString(): string
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L45)
 
 ### `fromWire()`
 
@@ -509,7 +532,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L54)
 
 ## `TestResult`
 

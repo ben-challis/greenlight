@@ -10,10 +10,31 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class SourceLocation implements WireSerializable, \Stringable
 {
     /**
-     * @param non-empty-string $file
-     * @param positive-int $line
+     * @var non-empty-string
      */
-    public function __construct(public string $file, public int $line) {}
+    public string $file;
+
+    /**
+     * @var positive-int
+     */
+    public int $line;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(string $file, int $line)
+    {
+        if ($file === '') {
+            throw new \InvalidArgumentException('Source location file must not be empty.');
+        }
+
+        if ($line < 1) {
+            throw new \InvalidArgumentException('Source location line must be at least 1.');
+        }
+
+        $this->file = $file;
+        $this->line = $line;
+    }
 
     #[\Override]
     public function __toString(): string
