@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Integration;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\FixtureResource;
 use Greenlight\Plugin\IntegrationFixtureContext;
@@ -191,7 +192,7 @@ final class IntegrationFixtureManagerTest
     #[Test]
     public function providerFailuresAreReportedAsIntegrationFixtureErrors(): void
     {
-        $provider = new class implements IntegrationFixtureProvider {
+        $provider = new class implements Fake, IntegrationFixtureProvider {
             #[\Override]
             public function integrationFixtures(): array
             {
@@ -312,22 +313,44 @@ final class IntegrationFixtureManagerTest
         ))->toThrow(IntegrationFixtureError::class, matching: '/undeclared dependency "network"/');
     }
 
+    #[Test]
+    public function aFixtureCannotReadDependencyResourcesForAChannelOutsideTheRun(): void
+    {
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition(
+                'network',
+                static fn(IntegrationFixtureContext $context) => $context->expose(
+                    FixtureResource::from(['host' => '127.0.0.1']),
+                ),
+            ),
+            new IntegrationFixtureDefinition(
+                'database',
+                static function (IntegrationFixtureContext $context): void {
+                    $context->dependency('network', 3);
+                },
+                ['network'],
+            ),
+        ]);
+
+        Expect::that(fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-9',
+            2,
+            2,
+            null,
+        ))
+            ->because('fixtures MUST only read dependency resources for channels in the run')
+            ->toThrow(
+                IntegrationFixtureError::class,
+                matching: '/Channel 3 is not part of this integration fixture run\./',
+            );
+    }
+
     /**
      * @param list<IntegrationFixtureDefinition> $definitions
      */
-    private function provider(array $definitions): IntegrationFixtureProvider
+    private function provider(array $definitions): FakeIntegrationFixtureProvider
     {
-        return new readonly class ($definitions) implements IntegrationFixtureProvider {
-            /**
-             * @param list<IntegrationFixtureDefinition> $definitions
-             */
-            public function __construct(private array $definitions) {}
-
-            #[\Override]
-            public function integrationFixtures(): array
-            {
-                return $this->definitions;
-            }
-        };
+        return new FakeIntegrationFixtureProvider($definitions);
     }
 }
