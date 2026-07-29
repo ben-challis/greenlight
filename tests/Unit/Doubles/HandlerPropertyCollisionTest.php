@@ -12,6 +12,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\PrivateHandlerProperty;
 use Greenlight\Tests\Fixture\Doubles\ProtectedHandlerPropertyCollision;
 use Greenlight\Tests\Fixture\Doubles\PublicHandlerPropertyCollision;
+use Greenlight\Tests\Fixture\Doubles\PublicStaticHandlerPropertyCollision;
 
 final class HandlerPropertyCollisionTest
 {
@@ -38,6 +39,7 @@ final class HandlerPropertyCollisionTest
     {
         yield 'public property' => [PublicHandlerPropertyCollision::class];
         yield 'protected property' => [ProtectedHandlerPropertyCollision::class];
+        yield 'public static property' => [PublicStaticHandlerPropertyCollision::class];
     }
 
     #[Test]
