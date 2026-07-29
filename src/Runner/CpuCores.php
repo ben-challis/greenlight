@@ -51,9 +51,9 @@ final class CpuCores
             $cpuinfo = ErrorTrap::run(static fn(): string|false => \file_get_contents('/proc/cpuinfo'));
 
             if (\is_string($cpuinfo)) {
-                $count = \preg_match_all('/^processor\s*:/m', $cpuinfo);
+                $count = LinuxCpuInfo::processorCount($cpuinfo);
 
-                if ($count > 0) {
+                if ($count !== null) {
                     return $count;
                 }
             }
