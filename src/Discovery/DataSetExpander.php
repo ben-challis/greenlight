@@ -53,7 +53,7 @@ final readonly class DataSetExpander
      * @param non-empty-string|null $provider
      * @param non-empty-string|null $providerClass
      *
-     * @return array<string, mixed>
+     * @return array<array-key, mixed>
      *
      * @throws DiscoveryError
      */
@@ -113,7 +113,7 @@ final readonly class DataSetExpander
      * @param non-empty-string $testMethod
      * @param non-empty-string $provider
      *
-     * @return non-empty-array<string, mixed>
+     * @return non-empty-array<array-key, mixed>
      *
      * @throws DiscoveryError
      */
