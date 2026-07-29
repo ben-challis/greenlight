@@ -209,6 +209,32 @@ final class IntegrationFixtureManagerTest
     }
 
     #[Test]
+    public function duplicateFixtureIdsAcrossProvidersAreRejected(): void
+    {
+        $providers = [
+            $this->provider([
+                new IntegrationFixtureDefinition('database', static function (): void {}),
+            ]),
+            $this->provider([
+                new IntegrationFixtureDefinition('database', static function (): void {}),
+            ]),
+        ];
+
+        Expect::that(fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide($providers),
+            'run-7',
+            1,
+            1,
+            null,
+        ))
+            ->because('integration fixture IDs MUST be unique across every provider')
+            ->toThrow(
+                IntegrationFixtureError::class,
+                message: 'Integration fixture "database" is declared more than once.',
+            );
+    }
+
+    #[Test]
     public function invalidProviderEntriesAreRejectedAtThePluginBoundary(): void
     {
         $provider = new FakeIntegrationFixtureProvider([]);
