@@ -31,6 +31,14 @@ final class AttributeContractTest
     }
 
     #[Test]
+    public function skipPreservesAZeroStringReason(): void
+    {
+        Expect::that(new Skip('0')->reason)
+            ->because('the skip attribute MUST preserve a zero-string reason')
+            ->toBe('0');
+    }
+
+    #[Test]
     public function methodOnlyAttributesTargetMethods(): void
     {
         foreach ([Test::class, Before::class, After::class, DataSet::class, NoExpectations::class] as $attribute) {
