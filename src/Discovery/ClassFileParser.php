@@ -42,10 +42,9 @@ final class ClassFileParser
 
             if ($token->is(\T_NAMESPACE)) {
                 $name = self::nextSignificant($tokens, $i);
-
-                if ($name instanceof \PhpToken && $name->is([\T_NAME_QUALIFIED, \T_STRING])) {
-                    $namespace = $name->text;
-                }
+                $namespace = $name instanceof \PhpToken && $name->is([\T_NAME_QUALIFIED, \T_STRING])
+                    ? $name->text
+                    : '';
 
                 continue;
             }
