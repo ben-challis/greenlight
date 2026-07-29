@@ -260,6 +260,45 @@ final class IntegrationFixtureManagerTest
     }
 
     #[Test]
+    public function transportFailuresRetainCleanupFailuresWithoutReplacingThePrimaryCause(): void
+    {
+        $cleanupFailure = new \RuntimeException('database cleanup failed');
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition(
+                'database',
+                static function (IntegrationFixtureContext $context) use ($cleanupFailure): void {
+                    $context->defer(static function () use ($cleanupFailure): void {
+                        throw $cleanupFailure;
+                    });
+                    $context->expose(FixtureResource::from([
+                        'payload' => \str_repeat('x', 1_048_576),
+                    ]));
+                },
+            ),
+        ]);
+
+        Expect::that(static fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-8',
+            1,
+            1,
+            null,
+        ))
+            ->because('transport diagnostics MUST include cleanup failures without replacing the primary failure')
+            ->toThrow(static function (IntegrationFixtureError $error): void {
+                Expect::that($error->getMessage())->toBe(
+                    "Integration fixture \"resource catalog\" failed to provision: "
+                    . "Integration resources for channel 1 exceed the 1 MiB transport limit.\n"
+                    . 'Additionally, cleanup for integration fixture "database" failed: database cleanup failed.',
+                );
+
+                Expect::that($error->getPrevious())
+                    ->because('the transport failure MUST remain the previous exception')
+                    ->toBeInstanceOf(\LengthException::class);
+            });
+    }
+
+    #[Test]
     public function aFixtureCannotReadAnUndeclaredDependency(): void
     {
         $provider = $this->provider([
