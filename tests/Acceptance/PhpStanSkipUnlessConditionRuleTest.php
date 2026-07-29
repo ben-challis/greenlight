@@ -76,6 +76,9 @@ final readonly class PhpStanSkipUnlessConditionRuleTest
             #[SkipUnless(TwoArgumentsCondition::class, 'one')]
             final class TooFewConditionArgumentsProbe {}
 
+            #[SkipUnless(TwoArgumentsCondition::class, 'one', 'two', 'three')]
+            final class TooManyConditionArgumentsProbe {}
+
             #[SkipUnless(IntegerCondition::class, 'one')]
             final class WrongConditionArgumentTypeProbe {}
             PHP,
@@ -83,8 +86,9 @@ final readonly class PhpStanSkipUnlessConditionRuleTest
 
         Expect::that($probe->exitCode)->because('skip-unless arguments must match the condition constructor')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(2)
+            ->and(\count($probe->errors))->toBe(3)
             ->and($probe->messages())->toContain('#[SkipUnless] supplies 1 argument to the GreenlightSkipUnlessConditionProbe\TwoArgumentsCondition constructor, but the constructor requires 2 arguments')
+            ->toContain('#[SkipUnless] supplies 3 arguments to the GreenlightSkipUnlessConditionProbe\TwoArgumentsCondition constructor, but the constructor accepts 2 arguments')
             ->toContain('#[SkipUnless] argument #1 for GreenlightSkipUnlessConditionProbe\IntegerCondition constructor parameter $value has type string, but the parameter requires int');
     }
 }
