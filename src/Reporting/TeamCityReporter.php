@@ -152,11 +152,24 @@ final class TeamCityReporter implements Reporter
             'message' => $failure->message ?? 'failed',
         ];
 
+        $hasComparison = $failure !== null
+            && $failure->expected !== null
+            && $failure->actual !== null;
         $details = [];
 
         foreach ($result->failures as $index => $detail) {
             if ($index > 0) {
                 $details[] = $detail->message;
+            }
+
+            if ($index > 0 || !$hasComparison) {
+                if ($detail->expected !== null) {
+                    $details[] = 'expected: ' . $detail->expected;
+                }
+
+                if ($detail->actual !== null) {
+                    $details[] = 'actual: ' . $detail->actual;
+                }
             }
 
             if ($detail->location !== null) {
