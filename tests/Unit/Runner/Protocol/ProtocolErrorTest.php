@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\ProtocolError;
@@ -27,5 +28,43 @@ final readonly class ProtocolErrorTest
                 . 'Greenlight stopped the run to prevent an unlimited wait.'
                 . "\nWorker output:\nPHP Fatal error: boot failed\n",
             );
+    }
+
+    /**
+     * @param \Closure(string, float, string): ProtocolError $factory
+     */
+    #[Test]
+    #[DataSet('workerTimeoutErrors')]
+    public function workerTimeoutErrorsRetainZeroDiagnostics(
+        \Closure $factory,
+        string $expectedMessage,
+    ): void {
+        $error = $factory('worker-0', 1.5, '0');
+
+        Expect::that($error->getMessage())
+            ->because('worker timeout errors MUST retain non-empty diagnostics')
+            ->toBe($expectedMessage . "\nWorker output:\n0");
+    }
+
+    /**
+     * @return iterable<string, array{
+     *     \Closure(string, float, string): ProtocolError,
+     *     string,
+     * }>
+     */
+    public static function workerTimeoutErrors(): iterable
+    {
+        yield 'never connected' => [
+            ProtocolError::workerNeverConnected(...),
+            'Worker "worker-0" did not connect within 1.5 seconds. '
+            . 'The machine can have insufficient resources to start a worker. '
+            . 'Greenlight stopped the run to prevent an unlimited wait.',
+        ];
+        yield 'stalled' => [
+            ProtocolError::workerStalled(...),
+            'Worker "worker-0" sent no message for 1.5 seconds after connection. '
+            . 'No test was active. The worker stopped responding between protocol messages. '
+            . 'Greenlight stopped the run to prevent an unlimited wait.',
+        ];
     }
 }
