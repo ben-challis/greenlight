@@ -14,6 +14,29 @@ use Greenlight\Expect\Fail;
 final class ThrowableDetailTest
 {
     #[Test]
+    public function rendersNormalInstanceMethodStackFrames(): void
+    {
+        $threw = null;
+
+        try {
+            $callLine = __LINE__ + 1;
+            $this->throwFromInstanceMethod();
+        } catch (\RuntimeException $exception) {
+            $threw = $exception;
+        }
+
+        Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
+            ->because('a throwable detail MUST identify the method and source of each stack frame')
+            ->toBe(
+                self::class
+                . '->throwFromInstanceMethod at '
+                . __FILE__
+                . ':'
+                . $callLine,
+            );
+    }
+
+    #[Test]
     public function deepTracesAreBoundedWithATruncationMarker(): void
     {
         $capture = new class implements Fake {
@@ -91,5 +114,10 @@ final class ThrowableDetailTest
         }
 
         $this->throwAtDepth($remaining - 1);
+    }
+
+    private function throwFromInstanceMethod(): never
+    {
+        throw new \RuntimeException('frame');
     }
 }
