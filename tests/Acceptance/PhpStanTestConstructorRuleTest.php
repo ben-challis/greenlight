@@ -35,13 +35,14 @@ final readonly class PhpStanTestConstructorRuleTest
             {
                 public function __construct(
                     private Service $service,
+                    private ?Service $nullableService,
                     private int $defaulted = 1,
                 ) {}
 
                 #[Test]
                 public function testMethod(): void
                 {
-                    echo $this->service::class, $this->defaulted;
+                    echo $this->service::class, \get_debug_type($this->nullableService), $this->defaulted;
                 }
             }
 
