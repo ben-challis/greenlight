@@ -9,6 +9,7 @@ use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
@@ -150,6 +151,40 @@ final class JUnitReporterTest
         Expect::that((string) $document['time'])
             ->because('test durations provide the total when RunFinished is absent')
             ->toBe('0.527000');
+    }
+
+    #[Test]
+    public function anExplicitZeroRunDurationOverridesTheTestDurationTotal(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId('Acme\ZeroDurationTest', 'passes'),
+            Outcome::Passed,
+            0.5,
+            0,
+        ), 1.0));
+        $reporter->onEvent(new RunFinished(
+            'run-1',
+            new ResultSummary(passed: 1),
+            0.0,
+            1.0,
+        ));
+
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('JUnit output with an explicit zero run duration MUST remain valid')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        if ($document === false) {
+            return;
+        }
+
+        Expect::that((string) $document['time'])
+            ->because('an explicit zero run duration MUST override the test duration total')
+            ->toBe('0.000000');
     }
 
     #[Test]
