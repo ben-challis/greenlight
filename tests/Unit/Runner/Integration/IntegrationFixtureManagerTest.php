@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Integration;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Harness\FixtureResource;
 use Greenlight\Plugin\IntegrationFixtureContext;
 use Greenlight\Plugin\IntegrationFixtureDefinition;
@@ -151,6 +152,56 @@ final class IntegrationFixtureManagerTest
             'second:stop',
             'first:stop',
         ]);
+    }
+
+    #[Test]
+    public function provisioningFailuresRetainCleanupFailuresWithoutReplacingThePrimaryCause(): void
+    {
+        $provisioningFailure = new \RuntimeException('database start failed');
+        $cleanupFailure = new \LogicException('network stop failed');
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition(
+                'network',
+                static function (IntegrationFixtureContext $context) use ($cleanupFailure): void {
+                    $context->defer(static function () use ($cleanupFailure): void {
+                        throw $cleanupFailure;
+                    });
+                },
+            ),
+            new IntegrationFixtureDefinition(
+                'database',
+                static function () use ($provisioningFailure): void {
+                    throw $provisioningFailure;
+                },
+                ['network'],
+            ),
+        ]);
+
+        try {
+            IntegrationFixtureManager::provision(
+                PluginRegistry::orchestratorSide([$provider]),
+                'run-3',
+                1,
+                1,
+                null,
+            );
+        } catch (IntegrationFixtureError $error) {
+            Expect::that($error->getMessage())
+                ->because(
+                    'provisioning diagnostics MUST include cleanup failures without replacing the primary failure',
+                )
+                ->toBe(
+                    "Integration fixture \"database\" failed to provision: database start failed.\n"
+                    . 'Additionally, cleanup for integration fixture "network" failed: network stop failed.',
+                )
+                ->and($error->getPrevious())
+                ->because('the provisioning failure MUST remain the previous exception')
+                ->toBe($provisioningFailure);
+
+            return;
+        }
+
+        Fail::because('Expected integration fixture provisioning and cleanup failures to be reported.');
     }
 
     #[Test]
