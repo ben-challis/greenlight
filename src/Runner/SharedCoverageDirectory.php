@@ -26,7 +26,10 @@ final readonly class SharedCoverageDirectory
     public static function open(CoverageSettings $settings): self
     {
         $directory = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-coverage-' . \bin2hex(\random_bytes(6));
-        ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700, true));
+
+        if (!ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700, true), $warning)) {
+            throw CoverageError::sharedDirectoryCreationFailed($directory, $warning);
+        }
 
         $previousDirectory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
         $previousInclude = \getenv(SubprocessCoverage::INCLUDE_ENV);

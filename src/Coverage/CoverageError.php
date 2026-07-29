@@ -21,4 +21,13 @@ final class CoverageError extends \RuntimeException
     {
         return new self(\sprintf('Coverage JSON document is invalid: %s', $reason));
     }
+
+    public static function sharedDirectoryCreationFailed(string $directory, ?string $cause): self
+    {
+        return new self(\sprintf(
+            'Failed to create shared coverage directory "%s"%s.',
+            $directory,
+            $cause === null ? '' : ': ' . $cause,
+        ));
+    }
 }
