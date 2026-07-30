@@ -89,6 +89,32 @@ final readonly class IntegrationFixtureRunTest
 
     #[Test]
     #[DataSet('workerCounts')]
+    public function provisioningAndRollbackFailuresAreBothReported(int $workers): void
+    {
+        $project = $this->writeProject(
+            'provisioning-and-rollback-failure-' . $workers,
+            workers: $workers,
+            failProvisioning: true,
+            failCleanup: true,
+        );
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+
+        Expect::that($result->exitCode)->toBe(1)
+            ->and($result->output())
+            ->because('the provisioning failure MUST remain the primary run failure')
+            ->toContain('intentional fixture provisioning failure')
+            ->and($result->output())
+            ->because('rollback failures MUST remain visible after a provisioning failure')
+            ->toContain('Additionally, cleanup for integration fixture "probe" failed')
+            ->toContain('intentional fixture cleanup failure')
+            ->not()->toContain('tests,')
+            ->not()->toContain('fixture-secret')
+            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
+            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+    }
+
+    #[Test]
+    #[DataSet('workerCounts')]
     public function cleanupFailureFailsAnOtherwiseSuccessfulRun(int $workers): void
     {
         $project = $this->writeProject('cleanup-failure-' . $workers, workers: $workers, failCleanup: true);
