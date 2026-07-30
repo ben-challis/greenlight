@@ -8,9 +8,11 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
+use Greenlight\Harness\IntegrationResources;
 use Greenlight\Runner\Protocol\Messages\Assign;
+use Greenlight\Runner\Protocol\Messages\Bootstrap;
 
-final class AssignOptionalStringWireTest
+final class OptionalStringWireTest
 {
     /**
      * @param 'coverageDriver'|'configFile' $field
@@ -22,18 +24,30 @@ final class AssignOptionalStringWireTest
         string $wireValue,
         ?string $expected,
     ): void {
-        $payload = new Assign(new ExecutionPlan([]))->toWire();
-        $payload[$field] = $wireValue;
-
-        $assign = Assign::fromWire($payload);
         $actual = match ($field) {
-            'coverageDriver' => $assign->coverageDriver,
-            'configFile' => $assign->configFile,
+            'coverageDriver' => $this->coverageDriver($wireValue),
+            'configFile' => $this->configFile($wireValue),
         };
 
         Expect::that($actual)
-            ->because('optional assignment strings MUST be null or non-empty')
+            ->because('optional protocol strings MUST be null or non-empty')
             ->toBe($expected);
+    }
+
+    private function coverageDriver(string $wireValue): ?string
+    {
+        $payload = new Assign(new ExecutionPlan([]))->toWire();
+        $payload['coverageDriver'] = $wireValue;
+
+        return Assign::fromWire($payload)->coverageDriver;
+    }
+
+    private function configFile(string $wireValue): ?string
+    {
+        $payload = new Bootstrap(1, null, IntegrationResources::empty())->toWire();
+        $payload['configFile'] = $wireValue;
+
+        return Bootstrap::fromWire($payload)->configFile;
     }
 
     /**

@@ -9,10 +9,12 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\TestChannel;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageCollector;
@@ -21,10 +23,12 @@ use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
+use Greenlight\Runner\Protocol\Messages\Bootstrap;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\SocketChannel;
 
@@ -69,9 +73,9 @@ final readonly class WorkerProcess
         $pid = \getmypid();
         $channel->send(new Hello($workerId, $token, $pid === false ? 1 : \max(1, $pid)));
 
-        // Build plugins on the first assignment and reuse them for later
-        // assignments. Thus, plugin construction occurs one time for each
-        // worker. Run-scope harness services remain available across assignments.
+        // Build plugins during bootstrap and reuse them for later assignments.
+        // Thus, plugin construction occurs one time for each worker. Run-scope
+        // harness services remain available across assignments.
         $plugins = null;
         $registry = null;
         $scopes = null;
@@ -100,8 +104,39 @@ final readonly class WorkerProcess
                     return 0;
                 }
 
+                if ($message instanceof Bootstrap) {
+                    if ($plugins instanceof PluginRegistry) {
+                        throw new \RuntimeException('Worker received bootstrap more than once.');
+                    }
+
+                    $rawChannel = \getenv('GREENLIGHT_CHANNEL');
+
+                    if (!\is_string($rawChannel) || (int) $rawChannel !== $message->channel) {
+                        throw new \RuntimeException('Worker bootstrap channel does not match GREENLIGHT_CHANNEL.');
+                    }
+
+                    $userPlugins = $message->configFile === null
+                        ? []
+                        : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
+                    $plugins = PluginRegistry::forWorker($userPlugins);
+                    $plugins->bootstrapWorker(new WorkerBootstrapContext(
+                        $workerId,
+                        new TestChannel($message->channel),
+                        $message->resources,
+                    ));
+                    $registry = DefaultServices::registry($plugins, $message->resources);
+                    $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
+                    $channel->send(new Ready());
+
+                    continue;
+                }
+
                 if (!$message instanceof Assign) {
                     continue;
+                }
+
+                if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
+                    throw new \RuntimeException('Worker received an assignment before bootstrap completed.');
                 }
 
                 $collector = null;
@@ -110,15 +145,6 @@ final readonly class WorkerProcess
                     $collector = CoverageCollector::create(
                         new CoverageSettings($message->coverageInclude, $message->coverageDriver),
                     );
-                }
-
-                if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
-                    $userPlugins = $message->configFile === null
-                        ? []
-                        : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
-                    $plugins = PluginRegistry::forWorker($userPlugins);
-                    $registry = DefaultServices::registry($plugins);
-                    $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
                 }
 
                 if (!$artifactStore instanceof ArtifactStore
@@ -195,6 +221,7 @@ final readonly class WorkerProcess
 
             return 1;
         } finally {
+            $scopes?->closeRun();
             $channel->close();
         }
     }
