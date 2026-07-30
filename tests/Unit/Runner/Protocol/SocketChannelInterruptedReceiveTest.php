@@ -46,8 +46,11 @@ final readonly class SocketChannelInterruptedReceiveTest
         }
 
         if ($childPid === 0) {
-            \usleep(20_000);
-            exit(\posix_kill($parentPid, \SIGUSR1) ? 0 : 1);
+            while (\posix_kill($parentPid, \SIGUSR1)) {
+                \usleep(20_000);
+            }
+
+            exit(1);
         }
 
         $status = 0;
@@ -56,11 +59,16 @@ final readonly class SocketChannelInterruptedReceiveTest
             $received = $channel->receive(30.0);
             $eof = $channel->isEof();
         } finally {
+            $stopped = \posix_kill($childPid, \SIGTERM);
             $waited = \pcntl_waitpid($childPid, $status);
             \pcntl_signal(\SIGUSR1, $previousHandler);
             \pcntl_async_signals($previousAsyncSignals);
             $channel->close();
             \fclose($pair[1]);
+        }
+
+        if (!\is_int($status)) {
+            Fail::because('Expected the signal helper to provide a process status.');
         }
 
         Expect::that($received)
@@ -72,8 +80,13 @@ final readonly class SocketChannelInterruptedReceiveTest
             ->and($waited)
             ->because('the signal helper MUST finish before the test exits')
             ->toBe($childPid)
-            ->and($status)
-            ->because('the signal helper MUST deliver SIGUSR1 successfully')
-            ->toBe(0);
+            ->and($stopped)
+            ->because('the signal helper MUST remain active until the receive attempt ends')
+            ->toBeTrue()
+            ->and(\pcntl_wifsignaled($status))
+            ->because('the test MUST stop the signal helper after the receive attempt ends')
+            ->toBeTrue()
+            ->and(\pcntl_wtermsig($status))
+            ->toBe(\SIGTERM);
     }
 }
