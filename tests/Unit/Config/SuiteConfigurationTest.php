@@ -29,6 +29,22 @@ final class SuiteConfigurationTest
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
 
+    #[Test]
+    public function preservesZeroStringsInEverySuiteField(): void
+    {
+        $suite = new SuiteConfiguration('0', ['0'], ['0']);
+
+        Expect::that($suite->name)
+            ->because('a zero-string suite name is not empty')
+            ->toBe('0')
+            ->and($suite->paths)
+            ->because('a zero-string suite path is not empty')
+            ->toBe(['0'])
+            ->and($suite->tags)
+            ->because('a zero-string suite tag is not empty')
+            ->toBe(['0']);
+    }
+
     /**
      * @return iterable<string, array{string, array<mixed>, array<mixed>, string}>
      */
