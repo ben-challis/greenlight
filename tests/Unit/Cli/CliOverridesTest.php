@@ -33,6 +33,8 @@ final class CliOverridesTest
         Expect::that($overrides->repeatUntilFailure)->because('absent flags mean no overrides')->toBe(false);
         Expect::that($overrides->artifactsDirectory)->because('absent flags mean no overrides')->toBe(null);
         Expect::that($overrides->resourceLimits)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->machineResourceLimits)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->resourceCoordinationNamespace)->because('absent flags mean no overrides')->toBe(null);
     }
 
     #[Test]
@@ -76,6 +78,8 @@ final class CliOverridesTest
             'test-id' => ['App\ExampleTest::one', 'App\ExampleTest::two'],
             'artifacts-dir' => ['build/evidence'],
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
+            'machine-resource-limit' => ['external-api=4'],
+            'resource-coordination-namespace' => ['orders-service'],
         ]));
 
         Expect::that($overrides->workers?->fixed)->because('extracts typed values')->toBe(4);
@@ -89,6 +93,8 @@ final class CliOverridesTest
             'payments-sandbox' => 1,
             'cache.primary_1' => 2,
         ]);
+        Expect::that($overrides->machineResourceLimits)->toBe(['external-api' => 4]);
+        Expect::that($overrides->resourceCoordinationNamespace)->toBe('orders-service');
     }
 
     #[Test]
@@ -242,6 +248,12 @@ final class CliOverridesTest
             'zero resource limit' => ['resource-limit' => ['postgres=0']],
             'invalid resource name' => ['resource-limit' => ['Postgres=2']],
             'duplicate resource limit' => ['resource-limit' => ['postgres=1', 'postgres=2']],
+            'malformed machine resource limit' => ['machine-resource-limit' => ['postgres']],
+            'duplicate resource across scopes' => [
+                'resource-limit' => ['postgres=1'],
+                'machine-resource-limit' => ['postgres=1'],
+            ],
+            'invalid coordination namespace' => ['resource-coordination-namespace' => ['Orders Service']],
         ];
 
         foreach ($unusable as $options) {

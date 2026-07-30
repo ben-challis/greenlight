@@ -132,7 +132,7 @@ final class GreenlightConfig
 public static function create(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L83)
 
 ### `paths()`
 
@@ -147,7 +147,7 @@ PHPDoc:
 - `@param list<string> $tests`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L85)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L95)
 
 ### `suite()`
 
@@ -164,7 +164,7 @@ PHPDoc:
 - `@param callable(SuiteBuilder): mixed $configurator`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L125)
 
 ### `workers()`
 
@@ -186,7 +186,7 @@ PHPDoc:
 - `@param int|null $recycleAfterTests A null value disables test-count worker replacement.`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L143)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L153)
 
 ### `resourceLimit()`
 
@@ -203,7 +203,36 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L168)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L178)
+
+### `machineResourceLimit()`
+
+Limits the number of concurrent class assignments across Greenlight
+processes on the same machine.
+
+```php
+public function machineResourceLimit(string $name, int $limit = 1): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L191)
+
+### `resourceCoordinationNamespace()`
+
+Sets the coordination namespace for machine-scoped resource limits.
+
+```php
+public function resourceCoordinationNamespace(string $namespace): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L203)
 
 ### `coverage()`
 
@@ -215,7 +244,7 @@ PHPDoc:
 
 - `@param callable(CoverageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L196)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L218)
 
 ### `watch()`
 
@@ -227,7 +256,7 @@ PHPDoc:
 
 - `@param callable(WatchBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L208)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L230)
 
 ### `artifacts()`
 
@@ -239,7 +268,7 @@ PHPDoc:
 
 - `@param callable(ArtifactBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L220)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L242)
 
 ### `failOnDeprecation()`
 
@@ -255,7 +284,7 @@ PHPDoc:
 
 - `@see self::ignoreDeprecationsMatching()`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L236)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L258)
 
 ### `failOnNotice()`
 
@@ -263,7 +292,7 @@ PHPDoc:
 public function failOnNotice(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L243)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L265)
 
 ### `failOnRisky()`
 
@@ -275,7 +304,7 @@ expectations.
 public function failOnRisky(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L255)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L277)
 
 ### `ignoreDeprecationsMatching()`
 
@@ -287,7 +316,7 @@ or "?" matches the complete message. Multiple calls add patterns.
 public function ignoreDeprecationsMatching(string ...$patterns): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L267)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L289)
 
 ### `plugins()`
 
@@ -295,7 +324,7 @@ public function ignoreDeprecationsMatching(string ...$patterns): self
 public function plugins(Plugin ...$plugins): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L280)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L302)
 
 ### `failFast()`
 
@@ -303,7 +332,7 @@ public function plugins(Plugin ...$plugins): self
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L289)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L311)
 
 ### `randomizeOrder()`
 
@@ -313,7 +342,7 @@ If the seed is null, Greenlight generates and prints a seed at run time.
 public function randomizeOrder(?int $seed = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L319)
 
 ### `build()`
 
@@ -325,7 +354,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L328)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L350)
 
 ## `SuiteBuilder`
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Core\Result\ResultPolicy;
 
 /**
@@ -41,6 +42,26 @@ final class ConfigurationResolver
             $randomSeed = \random_int(0, 2 ** 31 - 1);
         }
 
+        $resourceLimits = \array_replace($configuration->resourceLimits, $overrides->resourceLimits);
+        $machineResourceLimits = \array_replace($configuration->machineResourceLimits, $overrides->machineResourceLimits);
+
+        foreach (\array_keys($overrides->resourceLimits) as $name) {
+            unset($machineResourceLimits[$name]);
+        }
+
+        foreach (\array_keys($overrides->machineResourceLimits) as $name) {
+            unset($resourceLimits[$name]);
+        }
+
+        $resourceCoordinationNamespace = $overrides->resourceCoordinationNamespace
+            ?? $configuration->resourceCoordinationNamespace;
+
+        if ($machineResourceLimits !== [] && $resourceCoordinationNamespace === null) {
+            throw new InvalidConfiguration(
+                'Machine resource limits require a coordination namespace. Use resourceCoordinationNamespace() or --resource-coordination-namespace to configure one.',
+            );
+        }
+
         return new Configuration(
             paths: $configuration->paths,
             suites: $configuration->suites,
@@ -68,7 +89,9 @@ final class ConfigurationResolver
             excludeMethods: $overrides->excludeMethods,
             excludePaths: $overrides->excludePaths,
             artifacts: $artifacts,
-            resourceLimits: \array_replace($configuration->resourceLimits, $overrides->resourceLimits),
+            resourceLimits: $resourceLimits,
+            machineResourceLimits: $machineResourceLimits,
+            resourceCoordinationNamespace: $resourceCoordinationNamespace,
         );
     }
 }

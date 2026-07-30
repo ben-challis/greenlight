@@ -126,6 +126,110 @@ final readonly class ResourceSchedulingTest
         Expect::that((string) \file_get_contents($marker))->because('a crashed worker releases its lease for queued work')->toBe('ran');
     }
 
+    #[Test]
+    public function machineLimitsCoordinateConcurrentRunsInBothRunnerModes(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'machine-resource-concurrency');
+        $state = $project->path('state.json');
+        \file_put_contents($state, '{"current":0,"max":0}');
+
+        $project->writeFile('tests/MachineResourceTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace MachineResourceProbe;
+
+            use Greenlight\Attribute\RequiresResource;
+            use Greenlight\Attribute\Test;
+
+            #[RequiresResource('sandbox')]
+            final class MachineResourceTest
+            {
+                #[Test]
+                public function holdsTheSharedResource(): void
+                {
+                    self::change(1);
+
+                    try {
+                        \usleep(750_000);
+                    } finally {
+                        self::change(-1);
+                    }
+                }
+
+                private static function change(int $delta): void
+                {
+                    $path = \getenv('MACHINE_RESOURCE_STATE');
+                    $lock = \is_string($path) ? \fopen($path . '.lock', 'c+') : false;
+
+                    if (!\is_string($path) || $path === '' || !\is_resource($lock) || !\flock($lock, \LOCK_EX)) {
+                        throw new \RuntimeException('Could not lock machine resource probe state.');
+                    }
+
+                    try {
+                        $state = \json_decode((string) \file_get_contents($path), true, 8, \JSON_THROW_ON_ERROR);
+                        $current = (int) ($state['current'] ?? 0) + $delta;
+                        \file_put_contents($path, \json_encode([
+                            'current' => $current,
+                            'max' => \max((int) ($state['max'] ?? 0), $current),
+                        ], \JSON_THROW_ON_ERROR));
+                    } finally {
+                        \flock($lock, \LOCK_UN);
+                        \fclose($lock);
+                    }
+                }
+            }
+            PHP);
+
+        $namespace = 'acceptance-' . \bin2hex(\random_bytes(6));
+        $project->writeFile('greenlight.php', \sprintf(
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+
+            require_once __DIR__ . '/tests/MachineResourceTest.php';
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers(1)
+                ->resourceCoordinationNamespace(%s)
+                ->machineResourceLimit('sandbox');
+            PHP,
+            \var_export($namespace, true),
+        ));
+
+        $environment = ['MACHINE_RESOURCE_STATE' => $state];
+
+        foreach ([1, 2] as $workers) {
+            \file_put_contents($state, '{"current":0,"max":0}');
+            $arguments = ['run', '--reporter=plain', '--workers=' . $workers];
+            $first = GreenlightCli::start($project->directory, $arguments, $environment);
+            $second = GreenlightCli::start($project->directory, $arguments, $environment);
+
+            try {
+                $firstResult = $first->wait(10.0);
+                $secondResult = $second->wait(10.0);
+            } finally {
+                $first->terminate();
+                $second->terminate();
+            }
+
+            $recorded = \json_decode((string) \file_get_contents($state), true, 8, \JSON_THROW_ON_ERROR);
+
+            if (!\is_array($recorded)) {
+                throw new \RuntimeException('Machine resource probe state requires a JSON object.');
+            }
+
+            Expect::that($firstResult->exitCode)->toBe(0);
+            Expect::that($secondResult->exitCode)->toBe(0);
+            Expect::that($recorded['max'] ?? null)->toBe(1);
+        }
+    }
+
     private function concurrencyProject(): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'resource-concurrency');

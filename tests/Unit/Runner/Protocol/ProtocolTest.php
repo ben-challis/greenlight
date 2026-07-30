@@ -109,6 +109,7 @@ final class ProtocolTest
             10,
             artifactSession: new ArtifactSession('/tmp/staging', 'build/artifacts/run-1'),
             artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
+            machineResourceLeases: ['lease-key'],
         )->toWire());
 
         Expect::that($assign->slice->seed)->because('assign carries the plan intact')->toBe(42)
@@ -117,6 +118,7 @@ final class ProtocolTest
             ->and($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging')
             ->and($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1')
             ->and($assign->artifactConfiguration?->maxRunAttachments)->toBe(123)
+            ->and($assign->machineResourceLeases)->toBe(['lease-key'])
             ->and($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one')
             ->and($assign->slice->entries[0]->metadata->isolated)->toBeTrue()
             ->and($assign->slice->entries[0]->metadata->resources)->toBe(['postgres']);

@@ -110,6 +110,8 @@ and meaning. Use the singular form unless the context requires a plural.
 | condition | Technical noun | A rule that determines if Greenlight skips a test |
 | configuration | Technical noun | The settings that control a Greenlight run |
 | configurator | Technical noun | A callable that changes a builder |
+| coordination key | Technical noun | An opaque value that identifies a machine resource held by an outer Greenlight run |
+| coordination namespace | Technical noun | A name that groups machine-scoped resource limits across Greenlight processes on one machine |
 | consumer | Technical noun | A program or tool that reads Greenlight output |
 | coverage driver | Technical noun | A component that collects raw line coverage |
 | coverage export | Technical noun | A file or directory that contains coverage results |
@@ -142,6 +144,10 @@ and meaning. Use the singular form unless the context requires a plural.
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
 | live window | Technical noun | The bounded terminal area that shows active test classes |
+| machine resource | Technical noun | A named resource whose limit applies across Greenlight processes on one machine |
+| machine resource coordinator | Technical noun | A component that controls machine-scoped resource limits with local advisory file locks |
+| machine resource permit | Technical noun | A temporary grant of machine-scoped resource capacity to one scheduling unit |
+| machine-scoped | Noun modifier | Related to resource capacity that Greenlight processes share on one machine |
 | marketing copy | Technical noun | Promotional text that uses STE clarity principles without a controlled-vocabulary requirement |
 | matcher | Technical noun | An operation that checks an expectation |
 | matcher map | Technical noun | The configured names and signatures of extension matchers |
@@ -171,6 +177,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | run state | Technical noun | Saved failure and duration data that can control a later run |
 | run subscriber | Technical noun | An orchestrator plugin that observes run events |
 | run time | Technical noun | The time when a program executes |
+| run-scoped | Noun modifier | Related to resource capacity that belongs to one Greenlight run |
 | runtime | Noun modifier | Related to program execution |
 | service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |

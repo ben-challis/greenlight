@@ -61,6 +61,7 @@ use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Runner\Resource\ResourceCoordinationError;
 use Greenlight\Runner\SelectionFilter;
 use Greenlight\Runner\SharedCoverageDirectory;
 use Greenlight\Runner\SubprocessCoverage;
@@ -103,6 +104,12 @@ final readonly class Application
           --workers=<n|auto> Set the worker process count
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
+          --machine-resource-limit=<name>=<n>
+                             Set a machine-scoped resource limit. You can repeat
+                             this option.
+          --resource-coordination-namespace=<name>
+                             Set the coordination namespace for machine resource
+                             limits
           --bail[=<n>]       Stop after <n> failures (default 1)
           --group=<name>     Run only this group. You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a
@@ -478,7 +485,7 @@ final readonly class Application
                 $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
                     ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
             }
-        } catch (AttachmentError|DiscoveryError|ProtocolError $error) {
+        } catch (AttachmentError|DiscoveryError|ProtocolError|ResourceCoordinationError $error) {
             $orchestratorCollector?->stop();
             $shared?->drain();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
@@ -679,7 +686,7 @@ final readonly class Application
                         new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
                             ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                     }
-                } catch (AttachmentError|DiscoveryError|ProtocolError $error) {
+                } catch (AttachmentError|DiscoveryError|ProtocolError|ResourceCoordinationError $error) {
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                     return $priorityClasses;
@@ -1291,6 +1298,8 @@ final readonly class Application
             new OptionSpec('config', OptionValue::Required),
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('resource-limit', OptionValue::Required, repeatable: true),
+            new OptionSpec('machine-resource-limit', OptionValue::Required, repeatable: true),
+            new OptionSpec('resource-coordination-namespace', OptionValue::Required),
             new OptionSpec('bail', OptionValue::Optional),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),

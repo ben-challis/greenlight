@@ -65,6 +65,16 @@ final class GreenlightConfig
      */
     private array $resourceLimits = [];
 
+    /**
+     * @var array<non-empty-string, positive-int>
+     */
+    private array $machineResourceLimits = [];
+
+    /**
+     * @var non-empty-string|null
+     */
+    private ?string $resourceCoordinationNamespace = null;
+
     private function __construct()
     {
         $this->workers = WorkerCount::auto();
@@ -167,25 +177,37 @@ final class GreenlightConfig
      */
     public function resourceLimit(string $name, int $limit = 1): self
     {
+        $this->addResourceLimit($this->resourceLimits, $name, $limit);
+
+        return $this;
+    }
+
+    /**
+     * Limits the number of concurrent class assignments across Greenlight
+     * processes on the same machine.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function machineResourceLimit(string $name, int $limit = 1): self
+    {
+        $this->addResourceLimit($this->machineResourceLimits, $name, $limit);
+
+        return $this;
+    }
+
+    /**
+     * Sets the coordination namespace for machine-scoped resource limits.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function resourceCoordinationNamespace(string $namespace): self
+    {
         try {
-            ResourceName::assertValid($name);
+            ResourceName::assertValid($namespace);
+            $this->resourceCoordinationNamespace = $namespace;
         } catch (\InvalidArgumentException $error) {
             throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
         }
-
-        if ($limit < 1) {
-            throw new InvalidConfiguration(\sprintf(
-                'Resource "%s" must have a limit of at least 1, got %d.',
-                $name,
-                $limit,
-            ));
-        }
-
-        if (\array_key_exists($name, $this->resourceLimits)) {
-            throw new InvalidConfiguration(\sprintf('Resource limit "%s" is declared twice.', $name));
-        }
-
-        $this->resourceLimits[$name] = $limit;
 
         return $this;
     }
@@ -327,6 +349,12 @@ final class GreenlightConfig
      */
     public function build(): Configuration
     {
+        if ($this->machineResourceLimits !== [] && $this->resourceCoordinationNamespace === null) {
+            throw new InvalidConfiguration(
+                'Machine resource limits require a coordination namespace. Call resourceCoordinationNamespace().',
+            );
+        }
+
         $suites = [];
 
         foreach ($this->suites as $builder) {
@@ -353,6 +381,36 @@ final class GreenlightConfig
             randomSeed: $this->randomSeed,
             artifacts: $this->artifacts?->toConfiguration() ?? new ArtifactConfiguration(),
             resourceLimits: $this->resourceLimits,
+            machineResourceLimits: $this->machineResourceLimits,
+            resourceCoordinationNamespace: $this->resourceCoordinationNamespace,
         );
+    }
+
+    /**
+     * @param array<non-empty-string, positive-int> $target
+     *
+     * @throws InvalidConfiguration
+     */
+    private function addResourceLimit(array &$target, string $name, int $limit): void
+    {
+        try {
+            ResourceName::assertValid($name);
+        } catch (\InvalidArgumentException $error) {
+            throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+        }
+
+        if ($limit < 1) {
+            throw new InvalidConfiguration(\sprintf(
+                'Resource "%s" requires a limit of 1 or more. Received %d.',
+                $name,
+                $limit,
+            ));
+        }
+
+        if (\array_key_exists($name, $this->resourceLimits) || \array_key_exists($name, $this->machineResourceLimits)) {
+            throw new InvalidConfiguration(\sprintf('Configure resource limit "%s" only once.', $name));
+        }
+
+        $target[$name] = $limit;
     }
 }

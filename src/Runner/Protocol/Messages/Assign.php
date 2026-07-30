@@ -24,6 +24,8 @@ final readonly class Assign implements Message
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
      * @param non-empty-string|null $configFile The worker loads this file to instantiate plugins. Null disables plugins.
+     * @param list<non-empty-string> $machineResourceLeases Machine resource
+     *   coordination keys for this assignment.
      */
     public function __construct(
         public ExecutionPlan $slice,
@@ -36,6 +38,7 @@ final readonly class Assign implements Message
         public ?ResultPolicy $policy = null,
         public ?ArtifactSession $artifactSession = null,
         public ?ArtifactConfiguration $artifactConfiguration = null,
+        public array $machineResourceLeases = [],
     ) {}
 
     #[\Override]
@@ -58,6 +61,7 @@ final readonly class Assign implements Message
             'policy' => $this->policy?->toWire(),
             'artifactSession' => $this->artifactSession?->toWire(),
             'artifactConfiguration' => $this->artifactConfiguration?->toWire(),
+            'machineResourceLeases' => $this->machineResourceLeases,
         ];
     }
 
@@ -90,6 +94,12 @@ final readonly class Assign implements Message
             ($artifactConfiguration = \array_key_exists('artifactConfiguration', $payload) ? Wire::nullableMap($payload, 'artifactConfiguration') : null) === null
                 ? null
                 : ArtifactConfiguration::fromWire($artifactConfiguration),
+            \array_key_exists('machineResourceLeases', $payload)
+                ? \array_values(\array_filter(
+                    Wire::listOfStrings($payload, 'machineResourceLeases'),
+                    static fn(string $key): bool => $key !== '',
+                ))
+                : [],
         );
     }
 }

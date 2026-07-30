@@ -16,6 +16,7 @@ use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Orchestrator\Orchestrator;
+use Greenlight\Runner\Resource\MachineResourceCoordinator;
 use Greenlight\Runner\Worker\EventSink;
 
 /** @internal */
@@ -66,6 +67,11 @@ final readonly class ParallelRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
+        $machineResources = MachineResourceCoordinator::openForPlan(
+            $plan,
+            $configuration->machineResourceLimits,
+            $configuration->resourceCoordinationNamespace,
+        );
         $artifactStore = ArtifactStore::open($artifactConfiguration, $this->workingDirectory, $runId);
 
         try {
@@ -97,7 +103,11 @@ final readonly class ParallelRunner
                 $ticker,
                 $artifactStore,
                 $artifactConfiguration,
-                resourceLimits: $configuration->resourceLimits,
+                resourceLimits: \array_replace(
+                    $configuration->resourceLimits,
+                    $configuration->machineResourceLimits,
+                ),
+                machineResourceCoordinator: $machineResources,
             );
 
             $summary = $orchestrator->run($plan, $sink, $workerCount);
@@ -108,6 +118,7 @@ final readonly class ParallelRunner
             return new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
         } finally {
             $artifactStore->cleanup();
+            $machineResources->close();
         }
     }
 

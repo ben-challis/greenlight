@@ -27,6 +27,7 @@ use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Runner\Resource\MachineResourceEnvironment;
 
 /**
  * The hidden __worker command has no compatibility guarantee.
@@ -77,6 +78,7 @@ final readonly class WorkerProcess
         $scopes = null;
         $executedTotal = 0;
         $artifactStore = null;
+        $inheritedMachineResources = MachineResourceEnvironment::inherited();
 
         try {
             while (true) {
@@ -135,24 +137,33 @@ final readonly class WorkerProcess
 
                 $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
-                $outcome = new Worker(
-                    $registry,
-                    $plugins,
-                    $leakDetector,
-                    $workerId,
-                    $message->policy,
-                    $artifactStore,
-                )->run(
-                    $message->slice,
-                    new SocketEventSink($channel),
-                    null,
-                    new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
-                    static fn(): bool => $channel->poll() instanceof Drain,
-                    $scopes,
-                    static function (TestId $id, int $attempt) use ($channel): void {
-                        $channel->send(new AttemptStarted($id, $attempt));
-                    },
-                );
+                MachineResourceEnvironment::set([
+                    ...$inheritedMachineResources,
+                    ...$message->machineResourceLeases,
+                ]);
+
+                try {
+                    $outcome = new Worker(
+                        $registry,
+                        $plugins,
+                        $leakDetector,
+                        $workerId,
+                        $message->policy,
+                        $artifactStore,
+                    )->run(
+                        $message->slice,
+                        new SocketEventSink($channel),
+                        null,
+                        new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
+                        static fn(): bool => $channel->poll() instanceof Drain,
+                        $scopes,
+                        static function (TestId $id, int $attempt) use ($channel): void {
+                            $channel->send(new AttemptStarted($id, $attempt));
+                        },
+                    );
+                } finally {
+                    MachineResourceEnvironment::set($inheritedMachineResources);
+                }
 
                 $coverage = $collector?->stop();
 

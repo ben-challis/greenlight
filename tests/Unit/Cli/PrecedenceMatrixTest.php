@@ -10,6 +10,7 @@ use Greenlight\Cli\ConfigurationResolver;
 use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Expect\Expect;
 
@@ -120,6 +121,34 @@ final class PrecedenceMatrixTest
         );
 
         Expect::that($resolved->resourceLimits)->because('resource limit precedence merges by name')->toBe(['postgres' => 1, 'redis' => 2]);
+    }
+
+    #[Test]
+    public function commandLineResourceScopeAndNamespaceOverrideConfiguration(): void
+    {
+        $resolved = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c
+                ->resourceLimit('postgres', 4)
+                ->resourceCoordinationNamespace('config-project')
+                ->machineResourceLimit('redis', 2),
+            cli: new CliOverrides(
+                resourceLimits: ['redis' => 3],
+                machineResourceLimits: ['postgres' => 1],
+                resourceCoordinationNamespace: 'cli-project',
+            ),
+        );
+
+        Expect::that($resolved->resourceLimits)->toBe(['redis' => 3]);
+        Expect::that($resolved->machineResourceLimits)->toBe(['postgres' => 1]);
+        Expect::that($resolved->resourceCoordinationNamespace)->toBe('cli-project');
+    }
+
+    #[Test]
+    public function machineResourceOverridesRequireANamespace(): void
+    {
+        Expect::that(fn(): Configuration => $this->resolve(
+            cli: new CliOverrides(machineResourceLimits: ['postgres' => 1]),
+        ))->toThrow(InvalidConfiguration::class, matching: '/coordination namespace/');
     }
 
     #[Test]

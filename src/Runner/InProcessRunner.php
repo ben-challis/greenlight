@@ -15,6 +15,7 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\PublishingEventSink;
+use Greenlight\Runner\Resource\MachineResourceCoordinator;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
@@ -58,6 +59,11 @@ final readonly class InProcessRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
+        $machineResources = MachineResourceCoordinator::openForPlan(
+            $plan,
+            $configuration->machineResourceLimits,
+            $configuration->resourceCoordinationNamespace,
+        );
         $artifactStore = ArtifactStore::open(
             $artifactConfiguration,
             $this->workingDirectory,
@@ -96,6 +102,7 @@ final readonly class InProcessRunner
                 'in-process',
                 $configuration->policy->isNoOp() ? null : $configuration->policy,
                 $artifactStore,
+                $machineResources,
             )->run(
                 $plan,
                 $sink,
@@ -113,6 +120,7 @@ final readonly class InProcessRunner
             return new RunResult($summary, \count($plan), $durationSeconds, $seed, $coverage, $outcome->leaks);
         } finally {
             $artifactStore->cleanup();
+            $machineResources->close();
         }
     }
 
