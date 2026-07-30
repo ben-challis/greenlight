@@ -28,6 +28,18 @@ final readonly class ServiceAttributeTest
     }
 
     /**
+     * @param class-string<LaravelService|SymfonyService> $attribute
+     */
+    #[Test]
+    #[DataSet('serviceAttributes')]
+    public function preservesAZeroStringServiceIdentifier(string $attribute): void
+    {
+        Expect::that((new $attribute('0'))->id)
+            ->because('a zero-string service identifier is not empty')
+            ->toBe('0');
+    }
+
+    /**
      * @return iterable<string, array{class-string<LaravelService|SymfonyService>}>
      */
     public static function serviceAttributes(): iterable
