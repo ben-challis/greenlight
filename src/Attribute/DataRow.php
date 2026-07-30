@@ -15,11 +15,23 @@ namespace Greenlight\Attribute;
 final readonly class DataRow
 {
     /**
+     * @var non-empty-string|null
+     */
+    public ?string $label;
+
+    /**
      * @param array<mixed> $arguments
-     * @param non-empty-string|null $label
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         public array $arguments,
-        public ?string $label = null,
-    ) {}
+        ?string $label = null,
+    ) {
+        if ($label === '') {
+            throw new \InvalidArgumentException('Data row label must not be empty.');
+        }
+
+        $this->label = $label;
+    }
 }

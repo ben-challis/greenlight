@@ -13,6 +13,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DataRows\InlineRowsTest;
 use Greenlight\Tests\Fixture\DataRowsConflict\DuplicateRowKeyTest;
 use Greenlight\Tests\Fixture\DataRowsDuplicateInline\DuplicateInlineRowKeyTest;
+use Greenlight\Tests\Fixture\DataRowsInvalid\EmptyDataRowLabelTest;
 use Greenlight\Tests\Fixture\DataRowsZeroLabel\ZeroLabelRowTest;
 
 final class DataRowTest
@@ -77,6 +78,29 @@ final class DataRowTest
                 DiscoveryError::class,
                 message: 'Data sets for Greenlight\Tests\Fixture\DataRowsDuplicateInline\DuplicateInlineRowKeyTest::probe() '
                     . 'contain key "twice" more than once. Use each key only once for the test method.',
+            );
+    }
+
+    #[Test]
+    public function anEmptyInlineLabelIsReportedAsAnInvalidAttribute(): void
+    {
+        $class = EmptyDataRowLabelTest::class;
+
+        Expect::that(
+            static fn(): array => new DataSetExpander()->rowsFor(
+                new \ReflectionClass($class),
+                'neverDiscovered',
+                null,
+                5.0,
+            ),
+        )
+            ->because('an empty inline label cannot create an ambiguous data-set ID')
+            ->toThrow(
+                DiscoveryError::class,
+                message: \sprintf(
+                    'Attribute on %s::neverDiscovered() is invalid: Data row label must not be empty.',
+                    $class,
+                ),
             );
     }
 
