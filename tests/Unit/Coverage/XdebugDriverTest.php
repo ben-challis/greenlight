@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
-use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Coverage\CoverageError;
@@ -85,19 +84,10 @@ final class XdebugDriverTest
     }
 
     #[Test]
-    #[Isolated]
     public function collectionLifecycleUsesAllLineFlagsAndClosesTheWindow(): void
     {
-        if (!\defined('XDEBUG_CC_UNUSED')) {
-            \define('XDEBUG_CC_UNUSED', 1);
-        }
-
-        if (!\defined('XDEBUG_CC_DEAD_CODE')) {
-            \define('XDEBUG_CC_DEAD_CODE', 2);
-        }
-
         $runtime = new FakeXdebugRuntime();
-        $driver = new XdebugDriver($runtime);
+        $driver = new XdebugDriver($runtime, flags: 3);
         $driver->start();
         $coverage = $driver->stop();
 
