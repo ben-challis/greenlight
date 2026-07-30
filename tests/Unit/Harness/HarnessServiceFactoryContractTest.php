@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Harness;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
@@ -15,6 +16,41 @@ use Greenlight\Tests\Fixture\Harness\FactoryContractTarget;
 
 final class HarnessServiceFactoryContractTest
 {
+    #[Test]
+    #[DataSet('nonObjectFactoryValues')]
+    public function anImmediateFactoryReportsANonObjectValue(mixed $value, string $type): void
+    {
+        $factory = static fn(): mixed => $value;
+        /** @var \Closure(): \Countable $factory */
+        $scopes = new HarnessScopes(new HarnessRegistry([
+            new ServiceDefinition(
+                \Countable::class,
+                Scope::PerRun,
+                $factory,
+            ),
+        ]));
+
+        Expect::that(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
+            ->because('a harness factory contract error MUST identify a non-object value')
+            ->toThrow(
+                UnresolvableService::class,
+                message: \sprintf(
+                    'Service definition for type "Countable" created "%s". '
+                    . 'Its factory MUST return an instance of "Countable".',
+                    $type,
+                ),
+            );
+    }
+
+    /**
+     * @return iterable<string, array{mixed, non-empty-string}>
+     */
+    public static function nonObjectFactoryValues(): iterable
+    {
+        yield 'string' => ['wrong type', 'string'];
+        yield 'null' => [null, 'null'];
+    }
+
     #[Test]
     public function anImmediateFactoryMustReturnTheRegisteredType(): void
     {
