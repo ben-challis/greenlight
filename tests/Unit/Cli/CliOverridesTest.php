@@ -130,6 +130,19 @@ final class CliOverridesTest
     }
 
     #[Test]
+    public function shardWithATrailingNewlineIsMalformed(): void
+    {
+        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
+            new ParsedArguments(null, ['shard' => ["1/2\n"]]),
+        ))
+            ->because('a shard specification MUST match the complete argument')
+            ->toThrow(
+                CliError::class,
+                message: "--shard requires <n>/<m>, such as 1/4. Received \"1/2\n\".",
+            );
+    }
+
+    #[Test]
     public function shardOutOfRangeNamesTheValidRange(): void
     {
         try {

@@ -100,7 +100,7 @@ final readonly class CliOverrides
         if ($arguments->has('shard')) {
             $raw = $arguments->value('shard') ?? '';
 
-            if (\preg_match('/^(\d+)\/(\d+)$/', $raw, $matches) !== 1) {
+            if (\preg_match('/^(\d+)\/(\d+)\z/', $raw, $matches) !== 1) {
                 throw CliError::malformedShard($raw);
             }
 
