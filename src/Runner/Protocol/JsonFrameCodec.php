@@ -38,7 +38,10 @@ final readonly class JsonFrameCodec implements FrameCodec
     public function encode(array $envelope): string
     {
         try {
-            $json = \json_encode($envelope, \JSON_THROW_ON_ERROR | \JSON_INVALID_UTF8_SUBSTITUTE);
+            $json = \json_encode(
+                $envelope === [] ? new \stdClass() : $envelope,
+                \JSON_THROW_ON_ERROR | \JSON_INVALID_UTF8_SUBSTITUTE,
+            );
         } catch (\JsonException $e) {
             throw ProtocolError::malformedFrame('Greenlight cannot encode the payload as JSON: ' . $e->getMessage());
         }
