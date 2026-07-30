@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Core;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\InvalidWirePayload;
@@ -52,5 +53,23 @@ final class TestIdTest
         Expect::that(
             static fn(): TestId => TestId::fromWire(['class' => 'App\FooTest', 'method' => 'bar', 'dataSetKey' => 42]),
         )->because('rejects invalid wire payloads')->toThrow(InvalidWirePayload::class);
+    }
+
+    #[Test]
+    #[DataSet('invalidIdentifiers')]
+    public function rejectsInvalidConstruction(string $class, string $method, string $message): void
+    {
+        Expect::that(static fn(): TestId => new TestId($class, $method))
+            ->because('a test ID MUST identify a class and method')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, non-empty-string}>
+     */
+    public static function invalidIdentifiers(): iterable
+    {
+        yield 'empty class' => ['', 'bar', 'Test ID class must not be empty.'];
+        yield 'empty method' => ['App\FooTest', '', 'Test ID method must not be empty.'];
     }
 }

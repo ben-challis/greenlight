@@ -13,14 +13,34 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class TestId implements WireSerializable, \Stringable
 {
     /**
-     * @param non-empty-string $class
-     * @param non-empty-string $method
+     * @var non-empty-string
+     */
+    public string $class;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $method;
+
+    /**
+     * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $class,
-        public string $method,
+        string $class,
+        string $method,
         public ?string $dataSetKey = null,
-    ) {}
+    ) {
+        if ($class === '') {
+            throw new \InvalidArgumentException('Test ID class must not be empty.');
+        }
+
+        if ($method === '') {
+            throw new \InvalidArgumentException('Test ID method must not be empty.');
+        }
+
+        $this->class = $class;
+        $this->method = $method;
+    }
 
     public function equals(self $other): bool
     {
