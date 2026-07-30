@@ -27,6 +27,10 @@ final readonly class RunFinished implements Event
             throw new \InvalidArgumentException('RunFinished requires a non-empty run ID.');
         }
 
+        if (!\is_finite($durationSeconds)) {
+            throw new \InvalidArgumentException('RunFinished duration is not finite.');
+        }
+
         if ($durationSeconds < 0.0) {
             throw new \InvalidArgumentException('RunFinished duration cannot be negative.');
         }
