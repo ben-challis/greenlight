@@ -85,6 +85,29 @@ final class DataSetExpansionTest
     }
 
     #[Test]
+    public function aTrailingNewlineKeyBecomesAStableHashPrefix(): void
+    {
+        $rows = new DataSetExpander()->rowsFor(
+            new \ReflectionClass(self::class),
+            __FUNCTION__,
+            'trailingNewlineKey',
+            5.0,
+        );
+
+        Expect::that(\array_keys($rows))
+            ->because('a data-set key MUST NOT preserve a trailing control character')
+            ->toBe([\substr(\hash('sha256', "line\n"), 0, 8)]);
+    }
+
+    /**
+     * @return iterable<string, array<mixed>>
+     */
+    public static function trailingNewlineKey(): iterable
+    {
+        yield "line\n" => [];
+    }
+
+    #[Test]
     public function providerKeysMustBeStringsOrIntegers(): void
     {
         $expander = new DataSetExpander();

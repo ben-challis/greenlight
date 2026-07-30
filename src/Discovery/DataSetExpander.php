@@ -192,7 +192,7 @@ final readonly class DataSetExpander
             throw DiscoveryError::providerKeyInvalid($class, $provider, \get_debug_type($key));
         }
 
-        if ($key !== '' && \preg_match('/^\P{C}+$/u', $key) === 1) {
+        if ($key !== '' && \preg_match('/^\P{C}+\z/u', $key) === 1) {
             return $key;
         }
 
