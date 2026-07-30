@@ -51,4 +51,27 @@ final class CoverageBuilderTest
                 );
         }
     }
+
+    #[Test]
+    public function preservesZeroStringsAcrossTheBuilderState(): void
+    {
+        $configuration = new CoverageBuilder()
+            ->include('0')
+            ->driver('0')
+            ->export('0', '0')
+            ->toConfiguration();
+
+        Expect::that($configuration->includePaths)
+            ->because('a zero-string coverage include path is not empty')
+            ->toBe(['0'])
+            ->and($configuration->driver)
+            ->because('a zero-string coverage driver is not empty')
+            ->toBe('0')
+            ->and($configuration->exports[0]->format)
+            ->because('a zero-string coverage export format is not empty')
+            ->toBe('0')
+            ->and($configuration->exports[0]->target)
+            ->because('a zero-string coverage export target is not empty')
+            ->toBe('0');
+    }
 }
