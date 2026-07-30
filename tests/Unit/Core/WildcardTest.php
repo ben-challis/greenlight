@@ -57,6 +57,13 @@ final class WildcardTest
             true,
         ];
 
+        yield 'plain case-insensitive pattern matches at the subject start' => [
+            'InvoiceTotalsTest',
+            'invoice',
+            true,
+            true,
+        ];
+
         yield 'wildcard pattern must match the whole subject' => [
             'prefix-value-suffix',
             'value*',
