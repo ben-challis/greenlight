@@ -62,9 +62,7 @@ final class SocketChannel
                 $remaining -= $written;
             }
 
-            \fflush($this->stream);
-
-            return true;
+            return \fflush($this->stream);
         }, $warning);
 
         if (!$completed) {
