@@ -12,6 +12,18 @@ use Greenlight\Expect\Expect;
 
 final class ArtifactBuilderTest
 {
+    #[Test]
+    public function retainsAZeroArtifactDirectory(): void
+    {
+        $configuration = new ArtifactBuilder()
+            ->directory('0')
+            ->toConfiguration();
+
+        Expect::that($configuration->directory)
+            ->because('the artifact builder MUST retain each non-empty directory')
+            ->toBe('0');
+    }
+
     /**
      * @param \Closure(ArtifactBuilder): void $configure
      */
