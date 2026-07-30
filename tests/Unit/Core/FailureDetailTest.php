@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Core;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\JsonWire;
 
 final readonly class FailureDetailTest
 {
@@ -19,5 +20,16 @@ final readonly class FailureDetailTest
                 \InvalidArgumentException::class,
                 message: 'Failure detail message must not be empty.',
             );
+    }
+
+    #[Test]
+    public function preservesAZeroStringMessageAcrossTheWire(): void
+    {
+        $detail = new FailureDetail('0');
+        $restored = FailureDetail::fromWire(JsonWire::roundTrip($detail->toWire()));
+
+        Expect::that($restored->message)
+            ->because('a zero-string failure message is not empty')
+            ->toBe('0');
     }
 }
