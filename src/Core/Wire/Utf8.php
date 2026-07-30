@@ -18,6 +18,56 @@ final class Utf8
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    public static function headBytes(string $value, int $maxBytes): string
+    {
+        if ($maxBytes < 0) {
+            throw new \InvalidArgumentException(\sprintf('Byte bound must be zero or greater, got %d.', $maxBytes));
+        }
+
+        if ($maxBytes === 0) {
+            return '';
+        }
+
+        $value = self::scrub($value);
+
+        if (\strlen($value) <= $maxBytes) {
+            return $value;
+        }
+
+        $bounded = \substr($value, 0, $maxBytes);
+
+        while (\preg_match('//u', $bounded) !== 1) {
+            $bounded = \substr($bounded, 0, -1);
+        }
+
+        return $bounded;
+    }
+
+    public static function tailBytes(string $value, int $maxBytes): string
+    {
+        if ($maxBytes < 0) {
+            throw new \InvalidArgumentException(\sprintf('Byte bound must be zero or greater, got %d.', $maxBytes));
+        }
+
+        if ($maxBytes === 0) {
+            return '';
+        }
+
+        $value = self::scrub($value);
+
+        if (\strlen($value) <= $maxBytes) {
+            return $value;
+        }
+
+        $bounded = \substr($value, -$maxBytes);
+
+        while (\preg_match('//u', $bounded) !== 1) {
+            $bounded = \substr($bounded, 1);
+        }
+
+        return $bounded;
+    }
+
     public static function scrub(string $value): string
     {
         if (\preg_match('//u', $value) === 1) {

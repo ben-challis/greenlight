@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
@@ -54,6 +55,101 @@ final class WorkerHandleTest
             ->toBe([$remaining->id]);
     }
 
+    #[Test]
+    public function drainedDiagnosticsKeepACompleteUnicodeTailWithinTheByteLimit(): void
+    {
+        $stdout = $this->stream();
+        \fwrite($stdout, 'z');
+        \rewind($stdout);
+
+        $handle = new WorkerHandle(
+            'worker-1',
+            1,
+            $this->stream(),
+            $stdout,
+            $this->stream(),
+        );
+        $handle->diagnostics = 'xx€' . \str_repeat('y', 65_533);
+
+        $handle->drainPipes();
+
+        Expect::that($handle->diagnostics)
+            ->because('drained diagnostics MUST contain only complete Unicode characters within the byte limit')
+            ->toBe(\str_repeat('y', 65_533) . 'z')
+            ->and(\strlen($handle->diagnostics))
+            ->toBeLessThanOrEqual(65_536);
+    }
+
+    #[Test]
+    #[DataSet('splitUnicodeSequences')]
+    public function diagnosticsPreserveAUnicodeCharacterSplitAcrossPipeReads(
+        string $lead,
+        string $remainder,
+        string $expected,
+    ): void {
+        [$reader, $writer] = $this->streamPair();
+        $handle = new WorkerHandle(
+            'worker-1',
+            1,
+            $this->stream(),
+            $reader,
+            $this->stream(),
+        );
+
+        \fwrite($writer, $lead);
+        $handle->drainPipes();
+        \fwrite($writer, $remainder);
+        $handle->drainPipes();
+
+        Expect::that($handle->diagnostics)
+            ->because('pipe reads MUST combine the bytes of one Unicode character')
+            ->toBe($expected);
+    }
+
+    #[Test]
+    #[DataSet('malformedUtf8Prefixes')]
+    public function malformedTrailingBytesAreScrubbedWithoutWaitingForAnotherPipeRead(string $malformed): void
+    {
+        [$reader, $writer] = $this->streamPair();
+        $handle = new WorkerHandle(
+            'worker-1',
+            1,
+            $this->stream(),
+            $reader,
+            $this->stream(),
+        );
+
+        \fwrite($writer, $malformed);
+        $handle->drainPipes();
+
+        Expect::that($handle->diagnostics)
+            ->because('malformed trailing bytes MUST be scrubbed during the current pipe read')
+            ->toBe("\u{FFFD}");
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function splitUnicodeSequences(): iterable
+    {
+        yield 'two-byte minimum lead' => ["\xC2", "\xA2", '¢'];
+        yield 'three-byte minimum lead' => ["\xE0", "\xA0\x80", "\u{0800}"];
+        yield 'four-byte minimum lead' => ["\xF0", "\x90\x80\x80", "\u{10000}"];
+        yield 'four-byte maximum lead' => ["\xF4", "\x8F\xBF\xBF", "\u{10FFFF}"];
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function malformedUtf8Prefixes(): iterable
+    {
+        yield 'invalid lead' => ["\xFF"];
+        yield 'overlong three-byte prefix' => ["\xE0\x80"];
+        yield 'surrogate prefix' => ["\xED\xA0"];
+        yield 'overlong four-byte prefix' => ["\xF0\x80"];
+        yield 'out-of-range prefix' => ["\xF4\x90"];
+    }
+
     /**
      * @param non-empty-string $method
      */
@@ -87,5 +183,19 @@ final class WorkerHandleTest
         }
 
         return $stream;
+    }
+
+    /**
+     * @return array{resource, resource}
+     */
+    private function streamPair(): array
+    {
+        $streams = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
+
+        if (!\is_array($streams) || \count($streams) !== 2) {
+            Fail::because('Expected the connected streams to open.');
+        }
+
+        return [$streams[0], $streams[1]];
     }
 }
