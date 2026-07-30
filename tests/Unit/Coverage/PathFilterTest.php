@@ -48,6 +48,19 @@ final class PathFilterTest
     }
 
     #[Test]
+    public function zeroStringIsAValidRelativeIncludeDirectory(): void
+    {
+        $filter = new PathFilter(['0']);
+
+        Expect::that($filter->accepts('0/Covered.php'))
+            ->because('a zero-string include directory is not empty')
+            ->toBeTrue()
+            ->and($filter->accepts('01/NotCovered.php'))
+            ->because('relative include directories MUST match by path segment')
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function emptyDirectoryEntriesAreRejected(): void
     {
         Expect::that(static fn(): PathFilter => new PathFilter(['']))->because('empty directory entries are rejected')
