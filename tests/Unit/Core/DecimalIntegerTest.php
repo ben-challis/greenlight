@@ -36,6 +36,7 @@ final class DecimalIntegerTest
         yield 'overflow' => [\PHP_INT_MAX . '0', null];
         yield 'negative' => ['-1', null];
         yield 'fraction' => ['1.0', null];
+        yield 'trailing newline' => ["1\n", null];
         yield 'empty' => ['', null];
     }
 }
