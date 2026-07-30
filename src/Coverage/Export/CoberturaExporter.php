@@ -46,8 +46,8 @@ final readonly class CoberturaExporter implements CoverageExporter
         foreach ($map->files() as $path => $file) {
             $out .= \sprintf(
                 '        <class name="%s" filename="%s" line-rate="%s" branch-rate="0" complexity="0">',
-                $this->xml(\ltrim($path, '/')),
-                $this->xml(\ltrim($path, '/')),
+                XmlEscaper::attribute(\ltrim($path, '/')),
+                XmlEscaper::attribute(\ltrim($path, '/')),
                 $this->rate($file->coveredLineCount(), $file->executableLineCount()),
             ) . "\n";
             $out .= '          <methods/>' . "\n";
@@ -88,10 +88,5 @@ final readonly class CoberturaExporter implements CoverageExporter
         }
 
         return \sprintf('%.4F', $covered / $executable);
-    }
-
-    private function xml(string $value): string
-    {
-        return \htmlspecialchars($value, \ENT_XML1 | \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
     }
 }
