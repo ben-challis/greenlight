@@ -77,6 +77,33 @@ final class IntegrationResourcesTest
     }
 
     #[Test]
+    public function debugRepresentationsKeepNestedSecretsRedacted(): void
+    {
+        $secret = 'database-password';
+        $resource = FixtureResource::from(secrets: ['password' => $secret]);
+        $resources = new IntegrationResources(['database' => $resource]);
+        $debug = $resources->__debugInfo();
+
+        \ob_start();
+        \var_dump($resources);
+        $dump = \ob_get_clean();
+        $export = \var_export($resources, true);
+
+        Expect::that(($debug['fixtures']['database'] ?? null) === $resource)
+            ->because('integration resource debug information MUST retain its fixture map')
+            ->toBe(true);
+        Expect::that(\is_string($dump) && \str_contains($dump, 'database'))
+            ->because('integration resource dumps MUST identify their fixture IDs')
+            ->toBe(true);
+        Expect::that(\is_string($dump) && \str_contains($dump, $secret))
+            ->because('integration resource dumps MUST NOT disclose nested secrets')
+            ->toBe(false);
+        Expect::that(\str_contains($export, $secret))
+            ->because('integration resource exports MUST NOT disclose nested secrets')
+            ->toBe(false);
+    }
+
+    #[Test]
     public function resourcesRejectInvalidFixtureMaps(): void
     {
         Expect::that(static fn(): IntegrationResources => new IntegrationResources([
