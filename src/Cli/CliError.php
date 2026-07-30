@@ -67,7 +67,12 @@ final class CliError extends \RuntimeException
         $message = \sprintf('--shard requires 1 <= n <= m. Received "%s".', $raw);
 
         if ($count >= 1) {
-            $message .= \sprintf(' Valid n values for %d shards are 1 through %d.', $count, $count);
+            $message .= \sprintf(
+                ' Valid n values for %d %s are 1 through %d.',
+                $count,
+                $count === 1 ? 'shard' : 'shards',
+                $count,
+            );
         }
 
         return new self($message);
