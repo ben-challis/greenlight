@@ -14,6 +14,9 @@ use Greenlight\Tests\Fixture\Doubles\Wide;
 
 final class AnswersTest
 {
+    private const string CONFLICTING_ANSWER = 'The expectation on add() already has an answer. '
+        . 'Configure exactly one of andReturns(), andReturnsSequence(), andReturnsUsing(), or andThrows().';
+
     #[Test]
     public function aSequenceReturnsItsValuesInOrder(): void
     {
@@ -72,7 +75,12 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturnsSequence();
-        }))->because('an empty sequence is rejected')->toThrow(DoublesError::class, '/at least one value/');
+        }))
+            ->because('an empty sequence is rejected')
+            ->toThrow(
+                DoublesError::class,
+                message: 'andReturnsSequence() on add() requires at least one value.',
+            );
     }
 
     #[Test]
@@ -95,7 +103,9 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andReturnsSequence(2, 3);
-        }))->because('a second answer kind on one expectation is rejected')->toThrow(DoublesError::class, '/add/');
+        }))
+            ->because('a second answer kind on one expectation is rejected')
+            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -105,7 +115,9 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andReturnsUsing(static fn(): int => 2);
-        }))->because('a callback after a return value is rejected')->toThrow(DoublesError::class, '/add/');
+        }))
+            ->because('a callback after a return value is rejected')
+            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -115,7 +127,9 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturnsSequence(1)->andReturns(2);
-        }))->because('a return value after a sequence is rejected')->toThrow(DoublesError::class, '/add/');
+        }))
+            ->because('a return value after a sequence is rejected')
+            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -125,7 +139,9 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andThrows(new \RuntimeException('boom'));
-        }))->because('a throwable after a return value is rejected')->toThrow(DoublesError::class, '/add/');
+        }))
+            ->because('a throwable after a return value is rejected')
+            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -135,7 +151,9 @@ final class AnswersTest
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andThrows(new \RuntimeException('boom'))->andReturns(1);
-        }))->because('a return value after a throwable is rejected')->toThrow(DoublesError::class, '/add/');
+        }))
+            ->because('a return value after a throwable is rejected')
+            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
