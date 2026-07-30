@@ -19,7 +19,7 @@ final class DecimalInteger
      */
     public static function parse(string $raw): ?int
     {
-        if (\preg_match('/^\d+$/', $raw) !== 1) {
+        if (\preg_match('/^\d+\z/', $raw) !== 1) {
             return null;
         }
 
