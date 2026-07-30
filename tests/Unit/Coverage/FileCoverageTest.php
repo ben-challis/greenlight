@@ -22,6 +22,23 @@ final class FileCoverageTest
     }
 
     #[Test]
+    public function zeroStringFilePathSurvivesMergeAndCalculation(): void
+    {
+        $first = new FileCoverage('0', [1], [2]);
+        $second = new FileCoverage('0', [2], []);
+        $merged = $first->merge($second);
+
+        Expect::that($merged->file)
+            ->because('a zero-string coverage file path is not empty')
+            ->toBe('0')
+            ->and($merged->coveredLines)
+            ->because('coverage for the zero-string path MUST merge normally')
+            ->toBe([1, 2])
+            ->and($merged->percentage())
+            ->toBe(100.0);
+    }
+
+    #[Test]
     public function lineListsAreSortedAndDeduplicated(): void
     {
         $file = new FileCoverage('/src/A.php', [9, 3, 3, 5], [12, 7, 12]);
