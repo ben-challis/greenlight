@@ -12,7 +12,10 @@ final class Equality
 
     public static function equals(mixed $a, mixed $b): bool
     {
-        return self::compare($a, $b, []);
+        $leftObjects = [];
+        $rightObjects = [];
+
+        return self::compare($a, $b, $leftObjects, $rightObjects);
     }
 
     /**
@@ -23,7 +26,10 @@ final class Equality
      */
     public static function equalsCanonicalizing(mixed $a, mixed $b): bool
     {
-        return self::compare(self::canonicalize($a), self::canonicalize($b), []);
+        $leftObjects = [];
+        $rightObjects = [];
+
+        return self::compare(self::canonicalize($a), self::canonicalize($b), $leftObjects, $rightObjects);
     }
 
     private static function canonicalize(mixed $value): mixed
@@ -109,11 +115,17 @@ final class Equality
     }
 
     /**
-     * @param list<non-empty-string> $comparing Object pairs already in the
-     *   comparison stack. This list stops cycles.
+     * @param array<int, int> $leftObjects Object mappings from the left value
+     *   to the right value
+     * @param array<int, int> $rightObjects Object mappings from the right value
+     *   to the left value
      */
-    private static function compare(mixed $a, mixed $b, array $comparing): bool
-    {
+    private static function compare(
+        mixed $a,
+        mixed $b,
+        array &$leftObjects,
+        array &$rightObjects,
+    ): bool {
         if ((\is_int($a) || \is_float($a)) && (\is_int($b) || \is_float($b))) {
             if (\is_int($a) && \is_int($b)) {
                 return $a === $b;
@@ -133,7 +145,13 @@ final class Equality
             if (\count($a) !== \count($b)) {
                 return false;
             }
-            return \array_all($a, fn($value, $key) => \array_key_exists($key, $b) && self::compare($value, $b[$key], $comparing));
+            return \array_all(
+                $a,
+                static function ($value, $key) use ($b, &$leftObjects, &$rightObjects): bool {
+                    return \array_key_exists($key, $b)
+                        && self::compare($value, $b[$key], $leftObjects, $rightObjects);
+                },
+            );
         }
 
         if ($a instanceof \UnitEnum || $b instanceof \UnitEnum) {
@@ -153,17 +171,20 @@ final class Equality
                 return false;
             }
 
+            $leftId = \spl_object_id($a);
+            $rightId = \spl_object_id($b);
+
+            if (isset($leftObjects[$leftId]) || isset($rightObjects[$rightId])) {
+                return ($leftObjects[$leftId] ?? null) === $rightId
+                    && ($rightObjects[$rightId] ?? null) === $leftId;
+            }
+
+            $leftObjects[$leftId] = $rightId;
+            $rightObjects[$rightId] = $leftId;
+
             if ($a === $b) {
                 return true;
             }
-
-            $pair = \spl_object_id($a) . ':' . \spl_object_id($b);
-
-            if (\in_array($pair, $comparing, true)) {
-                return true;
-            }
-
-            $comparing[] = $pair;
 
             $aProperties = \get_mangled_object_vars($a);
             $bProperties = \get_mangled_object_vars($b);
@@ -171,7 +192,13 @@ final class Equality
             if (\count($aProperties) !== \count($bProperties)) {
                 return false;
             }
-            return \array_all($aProperties, fn($value, $name) => \array_key_exists($name, $bProperties) && self::compare($value, $bProperties[$name], $comparing));
+            return \array_all(
+                $aProperties,
+                static function ($value, $name) use ($bProperties, &$leftObjects, &$rightObjects): bool {
+                    return \array_key_exists($name, $bProperties)
+                        && self::compare($value, $bProperties[$name], $leftObjects, $rightObjects);
+                },
+            );
         }
 
         return $a === $b;
