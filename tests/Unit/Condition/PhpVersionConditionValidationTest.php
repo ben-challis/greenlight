@@ -36,4 +36,25 @@ final readonly class PhpVersionConditionValidationTest
         yield 'at least' => [static fn(): PhpVersionAtLeast => new PhpVersionAtLeast('')];
         yield 'less than' => [static fn(): PhpVersionLessThan => new PhpVersionLessThan('')];
     }
+
+    /**
+     * @param \Closure(): Condition $create
+     */
+    #[Test]
+    #[DataSet('zeroVersionConditions')]
+    public function acceptsZeroAsAPhpVersion(\Closure $create, bool $expected): void
+    {
+        Expect::that($create()->isSatisfied())
+            ->because('the non-empty version "0" MUST retain PHP version comparison semantics')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): Condition, bool}>
+     */
+    public static function zeroVersionConditions(): iterable
+    {
+        yield 'at least' => [static fn(): PhpVersionAtLeast => new PhpVersionAtLeast('0'), true];
+        yield 'less than' => [static fn(): PhpVersionLessThan => new PhpVersionLessThan('0'), false];
+    }
 }
