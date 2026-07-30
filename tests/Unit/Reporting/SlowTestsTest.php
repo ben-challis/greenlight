@@ -59,6 +59,30 @@ final class SlowTestsTest
     }
 
     #[Test]
+    public function extendedModeCapsAtTwentyFive(): void
+    {
+        $slow = new SlowTests(extended: true);
+
+        for ($i = 1; $i <= 26; ++$i) {
+            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+        }
+
+        $rendered = $slow->render(new Style(ansi: false));
+        $lines = \explode("\n", \trim($rendered));
+
+        Expect::that(\count($lines))
+            ->because('profile mode MUST list exactly the 25 slowest tests')
+            ->toBe(26)
+            ->and($lines[1])
+            ->toBe('  0.760s Acme\SlowTest::case26')
+            ->and($lines[25])
+            ->toBe('  0.520s Acme\SlowTest::case02')
+            ->and($rendered)
+            ->not()
+            ->toContain('case01');
+    }
+
+    #[Test]
     public function longRunsPruneIncrementallyWithoutLosingTheSlowestTests(): void
     {
         $slow = new SlowTests();
