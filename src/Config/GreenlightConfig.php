@@ -13,13 +13,15 @@ final class GreenlightConfig
 {
     private const string DEFAULT_RECYCLE_ABOVE_MEMORY = '256M';
 
+    private const int DEFAULT_RECYCLE_ABOVE_MEMORY_BYTES = 256 * 1024 * 1024;
+
     /**
      * @var non-empty-list<non-empty-string>
      */
     private array $paths = ['tests'];
 
     /**
-     * @var array<non-empty-string, SuiteBuilder>
+     * @var array<non-empty-string, SuiteConfiguration>
      */
     private array $suites = [];
 
@@ -30,7 +32,10 @@ final class GreenlightConfig
      */
     private ?int $recycleAfterTests = null;
 
-    private string $recycleAboveMemory = self::DEFAULT_RECYCLE_ABOVE_MEMORY;
+    /**
+     * @var positive-int
+     */
+    private int $recycleAboveMemoryBytes = self::DEFAULT_RECYCLE_ABOVE_MEMORY_BYTES;
 
     private ?CoverageBuilder $coverage = null;
 
@@ -124,7 +129,7 @@ final class GreenlightConfig
 
         $builder = new SuiteBuilder($name);
         $configurator($builder);
-        $this->suites[$name] = $builder;
+        $this->suites[$name] = $builder->toConfiguration();
 
         return $this;
     }
@@ -151,9 +156,11 @@ final class GreenlightConfig
             throw new InvalidConfiguration(\sprintf('recycleAfterTests must be at least 1, got %d.', $recycleAfterTests));
         }
 
+        $recycleAboveMemoryBytes = MemorySize::parseToBytes($recycleAboveMemory);
+
         $this->workers = $workers;
         $this->recycleAfterTests = $recycleAfterTests;
-        $this->recycleAboveMemory = $recycleAboveMemory;
+        $this->recycleAboveMemoryBytes = $recycleAboveMemoryBytes;
 
         return $this;
     }
@@ -196,9 +203,9 @@ final class GreenlightConfig
      */
     public function coverage(callable $configurator): self
     {
-        $builder = $this->coverage ?? new CoverageBuilder();
+        $builder = $this->coverage instanceof CoverageBuilder ? clone $this->coverage : new CoverageBuilder();
         $configurator($builder);
-        $this->coverage = $builder;
+        $this->coverage = clone $builder;
 
         return $this;
     }
@@ -208,9 +215,9 @@ final class GreenlightConfig
      */
     public function watch(callable $configurator): self
     {
-        $builder = $this->watch ?? new WatchBuilder();
+        $builder = $this->watch instanceof WatchBuilder ? clone $this->watch : new WatchBuilder();
         $configurator($builder);
-        $this->watch = $builder;
+        $this->watch = clone $builder;
 
         return $this;
     }
@@ -220,9 +227,9 @@ final class GreenlightConfig
      */
     public function artifacts(callable $configurator): self
     {
-        $builder = $this->artifacts ?? new ArtifactBuilder();
+        $builder = $this->artifacts instanceof ArtifactBuilder ? clone $this->artifacts : new ArtifactBuilder();
         $configurator($builder);
-        $this->artifacts = $builder;
+        $this->artifacts = clone $builder;
 
         return $this;
     }
@@ -267,13 +274,17 @@ final class GreenlightConfig
      */
     public function ignoreDeprecationsMatching(string ...$patterns): self
     {
+        $validated = [];
+
         foreach ($patterns as $pattern) {
             if ($pattern === '') {
                 throw new InvalidConfiguration('ignoreDeprecationsMatching() patterns cannot be empty.');
             }
 
-            $this->ignoreDeprecations[] = $pattern;
+            $validated[] = $pattern;
         }
+
+        $this->ignoreDeprecations = [...$this->ignoreDeprecations, ...$validated];
 
         return $this;
     }
@@ -323,23 +334,14 @@ final class GreenlightConfig
         ));
     }
 
-    /**
-     * @throws InvalidConfiguration
-     */
     public function build(): Configuration
     {
-        $suites = [];
-
-        foreach ($this->suites as $builder) {
-            $suites[] = $builder->toConfiguration();
-        }
-
         return new Configuration(
             paths: $this->paths,
-            suites: $suites,
+            suites: \array_values($this->suites),
             workers: $this->workers,
             recycleAfterTests: $this->recycleAfterTests,
-            recycleAboveMemoryBytes: MemorySize::parseToBytes($this->recycleAboveMemory),
+            recycleAboveMemoryBytes: $this->recycleAboveMemoryBytes,
             coverage: $this->coverage?->toConfiguration(),
             watch: $this->watch?->toConfiguration() ?? new WatchConfiguration(),
             plugins: $this->plugins,

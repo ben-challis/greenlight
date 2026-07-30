@@ -27,13 +27,17 @@ final class CoverageBuilder
      */
     public function include(string ...$paths): self
     {
+        $validated = [];
+
         foreach ($paths as $path) {
             if ($path === '') {
                 throw new InvalidConfiguration('Coverage include paths cannot be empty.');
             }
 
-            $this->includePaths[] = $path;
+            $validated[] = $path;
         }
+
+        $this->includePaths = [...$this->includePaths, ...$validated];
 
         return $this;
     }

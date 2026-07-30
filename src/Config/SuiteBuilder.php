@@ -27,13 +27,17 @@ final class SuiteBuilder
      */
     public function in(string ...$paths): self
     {
+        $validated = [];
+
         foreach ($paths as $path) {
             if ($path === '') {
                 throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $this->name));
             }
 
-            $this->paths[] = $path;
+            $validated[] = $path;
         }
+
+        $this->paths = [...$this->paths, ...$validated];
 
         return $this;
     }
@@ -43,13 +47,17 @@ final class SuiteBuilder
      */
     public function tag(string ...$tags): self
     {
+        $validated = [];
+
         foreach ($tags as $tag) {
             if ($tag === '') {
                 throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty tag.', $this->name));
             }
 
-            $this->tags[] = $tag;
+            $validated[] = $tag;
         }
+
+        $this->tags = [...$this->tags, ...$validated];
 
         return $this;
     }

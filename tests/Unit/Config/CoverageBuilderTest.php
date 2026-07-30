@@ -25,6 +25,20 @@ final class CoverageBuilderTest
     }
 
     #[Test]
+    public function aRejectedIncludeCallDoesNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = new CoverageBuilder()->include('src');
+
+        Expect::that(static fn(): CoverageBuilder => $builder->include('app', ''))
+            ->because('a rejected include call does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        Expect::that($builder->toConfiguration()->includePaths)
+            ->because('a rejected include call retains the prior paths')
+            ->toBe(['src']);
+    }
+
+    #[Test]
     public function anEmptyDriverNameIsRejected(): void
     {
         Expect::that(static function (): void {
