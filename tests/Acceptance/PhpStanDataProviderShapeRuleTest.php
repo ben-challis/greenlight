@@ -61,6 +61,13 @@ final readonly class PhpStanDataProviderShapeRuleTest
                 }
 
                 #[Test]
+                #[DataRow(['one', 'two'])]
+                public function variadicValues(string ...$values): void
+                {
+                    echo \implode('', $values);
+                }
+
+                #[Test]
                 #[DataSet(SharedProviders::class, 'sums')]
                 public function addsFromSharedProvider(int $left, int $right, int $expected): void
                 {
