@@ -42,8 +42,10 @@ final class AssignOptionalStringWireTest
     public static function optionalStrings(): iterable
     {
         yield 'empty coverage driver' => ['coverageDriver', '', null];
+        yield 'zero coverage driver' => ['coverageDriver', '0', '0'];
         yield 'non-empty coverage driver' => ['coverageDriver', 'xdebug', 'xdebug'];
         yield 'empty config file' => ['configFile', '', null];
+        yield 'zero config file' => ['configFile', '0', '0'];
         yield 'non-empty config file' => ['configFile', '/app/greenlight.php', '/app/greenlight.php'];
     }
 }
