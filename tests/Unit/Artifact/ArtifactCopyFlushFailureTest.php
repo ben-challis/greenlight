@@ -9,7 +9,7 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
-use Greenlight\Runner\Artifact\FileCopier;
+use Greenlight\Runner\Artifact\NativeFileCopier;
 use Greenlight\Tests\Fixture\Artifact\UnflushableStream;
 
 final readonly class ArtifactCopyFlushFailureTest
@@ -34,7 +34,7 @@ final readonly class ArtifactCopyFlushFailureTest
 
             UnflushableStream::reset();
 
-            Expect::that(static fn() => FileCopier::copy(
+            Expect::that(static fn() => new NativeFileCopier()->copy(
                 $source,
                 self::SCHEME . '://destination',
             ))
