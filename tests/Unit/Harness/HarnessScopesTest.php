@@ -209,6 +209,19 @@ final class HarnessScopesTest
     }
 
     #[Test]
+    public function closingInactiveScopesIsIdempotent(): void
+    {
+        $scopes = new HarnessScopes(new HarnessRegistry());
+
+        Expect::that($scopes->closeTest())
+            ->because('closing an inactive test scope MUST be a safe no-op')
+            ->toBe([])
+            ->and($scopes->closeClass())
+            ->because('closing an inactive class scope MUST be a safe no-op')
+            ->toBe([]);
+    }
+
+    #[Test]
     #[DataSet('serviceLifetimes')]
     public function servicesRespectTheirLifetimeAcrossScopeReopening(Scope $scope, bool $reused): void
     {
