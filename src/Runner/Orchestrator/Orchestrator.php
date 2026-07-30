@@ -727,6 +727,7 @@ final class Orchestrator
 
     private function containCrash(WorkerHandle $handle, EventSink $sink, string $reason): void
     {
+        $handle->drainPipes();
         $inFlight = $handle->inFlight;
 
         if ($inFlight instanceof TestId) {
