@@ -13,6 +13,9 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\FinalService;
 use Greenlight\Tests\Fixture\Doubles\HandlerCollision;
+use Greenlight\Tests\Fixture\Doubles\MixedCaseDestructor;
+use Greenlight\Tests\Fixture\Doubles\MixedCaseHandlerCollision;
+use Greenlight\Tests\Fixture\Doubles\MixedCaseMagicMethods;
 use Greenlight\Tests\Fixture\Doubles\PlanningBoundaries;
 use Greenlight\Tests\Fixture\Doubles\ReadonlyService;
 use Greenlight\Tests\Fixture\Doubles\ReusableBehavior;
@@ -66,18 +69,54 @@ final class BoundaryTest
             );
     }
 
+    /**
+     * @param class-string $type
+     */
     #[Test]
-    public function theProxyHandlerMethodCannotBeDeclaredByTheDoubledType(): void
+    #[DataSet('handlerCollisions')]
+    public function theProxyHandlerMethodCannotBeDeclaredByTheDoubledType(string $type): void
     {
         $doubles = new Doubles();
 
-        Expect::that(static fn(): object => $doubles->mock(HandlerCollision::class))
+        Expect::that(static fn(): object => $doubles->mock($type))
             ->because('the proxy handler method cannot be declared by the doubled type')
             ->toThrow(
                 DoublesError::class,
-                message: HandlerCollision::class . ' declares __greenlightAttachHandler(). '
+                message: $type . ' declares __greenlightAttachHandler(). '
                     . 'This method conflicts with the proxy handler method.',
             );
+    }
+
+    /**
+     * @return iterable<string, array{class-string}>
+     */
+    public static function handlerCollisions(): iterable
+    {
+        yield 'exact case' => [HandlerCollision::class];
+        yield 'mixed case' => [MixedCaseHandlerCollision::class];
+    }
+
+    #[Test]
+    public function mixedCaseConstructorAndCloneMethodsAreNotIntercepted(): void
+    {
+        $double = new Doubles()->stub(MixedCaseMagicMethods::class);
+        $reflection = new \ReflectionClass($double);
+        $constructor = $reflection->getMethod('__construct');
+        $clone = $reflection->getMethod('__clone');
+
+        Expect::that($constructor->getDeclaringClass()->name)
+            ->because('PHP magic method names MUST remain case-insensitive in generated proxies')
+            ->toBe(MixedCaseMagicMethods::class)
+            ->and($clone->getDeclaringClass()->name)
+            ->toBe(MixedCaseMagicMethods::class);
+    }
+
+    #[Test]
+    public function aMixedCaseDestructorDoesNotCreateADuplicateProxyMethod(): void
+    {
+        Expect::that(new Doubles()->stub(MixedCaseDestructor::class))
+            ->because('a mixed-case destructor MUST produce a valid proxy class')
+            ->toBeInstanceOf(MixedCaseDestructor::class);
     }
 
     #[Test]
