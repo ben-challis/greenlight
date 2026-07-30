@@ -192,7 +192,9 @@ final readonly class ProxyGenerator
             throw DoublesError::attachHandlerCollision($method->getDeclaringClass()->name);
         }
 
-        if ($method->isFinal()) {
+        if ($method->isFinal()
+            || ($method->isProtected() && !$method->isAbstract())
+        ) {
             return null;
         }
 
