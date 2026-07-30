@@ -41,6 +41,18 @@ final class GreenlightConfigTest
     }
 
     #[Test]
+    public function retainsAZeroTestPath(): void
+    {
+        $configuration = GreenlightConfig::create()
+            ->paths(['0'])
+            ->build();
+
+        Expect::that($configuration->paths)
+            ->because('configuration MUST retain each non-empty test path')
+            ->toBe(['0']);
+    }
+
+    #[Test]
     public function buildsAFullyConfiguredRun(): void
     {
         $plugin = new class implements RunLifecycleSubscriber {
