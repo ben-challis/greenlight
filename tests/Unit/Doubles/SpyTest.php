@@ -60,7 +60,12 @@ final class SpyTest
         $spy = $doubles->spy(Calculator::class);
 
         Expect::that(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
-            ->toThrow(DoublesError::class, '/Spies only record/');
+            ->toThrow(
+                DoublesError::class,
+                message: 'The spy of "' . Calculator::class . '" cannot supply a value for "add()". '
+                    . 'Spies only record interactions. '
+                    . 'Use mock() with explicit expectations for calls that return values.',
+            );
 
         $doubles->dispose();
     }
@@ -72,7 +77,10 @@ final class SpyTest
         $foreign = new \stdClass();
 
         Expect::that(static fn(): array => $doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects')
-            ->toThrow(DoublesError::class, '/Doubles factory did not create/');
+            ->toThrow(
+                DoublesError::class,
+                message: 'This Doubles factory did not create the stdClass instance.',
+            );
     }
 
     #[Test]
