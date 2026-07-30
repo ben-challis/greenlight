@@ -315,12 +315,9 @@ final class MockTest
         $doubles = new Doubles();
         $calculator = $doubles->mock(Calculator::class);
 
-        try {
-            $calculator->add(1, 2);
-        } catch (ExpectationFailed) {
-            // Ignore this exception intentionally. Verification must still
-            // fail the test.
-        }
+        Expect::that(static fn(): int => $calculator->add(1, 2))
+            ->because('the unexpected call MUST fail before verification')
+            ->toThrow(ExpectationFailed::class);
 
         Expect::that(static fn() => $doubles->dispose())->because('a swallowed unexpected call still fails verification')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
@@ -334,11 +331,9 @@ final class MockTest
             $plan->expects('add')->once();
         });
 
-        try {
-            $doubles->dispose();
-        } catch (ExpectationFailed) {
-            // Expected because code did not call add().
-        }
+        Expect::that(static fn() => $doubles->dispose())
+            ->because('verification MUST fail before it drops state')
+            ->toThrow(ExpectationFailed::class);
 
         $doubles->dispose();
     }
