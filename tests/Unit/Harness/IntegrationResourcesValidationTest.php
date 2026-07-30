@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Harness;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
+use Greenlight\Harness\FixtureResource;
 use Greenlight\Harness\IntegrationResources;
 
 final readonly class IntegrationResourcesValidationTest
@@ -40,5 +42,33 @@ final readonly class IntegrationResourcesValidationTest
                 \OutOfBoundsException::class,
                 message: 'No integration fixture named "database" is available to this worker.',
             );
+    }
+
+    /**
+     * @param array<mixed, mixed> $fixtures
+     */
+    #[Test]
+    #[DataSet('invalidRuntimeFixtureMaps')]
+    public function constructorRejectsInvalidRuntimeFixtureMaps(array $fixtures): void
+    {
+        $resources = new \ReflectionClass(IntegrationResources::class);
+
+        Expect::that(static fn(): object => $resources->newInstance($fixtures))
+            ->because('integration resources MUST validate runtime fixture maps at their boundary')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Integration resources must be a map of non-empty UTF-8 fixture IDs '
+                    . 'to FixtureResource instances.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{array<mixed, mixed>}>
+     */
+    public static function invalidRuntimeFixtureMaps(): iterable
+    {
+        yield 'integer fixture ID' => [[0 => FixtureResource::empty()]];
+        yield 'empty fixture ID' => [['' => FixtureResource::empty()]];
+        yield 'invalid resource type' => [['database' => new \stdClass()]];
     }
 }
