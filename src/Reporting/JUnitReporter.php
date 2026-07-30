@@ -40,7 +40,14 @@ final class JUnitReporter implements Reporter
 
     private ?float $runDurationSeconds = null;
 
-    public function __construct(private readonly Output $output) {}
+    private readonly XmlWriterRuntime $xmlWriter;
+
+    public function __construct(
+        private readonly Output $output,
+        ?XmlWriterRuntime $xmlWriter = null,
+    ) {
+        $this->xmlWriter = $xmlWriter ?? new NativeXmlWriterRuntime();
+    }
 
     #[\Override]
     public function onEvent(Event $event): void
@@ -75,7 +82,7 @@ final class JUnitReporter implements Reporter
     #[\Override]
     public function finish(): void
     {
-        if (!\class_exists(\XMLWriter::class)) {
+        if (!$this->xmlWriter->isAvailable()) {
             throw ReportingError::xmlUnavailable();
         }
 
@@ -130,11 +137,11 @@ final class JUnitReporter implements Reporter
 
     private function renderCase(TestResult $result): string
     {
-        if (!\class_exists(\XMLWriter::class)) {
+        if (!$this->xmlWriter->isAvailable()) {
             throw ReportingError::xmlUnavailable();
         }
 
-        $writer = new \XMLWriter();
+        $writer = $this->xmlWriter->create();
         $writer->openMemory();
         $writer->setIndent(true);
         $writer->setIndentString('  ');
