@@ -30,6 +30,20 @@ final class SourceLocationTest
     }
 
     #[Test]
+    public function preservesAZeroStringFileAcrossRenderingAndTheWire(): void
+    {
+        $location = new SourceLocation('0', 1);
+        $restored = SourceLocation::fromWire(JsonWire::roundTrip($location->toWire()));
+
+        Expect::that((string) $location)
+            ->because('a zero-string source file is not empty')
+            ->toBe('0:1')
+            ->and($restored->file)
+            ->because('the zero-string source file MUST survive the wire')
+            ->toBe('0');
+    }
+
+    #[Test]
     #[DataSet('nonPositiveLines')]
     public function wireInputClampsNonPositiveLinesToTheFirstLine(int $line): void
     {
