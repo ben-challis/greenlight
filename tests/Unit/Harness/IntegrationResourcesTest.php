@@ -77,6 +77,17 @@ final class IntegrationResourcesTest
     }
 
     #[Test]
+    public function sensitiveValueDebugInformationContainsOnlyTheRedactionMarker(): void
+    {
+        $value = FixtureResource::from(secrets: ['password' => 'do-not-print'])
+            ->secret('password');
+
+        Expect::that($value->__debugInfo())
+            ->because('sensitive value debug information MUST identify redaction without exposing the value')
+            ->toBe(['value' => '[redacted]']);
+    }
+
+    #[Test]
     public function debugRepresentationsKeepNestedSecretsRedacted(): void
     {
         $secret = 'database-password';
