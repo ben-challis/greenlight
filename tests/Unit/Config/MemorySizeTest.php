@@ -32,15 +32,29 @@ final class MemorySizeTest
     }
 
     #[Test]
-    public function rejectsGarbage(): void
+    #[DataSet('invalidSizes')]
+    public function invalidSizesGiveReasonSpecificGuidance(string $input, string $message): void
     {
-        $garbage = ['', 'abc', '-5M', '1T', '0', 'M', '1.5G', '10 apples'];
+        Expect::that(static fn(): int => MemorySize::parseToBytes($input))
+            ->because('an invalid memory size MUST explain its specific input error')
+            ->toThrow(InvalidConfiguration::class, message: $message);
+    }
 
-        foreach ($garbage as $input) {
-            Expect::that(static function () use ($input): void {
-                MemorySize::parseToBytes($input);
-            })->toThrow(InvalidConfiguration::class);
+    /**
+     * @return iterable<string, array{string, non-empty-string}>
+     */
+    public static function invalidSizes(): iterable
+    {
+        $format = 'Use a positive byte count or a K, M, or G suffix, for example "256M".';
+
+        foreach (['', 'abc', '-5M', '1T', 'M', '1.5G', '10 apples'] as $input) {
+            yield $input === '' ? 'empty' : $input => [
+                $input,
+                \sprintf('Invalid memory size "%s". %s', $input, $format),
+            ];
         }
+
+        yield 'zero' => ['0', 'Invalid memory size "0". The amount must be at least 1.'];
     }
 
     #[Test]
