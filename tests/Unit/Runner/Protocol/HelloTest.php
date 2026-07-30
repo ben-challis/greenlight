@@ -8,9 +8,28 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Tests\Support\JsonWire;
 
 final class HelloTest
 {
+    #[Test]
+    #[DataSet('validWorkerIntroductions')]
+    public function zeroWorkerIdentitiesSurviveTheWire(string $workerId, string $token): void
+    {
+        $hello = new Hello($workerId, $token, 1);
+        $decoded = Hello::fromWire(JsonWire::roundTrip($hello->toWire()));
+
+        Expect::that($hello->workerId)
+            ->because('a worker introduction MUST retain each non-empty worker ID')
+            ->toBe($workerId)
+            ->and($hello->token)
+            ->because('a worker introduction MUST retain each non-empty authentication token')
+            ->toBe($token)
+            ->and($decoded->toWire())
+            ->because('the worker introduction MUST survive the wire')
+            ->toBe($hello->toWire());
+    }
+
     #[Test]
     #[DataSet('invalidWorkerIntroductions')]
     public function invalidWorkerIntroductionsAreRejected(
@@ -22,6 +41,16 @@ final class HelloTest
         Expect::that(static fn(): Hello => new Hello($workerId, $token, $pid))
             ->because('worker introductions MUST identify an authenticated operating-system process')
             ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function validWorkerIntroductions(): iterable
+    {
+        yield 'zero worker ID' => ['0', 'token'];
+
+        yield 'zero authentication token' => ['worker-1', '0'];
     }
 
     /**
