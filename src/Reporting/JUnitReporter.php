@@ -186,14 +186,20 @@ final class JUnitReporter implements Reporter
 
         $error = $result->error;
 
-        if ($result->outcome === Outcome::Errored && $error instanceof ThrowableDetail) {
+        if ($result->outcome === Outcome::Errored) {
             $writer->startElement('error');
-            $writer->writeAttribute('type', $this->xml($error->class));
-            $writer->writeAttribute('message', $this->xml($error->message));
 
-            $body = $error->stackFrames;
-            $body[] = 'at ' . $error->file . ':' . $error->line;
-            $writer->text($this->xml(\implode("\n", $body)));
+            if ($error instanceof ThrowableDetail) {
+                $writer->writeAttribute('type', $this->xml($error->class));
+                $writer->writeAttribute('message', $this->xml($error->message));
+
+                $body = $error->stackFrames;
+                $body[] = 'at ' . $error->file . ':' . $error->line;
+                $writer->text($this->xml(\implode("\n", $body)));
+            } else {
+                $writer->writeAttribute('type', 'error');
+                $writer->writeAttribute('message', 'errored');
+            }
 
             $writer->endElement();
         }
