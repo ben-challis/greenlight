@@ -52,6 +52,38 @@ final class CliOverridesTest
     }
 
     #[Test]
+    public function zeroStringsRemainSelectionValues(): void
+    {
+        $overrides = CliOverrides::fromArguments(new ParsedArguments('run', [
+            'group' => ['0'],
+            'filter' => ['0'],
+            'exclude-group' => ['0'],
+            'exclude-class' => ['0'],
+            'exclude-method' => ['0'],
+            'exclude-path' => ['0'],
+        ]));
+
+        Expect::that($overrides->groups)
+            ->because('a zero string MUST remain a group selection')
+            ->toBe(['0'])
+            ->and($overrides->filters)
+            ->because('a zero string MUST remain a filter selection')
+            ->toBe(['0'])
+            ->and($overrides->excludeGroups)
+            ->because('a zero string MUST remain an excluded group selection')
+            ->toBe(['0'])
+            ->and($overrides->excludeClasses)
+            ->because('a zero string MUST remain an excluded class selection')
+            ->toBe(['0'])
+            ->and($overrides->excludeMethods)
+            ->because('a zero string MUST remain an excluded method selection')
+            ->toBe(['0'])
+            ->and($overrides->excludePaths)
+            ->because('a zero string MUST remain an excluded path selection')
+            ->toBe(['0']);
+    }
+
+    #[Test]
     public function extractsRepeatOptions(): void
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments('run', ['repeat' => ['3']]));
