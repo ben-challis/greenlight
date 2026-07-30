@@ -77,6 +77,19 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function aClassFinishedEventWithoutAStartUsesAnEmptyState(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, color: false, cursor: false);
+
+        $reporter->onEvent(new TestClassFinished('App\RecoveredTest', 1.0));
+
+        Expect::that($output->buffer())
+            ->because('a missing class-start event MUST NOT hide the class completion')
+            ->toBe("✓ App\RecoveredTest (0 tests, 0.000s)\n");
+    }
+
+    #[Test]
     public function zeroResultCategoriesAreOmittedFromTheSummary(): void
     {
         $output = new BufferOutput();
