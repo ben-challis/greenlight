@@ -112,6 +112,22 @@ final class GreenlightConfigTest
     }
 
     #[Test]
+    public function preservesAZeroStringSuiteNameThroughBuild(): void
+    {
+        $configuration = GreenlightConfig::create()
+            ->suite('0', static fn(SuiteBuilder $suite) => $suite->in('tests')->tag('fast'))
+            ->build();
+
+        Expect::that([
+            $configuration->suites[0]->name,
+            $configuration->suites[0]->paths,
+            $configuration->suites[0]->tags,
+        ])
+            ->because('a zero-string suite name is not empty')
+            ->toBe(['0', ['tests'], ['fast']]);
+    }
+
+    #[Test]
     public function randomizeOrderWithoutSeedStillEnablesRandomization(): void
     {
         $configuration = GreenlightConfig::create()->randomizeOrder()->build();
