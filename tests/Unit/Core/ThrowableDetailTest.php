@@ -58,6 +58,29 @@ final class ThrowableDetailTest
     }
 
     #[Test]
+    public function rendersFunctionStackFrames(): void
+    {
+        $threw = null;
+
+        try {
+            $callLine = __LINE__ + 1;
+            throwForThrowableDetailFunctionFrame();
+        } catch (\RuntimeException $exception) {
+            $threw = $exception;
+        }
+
+        Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
+            ->because('a throwable detail MUST render a function frame without a class call type')
+            ->toBe(
+                __NAMESPACE__
+                . '\throwForThrowableDetailFunctionFrame at '
+                . __FILE__
+                . ':'
+                . $callLine,
+            );
+    }
+
+    #[Test]
     public function deepTracesAreBoundedWithATruncationMarker(): void
     {
         $capture = new class implements Fake {
@@ -141,4 +164,9 @@ final class ThrowableDetailTest
     {
         throw new \RuntimeException('frame');
     }
+}
+
+function throwForThrowableDetailFunctionFrame(): never
+{
+    throw new \RuntimeException('function frame');
 }
