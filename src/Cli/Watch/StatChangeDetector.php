@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
+use Greenlight\Core\ErrorTrap;
+
 /**
  * A portable file change detector.
  *
- * poll() records mtime and size for each PHP file in the specified
- * directories. It reports a path when its fingerprint changes. It also
- * reports new and removed paths.
+ * poll() records the modification time, size, and content hash for each PHP
+ * file in the specified directories. It reports a path when its fingerprint
+ * changes. It also reports new and removed paths.
  *
  * The first poll creates the initial record and reports no changes.
  *
@@ -80,10 +82,31 @@ final class StatChangeDetector implements ChangeDetector
                 }
 
                 $path = $file->getPathname();
-                $snapshot[$path] = $file->getMTime() . ':' . $file->getSize();
+                $fingerprint = $this->fingerprint($path);
+
+                if ($fingerprint !== null) {
+                    $snapshot[$path] = $fingerprint;
+                }
             }
         }
 
         return $snapshot;
+    }
+
+    private function fingerprint(string $path): ?string
+    {
+        \clearstatcache(true, $path);
+
+        return ErrorTrap::run(static function () use ($path): ?string {
+            $mtime = \filemtime($path);
+            $size = \filesize($path);
+            $contentHash = \sha1_file($path);
+
+            if (!\is_int($mtime) || !\is_int($size) || !\is_string($contentHash)) {
+                return null;
+            }
+
+            return $mtime . ':' . $size . ':' . $contentHash;
+        });
     }
 }
