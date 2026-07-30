@@ -78,6 +78,35 @@ final readonly class CoverageDiffErrorTest
             ));
     }
 
+    #[Test]
+    #[DataSet('invalidExportLabels')]
+    public function emptyCoverageExportsAreMalformedNotUnreadable(string $invalidLabel): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-empty-' . $invalidLabel);
+        $valid = '{"v":1,"files":{}}';
+
+        foreach (['baseline', 'current'] as $label) {
+            $project->writeFile($label . '.json', $label === $invalidLabel ? '' : $valid);
+        }
+
+        $result = GreenlightCli::run($project->directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('empty readable exports are malformed instead of unreadable')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain(\sprintf(
+                'The %s file is not a valid coverage export: '
+                . 'Coverage JSON document is invalid: Syntax error',
+                $invalidLabel,
+            ))
+            ->not()->toContain('could not read');
+    }
+
     /**
      * @return iterable<string, array{non-empty-string}>
      */
