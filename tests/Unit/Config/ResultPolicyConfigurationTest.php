@@ -112,6 +112,26 @@ final class ResultPolicyConfigurationTest
             );
     }
 
+    #[Test]
+    public function rejectedIgnorePatternsDoNotRetainEarlierArguments(): void
+    {
+        $config = GreenlightConfig::create()
+            ->ignoreDeprecationsMatching('existing');
+
+        Expect::that(
+            static fn(): GreenlightConfig => $config->ignoreDeprecationsMatching('partial', ''),
+        )
+            ->because('a rejected pattern list does not partially change the policy')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'ignoreDeprecationsMatching() patterns cannot be empty.',
+            );
+
+        Expect::that($config->build()->policy->ignoreDeprecations)
+            ->because('a rejected pattern call retains only prior patterns')
+            ->toBe(['existing']);
+    }
+
     /**
      * @return iterable<string, array{list<string>}>
      */
