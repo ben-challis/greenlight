@@ -63,6 +63,21 @@ final class SummaryFormatTest
     }
 
     #[Test]
+    public function zeroStringSkipReasonsRemainDistinctFromNoReason(): void
+    {
+        $block = SummaryFormat::skipped([
+            $this->skip('App\AlphaTest::one', '0'),
+        ], new Style(ansi: false));
+
+        Expect::that($block)
+            ->because('a zero-string skip reason MUST remain distinct from a missing reason')
+            ->toBe(
+                "\nSkipped:\n"
+                . "  App\AlphaTest::one (0)\n",
+            );
+    }
+
+    #[Test]
     public function sharedReasonsGroupWithACap(): void
     {
         $results = [];

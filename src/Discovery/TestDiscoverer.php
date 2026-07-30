@@ -146,7 +146,7 @@ final readonly class TestDiscoverer
             }
 
             foreach (\array_keys($rows) as $key) {
-                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method, $key), $metadata);
+                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method, (string) $key), $metadata);
             }
         }
 

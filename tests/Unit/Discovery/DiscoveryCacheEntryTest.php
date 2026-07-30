@@ -20,8 +20,13 @@ final class DiscoveryCacheEntryTest
             'size' => 200,
             'entries' => [['class' => 'Example\Test']],
             'dependencies' => [
-                '/project/tests/Provider.php' => ['mtime' => 300, 'size' => 400],
+                '/project/tests/Provider.php' => [
+                    'mtime' => 300,
+                    'size' => 400,
+                    'contentHash' => \str_repeat('b', 40),
+                ],
             ],
+            'contentHash' => \str_repeat('a', 40),
         ];
 
         $entry = DiscoveryCacheEntry::fromDecoded($decoded);
@@ -73,6 +78,8 @@ final class DiscoveryCacheEntryTest
 
         yield 'invalid top-level field' => [[...$valid, 'mtime' => '100']];
 
+        yield 'invalid content hash' => [[...$valid, 'contentHash' => \str_repeat('g', 40)]];
+
         yield 'entry is not a map' => [[...$valid, 'entries' => ['not a map']]];
 
         yield 'entry key is not a string' => [[...$valid, 'entries' => [[0 => 'value']]]];
@@ -87,5 +94,16 @@ final class DiscoveryCacheEntryTest
         yield 'dependency path is empty' => [[...$valid, 'dependencies' => ['' => ['mtime' => 300, 'size' => 400]]]];
 
         yield 'dependency stat is invalid' => [[...$valid, 'dependencies' => ['/project/tests/Provider.php' => ['mtime' => '300', 'size' => 400]]]];
+
+        yield 'dependency content hash is invalid' => [[
+            ...$valid,
+            'dependencies' => [
+                '/project/tests/Provider.php' => [
+                    'mtime' => 300,
+                    'size' => 400,
+                    'contentHash' => \str_repeat('g', 40),
+                ],
+            ],
+        ]];
     }
 }

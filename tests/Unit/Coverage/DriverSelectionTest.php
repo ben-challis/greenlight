@@ -20,4 +20,14 @@ final readonly class DriverSelectionTest
                 message: 'Coverage unavailability requires a nonempty reason.',
             );
     }
+
+    #[Test]
+    public function unavailableSelectionsPreserveAZeroStringReason(): void
+    {
+        $selection = DriverSelection::unavailable('0');
+
+        Expect::that($selection->reason)
+            ->because('coverage unavailability MUST preserve a zero-string reason')
+            ->toBe('0');
+    }
 }

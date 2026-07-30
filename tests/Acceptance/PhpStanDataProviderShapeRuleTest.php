@@ -61,6 +61,13 @@ final readonly class PhpStanDataProviderShapeRuleTest
                 }
 
                 #[Test]
+                #[DataRow(['one', 'two'])]
+                public function variadicValues(string ...$values): void
+                {
+                    echo \implode('', $values);
+                }
+
+                #[Test]
                 #[DataSet(SharedProviders::class, 'sums')]
                 public function addsFromSharedProvider(int $left, int $right, int $expected): void
                 {
@@ -155,6 +162,13 @@ final readonly class PhpStanDataProviderShapeRuleTest
                 }
 
                 #[Test]
+                #[DataSet('protectedProvider')]
+                public function providerMustBePublic(int $value): void
+                {
+                    echo $value;
+                }
+
+                #[Test]
                 #[DataSet(SharedBadProviders::class, 'abstractProvider')]
                 public function providerMustBeConcrete(int $value): void
                 {
@@ -211,13 +225,21 @@ final readonly class PhpStanDataProviderShapeRuleTest
                 {
                     yield 'value' => [$value];
                 }
+
+                /**
+                 * @return iterable<string, array{int}>
+                 */
+                protected static function protectedProvider(): iterable
+                {
+                    yield 'value' => [1];
+                }
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(10)
+            ->and(\count($probe->errors))->toBe(11)
             ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
             ->toContain('notStatic() must be public and static')
             ->toContain('notIterable() must return an iterable of argument arrays. It returns string')
@@ -225,6 +247,7 @@ final readonly class PhpStanDataProviderShapeRuleTest
             ->toContain('Data provider stringRows() row argument #1 for typedRows() has type string, but the parameter requires int')
             ->toContain('requiredArgument() must not require arguments')
             ->toContain('SharedBadProviders::notStatic() must be public and static')
+            ->toContain('BadProviderProbe::protectedProvider() must be public and static')
             ->toContain('SharedBadProviders::abstractProvider() must be concrete')
             ->toContain('#[DataRow] supplies 2 arguments, but tooManyInline() expects exactly 1')
             ->toContain('#[DataRow] argument #1 for wrongInlineType() has type string, but the parameter requires int');

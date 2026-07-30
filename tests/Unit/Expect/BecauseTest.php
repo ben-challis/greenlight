@@ -23,6 +23,18 @@ final class BecauseTest
     }
 
     #[Test]
+    public function becausePreservesAZeroStringReason(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(false)->because('0')->toBeTrue(),
+        );
+
+        Expect::that($detail->message)
+            ->because('because() MUST preserve a zero-string reason')
+            ->toBe('Expected false to be true because 0.');
+    }
+
+    #[Test]
     public function becauseDoesNotChangeAPassingMatcher(): void
     {
         Expect::that(true)->because('a passing matcher consumes the reason without reporting it')->toBeTrue();

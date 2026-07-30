@@ -27,6 +27,22 @@ final readonly class CommandErrorsTest
     }
 
     #[Test]
+    public function anInvalidRunOverrideExitsWithAUsageError(): void
+    {
+        $result = GreenlightCli::run(\dirname(__DIR__, 2), [
+            'run',
+            '--bail=0',
+            '--no-ansi',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('an invalid run override MUST exit with a usage error')
+            ->toBe(64)
+            ->and($result->stderr)
+            ->toBe('greenlight: --bail requires a positive integer. Received "0".');
+    }
+
+    #[Test]
     public function coverageDiffWithoutBaselineOrCurrentIsAUsageError(): void
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), ['coverage:diff']);

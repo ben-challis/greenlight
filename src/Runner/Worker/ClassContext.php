@@ -23,7 +23,7 @@ final class ClassContext
     /**
      * Resolved data sets for each test method.
      *
-     * @var array<string, array<string, mixed>>
+     * @var array<string, array<array-key, mixed>>
      */
     private array $dataSets = [];
 

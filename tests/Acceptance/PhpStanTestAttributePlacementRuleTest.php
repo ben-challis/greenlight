@@ -52,8 +52,16 @@ final readonly class PhpStanTestAttributePlacementRuleTest
             namespace GreenlightTestAttributePlacementProbe;
 
             use Greenlight\Attribute\DataRow;
+            use Greenlight\Attribute\DataSet;
             use Greenlight\Attribute\Group;
+            use Greenlight\Attribute\Isolated;
             use Greenlight\Attribute\NoExpectations;
+            use Greenlight\Attribute\RequiresResource;
+            use Greenlight\Attribute\Retry;
+            use Greenlight\Attribute\Skip;
+            use Greenlight\Attribute\SkipUnless;
+            use Greenlight\Attribute\Timeout;
+            use Greenlight\Condition\EnvironmentVariableSet;
 
             final class BadTestAttributePlacementProbe
             {
@@ -66,15 +74,56 @@ final readonly class PhpStanTestAttributePlacementRuleTest
 
                 #[NoExpectations]
                 public function assertionHelper(): void {}
+
+                #[DataSet('rows')]
+                #[Isolated]
+                #[RequiresResource('database')]
+                #[Retry(1)]
+                #[Skip('not ready')]
+                #[SkipUnless(EnvironmentVariableSet::class, 'APP_ENV')]
+                #[Timeout(1.0)]
+                public function metadataHelper(int $value): void
+                {
+                    echo $value;
+                }
+
+                /**
+                 * @return iterable<array{int}>
+                 */
+                public static function rows(): iterable
+                {
+                    yield [1];
+                }
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('test metadata on methods requires the test attribute')->toBe(1)
             ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(3)
+            ->and(\count($probe->errors))->toBe(10)
             ->and($probe->messages())->toContain('#[Group] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
             ->toContain('#[DataRow] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
-            ->toContain('#[NoExpectations] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::assertionHelper() has no effect');
+            ->toContain('#[NoExpectations] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::assertionHelper() has no effect')
+            ->toContain(
+                '#[DataSet] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            )
+            ->toContain(
+                '#[Isolated] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            )
+            ->toContain(
+                '#[RequiresResource] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            )
+            ->toContain(
+                '#[Retry] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            )
+            ->toContain(
+                '#[Skip] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            )
+            ->toContain(
+                '#[SkipUnless] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            )
+            ->toContain(
+                '#[Timeout] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::metadataHelper() has no effect',
+            );
     }
 }

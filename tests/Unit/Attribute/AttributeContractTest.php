@@ -31,6 +31,14 @@ final class AttributeContractTest
     }
 
     #[Test]
+    public function skipPreservesAZeroStringReason(): void
+    {
+        Expect::that(new Skip('0')->reason)
+            ->because('the skip attribute MUST preserve a zero-string reason')
+            ->toBe('0');
+    }
+
+    #[Test]
     public function methodOnlyAttributesTargetMethods(): void
     {
         foreach ([Test::class, Before::class, After::class, DataSet::class, NoExpectations::class] as $attribute) {
@@ -71,6 +79,22 @@ final class AttributeContractTest
     {
         Expect::that($this->flags(Group::class))->because('group is repeatable on methods and classes')
             ->toBe(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE);
+    }
+
+    #[Test]
+    public function groupRejectsAnEmptyName(): void
+    {
+        Expect::that(static fn(): Group => new Group(''))
+            ->because('group names cannot be empty')
+            ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
+    }
+
+    #[Test]
+    public function groupPreservesAZeroStringName(): void
+    {
+        Expect::that(new Group('0')->name)
+            ->because('the group attribute MUST preserve a zero-string name')
+            ->toBe('0');
     }
 
     #[Test]
