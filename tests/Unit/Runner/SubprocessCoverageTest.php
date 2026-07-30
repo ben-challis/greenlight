@@ -213,6 +213,32 @@ final readonly class SubprocessCoverageTest
     }
 
     #[Test]
+    public function zeroDirectoryStillStartsSubprocessCoverage(): void
+    {
+        $sandbox = new EnvironmentSandbox();
+        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '0');
+
+        try {
+            $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
+
+            if (!$relay instanceof SubprocessCoverage) {
+                Fail::because('Expected the non-empty falsey directory to start subprocess coverage.');
+            }
+
+            Expect::that(SubprocessCoverage::requested())
+                ->because('a non-empty falsey directory MUST request subprocess coverage')
+                ->toBeTrue()
+                ->and(RecordingFakeDriver::started())
+                ->because('a non-empty falsey directory MUST start the selected coverage driver')
+                ->toBeTrue();
+
+            $relay->write();
+        } finally {
+            $sandbox->dispose();
+        }
+    }
+
+    #[Test]
     public function beginWritesFilteredCoverageToTheRelayDirectory(): void
     {
         $sandbox = new EnvironmentSandbox();
