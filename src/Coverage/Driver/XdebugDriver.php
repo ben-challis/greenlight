@@ -22,8 +22,10 @@ final class XdebugDriver implements CoverageDriver
 
     private readonly XdebugRuntime $runtime;
 
-    public function __construct(?XdebugRuntime $runtime = null)
-    {
+    public function __construct(
+        ?XdebugRuntime $runtime = null,
+        private readonly ?int $flags = null,
+    ) {
         if (!$runtime instanceof XdebugRuntime && !self::isAvailable()) {
             throw CoverageError::driverUnavailable('xdebug', 'Enable the Xdebug extension. Add "coverage" to xdebug.mode or the XDEBUG_MODE environment variable.');
         }
@@ -44,7 +46,7 @@ final class XdebugDriver implements CoverageDriver
             throw new \LogicException('The Xdebug collection window is already open. Call stop() before start().');
         }
 
-        $this->runtime->start(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
+        $this->runtime->start($this->flags ?? \XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
         $this->collecting = true;
     }
 

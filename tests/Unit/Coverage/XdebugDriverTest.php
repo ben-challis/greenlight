@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage;
 
-use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Coverage\CoverageError;
@@ -47,7 +46,7 @@ final class XdebugDriverTest
     #[Test]
     public function reportsInvalidCollectionStateExactly(): void
     {
-        $driver = new \ReflectionClass(XdebugDriver::class)->newInstanceWithoutConstructor();
+        $driver = new XdebugDriver(new FakeXdebugRuntime(), flags: 3);
 
         Expect::that(static fn(): mixed => $driver->stop())
             ->toThrow(
@@ -55,8 +54,7 @@ final class XdebugDriverTest
                 message: 'The Xdebug collection window is not open. Call start() before stop().',
             );
 
-        $collecting = new \ReflectionProperty(XdebugDriver::class, 'collecting');
-        $collecting->setValue($driver, true);
+        $driver->start();
 
         Expect::that(static fn() => $driver->start())
             ->toThrow(
@@ -66,19 +64,10 @@ final class XdebugDriverTest
     }
 
     #[Test]
-    #[Isolated]
     public function collectionLifecycleUsesAllLineFlagsAndClosesTheWindow(): void
     {
-        if (!\defined('XDEBUG_CC_UNUSED')) {
-            \define('XDEBUG_CC_UNUSED', 1);
-        }
-
-        if (!\defined('XDEBUG_CC_DEAD_CODE')) {
-            \define('XDEBUG_CC_DEAD_CODE', 2);
-        }
-
         $runtime = new FakeXdebugRuntime();
-        $driver = new XdebugDriver($runtime);
+        $driver = new XdebugDriver($runtime, flags: 3);
         $driver->start();
         $coverage = $driver->stop();
 
@@ -92,7 +81,7 @@ final class XdebugDriverTest
             ])
             ->and($runtime->flags)
             ->because('Xdebug collection MUST request unused and dead code analysis')
-            ->toBe(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE)
+            ->toBe(3)
             ->and($runtime->calls)
             ->because('Xdebug collection MUST read and stop the extension before closing its window')
             ->toBe(['start', 'collect', 'stop']);

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\DataSet;
-use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Expect\Expect;
@@ -17,20 +16,11 @@ final readonly class XdebugDriverFailureTest
      * @param 'collect'|'stop' $operation
      */
     #[Test]
-    #[Isolated]
     #[DataSet('runtimeFailures')]
     public function runtimeFailuresStopAndCloseTheCollectionWindow(
         string $operation,
         string $message,
     ): void {
-        if (!\defined('XDEBUG_CC_UNUSED')) {
-            \define('XDEBUG_CC_UNUSED', 1);
-        }
-
-        if (!\defined('XDEBUG_CC_DEAD_CODE')) {
-            \define('XDEBUG_CC_DEAD_CODE', 2);
-        }
-
         $runtime = new FailingXdebugRuntime();
 
         if ($operation === 'collect') {
@@ -39,7 +29,7 @@ final readonly class XdebugDriverFailureTest
             $runtime->stopFailure = new \RuntimeException($message);
         }
 
-        $driver = new XdebugDriver($runtime);
+        $driver = new XdebugDriver($runtime, flags: 3);
         $driver->start();
 
         Expect::that(static fn(): mixed => $driver->stop())
