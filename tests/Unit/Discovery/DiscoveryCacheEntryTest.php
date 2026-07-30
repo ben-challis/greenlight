@@ -40,6 +40,24 @@ final class DiscoveryCacheEntryTest
             ->toBe($decoded);
     }
 
+    #[Test]
+    public function aLegacyEntryWithoutDependenciesUsesTheBackwardCompatibleDefault(): void
+    {
+        $entry = DiscoveryCacheEntry::fromDecoded([
+            'mtime' => 100,
+            'size' => 200,
+            'entries' => [['class' => 'Example\Test']],
+        ]);
+
+        if (!$entry instanceof DiscoveryCacheEntry) {
+            Fail::because('Expected a legacy discovery cache entry.');
+        }
+
+        Expect::that($entry->dependencies)
+            ->because('a legacy entry without dependencies MUST use an empty dependency map')
+            ->toBe([]);
+    }
+
     /**
      * @param array<mixed> $decoded
      */
