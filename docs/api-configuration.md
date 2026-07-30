@@ -203,7 +203,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L168)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L169)
 
 ### `coverage()`
 
@@ -215,7 +215,7 @@ PHPDoc:
 
 - `@param callable(CoverageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L196)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L197)
 
 ### `watch()`
 
@@ -227,7 +227,7 @@ PHPDoc:
 
 - `@param callable(WatchBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L208)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L209)
 
 ### `artifacts()`
 
@@ -239,7 +239,7 @@ PHPDoc:
 
 - `@param callable(ArtifactBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L220)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L221)
 
 ### `failOnDeprecation()`
 
@@ -255,7 +255,7 @@ PHPDoc:
 
 - `@see self::ignoreDeprecationsMatching()`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L236)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L237)
 
 ### `failOnNotice()`
 
@@ -263,7 +263,7 @@ PHPDoc:
 public function failOnNotice(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L243)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L244)
 
 ### `failOnRisky()`
 
@@ -275,7 +275,7 @@ expectations.
 public function failOnRisky(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L255)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L256)
 
 ### `ignoreDeprecationsMatching()`
 
@@ -287,7 +287,7 @@ or "?" matches the complete message. Multiple calls add patterns.
 public function ignoreDeprecationsMatching(string ...$patterns): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L267)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L268)
 
 ### `plugins()`
 
@@ -295,7 +295,7 @@ public function ignoreDeprecationsMatching(string ...$patterns): self
 public function plugins(Plugin ...$plugins): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L280)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L281)
 
 ### `failFast()`
 
@@ -303,7 +303,7 @@ public function plugins(Plugin ...$plugins): self
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L289)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L290)
 
 ### `randomizeOrder()`
 
@@ -313,7 +313,7 @@ If the seed is null, Greenlight generates and prints a seed at run time.
 public function randomizeOrder(?int $seed = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L298)
 
 ### `build()`
 
@@ -325,7 +325,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L328)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L329)
 
 ## `SuiteBuilder`
 
