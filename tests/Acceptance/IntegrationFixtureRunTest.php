@@ -113,16 +113,45 @@ final readonly class IntegrationFixtureRunTest
     }
 
     #[Test]
-    public function cleanupFailureFailsAnOtherwiseSuccessfulRun(): void
+    #[DataSet('runnerWorkerCounts')]
+    public function provisioningAndRollbackFailuresAreBothReported(int $workers): void
     {
-        $project = $this->writeProject('cleanup-failure', workers: 1, failCleanup: true);
+        $project = $this->writeProject(
+            'provisioning-and-rollback-failure-' . $workers,
+            workers: $workers,
+            failProvisioning: true,
+            failCleanup: true,
+        );
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->because('the provisioning failure MUST remain the primary run failure')
+            ->toContain('intentional fixture provisioning failure');
+        Expect::that($result->output())
+            ->because('rollback failures MUST remain visible after a provisioning failure')
+            ->toContain('Additionally, cleanup for integration fixture "probe" failed')
+            ->toContain('intentional fixture cleanup failure')
+            ->not()->toContain('tests,')
+            ->not()->toContain('fixture-secret');
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+    }
+
+    #[Test]
+    #[DataSet('runnerWorkerCounts')]
+    public function cleanupFailureFailsAnOtherwiseSuccessfulRun(int $workers): void
+    {
+        $project = $this->writeProject('cleanup-failure-' . $workers, workers: $workers, failCleanup: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         Expect::that($result->exitCode)->toBe(1);
         Expect::that($result->output())
             ->toContain('Integration fixture teardown failed.')
-            ->toContain('intentional fixture cleanup failure');
+            ->toContain('intentional fixture cleanup failure')
+            ->not()->toContain('fixture-secret');
         Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -179,18 +208,18 @@ final readonly class IntegrationFixtureRunTest
         );
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
             ->because('the worker bootstrap failure MUST remain the primary run failure')
-            ->toContain('intentional worker bootstrap failure')
-            ->and($result->output())
+            ->toContain('intentional worker bootstrap failure');
+        Expect::that($result->output())
             ->because('fixture cleanup failures MUST remain visible after a run failure')
             ->toContain('Additionally, cleanup for integration fixture "probe" failed')
             ->toContain('intentional fixture cleanup failure')
-            ->not()->toContain('fixture-secret')
-            ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+            ->not()->toContain('fixture-secret');
+        Expect::that(\is_file($project->path('markers/executed.log')))->toBeFalse();
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     /**
