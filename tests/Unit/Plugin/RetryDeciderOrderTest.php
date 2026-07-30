@@ -1,0 +1,77 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Plugin;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Doubles\Fake;
+use Greenlight\Expect\Expect;
+use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Plugin\RetryDecider;
+use Greenlight\Runner\DefaultServices;
+use Greenlight\Runner\Worker\Worker;
+use Greenlight\Tests\Support\CollectingEventSink;
+
+final readonly class RetryDeciderOrderTest
+{
+    #[Test]
+    public function retryDecidersStopAfterTheFirstAcceptedRetry(): void
+    {
+        /** @var \ArrayObject<int, string> $calls */
+        $calls = new \ArrayObject();
+        $first = new readonly class ($calls) implements RetryDecider, Fake {
+            /**
+             * @param \ArrayObject<int, string> $calls
+             */
+            public function __construct(private \ArrayObject $calls) {}
+
+            #[\Override]
+            public function shouldRetry(
+                TestMetadata $metadata,
+                TestResult $result,
+                int $attempt,
+                ?\Throwable $cause,
+            ): bool {
+                $this->calls->append('first:' . $attempt);
+
+                return $attempt === 1;
+            }
+        };
+        $second = new readonly class ($calls) implements RetryDecider, Fake {
+            /**
+             * @param \ArrayObject<int, string> $calls
+             */
+            public function __construct(private \ArrayObject $calls) {}
+
+            #[\Override]
+            public function shouldRetry(
+                TestMetadata $metadata,
+                TestResult $result,
+                int $attempt,
+                ?\Throwable $cause,
+            ): bool {
+                $this->calls->append('second:' . $attempt);
+
+                return false;
+            }
+        };
+        $directory = \dirname(__DIR__, 2) . '/Fixture/RunFailingSuite';
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $sink = new CollectingEventSink();
+        $plugins = PluginRegistry::forWorker([$first, $second]);
+
+        new Worker(DefaultServices::registry($plugins), $plugins)->run($plan, $sink);
+
+        Expect::that($calls->getArrayCopy())
+            ->because('retry deciders MUST stop after acceptance and continue after decline')
+            ->toBe([
+                'first:1',
+                'first:2',
+                'second:2',
+            ]);
+    }
+}
