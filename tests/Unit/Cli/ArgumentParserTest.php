@@ -118,6 +118,10 @@ final class ArgumentParserTest
             ['--'],
             '"--" requires an option name.',
         ];
+        yield 'missing long option name' => [
+            ['--=value'],
+            'Unknown option "--". Use greenlight --help to list options.',
+        ];
     }
 
     private static function parser(): ArgumentParser

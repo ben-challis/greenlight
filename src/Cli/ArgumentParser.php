@@ -75,8 +75,13 @@ final class ArgumentParser
                 }
 
                 $separator = \strpos($body, '=');
-                $name = $separator === false ? $body : \substr($body, 0, $separator);
-                $value = $separator === false ? null : \substr($body, $separator + 1);
+                if ($separator === false) {
+                    $name = $body;
+                    $value = null;
+                } else {
+                    $name = \substr($body, 0, $separator);
+                    $value = \substr($body, $separator + 1);
+                }
 
                 $spec = $this->byName[$name] ?? throw CliError::unknownOption('--' . $name);
 
