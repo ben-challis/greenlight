@@ -32,4 +32,24 @@ final class CoverageExportTest
         yield 'empty format' => ['', 'coverage.json'];
         yield 'empty target' => ['json', ''];
     }
+
+    #[Test]
+    #[DataSet('zeroStringValues')]
+    public function preservesNonemptyZeroStrings(string $format, string $target): void
+    {
+        $export = new CoverageExport($format, $target);
+
+        Expect::that([$export->format, $export->target])
+            ->because('zero-string coverage export values are not empty')
+            ->toBe([$format, $target]);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function zeroStringValues(): iterable
+    {
+        yield 'format' => ['0', 'coverage.json'];
+        yield 'target' => ['json', '0'];
+    }
 }
