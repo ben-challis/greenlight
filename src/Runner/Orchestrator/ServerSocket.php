@@ -14,6 +14,8 @@ use Greenlight\Runner\Protocol\ProtocolError;
  */
 final class ServerSocket
 {
+    private const int PORTABLE_UNIX_PATH_BYTES = 100;
+
     /**
      * @param resource $stream
      * @param non-empty-string $address
@@ -28,13 +30,16 @@ final class ServerSocket
     {
         $temporaryDirectory ??= \sys_get_temp_dir();
         $socketPath = \rtrim($temporaryDirectory, '/')
-            . '/greenlight-' . \bin2hex(\random_bytes(6)) . '/orchestrator.sock';
+            . '/gl-' . \bin2hex(\random_bytes(6)) . '/s';
+        $server = false;
 
-        $server = ErrorTrap::run(static function () use ($socketPath) {
-            \mkdir(\dirname($socketPath), 0o700, true);
+        if (\strlen($socketPath) <= self::PORTABLE_UNIX_PATH_BYTES) {
+            $server = ErrorTrap::run(static function () use ($socketPath) {
+                \mkdir(\dirname($socketPath), 0o700, true);
 
-            return \stream_socket_server('unix://' . $socketPath, $errorCode, $errorMessage);
-        });
+                return \stream_socket_server('unix://' . $socketPath, $errorCode, $errorMessage);
+            });
+        }
 
         if (\is_resource($server)) {
             return new self($server, 'unix://' . $socketPath, $socketPath);
