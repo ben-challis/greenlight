@@ -80,6 +80,11 @@ final class DiscoveryCacheEntryTest
 
         yield 'invalid content hash' => [[...$valid, 'contentHash' => \str_repeat('g', 40)]];
 
+        yield 'content hash with trailing newline' => [[
+            ...$valid,
+            'contentHash' => \str_repeat('a', 40) . "\n",
+        ]];
+
         yield 'entry is not a map' => [[...$valid, 'entries' => ['not a map']]];
 
         yield 'entry key is not a string' => [[...$valid, 'entries' => [[0 => 'value']]]];
@@ -102,6 +107,17 @@ final class DiscoveryCacheEntryTest
                     'mtime' => 300,
                     'size' => 400,
                     'contentHash' => \str_repeat('g', 40),
+                ],
+            ],
+        ]];
+
+        yield 'dependency content hash has trailing newline' => [[
+            ...$valid,
+            'dependencies' => [
+                '/project/tests/Provider.php' => [
+                    'mtime' => 300,
+                    'size' => 400,
+                    'contentHash' => \str_repeat('b', 40) . "\n",
                 ],
             ],
         ]];

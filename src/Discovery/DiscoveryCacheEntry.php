@@ -38,7 +38,7 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
 
         $contentHash = $decoded['contentHash'] ?? null;
 
-        if ($contentHash !== null && (!\is_string($contentHash) || \preg_match('/^[0-9a-f]{40}$/', $contentHash) !== 1)) {
+        if ($contentHash !== null && (!\is_string($contentHash) || \preg_match('/^[0-9a-f]{40}\z/', $contentHash) !== 1)) {
             return null;
         }
 
@@ -78,7 +78,7 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
                 || !\is_int($stat['size'] ?? null)
                 || (
                     \array_key_exists('contentHash', $stat)
-                    && (!\is_string($stat['contentHash']) || \preg_match('/^[0-9a-f]{40}$/', $stat['contentHash']) !== 1)
+                    && (!\is_string($stat['contentHash']) || \preg_match('/^[0-9a-f]{40}\z/', $stat['contentHash']) !== 1)
                 )
             ) {
                 return null;
