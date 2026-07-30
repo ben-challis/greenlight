@@ -94,6 +94,19 @@ final class ResultPolicyConfigurationTest
             ->toBe(['vendor *', 'legacy?', 'third-party']);
     }
 
+    #[Test]
+    public function retainsAZeroDeprecationPattern(): void
+    {
+        $policy = GreenlightConfig::create()
+            ->ignoreDeprecationsMatching('0')
+            ->build()
+            ->policy;
+
+        Expect::that($policy->ignoreDeprecations)
+            ->because('configuration MUST retain each non-empty deprecation pattern')
+            ->toBe(['0']);
+    }
+
     /**
      * @param list<string> $patterns
      */
