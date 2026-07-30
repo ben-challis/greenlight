@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -60,6 +61,26 @@ final readonly class IntegrationFixtureRunTest
             ->and($dryRun->exitCode)->toBe(0)
             ->and(\is_file($project->path('markers/provisioned.log')))->toBeFalse()
             ->and(\is_file($project->path('markers/cleaned.log')))->toBeFalse();
+    }
+
+    #[Test]
+    #[DataSet('runnerWorkerCounts')]
+    public function filteredEmptyPlansDoNotProvisionInfrastructure(int $workers): void
+    {
+        $project = $this->writeProject('empty-plan-' . $workers, workers: $workers);
+        $result = GreenlightCli::run($project->directory, ['run', '--filter=MissingTest', '--no-ansi']);
+
+        Expect::that($result->exitCode)
+            ->because('a filtered empty plan MUST use the no-tests exit')
+            ->toBe(1)
+            ->and($result->output())
+            ->toContain('Greenlight found no tests.')
+            ->and(\is_file($project->path('markers/provisioned.log')))
+            ->because('a filtered empty plan MUST NOT provision integration fixtures')
+            ->toBeFalse()
+            ->and(\is_file($project->path('markers/cleaned.log')))
+            ->because('an unprovisioned fixture graph has no cleanup to run')
+            ->toBeFalse();
     }
 
     #[Test]
@@ -135,6 +156,15 @@ final readonly class IntegrationFixtureRunTest
             ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
             ->and($this->matches($project->path('markers/resource-*')))->toBe([])
             ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function runnerWorkerCounts(): iterable
+    {
+        yield 'in-process runner' => [1];
+        yield 'parallel runner' => [2];
     }
 
     /**
