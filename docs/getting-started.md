@@ -153,6 +153,10 @@ Use these commands for common tasks:
 * `vendor/bin/greenlight run --dry-run` prints the execution plan.
 * `vendor/bin/greenlight run --workers=1` uses one in-process worker.
 * `vendor/bin/greenlight run --group=slow` selects tests with `#[Group('slow')]`.
+* `vendor/bin/greenlight run --test-id='App\Tests\GreetingTest::greetsByName'`
+  selects one exact test.
+* `vendor/bin/greenlight run --test-id-file=/tmp/greenlight-tests.txt` reads
+  exact test IDs from a file.
 * `vendor/bin/greenlight run --exclude-group=slow` excludes that group.
 * `vendor/bin/greenlight run --list-tests` prints the selected tests.
 * `vendor/bin/greenlight run --bail` stops after the first failure.
@@ -225,6 +229,25 @@ Press Enter to run all tests. Press `q` to stop watch mode.
 Watch mode combines rapid save events. The default delay is 200 ms.
 
 Use the `watch()` configuration builder to change this delay.
+
+Watch mode is for local feedback. CI should still run the full suite.
+
+## Mutation testing with Infection
+
+Install Infection and Greenlight's external adapter:
+
+```sh
+composer require --dev infection/infection greenlight/infection-adapter
+vendor/bin/infection --test-framework=greenlight
+```
+
+Before generating mutants, the adapter runs the selected suite once and records
+per-test coverage. Each mutant then runs only the tests that covered its changed
+line. The initial run needs pcov or Xdebug coverage mode. The adapter uses
+Infection's source directories as Greenlight coverage include paths.
+
+Run the full Greenlight suite separately in CI. Details and limitations are in
+[the Infection integration record](architecture/mutation-testing.md).
 
 ## Configure workers
 

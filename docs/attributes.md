@@ -418,9 +418,8 @@ Target: class, method, or function.
 
 No parameters.
 
-Excludes the declaration from coverage. Greenlight removes ignored lines from
-the covered and executable totals. Thus, they do not change a percentage,
-export, or baseline diff.
+Excludes the declaration from aggregate coverage, per-test maps, and baseline
+diffs. Ignored lines are removed from both the covered and executable totals.
 
 ```php
 final class Config

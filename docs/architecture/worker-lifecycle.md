@@ -18,7 +18,7 @@ the JSON byte count in big-endian order. The protocol limits each frame to
 
 The JSON body is an envelope with three fields:
 
-- The protocol version in `v`, currently `1`
+- The protocol version in `v`, currently `2`
 - A message tag
 - The payload
 
@@ -35,7 +35,7 @@ Test results do not use stdio. Thus, test output cannot corrupt the protocol.
 
 ## Messages
 
-Eight message types cross the socket:
+Nine message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
@@ -43,6 +43,7 @@ Eight message types cross the socket:
 | `assign` | orchestrator to worker | an assignment, recycle limits, coverage settings, configuration file path, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `attempt-started` | worker to orchestrator | active test ID and attempt number for a crash report |
+| `coverage` | worker to orchestrator | one test id, one source file, and a bounded chunk of covered line numbers |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
 | `recycling` | worker to orchestrator | recycle reason, tests that did not run, result summary, partial coverage |
 | `drain` | orchestrator to worker | no payload (request for a clean worker exit) |
@@ -74,6 +75,7 @@ sequenceDiagram
         loop each test in the slice
             W->>O: event (TestClassStarted)
             W->>O: event (TestStarted)
+            W->>O: coverage (when per-test mapping is enabled)
             W->>O: event (TestFinished)
             W->>O: event (TestClassFinished)
         end
@@ -100,6 +102,12 @@ The worker sends one frame immediately for each event. The orchestrator sends
 each event to the reporters and updates the run summary. This sequence permits
 live per-worker output. It also keeps orchestrator memory use flat. The
 worker does not accumulate events.
+
+Per-test coverage streams before the test's `TestFinished` event. Covered line
+lists use chunks of at most 50,000 lines. Thus, a worker does not build an
+unbounded protocol payload. The orchestrator appends the relation to a
+temporary spool. It keeps only the execution plan and union of attributed lines
+in memory. Ordinary aggregate coverage sends no `coverage` messages.
 
 A retried test still produces one `test-started` event and one `test-finished`
 event. Attempts are not separate public events. The internal `attempt-started`

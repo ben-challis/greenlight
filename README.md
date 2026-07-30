@@ -26,7 +26,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Typed expectations with clear differences
 * Stable CI shards and deterministic reports
 * Test attachments for values, text, bytes, and files
-* Coverage through pcov or Xdebug
+* Coverage through pcov or Xdebug, including opt-in per-test maps
 * Plain PHP test classes and PHP configuration
 * First-party Symfony, Laravel, and PHPStan extensions
 * Automated PHPUnit test conversion with a bundled Rector rule
@@ -135,6 +135,8 @@ for the complete model.
 * [Move from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
 * [Architecture](docs/architecture/README.md)
+* [Per-test coverage artifact](docs/architecture/test-coverage-jsonl.md)
+* [Mutation testing with Infection](docs/architecture/mutation-testing.md)
 * [Contribute](CONTRIBUTING.md)
 
 ## Requirements and limits

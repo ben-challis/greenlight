@@ -140,5 +140,5 @@ Readers **MUST** ignore unknown keys.
 If version 1 defines a field, a change to its definition or shape **MUST** use a
 new `v` value.
 
-Greenlight **MAY** add per-test coverage maps later as an optional extension.
-This extension **MUST** use an additive key and separate documentation.
+Per-test coverage uses the separate JSONL format documented in
+[the per-test coverage schema](test-coverage-jsonl.md).

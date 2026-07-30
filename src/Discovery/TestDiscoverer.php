@@ -140,13 +140,13 @@ final readonly class TestDiscoverer
             );
 
             if ($rows === []) {
-                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method), $metadata);
+                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method), $metadata, $file);
 
                 continue;
             }
 
             foreach (\array_keys($rows) as $key) {
-                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method, (string) $key), $metadata);
+                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method, (string) $key), $metadata, $file);
             }
         }
 

@@ -10,6 +10,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
@@ -105,11 +106,19 @@ final readonly class WorkerProcess
                 }
 
                 $collector = null;
+                $coverageUnavailable = null;
 
                 if ($message->coverageInclude !== null) {
                     $collector = CoverageCollector::create(
-                        new CoverageSettings($message->coverageInclude, $message->coverageDriver),
+                        new CoverageSettings($message->coverageInclude, $message->coverageDriver, $message->coveragePerTest),
+                        static function (string $reason) use (&$coverageUnavailable): void {
+                            $coverageUnavailable = $reason;
+                        },
                     );
+                }
+
+                if ($message->coveragePerTest && !$collector instanceof CoverageCollector) {
+                    throw CoverageError::requiredDriverUnavailable($coverageUnavailable ?? 'no coverage driver is available');
                 }
 
                 if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
@@ -131,7 +140,11 @@ final readonly class WorkerProcess
                     );
                 }
 
-                $collector?->start();
+                $testCoverage = $message->coveragePerTest ? new SocketTestCoverageSink($channel) : null;
+
+                if (!$message->coveragePerTest) {
+                    $collector?->start();
+                }
 
                 $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
@@ -152,9 +165,11 @@ final readonly class WorkerProcess
                     static function (TestId $id, int $attempt) use ($channel): void {
                         $channel->send(new AttemptStarted($id, $attempt));
                     },
+                    $message->coveragePerTest ? $collector : null,
+                    $testCoverage,
                 );
 
-                $coverage = $collector?->stop();
+                $coverage = $message->coveragePerTest ? $testCoverage?->coverage() : $collector?->stop();
 
                 if ($outcome->recycleReason instanceof RecycleReason) {
                     $scopes->closeRun();

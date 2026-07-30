@@ -30,4 +30,23 @@ final class CoverageError extends \RuntimeException
             $cause === null ? '' : ': ' . $cause,
         ));
     }
+
+    public static function requiredDriverUnavailable(string $reason): self
+    {
+        return new self('Per-test coverage was requested but cannot be collected: ' . \rtrim($reason, '.') . '.');
+    }
+
+    public static function perTestIncludeRequired(): self
+    {
+        return new self('Per-test coverage needs at least one coverage include path.');
+    }
+
+    public static function artifactWriteFailed(string $path, ?string $reason): self
+    {
+        return new self(\sprintf(
+            'Coverage artifact "%s" could not be written%s.',
+            $path,
+            $reason === null ? '' : ': ' . $reason,
+        ));
+    }
 }
