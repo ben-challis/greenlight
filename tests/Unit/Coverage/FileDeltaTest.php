@@ -11,6 +11,16 @@ use Greenlight\Expect\Expect;
 
 final readonly class FileDeltaTest
 {
+    #[Test]
+    public function zeroStringFilePathRetainsDeltaDetails(): void
+    {
+        $delta = new FileDelta('0', 75.0, 50.0, [2, 5]);
+
+        Expect::that([$delta->file, $delta->newlyUncoveredLines, $delta->delta()])
+            ->because('a zero-string coverage delta file path is not empty')
+            ->toBe(['0', [2, 5], -25.0]);
+    }
+
     /**
      * @param list<int> $newlyUncoveredLines
      */
