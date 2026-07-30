@@ -12,6 +12,7 @@ use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteBuilder;
+use Greenlight\Config\WatchBuilder;
 use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -137,7 +138,7 @@ final class GreenlightConfigTest
     }
 
     #[Test]
-    public function aRejectedWorkerConfigurationDoesNotPartiallyChangeTheBuilder(): void
+    public function rejectedWorkerConfigurationsDoNotPartiallyChangeTheBuilder(): void
     {
         $builder = GreenlightConfig::create()->workers(
             count: 2,
@@ -156,6 +157,17 @@ final class GreenlightConfigTest
                 message: 'recycleAfterTests must be at least 1, got 0.',
             );
 
+        Expect::that(static fn(): GreenlightConfig => $builder->workers(
+            count: 16,
+            recycleAfterTests: 20,
+            recycleAboveMemory: 'lots',
+        ))
+            ->because('an invalid memory limit does not partially change the builder')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Invalid memory size "lots". Use a positive byte count or a K, M, or G suffix, for example "256M".',
+            );
+
         $configuration = $builder->build();
 
         Expect::that($configuration->workers->fixed)
@@ -167,6 +179,70 @@ final class GreenlightConfigTest
             ->and($configuration->recycleAboveMemoryBytes)
             ->because('a rejected worker configuration retains the prior memory limit')
             ->toBe(64 * 1024 * 1024);
+    }
+
+    #[Test]
+    public function rejectedNestedConfigurationsDoNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = GreenlightConfig::create()
+            ->coverage(static fn(CoverageBuilder $coverage) => $coverage
+                ->include('src')
+                ->driver('pcov'))
+            ->watch(static fn(WatchBuilder $watch) => $watch->debounceMilliseconds(500))
+            ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/original'));
+
+        Expect::that(static fn(): GreenlightConfig => $builder->coverage(
+            static fn(CoverageBuilder $coverage) => $coverage
+                ->driver('xdebug')
+                ->include(''),
+        ))
+            ->because('a rejected coverage configuration does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        Expect::that(static fn(): GreenlightConfig => $builder->watch(
+            static fn(WatchBuilder $watch) => $watch
+                ->debounceMilliseconds(750)
+                ->debounceMilliseconds(0),
+        ))
+            ->because('a rejected watch configuration does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        Expect::that(static fn(): GreenlightConfig => $builder->artifacts(
+            static fn(ArtifactBuilder $artifacts) => $artifacts
+                ->directory('build/changed')
+                ->maxRunAttachments(0),
+        ))
+            ->because('a rejected artifact configuration does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        $configuration = $builder->build();
+
+        Expect::that($configuration->coverage?->includePaths)
+            ->because('a rejected coverage configuration retains the prior include paths')
+            ->toBe(['src'])
+            ->and($configuration->coverage?->driver)
+            ->because('a rejected coverage configuration retains the prior driver')
+            ->toBe('pcov')
+            ->and($configuration->watch->debounceMilliseconds)
+            ->because('a rejected watch configuration retains the prior debounce')
+            ->toBe(500)
+            ->and($configuration->artifacts->directory)
+            ->because('a rejected artifact configuration retains the prior directory')
+            ->toBe('build/original');
+    }
+
+    #[Test]
+    public function rejectedDeprecationPatternsDoNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = GreenlightConfig::create()->ignoreDeprecationsMatching('existing');
+
+        Expect::that(static fn(): GreenlightConfig => $builder->ignoreDeprecationsMatching('added', ''))
+            ->because('a rejected deprecation pattern does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        Expect::that($builder->build()->policy->ignoreDeprecations)
+            ->because('a rejected deprecation pattern retains the prior patterns')
+            ->toBe(['existing']);
     }
 
     /**
@@ -248,8 +324,7 @@ final class GreenlightConfigTest
         yield 'no paths' => [
             static function (): void {
                 GreenlightConfig::create()
-                    ->suite('unit', static function (SuiteBuilder $suite): void {})
-                    ->build();
+                    ->suite('unit', static function (SuiteBuilder $suite): void {});
             },
             'Suite "unit" has no paths. Call in() with at least one directory inside its configurator.',
         ];
@@ -329,8 +404,8 @@ final class GreenlightConfigTest
             GreenlightConfig::create()->workers(recycleAfterTests: 0);
         }];
 
-        yield 'bad memory string surfaces at build' => [static function (): void {
-            GreenlightConfig::create()->workers(recycleAboveMemory: 'lots')->build();
+        yield 'bad memory string' => [static function (): void {
+            GreenlightConfig::create()->workers(recycleAboveMemory: 'lots');
         }];
 
         yield 'empty artifact directory' => [static function (): void {
@@ -399,15 +474,5 @@ final class GreenlightConfigTest
             },
             'Artifact count per run must be at least 1.',
         ];
-    }
-
-    #[Test]
-    public function badMemoryStringIsAcceptedUntilBuild(): void
-    {
-        $builder = GreenlightConfig::create()->workers(recycleAboveMemory: 'lots');
-
-        Expect::that(static function () use ($builder): void {
-            $builder->build();
-        })->because('bad memory string is accepted until build')->toThrow(InvalidConfiguration::class);
     }
 }

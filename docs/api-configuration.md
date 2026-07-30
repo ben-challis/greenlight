@@ -100,7 +100,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L48)
 
 ### `export()`
 
@@ -112,7 +112,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L62)
 
 ## `GreenlightConfig`
 
@@ -132,7 +132,7 @@ final class GreenlightConfig
 public static function create(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L78)
 
 ### `paths()`
 
@@ -147,7 +147,7 @@ PHPDoc:
 - `@param list<string> $tests`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L85)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L90)
 
 ### `suite()`
 
@@ -164,7 +164,7 @@ PHPDoc:
 - `@param callable(SuiteBuilder): mixed $configurator`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L120)
 
 ### `workers()`
 
@@ -186,7 +186,7 @@ PHPDoc:
 - `@param int|null $recycleAfterTests A null value disables test-count worker replacement.`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L143)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L148)
 
 ### `resourceLimit()`
 
@@ -203,7 +203,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L169)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L176)
 
 ### `coverage()`
 
@@ -215,7 +215,7 @@ PHPDoc:
 
 - `@param callable(CoverageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L197)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L204)
 
 ### `watch()`
 
@@ -227,7 +227,7 @@ PHPDoc:
 
 - `@param callable(WatchBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L209)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L216)
 
 ### `artifacts()`
 
@@ -239,7 +239,7 @@ PHPDoc:
 
 - `@param callable(ArtifactBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L221)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L228)
 
 ### `failOnDeprecation()`
 
@@ -255,7 +255,7 @@ PHPDoc:
 
 - `@see self::ignoreDeprecationsMatching()`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L237)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L244)
 
 ### `failOnNotice()`
 
@@ -263,7 +263,7 @@ PHPDoc:
 public function failOnNotice(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L244)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L251)
 
 ### `failOnRisky()`
 
@@ -275,7 +275,7 @@ expectations.
 public function failOnRisky(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L256)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L263)
 
 ### `ignoreDeprecationsMatching()`
 
@@ -287,7 +287,7 @@ or "?" matches the complete message. Multiple calls add patterns.
 public function ignoreDeprecationsMatching(string ...$patterns): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L268)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L275)
 
 ### `plugins()`
 
@@ -295,7 +295,7 @@ public function ignoreDeprecationsMatching(string ...$patterns): self
 public function plugins(Plugin ...$plugins): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L281)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L292)
 
 ### `failFast()`
 
@@ -303,7 +303,7 @@ public function plugins(Plugin ...$plugins): self
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L290)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L301)
 
 ### `randomizeOrder()`
 
@@ -313,7 +313,7 @@ If the seed is null, Greenlight generates and prints a seed at run time.
 public function randomizeOrder(?int $seed = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L298)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L309)
 
 ### `build()`
 
@@ -321,11 +321,7 @@ public function randomizeOrder(?int $seed = null): self
 public function build(): Configuration
 ```
 
-PHPDoc:
-
-- `@throws InvalidConfiguration`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L329)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L337)
 
 ## `SuiteBuilder`
 
@@ -361,7 +357,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L48)
 
 ## `WatchBuilder`
 

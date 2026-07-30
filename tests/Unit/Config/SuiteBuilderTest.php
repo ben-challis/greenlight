@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteBuilder;
 use Greenlight\Expect\Expect;
 
@@ -27,6 +28,31 @@ final class SuiteBuilderTest
         Expect::that($suite->tags)
             ->because('repeated tag() calls append each tag')
             ->toBe(['io', 'slow', 'external']);
+    }
+
+    #[Test]
+    public function rejectedVariadicCallsDoNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = new SuiteBuilder('integration')
+            ->in('tests/Existing')
+            ->tag('existing');
+
+        Expect::that(static fn(): SuiteBuilder => $builder->in('tests/Added', ''))
+            ->because('a rejected path call does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        Expect::that(static fn(): SuiteBuilder => $builder->tag('added', ''))
+            ->because('a rejected tag call does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
+        $configuration = $builder->toConfiguration();
+
+        Expect::that($configuration->paths)
+            ->because('a rejected path call retains the prior paths')
+            ->toBe(['tests/Existing'])
+            ->and($configuration->tags)
+            ->because('a rejected tag call retains the prior tags')
+            ->toBe(['existing']);
     }
 
     /**
