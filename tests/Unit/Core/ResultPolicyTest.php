@@ -67,6 +67,42 @@ final class ResultPolicyTest
     }
 
     #[Test]
+    public function anIgnoredDeprecationDoesNotSuppressAnActionableDeprecation(): void
+    {
+        $before = new TestResult(
+            new TestId('App\ProbeTest', 'mixedDeprecations'),
+            Outcome::Passed,
+            durationSeconds: 0.1,
+            memoryDeltaBytes: 0,
+            output: new CapturedOutput('', [
+                new Diagnostic(DiagnosticSeverity::Deprecation, 'vendor noise: legacy shim', '/vendor/noise.php', 2),
+                new Diagnostic(DiagnosticSeverity::Deprecation, 'old api is deprecated', '/src/api.php', 7),
+            ]),
+        );
+        $policy = new ResultPolicy(
+            failOnDeprecation: true,
+            ignoreDeprecations: ['vendor noise:*'],
+        );
+
+        $result = $policy->apply($before);
+
+        Expect::that($result->outcome)
+            ->because('each deprecation MUST be evaluated independently')
+            ->toBe(Outcome::Failed)
+            ->and($result->failures)
+            ->toHaveCount(1)
+            ->and($result->failures[0]->message)
+            ->toBe(
+                'The deprecation policy changed this test from passed to failed: '
+                . 'old api is deprecated at /src/api.php:7',
+            )
+            ->and($result->transformations)
+            ->toHaveCount(1)
+            ->and($result->transformations[0]->transformedBy)
+            ->toBe('fail-on-diagnostic policy');
+    }
+
+    #[Test]
     public function wildcardIgnoresAreCaseInsensitiveAndMatchTheWholeMessage(): void
     {
         $policy = new ResultPolicy(failOnDeprecation: true, ignoreDeprecations: ['LEGACY *']);
