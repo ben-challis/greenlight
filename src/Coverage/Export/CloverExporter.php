@@ -28,7 +28,7 @@ final readonly class CloverExporter implements CoverageExporter
         $out .= \sprintf('  <project timestamp="%d" name="greenlight">', $this->timestamp) . "\n";
 
         foreach ($map->files() as $path => $file) {
-            $out .= \sprintf('    <file name="%s">', $this->xml($path)) . "\n";
+            $out .= \sprintf('    <file name="%s">', XmlEscaper::attribute($path)) . "\n";
 
             $counts = [];
 
@@ -69,10 +69,5 @@ final readonly class CloverExporter implements CoverageExporter
             $statements,
             $covered,
         );
-    }
-
-    private function xml(string $value): string
-    {
-        return \htmlspecialchars($value, \ENT_XML1 | \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
     }
 }
