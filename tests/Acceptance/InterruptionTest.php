@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\WorkerSpawned;
@@ -22,9 +23,15 @@ final readonly class InterruptionTest
 
     public function __construct(private TempDirectory $tempDirectory) {}
 
+    /**
+     * @param list<string> $expectedDiagnostics
+     */
     #[Test]
-    public function sigintDrainsWorkersAndExitsWith130(): void
-    {
+    #[DataSet('cleanupModes')]
+    public function sigintDrainsWorkersAndExitsWith130(
+        bool $failCleanup,
+        array $expectedDiagnostics,
+    ): void {
         if (!\function_exists('pcntl_signal')) {
             throw new SkipTest('Graceful interruption requires ext-pcntl in the CLI PHP.');
         }
@@ -32,7 +39,7 @@ final readonly class InterruptionTest
         // The pcntl check is not sufficient on Windows. This test directly
         // runs `kill -INT` and `ps -p`, which Windows does not provide.
 
-        $project = $this->writeProject();
+        $project = $this->writeProject($failCleanup);
         $tmp = $this->tempDirectory->subdirectory('interrupt/tmp');
         $markerDir = $project->path('markers');
         $root = \dirname(__DIR__, 2);
@@ -64,8 +71,11 @@ final readonly class InterruptionTest
             $result = $process->wait(self::DEADLINE_SECONDS);
 
             Expect::that($result->stdout)->toContain('"test-finished"')
-                ->and($result->exitCode)->toBe(130)
-                ->and($result->stderr)->toContain('Interrupted');
+                ->and($result->exitCode)->toBe(130);
+
+            foreach ($expectedDiagnostics as $diagnostic) {
+                Expect::that($result->stderr)->toContain($diagnostic);
+            }
 
             foreach ($this->spawnedWorkerPids(JsonlEvents::from($result)) as $pid) {
                 $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
@@ -81,6 +91,25 @@ final readonly class InterruptionTest
         } finally {
             $process->terminate();
         }
+    }
+
+    /**
+     * @return iterable<string, array{bool, list<string>}>
+     */
+    public static function cleanupModes(): iterable
+    {
+        yield 'successful cleanup' => [
+            false,
+            ['Interrupted'],
+        ];
+        yield 'failed cleanup' => [
+            true,
+            [
+                'Integration fixture teardown failed.',
+                'intentional fixture cleanup failure',
+                'Interrupted. Integration fixture teardown was attempted before exit.',
+            ],
+        ];
     }
 
     /**
@@ -101,9 +130,12 @@ final readonly class InterruptionTest
         return $pids;
     }
 
-    private function writeProject(): AcceptanceProject
+    private function writeProject(bool $failCleanup): AcceptanceProject
     {
-        $project = AcceptanceProject::create($this->tempDirectory, 'interrupt');
+        $project = AcceptanceProject::create(
+            $this->tempDirectory,
+            'interrupt-' . ($failCleanup ? 'failed-cleanup' : 'successful-cleanup'),
+        );
         $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
@@ -169,6 +201,7 @@ final readonly class InterruptionTest
             $files,
         ));
         $markerDirectory = \var_export($markerDir, true);
+        $failCleanupValue = $failCleanup ? 'true' : 'false';
 
         $project->writeFile('greenlight.php', <<<PHP
             <?php
@@ -183,7 +216,10 @@ final readonly class InterruptionTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new IntegrationProbePlugin({$markerDirectory}));
+                ->plugins(new IntegrationProbePlugin(
+                    {$markerDirectory},
+                    failCleanup: {$failCleanupValue},
+                ));
             PHP);
 
         return $project;
