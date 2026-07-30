@@ -9,9 +9,13 @@ use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ConfigurationResolver;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Runner\InProcessRunner;
+use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 
@@ -103,6 +107,38 @@ final readonly class InProcessRunnerTest
         Expect::that($shardedIds)
             ->because('all in-process shards reconstitute the complete run exactly once')
             ->toBe($completeIds);
+    }
+
+    #[Test]
+    public function workerBootstrapFailuresUseTheWorkerFatalProtocolError(): void
+    {
+        $failure = new \RuntimeException('worker bootstrap exploded');
+        $plugin = new readonly class ($failure) implements WorkerBootstrapSubscriber, Fake {
+            public function __construct(private \RuntimeException $failure) {}
+
+            #[\Override]
+            public function onWorkerBootstrap(WorkerBootstrapContext $context): void
+            {
+                throw $this->failure;
+            }
+        };
+        $configuration = GreenlightConfig::create()->plugins($plugin)->build();
+        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+
+        Expect::that(fn() => new InProcessRunner($this->tempDirectory->path())->run(
+            $configuration,
+            [$fixtureDirectory],
+            new CollectingEventSink(),
+        ))
+            ->because('in-process bootstrap failures MUST use the worker fatal protocol contract')
+            ->toThrow(
+                ProtocolError::class,
+                message: \sprintf(
+                    'Worker "in-process" reported a fatal Greenlight error: worker bootstrap exploded (%s:%d)',
+                    $failure->getFile(),
+                    $failure->getLine(),
+                ),
+            );
     }
 
     /**
