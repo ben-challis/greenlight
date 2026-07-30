@@ -215,6 +215,40 @@ final class GreenlightConfigTest
     }
 
     /**
+     * @param \Closure(): void $configure
+     */
+    #[Test]
+    #[DataSet('invalidResourceLimits')]
+    public function invalidResourceLimitsGiveExactGuidance(\Closure $configure, string $message): void
+    {
+        Expect::that($configure)
+            ->because('each invalid resource limit MUST identify the required fix')
+            ->toThrow(InvalidConfiguration::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): void, non-empty-string}>
+     */
+    public static function invalidResourceLimits(): iterable
+    {
+        yield 'negative limit' => [
+            static function (): void {
+                GreenlightConfig::create()->resourceLimit('redis', -2);
+            },
+            'Resource "redis" must have a limit of at least 1, got -2.',
+        ];
+
+        yield 'duplicate declaration' => [
+            static function (): void {
+                GreenlightConfig::create()
+                    ->resourceLimit('redis')
+                    ->resourceLimit('redis', 3);
+            },
+            'Resource limit "redis" is declared twice.',
+        ];
+    }
+
+    /**
      * @return iterable<string, array{\Closure(): void}>
      */
     public static function invalidInputs(): iterable
