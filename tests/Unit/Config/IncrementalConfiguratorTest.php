@@ -61,13 +61,17 @@ final class IncrementalConfiguratorTest
             ->build()
             ->artifacts;
 
-        Expect::that([
-            $artifacts->directory,
-            $artifacts->maxAttachmentsPerTest,
-            $artifacts->maxAttachmentBytes,
-            $artifacts->maxRunAttachments,
-        ])
-            ->because('repeated artifact blocks MUST retain earlier settings')
-            ->toBe(['build/evidence', 12, 2 * 1024 * 1024, 200]);
+        Expect::that($artifacts->directory)
+            ->because('repeated artifact blocks MUST retain the earlier directory')
+            ->toBe('build/evidence');
+        Expect::that($artifacts->maxAttachmentsPerTest)
+            ->because('repeated artifact blocks MUST retain the earlier per-test limit')
+            ->toBe(12);
+        Expect::that($artifacts->maxAttachmentBytes)
+            ->because('repeated artifact blocks MUST apply the attachment size limit')
+            ->toBe(2 * 1024 * 1024);
+        Expect::that($artifacts->maxRunAttachments)
+            ->because('repeated artifact blocks MUST apply the per-run limit')
+            ->toBe(200);
     }
 }

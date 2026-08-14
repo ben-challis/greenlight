@@ -23,13 +23,15 @@ final readonly class EnvironmentSandboxValueValidationTest
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable values cannot contain a null byte.',
-            )
-            ->and([
-                \getenv($name),
-                \array_key_exists($name, $_ENV),
-                \array_key_exists($name, $_SERVER),
-            ])
-            ->because('a rejected value MUST NOT change any environment channel')
-            ->toBe([false, false, false]);
+            );
+        Expect::that(\getenv($name))
+            ->because('a rejected value MUST NOT change the process environment')
+            ->toBeFalse();
+        Expect::that(\array_key_exists($name, $_ENV))
+            ->because('a rejected value MUST NOT change the ENV superglobal')
+            ->toBeFalse();
+        Expect::that(\array_key_exists($name, $_SERVER))
+            ->because('a rejected value MUST NOT change the SERVER superglobal')
+            ->toBeFalse();
     }
 }

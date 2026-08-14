@@ -40,9 +40,13 @@ final readonly class AttachmentNameValidationTest
                 $attachments->collected(),
             ))
                 ->because('an attachment name MAY contain 120 bytes')
-                ->toBe([$name])
-                ->and([$budget->attachments, $budget->bytes])
-                ->toBe([1, 4]);
+                ->toBe([$name]);
+            Expect::that($budget->attachments)
+                ->because('a valid attachment MUST consume one shared attachment slot')
+                ->toBe(1);
+            Expect::that($budget->bytes)
+                ->because('a valid attachment MUST consume its bytes from the shared budget')
+                ->toBe(4);
         } finally {
             $store->cleanup();
         }
@@ -72,9 +76,13 @@ final readonly class AttachmentNameValidationTest
                     ),
                 )
                 ->and($attachments->collected())
-                ->toBe([])
-                ->and([$budget->attachments, $budget->bytes])
-                ->toBe([0, 0])
+                ->toBe([]);
+            Expect::that($budget->attachments)
+                ->because('an unsafe attachment name MUST NOT consume an attachment slot')
+                ->toBe(0);
+            Expect::that($budget->bytes)
+                ->because('an unsafe attachment name MUST NOT consume the byte budget')
+                ->toBe(0)
                 ->and(\file_exists($store->session()->stagingDirectory))
                 ->toBeFalse();
         } finally {

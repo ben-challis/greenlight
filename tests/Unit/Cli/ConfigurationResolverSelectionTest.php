@@ -61,13 +61,15 @@ final readonly class ConfigurationResolverSelectionTest
     ): void {
         $policy = $this->resolve($overrides)->policy;
 
-        Expect::that([
-            $policy->failOnDeprecation,
-            $policy->failOnNotice,
-            $policy->failOnRisky,
-        ])
-            ->because('failure policy CLI flags MUST map to their matching policy fields')
-            ->toBe($expected);
+        Expect::that($policy->failOnDeprecation)
+            ->because('the deprecation policy flag MUST map to failOnDeprecation')
+            ->toBe($expected[0]);
+        Expect::that($policy->failOnNotice)
+            ->because('the notice policy flag MUST map to failOnNotice')
+            ->toBe($expected[1]);
+        Expect::that($policy->failOnRisky)
+            ->because('the risky-test policy flag MUST map to failOnRisky')
+            ->toBe($expected[2]);
     }
 
     /**

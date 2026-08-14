@@ -21,9 +21,12 @@ final class ConfigurationCopyTest
     {
         $configuration = $mutate(GreenlightConfig::create()->build());
 
-        Expect::that([$configuration->onlyTests, $configuration->excludePaths])
-            ->because('selection mutations MUST preserve selection state from earlier mutations')
-            ->toBe([['App\ExampleTest::runs'], ['/project/generated']]);
+        Expect::that($configuration->onlyTests)
+            ->because('a selection mutation MUST preserve earlier test ID selections')
+            ->toBe(['App\ExampleTest::runs']);
+        Expect::that($configuration->excludePaths)
+            ->because('a selection mutation MUST preserve earlier path exclusions')
+            ->toBe(['/project/generated']);
     }
 
     /**

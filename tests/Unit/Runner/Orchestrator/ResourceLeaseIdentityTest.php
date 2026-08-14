@@ -28,9 +28,12 @@ final readonly class ResourceLeaseIdentityTest
         $first = $this->assigned($scheduler);
         $second = $this->assigned($scheduler);
 
-        Expect::that([$first->id, $second->id])
-            ->because('concurrent resource leases MUST have distinct identities')
-            ->toBe([1, 2]);
+        Expect::that($first->id)
+            ->because('the first resource lease MUST use the first lease ID')
+            ->toBe(1);
+        Expect::that($second->id)
+            ->because('the second resource lease MUST use a distinct lease ID')
+            ->toBe(2);
 
         Expect::that(static function () use ($scheduler, $first, $second): void {
             $scheduler->release($first);

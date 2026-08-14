@@ -40,34 +40,34 @@ final readonly class TestResultFailureTransitionTest
 
         Expect::that($original->toWire())
             ->because('a failure transition MUST NOT change the original result')
-            ->toBe($originalWire)
-            ->and([
-                'outcome' => $failed->outcome,
-                'failures' => \array_map(
-                    static fn(FailureDetail $failure): array => $failure->toWire(),
-                    $failed->failures,
-                ),
-                'transformations' => \array_map(
-                    static fn(OutcomeTransformation $transformation): array => $transformation->toWire(),
-                    $failed->transformations,
-                ),
-                'attempts' => $failed->attempts,
-                'expectations' => $failed->expectations,
-            ])
-            ->because('a failure transition MUST append evidence and provenance')
+            ->toBe($originalWire);
+        Expect::that($failed->outcome)
+            ->because('a failure transition MUST use the failed outcome')
+            ->toBe(Outcome::Failed);
+        Expect::that(\array_map(
+            static fn(FailureDetail $failure): array => $failure->toWire(),
+            $failed->failures,
+        ))
+            ->because('a failure transition MUST append failure evidence')
+            ->toBe([$earlierFailure->toWire(), $policyFailure->toWire()]);
+        Expect::that(\array_map(
+            static fn(OutcomeTransformation $transformation): array => $transformation->toWire(),
+            $failed->transformations,
+        ))
+            ->because('a failure transition MUST append provenance')
             ->toBe([
-                'outcome' => Outcome::Failed,
-                'failures' => [$earlierFailure->toWire(), $policyFailure->toWire()],
-                'transformations' => [
-                    $earlierTransformation->toWire(),
-                    new OutcomeTransformation(
-                        'result policy',
-                        Outcome::Passed,
-                        Outcome::Failed,
-                    )->toWire(),
-                ],
-                'attempts' => 2,
-                'expectations' => 3,
+                $earlierTransformation->toWire(),
+                new OutcomeTransformation(
+                    'result policy',
+                    Outcome::Passed,
+                    Outcome::Failed,
+                )->toWire(),
             ]);
+        Expect::that($failed->attempts)
+            ->because('a failure transition MUST preserve the attempt count')
+            ->toBe(2);
+        Expect::that($failed->expectations)
+            ->because('a failure transition MUST preserve the expectation count')
+            ->toBe(3);
     }
 }

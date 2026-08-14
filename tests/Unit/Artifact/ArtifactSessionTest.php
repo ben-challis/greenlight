@@ -20,12 +20,18 @@ final readonly class ArtifactSessionTest
         $session = new ArtifactSession($stagingDirectory, $publicDirectory);
         $decoded = ArtifactSession::fromWire($session->toWire());
 
-        Expect::that([$session->stagingDirectory, $session->publicDirectory])
-            ->because('an artifact session MUST retain each non-empty storage directory')
-            ->toBe([$stagingDirectory, $publicDirectory])
-            ->and([$decoded->stagingDirectory, $decoded->publicDirectory])
-            ->because('artifact storage directories MUST survive the wire')
-            ->toBe([$stagingDirectory, $publicDirectory]);
+        Expect::that($session->stagingDirectory)
+            ->because('an artifact session MUST retain its staging directory')
+            ->toBe($stagingDirectory);
+        Expect::that($session->publicDirectory)
+            ->because('an artifact session MUST retain its public directory')
+            ->toBe($publicDirectory);
+        Expect::that($decoded->stagingDirectory)
+            ->because('the artifact staging directory MUST survive the wire')
+            ->toBe($stagingDirectory);
+        Expect::that($decoded->publicDirectory)
+            ->because('the artifact public directory MUST survive the wire')
+            ->toBe($publicDirectory);
     }
 
     #[Test]

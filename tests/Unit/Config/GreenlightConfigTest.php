@@ -119,13 +119,15 @@ final class GreenlightConfigTest
             ->suite('0', static fn(SuiteBuilder $suite) => $suite->in('tests')->tag('fast'))
             ->build();
 
-        Expect::that([
-            $configuration->suites[0]->name,
-            $configuration->suites[0]->paths,
-            $configuration->suites[0]->tags,
-        ])
+        Expect::that($configuration->suites[0]->name)
             ->because('a zero-string suite name is not empty')
-            ->toBe(['0', ['tests'], ['fast']]);
+            ->toBe('0');
+        Expect::that($configuration->suites[0]->paths)
+            ->because('the suite MUST retain its configured paths')
+            ->toBe(['tests']);
+        Expect::that($configuration->suites[0]->tags)
+            ->because('the suite MUST retain its configured tags')
+            ->toBe(['fast']);
     }
 
     #[Test]

@@ -46,10 +46,13 @@ final readonly class AttachmentMediaTypeValidationTest
                     ),
                 )
                 ->and($attachments->collected())
-                ->toBe([])
-                ->and([$budget->attachments, $budget->bytes])
-                ->because('an invalid media type MUST NOT consume the shared test budget')
-                ->toBe([0, 0]);
+                ->toBe([]);
+            Expect::that($budget->attachments)
+                ->because('an invalid media type MUST NOT consume the shared attachment count')
+                ->toBe(0);
+            Expect::that($budget->bytes)
+                ->because('an invalid media type MUST NOT consume the shared byte count')
+                ->toBe(0);
         } finally {
             $store->cleanup();
         }

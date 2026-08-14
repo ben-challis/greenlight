@@ -27,13 +27,15 @@ final readonly class LaravelProcessEnvironmentValidationTest
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Laravel environment MUST NOT contain a null byte.',
-            )
-            ->and([
-                \getenv('APP_ENV'),
-                $_ENV['APP_ENV'] ?? null,
-                $_SERVER['APP_ENV'] ?? null,
-            ])
-            ->because('a rejected Laravel environment MUST NOT change process state')
-            ->toBe(['before-laravel', 'before-laravel', 'before-laravel']);
+            );
+        Expect::that(\getenv('APP_ENV'))
+            ->because('a rejected Laravel environment MUST NOT change the process environment')
+            ->toBe('before-laravel');
+        Expect::that($_ENV['APP_ENV'] ?? null)
+            ->because('a rejected Laravel environment MUST NOT change the ENV superglobal')
+            ->toBe('before-laravel');
+        Expect::that($_SERVER['APP_ENV'] ?? null)
+            ->because('a rejected Laravel environment MUST NOT change the SERVER superglobal')
+            ->toBe('before-laravel');
     }
 }
