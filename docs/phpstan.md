@@ -215,3 +215,26 @@ Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
 ```php
 #[DataSet('doesNotExist')] // @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
 ```
+
+## Native matcher subject reference
+
+Some native matchers accept only specified subject types. The extension reports
+a known incompatible subject before the test runs:
+
+| Required subject | Matchers |
+| --- | --- |
+| `string` or `iterable` | `toContain()` |
+| `Countable` or `Traversable` | `toHaveCount()` |
+| `string`, `array`, `Countable`, or `Traversable` | `toBeEmpty()` |
+| `string`, `array`, or `Countable` | `toHaveLength()` |
+| `array` or `ArrayAccess` | `toHaveKey()` |
+| `array` | `toContainSubset()` |
+| `int` or `float` | Numeric comparison matchers and `toBeWithin()` |
+| `string` | String and JSON matchers |
+
+Subject errors use the `greenlight.nativeMatcher.subjectType` identifier. A
+string subject also requires a string `toContain()` needle. This error uses
+`greenlight.toContain.needleType`.
+
+The extension does not report these errors for a `mixed` subject. Greenlight
+validates unresolved subject types at run time.

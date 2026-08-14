@@ -59,7 +59,7 @@ final class IterableMatchersTest
     public function toContainGuardsTheSubjectTypeEvenWhenNegated(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(42)->not()->toContain(4),
+            static fn() => Expect::that(42)->not()->toContain(4), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toContain() guards the subject type even when negated')
@@ -70,7 +70,7 @@ final class IterableMatchersTest
     public function toContainGuardsTheNeedleTypeForStringSubjects(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('greenlight')->toContain(4),
+            static fn() => Expect::that('greenlight')->toContain(4), // @phpstan-ignore greenlight.toContain.needleType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toContain() guards the needle type for string subjects')
@@ -106,7 +106,7 @@ final class IterableMatchersTest
     public function toHaveCountGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('12')->toHaveCount(2),
+            static fn() => Expect::that('12')->toHaveCount(2), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toHaveCount() guards the subject type')
@@ -142,7 +142,7 @@ final class IterableMatchersTest
     public function toHaveKeyGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('abc')->toHaveKey(0),
+            static fn() => Expect::that('abc')->toHaveKey(0), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toHaveKey() guards the subject type')
@@ -190,7 +190,7 @@ final class IterableMatchersTest
     public function toBeEmptyGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(0)->toBeEmpty(),
+            static fn() => Expect::that(0)->toBeEmpty(), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeEmpty() guards the subject type')
@@ -339,7 +339,7 @@ final class IterableMatchersTest
     public function toContainSubsetGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('x')->toContainSubset(['a' => 1]),
+            static fn() => Expect::that('x')->toContainSubset(['a' => 1]), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toContainSubset() guards the subject type')

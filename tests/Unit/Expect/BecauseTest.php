@@ -104,7 +104,7 @@ final class BecauseTest
     public function aUsageFailureIgnoresThePendingReason(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(42)->because('the reason applies to matcher failures only')->toContain('x'),
+            static fn() => Expect::that(42)->because('the reason applies to matcher failures only')->toContain('x'), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('a usage failure ignores the pending reason')

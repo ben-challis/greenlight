@@ -49,7 +49,7 @@ final class NumericMatchersTest
     public function toBeGreaterThanGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('3')->toBeGreaterThan(2),
+            static fn() => Expect::that('3')->toBeGreaterThan(2), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeGreaterThan() guards the subject type')
@@ -85,7 +85,7 @@ final class NumericMatchersTest
     public function toBeGreaterThanOrEqualGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('3')->toBeGreaterThanOrEqual(2),
+            static fn() => Expect::that('3')->toBeGreaterThanOrEqual(2), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeGreaterThanOrEqual() guards the subject type')
@@ -119,7 +119,7 @@ final class NumericMatchersTest
     public function toBeLessThanGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(null)->toBeLessThan(2),
+            static fn() => Expect::that(null)->toBeLessThan(2), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeLessThan() guards the subject type')
@@ -155,7 +155,7 @@ final class NumericMatchersTest
     public function toBeLessThanOrEqualGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(null)->toBeLessThanOrEqual(2),
+            static fn() => Expect::that(null)->toBeLessThanOrEqual(2), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeLessThanOrEqual() guards the subject type')
@@ -200,7 +200,7 @@ final class NumericMatchersTest
     public function toBeWithinGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('1.0')->toBeWithin(0.1, 1.0),
+            static fn() => Expect::that('1.0')->toBeWithin(0.1, 1.0), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeWithin() guards the subject type')
