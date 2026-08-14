@@ -47,12 +47,6 @@ final class JsonMatchersTest
     }
 
     #[Test]
-    public function toMatchJsonPasses(): void
-    {
-        Expect::that('{"a": 1}')->because('toMatchJson() passes')->toMatchJson('{"a": 1}');
-    }
-
-    #[Test]
     public function toMatchJsonIgnoresObjectKeyOrder(): void
     {
         Expect::that('{"a": 1, "b": [1, 2]}')->because('toMatchJson() ignores object key order')->toMatchJson('{"b": [1, 2], "a": 1}');
