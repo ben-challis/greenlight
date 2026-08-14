@@ -180,7 +180,9 @@ final readonly class ProxyGenerator
 
     private function renderMethod(\ReflectionMethod $method): ?string
     {
-        if (\in_array($method->name, ['__construct', '__destruct', '__clone'], true)) {
+        $name = \strtolower($method->name);
+
+        if (\in_array($name, ['__construct', '__destruct', '__clone'], true)) {
             return null;
         }
 
@@ -188,7 +190,7 @@ final readonly class ProxyGenerator
             return null;
         }
 
-        if ($method->name === '__greenlightAttachHandler') {
+        if ($name === '__greenlightattachhandler') {
             throw DoublesError::attachHandlerCollision($method->getDeclaringClass()->name);
         }
 
