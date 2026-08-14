@@ -1118,7 +1118,7 @@ final readonly class Application
         $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
 
         if ($resolved->shard !== null) {
-            $plan = PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));
+            return PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));
         }
 
         return $plan;
