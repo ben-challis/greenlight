@@ -16,6 +16,7 @@ rules:
     - Greenlight\PhpStan\TestConstructorRule
     - Greenlight\PhpStan\TestMethodRule
     - Greenlight\PhpStan\ToThrowMessageRule
+    - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:
     greenlight.matcherMapProvider:
