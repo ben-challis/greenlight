@@ -149,8 +149,8 @@ jobs:
             .php-cs-fixer.cache
             build/cache/phpstan
             build/cache/rector
-          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ github.run_id }}"
-          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-"
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}-${{ github.run_id }}"
+          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}-"
 
       - name: "Static analysis"
         if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
@@ -165,7 +165,7 @@ jobs:
             .php-cs-fixer.cache
             build/cache/phpstan
             build/cache/rector
-          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ github.run_id }}"
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}-${{ github.run_id }}"
 
       # PHPStan does not run in the "lowest" jobs. The oldest permitted PHPStan
       # cannot infer types that the code requires. Examples include the
