@@ -113,7 +113,7 @@ final class ToThrowTest
     public function toThrowGuardsTheSubjectTypeEvenWhenNegated(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(42)->not()->toThrow(\DomainException::class),
+            static fn() => Expect::that(42)->not()->toThrow(\DomainException::class), // @phpstan-ignore greenlight.toThrow.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toThrow() guards the subject type even when negated')

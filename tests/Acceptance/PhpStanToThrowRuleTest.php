@@ -16,6 +16,60 @@ final readonly class PhpStanToThrowRuleTest
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
+    public function subjectMustBeCallable(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightGoodToThrowSubjectProbe(mixed $subject): void
+            {
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(DomainException::class);
+                Expect::that($subject)->toThrow(DomainException::class);
+                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->within(1.0)
+                    ->toThrow(DomainException::class);
+                Expect::consistently(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->for(0.1)
+                    ->toThrow(DomainException::class);
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightBadToThrowSubjectProbe(): void
+            {
+                Expect::that(1)->toThrow(DomainException::class);
+                Expect::that(static fn() => null)
+                    ->and('not callable')
+                    ->toThrow(DomainException::class);
+                Expect::eventually(static fn(): int => 1)
+                    ->within(1.0)
+                    ->toThrow(DomainException::class);
+                Expect::consistently(static fn(): string => 'not callable')
+                    ->for(0.1)
+                    ->toThrow(DomainException::class);
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->because('toThrow requires a callable subject')->toBe(1)
+            ->and($probe->goodPassed)->toBeTrue()
+            ->and(\count($probe->errors))->toBe(4)
+            ->and($probe->messages())->toContain('toThrow() requires a callable subject. The subject type is');
+    }
+
+    #[Test]
     public function patternAndExactMessageConstraintsAreMutuallyExclusive(): void
     {
         $probe = PhpStanProbe::analyze(
