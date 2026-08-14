@@ -42,56 +42,61 @@ final readonly class WorkerHandleAssignmentLifecycleTest
             $lease = $this->lease();
             $handle->beginAssignment($lease);
 
-            Expect::that([
-                'lease transferred' => $handle->lease === $lease,
-                'plan transferred' => $handle->assigned === $lease->unit->plan,
-                'isolation transferred' => $handle->isolatedAssignment,
-                'tally replaced' => $handle->tally !== $staleTally,
-                'tally reset' => $handle->tally->toWire(),
-                'finished reset' => $handle->finished,
-                'in-flight reset' => $handle->inFlight,
-                'attempt reset' => $handle->inFlightAttempt,
-                'fresh until completion' => $handle->isFresh(),
-            ])
-                ->because('assignment start MUST transfer the lease and reset transient worker state')
+            Expect::that($handle->lease)
+                ->because('assignment start MUST transfer the resource lease')
+                ->toBe($lease);
+            Expect::that($handle->assigned)
+                ->because('assignment start MUST transfer the execution plan')
+                ->toBe($lease->unit->plan);
+            Expect::that($handle->isolatedAssignment)
+                ->because('assignment start MUST transfer the isolation state')
+                ->toBeTrue();
+            Expect::that($handle->tally)
+                ->because('assignment start MUST replace the result tally')
+                ->not()->toBe($staleTally);
+            Expect::that($handle->tally->toWire())
+                ->because('assignment start MUST reset each result count')
                 ->toBe([
-                    'lease transferred' => true,
-                    'plan transferred' => true,
-                    'isolation transferred' => true,
-                    'tally replaced' => true,
-                    'tally reset' => [
-                        'passed' => 0,
-                        'failed' => 0,
-                        'errored' => 0,
-                        'skipped' => 0,
-                    ],
-                    'finished reset' => [],
-                    'in-flight reset' => null,
-                    'attempt reset' => 0,
-                    'fresh until completion' => true,
+                    'passed' => 0,
+                    'failed' => 0,
+                    'errored' => 0,
+                    'skipped' => 0,
                 ]);
+            Expect::that($handle->finished)
+                ->because('assignment start MUST clear the finished tests')
+                ->toBeEmpty();
+            Expect::that($handle->inFlight)
+                ->because('assignment start MUST clear the active test ID')
+                ->toBeNull();
+            Expect::that($handle->inFlightAttempt)
+                ->because('assignment start MUST reset the active attempt')
+                ->toBe(0);
+            Expect::that($handle->isFresh())
+                ->because('a worker MUST stay fresh until its first assignment completes')
+                ->toBeTrue();
 
             $handle->inFlight = $lease->unit->plan->entries[0]->id;
             $handle->inFlightAttempt = 3;
             $handle->finishAssignment();
 
-            Expect::that([
-                'lease' => $handle->lease,
-                'plan' => $handle->assigned,
-                'isolated' => $handle->isolatedAssignment,
-                'in-flight' => $handle->inFlight,
-                'attempt' => $handle->inFlightAttempt,
-                'fresh' => $handle->isFresh(),
-            ])
-                ->because('assignment finish MUST clear assignment-scoped state and mark the worker as used')
-                ->toBe([
-                    'lease' => null,
-                    'plan' => null,
-                    'isolated' => false,
-                    'in-flight' => null,
-                    'attempt' => 0,
-                    'fresh' => false,
-                ]);
+            Expect::that($handle->lease)
+                ->because('assignment finish MUST clear the resource lease')
+                ->toBeNull();
+            Expect::that($handle->assigned)
+                ->because('assignment finish MUST clear the execution plan')
+                ->toBeNull();
+            Expect::that($handle->isolatedAssignment)
+                ->because('assignment finish MUST clear the isolation state')
+                ->toBeFalse();
+            Expect::that($handle->inFlight)
+                ->because('assignment finish MUST clear the active test ID')
+                ->toBeNull();
+            Expect::that($handle->inFlightAttempt)
+                ->because('assignment finish MUST reset the active attempt')
+                ->toBe(0);
+            Expect::that($handle->isFresh())
+                ->because('assignment finish MUST mark the worker as used')
+                ->toBeFalse();
         } finally {
             $this->close($process);
             $this->close($stdout);
