@@ -34,6 +34,7 @@ final class OutputCapture
 
     /** Contains the ob_get_level() of the capture buffer, or null if inactive. */
     private ?int $bufferLevel = null;
+    private bool $bufferClosed = false;
 
     /** @var (\Closure(int, string, string, int): bool)|null */
     private ?\Closure $errorHandler = null;
@@ -67,6 +68,7 @@ final class OutputCapture
         $this->stdoutTruncated = false;
         $this->diagnostics = [];
         $this->diagnosticsTruncated = false;
+        $this->bufferClosed = false;
 
         $handler = function (int $severity, string $message, string $file = '', int $line = 0): bool {
             $mapped = DiagnosticSeverity::fromErrorLevel($severity);
@@ -83,8 +85,17 @@ final class OutputCapture
         $this->errorHandler = $handler;
         \set_error_handler($handler);
 
-        \ob_start($this->appendChunk(...), 1);
+        \ob_start($this->handleChunk(...), 1);
         $this->bufferLevel = \ob_get_level();
+    }
+
+    private function handleChunk(string $chunk, int $phase): string
+    {
+        if (($phase & \PHP_OUTPUT_HANDLER_FINAL) !== 0) {
+            $this->bufferClosed = true;
+        }
+
+        return $this->appendChunk($chunk);
     }
 
     /**
@@ -107,7 +118,7 @@ final class OutputCapture
             \ob_end_flush();
         }
 
-        if (\ob_get_level() === $level) {
+        if (!$this->bufferClosed && \ob_get_level() === $level) {
             \ob_end_clean();
         }
 
@@ -138,7 +149,7 @@ final class OutputCapture
      * stop propagation. This callback MUST NOT throw because an output-handler
      * exception is fatal.
      */
-    private function appendChunk(string $chunk, int $phase): string
+    private function appendChunk(string $chunk): string
     {
         $remaining = $this->maxStdoutBytes - \strlen($this->stdout);
 
