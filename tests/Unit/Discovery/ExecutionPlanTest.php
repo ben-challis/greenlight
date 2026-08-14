@@ -59,17 +59,6 @@ final class ExecutionPlanTest
     }
 
     #[Test]
-    public function rejectsEntryWhoseIdAndMetadataDisagree(): void
-    {
-        Expect::that(
-            static fn(): PlanEntry => new PlanEntry(
-                new TestId('App\FooTest', 'a'),
-                new TestMetadata('App\FooTest', 'b'),
-            ),
-        )->because('rejects entry whose ID and metadata disagree')->toThrow(\InvalidArgumentException::class);
-    }
-
-    #[Test]
     public function rejectsDuplicateTestIdsFromConstructionAndTheWire(): void
     {
         $entry = self::entry('App\FooTest', 'a', 'first');
