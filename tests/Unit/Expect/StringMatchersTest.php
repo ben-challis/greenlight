@@ -36,7 +36,7 @@ final class StringMatchersTest
     public function toMatchGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(123)->toMatch('/\d+/'),
+            static fn() => Expect::that(123)->toMatch('/\d+/'), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toMatch() guards the subject type')
@@ -81,7 +81,7 @@ final class StringMatchersTest
     public function toStartWithGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(['green'])->toStartWith('green'),
+            static fn() => Expect::that(['green'])->toStartWith('green'), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toStartWith() guards the subject type')
@@ -114,7 +114,7 @@ final class StringMatchersTest
     public function toEndWithGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(null)->toEndWith('x'),
+            static fn() => Expect::that(null)->toEndWith('x'), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toEndWith() guards the subject type')
@@ -163,7 +163,7 @@ final class StringMatchersTest
     public function toHaveLengthGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(42)->toHaveLength(2),
+            static fn() => Expect::that(42)->toHaveLength(2), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toHaveLength() guards the subject type')

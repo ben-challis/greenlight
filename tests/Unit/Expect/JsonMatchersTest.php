@@ -39,7 +39,7 @@ final class JsonMatchersTest
     public function toBeJsonGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that([])->toBeJson(),
+            static fn() => Expect::that([])->toBeJson(), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toBeJson() guards the subject type')
@@ -85,7 +85,7 @@ final class JsonMatchersTest
     public function toMatchJsonGuardsTheSubjectType(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(1)->toMatchJson('{}'),
+            static fn() => Expect::that(1)->toMatchJson('{}'), // @phpstan-ignore greenlight.nativeMatcher.subjectType (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toMatchJson() guards the subject type')
