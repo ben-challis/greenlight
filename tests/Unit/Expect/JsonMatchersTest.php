@@ -96,7 +96,7 @@ final class JsonMatchersTest
     public function toMatchJsonGuardsTheExpectedValue(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that('{}')->toMatchJson('{oops'),
+            static fn() => Expect::that('{}')->toMatchJson('{oops'), // @phpstan-ignore greenlight.expectationArgument.json (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('toMatchJson() guards the expected value')

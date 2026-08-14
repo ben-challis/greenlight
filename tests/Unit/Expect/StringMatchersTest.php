@@ -46,7 +46,7 @@ final class StringMatchersTest
     #[Test]
     public function toMatchRejectsInvalidPatterns(): void
     {
-        Expect::that(static fn() => Expect::that('abc')->toMatch('not a pattern'))->because('toMatch() rejects invalid patterns')
+        Expect::that(static fn() => Expect::that('abc')->toMatch('not a pattern'))->because('toMatch() rejects invalid patterns') // @phpstan-ignore greenlight.expectationArgument.pattern (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'The pattern for toMatch() is an invalid regular expression: not a pattern '

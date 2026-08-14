@@ -10,6 +10,7 @@ parameters:
 rules:
     - Greenlight\PhpStan\AttributeArgumentRule
     - Greenlight\PhpStan\DataProviderSignatureRule
+    - Greenlight\PhpStan\ExpectationArgumentRule
     - Greenlight\PhpStan\LifecycleMethodRule
     - Greenlight\PhpStan\NativeMatcherSubjectRule
     - Greenlight\PhpStan\SkipUnlessConditionRule
