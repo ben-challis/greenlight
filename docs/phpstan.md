@@ -115,6 +115,21 @@ To give an IDE the same signatures, generate the helper file:
 vendor/bin/greenlight ide-helper
 ```
 
+## Constant expectation argument checks
+
+The extension reports constant expectation arguments that Greenlight cannot
+use:
+
+* `toMatch()` and the `matching:` argument of `toThrow()` require a valid
+  regular expression.
+* The expected value for `toMatchJson()` must contain valid JSON.
+* `pollEvery()` requires a finite duration of at least 0.001 seconds.
+* `within()` and `for()` require a finite duration greater than zero.
+
+Errors have identifiers under `greenlight.expectationArgument.*` (`pattern`,
+`json`, `duration`). Greenlight checks values that PHPStan cannot resolve at run
+time.
+
 ## Test method checks
 
 The extension reports a `#[Test]` method that Greenlight cannot run. A test

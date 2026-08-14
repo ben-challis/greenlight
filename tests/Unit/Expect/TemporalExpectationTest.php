@@ -216,7 +216,7 @@ final class TemporalExpectationTest
 
         Expect::that(static function () use ($clock, &$calls): void {
             ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
-                Expect::eventually(static function () use (&$calls): string {
+                Expect::eventually(static function () use (&$calls): string { // @phpstan-ignore greenlight.expectationArgument.pattern (deliberately invalid: tests runtime validation)
                     ++$calls;
 
                     return 'value';
@@ -426,22 +426,22 @@ final class TemporalExpectationTest
     #[Test]
     public function pollingDurationsAndExceptionTypesAreValidated(): void
     {
-        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->within(0.0))->because('polling durations and exception types are validated')
+        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->within(0.0))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Set Eventually duration to a finite value of at least 0.000 seconds.',
             );
-        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->pollEvery(0.0009))->because('polling durations and exception types are validated')
+        Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Set Polling interval to a finite value of at least 0.001 seconds.',
             );
-        Expect::that(static fn() => Expect::consistently(static fn(): int => 1)->for(\NAN))->because('polling durations and exception types are validated')
+        Expect::that(static fn() => Expect::consistently(static fn(): int => 1)->for(\NAN))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Use a finite consistency duration greater than 0.000 seconds.',
             );
-        Expect::that(static fn() => Expect::consistently(static fn(): int => 1)->pollEvery(0.0009))->because('polling durations and exception types are validated')
+        Expect::that(static fn() => Expect::consistently(static fn(): int => 1)->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Use a finite polling interval of at least 0.001 seconds.',

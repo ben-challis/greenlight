@@ -126,7 +126,7 @@ final class ToThrowTest
         $invoked = false;
 
         Expect::that(function () use (&$invoked): void {
-            Expect::that(static function () use (&$invoked): void {
+            Expect::that(static function () use (&$invoked): void { // @phpstan-ignore greenlight.expectationArgument.pattern (deliberately invalid: tests runtime validation)
                 $invoked = true;
             })
                 ->toThrow(\DomainException::class, matching: 'not a pattern');
