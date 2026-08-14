@@ -27,25 +27,27 @@ final readonly class ConfigurationResolverSelectionTest
             excludePaths: ['tests/Legacy'],
         ));
 
-        Expect::that([
-            'filters' => $resolved->filters,
-            'onlyTests' => $resolved->onlyTests,
-            'shard' => $resolved->shard,
-            'excludeGroups' => $resolved->excludeGroups,
-            'excludeClasses' => $resolved->excludeClasses,
-            'excludeMethods' => $resolved->excludeMethods,
-            'excludePaths' => $resolved->excludePaths,
-        ])
-            ->because('selection CLI options MUST map to their matching configuration fields')
-            ->toBe([
-                'filters' => ['Acme\\*'],
-                'onlyTests' => ['Acme\\SelectedTest::runs'],
-                'shard' => [2, 3],
-                'excludeGroups' => ['slow'],
-                'excludeClasses' => ['Acme\\Legacy*'],
-                'excludeMethods' => ['flaky*'],
-                'excludePaths' => ['tests/Legacy'],
-            ]);
+        Expect::that($resolved->filters)
+            ->because('the filter override MUST set the filters field')
+            ->toBe(['Acme\\*']);
+        Expect::that($resolved->onlyTests)
+            ->because('the test ID override MUST set the onlyTests field')
+            ->toBe(['Acme\\SelectedTest::runs']);
+        Expect::that($resolved->shard)
+            ->because('the shard override MUST set the shard field')
+            ->toBe([2, 3]);
+        Expect::that($resolved->excludeGroups)
+            ->because('the group exclusion override MUST set the excludeGroups field')
+            ->toBe(['slow']);
+        Expect::that($resolved->excludeClasses)
+            ->because('the class exclusion override MUST set the excludeClasses field')
+            ->toBe(['Acme\\Legacy*']);
+        Expect::that($resolved->excludeMethods)
+            ->because('the method exclusion override MUST set the excludeMethods field')
+            ->toBe(['flaky*']);
+        Expect::that($resolved->excludePaths)
+            ->because('the path exclusion override MUST set the excludePaths field')
+            ->toBe(['tests/Legacy']);
     }
 
     /**
