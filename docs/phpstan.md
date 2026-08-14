@@ -52,6 +52,17 @@ A call that supplies both `message:` and `matching:` causes the
 `greenlight.toThrow.messageConstraint` error. Greenlight also rejects the call
 at run time. Thus, the constraint does not depend on PHPStan.
 
+The subject for `toThrow()` must be callable. The extension reports a known
+incompatible subject before the test runs:
+
+```php
+Expect::that(42)->toThrow(DomainException::class);
+```
+
+This call causes the `greenlight.toThrow.subjectType` error. The extension
+does not report the error for a `mixed` subject. Greenlight validates unresolved
+subject types at run time.
+
 ## Custom matcher checks
 
 These checks apply when a plugin adds matchers through `ExpectationExtension`.
