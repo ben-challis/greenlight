@@ -140,6 +140,13 @@ jobs:
         env:
           SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
 
+      - name: "Calculate static analysis cache content hash"
+        id: "analysis_cache"
+        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
+        env:
+          CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}"
+        run: 'echo "content_hash=${CONTENT_HASH}" >> "${GITHUB_OUTPUT}"'
+
       - name: "Restore static analysis cache"
         if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
         uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
@@ -149,8 +156,8 @@ jobs:
             .php-cs-fixer.cache
             build/cache/phpstan
             build/cache/rector
-          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}-${{ github.run_id }}"
-          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}-"
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
+          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-"
 
       - name: "Static analysis"
         if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
@@ -165,7 +172,7 @@ jobs:
             .php-cs-fixer.cache
             build/cache/phpstan
             build/cache/rector
-          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}-${{ github.run_id }}"
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
 
       # PHPStan does not run in the "lowest" jobs. The oldest permitted PHPStan
       # cannot infer types that the code requires. Examples include the
