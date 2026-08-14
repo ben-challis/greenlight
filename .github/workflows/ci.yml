@@ -56,7 +56,7 @@ jobs:
           node-version: "24"
 
       - name: "Validate Renovate configuration"
-        run: "npx --yes --package renovate@43.285.3 -- renovate-config-validator --strict"
+        run: "npx --yes --package renovate@44.29.4 -- renovate-config-validator --strict"
 
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
