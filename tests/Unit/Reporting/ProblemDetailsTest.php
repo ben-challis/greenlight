@@ -128,8 +128,8 @@ final class ProblemDetailsTest
     }
 
     #[Test]
-    #[DataSet('partialFailureDiffs')]
-    public function partialFailureDiffsRetainTheAvailableSide(
+    #[DataSet('failureDiffs')]
+    public function failureDiffsRetainEveryPresentValue(
         ?string $expected,
         ?string $actual,
         string $detail,
@@ -145,7 +145,7 @@ final class ProblemDetailsTest
         );
 
         Expect::that(ProblemDetails::render($result))
-            ->because('shared problem details MUST retain each available diff side independently')
+            ->because('shared problem details MUST retain each present diff value independently')
             ->toBe("  values differ\n  {$detail}\n");
     }
 
@@ -241,11 +241,15 @@ final class ProblemDetailsTest
     /**
      * @return iterable<string, array{?string, ?string, non-empty-string}>
      */
-    public static function partialFailureDiffs(): iterable
+    public static function failureDiffs(): iterable
     {
         yield 'expected only' => ['left', null, 'expected: left'];
 
         yield 'actual only' => [null, 'right', 'actual: right'];
+
+        yield 'zero expected' => ['0', '1', "expected: 0\n  actual: 1"];
+
+        yield 'zero actual' => ['1', '0', "expected: 1\n  actual: 0"];
     }
 
     /**
