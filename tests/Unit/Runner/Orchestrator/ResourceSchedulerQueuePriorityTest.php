@@ -30,17 +30,15 @@ final readonly class ResourceSchedulerQueuePriorityTest
         $staleWorkerDecision = $scheduler->dispatch(false);
         $isolatedLease = $this->assigned($scheduler, freshWorker: true);
 
-        Expect::that([
-            'first' => $pooledLease->unit->plan->classes(),
-            'staleWorker' => $staleWorkerDecision->kind,
-            'second' => $isolatedLease->unit->plan->classes(),
-        ])
-            ->because('pooled work MUST run first and isolated work MUST wait for a fresh worker')
-            ->toBe([
-                'first' => ['Acme\\PooledTest'],
-                'staleWorker' => DispatchKind::Drain,
-                'second' => ['Acme\\IsolatedTest'],
-            ]);
+        Expect::that($pooledLease->unit->plan->classes())
+            ->because('pooled work MUST run before isolated work')
+            ->toBe(['Acme\\PooledTest']);
+        Expect::that($staleWorkerDecision->kind)
+            ->because('isolated work MUST wait for a fresh worker')
+            ->toBe(DispatchKind::Drain);
+        Expect::that($isolatedLease->unit->plan->classes())
+            ->because('a fresh worker MUST receive the isolated work')
+            ->toBe(['Acme\\IsolatedTest']);
     }
 
     /**

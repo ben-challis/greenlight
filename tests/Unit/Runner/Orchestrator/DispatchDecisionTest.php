@@ -24,15 +24,12 @@ final readonly class DispatchDecisionTest
         $lease = new ResourceLease(41, $this->unit());
         $decision = DispatchDecision::assign($lease);
 
-        Expect::that([
-            'kind' => $decision->kind,
-            'lease' => $decision->lease,
-        ])
+        Expect::that($decision->kind)
+            ->because('an assignment MUST use the assign decision kind')
+            ->toBe(DispatchKind::Assign);
+        Expect::that($decision->lease)
             ->because('an assignment MUST carry the exact resource lease')
-            ->toBe([
-                'kind' => DispatchKind::Assign,
-                'lease' => $lease,
-            ]);
+            ->toBe($lease);
     }
 
     #[Test]
@@ -45,15 +42,12 @@ final readonly class DispatchDecisionTest
             default => throw new \LogicException(\sprintf('Unknown decision factory "%s".', $factory)),
         };
 
-        Expect::that([
-            'kind' => $decision->kind,
-            'lease' => $decision->lease,
-        ])
-            ->because('non-assignment decisions MUST identify their action without a lease')
-            ->toBe([
-                'kind' => $kind,
-                'lease' => null,
-            ]);
+        Expect::that($decision->kind)
+            ->because('a non-assignment decision MUST use its requested decision kind')
+            ->toBe($kind);
+        Expect::that($decision->lease)
+            ->because('a non-assignment decision MUST NOT carry a resource lease')
+            ->toBeNull();
     }
 
     /**
