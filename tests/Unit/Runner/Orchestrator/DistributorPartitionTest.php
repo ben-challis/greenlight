@@ -28,35 +28,32 @@ final readonly class DistributorPartitionTest
 
         [$pooled, $isolated] = new Distributor()->units($plan);
 
-        Expect::that([
-            'pooled' => \array_map($this->unitShape(...), $pooled),
-            'isolated' => \array_map($this->unitShape(...), $isolated),
-        ])
-            ->because('distribution MUST preserve every entry, its order, and the plan seed')
+        Expect::that(\array_map($this->unitShape(...), $pooled))
+            ->because('pooled distribution MUST preserve every entry, its order, and the plan seed')
             ->toBe([
-                'pooled' => [
-                    [
-                        'ids' => ['Acme\\AlphaTest::first', 'Acme\\AlphaTest::third'],
-                        'seed' => 4242,
-                        'isolated' => false,
-                    ],
-                    [
-                        'ids' => ['Acme\\BetaTest::second'],
-                        'seed' => 4242,
-                        'isolated' => false,
-                    ],
+                [
+                    'ids' => ['Acme\\AlphaTest::first', 'Acme\\AlphaTest::third'],
+                    'seed' => 4242,
+                    'isolated' => false,
                 ],
-                'isolated' => [
-                    [
-                        'ids' => ['Acme\\AlphaTest::isolated'],
-                        'seed' => 4242,
-                        'isolated' => true,
-                    ],
-                    [
-                        'ids' => ['Acme\\BetaTest::isolated'],
-                        'seed' => 4242,
-                        'isolated' => true,
-                    ],
+                [
+                    'ids' => ['Acme\\BetaTest::second'],
+                    'seed' => 4242,
+                    'isolated' => false,
+                ],
+            ]);
+        Expect::that(\array_map($this->unitShape(...), $isolated))
+            ->because('isolated distribution MUST preserve every entry, its order, and the plan seed')
+            ->toBe([
+                [
+                    'ids' => ['Acme\\AlphaTest::isolated'],
+                    'seed' => 4242,
+                    'isolated' => true,
+                ],
+                [
+                    'ids' => ['Acme\\BetaTest::isolated'],
+                    'seed' => 4242,
+                    'isolated' => true,
                 ],
             ]);
     }
