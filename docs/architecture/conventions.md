@@ -120,6 +120,12 @@ bailStopsTheRunAfterTheThreshold
 
 Assertions **SHOULD** use `Greenlight\Expect`.
 
+Tests **MUST NOT** create an array only to group independent expectation
+subjects. Tests **MUST** give each subject to `Expect::that()` directly.
+
+Tests **MAY** compare an array when the behavior produces the array. Examples
+include wire payloads and ordered sequences.
+
 Tests **MUST** use `Greenlight\Tests\Support\Check` only when `Expect` cannot
 test itself.
 
