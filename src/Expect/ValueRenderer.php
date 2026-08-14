@@ -87,24 +87,53 @@ final class ValueRenderer
 
     private function renderString(string $value): string
     {
-        $printable = \strtr($value, [
-            '\\' => '\\\\',
-            "'" => "\\'",
-            "\n" => '\n',
-            "\r" => '\r',
-            "\t" => '\t',
-            "\0" => '\0',
-        ]);
+        $value = Utf8::scrub($value);
+        $printable = '';
+        $printableCharacters = 0;
+        $offset = 0;
+        $bytes = \strlen($value);
 
-        if (\strlen($printable) <= self::MAX_STRING_CHARS) {
+        while ($offset < $bytes) {
+            if (\preg_match('/./us', $value, $matches, offset: $offset) !== 1) {
+                break;
+            }
+
+            $character = $matches[0];
+            $escaped = \strtr($character, [
+                '\\' => '\\\\',
+                "'" => "\\'",
+                "\n" => '\n',
+                "\r" => '\r',
+                "\t" => '\t',
+                "\0" => '\0',
+            ]);
+            $escapedCharacters = $this->codePointLength($escaped);
+
+            if ($printableCharacters + $escapedCharacters > self::MAX_STRING_CHARS) {
+                break;
+            }
+
+            $printable .= $escaped;
+            $printableCharacters += $escapedCharacters;
+            $offset += \strlen($character);
+        }
+
+        if ($offset === $bytes) {
             return "'" . $printable . "'";
         }
 
         return \sprintf(
             "'%s...' (truncated from %d characters)",
-            \substr($printable, 0, self::MAX_STRING_CHARS),
-            \strlen($value),
+            $printable,
+            $this->codePointLength($value),
         );
+    }
+
+    private function codePointLength(string $value): int
+    {
+        $length = \preg_match_all('/./us', $value);
+
+        return $length === false ? \strlen($value) : $length;
     }
 
     /**
