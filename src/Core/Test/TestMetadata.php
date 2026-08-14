@@ -15,6 +15,16 @@ use Greenlight\Core\Wire\WireSerializable;
 final readonly class TestMetadata implements WireSerializable
 {
     /**
+     * @var non-empty-string
+     */
+    public string $class;
+
+    /**
+     * @var non-empty-string
+     */
+    public string $method;
+
+    /**
      * @var list<non-empty-string>
      */
     public array $groups;
@@ -30,8 +40,6 @@ final readonly class TestMetadata implements WireSerializable
     public array $resources;
 
     /**
-     * @param non-empty-string $class
-     * @param non-empty-string $method
      * @param list<string> $groups
      * @param non-empty-string|null $skipReason
      * @param non-empty-string|null $skipUnlessCondition
@@ -45,8 +53,8 @@ final readonly class TestMetadata implements WireSerializable
      * @throws \InvalidArgumentException
      */
     public function __construct(
-        public string $class,
-        public string $method,
+        string $class,
+        string $method,
         array $groups = [],
         public ?string $skipReason = null,
         public ?string $skipUnlessCondition = null,
@@ -61,6 +69,17 @@ final readonly class TestMetadata implements WireSerializable
         array $resources = [],
         public ?string $dataSetProviderClass = null,
     ) {
+        if ($class === '') {
+            throw new \InvalidArgumentException('Test metadata class must not be empty.');
+        }
+
+        if ($method === '') {
+            throw new \InvalidArgumentException('Test metadata method must not be empty.');
+        }
+
+        $this->class = $class;
+        $this->method = $method;
+
         if (!self::isValidTimeout($timeoutSeconds)) {
             throw new \InvalidArgumentException('Timeout seconds must be finite and greater than zero.');
         }

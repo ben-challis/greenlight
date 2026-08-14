@@ -135,22 +135,45 @@ final readonly class TestId implements WireSerializable, \Stringable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L13)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L18)
+
+### `$method`
+
+```php
+public string $method;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L23)
+
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
-    public string $method,
+    string $class,
+    string $method,
     public ?string $dataSetKey = null,
 )
 ```
 
 PHPDoc:
 
-- `@param non-empty-string $class`
-- `@param non-empty-string $method`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L28)
 
 ### `equals()`
 
@@ -158,7 +181,7 @@ PHPDoc:
 public function equals(self $other): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L45)
 
 ### `__toString()`
 
@@ -167,7 +190,7 @@ public function equals(self $other): bool
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L52)
 
 ### `toWire()`
 
@@ -176,7 +199,7 @@ public function __toString(): string
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L62)
 
 ### `fromWire()`
 
@@ -185,7 +208,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L72)
 
 ## `TestMetadata`
 
@@ -200,6 +223,30 @@ final readonly class TestMetadata implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L15)
 
+### `$class`
+
+```php
+public string $class;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L20)
+
+### `$method`
+
+```php
+public string $method;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L25)
+
 ### `$groups`
 
 ```php
@@ -210,7 +257,7 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L30)
 
 ### `$skipUnlessArguments`
 
@@ -222,7 +269,7 @@ PHPDoc:
 
 - `@var list<scalar|null>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L35)
 
 ### `$resources`
 
@@ -234,14 +281,14 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L40)
 
 ### `__construct()`
 
 ```php
 public function __construct(
-    public string $class,
-    public string $method,
+    string $class,
+    string $method,
     array $groups = [],
     public ?string $skipReason = null,
     public ?string $skipUnlessCondition = null,
@@ -260,8 +307,6 @@ public function __construct(
 
 PHPDoc:
 
-- `@param non-empty-string $class`
-- `@param non-empty-string $method`
 - `@param list<string> $groups`
 - `@param non-empty-string|null $skipReason`
 - `@param non-empty-string|null $skipUnlessCondition`
@@ -273,7 +318,7 @@ PHPDoc:
 - `@param non-empty-string|null $dataSetProviderClass`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L55)
 
 ### `toWire()`
 
@@ -282,7 +327,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L124)
 
 ### `fromWire()`
 
@@ -291,7 +336,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L127)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L146)
 
 ## `InvalidWirePayload`
 

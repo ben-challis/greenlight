@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Core;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Core\Wire\InvalidWirePayload;
@@ -146,5 +147,23 @@ final class TestMetadataTest
         Expect::that(
             static fn(): TestMetadata => TestMetadata::fromWire($payload),
         )->because('missing optional keys cause an error')->toThrow(InvalidWirePayload::class);
+    }
+
+    #[Test]
+    #[DataSet('invalidIdentifiers')]
+    public function rejectsInvalidIdentifiers(string $class, string $method, string $message): void
+    {
+        Expect::that(static fn(): TestMetadata => new TestMetadata($class, $method))
+            ->because('test metadata MUST identify a class and method')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, non-empty-string}>
+     */
+    public static function invalidIdentifiers(): iterable
+    {
+        yield 'empty class' => ['', 'bar', 'Test metadata class must not be empty.'];
+        yield 'empty method' => ['App\FooTest', '', 'Test metadata method must not be empty.'];
     }
 }
