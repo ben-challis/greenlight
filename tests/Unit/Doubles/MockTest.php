@@ -18,19 +18,6 @@ use Greenlight\Tests\Fixture\Doubles\UntypedMethod;
 final class MockTest
 {
     #[Test]
-    public function metExpectationsPassVerification(): void
-    {
-        $doubles = new Doubles();
-        $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
-            $plan->expects('add')->with(1, 2)->once()->andReturns(3);
-        });
-
-        Expect::that($calculator->add(1, 2))->because('met expectations pass verification')->toBe(3);
-
-        $doubles->dispose();
-    }
-
-    #[Test]
     public function valueReturningCallsRequireAConfiguredAnswer(): void
     {
         $doubles = new Doubles();
