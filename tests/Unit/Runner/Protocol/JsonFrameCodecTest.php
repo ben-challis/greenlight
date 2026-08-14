@@ -122,14 +122,6 @@ final class JsonFrameCodecTest
     }
 
     #[Test]
-    public function emptyJsonObjectRemainsAValidMap(): void
-    {
-        Expect::that(new JsonFrameCodec()->decode('{}'))
-            ->because('an empty JSON object is still a protocol map')
-            ->toBe([]);
-    }
-
-    #[Test]
     public function whitespaceWrappedEmptyJsonObjectRemainsAValidMap(): void
     {
         Expect::that(new JsonFrameCodec()->decode("\n \t{}\r\n"))
