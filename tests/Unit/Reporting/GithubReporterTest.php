@@ -107,8 +107,8 @@ final class GithubReporterTest
     }
 
     #[Test]
-    #[DataSet('partialDiffs')]
-    public function partialFailureDiffsRetainTheAvailableSide(
+    #[DataSet('failureDiffs')]
+    public function failureDiffsRetainEachAvailableSide(
         ?string $expected,
         ?string $actual,
         string $diff,
@@ -214,11 +214,15 @@ final class GithubReporterTest
     /**
      * @return iterable<string, array{?string, ?string, string}>
      */
-    public static function partialDiffs(): iterable
+    public static function failureDiffs(): iterable
     {
         yield 'expected only' => ['left', null, '%0Aexpected: left'];
 
         yield 'actual only' => [null, 'right', '%0Aactual: right'];
+
+        yield 'zero expected only' => ['0', null, '%0Aexpected: 0'];
+
+        yield 'zero actual only' => [null, '0', '%0Aactual: 0'];
     }
 
     /**
