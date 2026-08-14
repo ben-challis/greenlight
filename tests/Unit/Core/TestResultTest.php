@@ -186,10 +186,13 @@ final class TestResultTest
             ->toBe($error)
             ->and($errored->failures)
             ->because('a later lifecycle error MUST NOT discard earlier failure evidence')
-            ->toBe([$failure])
-            ->and([$errored->attempts, $errored->expectations])
-            ->because('a later lifecycle error MUST preserve completed attempt state')
-            ->toBe([2, 3]);
+            ->toBe([$failure]);
+        Expect::that($errored->attempts)
+            ->because('a later lifecycle error MUST preserve the attempt count')
+            ->toBe(2);
+        Expect::that($errored->expectations)
+            ->because('a later lifecycle error MUST preserve the expectation count')
+            ->toBe(3);
     }
 
     #[Test]

@@ -68,9 +68,15 @@ final class StagedAttachmentValidationTest
             'attempt' => $attempt,
         ]);
 
-        Expect::that([$staged->sizeBytes, $staged->attempt, $staged->storageKey])
-            ->because('staged attachment wire decoding preserves its numeric bounds and coordinate')
-            ->toBe([0, 1, 'test/attempt-1/01-artifact.txt']);
+        Expect::that($staged->sizeBytes)
+            ->because('staged attachment wire decoding MUST normalize a negative size to zero')
+            ->toBe(0);
+        Expect::that($staged->attempt)
+            ->because('staged attachment wire decoding MUST normalize a nonpositive attempt to one')
+            ->toBe(1);
+        Expect::that($staged->storageKey)
+            ->because('staged attachment wire decoding MUST preserve the storage key')
+            ->toBe('test/attempt-1/01-artifact.txt');
     }
 
     /**

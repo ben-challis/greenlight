@@ -35,15 +35,12 @@ final readonly class ResourceSchedulerRequeueOrderTest
         $scheduler->release($first);
         $second = $this->assigned($scheduler, $freshWorker);
 
-        Expect::that([
-            $first->unit->plan->classes(),
-            $second->unit->plan->classes(),
-        ])
+        Expect::that($first->unit->plan->classes())
+            ->because('pending work MUST remain first in its queue')
+            ->toBe(['Acme\\PendingTest']);
+        Expect::that($second->unit->plan->classes())
             ->because('requeued work MUST append behind pending work in its queue')
-            ->toBe([
-                ['Acme\\PendingTest'],
-                ['Acme\\RetriedTest'],
-            ]);
+            ->toBe(['Acme\\RetriedTest']);
     }
 
     /**

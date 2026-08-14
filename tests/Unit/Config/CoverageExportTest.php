@@ -39,9 +39,12 @@ final class CoverageExportTest
     {
         $export = new CoverageExport($format, $target);
 
-        Expect::that([$export->format, $export->target])
-            ->because('zero-string coverage export values are not empty')
-            ->toBe([$format, $target]);
+        Expect::that($export->format)
+            ->because('a zero-string coverage export format is not empty')
+            ->toBe($format);
+        Expect::that($export->target)
+            ->because('a zero-string coverage export target is not empty')
+            ->toBe($target);
     }
 
     /**

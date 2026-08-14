@@ -52,8 +52,11 @@ final class FallbackResolverCountTest
                     . 'Constructor injection resolves exact types only, and none of the 2 fallback resolver(s) supplied it.',
             );
 
-        Expect::that([$first->calls, $second->calls])
-            ->because('each reported fallback resolver MUST have received the request')
-            ->toBe([1, 1]);
+        Expect::that($first->calls)
+            ->because('the first reported fallback resolver MUST receive the request')
+            ->toBe(1);
+        Expect::that($second->calls)
+            ->because('the second reported fallback resolver MUST receive the request')
+            ->toBe(1);
     }
 }

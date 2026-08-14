@@ -43,10 +43,13 @@ final readonly class StatChangeDetectorContentTest
 
         \clearstatcache(true, $source);
 
-        Expect::that([\filemtime($source), \filesize($source)])
-            ->because('the rewrite MUST preserve the metadata in the original fingerprint')
-            ->toBe([$mtime, \strlen($original)])
-            ->and($detector->poll())
+        Expect::that(\filemtime($source))
+            ->because('the rewrite MUST preserve the modification time in the original fingerprint')
+            ->toBe($mtime);
+        Expect::that(\filesize($source))
+            ->because('the rewrite MUST preserve the file size in the original fingerprint')
+            ->toBe(\strlen($original));
+        Expect::that($detector->poll())
             ->because('the content fingerprint MUST report an equal-size rewrite')
             ->toBe([$source]);
     }

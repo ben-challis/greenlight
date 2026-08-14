@@ -36,9 +36,18 @@ final class ExpectationCounterTest
         ExpectationCounter::increment();
         $afterResume = ExpectationCounter::count();
 
-        Expect::that([$value, $observed, $afterSuppression, $afterResume])
-            ->because('nested suppression MUST preserve the value and resume counting afterward')
-            ->toBe(['result', [1, 1], 1, 2]);
+        Expect::that($value)
+            ->because('nested suppression MUST preserve the operation value')
+            ->toBe('result');
+        Expect::that($observed)
+            ->because('nested suppression MUST keep the expectation count unchanged')
+            ->toBe([1, 1]);
+        Expect::that($afterSuppression)
+            ->because('nested suppression MUST restore the earlier expectation count')
+            ->toBe(1);
+        Expect::that($afterResume)
+            ->because('expectation counting MUST resume after nested suppression')
+            ->toBe(2);
     }
 
     #[Test]
@@ -60,8 +69,11 @@ final class ExpectationCounterTest
         ExpectationCounter::increment();
         $afterResume = ExpectationCounter::count();
 
-        Expect::that([$afterThrow, $afterResume])
-            ->because('suppression MUST be restored after an operation error')
-            ->toBe([1, 2]);
+        Expect::that($afterThrow)
+            ->because('suppression MUST restore the earlier count after an operation error')
+            ->toBe(1);
+        Expect::that($afterResume)
+            ->because('expectation counting MUST resume after an operation error')
+            ->toBe(2);
     }
 }

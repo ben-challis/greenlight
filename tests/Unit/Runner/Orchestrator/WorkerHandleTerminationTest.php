@@ -65,9 +65,12 @@ final readonly class WorkerHandleTerminationTest
             $handle->channel = $channel;
             $handle->terminate();
 
-            Expect::that([$channel->isEof(), \is_resource($process)])
-                ->because('worker termination MUST close its protocol channel and process handle')
-                ->toBe([true, false]);
+            Expect::that($channel->isEof())
+                ->because('worker termination MUST close its protocol channel')
+                ->toBeTrue();
+            Expect::that(\is_resource($process))
+                ->because('worker termination MUST close its process handle')
+                ->toBeFalse();
         } finally {
             $resources = $pipes;
 

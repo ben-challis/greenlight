@@ -99,9 +99,12 @@ final class AttachmentWireTest
             'retention' => AttachmentRetention::Always->value,
         ]);
 
-        Expect::that([$attachment->sizeBytes, $attachment->attempt])
-            ->because('attachment wire decoding MUST preserve its numeric bounds')
-            ->toBe([0, 1]);
+        Expect::that($attachment->sizeBytes)
+            ->because('attachment wire decoding MUST normalize a negative size to zero')
+            ->toBe(0);
+        Expect::that($attachment->attempt)
+            ->because('attachment wire decoding MUST normalize a nonpositive attempt to one')
+            ->toBe(1);
     }
 
     /**

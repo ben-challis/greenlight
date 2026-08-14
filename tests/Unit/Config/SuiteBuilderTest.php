@@ -68,9 +68,12 @@ final class SuiteBuilderTest
             ->tag(...$tags)
             ->toConfiguration();
 
-        Expect::that([$suite->paths, $suite->tags])
-            ->because('zero-string suite builder values are not empty')
-            ->toBe([$paths, $tags]);
+        Expect::that($suite->paths)
+            ->because('a zero-string suite path is not empty')
+            ->toBe($paths);
+        Expect::that($suite->tags)
+            ->because('a zero-string suite tag is not empty')
+            ->toBe($tags);
     }
 
     /**
