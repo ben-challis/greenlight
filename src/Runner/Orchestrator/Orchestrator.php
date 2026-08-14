@@ -26,6 +26,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
+use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
@@ -366,7 +367,7 @@ final class Orchestrator
                 }
             }
 
-            if ($message !== null || \microtime(true) - $since > self::HELLO_DEADLINE_SECONDS || $channel->isEof()) {
+            if ($message instanceof Message || \microtime(true) - $since > self::HELLO_DEADLINE_SECONDS || $channel->isEof()) {
                 // Close a connection for an incorrect token, unknown worker,
                 // or authentication timeout.
                 $channel->close();
