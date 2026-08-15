@@ -36,8 +36,9 @@ final class XdebugDriverIniFallbackTest
 
         Expect::that($result->exitCode)
             ->because('the isolated Xdebug availability probe MUST exit successfully')
-            ->toBe(0)
-            ->and($result->stdout)
+            ->toBe(0);
+
+        Expect::that($result->stdout)
             ->because('Xdebug availability MUST fall back to the configured INI mode')
             ->toBe("disabled\navailable");
     }

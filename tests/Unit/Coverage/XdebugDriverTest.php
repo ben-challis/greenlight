@@ -45,9 +45,19 @@ final class XdebugDriverTest
     }
 
     #[Test]
+    #[Isolated]
     public function reportsInvalidCollectionStateExactly(): void
     {
-        $driver = new \ReflectionClass(XdebugDriver::class)->newInstanceWithoutConstructor();
+        if (!\defined('XDEBUG_CC_UNUSED')) {
+            \define('XDEBUG_CC_UNUSED', 1);
+        }
+
+        if (!\defined('XDEBUG_CC_DEAD_CODE')) {
+            \define('XDEBUG_CC_DEAD_CODE', 2);
+        }
+
+        $runtime = new FakeXdebugRuntime();
+        $driver = new XdebugDriver($runtime);
 
         Expect::that(static fn(): mixed => $driver->stop())
             ->toThrow(
@@ -55,14 +65,23 @@ final class XdebugDriverTest
                 message: 'The Xdebug collection window is not open. Call start() before stop().',
             );
 
-        $collecting = new \ReflectionProperty(XdebugDriver::class, 'collecting');
-        $collecting->setValue($driver, true);
+        Expect::that($runtime->calls)
+            ->because('an invalid stop MUST NOT use the Xdebug runtime')
+            ->toBe([]);
+
+        $driver->start();
 
         Expect::that(static fn() => $driver->start())
             ->toThrow(
                 \LogicException::class,
                 message: 'The Xdebug collection window is already open. Call stop() before start().',
             );
+
+        $driver->stop();
+
+        Expect::that($runtime->calls)
+            ->because('an invalid start MUST NOT open a second collection window')
+            ->toBe(['start', 'collect', 'stop']);
     }
 
     #[Test]
@@ -89,11 +108,13 @@ final class XdebugDriverTest
                     10 => 1,
                     11 => -1,
                 ],
-            ])
-            ->and($runtime->flags)
+            ]);
+
+        Expect::that($runtime->flags)
             ->because('Xdebug collection MUST request unused and dead code analysis')
-            ->toBe(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE)
-            ->and($runtime->calls)
+            ->toBe(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
+
+        Expect::that($runtime->calls)
             ->because('Xdebug collection MUST read and stop the extension before closing its window')
             ->toBe(['start', 'collect', 'stop']);
 
@@ -125,12 +146,24 @@ final class XdebugDriverTest
         $map = CoverageMap::fromRaw($raw, new PathFilter([$fixtureDir]));
         $file = $map->files()[$fixtureFile] ?? null;
 
-        Expect::that($sum)->because('collects real line coverage over the fixture')->toBe(42)
-            ->and($file)->not()->toBeNull();
+        Expect::that($sum)
+            ->because('collects real line coverage over the fixture')
+            ->toBe(42);
+
+        Expect::that($file)
+            ->because('collects real line coverage over the fixture')
+            ->not()
+            ->toBeNull();
         \assert($file !== null);
 
-        Expect::that($file->coveredLines)->because('collects real line coverage over the fixture')->toContain(Adder::ADD_RETURN_LINE)
-            ->and($file->uncoveredLines)->not()->toContain(Adder::ADD_RETURN_LINE);
+        Expect::that($file->coveredLines)
+            ->because('collects real line coverage over the fixture')
+            ->toContain(Adder::ADD_RETURN_LINE);
+
+        Expect::that($file->uncoveredLines)
+            ->because('collects real line coverage over the fixture')
+            ->not()
+            ->toContain(Adder::ADD_RETURN_LINE);
     }
 
     /**
