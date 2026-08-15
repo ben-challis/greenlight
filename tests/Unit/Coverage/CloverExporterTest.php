@@ -22,7 +22,7 @@ final class CloverExporterTest
 
         $xml = new \SimpleXMLElement(new CloverExporter(1234)->export($map)[CloverExporter::FILE_NAME]);
 
-        Expect::that(self::structure($xml))
+        Expect::that($this->structure($xml))
             ->because('document carries per file and project statement metrics')
             ->toBe([
                 'generated' => '1234',
@@ -94,7 +94,7 @@ final class CloverExporterTest
     {
         $xml = new \SimpleXMLElement(new CloverExporter()->export(CoverageMap::empty())[CloverExporter::FILE_NAME]);
 
-        Expect::that(self::structure($xml))
+        Expect::that($this->structure($xml))
             ->because('empty map still produces a parsable document')
             ->toBe([
                 'generated' => '0',
@@ -135,18 +135,18 @@ final class CloverExporterTest
      *     }>
      * }
      */
-    private static function structure(\SimpleXMLElement $xml): array
+    private function structure(\SimpleXMLElement $xml): array
     {
         $projects = [];
 
-        foreach (self::xpath($xml, '/coverage/project') as $project) {
+        foreach ($this->xpath($xml, '/coverage/project') as $project) {
             $files = [];
 
-            foreach (self::xpath($project, 'file') as $file) {
+            foreach ($this->xpath($project, 'file') as $file) {
                 $files[] = [
                     'path' => (string) $file['name'],
-                    'lines' => self::attributeSets(self::xpath($file, 'line')),
-                    'metrics' => self::attributeSets(self::xpath($file, 'metrics')),
+                    'lines' => $this->attributeSets($this->xpath($file, 'line')),
+                    'metrics' => $this->attributeSets($this->xpath($file, 'metrics')),
                 ];
             }
 
@@ -154,7 +154,7 @@ final class CloverExporterTest
                 'timestamp' => (string) $project['timestamp'],
                 'name' => (string) $project['name'],
                 'files' => $files,
-                'metrics' => self::attributeSets(self::xpath($project, 'metrics')),
+                'metrics' => $this->attributeSets($this->xpath($project, 'metrics')),
             ];
         }
 
@@ -169,7 +169,7 @@ final class CloverExporterTest
      *
      * @return list<array<string, string>>
      */
-    private static function attributeSets(array $elements): array
+    private function attributeSets(array $elements): array
     {
         $sets = [];
 
@@ -177,7 +177,7 @@ final class CloverExporterTest
             $attributes = [];
 
             foreach ($element->attributes() as $name => $value) {
-                $attributes[(string) $name] = (string) $value;
+                $attributes[$name] = (string) $value;
             }
 
             $sets[] = $attributes;
@@ -189,7 +189,7 @@ final class CloverExporterTest
     /**
      * @return list<\SimpleXMLElement>
      */
-    private static function xpath(\SimpleXMLElement $xml, string $expression): array
+    private function xpath(\SimpleXMLElement $xml, string $expression): array
     {
         $nodes = $xml->xpath($expression);
 
