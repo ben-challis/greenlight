@@ -13,7 +13,7 @@ use Greenlight\Expect\Expect;
 final class CoberturaExporterTest
 {
     #[Test]
-    public function documentCarriesLineRatesAtEveryLevel(): void
+    public function documentCarriesMetricsForEveryFile(): void
     {
         $map = new CoverageMap([
             new FileCoverage('/src/A.php', [3, 7], [5]),
@@ -22,30 +22,177 @@ final class CoberturaExporterTest
 
         $xml = new \SimpleXMLElement(new CoberturaExporter(1234)->export($map)[CoberturaExporter::FILE_NAME]);
 
-        $classes = $xml->xpath('/coverage/packages/package/classes/class');
-        \assert($classes !== null);
-        $firstClassLines = $xml->xpath('/coverage/packages/package/classes/class[1]/lines/line');
-        \assert($firstClassLines !== null);
-
-        Expect::that((string) $xml['line-rate'])->because('document carries line rates at every level')->toBe('0.7500')
-            ->and((string) $xml['lines-covered'])->toBe('3')
-            ->and((string) $xml['lines-valid'])->toBe('4')
-            ->and((string) $xml['timestamp'])->toBe('1234')
-            ->and(\count($classes))->toBe(2)
-            ->and((string) $classes[0]['filename'])->toBe('src/A.php')
-            ->and((string) $classes[0]['line-rate'])->toBe('0.6667')
-            ->and((string) $classes[1]['line-rate'])->toBe('1.0000')
-            ->and(\count($firstClassLines))->toBe(3)
-            ->and((string) $firstClassLines[1]['number'])->toBe('5')
-            ->and((string) $firstClassLines[1]['hits'])->toBe('0');
+        Expect::that($this->structure($xml))
+            ->because('document carries metrics for every file')
+            ->toBe([
+                'attributes' => [
+                    'line-rate' => '0.7500',
+                    'branch-rate' => '0',
+                    'lines-covered' => '3',
+                    'lines-valid' => '4',
+                    'branches-covered' => '0',
+                    'branches-valid' => '0',
+                    'complexity' => '0',
+                    'version' => '0',
+                    'timestamp' => '1234',
+                ],
+                'sources' => ['/'],
+                'packages' => [[
+                    'attributes' => [
+                        'name' => 'greenlight',
+                        'line-rate' => '0.7500',
+                        'branch-rate' => '0',
+                        'complexity' => '0',
+                    ],
+                    'classes' => [
+                        [
+                            'attributes' => [
+                                'name' => 'src/A.php',
+                                'filename' => 'src/A.php',
+                                'line-rate' => '0.6667',
+                                'branch-rate' => '0',
+                                'complexity' => '0',
+                            ],
+                            'methods' => [[]],
+                            'lines' => [
+                                ['number' => '3', 'hits' => '1'],
+                                ['number' => '5', 'hits' => '0'],
+                                ['number' => '7', 'hits' => '1'],
+                            ],
+                        ],
+                        [
+                            'attributes' => [
+                                'name' => 'src/B.php',
+                                'filename' => 'src/B.php',
+                                'line-rate' => '1.0000',
+                                'branch-rate' => '0',
+                                'complexity' => '0',
+                            ],
+                            'methods' => [[]],
+                            'lines' => [
+                                ['number' => '2', 'hits' => '1'],
+                            ],
+                        ],
+                    ],
+                ]],
+            ]);
     }
 
     #[Test]
-    public function emptyMapReportsAFullLineRate(): void
+    public function emptyMapStillProducesAParsableDocument(): void
     {
         $xml = new \SimpleXMLElement(new CoberturaExporter()->export(CoverageMap::empty())[CoberturaExporter::FILE_NAME]);
 
-        Expect::that((string) $xml['line-rate'])->because('empty map reports a full line rate')->toBe('1.0000')
-            ->and((string) $xml['lines-valid'])->toBe('0');
+        Expect::that($this->structure($xml))
+            ->because('empty map still produces a parsable document')
+            ->toBe([
+                'attributes' => [
+                    'line-rate' => '1.0000',
+                    'branch-rate' => '0',
+                    'lines-covered' => '0',
+                    'lines-valid' => '0',
+                    'branches-covered' => '0',
+                    'branches-valid' => '0',
+                    'complexity' => '0',
+                    'version' => '0',
+                    'timestamp' => '0',
+                ],
+                'sources' => ['/'],
+                'packages' => [[
+                    'attributes' => [
+                        'name' => 'greenlight',
+                        'line-rate' => '1.0000',
+                        'branch-rate' => '0',
+                        'complexity' => '0',
+                    ],
+                    'classes' => [],
+                ]],
+            ]);
+    }
+
+    /**
+     * @return array{
+     *     attributes: array<string, string>,
+     *     sources: list<string>,
+     *     packages: list<array{
+     *         attributes: array<string, string>,
+     *         classes: list<array{
+     *             attributes: array<string, string>,
+     *             methods: list<array<string, string>>,
+     *             lines: list<array<string, string>>
+     *         }>
+     *     }>
+     * }
+     */
+    private function structure(\SimpleXMLElement $xml): array
+    {
+        $sources = [];
+
+        foreach ($this->xpath($xml, '/coverage/sources/source') as $source) {
+            $sources[] = (string) $source;
+        }
+
+        $packages = [];
+
+        foreach ($this->xpath($xml, '/coverage/packages/package') as $package) {
+            $classes = [];
+
+            foreach ($this->xpath($package, 'classes/class') as $class) {
+                $classes[] = [
+                    'attributes' => $this->attributes($class),
+                    'methods' => $this->attributeSets($this->xpath($class, 'methods')),
+                    'lines' => $this->attributeSets($this->xpath($class, 'lines/line')),
+                ];
+            }
+
+            $packages[] = [
+                'attributes' => $this->attributes($package),
+                'classes' => $classes,
+            ];
+        }
+
+        return [
+            'attributes' => $this->attributes($xml),
+            'sources' => $sources,
+            'packages' => $packages,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function attributes(\SimpleXMLElement $element): array
+    {
+        $attributes = [];
+
+        foreach ($element->attributes() as $name => $value) {
+            $attributes[$name] = (string) $value;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * @param list<\SimpleXMLElement> $elements
+     *
+     * @return list<array<string, string>>
+     */
+    private function attributeSets(array $elements): array
+    {
+        return \array_map($this->attributes(...), $elements);
+    }
+
+    /**
+     * @return list<\SimpleXMLElement>
+     */
+    private function xpath(\SimpleXMLElement $xml, string $expression): array
+    {
+        $nodes = $xml->xpath($expression);
+
+        if (!\is_array($nodes)) {
+            throw new \RuntimeException(\sprintf('XPath query "%s" failed.', $expression));
+        }
+
+        return \array_values($nodes);
     }
 }
