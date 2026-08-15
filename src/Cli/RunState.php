@@ -16,11 +16,16 @@ use Greenlight\Core\ErrorTrap;
  */
 final readonly class RunState
 {
-    public function __construct(private string $file) {}
+    private function __construct(private string $file) {}
+
+    public static function forFile(string $file): self
+    {
+        return new self($file);
+    }
 
     public static function forWorkingDirectory(string $workingDirectory): self
     {
-        return new self(\sprintf(
+        return self::forFile(\sprintf(
             '%s/greenlight-state-%s.json',
             \rtrim(\sys_get_temp_dir(), '/'),
             \substr(\sha1($workingDirectory), 0, 12),
