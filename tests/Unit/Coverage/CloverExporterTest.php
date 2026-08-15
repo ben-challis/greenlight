@@ -22,28 +22,71 @@ final class CloverExporterTest
 
         $xml = new \SimpleXMLElement(new CloverExporter(1234)->export($map)[CloverExporter::FILE_NAME]);
 
-        $files = $xml->xpath('/coverage/project/file');
-        \assert($files !== null);
-        $firstFileLines = $xml->xpath('/coverage/project/file[1]/line');
-        \assert($firstFileLines !== null);
-        $firstFileMetrics = $xml->xpath('/coverage/project/file[1]/metrics');
-        \assert($firstFileMetrics !== null && isset($firstFileMetrics[0]));
-        $projectMetrics = $xml->xpath('/coverage/project/metrics');
-        \assert($projectMetrics !== null && isset($projectMetrics[0]));
-
-        Expect::that((string) $xml['generated'])->because('document carries per file and project statement metrics')->toBe('1234')
-            ->and(\count($files))->toBe(2)
-            ->and((string) $files[0]['name'])->toBe('/src/A.php')
-            ->and(\count($firstFileLines))->toBe(3)
-            ->and((string) $firstFileLines[0]['num'])->toBe('3')
-            ->and((string) $firstFileLines[0]['count'])->toBe('1')
-            ->and((string) $firstFileLines[1]['num'])->toBe('5')
-            ->and((string) $firstFileLines[1]['count'])->toBe('0')
-            ->and((string) $firstFileMetrics[0]['statements'])->toBe('3')
-            ->and((string) $firstFileMetrics[0]['coveredstatements'])->toBe('2')
-            ->and((string) $projectMetrics[0]['files'])->toBe('2')
-            ->and((string) $projectMetrics[0]['statements'])->toBe('4')
-            ->and((string) $projectMetrics[0]['coveredstatements'])->toBe('3');
+        Expect::that(self::structure($xml))
+            ->because('document carries per file and project statement metrics')
+            ->toBe([
+                'generated' => '1234',
+                'projects' => [[
+                    'timestamp' => '1234',
+                    'name' => 'greenlight',
+                    'files' => [
+                        [
+                            'path' => '/src/A.php',
+                            'lines' => [
+                                ['num' => '3', 'type' => 'stmt', 'count' => '1'],
+                                ['num' => '5', 'type' => 'stmt', 'count' => '0'],
+                                ['num' => '7', 'type' => 'stmt', 'count' => '1'],
+                            ],
+                            'metrics' => [[
+                                'loc' => '0',
+                                'ncloc' => '0',
+                                'classes' => '0',
+                                'methods' => '0',
+                                'coveredmethods' => '0',
+                                'conditionals' => '0',
+                                'coveredconditionals' => '0',
+                                'statements' => '3',
+                                'coveredstatements' => '2',
+                                'elements' => '3',
+                                'coveredelements' => '2',
+                            ]],
+                        ],
+                        [
+                            'path' => '/src/B.php',
+                            'lines' => [
+                                ['num' => '2', 'type' => 'stmt', 'count' => '1'],
+                            ],
+                            'metrics' => [[
+                                'loc' => '0',
+                                'ncloc' => '0',
+                                'classes' => '0',
+                                'methods' => '0',
+                                'coveredmethods' => '0',
+                                'conditionals' => '0',
+                                'coveredconditionals' => '0',
+                                'statements' => '1',
+                                'coveredstatements' => '1',
+                                'elements' => '1',
+                                'coveredelements' => '1',
+                            ]],
+                        ],
+                    ],
+                    'metrics' => [[
+                        'files' => '2',
+                        'loc' => '0',
+                        'ncloc' => '0',
+                        'classes' => '0',
+                        'methods' => '0',
+                        'coveredmethods' => '0',
+                        'conditionals' => '0',
+                        'coveredconditionals' => '0',
+                        'statements' => '4',
+                        'coveredstatements' => '3',
+                        'elements' => '4',
+                        'coveredelements' => '3',
+                    ]],
+                ]],
+            ]);
     }
 
     #[Test]
@@ -51,10 +94,109 @@ final class CloverExporterTest
     {
         $xml = new \SimpleXMLElement(new CloverExporter()->export(CoverageMap::empty())[CloverExporter::FILE_NAME]);
 
-        $projectMetrics = $xml->xpath('/coverage/project/metrics');
-        \assert($projectMetrics !== null && isset($projectMetrics[0]));
+        Expect::that(self::structure($xml))
+            ->because('empty map still produces a parsable document')
+            ->toBe([
+                'generated' => '0',
+                'projects' => [[
+                    'timestamp' => '0',
+                    'name' => 'greenlight',
+                    'files' => [],
+                    'metrics' => [[
+                        'files' => '0',
+                        'loc' => '0',
+                        'ncloc' => '0',
+                        'classes' => '0',
+                        'methods' => '0',
+                        'coveredmethods' => '0',
+                        'conditionals' => '0',
+                        'coveredconditionals' => '0',
+                        'statements' => '0',
+                        'coveredstatements' => '0',
+                        'elements' => '0',
+                        'coveredelements' => '0',
+                    ]],
+                ]],
+            ]);
+    }
 
-        Expect::that((string) $projectMetrics[0]['files'])->because('empty map still produces a parsable document')->toBe('0')
-            ->and((string) $projectMetrics[0]['statements'])->toBe('0');
+    /**
+     * @return array{
+     *     generated: string,
+     *     projects: list<array{
+     *         timestamp: string,
+     *         name: string,
+     *         files: list<array{
+     *             path: string,
+     *             lines: list<array<string, string>>,
+     *             metrics: list<array<string, string>>
+     *         }>,
+     *         metrics: list<array<string, string>>
+     *     }>
+     * }
+     */
+    private static function structure(\SimpleXMLElement $xml): array
+    {
+        $projects = [];
+
+        foreach (self::xpath($xml, '/coverage/project') as $project) {
+            $files = [];
+
+            foreach (self::xpath($project, 'file') as $file) {
+                $files[] = [
+                    'path' => (string) $file['name'],
+                    'lines' => self::attributeSets(self::xpath($file, 'line')),
+                    'metrics' => self::attributeSets(self::xpath($file, 'metrics')),
+                ];
+            }
+
+            $projects[] = [
+                'timestamp' => (string) $project['timestamp'],
+                'name' => (string) $project['name'],
+                'files' => $files,
+                'metrics' => self::attributeSets(self::xpath($project, 'metrics')),
+            ];
+        }
+
+        return [
+            'generated' => (string) $xml['generated'],
+            'projects' => $projects,
+        ];
+    }
+
+    /**
+     * @param list<\SimpleXMLElement> $elements
+     *
+     * @return list<array<string, string>>
+     */
+    private static function attributeSets(array $elements): array
+    {
+        $sets = [];
+
+        foreach ($elements as $element) {
+            $attributes = [];
+
+            foreach ($element->attributes() as $name => $value) {
+                $attributes[(string) $name] = (string) $value;
+            }
+
+            $sets[] = $attributes;
+        }
+
+        return $sets;
+    }
+
+    /**
+     * @return list<\SimpleXMLElement>
+     */
+    private static function xpath(\SimpleXMLElement $xml, string $expression): array
+    {
+        $nodes = $xml->xpath($expression);
+
+        if (!\is_array($nodes)) {
+            throw new \RuntimeException(\sprintf('XPath query "%s" failed.', $expression));
+        }
+
+        return \array_values($nodes);
     }
 }
