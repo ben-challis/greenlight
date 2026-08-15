@@ -897,7 +897,7 @@ final readonly class Application
                     $header,
                     extendedSlowTests: $profile,
                     verbose: $arguments->has('verbose'),
-                    terminalRows: $this->terminalRows(),
+                    terminalRows: TerminalRowsResolver::resolve(),
                 ),
                 'plain' => new PlainReporter($output, $header, extendedSlowTests: $profile),
                 'junit' => new JUnitReporter($output),
@@ -913,21 +913,6 @@ final readonly class Application
         }
 
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
-    }
-
-    /** Uses LINES, then tput, then 24. The reporter probes it one time when built. */
-    private function terminalRows(): int
-    {
-        $linesEnv = \getenv('LINES');
-        $lines = $linesEnv === false || $linesEnv === '' ? 0 : (int) $linesEnv;
-
-        if ($lines > 0) {
-            return $lines;
-        }
-
-        $probed = (int) ErrorTrap::run(static fn(): string|false => \exec('tput lines 2>/dev/null'));
-
-        return $probed > 0 ? $probed : 24;
     }
 
     /** Uses the loaded configuration so IDE and PHPStan signatures match. */
