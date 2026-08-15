@@ -9,49 +9,41 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\RunState;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 
-final class RunStateTest
+final readonly class RunStateTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function roundTripsFailureSetsIncludingEmpty(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $state = RunState::forWorkingDirectory($directory);
+        $state = new RunState($this->stateFile());
 
-        try {
-            Expect::that($state->failedTests())->toBeNull();
+        Expect::that($state->failedTests())->toBeNull();
 
-            Expect::that($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
-            Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
+        Expect::that($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
+        Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
 
-            $state->record([]);
-            Expect::that($state->failedTests())->toBe([]);
-        } finally {
-            @\unlink($this->stateFileFor($directory));
-        }
+        $state->record([]);
+        Expect::that($state->failedTests())->toBe([]);
     }
 
     #[Test]
     public function classDurationsRoundTripAndDefaultToEmpty(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $state = RunState::forWorkingDirectory($directory);
+        $state = new RunState($this->stateFile());
 
-        try {
-            Expect::that($state->classSeconds())->toBe([]);
+        Expect::that($state->classSeconds())->toBe([]);
 
-            $state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
-            Expect::that($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
-        } finally {
-            @\unlink($this->stateFileFor($directory));
-        }
+        $state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        Expect::that($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
     }
 
     #[Test]
     public function invalidCachedClassDurationsAreIgnored(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
+        $file = $this->stateFile();
         \file_put_contents($file, <<<'JSON'
             {
                 "classSeconds": {
@@ -65,39 +57,31 @@ final class RunStateTest
             }
             JSON);
 
-        try {
-            Expect::that(RunState::forWorkingDirectory($directory)->classSeconds())
-                ->because('cached durations MUST be finite, non-negative numbers for named classes')
-                ->toBe([
-                    'Acme\ValidTest' => 1.25,
-                    'Acme\ZeroDurationTest' => 0.0,
-                ]);
-        } finally {
-            @\unlink($file);
-        }
+        Expect::that(new RunState($file)->classSeconds())
+            ->because('cached durations MUST be finite, non-negative numbers for named classes')
+            ->toBe([
+                'Acme\ValidTest' => 1.25,
+                'Acme\ZeroDurationTest' => 0.0,
+            ]);
     }
 
     #[Test]
     public function corruptStateReadsAsAbsent(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
+        $file = $this->stateFile();
         \file_put_contents($file, 'not json at all');
 
-        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        Expect::that(new RunState($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": "not a list"}');
-        Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->because('corrupt state reads as absent')->toBeNull();
-
-        @\unlink($file);
+        Expect::that(new RunState($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
     }
 
     #[Test]
     public function malformedEntriesAreDiscardedWithoutLosingValidState(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
-        $state = RunState::forWorkingDirectory($directory);
+        $file = $this->stateFile();
+        $state = new RunState($file);
 
         \file_put_contents($file, \json_encode([
             'failed' => ['Acme\AlphaTest::one', '', 42, null],
@@ -110,65 +94,49 @@ final class RunStateTest
             ],
         ], \JSON_THROW_ON_ERROR));
 
-        try {
-            Expect::that($state->failedTests())
-                ->because('invalid failed-test entries MUST NOT hide valid IDs')
-                ->toBe(['Acme\AlphaTest::one'])
-                ->and($state->classSeconds())
-                ->because('invalid duration entries MUST NOT hide valid timings')
-                ->toBe([
-                    'Acme\AlphaTest' => 1.25,
-                    'Acme\BetaTest' => 2.0,
-                ]);
-        } finally {
-            @\unlink($file);
-        }
+        Expect::that($state->failedTests())
+            ->because('invalid failed-test entries MUST NOT hide valid IDs')
+            ->toBe(['Acme\AlphaTest::one'])
+            ->and($state->classSeconds())
+            ->because('invalid duration entries MUST NOT hide valid timings')
+            ->toBe([
+                'Acme\AlphaTest' => 1.25,
+                'Acme\BetaTest' => 2.0,
+            ]);
     }
 
     #[Test]
     public function unreadableStateReadsAsAbsent(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
+        $file = $this->stateFile();
         \file_put_contents($file, '{"failed":["Acme\\\\AlphaTest::one"]}');
         \chmod($file, 0o000);
         \clearstatcache(true, $file);
 
-        try {
-            if (\is_readable($file)) {
-                throw new SkipTest('The filesystem does not enforce unreadable file permissions.');
-            }
-
-            Expect::that(RunState::forWorkingDirectory($directory)->failedTests())
-                ->because('unreadable advisory state MUST behave as absent state')
-                ->toBeNull();
-        } finally {
-            \chmod($file, 0o600);
-            @\unlink($file);
+        if (\is_readable($file)) {
+            throw new SkipTest('The filesystem does not enforce unreadable file permissions.');
         }
+
+        Expect::that(new RunState($file)->failedTests())
+            ->because('unreadable advisory state MUST behave as absent state')
+            ->toBeNull();
     }
 
     #[Test]
     public function recordWritesThroughATempFileAndLeavesNoneBehind(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
+        $file = $this->stateFile();
 
-        try {
-            RunState::forWorkingDirectory($directory)->record(['Acme\AlphaTest::one']);
+        new RunState($file)->record(['Acme\AlphaTest::one']);
 
-            Expect::that(RunState::forWorkingDirectory($directory)->failedTests())->toBe(['Acme\AlphaTest::one']);
-            Expect::that(\glob($file . '.tmp-*'))->toBe([]);
-        } finally {
-            @\unlink($file);
-        }
+        Expect::that(new RunState($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
+        Expect::that(\glob($file . '.tmp-*'))->toBe([]);
     }
 
     #[Test]
     public function recordWhoseRenameFailsLeavesTheTargetUntouchedAndNoTempFile(): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
+        $file = $this->stateFile();
 
         // Put a nonempty directory at the target path. The temporary-file write
         // succeeds, but the final rename fails. This exercises the failure path
@@ -176,37 +144,26 @@ final class RunStateTest
         \mkdir($file);
         \file_put_contents($file . '/occupant.txt', 'keep');
 
-        try {
-            Expect::that(RunState::forWorkingDirectory($directory)->record(['Acme\AlphaTest::one']))->toBeFalse();
+        Expect::that(new RunState($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
 
-            Expect::that(\is_dir($file))->toBeTrue();
-            Expect::that((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
-            Expect::that(\glob($file . '.tmp-*'))->toBe([]);
-        } finally {
-            @\unlink($file . '/occupant.txt');
-            @\rmdir($file);
-        }
+        Expect::that(\is_dir($file))->toBeTrue();
+        Expect::that((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
+        Expect::that(\glob($file . '.tmp-*'))->toBe([]);
     }
 
     #[Test]
     #[DataSet('nonFiniteDurations')]
     public function nonFiniteClassDurationsAreRejectedWithoutReplacingState(float $duration): void
     {
-        $directory = '/fake/project-' . \bin2hex(\random_bytes(6));
-        $file = $this->stateFileFor($directory);
-        $state = RunState::forWorkingDirectory($directory);
+        $state = new RunState($this->stateFile());
 
-        try {
-            Expect::that($state->record(['Acme\AlphaTest::one']))->toBeTrue();
-            Expect::that($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
-                ->because('non-finite durations cannot be represented in the state JSON')
-                ->toBeFalse();
-            Expect::that($state->failedTests())
-                ->because('a failed encode does not replace the previous state')
-                ->toBe(['Acme\AlphaTest::one']);
-        } finally {
-            @\unlink($file);
-        }
+        Expect::that($state->record(['Acme\AlphaTest::one']))->toBeTrue();
+        Expect::that($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
+            ->because('non-finite durations cannot be represented in the state JSON')
+            ->toBeFalse();
+        Expect::that($state->failedTests())
+            ->because('a failed encode does not replace the previous state')
+            ->toBe(['Acme\AlphaTest::one']);
     }
 
     /**
@@ -219,12 +176,8 @@ final class RunStateTest
         yield 'not a number' => [\NAN];
     }
 
-    private function stateFileFor(string $directory): string
+    private function stateFile(): string
     {
-        return \sprintf(
-            '%s/greenlight-state-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
+        return $this->tempDirectory->path() . '/run-state.json';
     }
 }

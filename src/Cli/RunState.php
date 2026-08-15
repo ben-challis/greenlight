@@ -16,7 +16,7 @@ use Greenlight\Core\ErrorTrap;
  */
 final readonly class RunState
 {
-    private function __construct(private string $file) {}
+    public function __construct(private string $file) {}
 
     public static function forWorkingDirectory(string $workingDirectory): self
     {
