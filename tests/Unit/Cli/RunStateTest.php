@@ -18,7 +18,7 @@ final readonly class RunStateTest
     #[Test]
     public function roundTripsFailureSetsIncludingEmpty(): void
     {
-        $state = new RunState($this->stateFile());
+        $state = RunState::forFile($this->stateFile());
 
         Expect::that($state->failedTests())->toBeNull();
 
@@ -32,7 +32,7 @@ final readonly class RunStateTest
     #[Test]
     public function classDurationsRoundTripAndDefaultToEmpty(): void
     {
-        $state = new RunState($this->stateFile());
+        $state = RunState::forFile($this->stateFile());
 
         Expect::that($state->classSeconds())->toBe([]);
 
@@ -57,7 +57,7 @@ final readonly class RunStateTest
             }
             JSON);
 
-        Expect::that(new RunState($file)->classSeconds())
+        Expect::that(RunState::forFile($file)->classSeconds())
             ->because('cached durations MUST be finite, non-negative numbers for named classes')
             ->toBe([
                 'Acme\ValidTest' => 1.25,
@@ -71,17 +71,17 @@ final readonly class RunStateTest
         $file = $this->stateFile();
         \file_put_contents($file, 'not json at all');
 
-        Expect::that(new RunState($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": "not a list"}');
-        Expect::that(new RunState($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
     }
 
     #[Test]
     public function malformedEntriesAreDiscardedWithoutLosingValidState(): void
     {
         $file = $this->stateFile();
-        $state = new RunState($file);
+        $state = RunState::forFile($file);
 
         \file_put_contents($file, \json_encode([
             'failed' => ['Acme\AlphaTest::one', '', 42, null],
@@ -96,8 +96,9 @@ final readonly class RunStateTest
 
         Expect::that($state->failedTests())
             ->because('invalid failed-test entries MUST NOT hide valid IDs')
-            ->toBe(['Acme\AlphaTest::one'])
-            ->and($state->classSeconds())
+            ->toBe(['Acme\AlphaTest::one']);
+
+        Expect::that($state->classSeconds())
             ->because('invalid duration entries MUST NOT hide valid timings')
             ->toBe([
                 'Acme\AlphaTest' => 1.25,
@@ -117,7 +118,7 @@ final readonly class RunStateTest
             throw new SkipTest('The filesystem does not enforce unreadable file permissions.');
         }
 
-        Expect::that(new RunState($file)->failedTests())
+        Expect::that(RunState::forFile($file)->failedTests())
             ->because('unreadable advisory state MUST behave as absent state')
             ->toBeNull();
     }
@@ -127,9 +128,9 @@ final readonly class RunStateTest
     {
         $file = $this->stateFile();
 
-        new RunState($file)->record(['Acme\AlphaTest::one']);
+        RunState::forFile($file)->record(['Acme\AlphaTest::one']);
 
-        Expect::that(new RunState($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
+        Expect::that(RunState::forFile($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
         Expect::that(\glob($file . '.tmp-*'))->toBe([]);
     }
 
@@ -144,7 +145,7 @@ final readonly class RunStateTest
         \mkdir($file);
         \file_put_contents($file . '/occupant.txt', 'keep');
 
-        Expect::that(new RunState($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
+        Expect::that(RunState::forFile($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
 
         Expect::that(\is_dir($file))->toBeTrue();
         Expect::that((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
@@ -155,7 +156,7 @@ final readonly class RunStateTest
     #[DataSet('nonFiniteDurations')]
     public function nonFiniteClassDurationsAreRejectedWithoutReplacingState(float $duration): void
     {
-        $state = new RunState($this->stateFile());
+        $state = RunState::forFile($this->stateFile());
 
         Expect::that($state->record(['Acme\AlphaTest::one']))->toBeTrue();
         Expect::that($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
