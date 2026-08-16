@@ -11,15 +11,15 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 
-final class CallbackAnswerConflictTest
+final readonly class CallbackAnswerConflictTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function aReturnValueAfterACallbackIsRejected(): void
     {
-        $doubles = new Doubles();
-
         Expect::that(
-            static fn(): mixed => $doubles->mock(
+            fn(): mixed => $this->doubles->mock(
                 Calculator::class,
                 static function (MockPlan $plan): void {
                     $plan->expects('add')
