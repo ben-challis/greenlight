@@ -28,21 +28,21 @@ final readonly class BoundaryTest
     #[Test]
     public function finalClassesCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(FinalService::class))->because('final classes cannot be doubled')
+        Expect::that(fn(): object => $this->doubles->mock(FinalService::class))->because('final classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(DoublesError::class, '/is final.*proxy subclass.*interface/');
     }
 
     #[Test]
     public function readonlyClassesCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled')
+        Expect::that(fn(): object => $this->doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(DoublesError::class, '/readonly class.*interface/');
     }
 
     #[Test]
     public function enumsCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(Suit::class))->because('enums cannot be doubled')
+        Expect::that(fn(): object => $this->doubles->mock(Suit::class))->because('enums cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(
                 DoublesError::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Suit is an enum. '
@@ -53,7 +53,7 @@ final readonly class BoundaryTest
     #[Test]
     public function traitsCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(ReusableBehavior::class))
+        Expect::that(fn(): object => $this->doubles->mock(ReusableBehavior::class)) // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->because('a trait cannot supply an object type for a generated proxy')
             ->toThrow(
                 DoublesError::class,

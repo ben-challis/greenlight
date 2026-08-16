@@ -11,6 +11,7 @@ rules:
     - Greenlight\PhpStan\AttributeArgumentRule
     - Greenlight\PhpStan\DataProviderSignatureRule
     - Greenlight\PhpStan\DoublePlanRule
+    - Greenlight\PhpStan\DoubleableTypeRule
     - Greenlight\PhpStan\DoublesCallRule
     - Greenlight\PhpStan\ExpectationArgumentRule
     - Greenlight\PhpStan\LifecycleMethodRule

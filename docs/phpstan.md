@@ -50,6 +50,12 @@ $event = $calls[0][0]; // the declared type of EventPublisher::publish() argumen
 The result keeps optional parameters and variadic parameters. A dynamic method
 name keeps the documented `list<list<mixed>>` return type.
 
+The extension also checks known types in `mock()`, `stub()`, and `spy()`.
+Final classes, readonly classes, enums, and traits cause analysis errors. Use
+an interface or a non-final class.
+
+Factory type errors use the `greenlight.doubles.doubleableType` identifier.
+
 ## Attribute argument checks
 
 The extension reports constant attribute arguments that Greenlight cannot use:
