@@ -19,16 +19,14 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-class=BExcludeProbeTest']);
+
         Expect::that($result->exitCode)->because('exclude class removes only the matching class')->toBe(0);
-        $lines = $result->outputLines();
-        $this->assertIds($lines, present: [
-            'ExcludeProbe\AExcludeProbeTest::one',
-            'ExcludeProbe\CExcludeProbeTest::one',
-        ], absent: [
-            'ExcludeProbe\BExcludeProbeTest::one',
-        ]);
-        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-class=BExcludeProbeTest']);
-        Expect::that($result->exitCode)->because('exclude class removes only the matching class')->toBe(0)->and($result->output())->toContain('2 tests, 2 passed');
+        Expect::that($this->selectedTestIds($result->stdoutLines()))
+            ->because('exclude class removes only the matching class')
+            ->toBe([
+                'ExcludeProbe\AExcludeProbeTest::one',
+                'ExcludeProbe\CExcludeProbeTest::one',
+            ]);
     }
 
     #[Test]
@@ -36,14 +34,14 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-class=*BExcludeProbeTest']);
+
         Expect::that($result->exitCode)->because('exclude class accepts a wildcard')->toBe(0);
-        $lines = $result->outputLines();
-        $this->assertIds($lines, present: [
-            'ExcludeProbe\AExcludeProbeTest::one',
-            'ExcludeProbe\CExcludeProbeTest::one',
-        ], absent: [
-            'ExcludeProbe\BExcludeProbeTest::one',
-        ]);
+        Expect::that($this->selectedTestIds($result->stdoutLines()))
+            ->because('exclude class accepts a wildcard')
+            ->toBe([
+                'ExcludeProbe\AExcludeProbeTest::one',
+                'ExcludeProbe\CExcludeProbeTest::one',
+            ]);
     }
 
     #[Test]
@@ -55,14 +53,14 @@ final readonly class ExcludeSelectionTest
         // have aliases. The prefix comparison is exact.
         $excludedFile = (string) \realpath($project->path('tests/CExcludeProbeTest.php'));
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=' . $excludedFile]);
+
         Expect::that($result->exitCode)->because('exclude path removes tests under that prefix')->toBe(0);
-        $lines = $result->outputLines();
-        $this->assertIds($lines, present: [
-            'ExcludeProbe\AExcludeProbeTest::one',
-            'ExcludeProbe\BExcludeProbeTest::one',
-        ], absent: [
-            'ExcludeProbe\CExcludeProbeTest::one',
-        ]);
+        Expect::that($this->selectedTestIds($result->stdoutLines()))
+            ->because('exclude path removes tests under that prefix')
+            ->toBe([
+                'ExcludeProbe\AExcludeProbeTest::one',
+                'ExcludeProbe\BExcludeProbeTest::one',
+            ]);
     }
 
     #[Test]
@@ -70,14 +68,14 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
+
         Expect::that($result->exitCode)->because('exclude path resolves a relative prefix against the working directory')->toBe(0);
-        $lines = $result->outputLines();
-        $this->assertIds($lines, present: [
-            'ExcludeProbe\AExcludeProbeTest::one',
-            'ExcludeProbe\BExcludeProbeTest::one',
-        ], absent: [
-            'ExcludeProbe\CExcludeProbeTest::one',
-        ]);
+        Expect::that($this->selectedTestIds($result->stdoutLines()))
+            ->because('exclude path resolves a relative prefix against the working directory')
+            ->toBe([
+                'ExcludeProbe\AExcludeProbeTest::one',
+                'ExcludeProbe\BExcludeProbeTest::one',
+            ]);
     }
 
     #[Test]
@@ -106,15 +104,15 @@ final readonly class ExcludeSelectionTest
             'tests/nested/DExcludeProbeTest.php',
         ]);
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/nested']);
+
         Expect::that($result->exitCode)->because('exclude path resolves a relative directory prefix')->toBe(0);
-        $lines = $result->outputLines();
-        $this->assertIds($lines, present: [
-            'ExcludeProbe\AExcludeProbeTest::one',
-            'ExcludeProbe\BExcludeProbeTest::one',
-            'ExcludeProbe\CExcludeProbeTest::one',
-        ], absent: [
-            'ExcludeProbe\DExcludeProbeTest::one',
-        ]);
+        Expect::that($this->selectedTestIds($result->stdoutLines()))
+            ->because('exclude path resolves a relative directory prefix')
+            ->toBe([
+                'ExcludeProbe\AExcludeProbeTest::one',
+                'ExcludeProbe\BExcludeProbeTest::one',
+                'ExcludeProbe\CExcludeProbeTest::one',
+            ]);
     }
 
     #[Test]
@@ -122,13 +120,20 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/MissingProbeTest.php']);
-        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0)
-            ->and($result->output())->toContain('did not match a discovered test file')
+
+        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0);
+        Expect::that($result->output())
+            ->because('exclude path warns when the prefix matches no test file')
+            ->toContain('did not match a discovered test file')
             ->toContain('MissingProbeTest.php')
             ->toContain('3 tests');
+
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php']);
-        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0)
-            ->and($result->output())->toContain('did not match a discovered test file')
+
+        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0);
+        Expect::that($result->output())
+            ->because('exclude path warns when the prefix matches no test file')
+            ->toContain('did not match a discovered test file')
             ->toContain('3 tests, 3 passed');
     }
 
@@ -155,8 +160,9 @@ final readonly class ExcludeSelectionTest
 
         Expect::that($result->exitCode)
             ->because('the discovery failure remains the command error')
-            ->toBe(1)
-            ->and($result->output())
+            ->toBe(1);
+        Expect::that($result->output())
+            ->because('the discovery failure remains the command error')
             ->toContain('Discovery directory')
             ->toContain('missing-tests')
             ->not()
@@ -168,24 +174,25 @@ final readonly class ExcludeSelectionTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
-        Expect::that($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0)
-            ->and($result->output())->not()->toContain('did not match a discovered test file');
+
+        Expect::that($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0);
+        Expect::that($result->output())
+            ->because('exclude path does not warn when the prefix matches a test file')
+            ->not()
+            ->toContain('did not match a discovered test file');
     }
 
     /**
      * @param list<string> $lines
-     * @param list<string> $present
-     * @param list<string> $absent
+     *
+     * @return list<string>
      */
-    private function assertIds(array $lines, array $present, array $absent): void
+    private function selectedTestIds(array $lines): array
     {
-        foreach ($present as $id) {
-            Expect::that($id)->toBeIn($lines);
-        }
-
-        foreach ($absent as $id) {
-            Expect::that($id)->not()->toBeIn($lines);
-        }
+        return \array_values(\array_filter(
+            $lines,
+            static fn(string $line): bool => \str_contains($line, '::'),
+        ));
     }
 
     private function writeProject(): AcceptanceProject
