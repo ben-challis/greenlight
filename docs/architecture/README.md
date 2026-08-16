@@ -1,6 +1,5 @@
 # Architecture
 
-Greenlight runs PHP tests in parallel and has no runtime package dependencies.
 Discovery, process control, schedules, recovery, and reports are internal. Test
 authors use a small public interface.
 
