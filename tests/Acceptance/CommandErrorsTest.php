@@ -141,14 +141,16 @@ final readonly class CommandErrorsTest
         $fixture = \dirname(__DIR__) . '/Fixture/PhpStanExtension';
         $readOnlyDirectory = $this->tempDirectory->subdirectory('ide-helper-read-only');
         \chmod($readOnlyDirectory, 0o555);
+        $outputPath = $readOnlyDirectory . '/helper.php';
 
         try {
             $result = GreenlightCli::run($fixture, [
                 'ide-helper',
-                '--output=' . $readOnlyDirectory . '/helper.php',
+                '--output=' . $outputPath,
             ]);
 
-            Expect::that($result->exitCode)->toBe(1)->and($result->output())->toContain('Greenlight could not write');
+            Expect::that($result->exitCode)->toBe(1);
+            Expect::that($result->output())->toContain(\sprintf('Greenlight could not write "%s":', $outputPath));
         } finally {
             \chmod($readOnlyDirectory, 0o755);
         }
