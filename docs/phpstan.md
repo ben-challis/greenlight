@@ -22,6 +22,23 @@ parameters:
 Use `configFiles` only for custom matcher checks. The data-provider and native
 matcher rules work without it.
 
+## Double checks
+
+The extension checks a constant method name in `Doubles::callsTo()` against the
+doubled type:
+
+```php
+$events = $doubles->spy(EventPublisher::class);
+
+$doubles->callsTo($events, 'publish'); // checked against EventPublisher
+$doubles->callsTo($events, 'publsih'); // fails analysis: unknown method
+```
+
+PHP method names are not case-sensitive. Thus, the check accepts a method name
+with different letter case. Greenlight checks a dynamic method name at run time.
+
+Method errors use the `greenlight.doubles.callsToMethod` identifier.
+
 ## Attribute argument checks
 
 The extension reports constant attribute arguments that Greenlight cannot use:
