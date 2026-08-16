@@ -102,13 +102,18 @@ The extension reports these mock plan errors:
 * `withNoArguments()` cannot satisfy the required parameter count.
 * `with()` supplies too few or too many arguments.
 * A value in `with()` has a type that the method parameter does not accept.
+* A cardinality or capture position is outside its permitted range.
+* A configured result does not match the method return type.
+* An answer closure does not accept the method arguments or return its type.
+* A return sequence has no values.
 
 Argument matchers do not have to match the declared parameter type. They
 describe the values that the mock accepts at run time.
 
-Errors use the `greenlight.mockPlan.*` identifiers (`method`, `arity`, and
-`argument`). Greenlight validates each plan at run time when PHPStan cannot
-resolve a method name or argument list.
+Errors use the `greenlight.mockPlan.*` identifiers. The final identifier part
+is `method`, `arity`, `argument`, `cardinality`, `answer`, or `capturePosition`.
+Greenlight validates each plan at run time when PHPStan cannot resolve a method
+name or argument list.
 
 ## Custom matcher checks
 

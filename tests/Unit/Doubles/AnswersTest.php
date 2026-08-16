@@ -68,7 +68,7 @@ final readonly class AnswersTest
     public function anEmptySequenceIsRejected(): void
     {
         Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
-            $plan->expects('add')->andReturnsSequence();
+            $plan->expects('add')->andReturnsSequence(); // @phpstan-ignore greenlight.mockPlan.answer (deliberately invalid: tests runtime validation)
         }))
             ->because('an empty sequence is rejected')
             ->toThrow(
