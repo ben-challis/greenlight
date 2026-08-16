@@ -32,17 +32,19 @@ final readonly class SeedOrderTest
         $plan = GreenlightCli::run($project->directory, ['run', '--dry-run', '--seed=0']);
 
         Expect::that($plan->exitCode)
-            ->because('zero MUST be accepted as a seed')
-            ->toBe(0)
-            ->and($plan->stdoutLines())
+            ->because('the dry-run command MUST accept zero as an active seed')
+            ->toBe(0);
+        Expect::that($plan->stdoutLines())
+            ->because('the dry-run plan MUST identify zero as the active random-order seed')
             ->toContain('  order: random (seed 0)');
 
         $run = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=0']);
 
         Expect::that($run->exitCode)
-            ->because('an active zero seed MUST be announced in the run header')
-            ->toBe(0)
-            ->and($run->stdout)
+            ->because('the run with seed zero MUST complete')
+            ->toBe(0);
+        Expect::that($run->stdout)
+            ->because('the run header MUST announce seed zero')
             ->toContain('seed: 0');
     }
 
@@ -77,9 +79,20 @@ final readonly class SeedOrderTest
         // Use standard output only. Extension messages on standard error can
         // contain "seed:" and invalidate the negative assertion.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=7']);
-        Expect::that($result->exitCode)->because('an active seed is announced in the run header')->toBe(0)->and($result->stdout)->toContain('seed: 7');
+        Expect::that($result->exitCode)
+            ->because('the run with seed 7 MUST complete')
+            ->toBe(0);
+        Expect::that($result->stdout)
+            ->because('the seeded run header MUST announce seed 7')
+            ->toContain('seed: 7');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->because('an active seed is announced in the run header')->toBe(0)->and($result->stdout)->not()->toContain('seed:');
+        Expect::that($result->exitCode)
+            ->because('the run without a seed MUST complete')
+            ->toBe(0);
+        Expect::that($result->stdout)
+            ->because('the unseeded run header MUST omit the seed')
+            ->not()
+            ->toContain('seed:');
     }
 
     /**
