@@ -4,63 +4,97 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CliError;
 use Greenlight\Expect\Expect;
 
 final class CliErrorTest
 {
+    /**
+     * @param \Closure(): CliError $create
+     */
     #[Test]
-    public function optionErrorsGiveExactGuidance(): void
+    #[DataSet('errors')]
+    public function errorsGiveExactGuidance(\Closure $create, string $message): void
     {
-        $actual = [
-            CliError::unknownOption('--unknown')->getMessage(),
-            CliError::bareDoubleDash()->getMessage(),
-            CliError::optionTakesNoValue('watch')->getMessage(),
-            CliError::optionRequiresValue('workers')->getMessage(),
-            CliError::shortOptionRequiresValue('c', 'config')->getMessage(),
-            CliError::unexpectedArgument('extra')->getMessage(),
-            CliError::duplicateOption('workers')->getMessage(),
-            CliError::emptyGroupName()->getMessage(),
-            CliError::emptyFilterPattern()->getMessage(),
-        ];
-
-        Expect::that($actual)->toBe([
-            'Unknown option "--unknown". Use greenlight --help to list options.',
-            '"--" requires an option name.',
-            'Option --watch does not take a value.',
-            'Option --workers requires a value. Use --workers=<value>.',
-            'Option -c requires a value. Use --config=<value>.',
-            'Unexpected argument "extra".',
-            'Specify option --workers only once.',
-            '--group requires a group name.',
-            '--filter requires a pattern.',
-        ]);
+        Expect::that($create()->getMessage())
+            ->because('each CLI error MUST give exact guidance')
+            ->toBe($message);
     }
 
-    #[Test]
-    public function valueErrorsGiveExactGuidance(): void
+    /**
+     * @return iterable<string, array{\Closure(): CliError, non-empty-string}>
+     */
+    public static function errors(): iterable
     {
-        $actual = [
-            CliError::malformedShard('first')->getMessage(),
-            CliError::shardOutOfRange('9/4', 4)->getMessage(),
-            CliError::shardOutOfRange('1/0', 0)->getMessage(),
-            CliError::invalidSeed('-1')->getMessage(),
-            CliError::notAPositiveInteger('--workers', '0')->getMessage(),
-            CliError::malformedResourceLimit('postgres')->getMessage(),
-            CliError::duplicateResourceLimit('postgres')->getMessage(),
-            CliError::unknownReporter('verbose')->getMessage(),
+        yield 'unknown option' => [
+            static fn(): CliError => CliError::unknownOption('--unknown'),
+            'Unknown option "--unknown". Use greenlight --help to list options.',
         ];
-
-        Expect::that($actual)->toBe([
+        yield 'bare double dash' => [
+            CliError::bareDoubleDash(...),
+            '"--" requires an option name.',
+        ];
+        yield 'option takes no value' => [
+            static fn(): CliError => CliError::optionTakesNoValue('watch'),
+            'Option --watch does not take a value.',
+        ];
+        yield 'option requires value' => [
+            static fn(): CliError => CliError::optionRequiresValue('workers'),
+            'Option --workers requires a value. Use --workers=<value>.',
+        ];
+        yield 'short option requires value' => [
+            static fn(): CliError => CliError::shortOptionRequiresValue('c', 'config'),
+            'Option -c requires a value. Use --config=<value>.',
+        ];
+        yield 'unexpected argument' => [
+            static fn(): CliError => CliError::unexpectedArgument('extra'),
+            'Unexpected argument "extra".',
+        ];
+        yield 'duplicate option' => [
+            static fn(): CliError => CliError::duplicateOption('workers'),
+            'Specify option --workers only once.',
+        ];
+        yield 'empty group name' => [
+            CliError::emptyGroupName(...),
+            '--group requires a group name.',
+        ];
+        yield 'empty filter pattern' => [
+            CliError::emptyFilterPattern(...),
+            '--filter requires a pattern.',
+        ];
+        yield 'malformed shard' => [
+            static fn(): CliError => CliError::malformedShard('first'),
             '--shard requires <n>/<m>, such as 1/4. Received "first".',
+        ];
+        yield 'shard index out of range' => [
+            static fn(): CliError => CliError::shardOutOfRange('9/4', 4),
             '--shard requires 1 <= n <= m. Received "9/4". Valid n values for 4 shards are 1 through 4.',
+        ];
+        yield 'shard count out of range' => [
+            static fn(): CliError => CliError::shardOutOfRange('1/0', 0),
             '--shard requires 1 <= n <= m. Received "1/0".',
+        ];
+        yield 'invalid seed' => [
+            static fn(): CliError => CliError::invalidSeed('-1'),
             '--seed requires a nonnegative integer. Received "-1".',
+        ];
+        yield 'nonpositive integer' => [
+            static fn(): CliError => CliError::notAPositiveInteger('--workers', '0'),
             '--workers requires a positive integer. Received "0".',
+        ];
+        yield 'malformed resource limit' => [
+            static fn(): CliError => CliError::malformedResourceLimit('postgres'),
             '--resource-limit requires <name>=<limit>, such as postgres=2. Received "postgres".',
+        ];
+        yield 'duplicate resource limit' => [
+            static fn(): CliError => CliError::duplicateResourceLimit('postgres'),
             'Set resource limit "postgres" only once.',
+        ];
+        yield 'unknown reporter' => [
+            static fn(): CliError => CliError::unknownReporter('verbose'),
             'Unknown reporter "verbose". Select tty, plain, junit, jsonl, github, or teamcity.',
-        ]);
+        ];
     }
 }
