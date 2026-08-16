@@ -16,6 +16,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\Worker;
@@ -23,12 +24,14 @@ use Greenlight\Tests\Fixture\Condition\ThrowingCondition;
 use Greenlight\Tests\Fixture\Lifecycle\ConditionArguments\ConditionArgumentsTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 
-final class ConditionEvaluationTest
+final readonly class ConditionEvaluationTest
 {
+    public function __construct(private EnvironmentSandbox $environment) {}
+
     #[Test]
     public function parameterizedConditionsSkipWithRenderedArgumentsAndRunWhenSatisfied(): void
     {
-        \putenv('GREENLIGHT_STDLIB_NOPE');
+        $this->environment->unset('GREENLIGHT_STDLIB_NOPE');
         [$summary, $results] = $this->runFixture('ConditionArguments');
 
         $byMethod = [];
@@ -37,12 +40,14 @@ final class ConditionEvaluationTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::that($summary->skipped)->because('parameterized conditions skip with rendered arguments and run when satisfied')->toBe(1)
-            ->and($summary->passed)->toBe(1)
-            ->and($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped)
-            ->and($byMethod['skipsWhenTheVariableDiffers']->skipReason)
-            ->toBe('Condition EnvironmentVariableEquals("GREENLIGHT_STDLIB_NOPE", "yes") is not satisfied.')
-            ->and($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
+        Expect::that($summary->skipped)
+            ->because('parameterized conditions skip with rendered arguments and run when satisfied')
+            ->toBe(1);
+        Expect::that($summary->passed)->toBe(1);
+        Expect::that($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped);
+        Expect::that($byMethod['skipsWhenTheVariableDiffers']->skipReason)
+            ->toBe('Condition EnvironmentVariableEquals("GREENLIGHT_STDLIB_NOPE", "yes") is not satisfied.');
+        Expect::that($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
     }
 
     /**
@@ -73,9 +78,8 @@ final class ConditionEvaluationTest
 
         Expect::that($result->outcome)
             ->because('invalid runtime condition metadata errors the test')
-            ->toBe(Outcome::Errored)
-            ->and($result->error?->message)
-            ->toBe($message);
+            ->toBe(Outcome::Errored);
+        Expect::that($result->error?->message)->toBe($message);
     }
 
     /**
