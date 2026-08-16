@@ -11,6 +11,7 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Runner\Orchestrator\DispatchKind;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
@@ -20,9 +21,13 @@ final readonly class ResourceLeaseIdentityTest
     #[Test]
     public function concurrentLeasesHaveDistinctIdentityAndReleaseIndependently(): void
     {
+        $thirdUnit = $this->unit('Acme\\ThirdTest');
+        $fourthUnit = $this->unit('Acme\\FourthTest');
         $scheduler = new ResourceScheduler([
             $this->unit('Acme\\FirstTest'),
             $this->unit('Acme\\SecondTest'),
+            $thirdUnit,
+            $fourthUnit,
         ], [], ['database' => 2]);
 
         $first = $this->assigned($scheduler);
@@ -35,13 +40,24 @@ final readonly class ResourceLeaseIdentityTest
             ->because('the second resource lease MUST use a distinct lease ID')
             ->toBe(2);
 
-        Expect::that(static function () use ($scheduler, $first, $second): void {
-            $scheduler->release($first);
-            $scheduler->release($second);
-        })
-            ->because('each concurrent resource lease MUST release independently')
-            ->not()
-            ->toThrow(\Throwable::class);
+        Expect::that($scheduler->dispatch(true)->kind)
+            ->because('two concurrent resource leases MUST use all configured capacity')
+            ->toBe(DispatchKind::Wait);
+
+        $scheduler->release($first);
+
+        Expect::that($this->assigned($scheduler)->unit)
+            ->because('the first release MUST restore one resource slot')
+            ->toBe($thirdUnit);
+        Expect::that($scheduler->dispatch(true)->kind)
+            ->because('the first release MUST restore only one resource slot')
+            ->toBe(DispatchKind::Wait);
+
+        $scheduler->release($second);
+
+        Expect::that($this->assigned($scheduler)->unit)
+            ->because('the second release MUST independently restore one resource slot')
+            ->toBe($fourthUnit);
     }
 
     /**
