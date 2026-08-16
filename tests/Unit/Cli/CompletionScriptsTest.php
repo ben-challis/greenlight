@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CompletionScripts;
 use Greenlight\Cli\OptionSpec;
@@ -13,64 +14,63 @@ use Greenlight\Expect\Expect;
 final class CompletionScriptsTest
 {
     #[Test]
-    public function rendersTheCommandNamesForEveryShell(): void
+    #[DataSet('shells')]
+    public function rendersTheCommandNamesForEveryShell(string $shell): void
     {
-        foreach (['bash', 'zsh', 'fish'] as $shell) {
-            $script = (string) $this->scripts()->render($shell);
+        $script = (string) $this->scripts()->render($shell);
 
-            foreach (['run', 'list-tests', 'coverage:diff', 'profile:report', 'ide-helper', 'completion'] as $command) {
-                // The zsh _describe entries use an escape before the colon in a
-                // command name.
-                Expect::that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
-            }
+        foreach (['run', 'list-tests', 'coverage:diff', 'profile:report', 'ide-helper', 'completion'] as $command) {
+            // The zsh _describe entries use an escape before the colon in a
+            // command name.
+            Expect::that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
         }
     }
 
     #[Test]
-    public function rendersExactCommandDescriptionsWhenTheShellSupportsThem(): void
+    #[DataSet('shellsWithDescriptions')]
+    public function rendersExactCommandDescriptionsWhenTheShellSupportsThem(string $shell): void
     {
-        foreach (['zsh', 'fish'] as $shell) {
-            $script = (string) $this->scripts()->render($shell);
+        $script = (string) $this->scripts()->render($shell);
 
-            Expect::that($script)
-                ->toContain('Find and run tests (default)')
-                ->toContain('List each found test ID, one per line')
-                ->toContain('Compare two coverage JSON exports')
-                ->toContain('Create a run profile from a saved JSONL stream')
-                ->toContain('Write the IDE autocomplete helper for extension matchers')
-                ->toContain('Print a shell completion script to standard output');
-        }
+        Expect::that($script)
+            ->toContain('Find and run tests (default)')
+            ->toContain('List each found test ID, one per line')
+            ->toContain('Compare two coverage JSON exports')
+            ->toContain('Create a run profile from a saved JSONL stream')
+            ->toContain('Write the IDE autocomplete helper for extension matchers')
+            ->toContain('Print a shell completion script to standard output');
     }
 
     #[Test]
-    public function generatesFlagCandidatesFromTheOptionSpecList(): void
+    #[DataSet('shells')]
+    public function generatesFlagCandidatesFromTheOptionSpecList(string $shell): void
     {
-        foreach (['bash', 'zsh'] as $shell) {
-            $script = (string) $this->scripts()->render($shell);
+        $script = (string) $this->scripts()->render($shell);
 
-            Expect::that($script)
-                ->toContain('--only-in-the-spec-table=')
-                ->toContain('--watch');
+        if ($shell === 'fish') {
+            Expect::that($script)->because('generates flag candidates from the option spec list')
+                ->toContain('-l only-in-the-spec-table -r')
+                ->toContain('-l watch');
+
+            return;
         }
 
-        $script = (string) $this->scripts()->render('fish');
-        Expect::that($script)->because('generates flag candidates from the option spec list')
-            ->toContain('-l only-in-the-spec-table -r')
-            ->toContain('-l watch');
+        Expect::that($script)
+            ->toContain('--only-in-the-spec-table=')
+            ->toContain('--watch');
     }
 
     #[Test]
-    public function offersReporterValuesAndCompletionShellArguments(): void
+    #[DataSet('shells')]
+    public function offersReporterValuesAndCompletionShellArguments(string $shell): void
     {
-        foreach (['bash', 'zsh', 'fish'] as $shell) {
-            $script = (string) $this->scripts()->render($shell);
+        $script = (string) $this->scripts()->render($shell);
 
-            foreach (['tty', 'plain', 'junit', 'jsonl', 'github', 'teamcity'] as $reporter) {
-                Expect::that($script)->toContain($reporter);
-            }
-
-            Expect::that($script)->toContain('bash zsh fish');
+        foreach (['tty', 'plain', 'junit', 'jsonl', 'github', 'teamcity'] as $reporter) {
+            Expect::that($script)->toContain($reporter);
         }
+
+        Expect::that($script)->toContain('bash zsh fish');
     }
 
     #[Test]
@@ -96,23 +96,26 @@ final class CompletionScriptsTest
     }
 
     #[Test]
-    public function optionalValuesDoNotBecomeRequiredInFish(): void
+    #[DataSet('shells')]
+    public function optionalValuesDoNotBecomeRequiredInFish(string $shell): void
     {
         $scripts = new CompletionScripts([
             new OptionSpec('bail', OptionValue::Optional),
         ]);
 
-        foreach (['bash', 'zsh'] as $shell) {
+        if ($shell === 'fish') {
             Expect::that($scripts->render($shell))
-                ->because('shells with equals-form completion MUST offer the optional value')
-                ->toContain('--bail=');
+                ->because('fish MUST register an optional-value flag without requiring its argument')
+                ->toContain("complete -c greenlight -l bail\n")
+                ->not()
+                ->toContain('complete -c greenlight -l bail -r');
+
+            return;
         }
 
-        Expect::that($scripts->render('fish'))
-            ->because('fish MUST register an optional-value flag without requiring its argument')
-            ->toContain("complete -c greenlight -l bail\n")
-            ->not()
-            ->toContain('complete -c greenlight -l bail -r');
+        Expect::that($scripts->render($shell))
+            ->because('shells with equals-form completion MUST offer the optional value')
+            ->toContain('--bail=');
     }
 
     #[Test]
@@ -127,6 +130,25 @@ final class CompletionScriptsTest
     public function returnsNullForAnUnknownShell(): void
     {
         Expect::that($this->scripts()->render('powershell'))->because('returns null for an unknown shell')->toBeNull();
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function shells(): iterable
+    {
+        yield 'bash' => ['bash'];
+        yield 'zsh' => ['zsh'];
+        yield 'fish' => ['fish'];
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function shellsWithDescriptions(): iterable
+    {
+        yield 'zsh' => ['zsh'];
+        yield 'fish' => ['fish'];
     }
 
     private function scripts(): CompletionScripts
