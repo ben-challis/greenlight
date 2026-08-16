@@ -21,32 +21,28 @@ use Greenlight\Tests\Fixture\Doubles\ReadonlyService;
 use Greenlight\Tests\Fixture\Doubles\ReusableBehavior;
 use Greenlight\Tests\Fixture\Doubles\Suit;
 
-final class BoundaryTest
+final readonly class BoundaryTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function finalClassesCannotBeDoubled(): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock(FinalService::class))->because('final classes cannot be doubled')
+        Expect::that(fn(): object => $this->doubles->mock(FinalService::class))->because('final classes cannot be doubled')
             ->toThrow(DoublesError::class, '/is final.*proxy subclass.*interface/');
     }
 
     #[Test]
     public function readonlyClassesCannotBeDoubled(): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled')
+        Expect::that(fn(): object => $this->doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled')
             ->toThrow(DoublesError::class, '/readonly class.*interface/');
     }
 
     #[Test]
     public function enumsCannotBeDoubled(): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock(Suit::class))->because('enums cannot be doubled')
+        Expect::that(fn(): object => $this->doubles->mock(Suit::class))->because('enums cannot be doubled')
             ->toThrow(
                 DoublesError::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Suit is an enum. '
@@ -57,9 +53,7 @@ final class BoundaryTest
     #[Test]
     public function traitsCannotBeDoubled(): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock(ReusableBehavior::class))
+        Expect::that(fn(): object => $this->doubles->mock(ReusableBehavior::class))
             ->because('a trait cannot supply an object type for a generated proxy')
             ->toThrow(
                 DoublesError::class,
@@ -76,9 +70,7 @@ final class BoundaryTest
     #[DataSet('handlerCollisions')]
     public function theProxyHandlerMethodCannotBeDeclaredByTheDoubledType(string $type): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock($type))
+        Expect::that(fn(): object => $this->doubles->mock($type))
             ->because('the proxy handler method cannot be declared by the doubled type')
             ->toThrow(
                 DoublesError::class,
@@ -99,22 +91,21 @@ final class BoundaryTest
     #[Test]
     public function mixedCaseConstructorAndCloneMethodsAreNotIntercepted(): void
     {
-        $double = new Doubles()->stub(MixedCaseMagicMethods::class);
+        $double = $this->doubles->stub(MixedCaseMagicMethods::class);
         $reflection = new \ReflectionClass($double);
         $constructor = $reflection->getMethod('__construct');
         $clone = $reflection->getMethod('__clone');
 
         Expect::that($constructor->getDeclaringClass()->name)
             ->because('PHP magic method names MUST remain case-insensitive in generated proxies')
-            ->toBe(MixedCaseMagicMethods::class)
-            ->and($clone->getDeclaringClass()->name)
             ->toBe(MixedCaseMagicMethods::class);
+        Expect::that($clone->getDeclaringClass()->name)->toBe(MixedCaseMagicMethods::class);
     }
 
     #[Test]
     public function aMixedCaseDestructorDoesNotCreateADuplicateProxyMethod(): void
     {
-        Expect::that(new Doubles()->stub(MixedCaseDestructor::class))
+        Expect::that($this->doubles->stub(MixedCaseDestructor::class))
             ->because('a mixed-case destructor MUST produce a valid proxy class')
             ->toBeInstanceOf(MixedCaseDestructor::class);
     }
@@ -122,9 +113,7 @@ final class BoundaryTest
     #[Test]
     public function planningAMissingMethodIsAnAuthoringError(): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::that(fn(): object => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('subtract');
         }))->because('planning a missing method is an authoring error')->toThrow(DoublesError::class, '/has no method subtract\(\)/');
     }
@@ -136,9 +125,7 @@ final class BoundaryTest
     #[DataSet('unplannableMethods')]
     public function planningAnUnplannableMethodIsAnAuthoringError(string $method, string $message): void
     {
-        $doubles = new Doubles();
-
-        Expect::that(static fn(): object => $doubles->mock(
+        Expect::that(fn(): object => $this->doubles->mock(
             PlanningBoundaries::class,
             static function (MockPlan $plan) use ($method): void {
                 $plan->expects($method);
