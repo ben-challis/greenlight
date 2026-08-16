@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 /**
- * Contributes orchestrator-owned infrastructure to an executing test run.
+ * Supplies orchestrator-owned infrastructure for one test run.
  */
 interface IntegrationFixtureProvider extends Plugin
 {

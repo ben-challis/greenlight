@@ -24,7 +24,7 @@ final readonly class FixtureResource implements WireSerializable
      */
     private function __construct(private array $values, #[\SensitiveParameter] array $secrets)
     {
-        // A closure keeps var_export() from rendering credential strings.
+        // A closure prevents var_export() from rendering credential strings.
         $this->revealSecrets = static fn(): array => $secrets;
     }
 

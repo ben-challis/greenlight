@@ -25,13 +25,16 @@ An `IntegrationFixtureDefinition` names the fixture, provides its provisioning
 closure, and lists any dependencies. Greenlight validates the whole graph
 before it provisions anything, then provisions dependencies first.
 
+Fixture IDs are non-empty UTF-8 strings. They cannot use integer strings
+because PHP converts those map keys to integers.
+
 Call `IntegrationFixtureContext::defer()` as soon as the provisioner acquires a
 resource. The callback will then run even if the rest of the provisioner fails.
 Greenlight runs cleanup callbacks in reverse registration order.
 
 `IntegrationFixtureContext::expose()` publishes a shared `FixtureResource` and
 optional channel overlays. Greenlight merges the shared values with the current
-channel's overlay before sending them to a worker.
+channel's overlay before it sends them to a worker.
 
 ## Resource transport
 
@@ -50,15 +53,15 @@ stderr. A worker receives only its own channel overlay.
 ## Worker bootstrap
 
 After a worker sends `hello`, the orchestrator replies with a `bootstrap`
-message containing the channel, config path, and resources. The worker loads
+message that contains the channel, config path, and resources. The worker loads
 its plugins, calls `WorkerBootstrapSubscriber`, builds the harness registry, and
 then replies with `ready`.
 
 The orchestrator waits for every initial worker to report `ready` before it
 assigns a test. A replacement worker waits only for its own bootstrap because
-the rest of the pool may still be running tests.
+the rest of the pool can still run tests.
 
-Tests may inject `IntegrationResources` directly. A plugin may instead read the
+Tests can inject `IntegrationResources` directly. A plugin can instead read the
 resources in `WorkerBootstrapSubscriber` and expose an application-specific
 client through `HarnessProvider` or `ServiceResolver`.
 

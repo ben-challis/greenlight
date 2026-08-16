@@ -13,6 +13,7 @@ use Greenlight\Core\Wire\WireSerializable;
  *
  * A worker receives shared data merged with only its own channel data. It
  * cannot inspect credentials allocated to another concurrent lane.
+ * Fixture IDs must remain string keys in PHP maps.
  */
 final readonly class IntegrationResources implements WireSerializable
 {

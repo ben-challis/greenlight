@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * A fixture value that must be revealed explicitly.
+ * A fixture value that code must reveal explicitly.
  *
- * Object dumps and exports never include the underlying value.
+ * Object dumps and exports do not include the underlying value.
  */
 final readonly class SensitiveValue
 {
     /**
-     * Keeping the value inside a closure prevents var_export() from printing a
-     * private string property. Reflection remains a trust boundary in PHP.
+     * The closure prevents var_export() from printing a private string
+     * property. Reflection remains a trust boundary in PHP.
      *
      * @var \Closure(): string
      */

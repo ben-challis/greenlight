@@ -281,12 +281,13 @@ The integration fixtures visible to one worker channel.
 
 A worker receives shared data merged with only its own channel data. It
 cannot inspect credentials allocated to another concurrent lane.
+Fixture IDs must remain string keys in PHP maps.
 
 ```php
 final readonly class IntegrationResources implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L18)
 
 ### `empty()`
 
@@ -294,7 +295,7 @@ final readonly class IntegrationResources implements WireSerializable
 public static function empty(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L42)
 
 ### `has()`
 
@@ -302,7 +303,7 @@ public static function empty(): self
 public function has(string $id): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L47)
 
 ### `fixture()`
 
@@ -310,7 +311,7 @@ public function has(string $id): bool
 public function fixture(string $id): FixtureResource
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L52)
 
 ### `toWire()`
 
@@ -319,7 +320,7 @@ public function fixture(string $id): FixtureResource
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L60)
 
 ### `fromWire()`
 
@@ -328,7 +329,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L72)
 
 ### `__debugInfo()`
 
@@ -340,7 +341,7 @@ PHPDoc:
 
 - `@return array{fixtures: array<non-empty-string, FixtureResource>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L93)
 
 ## `Scope`
 
@@ -392,9 +393,9 @@ case PerRun = 'per-run';
 
 Namespace: `Greenlight\Harness`
 
-A fixture value that must be revealed explicitly.
+A fixture value that code must reveal explicitly.
 
-Object dumps and exports never include the underlying value.
+Object dumps and exports do not include the underlying value.
 
 ```php
 final readonly class SensitiveValue

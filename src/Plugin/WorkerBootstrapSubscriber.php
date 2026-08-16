@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 /**
- * Worker-side initialization after fixture data arrives and before harness
- * providers and service resolvers are consumed.
+ * Initializes one worker after fixture data arrives and before Greenlight uses
+ * harness providers or service resolvers.
  */
 interface WorkerBootstrapSubscriber extends Plugin
 {

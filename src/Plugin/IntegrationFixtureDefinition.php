@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 /**
- * One orchestrator-owned integration fixture and its dependencies.
+ * One orchestrator-owned integration fixture and its dependencies. IDs must
+ * remain string keys in PHP maps.
  */
 final readonly class IntegrationFixtureDefinition
 {
@@ -32,11 +33,19 @@ final readonly class IntegrationFixtureDefinition
             throw new \InvalidArgumentException('Integration fixture IDs must be non-empty UTF-8 strings.');
         }
 
+        if ($this->becomesIntegerKey($id)) {
+            throw new \InvalidArgumentException('Integration fixture IDs must not use integer strings.');
+        }
+
         $seen = [];
         $validatedDependencies = [];
 
         foreach ($dependsOn as $dependency) {
-            if (!\is_string($dependency) || $dependency === '' || \preg_match('//u', $dependency) !== 1) {
+            if (!\is_string($dependency)
+                || $dependency === ''
+                || \preg_match('//u', $dependency) !== 1
+                || $this->becomesIntegerKey($dependency)
+            ) {
                 throw new \InvalidArgumentException(\sprintf('Integration fixture "%s" has an invalid dependency ID.', $id));
             }
 
@@ -54,5 +63,12 @@ final readonly class IntegrationFixtureDefinition
 
         $this->id = $id;
         $this->dependsOn = $validatedDependencies;
+    }
+
+    private function becomesIntegerKey(string $id): bool
+    {
+        $integer = \filter_var($id, \FILTER_VALIDATE_INT);
+
+        return \is_int($integer) && (string) $integer === $id;
     }
 }

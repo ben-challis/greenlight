@@ -8,6 +8,8 @@ use Greenlight\Harness\FixtureResource;
 use Greenlight\Plugin\IntegrationFixtureContext;
 
 /**
+ * Supplies run data and fixture operations to one provisioner.
+ *
  * @internal
  */
 final readonly class FixtureProvisioningContext implements IntegrationFixtureContext

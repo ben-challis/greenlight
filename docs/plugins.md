@@ -16,13 +16,16 @@ return GreenlightConfig::create()
 
 ## How plugins reach workers
 
-Tests run in worker processes. A process cannot send live PHP objects across a
-process boundary. Each worker loads `greenlight.php` and creates its own plugin
-instances.
+Parallel tests run in worker processes. A process cannot send live PHP objects
+across a process boundary. Each parallel worker loads `greenlight.php` and
+creates its own plugin instances.
 
 The orchestrator also loads `greenlight.php`, so plugin constructors run there
-and once per worker. Plugin properties do not cross that boundary. Use
-integration resources for data that workers need from the orchestrator.
+and once per parallel worker. Plugin properties do not cross that boundary.
+
+With one in-process worker, orchestrator and worker capabilities use the same
+configured plugin instances. Do not use plugin properties to transfer fixture
+resources. Use integration resources in both runner modes.
 
 ## Capability interfaces
 
@@ -89,10 +92,13 @@ new IntegrationFixtureDefinition(
 );
 ```
 
+Fixture IDs must be non-empty UTF-8 strings. They must not use integer strings
+because PHP converts those map keys to integers.
+
 Dependencies provision first. Cleanup callbacks run in reverse registration
-order. Register cleanup immediately after acquiring a resource so it also runs
-when later provisioning fails. Missing dependencies, duplicate IDs, and cycles
-fail before provisioning starts.
+order. Register cleanup immediately after resource acquisition. This makes
+cleanup available if a later provisioning operation fails. Missing
+dependencies, duplicate IDs, and cycles fail before provisioning starts.
 
 `IntegrationFixtureContext` exposes:
 
@@ -104,8 +110,8 @@ fail before provisioning starts.
 * `defer()`: register cleanup
 * `expose()`: publish shared data and per-channel overlays
 
-`FixtureResource` accepts JSON-safe values and UTF-8 strings. Each worker's
-complete resource payload is limited to 1 MiB.
+`FixtureResource` accepts JSON-safe values and UTF-8 strings. Greenlight limits
+each worker's complete resource payload to 1 MiB.
 
 Tests can inject `IntegrationResources` directly:
 
@@ -129,8 +135,8 @@ final class PublishesMessageTest
 }
 ```
 
-Shared values are merged with the current channel overlay. Other channel
-overlays are not sent to the worker.
+Greenlight merges shared values with the current channel overlay. It does not
+send other channel overlays to the worker.
 
 #### Fixture lifecycle
 
@@ -158,7 +164,7 @@ it in IDs, exceptions, logs, or test names.
 Worker-side.
 
 This hook runs once per physical worker after resources arrive and before
-`HarnessProvider::services()` or `ServiceResolver` is used. It can turn
+Greenlight uses `HarnessProvider::services()` or `ServiceResolver`. It can turn
 serializable resource data into worker-local services:
 
 ```php

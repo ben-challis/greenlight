@@ -7,7 +7,8 @@ namespace Greenlight\Runner\Protocol\Messages;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Worker to orchestrator: bootstrap completed and assignments may begin.
+ * Worker to orchestrator: bootstrap completed and the worker can receive
+ * assignments.
  *
  * @internal
  */

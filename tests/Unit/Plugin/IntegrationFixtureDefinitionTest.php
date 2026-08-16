@@ -45,6 +45,16 @@ final readonly class IntegrationFixtureDefinitionTest
             [],
             'Integration fixture IDs must be non-empty UTF-8 strings.',
         ];
+        yield 'integer-string fixture ID' => [
+            '123',
+            [],
+            'Integration fixture IDs must not use integer strings.',
+        ];
+        yield 'negative integer-string fixture ID' => [
+            '-123',
+            [],
+            'Integration fixture IDs must not use integer strings.',
+        ];
         yield 'empty dependency ID' => [
             'database',
             [''],
@@ -53,6 +63,11 @@ final readonly class IntegrationFixtureDefinitionTest
         yield 'non-UTF-8 dependency ID' => [
             'database',
             ["\xB1\x31"],
+            'Integration fixture "database" has an invalid dependency ID.',
+        ];
+        yield 'integer-string dependency ID' => [
+            'database',
+            ['123'],
             'Integration fixture "database" has an invalid dependency ID.',
         ];
         yield 'duplicate dependency' => [
@@ -88,5 +103,23 @@ final readonly class IntegrationFixtureDefinitionTest
     {
         yield 'integer' => [[123]];
         yield 'object' => [[new \stdClass()]];
+    }
+
+    #[Test]
+    public function numericLookingIdsThatRemainStringMapKeysAreAccepted(): void
+    {
+        $ids = ['01', '+1', '1.0'];
+        $definitions = \array_map(
+            static fn(string $id): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+                $id,
+                static function (): void {},
+            ),
+            $ids,
+        );
+
+        Expect::that(\array_map(
+            static fn(IntegrationFixtureDefinition $definition): string => $definition->id,
+            $definitions,
+        ))->toBe($ids);
     }
 }

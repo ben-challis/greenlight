@@ -37,13 +37,14 @@ PHPDoc:
 
 Namespace: `Greenlight\Plugin`
 
-Orchestrator-side context used while one integration fixture is provisioned.
+Supplies orchestrator-side operations while Greenlight provisions one
+integration fixture.
 
 ```php
 interface IntegrationFixtureContext
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L13)
 
 ### `runId()`
 
@@ -55,7 +56,7 @@ PHPDoc:
 
 - `@return non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L18)
 
 ### `configuredWorkers()`
 
@@ -67,7 +68,7 @@ PHPDoc:
 
 - `@return positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L23)
 
 ### `channels()`
 
@@ -81,7 +82,7 @@ PHPDoc:
 
 - `@return non-empty-list<positive-int>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L30)
 
 ### `shard()`
 
@@ -93,7 +94,7 @@ PHPDoc:
 
 - `@return array{int, int}|null one-based shard index and shard count`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L35)
 
 ### `dependency()`
 
@@ -101,12 +102,12 @@ PHPDoc:
 public function dependency(string $id, ?int $channel = null): FixtureResource;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L37)
 
 ### `defer()`
 
-Registers cleanup immediately. Call this as soon as a real resource is
-acquired so later failures in the same provisioner cannot leak it.
+Register cleanup immediately after the provisioner acquires a resource.
+This makes cleanup available if a later operation fails.
 
 ```php
 public function defer(\Closure $cleanup): void;
@@ -116,7 +117,7 @@ PHPDoc:
 
 - `@param \Closure(): void $cleanup`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L45)
 
 ### `expose()`
 
@@ -130,19 +131,20 @@ PHPDoc:
 
 - `@param array<int, FixtureResource> $channels keyed by channel number`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L52)
 
 ## `IntegrationFixtureDefinition`
 
 Namespace: `Greenlight\Plugin`
 
-One orchestrator-owned integration fixture and its dependencies.
+One orchestrator-owned integration fixture and its dependencies. IDs must
+remain string keys in PHP maps.
 
 ```php
 final readonly class IntegrationFixtureDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L11)
 
 ### `$id`
 
@@ -154,7 +156,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L16)
 
 ### `$dependsOn`
 
@@ -166,7 +168,7 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L21)
 
 ### `__construct()`
 
@@ -183,13 +185,13 @@ PHPDoc:
 - `@param \Closure(IntegrationFixtureContext): void $provision`
 - `@param list<mixed> $dependsOn`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L27)
 
 ## `IntegrationFixtureProvider`
 
 Namespace: `Greenlight\Plugin`
 
-Contributes orchestrator-owned infrastructure to an executing test run.
+Supplies orchestrator-owned infrastructure for one test run.
 
 ```php
 interface IntegrationFixtureProvider extends Plugin
@@ -425,8 +427,8 @@ PHPDoc:
 
 Namespace: `Greenlight\Plugin`
 
-Worker-side initialization after fixture data arrives and before harness
-providers and service resolvers are consumed.
+Initializes one worker after fixture data arrives and before Greenlight uses
+harness providers or service resolvers.
 
 ```php
 interface WorkerBootstrapSubscriber extends Plugin

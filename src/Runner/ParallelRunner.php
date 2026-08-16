@@ -22,7 +22,11 @@ use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Worker\EventSink;
 
-/** @internal */
+/**
+ * Discovers a plan and uses the orchestrator to execute worker processes.
+ *
+ * @internal
+ */
 final readonly class ParallelRunner
 {
     /**

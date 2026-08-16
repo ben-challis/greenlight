@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Integration;
 
 use Greenlight\Plugin\IntegrationFixtureDefinition;
+use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Plugin\PluginRegistry;
 
 /**
@@ -38,6 +39,8 @@ final class IntegrationFixtureManager
             } catch (\Throwable $failure) {
                 throw IntegrationFixtureError::provider($provider::class, $failure);
             }
+
+            $provided = self::validatedDefinitions($provider, $provided);
 
             foreach ($provided as $definition) {
                 if (isset($definitions[$definition->id])) {
@@ -81,6 +84,31 @@ final class IntegrationFixtureManager
         }
 
         return $session;
+    }
+
+    /**
+     * @param array<mixed> $provided
+     *
+     * @return list<IntegrationFixtureDefinition>
+     */
+    private static function validatedDefinitions(IntegrationFixtureProvider $provider, array $provided): array
+    {
+        $definitions = [];
+
+        foreach ($provided as $definition) {
+            if (!$definition instanceof IntegrationFixtureDefinition) {
+                throw new IntegrationFixtureError(\sprintf(
+                    'Integration fixture provider "%s" returned %s. '
+                    . 'It MUST return IntegrationFixtureDefinition instances.',
+                    $provider::class,
+                    \get_debug_type($definition),
+                ));
+            }
+
+            $definitions[] = $definition;
+        }
+
+        return $definitions;
     }
 
     /**

@@ -7,7 +7,8 @@ namespace Greenlight\Plugin;
 use Greenlight\Harness\FixtureResource;
 
 /**
- * Orchestrator-side context used while one integration fixture is provisioned.
+ * Supplies orchestrator-side operations while Greenlight provisions one
+ * integration fixture.
  */
 interface IntegrationFixtureContext
 {
@@ -36,8 +37,8 @@ interface IntegrationFixtureContext
     public function dependency(string $id, ?int $channel = null): FixtureResource;
 
     /**
-     * Registers cleanup immediately. Call this as soon as a real resource is
-     * acquired so later failures in the same provisioner cannot leak it.
+     * Register cleanup immediately after the provisioner acquires a resource.
+     * This makes cleanup available if a later operation fails.
      *
      * @param \Closure(): void $cleanup
      */
