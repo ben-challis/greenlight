@@ -6,12 +6,19 @@ namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Artifact\Attachment;
+use Greenlight\Core\Artifact\AttachmentKind;
+use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Diagnostic;
 use Greenlight\Core\Result\DiagnosticSeverity;
+use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\OutcomeTransformation;
 use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 
@@ -44,17 +51,75 @@ final class ResultPolicyTest
     #[Test]
     public function aPolicyFlipPreservesTheRestOfTheResult(): void
     {
+        $earlierFailure = new FailureDetail(
+            'An earlier policy accepted the result.',
+            'failed',
+            'passed',
+            new SourceLocation('/tests/ProbeTest.php', 12),
+        );
+        $earlierTransformation = new OutcomeTransformation(
+            'quarantine',
+            Outcome::Failed,
+            Outcome::Passed,
+        );
+        $original = new TestResult(
+            id: new TestId('App\ProbeTest', 'probes', 'with deprecation'),
+            outcome: Outcome::Passed,
+            durationSeconds: 0.25,
+            memoryDeltaBytes: 4096,
+            attempts: 2,
+            failures: [$earlierFailure],
+            error: new ThrowableDetail(
+                \RuntimeException::class,
+                'The worker recovered.',
+                '/tests/ProbeTest.php',
+                18,
+                ['App\ProbeTest->probes at /tests/ProbeTest.php:18'],
+            ),
+            skipReason: 'The dependency became available.',
+            transformations: [$earlierTransformation],
+            output: new CapturedOutput(
+                'captured output',
+                [new Diagnostic(DiagnosticSeverity::Deprecation, 'rusty api', '/src/a.php', 3)],
+                stdoutTruncated: true,
+                diagnosticsTruncated: true,
+            ),
+            risky: true,
+            expectations: 5,
+            attachments: [new Attachment(
+                'deprecation.txt',
+                AttachmentKind::Text,
+                'text/plain',
+                16,
+                \str_repeat('a', 64),
+                2,
+                'artifacts/deprecation.txt',
+                AttachmentRetention::Always,
+            )],
+        );
+        $originalWire = $original->toWire();
+        $policyFailure = new FailureDetail(
+            'The deprecation policy changed this test from passed to failed: rusty api at /src/a.php:3',
+        );
+        $policyTransformation = new OutcomeTransformation(
+            'fail-on-diagnostic policy',
+            Outcome::Passed,
+            Outcome::Failed,
+        );
+        $expected = \array_replace($originalWire, [
+            'outcome' => Outcome::Failed->value,
+            'failures' => [$earlierFailure->toWire(), $policyFailure->toWire()],
+            'transformations' => [$earlierTransformation->toWire(), $policyTransformation->toWire()],
+        ]);
         $policy = new ResultPolicy(failOnDeprecation: true);
-        $result = $policy->apply($this->passedWithDeprecation());
+        $result = $policy->apply($original);
 
-        Expect::that($result->outcome)->because('a policy flip preserves the rest of the result')->toBe(Outcome::Failed)
-            ->and($result->expectations)->toBe(5)
-            ->and($result->attempts)->toBe(2)
-            ->and($result->durationSeconds)->toBe(0.25)
-            ->and($result->transformations)->toHaveCount(1)
-            ->and($result->transformations[0]->transformedBy)->toBe('fail-on-diagnostic policy')
-            ->and($result->failures)->toHaveCount(1)
-            ->and($result->failures[0]->message)->toContain('rusty api');
+        Expect::that($original->toWire())
+            ->because('a policy flip MUST NOT change the original result')
+            ->toBe($originalWire);
+        Expect::that($result->toWire())
+            ->because('a policy flip MUST preserve all result state that the policy does not change')
+            ->toBe($expected);
     }
 
     #[Test]
