@@ -14,8 +14,10 @@ use Greenlight\Tests\Fixture\Doubles\ProtectedHandlerPropertyCollision;
 use Greenlight\Tests\Fixture\Doubles\PublicHandlerPropertyCollision;
 use Greenlight\Tests\Fixture\Doubles\PublicStaticHandlerPropertyCollision;
 
-final class HandlerPropertyCollisionTest
+final readonly class HandlerPropertyCollisionTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     /**
      * @param class-string $type
      */
@@ -23,7 +25,7 @@ final class HandlerPropertyCollisionTest
     #[DataSet('visibleHandlerProperties')]
     public function visibleHandlerPropertiesCannotBeDoubled(string $type): void
     {
-        Expect::that(static fn(): object => new Doubles()->stub($type))
+        Expect::that(fn(): object => $this->doubles->stub($type))
             ->because('a visible property conflicts with proxy handler storage')
             ->toThrow(
                 DoublesError::class,
@@ -45,7 +47,7 @@ final class HandlerPropertyCollisionTest
     #[Test]
     public function privateHandlerPropertiesRemainValid(): void
     {
-        Expect::that(new Doubles()->stub(PrivateHandlerProperty::class))
+        Expect::that($this->doubles->stub(PrivateHandlerProperty::class))
             ->because('a private parent property does not conflict with proxy handler storage')
             ->toBeInstanceOf(PrivateHandlerProperty::class);
     }
