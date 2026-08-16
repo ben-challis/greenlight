@@ -62,29 +62,42 @@ final readonly class AttachmentRunTest
 
         $projectDirectory = (string) \realpath($project->directory);
 
-        Expect::that($artifactsDirectory)->toBe($projectDirectory . '/artifacts/' . \basename($artifactsDirectory))
-            ->and($results)->toHaveKey('failsWithEvidence')
+        Expect::that($artifactsDirectory)->toBe($projectDirectory . '/artifacts/' . \basename($artifactsDirectory));
+        Expect::that($results)
+            ->toHaveKey('failsWithEvidence')
             ->toHaveKey('passesWithAlwaysEvidence')
             ->toHaveKey('passesWithoutRetainingDefaultEvidence')
             ->toHaveKey('retainsTheFailedRetryAttempt')
             ->toHaveKey('becomesErroredDuringClassTeardown')
             ->toHaveKey('retryDeciderThrows');
 
-        Expect::that($results['failsWithEvidence']->attachments)->toHaveCount(3)
-            ->and($results['passesWithAlwaysEvidence']->attachments)->toHaveCount(1)
-            ->and($results['passesWithoutRetainingDefaultEvidence']->attachments)->toBe([])
-            ->and($results['retainsTheFailedRetryAttempt']->attempts)->toBe(2)
-            ->and($results['retainsTheFailedRetryAttempt']->attachments)->toHaveCount(2)
-            ->and($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1)
-            ->and($results['becomesErroredDuringClassTeardown']->outcome->isSuccessful())->toBeFalse()
-            ->and($results['becomesErroredDuringClassTeardown']->attachments)->toHaveCount(1)
-            ->and($results['retryDeciderThrows']->outcome->isSuccessful())->toBeFalse()
-            ->and($results['retryDeciderThrows']->attachments)->toHaveCount(2);
+        Expect::that($results['failsWithEvidence']->attachments)->toHaveCount(3);
+        Expect::that($results['passesWithAlwaysEvidence']->attachments)->toHaveCount(1);
+        Expect::that($results['passesWithoutRetainingDefaultEvidence']->attachments)->toBe([]);
+        Expect::that($results['retainsTheFailedRetryAttempt']->attempts)->toBe(2);
+        Expect::that($results['retainsTheFailedRetryAttempt']->attachments)->toHaveCount(2);
+        Expect::that($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1);
+        Expect::that($results['becomesErroredDuringClassTeardown']->outcome->isSuccessful())->toBeFalse();
+        Expect::that($results['becomesErroredDuringClassTeardown']->attachments)->toHaveCount(1);
+        Expect::that($results['retryDeciderThrows']->outcome->isSuccessful())->toBeFalse();
+        Expect::that($results['retryDeciderThrows']->attachments)->toHaveCount(2);
 
         foreach ($results as $testResult) {
             foreach ($testResult->attachments as $attachment) {
-                Expect::that(\is_file($attachment->path))->toBeTrue()
-                    ->and(\hash_file('sha256', $attachment->path))->toBe($attachment->sha256);
+                Expect::that(\is_file($attachment->path))
+                    ->because(\sprintf(
+                        'The attachment for test "%s" MUST exist at "%s".',
+                        $testResult->id,
+                        $attachment->path,
+                    ))
+                    ->toBeTrue();
+                Expect::that(\hash_file('sha256', $attachment->path))
+                    ->because(\sprintf(
+                        'The SHA-256 digest for the attachment from test "%s" MUST match the file at "%s".',
+                        $testResult->id,
+                        $attachment->path,
+                    ))
+                    ->toBe($attachment->sha256);
             }
         }
     }
