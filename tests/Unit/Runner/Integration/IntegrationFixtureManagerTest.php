@@ -70,18 +70,18 @@ final class IntegrationFixtureManagerTest
         $channelOne = $session->forChannel(1)->fixture('database');
         $channelTwo = $session->forChannel(2)->fixture('database');
 
-        Expect::that($trace)->toBe(['network:start', 'database:start'])
-            ->and($observedContext)->toBe(['run-1', 4, [1, 2], [2, 3]])
-            ->and($channelOne->string('database'))->toBe('test_1')
-            ->and($channelTwo->string('database'))->toBe('test_2')
-            ->and($session->close())->toBe([])
-            ->and($trace)->toBe([
-                'network:start',
-                'database:start',
-                'database:stop',
-                'network:stop',
-            ])
-            ->and($session->close())->toBe([]);
+        Expect::that($trace)->toBe(['network:start', 'database:start']);
+        Expect::that($observedContext)->toBe(['run-1', 4, [1, 2], [2, 3]]);
+        Expect::that($channelOne->string('database'))->toBe('test_1');
+        Expect::that($channelTwo->string('database'))->toBe('test_2');
+        Expect::that($session->close())->toBe([]);
+        Expect::that($trace)->toBe([
+            'network:start',
+            'database:start',
+            'database:stop',
+            'network:stop',
+        ]);
+        Expect::that($session->close())->toBe([]);
     }
 
     #[Test]

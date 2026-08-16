@@ -8,11 +8,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Runner\Worker\WorkerProcess;
 use Greenlight\Tests\Support\Subprocess;
 
-final class WorkerProcessFatalSendFailureTest
+final readonly class WorkerProcessFatalSendFailureTest
 {
+    public function __construct(private EnvironmentSandbox $environment) {}
+
     #[Test]
     #[Timeout(5.0)]
     public function aClosedChannelCannotHideTheAssignmentFailure(): void
@@ -82,9 +85,10 @@ final class WorkerProcessFatalSendFailureTest
                 exit(5);
             }
 
-            $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
-                new Greenlight\Discovery\ExecutionPlan([]),
-                configFile: $config,
+            $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
+                1,
+                $config,
+                new Greenlight\Harness\IntegrationResources([]),
             ));
             $deadline = microtime(true) + 2.0;
 
@@ -149,6 +153,7 @@ final class WorkerProcessFatalSendFailureTest
                 Fail::because('Worker protocol server did not publish its address.');
             }
 
+            $this->environment->set('GREENLIGHT_CHANNEL', '1');
             $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
             $serverResult = $server->wait(3.0);
 

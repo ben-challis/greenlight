@@ -44,9 +44,9 @@ final readonly class WatchModeTest
             $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
             $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
 
-            Expect::that($result->exitCode)->toBe(0)
-                ->and(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2)
-                ->and(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
+            Expect::that($result->exitCode)->toBe(0);
+            Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
+            Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
         } finally {
             $process->terminate();
         }
@@ -97,12 +97,12 @@ final readonly class WatchModeTest
 
             Expect::that($result->exitCode)
                 ->because('watch mode MUST remain interactive after a fixture cleanup failure')
-                ->toBe(0)
-                ->and($result->output())
+                ->toBe(0);
+            Expect::that($result->output())
                 ->because('watch mode MUST report integration fixture cleanup failures')
                 ->toContain('Integration fixture teardown failed.')
-                ->toContain('intentional fixture cleanup failure')
-                ->and($this->matches($project->path('markers/resource-*')))
+                ->toContain('intentional fixture cleanup failure');
+            Expect::that($this->matches($project->path('markers/resource-*')))
                 ->because('watch mode MUST remove orchestrator-owned resources after cleanup failures')
                 ->toBe([]);
         } finally {

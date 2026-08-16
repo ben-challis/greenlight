@@ -21,11 +21,11 @@ final readonly class FixtureResourceAccessTest
 
         Expect::that($resource->has('host'))
             ->because('ordinary fixture values MUST be discoverable')
-            ->toBeTrue()
-            ->and($resource->has('password'))
+            ->toBeTrue();
+        Expect::that($resource->has('password'))
             ->because('fixture secrets MUST be discoverable without revealing them')
-            ->toBeTrue()
-            ->and($resource->has('missing'))
+            ->toBeTrue();
+        Expect::that($resource->has('missing'))
             ->because('unknown fixture keys MUST remain absent')
             ->toBeFalse();
     }
@@ -40,8 +40,8 @@ final readonly class FixtureResourceAccessTest
             ->toThrow(
                 \OutOfBoundsException::class,
                 message: 'Fixture resource has no ordinary value named "host".',
-            )
-            ->and(static fn() => $resource->secret('password'))
+            );
+        Expect::that(static fn() => $resource->secret('password'))
             ->because('missing secrets MUST identify their key')
             ->toThrow(
                 \OutOfBoundsException::class,

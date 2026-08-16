@@ -26,8 +26,8 @@ final readonly class IntegrationFixtureErrorTest
                 'Integration fixture provider "%s" failed: %s',
                 self::class,
                 $reportedMessage,
-            ))
-            ->and($error->getPrevious())
+            ));
+        Expect::that($error->getPrevious())
             ->because('the provider failure MUST remain available as the previous exception')
             ->toBe($cause);
     }
@@ -64,8 +64,8 @@ final readonly class IntegrationFixtureErrorTest
                 "Integration fixture \"database\" failed to provision: database did not start.\n"
                 . "Additionally, cleanup for integration fixture \"database\" failed: socket close failed.\n"
                 . 'Additionally, cleanup for integration fixture "network" failed: already closed?',
-            )
-            ->and($error->getPrevious())
+            );
+        Expect::that($error->getPrevious())
             ->because('the provisioning failure MUST remain available as the previous exception')
             ->toBe($cause);
     }
@@ -99,8 +99,8 @@ final readonly class IntegrationFixtureErrorTest
             ->toBe(
                 "The run failed with LogicException: run aborted.\n"
                 . 'Additionally, cleanup for integration fixture "database" failed: socket close failed.',
-            )
-            ->and($error->getPrevious())
+            );
+        Expect::that($error->getPrevious())
             ->because('the run failure MUST remain available as the previous exception')
             ->toBe($cause);
     }

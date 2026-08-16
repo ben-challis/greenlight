@@ -23,13 +23,14 @@ final readonly class IntegrationFixtureRunTest
         $bootstrapped = $this->lines($project->path('markers/bootstrapped.log'));
         $resources = $this->matches($project->path('markers/resource-*'));
 
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($result->output())->toContain('4 tests, 4 passed')
-            ->not()->toContain('fixture-secret')
-            ->and(\count($bootstrapped))->toBeGreaterThan(2)
-            ->and($resources)->toBe([])
-            ->and($this->lines($project->path('markers/provisioned.log')))->toHaveCount(1)
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->output())
+            ->toContain('4 tests, 4 passed')
+            ->not()->toContain('fixture-secret');
+        Expect::that(\count($bootstrapped))->toBeGreaterThan(2);
+        Expect::that($resources)->toBe([]);
+        Expect::that($this->lines($project->path('markers/provisioned.log')))->toHaveCount(1);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -38,11 +39,12 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('failure', workers: 1, failing: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('intentional failure')
-            ->not()->toContain('fixture-secret')
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('intentional failure')
+            ->not()->toContain('fixture-secret');
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -54,12 +56,12 @@ final readonly class IntegrationFixtureRunTest
         $listSuites = GreenlightCli::run($project->directory, ['run', '--list-suites']);
         $dryRun = GreenlightCli::run($project->directory, ['run', '--dry-run']);
 
-        Expect::that($listTests->exitCode)->toBe(0)
-            ->and($listGroups->exitCode)->toBe(0)
-            ->and($listSuites->exitCode)->toBe(0)
-            ->and($dryRun->exitCode)->toBe(0)
-            ->and(\is_file($project->path('markers/provisioned.log')))->toBeFalse()
-            ->and(\is_file($project->path('markers/cleaned.log')))->toBeFalse();
+        Expect::that($listTests->exitCode)->toBe(0);
+        Expect::that($listGroups->exitCode)->toBe(0);
+        Expect::that($listSuites->exitCode)->toBe(0);
+        Expect::that($dryRun->exitCode)->toBe(0);
+        Expect::that(\is_file($project->path('markers/provisioned.log')))->toBeFalse();
+        Expect::that(\is_file($project->path('markers/cleaned.log')))->toBeFalse();
     }
 
     #[Test]
@@ -68,9 +70,9 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('repeat', workers: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--repeat=2', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($this->lines($project->path('markers/provisioned.log')))->toHaveCount(2)
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned', 'cleaned']);
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($this->lines($project->path('markers/provisioned.log')))->toHaveCount(2);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned', 'cleaned']);
     }
 
     #[Test]
@@ -79,11 +81,12 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('provisioning-failure', workers: 2, failProvisioning: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('intentional fixture provisioning failure')
-            ->not()->toContain('tests,')
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('intentional fixture provisioning failure')
+            ->not()->toContain('tests,');
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -92,10 +95,11 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('cleanup-failure', workers: 1, failCleanup: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('Integration fixture teardown failed.')
-            ->and($result->output())->toContain('intentional fixture cleanup failure')
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('Integration fixture teardown failed.')
+            ->toContain('intentional fixture cleanup failure');
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
     }
 
     #[Test]
@@ -104,10 +108,10 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('worker-crash', workers: 2, crashing: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('crashed during this test')
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('crashed during this test');
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -116,11 +120,11 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('bootstrap-failure', workers: 2, failBootstrapChannel: 2);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('intentional worker bootstrap failure')
-            ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('intentional worker bootstrap failure');
+        Expect::that(\is_file($project->path('markers/executed.log')))->toBeFalse();
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     #[Test]
@@ -129,12 +133,13 @@ final readonly class IntegrationFixtureRunTest
         $project = $this->writeProject('in-process-bootstrap-failure', workers: 1, failBootstrapChannel: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->output())->toContain('intentional worker bootstrap failure')
-            ->and($result->output())->toContain('reported a fatal Greenlight error')
-            ->and(\is_file($project->path('markers/executed.log')))->toBeFalse()
-            ->and($this->matches($project->path('markers/resource-*')))->toBe([])
-            ->and($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('intentional worker bootstrap failure')
+            ->toContain('reported a fatal Greenlight error');
+        Expect::that(\is_file($project->path('markers/executed.log')))->toBeFalse();
+        Expect::that($this->matches($project->path('markers/resource-*')))->toBe([]);
+        Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
 
     /**
@@ -197,10 +202,11 @@ final readonly class IntegrationFixtureRunTest
                 {
                     \file_put_contents(%s . '/executed.log', "executed\n", \FILE_APPEND);
 
-                    Expect::that($this->probe->channel)->toBe($this->channel->number)
-                        ->and($this->probe->secret)->toBe('fixture-secret-' . $this->channel->number)
-                        ->and(\file_get_contents($this->probe->resourceFile))->toBe('ready')
-                        ->and($this->resources->fixture('probe')->int('channel'))->toBe($this->channel->number);
+                    Expect::that($this->probe->channel)->toBe($this->channel->number);
+                    Expect::that($this->probe->secret)->toBe('fixture-secret-' . $this->channel->number);
+                    Expect::that(\file_get_contents($this->probe->resourceFile))->toBe('ready');
+                    Expect::that($this->resources->fixture('probe')->int('channel'))
+                        ->toBe($this->channel->number);
 
                     %s
                 }

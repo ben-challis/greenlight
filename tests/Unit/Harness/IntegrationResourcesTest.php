@@ -27,16 +27,16 @@ final class IntegrationResourcesTest
             secrets: ['password' => 'do-not-print'],
         );
 
-        Expect::that($resource->string('host'))->toBe('127.0.0.1')
-            ->and($resource->int('port'))->toBe(5432)
-            ->and($resource->bool('tls'))->toBeTrue()
-            ->and($resource->float('ratio'))->toBe(1.5)
-            ->and($resource->list('tags'))->toBe(['test', 'database'])
-            ->and($resource->map('options'))->toBe(['timeout' => 3])
-            ->and($resource->secret('password')->reveal())->toBe('do-not-print')
-            ->and($resource->__debugInfo()['secrets'])->toBe(['password' => '[redacted]'])
-            ->and(\var_export($resource, true))->not()->toContain('do-not-print')
-            ->and(\var_export($resource->secret('password'), true))->not()->toContain('do-not-print');
+        Expect::that($resource->string('host'))->toBe('127.0.0.1');
+        Expect::that($resource->int('port'))->toBe(5432);
+        Expect::that($resource->bool('tls'))->toBeTrue();
+        Expect::that($resource->float('ratio'))->toBe(1.5);
+        Expect::that($resource->list('tags'))->toBe(['test', 'database']);
+        Expect::that($resource->map('options'))->toBe(['timeout' => 3]);
+        Expect::that($resource->secret('password')->reveal())->toBe('do-not-print');
+        Expect::that($resource->__debugInfo()['secrets'])->toBe(['password' => '[redacted]']);
+        Expect::that(\var_export($resource, true))->not()->toContain('do-not-print');
+        Expect::that(\var_export($resource->secret('password'), true))->not()->toContain('do-not-print');
     }
 
     #[Test]
@@ -52,10 +52,10 @@ final class IntegrationResourcesTest
         $restored = IntegrationResources::fromWire($resources->toWire());
         $postgres = $restored->fixture('postgres');
 
-        Expect::that($postgres->string('host'))->toBe('db')
-            ->and($postgres->int('port'))->toBe(5432)
-            ->and($postgres->secret('password')->reveal())->toBe('secret')
-            ->and($restored->has('redis'))->toBeFalse();
+        Expect::that($postgres->string('host'))->toBe('db');
+        Expect::that($postgres->int('port'))->toBe(5432);
+        Expect::that($postgres->secret('password')->reveal())->toBe('secret');
+        Expect::that($restored->has('redis'))->toBeFalse();
     }
 
     #[Test]
@@ -71,9 +71,9 @@ final class IntegrationResourcesTest
         );
         $merged = $shared->mergedWith($channel);
 
-        Expect::that($merged->string('host'))->toBe('db')
-            ->and($merged->string('database'))->toBe('channel_2')
-            ->and($merged->secret('password')->reveal())->toBe('channel-secret');
+        Expect::that($merged->string('host'))->toBe('db');
+        Expect::that($merged->string('database'))->toBe('channel_2');
+        Expect::that($merged->secret('password')->reveal())->toBe('channel-secret');
     }
 
     #[Test]
@@ -88,12 +88,12 @@ final class IntegrationResourcesTest
     public function nonJsonValuesAreRejectedBeforeTransport(): void
     {
         Expect::that(static fn(): FixtureResource => FixtureResource::from(['stream' => \fopen('php://memory', 'rb')]))
-            ->toThrow(\InvalidArgumentException::class, matching: '/JSON-safe/')
-            ->and(static fn(): FixtureResource => FixtureResource::from(['number' => \INF]))
-            ->toThrow(\InvalidArgumentException::class, matching: '/finite numbers/')
-            ->and(static fn(): FixtureResource => FixtureResource::from(['text' => "\xB1\x31"]))
-            ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/')
-            ->and(static fn(): FixtureResource => FixtureResource::from(secrets: ['token' => "\xB1\x31"]))
+            ->toThrow(\InvalidArgumentException::class, matching: '/JSON-safe/');
+        Expect::that(static fn(): FixtureResource => FixtureResource::from(['number' => \INF]))
+            ->toThrow(\InvalidArgumentException::class, matching: '/finite numbers/');
+        Expect::that(static fn(): FixtureResource => FixtureResource::from(['text' => "\xB1\x31"]))
+            ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/');
+        Expect::that(static fn(): FixtureResource => FixtureResource::from(secrets: ['token' => "\xB1\x31"]))
             ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/');
     }
 
