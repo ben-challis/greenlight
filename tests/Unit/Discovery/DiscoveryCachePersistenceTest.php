@@ -10,16 +10,18 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 
 final readonly class DiscoveryCachePersistenceTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function unencodableMetadataDoesNotWriteACache(): void
     {
-        $directory = \sys_get_temp_dir() . '/greenlight-unencodable-cache-' . \bin2hex(\random_bytes(6));
+        $directory = $this->tempDirectory->subdirectory('unencodable-cache');
         $source = $directory . '/InvalidUtf8Test.php';
         $cacheFile = $this->cacheFile($directory);
-        \mkdir($directory, 0o777, true);
         \file_put_contents($source, '<?php');
 
         $id = new TestId('Example\InvalidUtf8Test', 'runs');
@@ -39,8 +41,6 @@ final readonly class DiscoveryCachePersistenceTest
                 ->toBeFalse();
         } finally {
             @\unlink($cacheFile);
-            @\unlink($source);
-            @\rmdir($directory);
         }
     }
 
