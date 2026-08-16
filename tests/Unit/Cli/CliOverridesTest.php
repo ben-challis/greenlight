@@ -11,7 +11,6 @@ use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ParsedArguments;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 
 final class CliOverridesTest
 {
@@ -162,46 +161,35 @@ final class CliOverridesTest
     }
 
     #[Test]
-    public function shardWithATrailingNewlineIsMalformed(): void
+    #[DataSet('invalidShards')]
+    public function rejectsInvalidShardWithExactGuidance(string $raw, string $message): void
     {
         Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
-            new ParsedArguments(null, ['shard' => ["1/2\n"]]),
+            new ParsedArguments(null, ['shard' => [$raw]]),
         ))
-            ->because('a shard specification MUST match the complete argument')
-            ->toThrow(
-                CliError::class,
-                message: "--shard requires <n>/<m>, such as 1/4. Received \"1/2\n\".",
-            );
+            ->because('--shard MUST reject malformed and out-of-range values')
+            ->toThrow(CliError::class, message: $message);
     }
 
-    #[Test]
-    public function shardOutOfRangeNamesTheValidRange(): void
+    /**
+     * @return iterable<string, array{non-empty-string, non-empty-string}>
+     */
+    public static function invalidShards(): iterable
     {
-        try {
-            CliOverrides::fromArguments(new ParsedArguments(null, ['shard' => ['632/13']]));
-        } catch (CliError $error) {
-            Expect::that($error->getMessage())->toBe(
-                '--shard requires 1 <= n <= m. Received "632/13". Valid n values for 13 shards are 1 through 13.',
-            );
+        yield 'trailing newline' => [
+            "1/2\n",
+            "--shard requires <n>/<m>, such as 1/4. Received \"1/2\n\".",
+        ];
 
-            return;
-        }
+        yield 'index above shard count' => [
+            '632/13',
+            '--shard requires 1 <= n <= m. Received "632/13". Valid n values for 13 shards are 1 through 13.',
+        ];
 
-        Fail::because('Expected CliOverrides::fromArguments() to reject out-of-range shard "632/13".');
-    }
-
-    #[Test]
-    public function shardWithZeroShardsOmitsTheRangeHint(): void
-    {
-        try {
-            CliOverrides::fromArguments(new ParsedArguments(null, ['shard' => ['1/0']]));
-        } catch (CliError $error) {
-            Expect::that($error->getMessage())->toBe('--shard requires 1 <= n <= m. Received "1/0".');
-
-            return;
-        }
-
-        Fail::because('Expected CliOverrides::fromArguments() to reject zero-shard specification "1/0".');
+        yield 'zero shard count' => [
+            '1/0',
+            '--shard requires 1 <= n <= m. Received "1/0".',
+        ];
     }
 
     /**
