@@ -10,13 +10,14 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\UntypedAction;
 
-final class UntypedReturnTest
+final readonly class UntypedReturnTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function aPlannedUntypedMethodNeedsNoConfiguredReturnValue(): void
     {
-        $doubles = new Doubles();
-        $action = $doubles->mock(
+        $action = $this->doubles->mock(
             UntypedAction::class,
             static function (MockPlan $plan): void {
                 $plan
@@ -31,7 +32,5 @@ final class UntypedReturnTest
         Expect::that($result)
             ->because('an untyped collaborator method can complete without a configured value')
             ->toBeNull();
-
-        $doubles->dispose();
     }
 }
