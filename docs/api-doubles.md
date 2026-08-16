@@ -85,7 +85,11 @@ candidate expectations cannot add values to a captor.
 final class ArgumentCaptor implements ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L17)
+
+PHPDoc:
+
+- `@template TValue = mixed`
 
 ### `matches()`
 
@@ -93,7 +97,7 @@ final class ArgumentCaptor implements ArgumentMatcher
 public function matches(mixed $value): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L24)
 
 ### `describe()`
 
@@ -101,7 +105,7 @@ public function matches(mixed $value): bool
 public function describe(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L29)
 
 ### `values()`
 
@@ -111,9 +115,9 @@ public function values(): array
 
 PHPDoc:
 
-- `@return list<mixed>`
+- `@return list<TValue>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L47)
 
 ### `value()`
 
@@ -121,7 +125,11 @@ PHPDoc:
 public function value(): mixed
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L46)
+PHPDoc:
+
+- `@return TValue`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L53)
 
 ## `ArgumentMatcher`
 

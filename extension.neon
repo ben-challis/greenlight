@@ -24,6 +24,10 @@ rules:
     - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:
+    greenlight.captureArgumentReturnTypeExtension:
+        class: Greenlight\PhpStan\CaptureArgumentReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
     greenlight.doublesCallsToReturnTypeExtension:
         class: Greenlight\PhpStan\DoublesCallsToReturnTypeExtension
         tags:
