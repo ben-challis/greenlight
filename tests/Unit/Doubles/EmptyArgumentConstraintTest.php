@@ -11,15 +11,17 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
-final class EmptyArgumentConstraintTest
+final readonly class EmptyArgumentConstraintTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function anExplicitEmptyConstraintRejectsSuppliedOptionalArguments(): void
     {
         $doubles = new Doubles();
         $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('withDefaults')
-                ->with()
+                ->withNoArguments()
                 ->once()
                 ->andReturns('default');
         });
@@ -27,5 +29,22 @@ final class EmptyArgumentConstraintTest
         Expect::that(static fn(): string => $wide->withDefaults(11))
             ->because('an explicit empty argument constraint MUST reject supplied optional arguments')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
+
+        Expect::that(static fn() => $doubles->dispose())
+            ->because('verification MUST report the unexpected call')
+            ->toThrow(ExpectationFailed::class, '/unexpected call/');
+    }
+
+    #[Test]
+    public function anExplicitEmptyConstraintAcceptsNoArguments(): void
+    {
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
+            $plan->expects('withDefaults')
+                ->withNoArguments()
+                ->once()
+                ->andReturns('default');
+        });
+
+        Expect::that($wide->withDefaults())->toBe('default');
     }
 }

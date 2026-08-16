@@ -80,7 +80,7 @@ final class Doubles implements Disposable
      * @template T of object
      *
      * @param class-string<T> $type
-     * @param \Closure(MockPlan): void|null $plan
+     * @param \Closure(MockPlan<T>): void|null $plan
      *
      * @return T
      */
@@ -185,7 +185,7 @@ final class Doubles implements Disposable
      * @template T of object
      *
      * @param class-string<T> $type
-     * @param \Closure(MockPlan): void|null $plan
+     * @param \Closure(MockPlan<T>): void|null $plan
      *
      * @return T
      */
@@ -194,7 +194,7 @@ final class Doubles implements Disposable
         $state = new DoubleState($type, $kind);
 
         if ($plan instanceof \Closure) {
-            $plan(new MockPlan($state));
+            $plan(new MockPlan($state, $type));
         }
 
         $proxyClass = $this->generator->proxyClass($type);

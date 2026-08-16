@@ -80,6 +80,25 @@ This call causes the `greenlight.toThrow.subjectType` error. The extension
 does not report the error for a `mixed` subject. Greenlight validates unresolved
 subject types at run time.
 
+## Mock plan checks
+
+The extension keeps the doubled type through the `MockPlan` configurator. It
+checks constant method names before a test runs.
+
+The extension reports these mock plan errors:
+
+* The planned method does not exist or Greenlight cannot intercept it.
+* `withNoArguments()` cannot satisfy the required parameter count.
+* `with()` supplies too few or too many arguments.
+* A value in `with()` has a type that the method parameter does not accept.
+
+Argument matchers do not have to match the declared parameter type. They
+describe the values that the mock accepts at run time.
+
+Errors use the `greenlight.mockPlan.*` identifiers (`method`, `arity`, and
+`argument`). Greenlight validates each plan at run time when PHPStan cannot
+resolve a method name or argument list.
+
 ## Custom matcher checks
 
 These checks apply when a plugin adds matchers through `ExpectationExtension`.

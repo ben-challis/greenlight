@@ -70,6 +70,10 @@ A call that does not match an expectation fails immediately. At teardown, an
 unmet expectation fails the test. Greenlight reports all unmet expectations
 together.
 
+Without an argument constraint, an expectation accepts each argument list that
+the method declaration permits. Greenlight rejects arguments that the method
+does not declare.
+
 ## Mock responses
 
 Each mock method that returns a value needs an explicit response:
@@ -98,6 +102,15 @@ Bare values passed to `with()` use the same deep equality as `toEqual()`:
 ```php
 $plan->expects('save')->with($expectedOrder);
 ```
+
+Use `withNoArguments()` to require a call that supplies no arguments:
+
+```php
+$plan->expects('loadDefaults')->withNoArguments();
+```
+
+This constraint is useful when a method has optional or variadic parameters.
+`with()` requires at least one value or argument matcher.
 
 Use `Argument` matchers for broader constraints:
 

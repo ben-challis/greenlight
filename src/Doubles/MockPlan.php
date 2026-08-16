@@ -10,13 +10,20 @@ namespace Greenlight\Doubles;
  * Use the fluent methods to declare call patterns. The default cardinality is
  * at least one call. The verifier checks each declared pattern when the test
  * scope closes.
+ *
+ * @template TTarget of object = object
  */
 final readonly class MockPlan
 {
     /**
      * @internal Only the Doubles factory constructs this object.
+     *
+     * @param class-string<TTarget> $target
      */
-    public function __construct(private DoubleState $state) {}
+    public function __construct(
+        private DoubleState $state,
+        private string $target,
+    ) {}
 
     /**
      * Returns the `with()` wildcard that accepts all values in its position.
@@ -27,26 +34,32 @@ final readonly class MockPlan
     }
 
     /**
-     * @param non-empty-string $method
+     * @template TMethod of non-empty-string
+     *
+     * @param TMethod $method
+     *
+     * @return MethodExpectation<TTarget, TMethod>
      */
     public function expects(string $method): MethodExpectation
     {
-        $method = $this->assertPlannable($method);
+        $contract = $this->assertPlannable($method);
 
-        $expectation = new MethodExpectation($method);
+        $expectation = new MethodExpectation($contract);
         $this->state->expectations[] = $expectation;
 
         return $expectation;
     }
 
     /**
-     * @param non-empty-string $method
+     * @template TMethod of non-empty-string
      *
-     * @return non-empty-string
+     * @param TMethod $method
+     *
+     * @return MethodCallContract<TTarget, TMethod>
      */
-    private function assertPlannable(string $method): string
+    private function assertPlannable(string $method): MethodCallContract
     {
-        $reflection = new \ReflectionClass($this->state->type);
+        $reflection = new \ReflectionClass($this->target);
 
         if (!$reflection->hasMethod($method)) {
             throw DoublesError::noSuchMethod($this->state->type, $method);
@@ -66,6 +79,6 @@ final readonly class MockPlan
             throw DoublesError::finalMethod($this->state->type, $method);
         }
 
-        return $declared->getName();
+        return MethodCallContract::fromReflection($this->target, $method, $declared);
     }
 }
