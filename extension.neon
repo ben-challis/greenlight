@@ -23,6 +23,10 @@ rules:
     - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:
+    greenlight.doublesCallsToReturnTypeExtension:
+        class: Greenlight\PhpStan\DoublesCallsToReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
     greenlight.matcherMapProvider:
         class: Greenlight\PhpStan\MatcherMapProvider
         arguments:

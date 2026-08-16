@@ -39,6 +39,17 @@ with different letter case. Greenlight checks a dynamic method name at run time.
 
 Method errors use the `greenlight.doubles.callsToMethod` identifier.
 
+For a constant method name, the extension also supplies the declared argument
+types for each recorded call:
+
+```php
+$calls = $doubles->callsTo($events, 'publish');
+$event = $calls[0][0]; // the declared type of EventPublisher::publish() argument 1
+```
+
+The result keeps optional parameters and variadic parameters. A dynamic method
+name keeps the documented `list<list<mixed>>` return type.
+
 ## Attribute argument checks
 
 The extension reports constant attribute arguments that Greenlight cannot use:
