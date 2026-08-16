@@ -63,17 +63,33 @@ final readonly class InterruptionTest
             $process->signal(\SIGINT);
             $result = $process->wait(self::DEADLINE_SECONDS);
 
-            Expect::that($result->stdout)->toContain('"test-finished"')
-                ->and($result->exitCode)->toBe(130)
-                ->and($result->stderr)->toContain('Interrupted');
+            Expect::that($result->stdout)
+                ->because('The interrupted run MUST report a finished test.')
+                ->toContain('"test-finished"');
+            Expect::that($result->exitCode)
+                ->because('SIGINT MUST produce exit code 130.')
+                ->toBe(130);
+            Expect::that($result->stderr)
+                ->because('SIGINT MUST report the interruption.')
+                ->toContain('Interrupted');
 
-            foreach ($this->spawnedWorkerPids(JsonlEvents::from($result)) as $pid) {
+            $workerPids = $this->spawnedWorkerPids(JsonlEvents::from($result));
+            Expect::that($workerPids)
+                ->because('The interrupted run MUST start at least one worker.')
+                ->not()
+                ->toBeEmpty();
+
+            foreach ($workerPids as $pid) {
                 $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
-                Expect::that(\trim($alive->stdout))->toBe('');
+                Expect::that(\trim($alive->stdout))
+                    ->because(\sprintf('Worker process %d MUST NOT exist after the run exits.', $pid))
+                    ->toBe('');
             }
 
             $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
-            Expect::that(\is_array($sockets) ? $sockets : [])->toBe([]);
+            Expect::that(\is_array($sockets) ? $sockets : [])
+                ->because('The interrupted run MUST remove its orchestrator socket.')
+                ->toBe([]);
         } finally {
             $process->terminate();
         }
