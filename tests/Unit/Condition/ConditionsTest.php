@@ -23,25 +23,39 @@ final readonly class ConditionsTest
     public function __construct(private EnvironmentSandbox $environment) {}
 
     #[Test]
-    public function extensionLoadedChecksTheLoadedExtensionList(): void
+    #[DataSet('extensionLoadedStates')]
+    public function extensionLoadedChecksTheLoadedExtensionList(string $extension, bool $expected): void
     {
-        Expect::that(new ExtensionLoaded('json')->isSatisfied())
-            ->because('extension loaded checks the loaded extension list')
-            ->toBeTrue();
-        Expect::that(new ExtensionLoaded('greenlight_no_such_extension')->isSatisfied())
-            ->because('extension loaded checks the loaded extension list')
-            ->toBeFalse();
+        Expect::that(new ExtensionLoaded($extension)->isSatisfied())
+            ->because('the condition MUST match only a loaded extension')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function extensionLoadedStates(): iterable
+    {
+        yield 'loaded extension' => ['json', true];
+        yield 'missing extension' => ['greenlight_no_such_extension', false];
     }
 
     #[Test]
-    public function extensionMissingIsTheInverseOfExtensionLoaded(): void
+    #[DataSet('extensionMissingStates')]
+    public function extensionMissingIsTheInverseOfExtensionLoaded(string $extension, bool $expected): void
     {
-        Expect::that(new ExtensionMissing('json')->isSatisfied())
-            ->because('extension missing is the inverse of extension loaded')
-            ->toBeFalse();
-        Expect::that(new ExtensionMissing('greenlight_no_such_extension')->isSatisfied())
-            ->because('extension missing is the inverse of extension loaded')
-            ->toBeTrue();
+        Expect::that(new ExtensionMissing($extension)->isSatisfied())
+            ->because('the condition MUST match only an extension that is not loaded')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function extensionMissingStates(): iterable
+    {
+        yield 'loaded extension' => ['json', false];
+        yield 'missing extension' => ['greenlight_no_such_extension', true];
     }
 
     #[Test]
@@ -53,8 +67,12 @@ final readonly class ConditionsTest
         $this->environment->set($presentName, 'anything');
         $this->environment->unset($absentName);
 
-        Expect::that(new EnvironmentVariableSet($presentName)->isSatisfied())->toBeTrue();
-        Expect::that(new EnvironmentVariableSet($absentName)->isSatisfied())->toBeFalse();
+        Expect::that(new EnvironmentVariableSet($presentName)->isSatisfied())
+            ->because('the condition MUST match a set environment variable')
+            ->toBeTrue();
+        Expect::that(new EnvironmentVariableSet($absentName)->isSatisfied())
+            ->because('the condition MUST reject an unset environment variable')
+            ->toBeFalse();
     }
 
     #[Test]
@@ -66,73 +84,108 @@ final readonly class ConditionsTest
         $this->environment->set($presentName, 'expected');
         $this->environment->unset($absentName);
 
-        Expect::that(new EnvironmentVariableEquals($presentName, 'expected')->isSatisfied())->toBeTrue();
-        Expect::that(new EnvironmentVariableEquals($presentName, 'other')->isSatisfied())->toBeFalse();
-        Expect::that(new EnvironmentVariableEquals($absentName, 'expected')->isSatisfied())->toBeFalse();
-    }
-
-    #[Test]
-    public function operatingSystemFamilyComparesCaseInsensitively(): void
-    {
-        Expect::that(new OperatingSystemFamily(\PHP_OS_FAMILY)->isSatisfied())
-            ->because('operating system family compares case insensitively')
+        Expect::that(new EnvironmentVariableEquals($presentName, 'expected')->isSatisfied())
+            ->because('the condition MUST match the exact environment variable value')
             ->toBeTrue();
-        Expect::that(new OperatingSystemFamily(\strtolower(\PHP_OS_FAMILY))->isSatisfied())
-            ->because('operating system family compares case insensitively')
-            ->toBeTrue();
-        Expect::that(new OperatingSystemFamily('NotAnOperatingSystem')->isSatisfied())
-            ->because('operating system family compares case insensitively')
+        Expect::that(new EnvironmentVariableEquals($presentName, 'other')->isSatisfied())
+            ->because('the condition MUST reject a different environment variable value')
+            ->toBeFalse();
+        Expect::that(new EnvironmentVariableEquals($absentName, 'expected')->isSatisfied())
+            ->because('the condition MUST reject an unset environment variable')
             ->toBeFalse();
     }
 
     #[Test]
-    public function phpVersionAtLeastComparesAgainstTheRunningVersion(): void
+    #[DataSet('operatingSystemFamilies')]
+    public function operatingSystemFamilyComparesCaseInsensitively(string $family, bool $expected): void
     {
-        Expect::that(new PhpVersionAtLeast('8.0')->isSatisfied())
-            ->because('PHP version at least compares against the current PHP version')
-            ->toBeTrue();
-        Expect::that(new PhpVersionAtLeast(\PHP_VERSION)->isSatisfied())
-            ->because('PHP version at least compares against the current PHP version')
-            ->toBeTrue();
-        Expect::that(new PhpVersionAtLeast('99.0')->isSatisfied())
-            ->because('PHP version at least compares against the current PHP version')
-            ->toBeFalse();
+        Expect::that(new OperatingSystemFamily($family)->isSatisfied())
+            ->because('the condition MUST compare operating system family names without case sensitivity')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function operatingSystemFamilies(): iterable
+    {
+        yield 'exact case' => [\PHP_OS_FAMILY, true];
+        yield 'lowercase' => [\strtolower(\PHP_OS_FAMILY), true];
+        yield 'unknown family' => ['NotAnOperatingSystem', false];
     }
 
     #[Test]
-    public function phpVersionLessThanComparesAgainstTheRunningVersion(): void
+    #[DataSet('minimumPhpVersions')]
+    public function phpVersionAtLeastComparesAgainstTheRunningVersion(string $version, bool $expected): void
     {
-        Expect::that(new PhpVersionLessThan('99.0')->isSatisfied())
-            ->because('PHP version less than compares against the current PHP version')
-            ->toBeTrue();
-        Expect::that(new PhpVersionLessThan('8.0')->isSatisfied())
-            ->because('PHP version less than compares against the current PHP version')
-            ->toBeFalse();
-        Expect::that(new PhpVersionLessThan(\PHP_VERSION)->isSatisfied())
-            ->because('PHP version less than compares against the current PHP version')
-            ->toBeFalse();
+        Expect::that(new PhpVersionAtLeast($version)->isSatisfied())
+            ->because('the condition MUST accept versions that do not exceed the current PHP version')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function minimumPhpVersions(): iterable
+    {
+        yield 'older version' => ['8.0', true];
+        yield 'current version' => [\PHP_VERSION, true];
+        yield 'newer version' => ['99.0', false];
     }
 
     #[Test]
-    public function functionAvailableChecksCallableFunctions(): void
+    #[DataSet('maximumPhpVersions')]
+    public function phpVersionLessThanComparesAgainstTheRunningVersion(string $version, bool $expected): void
     {
-        Expect::that(new FunctionAvailable('strlen')->isSatisfied())
-            ->because('function available checks callable functions')
-            ->toBeTrue();
-        Expect::that(new FunctionAvailable('greenlight_no_such_function')->isSatisfied())
-            ->because('function available checks callable functions')
-            ->toBeFalse();
+        Expect::that(new PhpVersionLessThan($version)->isSatisfied())
+            ->because('the condition MUST accept versions that exceed the current PHP version')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function maximumPhpVersions(): iterable
+    {
+        yield 'newer version' => ['99.0', true];
+        yield 'older version' => ['8.0', false];
+        yield 'current version' => [\PHP_VERSION, false];
     }
 
     #[Test]
-    public function classAvailableChecksAutoloadableClasses(): void
+    #[DataSet('functionAvailability')]
+    public function functionAvailableChecksCallableFunctions(string $function, bool $expected): void
     {
-        Expect::that(new ClassAvailable(\stdClass::class)->isSatisfied())
-            ->because('class available checks autoloadable classes')
-            ->toBeTrue();
-        Expect::that(new ClassAvailable('Greenlight\NoSuchClassAnywhere')->isSatisfied())
-            ->because('class available checks autoloadable classes')
-            ->toBeFalse();
+        Expect::that(new FunctionAvailable($function)->isSatisfied())
+            ->because('the condition MUST match only an available function')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function functionAvailability(): iterable
+    {
+        yield 'available function' => ['strlen', true];
+        yield 'missing function' => ['greenlight_no_such_function', false];
+    }
+
+    #[Test]
+    #[DataSet('classAvailability')]
+    public function classAvailableChecksAutoloadableClasses(string $class, bool $expected): void
+    {
+        Expect::that(new ClassAvailable($class)->isSatisfied())
+            ->because('the condition MUST match only an autoloadable class')
+            ->toBe($expected);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, bool}>
+     */
+    public static function classAvailability(): iterable
+    {
+        yield 'autoloadable class' => [\stdClass::class, true];
+        yield 'missing class' => ['Greenlight\NoSuchClassAnywhere', false];
     }
 
     #[Test]
