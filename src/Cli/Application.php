@@ -452,7 +452,7 @@ final readonly class Application
     ): int {
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
-        $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
+        $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
 
         $orchestratorCollector = null;
@@ -648,7 +648,7 @@ final readonly class Application
 
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
-        $coverageSettings = $this->coverageSettings($resolved->coverage, $workingDirectory);
+        $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
         $this->warnWhenLeakDetectionIsUnreliable($detectLeaks, $arguments->has('no-ansi'));
 
@@ -707,28 +707,6 @@ final readonly class Application
         }
 
         return $shutdown->exitCode() ?? self::EXIT_OK;
-    }
-
-    private function coverageSettings(?CoverageConfiguration $configuration, string $workingDirectory): ?CoverageSettings
-    {
-        if (!$configuration instanceof CoverageConfiguration) {
-            return null;
-        }
-
-        $include = [];
-
-        foreach ($configuration->includePaths as $path) {
-            $absolute = $this->absolutePath($path, $workingDirectory);
-            $real = \realpath($absolute);
-
-            if ($real !== false) {
-                $include[] = $real;
-            } elseif ($absolute !== '') {
-                $include[] = $absolute;
-            }
-        }
-
-        return new CoverageSettings($include, $configuration->driver);
     }
 
     private function writeCoverage(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory, Style $style): bool
