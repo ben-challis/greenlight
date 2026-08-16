@@ -39,10 +39,10 @@ final class ExpectationRuntimeTest
 
         Expect::that($thrown)
             ->because('withClock propagates the operation exception')
-            ->toBe($expected)
-            ->and($afterInner)
-            ->toBe($outer)
-            ->and(ExpectationRuntime::clock())
+            ->toBe($expected);
+        Expect::that($afterInner)
+            ->toBe($outer);
+        Expect::that(ExpectationRuntime::clock())
             ->toBe($baseline);
     }
 }

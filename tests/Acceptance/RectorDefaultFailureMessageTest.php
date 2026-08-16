@@ -43,8 +43,8 @@ final readonly class RectorDefaultFailureMessageTest
 
         Expect::that($probe->changed)
             ->because('a PHPUnit failure without a message MUST be convertible')
-            ->toBeTrue()
-            ->and($probe->code)
+            ->toBeTrue();
+        Expect::that($probe->code)
             ->because('Greenlight failures MUST have a non-empty reason')
             ->toContain("\Greenlight\Expect\Fail::because('Test failed.');");
     }

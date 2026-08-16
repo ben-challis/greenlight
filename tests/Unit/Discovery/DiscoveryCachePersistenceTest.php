@@ -33,8 +33,8 @@ final readonly class DiscoveryCachePersistenceTest
         try {
             Expect::that($cache->persist())
                 ->because('unencodable metadata MUST make cache persistence fail safely')
-                ->toBeFalse()
-                ->and(\is_file($cacheFile))
+                ->toBeFalse();
+            Expect::that(\is_file($cacheFile))
                 ->because('a failed cache encoding MUST not write a cache file')
                 ->toBeFalse();
         } finally {

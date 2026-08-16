@@ -16,8 +16,8 @@ final readonly class TestChannelTest
     {
         $channel = new TestChannel(3);
 
-        Expect::that($channel->number)->because('exposes the slot number and a prefixed label')->toBe(3)
-            ->and($channel->label())->toBe('gl-3');
+        Expect::that($channel->number)->because('exposes the slot number and a prefixed label')->toBe(3);
+        Expect::that($channel->label())->toBe('gl-3');
     }
 
     #[Test]

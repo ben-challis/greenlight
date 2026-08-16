@@ -23,8 +23,8 @@ final class MatcherMapPluginFilteringTest
                 'toBeHexadecimal',
                 'toHaveDigestLength',
                 'toBePositive',
-            ])
-            ->and($map->has('toHaveDigestLength'))
+            ]);
+        Expect::that($map->has('toHaveDigestLength'))
             ->because('matcher discovery MUST retain expectation extensions from a mixed plugin configuration')
             ->toBeTrue();
     }

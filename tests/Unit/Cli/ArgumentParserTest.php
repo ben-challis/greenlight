@@ -55,12 +55,12 @@ final class ArgumentParserTest
 
         Expect::that($parsed->command)
             ->because('option position MUST NOT change the selected command')
-            ->toBe('run')
-            ->and($parsed->value('workers'))
-            ->toBe('4')
-            ->and($parsed->values('group'))
-            ->toBe(['slow'])
-            ->and($parsed->value('seed'))
+            ->toBe('run');
+        Expect::that($parsed->value('workers'))
+            ->toBe('4');
+        Expect::that($parsed->values('group'))
+            ->toBe(['slow']);
+        Expect::that($parsed->value('seed'))
             ->toBe('123');
     }
 

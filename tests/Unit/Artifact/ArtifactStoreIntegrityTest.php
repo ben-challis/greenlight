@@ -103,8 +103,8 @@ final readonly class ArtifactStoreIntegrityTest
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Attachment metadata contains an unsafe storage key.',
-                )
-                ->and(\file_exists($root . '/escaped.txt'))
+                );
+            Expect::that(\file_exists($root . '/escaped.txt'))
                 ->toBeFalse();
         } finally {
             $store->cleanup();

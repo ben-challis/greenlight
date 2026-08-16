@@ -131,21 +131,6 @@ final class Expectation
     }
 
     /**
-     * Sets a new subject for the chain. The chain does not apply `not()` and
-     * `because()` modifiers to the new subject.
-     *
-     * @template TNext
-     *
-     * @param TNext $value
-     *
-     * @return self<TNext>
-     */
-    public function and(mixed $value): self
-    {
-        return new self($value, $this->renderer, $this->extensions);
-    }
-
-    /**
      * Passes when the subject and expected value are identical (===).
      *
      * @return self<T>

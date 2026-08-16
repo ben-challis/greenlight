@@ -24,8 +24,8 @@ final readonly class TestClassEventZeroNameTest
 
         Expect::that($event->class)
             ->because('class lifecycle events MUST retain non-empty zero-string class names')
-            ->toBe('0')
-            ->and($restored->class)
+            ->toBe('0');
+        Expect::that($restored->class)
             ->toBe('0');
     }
 

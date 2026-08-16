@@ -48,8 +48,8 @@ final readonly class PublishingEventSinkTest
 
             Expect::that($inner->sequence())
                 ->because('the publishing sink MUST preserve event order')
-                ->toBe(['RunStarted', 'TestFinished'])
-                ->and($inner->events[0])
+                ->toBe(['RunStarted', 'TestFinished']);
+            Expect::that($inner->events[0])
                 ->because('events without test results MUST pass through unchanged')
                 ->toBe($started);
 
@@ -64,18 +64,18 @@ final readonly class PublishingEventSinkTest
             Expect::that($finished->result)
                 ->because('a completed event MUST replace its staged result with the published result')
                 ->not()
-                ->toBe($result)
-                ->and($finished->occurredAt)
+                ->toBe($result);
+            Expect::that($finished->occurredAt)
                 ->because('publishing MUST preserve the event timestamp')
-                ->toBe(11.0)
-                ->and($finished->result->attachments)
+                ->toBe(11.0);
+            Expect::that($finished->result->attachments)
                 ->because('the inner sink MUST receive published attachment metadata')
-                ->toHaveCount(1)
-                ->and($finished->result->attachments[0]->path)
-                ->toContain('run-publishing-sink')
-                ->and((string) \file_get_contents(
-                    \str_starts_with($publishedPath, '/') ? $publishedPath : $root . '/' . $publishedPath,
-                ))
+                ->toHaveCount(1);
+            Expect::that($finished->result->attachments[0]->path)
+                ->toContain('run-publishing-sink');
+            Expect::that((string) \file_get_contents(
+                \str_starts_with($publishedPath, '/') ? $publishedPath : $root . '/' . $publishedPath,
+            ))
                 ->toBe('published evidence');
         } finally {
             $store->cleanup();

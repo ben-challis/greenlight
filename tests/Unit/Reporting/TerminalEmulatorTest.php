@@ -82,8 +82,8 @@ final class TerminalEmulatorTest
 
         $terminal->write("\x1b[?25lhidden");
 
-        Expect::that($terminal->isCursorHidden())->because('cursor visibility toggles without affecting the grid')->toBeTrue()
-            ->and($terminal->visibleLines())->toBe(['hidden']);
+        Expect::that($terminal->isCursorHidden())->because('cursor visibility toggles without affecting the grid')->toBeTrue();
+        Expect::that($terminal->visibleLines())->toBe(['hidden']);
 
         $terminal->write("\x1b[?25h");
 

@@ -32,17 +32,17 @@ final readonly class TestResultFailedByEvidenceTest
 
         Expect::that($result->outcome)
             ->because('a later failure transition MUST retain earlier failure evidence')
-            ->toBe(Outcome::Failed)
-            ->and($result->failures)
-            ->toBe([$earlier, $later])
-            ->and(\array_map(
-                static fn(OutcomeTransformation $transformation): array => [
-                    $transformation->transformedBy,
-                    $transformation->from,
-                    $transformation->to,
-                ],
-                $result->transformations,
-            ))
+            ->toBe(Outcome::Failed);
+        Expect::that($result->failures)
+            ->toBe([$earlier, $later]);
+        Expect::that(\array_map(
+            static fn(OutcomeTransformation $transformation): array => [
+                $transformation->transformedBy,
+                $transformation->from,
+                $transformation->to,
+            ],
+            $result->transformations,
+        ))
             ->toBe([
                 ['quarantine-plugin', Outcome::Failed, Outcome::Passed],
                 ['result-policy', Outcome::Passed, Outcome::Failed],

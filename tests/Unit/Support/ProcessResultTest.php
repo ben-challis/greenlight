@@ -19,10 +19,10 @@ final class ProcessResultTest
             stderr: "warning\nerror",
         );
 
-        Expect::that($result->exitCode)->because('exposes individual and combined output lines')->toBe(17)
-            ->and($result->stdoutLines())->toBe(['first', 'second'])
-            ->and($result->output())->toBe("first\nsecond\nwarning\nerror")
-            ->and($result->outputLines())->toBe(['first', 'second', 'warning', 'error']);
+        Expect::that($result->exitCode)->because('exposes individual and combined output lines')->toBe(17);
+        Expect::that($result->stdoutLines())->toBe(['first', 'second']);
+        Expect::that($result->output())->toBe("first\nsecond\nwarning\nerror");
+        Expect::that($result->outputLines())->toBe(['first', 'second', 'warning', 'error']);
     }
 
     #[Test]
@@ -32,9 +32,9 @@ final class ProcessResultTest
         $stderrOnly = new ProcessResult(1, '', 'error');
         $empty = new ProcessResult(0, '', '');
 
-        Expect::that($stdoutOnly->output())->because('combines empty streams without adding separators')->toBe('output')
-            ->and($stderrOnly->output())->toBe('error')
-            ->and($empty->output())->toBe('')
-            ->and($empty->outputLines())->toBe([]);
+        Expect::that($stdoutOnly->output())->because('combines empty streams without adding separators')->toBe('output');
+        Expect::that($stderrOnly->output())->toBe('error');
+        Expect::that($empty->output())->toBe('');
+        Expect::that($empty->outputLines())->toBe([]);
     }
 }

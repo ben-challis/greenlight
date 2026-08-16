@@ -37,8 +37,8 @@ final class JsonlSchemaTest
             }
         }
 
-        Expect::that($violations)->because('every canned line validates against the shipped schema')->toBe([])
-            ->and(\array_keys($seenTags))->toEqualCanonicalizing(\array_keys(EventTags::all()));
+        Expect::that($violations)->because('every canned line validates against the shipped schema')->toBe([]);
+        Expect::that(\array_keys($seenTags))->toEqualCanonicalizing(\array_keys(EventTags::all()));
     }
 
     #[Test]

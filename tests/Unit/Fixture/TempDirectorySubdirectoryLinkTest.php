@@ -48,8 +48,8 @@ final class TempDirectorySubdirectoryLinkTest
 
             Expect::that(\file_get_contents($sentinel))
                 ->because('a rejected symbolic link MUST leave its target unchanged')
-                ->toBe('keep')
-                ->and(\is_dir($targetPath . '/created'))
+                ->toBe('keep');
+            Expect::that(\is_dir($targetPath . '/created'))
                 ->toBeFalse();
         } finally {
             $directory->dispose();

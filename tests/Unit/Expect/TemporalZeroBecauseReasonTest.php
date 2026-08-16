@@ -29,8 +29,8 @@ final readonly class TemporalZeroBecauseReasonTest
                 'The consistently() expectation failed on the first observation. '
                 . 'Last failure: Expected false to be true because 0. '
                 . 'Observations: +0.0ms false.',
-            )
-            ->and($clock->sleeps)
+            );
+        Expect::that($clock->sleeps)
             ->because('a first-observation failure MUST NOT wait')
             ->toBe([]);
     }

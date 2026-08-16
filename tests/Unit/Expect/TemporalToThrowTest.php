@@ -42,8 +42,8 @@ final class TemporalToThrowTest
 
         Expect::that($calls)
             ->because('eventually() MUST retry until the returned callable satisfies toThrow()')
-            ->toBe(2)
-            ->and($clock->sleeps)
+            ->toBe(2);
+        Expect::that($clock->sleeps)
             ->toBe([0.010]);
     }
 

@@ -31,8 +31,8 @@ final readonly class DiscoveryCacheEmptyPlanTest
 
             Expect::that($cache->persist())
                 ->because('an empty execution plan MUST be persisted')
-                ->toBeTrue()
-                ->and(DiscoveryCache::forDirectories([$directory])->lookup($source))
+                ->toBeTrue();
+            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('an empty execution plan is a valid cache hit, not corrupt data')
                 ->toBe([]);
         } finally {

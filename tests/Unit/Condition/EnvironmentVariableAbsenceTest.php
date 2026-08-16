@@ -22,8 +22,8 @@ final readonly class EnvironmentVariableAbsenceTest
 
         Expect::that(new EnvironmentVariableSet($name)->isSatisfied())
             ->because('an absent environment variable MUST remain absent')
-            ->toBeFalse()
-            ->and(new EnvironmentVariableEquals($name, '')->isSatisfied())
+            ->toBeFalse();
+        Expect::that(new EnvironmentVariableEquals($name, '')->isSatisfied())
             ->because('absence MUST remain distinct from an empty environment variable value')
             ->toBeFalse();
     }

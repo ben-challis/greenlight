@@ -34,15 +34,15 @@ final class JsonFrameCodecTest
 
         Expect::that($length)
             ->because('the frame prefix MUST contain the substituted JSON body length')
-            ->toBe(\strlen($body))
-            ->and($message)
+            ->toBe(\strlen($body));
+        Expect::that($message)
             ->because('the substituted protocol value remains a string')
             ->toBeString();
 
         Expect::that(\preg_match('//u', $message))
             ->because('the protocol value MUST contain valid UTF-8')
-            ->toBe(1)
-            ->and($message)
+            ->toBe(1);
+        Expect::that($message)
             ->because('UTF-8 substitution preserves readable surrounding text')
             ->toStartWith('query failed: ')
             ->toEndWith(' row 1');

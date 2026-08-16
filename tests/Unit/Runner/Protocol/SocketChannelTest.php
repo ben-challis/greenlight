@@ -26,8 +26,8 @@ final class SocketChannelTest
         try {
             Expect::that($receiver->receive(0.0))
                 ->because('an empty receive can reach its deadline')
-                ->toBeNull()
-                ->and($receiver->isEof())
+                ->toBeNull();
+            Expect::that($receiver->isEof())
                 ->because('a receive deadline MUST NOT mark an open channel as EOF')
                 ->toBeFalse();
 
@@ -55,11 +55,11 @@ final class SocketChannelTest
 
             Expect::that($receiver->poll())
                 ->because('a complete final frame MUST be delivered before peer EOF')
-                ->toBeInstanceOf(Drain::class)
-                ->and($receiver->poll())
+                ->toBeInstanceOf(Drain::class);
+            Expect::that($receiver->poll())
                 ->because('the channel reaches clean EOF after the final frame')
-                ->toBeNull()
-                ->and($receiver->isEof())
+                ->toBeNull();
+            Expect::that($receiver->isEof())
                 ->toBeTrue();
         } finally {
             $sender->close();
@@ -114,10 +114,10 @@ final class SocketChannelTest
 
             Expect::that($channel->poll())
                 ->because('polling an externally closed stream reaches EOF')
-                ->toBeNull()
-                ->and($channel->isEof())
-                ->toBeTrue()
-                ->and($channel->poll())
+                ->toBeNull();
+            Expect::that($channel->isEof())
+                ->toBeTrue();
+            Expect::that($channel->poll())
                 ->toBeNull();
 
             Expect::that(static function () use ($channel): void {
@@ -150,8 +150,8 @@ final class SocketChannelTest
         try {
             Expect::that($channel->receive(1.0))
                 ->because('a stream-select failure MUST end the receive wait')
-                ->toBeNull()
-                ->and($channel->isEof())
+                ->toBeNull();
+            Expect::that($channel->isEof())
                 ->because('a stream-select failure MUST NOT mark the channel as EOF')
                 ->toBeFalse();
         } finally {

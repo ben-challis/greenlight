@@ -19,8 +19,8 @@ final class LeakDetectorTest
             ->toBe(
                 'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports '
                 . 'false positives. Rerun with XDEBUG_MODE=off to get correct results.',
-            )
-            ->and(LeakDetector::environmentWarning(['coverage']))
+            );
+        Expect::that(LeakDetector::environmentWarning(['coverage']))
             ->because('Xdebug modes without develop MUST NOT warn about leak detection')
             ->toBeNull();
     }
@@ -40,8 +40,8 @@ final class LeakDetectorTest
 
         Expect::that($detector->sweep())
             ->because('a sweep MUST report only instances that remain alive')
-            ->toBe([$retainedId])
-            ->and($detector->sweep())
+            ->toBe([$retainedId]);
+        Expect::that($detector->sweep())
             ->because('a leak MUST be reported one time')
             ->toBe([]);
     }

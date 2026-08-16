@@ -46,8 +46,8 @@ final readonly class RectorDuplicateExceptionExpectationTest
 
         Expect::that($probe->changed)
             ->because('duplicate exception expectations MUST remain unsupported')
-            ->toBeFalse()
-            ->and($probe->code)
+            ->toBeFalse();
+        Expect::that($probe->code)
             ->because('an unsupported class MUST remain byte-identical')
             ->toBe($source);
     }

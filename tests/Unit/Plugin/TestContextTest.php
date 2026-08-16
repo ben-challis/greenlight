@@ -35,8 +35,8 @@ final class TestContextTest
 
         Expect::that($service)
             ->because('the plugin context resolves a registered harness service')
-            ->toBeInstanceOf(\ArrayObject::class)
-            ->and($service->getArrayCopy())->toBe(['ready']);
+            ->toBeInstanceOf(\ArrayObject::class);
+        Expect::that($service->getArrayCopy())->toBe(['ready']);
     }
 
     #[Test]

@@ -67,16 +67,6 @@ final class BecauseTest
     }
 
     #[Test]
-    public function andDoesNotCarryAPendingReason(): void
-    {
-        $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(1)->because('the reason stays with the first subject')->and(2)->toBe(3),
-        );
-
-        Expect::that($detail->message)->because('and() does not carry a pending reason')->toBe('Expected 2 to be 3.');
-    }
-
-    #[Test]
     public function becauseTrimsTheReason(): void
     {
         $detail = FailureProbe::detailOf(

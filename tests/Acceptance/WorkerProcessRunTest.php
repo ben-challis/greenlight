@@ -24,10 +24,10 @@ final readonly class WorkerProcessRunTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'parallel');
         $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
-        Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0)
-            ->and($parallel->exitCode)->toBe(0)
-            ->and($this->summaryLine($sequential->output()))->toBe('7 tests, 7 passed, 0 expectations')
-            ->and($this->summaryLine($parallel->output()))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0);
+        Expect::that($parallel->exitCode)->toBe(0);
+        Expect::that($this->summaryLine($sequential->output()))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that($this->summaryLine($parallel->output()))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     #[Test]
@@ -35,8 +35,8 @@ final readonly class WorkerProcessRunTest
     {
         $result = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->because('configured plugins reach workers across the process boundary')->toBe(0)
-            ->and($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
+        Expect::that($result->exitCode)->because('configured plugins reach workers across the process boundary')->toBe(0);
+        Expect::that($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
     }
 
     #[Test]
@@ -44,8 +44,8 @@ final readonly class WorkerProcessRunTest
     {
         $result = $this->runIn('RecycleConfig', ['run']);
 
-        Expect::that($result->exitCode)->because('worker recycling keeps results intact')->toBe(0)
-            ->and($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that($result->exitCode)->because('worker recycling keeps results intact')->toBe(0);
+        Expect::that($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     /**

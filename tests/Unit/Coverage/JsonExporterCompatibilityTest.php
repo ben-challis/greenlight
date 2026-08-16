@@ -48,8 +48,8 @@ final readonly class JsonExporterCompatibilityTest
                 'files' => [
                     '/src/A.php' => [[3], [5]],
                 ],
-            ])
-            ->and($exported)
+            ]);
+        Expect::that($exported)
             ->because('coverage JSON readers MUST recalculate derived values')
             ->toBe([
                 'v' => 1,

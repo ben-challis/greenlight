@@ -26,8 +26,8 @@ final readonly class CoverageIgnoreRunTest
             ['XDEBUG_MODE' => 'coverage'],
         );
 
-        Expect::that($result->exitCode)->because('ignored lines are excluded from totals and exports')->toBe(0)
-            ->and($result->output())->toContain('Coverage: 100.00%');
+        Expect::that($result->exitCode)->because('ignored lines are excluded from totals and exports')->toBe(0);
+        Expect::that($result->output())->toContain('Coverage: 100.00%');
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
@@ -48,9 +48,9 @@ final readonly class CoverageIgnoreRunTest
             }
         }
 
-        Expect::that($gadget)->because('ignored lines are excluded from totals and exports')->not()->toBeNull()
-            ->and($gadget['uncovered'] ?? null)->toBe([])
-            ->and($gadget['covered'] ?? [])->not()->toHaveCount(0);
+        Expect::that($gadget)->because('ignored lines are excluded from totals and exports')->not()->toBeNull();
+        Expect::that($gadget['uncovered'] ?? null)->toBe([]);
+        Expect::that($gadget['covered'] ?? [])->not()->toHaveCount(0);
     }
 
     private function writeProject(): AcceptanceProject

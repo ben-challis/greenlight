@@ -30,8 +30,8 @@ final readonly class SequentialFallbackTest
 
         Expect::that($result->exitCode)
             ->because(\sprintf('the runner uses in-process execution when PHP disables %s', $function))
-            ->toBe(0)
-            ->and($result->output())->toContain('7 tests, 7 passed')
+            ->toBe(0);
+        Expect::that($result->output())->toContain('7 tests, 7 passed')
             ->not()->toContain($function);
     }
 

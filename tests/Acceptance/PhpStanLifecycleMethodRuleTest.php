@@ -81,10 +81,10 @@ final readonly class PhpStanLifecycleMethodRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('lifecycle hooks must run without arguments')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(4)
-            ->and($probe->messages())->toContain('protectedBefore() cannot run because it is not public')
+        Expect::that($probe->exitCode)->because('lifecycle hooks must run without arguments')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that($probe->messages())->toContain('protectedBefore() cannot run because it is not public')
             ->toContain('staticAfter() cannot run because it is static')
             ->toContain('beforeWithArgument() must not require arguments')
             ->toContain('abstractAfter() cannot run because it is abstract');

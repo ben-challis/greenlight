@@ -65,8 +65,8 @@ final class AttachmentReporterTest
             'build/greenlight-artifacts/run-1/response.json',
         ))
             ->because('successful attachment metadata MUST be rendered exactly once')
-            ->toBe(1)
-            ->and($output->buffer())
+            ->toBe(1);
+        Expect::that($output->buffer())
             ->because('reporters MUST NOT inline attachment content')
             ->not()
             ->toContain('secret response body');
@@ -95,8 +95,8 @@ final class AttachmentReporterTest
             ->because('successful attachments are written before the result is released')
             ->toContain('PASS Example\AttachmentTest::fails')
             ->toContain('response.json')
-            ->toContain('build/greenlight-artifacts/run-1/response.json')
-            ->and($reference->get())
+            ->toContain('build/greenlight-artifacts/run-1/response.json');
+        Expect::that($reference->get())
             ->because('the plain reporter does not retain successful results')
             ->toBeNull();
     }

@@ -36,8 +36,8 @@ final class SystemSignalOperationsTest
 
             Expect::that(\pcntl_async_signals())
                 ->because('native signal operations MUST enable asynchronous delivery')
-                ->toBeTrue()
-                ->and(\pcntl_signal_get_handler(\SIGUSR1))
+                ->toBeTrue();
+            Expect::that(\pcntl_signal_get_handler(\SIGUSR1))
                 ->because('native signal operations MUST register the exact handler')
                 ->toBe($handler);
         } finally {
@@ -68,11 +68,11 @@ final class SystemSignalOperationsTest
 
         Expect::that($result->exitCode)
             ->because(\sprintf('the capability check runs with %s disabled', $function))
-            ->toBe(0)
-            ->and($result->stdout)
+            ->toBe(0);
+        Expect::that($result->stdout)
             ->because(\sprintf('native signal handling requires %s', $function))
-            ->toBe('unavailable')
-            ->and($result->stderr)
+            ->toBe('unavailable');
+        Expect::that($result->stderr)
             ->toBe('');
     }
 

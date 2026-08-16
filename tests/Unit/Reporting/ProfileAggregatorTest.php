@@ -171,8 +171,8 @@ final class ProfileAggregatorTest
 
         Expect::that($aggregator->render(new Style(ansi: false)))
             ->because('the summary counts every spawned worker')
-            ->toContain('Workers: 2 requested, 2 spawned, 0 recycled')
-            ->and($aggregator->render(new Style(ansi: false)))
+            ->toContain('Workers: 2 requested, 2 spawned, 0 recycled');
+        Expect::that($aggregator->render(new Style(ansi: false)))
             ->because('an idle worker has no class statistics to report')
             ->toContain("\n  active        1  0.500s")
             ->not()

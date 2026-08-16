@@ -47,9 +47,9 @@ final class JsonLinesReporterTest
                 flags: \JSON_THROW_ON_ERROR,
             );
 
-            Expect::that($decoded['v'])->toBe(2)
-                ->and($decoded['event'])->toBe(\array_search($event::class, $tags, true))
-                ->and($decoded['data'])->toEqual($expectedData);
+            Expect::that($decoded['v'])->toBe(2);
+            Expect::that($decoded['event'])->toBe(\array_search($event::class, $tags, true));
+            Expect::that($decoded['data'])->toEqual($expectedData);
         }
     }
 
@@ -69,8 +69,8 @@ final class JsonLinesReporterTest
             $class = $classesByTag[$decoded['event']];
             $restored = $class::fromWire($decoded['data']);
 
-            Expect::that($restored::class)->toBe($events[$index]::class)
-                ->and($restored->occurredAt)->toBe($events[$index]->occurredAt);
+            Expect::that($restored::class)->toBe($events[$index]::class);
+            Expect::that($restored->occurredAt)->toBe($events[$index]->occurredAt);
         }
     }
 

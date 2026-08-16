@@ -27,8 +27,8 @@ final class ServerSocketTest
 
             Expect::that($socket->address)
                 ->because('the orchestrator MUST use TCP when its Unix socket cannot open')
-                ->toStartWith('tcp://127.0.0.1:')
-                ->and(\is_resource($socket->stream()))
+                ->toStartWith('tcp://127.0.0.1:');
+            Expect::that(\is_resource($socket->stream()))
                 ->toBeTrue();
         } finally {
             $socket?->close();

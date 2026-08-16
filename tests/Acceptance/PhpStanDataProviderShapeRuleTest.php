@@ -237,10 +237,10 @@ final readonly class PhpStanDataProviderShapeRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(11)
-            ->and($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
+        Expect::that($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(11);
+        Expect::that($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
             ->toContain('notStatic() must be public and static')
             ->toContain('notIterable() must return an iterable of argument arrays. It returns string')
             ->toContain('scalarRows() must provide argument arrays. The iterable has value type int')

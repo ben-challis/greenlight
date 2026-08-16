@@ -154,8 +154,8 @@ final class WorkerProcessFatalSendFailureTest
 
             Expect::that($workerExit)
                 ->because('a failed final report MUST not escape the worker process')
-                ->toBe(1)
-                ->and($serverResult->exitCode)
+                ->toBe(1);
+            Expect::that($serverResult->exitCode)
                 ->because('the protocol fixture MUST reset the channel before it releases the assignment failure')
                 ->toBe(0);
         } finally {

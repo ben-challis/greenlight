@@ -39,8 +39,8 @@ final readonly class SuiteEventValidationTest
 
         Expect::that($event->suite)
             ->because('a suite lifecycle event MUST retain each non-empty suite name')
-            ->toBe('0')
-            ->and($decoded->suite)
+            ->toBe('0');
+        Expect::that($decoded->suite)
             ->because('the suite name MUST survive the wire')
             ->toBe('0');
     }

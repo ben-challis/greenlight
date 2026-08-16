@@ -42,8 +42,8 @@ final readonly class ArtifactCopyFlushFailureTest
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Failed to flush the published attachment.',
-                )
-                ->and(UnflushableStream::closedStreams())
+                );
+            Expect::that(UnflushableStream::closedStreams())
                 ->because('a flush failure MUST close the destination stream')
                 ->toBe(1);
         } finally {

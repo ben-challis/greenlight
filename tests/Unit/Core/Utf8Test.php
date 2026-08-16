@@ -56,14 +56,14 @@ final class Utf8Test
 
         Expect::that($restored->severity)
             ->because('the diagnostic severity MUST survive the wire')
-            ->toBe(DiagnosticSeverity::Warning)
-            ->and($restored->message)
+            ->toBe(DiagnosticSeverity::Warning);
+        Expect::that($restored->message)
             ->because('the diagnostic message MUST replace invalid bytes')
-            ->toBe("warning: \u{FFFD} details")
-            ->and($restored->file)
+            ->toBe("warning: \u{FFFD} details");
+        Expect::that($restored->file)
             ->because('the diagnostic file MUST replace invalid bytes')
-            ->toBe("/src/\u{FFFD}.php")
-            ->and($restored->line)
+            ->toBe("/src/\u{FFFD}.php");
+        Expect::that($restored->line)
             ->because('the diagnostic line MUST survive the wire')
             ->toBe(42);
     }

@@ -47,11 +47,11 @@ final readonly class ArtifactStagingRootCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging directory/',
-            )
-            ->and((string) \file_get_contents($blocker))
+            );
+        Expect::that((string) \file_get_contents($blocker))
             ->because('a rejected staging root MUST preserve the existing entry')
-            ->toBe('occupied')
-            ->and(\is_dir($staging))
+            ->toBe('occupied');
+        Expect::that(\is_dir($staging))
             ->because('a rejected staging root MUST not create a directory')
             ->toBeFalse();
 

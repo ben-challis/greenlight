@@ -60,10 +60,10 @@ final class AttributeContractTest
         $local = new DataSet('rows');
         $external = new DataSet(self::class, 'rows');
 
-        Expect::that($local->provider)->because('data set accepts local and external providers')->toBe('rows')
-            ->and($local->providerClass)->toBeNull()
-            ->and($external->provider)->toBe('rows')
-            ->and($external->providerClass)->toBe(self::class);
+        Expect::that($local->provider)->because('data set accepts local and external providers')->toBe('rows');
+        Expect::that($local->providerClass)->toBeNull();
+        Expect::that($external->provider)->toBe('rows');
+        Expect::that($external->providerClass)->toBe(self::class);
     }
 
     /**

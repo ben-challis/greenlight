@@ -44,8 +44,8 @@ final readonly class AttachmentMediaTypeValidationTest
                         'Attachment media type "%s" is invalid.',
                         $mediaType,
                     ),
-                )
-                ->and($attachments->collected())
+                );
+            Expect::that($attachments->collected())
                 ->toBe([]);
             Expect::that($budget->attachments)
                 ->because('an invalid media type MUST NOT consume the shared attachment count')

@@ -26,11 +26,11 @@ final class TerminalTest
 
             Expect::that(Terminal::isTty($stream))
                 ->because('an in-memory stream is not a TTY')
-                ->toBeFalse()
-                ->and(\stream_get_contents($stream))
+                ->toBeFalse();
+            Expect::that(\stream_get_contents($stream))
                 ->because('the terminal probe MUST leave stream content unchanged')
-                ->toBe('sentinel')
-                ->and(\is_resource($stream))
+                ->toBe('sentinel');
+            Expect::that(\is_resource($stream))
                 ->because('the terminal probe MUST leave the stream open')
                 ->toBeTrue();
         } finally {

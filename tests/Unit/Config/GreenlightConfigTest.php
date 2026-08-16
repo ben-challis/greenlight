@@ -174,11 +174,11 @@ final class GreenlightConfigTest
 
         Expect::that($configuration->workers->fixed)
             ->because('a rejected worker configuration retains the prior worker count')
-            ->toBe(2)
-            ->and($configuration->recycleAfterTests)
+            ->toBe(2);
+        Expect::that($configuration->recycleAfterTests)
             ->because('a rejected worker configuration retains the prior test limit')
-            ->toBe(10)
-            ->and($configuration->recycleAboveMemoryBytes)
+            ->toBe(10);
+        Expect::that($configuration->recycleAboveMemoryBytes)
             ->because('a rejected worker configuration retains the prior memory limit')
             ->toBe(64 * 1024 * 1024);
     }
@@ -221,14 +221,14 @@ final class GreenlightConfigTest
 
         Expect::that($configuration->coverage?->includePaths)
             ->because('a rejected coverage configuration retains the prior include paths')
-            ->toBe(['src'])
-            ->and($configuration->coverage?->driver)
+            ->toBe(['src']);
+        Expect::that($configuration->coverage?->driver)
             ->because('a rejected coverage configuration retains the prior driver')
-            ->toBe('pcov')
-            ->and($configuration->watch->debounceMilliseconds)
+            ->toBe('pcov');
+        Expect::that($configuration->watch->debounceMilliseconds)
             ->because('a rejected watch configuration retains the prior debounce')
-            ->toBe(500)
-            ->and($configuration->artifacts->directory)
+            ->toBe(500);
+        Expect::that($configuration->artifacts->directory)
             ->because('a rejected artifact configuration retains the prior directory')
             ->toBe('build/original');
     }

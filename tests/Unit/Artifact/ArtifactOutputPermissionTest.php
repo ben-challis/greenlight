@@ -56,8 +56,8 @@ final readonly class ArtifactOutputPermissionTest
                 ->toThrow(
                     AttachmentError::class,
                     matching: '/^Failed to create attachment output directory/',
-                )
-                ->and(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+                );
+            Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
                 ->because('rejected evidence MUST remain available for recovery')
                 ->toBeTrue();
         } finally {

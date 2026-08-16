@@ -76,12 +76,12 @@ final class WorkerMessageWireTest
 
         Expect::that($withoutRecycle->peakMemoryBytes)
             ->because('decoded peak memory MUST NOT be negative')
-            ->toBe(0)
-            ->and($withoutRecycle->wantsRecycle)->toBeNull();
+            ->toBe(0);
+        Expect::that($withoutRecycle->wantsRecycle)->toBeNull();
         Expect::that($withRecycle->peakMemoryBytes)
             ->because('valid Done fields MUST survive decoding')
-            ->toBe(2048)
-            ->and($withRecycle->wantsRecycle)->toBe(RecycleReason::TestCount);
+            ->toBe(2048);
+        Expect::that($withRecycle->wantsRecycle)->toBe(RecycleReason::TestCount);
     }
 
     #[Test]

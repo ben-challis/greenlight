@@ -25,8 +25,8 @@ final readonly class ProxyProtectedPropertyTest
 
             Expect::that($property->isProtected())
                 ->because('a proxy property MUST preserve protected visibility')
-                ->toBeTrue()
-                ->and((string) $property->getType())
+                ->toBeTrue();
+            Expect::that((string) $property->getType())
                 ->toBe('string');
         } finally {
             $doubles->dispose();

@@ -26,8 +26,8 @@ final class PcovDriverFailureTest
             ->toThrow(
                 \RuntimeException::class,
                 message: 'PCOV start failed.',
-            )
-            ->and($runtime->calls)
+            );
+        Expect::that($runtime->calls)
             ->because('a PCOV start failure MUST stop before collection begins')
             ->toBe(['start']);
 
@@ -52,8 +52,8 @@ final class PcovDriverFailureTest
             ->toThrow(
                 \RuntimeException::class,
                 message: 'PCOV collection failed.',
-            )
-            ->and($runtime->calls)
+            );
+        Expect::that($runtime->calls)
             ->because('a PCOV collection failure MUST still stop and clear extension state')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 
@@ -90,8 +90,8 @@ final class PcovDriverFailureTest
             ->toThrow(
                 \RuntimeException::class,
                 message: $message,
-            )
-            ->and($runtime->calls)
+            );
+        Expect::that($runtime->calls)
             ->because('PCOV cleanup MUST attempt clear even if stop fails')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 

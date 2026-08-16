@@ -21,8 +21,8 @@ final readonly class CommandErrorsTest
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), ['bogus-command']);
 
-        Expect::that($result->exitCode)->because('unknown command exits with a usage error')->toBe(64)
-            ->and($result->output())->toContain("Unknown command 'bogus-command'")
+        Expect::that($result->exitCode)->because('unknown command exits with a usage error')->toBe(64);
+        Expect::that($result->output())->toContain("Unknown command 'bogus-command'")
             ->toContain('greenlight --help');
     }
 
@@ -37,8 +37,8 @@ final readonly class CommandErrorsTest
 
         Expect::that($result->exitCode)
             ->because('an invalid run override MUST exit with a usage error')
-            ->toBe(64)
-            ->and($result->stderr)
+            ->toBe(64);
+        Expect::that($result->stderr)
             ->toBe('greenlight: --bail requires a positive integer. Received "0".');
     }
 
@@ -47,8 +47,8 @@ final readonly class CommandErrorsTest
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), ['coverage:diff']);
 
-        Expect::that($result->exitCode)->because('coverage diff without baseline or current is a usage error')->toBe(64)
-            ->and($result->output())->toContain('coverage:diff requires --baseline=<path> and --current=<path>');
+        Expect::that($result->exitCode)->because('coverage diff without baseline or current is a usage error')->toBe(64);
+        Expect::that($result->output())->toContain('coverage:diff requires --baseline=<path> and --current=<path>');
     }
 
     #[Test]
@@ -58,8 +58,8 @@ final readonly class CommandErrorsTest
 
         Expect::that($result->exitCode)
             ->because('profile report without input is a usage error')
-            ->toBe(64)
-            ->and($result->stderr)
+            ->toBe(64);
+        Expect::that($result->stderr)
             ->toBe('profile:report requires --input=<path to a JSONL stream>.');
     }
 
@@ -68,8 +68,8 @@ final readonly class CommandErrorsTest
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'command-errors');
         $result = GreenlightCli::run($project->directory, ['profile:report', '--input=nowhere.jsonl']);
-        Expect::that($result->exitCode)->because('profile report with a missing input file fails cleanly')->toBe(1)
-            ->and($result->output())->toContain('Greenlight could not read')
+        Expect::that($result->exitCode)->because('profile report with a missing input file fails cleanly')->toBe(1);
+        Expect::that($result->output())->toContain('Greenlight could not read')
             ->toContain('nowhere.jsonl');
     }
 
@@ -91,8 +91,8 @@ final readonly class CommandErrorsTest
 
         Expect::that($result->exitCode)
             ->because('an invalid profile stream fails cleanly')
-            ->toBe(1)
-            ->and($result->output())
+            ->toBe(1);
+        Expect::that($result->output())
             ->toContain($message);
     }
 

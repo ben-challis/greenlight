@@ -28,8 +28,8 @@ final readonly class TempDirectoryReuseTest
         try {
             Expect::that($second)
                 ->because('use after disposal MUST create a fresh temp directory')
-                ->not()->toBe($first)
-                ->and(\is_dir($second))
+                ->not()->toBe($first);
+            Expect::that(\is_dir($second))
                 ->toBeTrue();
         } finally {
             $directory->dispose();

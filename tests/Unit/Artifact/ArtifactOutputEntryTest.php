@@ -50,11 +50,11 @@ final readonly class ArtifactOutputEntryTest
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Attachment output path contains a non-directory entry.',
-                )
-                ->and((string) \file_get_contents($blocker))
+                );
+            Expect::that((string) \file_get_contents($blocker))
                 ->because('a rejected publication MUST NOT replace the blocking entry')
-                ->toBe('keep')
-                ->and(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+                ->toBe('keep');
+            Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
                 ->because('rejected evidence remains available for recovery')
                 ->toBeTrue();
         } finally {

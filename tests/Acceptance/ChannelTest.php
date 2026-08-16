@@ -25,9 +25,9 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('two workers occupy channels one and two')->toBe(0)
-            ->and(\count($channels))->toBe(4)
-            ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
+        Expect::that($result->exitCode)->because('two workers occupy channels one and two')->toBe(0);
+        Expect::that(\count($channels))->toBe(4);
+        Expect::that(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
 
     #[Test]
@@ -37,9 +37,9 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('the in process runner is channel one')->toBe(0)
-            ->and(\count($channels))->toBe(4)
-            ->and(\array_values(\array_unique($channels)))->toBe([1]);
+        Expect::that($result->exitCode)->because('the in process runner is channel one')->toBe(0);
+        Expect::that(\count($channels))->toBe(4);
+        Expect::that(\array_values(\array_unique($channels)))->toBe([1]);
     }
 
     #[Test]
@@ -51,10 +51,10 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('recycled workers reuse freed channels')->toBe(0)
-            ->and(\count($this->spawnedWorkers($events)))->toBeGreaterThan(2)
-            ->and(\count($channels))->toBe(4)
-            ->and(\array_values(\array_unique($channels)))->toBe([1, 2]);
+        Expect::that($result->exitCode)->because('recycled workers reuse freed channels')->toBe(0);
+        Expect::that(\count($this->spawnedWorkers($events)))->toBeGreaterThan(2);
+        Expect::that(\count($channels))->toBe(4);
+        Expect::that(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
 
     /**
@@ -154,8 +154,8 @@ final readonly class ChannelTest
 
                     echo 'channel=' . $this->channel->number;
 
-                    Expect::that((string) $this->channel->number)->toBe(\getenv('GREENLIGHT_CHANNEL'))
-                        ->and($this->channel->label())->toBe('gl-' . $this->channel->number);
+                    Expect::that((string) $this->channel->number)->toBe(\getenv('GREENLIGHT_CHANNEL'));
+                    Expect::that($this->channel->label())->toBe('gl-' . $this->channel->number);
                 }
             }
             PHP;

@@ -29,8 +29,8 @@ final readonly class AtomicFileTest
 
         Expect::that(\file_get_contents($path))
             ->because('an atomic write replaces the target with the exact bytes')
-            ->toBe("\x00new\n")
-            ->and(\glob($path . '.tmp-*'))
+            ->toBe("\x00new\n");
+        Expect::that(\glob($path . '.tmp-*'))
             ->because('a successful atomic write leaves no temporary file')
             ->toBe([]);
     }
@@ -90,8 +90,8 @@ final readonly class AtomicFileTest
 
         Expect::that($capture->error?->getPrevious())
             ->because('the temporary-name failure MUST preserve its original cause')
-            ->toBe($cause)
-            ->and(\file_exists($path))
+            ->toBe($cause);
+        Expect::that(\file_exists($path))
             ->because('an entropy failure MUST NOT create the target file')
             ->toBeFalse();
     }
@@ -125,20 +125,20 @@ final readonly class AtomicFileTest
 
         Expect::that($name->getMessage())
             ->because('the random-name diagnostic includes the target and original message')
-            ->toBe('Cannot generate a temporary name for "/state.json": entropy unavailable')
-            ->and($name->getPrevious())
+            ->toBe('Cannot generate a temporary name for "/state.json": entropy unavailable');
+        Expect::that($name->getPrevious())
             ->because('the random-name diagnostic preserves the original error')
-            ->toBe($previous)
-            ->and($write->getMessage())
+            ->toBe($previous);
+        Expect::that($write->getMessage())
             ->because('the temporary-write diagnostic includes its warning')
-            ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd": disk full.')
-            ->and($writeWithoutReason->getMessage())
+            ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd": disk full.');
+        Expect::that($writeWithoutReason->getMessage())
             ->because('the temporary-write diagnostic omits punctuation for a missing warning')
-            ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd".')
-            ->and($rename->getMessage())
+            ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd".');
+        Expect::that($rename->getMessage())
             ->because('the rename diagnostic includes both paths and its warning')
-            ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json": permission denied.')
-            ->and($renameWithoutReason->getMessage())
+            ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json": permission denied.');
+        Expect::that($renameWithoutReason->getMessage())
             ->because('the rename diagnostic omits punctuation for a missing warning')
             ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json".');
     }

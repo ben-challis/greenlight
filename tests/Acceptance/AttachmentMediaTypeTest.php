@@ -83,13 +83,13 @@ final readonly class AttachmentMediaTypeTest
 
         Expect::that($result->exitCode)
             ->because('file attachments work without the optional fileinfo function')
-            ->toBe(0)
-            ->and($finished)
+            ->toBe(0);
+        Expect::that($finished)
             ->not()
-            ->toBeNull()
-            ->and($finished?->attachments)
-            ->toHaveCount(1)
-            ->and($finished?->attachments[0]->mediaType)
+            ->toBeNull();
+        Expect::that($finished?->attachments)
+            ->toHaveCount(1);
+        Expect::that($finished?->attachments[0]->mediaType)
             ->toBe('application/octet-stream');
     }
 }

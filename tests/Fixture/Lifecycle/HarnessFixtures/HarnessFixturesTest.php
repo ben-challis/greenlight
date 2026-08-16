@@ -27,7 +27,7 @@ final readonly class HarnessFixturesTest
 
         TraceLog::add('temp:' . $path);
 
-        Expect::that(\is_file($path . '/probe.txt'))->toBeTrue()
-            ->and(\getenv('GREENLIGHT_FIXTURE_E2E'))->toBe('inside');
+        Expect::that(\is_file($path . '/probe.txt'))->toBeTrue();
+        Expect::that(\getenv('GREENLIGHT_FIXTURE_E2E'))->toBe('inside');
     }
 }

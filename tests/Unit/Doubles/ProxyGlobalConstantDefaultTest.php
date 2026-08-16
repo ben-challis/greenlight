@@ -29,10 +29,10 @@ final readonly class ProxyGlobalConstantDefaultTest
 
             Expect::that($parameter->getDefaultValueConstantName())
                 ->because('a generated method MUST preserve its global default constant')
-                ->toBe('PHP_INT_MAX')
-                ->and($parameter->getDefaultValue())
-                ->toBe(\PHP_INT_MAX)
-                ->and($answer)
+                ->toBe('PHP_INT_MAX');
+            Expect::that($parameter->getDefaultValue())
+                ->toBe(\PHP_INT_MAX);
+            Expect::that($answer)
                 ->toBe(42);
         } finally {
             $doubles->dispose();

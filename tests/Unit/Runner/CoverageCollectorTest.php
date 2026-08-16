@@ -40,12 +40,12 @@ final class CoverageCollectorTest
 
         Expect::that(RecordingFakeDriver::started())
             ->because('the collector stops the selected driver')
-            ->toBeFalse()
-            ->and(\array_keys($files))
+            ->toBeFalse();
+        Expect::that(\array_keys($files))
             ->because('the collector filters raw coverage to the included paths')
-            ->toBe(['/project/src/Included.php'])
-            ->and($files['/project/src/Included.php']->coveredLines)->toBe([10])
-            ->and($files['/project/src/Included.php']->uncoveredLines)->toBe([11]);
+            ->toBe(['/project/src/Included.php']);
+        Expect::that($files['/project/src/Included.php']->coveredLines)->toBe([10]);
+        Expect::that($files['/project/src/Included.php']->uncoveredLines)->toBe([11]);
     }
 
     #[Test]
@@ -62,11 +62,11 @@ final class CoverageCollectorTest
 
         Expect::that($collector)
             ->because('an unavailable driver does not create a collector')
-            ->toBeNull()
-            ->and($reason)->toBe(
-                'No coverage driver is available. Greenlight tried UnavailableFakeDriver. Install pcov or enable Xdebug coverage mode. '
+            ->toBeNull();
+        Expect::that($reason)->toBe(
+            'No coverage driver is available. Greenlight tried UnavailableFakeDriver. Install pcov or enable Xdebug coverage mode. '
                 . 'Set xdebug.mode to "coverage", or set the XDEBUG_MODE environment variable.',
-            );
+        );
     }
 
     #[Test]
@@ -124,9 +124,9 @@ final class CoverageCollectorTest
 
             Expect::that($collector)
                 ->because($setting . ' selects only its configured coverage driver')
-                ->toBeNull()
-                ->and($reason)->toContain('Greenlight tried ' . $expectedName . '.')
-                ->and(\str_contains($reason, $otherName))->toBeFalse();
+                ->toBeNull();
+            Expect::that($reason)->toContain('Greenlight tried ' . $expectedName . '.');
+            Expect::that(\str_contains($reason, $otherName))->toBeFalse();
 
             return;
         }

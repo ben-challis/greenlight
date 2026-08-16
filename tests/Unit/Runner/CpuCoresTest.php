@@ -25,8 +25,8 @@ final class CpuCoresTest
 
         Expect::that(CpuCores::count())
             ->because('the optional CPU counter supplies the worker count')
-            ->toBe(7)
-            ->and(FakeCpuCoreCounter::$calls)
+            ->toBe(7);
+        Expect::that(FakeCpuCoreCounter::$calls)
             ->because('the optional CPU counter runs once')
             ->toBe(1);
     }
@@ -39,8 +39,8 @@ final class CpuCoresTest
 
         Expect::that(CpuCores::count())
             ->because('the typed not-found error falls through to the built-in probe')
-            ->toBeGreaterThan(0)
-            ->and(FakeCpuCoreCounter::$calls)
+            ->toBeGreaterThan(0);
+        Expect::that(FakeCpuCoreCounter::$calls)
             ->because('the fallback follows one optional attempt')
             ->toBe(1);
     }
@@ -81,8 +81,8 @@ final class CpuCoresTest
 
         Expect::that($result->exitCode)
             ->because('the built-in CPU probe runs without the optional package')
-            ->toBe(0)
-            ->and($result->stdout)
+            ->toBe(0);
+        Expect::that($result->stdout)
             ->because('the built-in CPU probe returns a positive integer')
             ->toMatch('/^[1-9]\d*$/D');
     }

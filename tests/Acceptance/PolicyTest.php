@@ -22,14 +22,14 @@ final readonly class PolicyTest
         // Without flags, all tests pass. Greenlight records deprecations but
         // does not make them fatal.
         $result = $this->run($project, '--filter=DiagnosticProbeTest');
-        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(0)
-            ->and($result->output())->toContain('3 tests, 3 passed')
+        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(0);
+        Expect::that($result->output())->toContain('3 tests, 3 passed')
         // Each test uses one matcher. The summary contains those expectations
         // after transfer from the worker.
             ->toContain('3 expectations');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
-        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1)
-            ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
+        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1);
+        Expect::that($result->output())->toContain('3 tests, 2 passed, 1 failed')
             ->toContain('deprecation policy changed this test from passed to failed')
             ->toContain('old api is deprecated')
         // The result change MUST NOT remove verified expectations.
@@ -37,8 +37,8 @@ final readonly class PolicyTest
         // The deprecation in the allow list does not fail the test.
             ->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
-        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1)
-            ->and($result->output())->toContain('notice policy changed this test from passed to failed')
+        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1);
+        Expect::that($result->output())->toContain('notice policy changed this test from passed to failed')
             ->toContain('a probe notice');
     }
 
@@ -49,18 +49,19 @@ final readonly class PolicyTest
         $result = $this->run($project, '--filter=RiskyProbeTest');
         $output = $result->output();
         $riskyBlock = \substr($output, (int) \strpos($output, 'Risky tests:'));
-        Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(0)
-            ->and($riskyBlock)->toContain('Risky tests: 1')
-            ->and($riskyBlock)->toContain('These tests passed without a verified expectation.')
+        Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(0);
+        Expect::that($riskyBlock)->toContain('Risky tests: 1');
+        Expect::that($riskyBlock)->toContain('These tests passed without a verified expectation.')
             ->toContain('RiskyProbeTest::assertsNothing')
             ->not()->toContain('optedOut')
-            ->not()->toContain('mocksOnly')
+            ->not()->toContain('mocksOnly');
+
         // Only the mock verification adds to the count. Tests without an
         // expectation add nothing.
-            ->and($output)->toContain('1 expectation');
+        Expect::that($output)->toContain('1 expectation');
         $result = $this->run($project, '--filter=RiskyProbeTest', '--fail-on-risky');
-        Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(1)
-            ->and($result->output())->toContain('3 tests, 2 passed, 1 failed')
+        Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(1);
+        Expect::that($result->output())->toContain('3 tests, 2 passed, 1 failed')
             ->toContain('fail-on-risky policy changed this test from passed to failed');
     }
 

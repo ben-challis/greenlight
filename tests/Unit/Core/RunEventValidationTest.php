@@ -29,8 +29,8 @@ final readonly class RunEventValidationTest
 
         Expect::that($event->runId)
             ->because('a run event MUST retain each non-empty run ID')
-            ->toBe('0')
-            ->and($decoded->runId)
+            ->toBe('0');
+        Expect::that($decoded->runId)
             ->because('the run ID MUST survive the wire')
             ->toBe('0');
     }

@@ -70,9 +70,9 @@ final class MockTest
             Expect::that($detail->message)->toBe(
                 'Calls to Greenlight\Tests\Fixture\Doubles\Calculator::add(): 1 time. '
                 . 'The expectation requires exactly 2 times.',
-            )
-                ->and($detail->expected)->toBe('add(all arguments) exactly 2 times')
-                ->and($detail->actual)->toBe('add(1, 2)');
+            );
+            Expect::that($detail->expected)->toBe('add(all arguments) exactly 2 times');
+            Expect::that($detail->actual)->toBe('add(1, 2)');
 
             return;
         }
@@ -169,9 +169,9 @@ final class MockTest
             $detail = $failure->detail();
 
             Expect::that($detail->message)->toContain('unexpected call')
-                ->toContain('add')
-                ->and($detail->actual)->toBe('add(4, 5)')
-                ->and($detail->expected)->toContain('no calls to add()');
+                ->toContain('add');
+            Expect::that($detail->actual)->toBe('add(4, 5)');
+            Expect::that($detail->expected)->toContain('no calls to add()');
 
             return;
         }
@@ -193,8 +193,8 @@ final class MockTest
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            Expect::that($detail->expected)->toContain("describe('expected label') exactly 1 time")
-                ->and($detail->actual)->toBe("describe('other label')");
+            Expect::that($detail->expected)->toContain("describe('expected label') exactly 1 time");
+            Expect::that($detail->actual)->toBe("describe('other label')");
 
             return;
         }
@@ -223,8 +223,8 @@ final class MockTest
             $plan->expects('add')->with(MockPlan::any(), 7)->times(2)->andReturns(7);
         });
 
-        Expect::that($calculator->add(1, 7))->because('any() accepts each value at its position')->toBe(7)
-            ->and($calculator->add(999, 7))->toBe(7);
+        Expect::that($calculator->add(1, 7))->because('any() accepts each value at its position')->toBe(7);
+        Expect::that($calculator->add(999, 7))->toBe(7);
 
         $doubles->dispose();
     }
@@ -243,8 +243,8 @@ final class MockTest
 
             Fail::because('Expected add(1, 1) to fail because add() was configured with never().');
         } catch (ExpectationFailed $failure) {
-            Expect::that($failure->detail()->message)->toContain('unexpected call')
-                ->and($failure->detail()->expected)->toContain('never');
+            Expect::that($failure->detail()->message)->toContain('unexpected call');
+            Expect::that($failure->detail()->expected)->toContain('never');
         }
 
         // Greenlight keeps the call failure. Thus, verification reports it
@@ -290,7 +290,7 @@ final class MockTest
             $plan->expects('add')->once()->andThrows(new \RuntimeException('gateway down'));
         });
 
-        Expect::that(static fn(): int => $calculator->add(1, 2))->because('and() throws raises the configured throwable')
+        Expect::that(static fn(): int => $calculator->add(1, 2))->because('andThrows() raises the configured throwable')
             ->toThrow(\RuntimeException::class, '/gateway down/');
 
         $doubles->dispose();

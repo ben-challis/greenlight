@@ -56,8 +56,8 @@ final class DiscoveryCacheRuntimeProviderTest
 
             Expect::that($cache->persist())
                 ->because('a runtime provider has no dependency file')
-                ->toBeTrue()
-                ->and(DiscoveryCache::forDirectories([$directory])->lookup($source))
+                ->toBeTrue();
+            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the entry remains available from the cache')
                 ->not()
                 ->toBeNull();

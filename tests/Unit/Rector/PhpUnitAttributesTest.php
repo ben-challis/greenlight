@@ -28,21 +28,21 @@ final class PhpUnitAttributesTest
                 'RunInSeparateProcess' => Isolated::class,
                 'RunTestsInSeparateProcesses' => Isolated::class,
                 'DoesNotPerformAssertions' => NoExpectations::class,
-            ])
-            ->and(PhpUnitAttributes::SIZE_GROUPS)
+            ]);
+        Expect::that(PhpUnitAttributes::SIZE_GROUPS)
             ->toBe([
                 'Small' => 'small',
                 'Medium' => 'medium',
                 'Large' => 'large',
-            ])
-            ->and(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS)
+            ]);
+        Expect::that(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS)
             ->toBe([
                 'RequiresPhpExtension' => ExtensionLoaded::class,
                 'RequiresOperatingSystemFamily' => OperatingSystemFamily::class,
-            ])
-            ->and(PhpUnitAttributes::STRUCTURAL)
-            ->toBe(['Test', 'Before', 'After'])
-            ->and(PhpUnitAttributes::TEST_WITH)
+            ]);
+        Expect::that(PhpUnitAttributes::STRUCTURAL)
+            ->toBe(['Test', 'Before', 'After']);
+        Expect::that(PhpUnitAttributes::TEST_WITH)
             ->toBe('TestWith');
     }
 

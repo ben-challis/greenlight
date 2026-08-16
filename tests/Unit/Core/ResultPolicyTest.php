@@ -153,17 +153,17 @@ final class ResultPolicyTest
 
         Expect::that($result->outcome)
             ->because('each deprecation MUST be evaluated independently')
-            ->toBe(Outcome::Failed)
-            ->and($result->failures)
-            ->toHaveCount(1)
-            ->and($result->failures[0]->message)
+            ->toBe(Outcome::Failed);
+        Expect::that($result->failures)
+            ->toHaveCount(1);
+        Expect::that($result->failures[0]->message)
             ->toBe(
                 'The deprecation policy changed this test from passed to failed: '
                 . 'old api is deprecated at /src/api.php:7',
-            )
-            ->and($result->transformations)
-            ->toHaveCount(1)
-            ->and($result->transformations[0]->transformedBy)
+            );
+        Expect::that($result->transformations)
+            ->toHaveCount(1);
+        Expect::that($result->transformations[0]->transformedBy)
             ->toBe('fail-on-diagnostic policy');
     }
 
@@ -176,8 +176,8 @@ final class ResultPolicyTest
 
         Expect::that($policy->apply($matching))
             ->because('a wildcard ignore MUST match without case sensitivity')
-            ->toBe($matching)
-            ->and($policy->apply($prefixed)->outcome)
+            ->toBe($matching);
+        Expect::that($policy->apply($prefixed)->outcome)
             ->because('a wildcard ignore MUST match the complete deprecation message')
             ->toBe(Outcome::Failed);
     }
@@ -220,10 +220,10 @@ final class ResultPolicyTest
 
         Expect::that($result->outcome)
             ->because('the notice policy does not make warnings fatal')
-            ->toBe(Outcome::Failed)
-            ->and($result->failures)
-            ->toHaveCount(1)
-            ->and($result->failures[0]->message)
+            ->toBe(Outcome::Failed);
+        Expect::that($result->failures)
+            ->toHaveCount(1);
+        Expect::that($result->failures[0]->message)
             ->toBe('The notice policy changed this test from passed to failed: a notice at /src/a.php:3');
     }
 
@@ -254,26 +254,26 @@ final class ResultPolicyTest
 
         Expect::that($result->outcome)
             ->because('diagnostic failures aggregate before the risky policy')
-            ->toBe(Outcome::Failed)
-            ->and($result->failures)
-            ->toHaveCount(2)
-            ->and($result->failures[0]->message)
+            ->toBe(Outcome::Failed);
+        Expect::that($result->failures)
+            ->toHaveCount(2);
+        Expect::that($result->failures[0]->message)
             ->toBe(
                 'The deprecation policy changed this test from passed to failed: old api at /src/old.php:4',
-            )
-            ->and($result->failures[1]->message)
+            );
+        Expect::that($result->failures[1]->message)
             ->toBe(
                 'The notice policy changed this test from passed to failed: notice too at /src/notice.php:6',
-            )
-            ->and($result->transformations)
-            ->toHaveCount(1)
-            ->and($result->transformations[0]->transformedBy)
-            ->toBe('fail-on-diagnostic policy')
-            ->and($result->expectations)
-            ->toBe(5)
-            ->and($result->attempts)
-            ->toBe(2)
-            ->and($result->durationSeconds)
+            );
+        Expect::that($result->transformations)
+            ->toHaveCount(1);
+        Expect::that($result->transformations[0]->transformedBy)
+            ->toBe('fail-on-diagnostic policy');
+        Expect::that($result->expectations)
+            ->toBe(5);
+        Expect::that($result->attempts)
+            ->toBe(2);
+        Expect::that($result->durationSeconds)
             ->toBe(0.25);
     }
 
@@ -292,10 +292,10 @@ final class ResultPolicyTest
 
         Expect::that($result->outcome)
             ->because('the risky policy fails a passed result without expectations')
-            ->toBe(Outcome::Failed)
-            ->and($result->transformations[0]->transformedBy)
-            ->toBe('fail-on-risky policy')
-            ->and($result->failures[0]->message)
+            ->toBe(Outcome::Failed);
+        Expect::that($result->transformations[0]->transformedBy)
+            ->toBe('fail-on-risky policy');
+        Expect::that($result->failures[0]->message)
             ->toBe('The fail-on-risky policy changed this test from passed to failed because it verified no expectations.');
     }
 

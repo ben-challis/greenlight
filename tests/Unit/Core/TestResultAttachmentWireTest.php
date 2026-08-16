@@ -56,11 +56,11 @@ final class TestResultAttachmentWireTest
             $restored->attachments,
         ))
             ->because('test result wire decoding MUST preserve concrete attachment types')
-            ->toBe([Attachment::class, StagedAttachment::class])
-            ->and($restored->attachments)
+            ->toBe([Attachment::class, StagedAttachment::class]);
+        Expect::that($restored->attachments)
             ->because('test result wire decoding MUST preserve exact attachment metadata')
-            ->toEqual([$attachment, $staged])
-            ->and($restored->attachments[1] instanceof StagedAttachment
+            ->toEqual([$attachment, $staged]);
+        Expect::that($restored->attachments[1] instanceof StagedAttachment
                 ? $restored->attachments[1]->storageKey
                 : null)
             ->because('the staged attachment storage key MUST survive the test result wire boundary')

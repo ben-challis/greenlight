@@ -19,8 +19,8 @@ final readonly class EnvironmentVariableConditionValidationTest
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable name MUST NOT be empty.',
-            )
-            ->and(static fn(): EnvironmentVariableEquals => new EnvironmentVariableEquals('', 'value'))
+            );
+        Expect::that(static fn(): EnvironmentVariableEquals => new EnvironmentVariableEquals('', 'value'))
             ->because('an equality condition MUST identify the environment variable')
             ->toThrow(
                 \InvalidArgumentException::class,

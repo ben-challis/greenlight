@@ -41,8 +41,8 @@ final class ResourceNameTest
     {
         Expect::that(ResourceName::isValid($name))
             ->because('noncanonical resource names MUST be rejected')
-            ->toBeFalse()
-            ->and(static fn() => ResourceName::assertValid($name))
+            ->toBeFalse();
+        Expect::that(static fn() => ResourceName::assertValid($name))
             ->because('assertValid() MUST report the rejected resource name')
             ->toThrow(
                 \InvalidArgumentException::class,

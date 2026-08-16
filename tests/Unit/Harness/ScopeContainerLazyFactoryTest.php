@@ -42,8 +42,8 @@ final class ScopeContainerLazyFactoryTest
 
         Expect::that(static fn() => $service->value())
             ->because('the lazy factory failure MUST propagate from the first service use')
-            ->toThrow(\RuntimeException::class, message: 'factory broke')
-            ->and($factoryCalls)
+            ->toThrow(\RuntimeException::class, message: 'factory broke');
+        Expect::that($factoryCalls)
             ->toBe(1);
     }
 }

@@ -13,16 +13,9 @@ use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension;
 final class ExpectTest
 {
     #[Test]
-    public function andReAnchorsTheChainOnANewSubject(): void
-    {
-        Expect::that(1)->because('and() re anchors the chain on a new subject')->toBe(1)->and('x')->toBe('x')->and([1])->toHaveCount(1);
-    }
-
-    #[Test]
     public function notAppliesOnlyToTheNextMatcher(): void
     {
         Expect::that(1)->because('not() applies only to the next matcher')->not()->toBe(2)->toBe(1);
-        Expect::that(1)->because('not() applies only to the next matcher')->not()->toBe(2)->and(3)->toBe(3);
     }
 
     #[Test]

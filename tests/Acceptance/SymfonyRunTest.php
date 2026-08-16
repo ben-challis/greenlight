@@ -19,8 +19,8 @@ final readonly class SymfonyRunTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->because('injects container services and resets state between tests')->toBe(0)
-            ->and($result->output())->toContain('4 tests, 4 passed');
+        Expect::that($result->exitCode)->because('injects container services and resets state between tests')->toBe(0);
+        Expect::that($result->output())->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -117,10 +117,10 @@ final readonly class SymfonyRunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!')
-                        ->and($this->named->greet())->toContain('fixture.named_greeter')
-                        ->and($this->kernel->getEnvironment())->toBe('test')
-                        ->and($this->counter->count())->toBe(1);
+                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    Expect::that($this->named->greet())->toContain('fixture.named_greeter');
+                    Expect::that($this->kernel->getEnvironment())->toBe('test');
+                    Expect::that($this->counter->count())->toBe(1);
                 }
 
                 #[Test]

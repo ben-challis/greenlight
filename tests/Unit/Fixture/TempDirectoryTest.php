@@ -33,10 +33,10 @@ final class TempDirectoryTest
 
         $path = $directory->path();
 
-        Expect::that(\is_dir($path))->because('path creates a writable directory and memoizes it')->toBeTrue()
-            ->and(\is_writable($path))->toBeTrue()
-            ->and(\realpath($path))->toBe($path)
-            ->and($directory->path())->toBe($path);
+        Expect::that(\is_dir($path))->because('path creates a writable directory and memoizes it')->toBeTrue();
+        Expect::that(\is_writable($path))->toBeTrue();
+        Expect::that(\realpath($path))->toBe($path);
+        Expect::that($directory->path())->toBe($path);
 
         $directory->dispose();
     }
@@ -80,8 +80,8 @@ final class TempDirectoryTest
 
             Expect::that($result->exitCode)
                 ->because('a blocked temp root MUST fail directory creation')
-                ->toBe(23)
-                ->and($result->stdout)
+                ->toBe(23);
+            Expect::that($result->stdout)
                 ->because('the failure MUST identify the generated directory and cause')
                 ->toMatch(
                     '/\AFailed to create temp directory "'
@@ -112,8 +112,8 @@ final class TempDirectoryTest
 
         $nested = $directory->subdirectory('a/b');
 
-        Expect::that($nested)->because('subdirectory creates nested directories')->toBe($directory->path() . '/a/b')
-            ->and(\is_dir($nested))->toBeTrue();
+        Expect::that($nested)->because('subdirectory creates nested directories')->toBe($directory->path() . '/a/b');
+        Expect::that(\is_dir($nested))->toBeTrue();
 
         $directory->dispose();
     }
@@ -286,11 +286,11 @@ final class TempDirectoryTest
 
             Expect::that(\is_link($link))
                 ->because('disposal MUST remove the symbolic link')
-                ->toBeFalse()
-                ->and(\is_dir($target->path()))
+                ->toBeFalse();
+            Expect::that(\is_dir($target->path()))
                 ->because('disposal MUST leave the symbolic link target unchanged')
-                ->toBeTrue()
-                ->and(\file_get_contents($sentinel))
+                ->toBeTrue();
+            Expect::that(\file_get_contents($sentinel))
                 ->toBe('keep');
         } finally {
             $directory->dispose();
@@ -308,8 +308,8 @@ final class TempDirectoryTest
         // path() call still creates a new writable directory.
         $path = $directory->path();
 
-        Expect::that(\is_dir($path))->because('dispose without use is a no-op')->toBeTrue()
-            ->and(\is_writable($path))->toBeTrue();
+        Expect::that(\is_dir($path))->because('dispose without use is a no-op')->toBeTrue();
+        Expect::that(\is_writable($path))->toBeTrue();
 
         $directory->dispose();
     }

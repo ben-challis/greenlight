@@ -40,25 +40,25 @@ final readonly class ParallelShardRunTest
 
         Expect::that($all->exitCode)
             ->because('the unsharded parallel run MUST succeed')
-            ->toBe(0)
-            ->and($first->exitCode)
+            ->toBe(0);
+        Expect::that($first->exitCode)
             ->because('parallel shard one MUST succeed')
-            ->toBe(0)
-            ->and($second->exitCode)
+            ->toBe(0);
+        Expect::that($second->exitCode)
             ->because('parallel shard two MUST succeed')
-            ->toBe(0)
-            ->and($firstIds)
+            ->toBe(0);
+        Expect::that($firstIds)
             ->because('parallel shard one MUST contain tests')
             ->not()
-            ->toHaveCount(0)
-            ->and($secondIds)
+            ->toHaveCount(0);
+        Expect::that($secondIds)
             ->because('parallel shard two MUST contain tests')
             ->not()
-            ->toHaveCount(0)
-            ->and(\array_intersect($firstIds, $secondIds))
+            ->toHaveCount(0);
+        Expect::that(\array_intersect($firstIds, $secondIds))
             ->because('parallel shards MUST NOT execute the same test')
-            ->toBe([])
-            ->and($union)
+            ->toBe([]);
+        Expect::that($union)
             ->because('parallel shards MUST reconstitute the full run exactly once')
             ->toBe($allIds);
     }

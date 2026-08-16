@@ -30,11 +30,11 @@ final class FileCoverageTest
 
         Expect::that($merged->file)
             ->because('a zero-string coverage file path is not empty')
-            ->toBe('0')
-            ->and($merged->coveredLines)
+            ->toBe('0');
+        Expect::that($merged->coveredLines)
             ->because('coverage for the zero-string path MUST merge normally')
-            ->toBe([1, 2])
-            ->and($merged->percentage())
+            ->toBe([1, 2]);
+        Expect::that($merged->percentage())
             ->toBe(100.0);
     }
 
@@ -43,8 +43,8 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [9, 3, 3, 5], [12, 7, 12]);
 
-        Expect::that($file->coveredLines)->because('line lists are sorted and deduplicated')->toBe([3, 5, 9])
-            ->and($file->uncoveredLines)->toBe([7, 12]);
+        Expect::that($file->coveredLines)->because('line lists are sorted and deduplicated')->toBe([3, 5, 9]);
+        Expect::that($file->uncoveredLines)->toBe([7, 12]);
     }
 
     #[Test]
@@ -52,8 +52,8 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [3, 5], [3, 7]);
 
-        Expect::that($file->coveredLines)->because('covered wins when a line appears in both sets')->toBe([3, 5])
-            ->and($file->uncoveredLines)->toBe([7]);
+        Expect::that($file->coveredLines)->because('covered wins when a line appears in both sets')->toBe([3, 5]);
+        Expect::that($file->uncoveredLines)->toBe([7]);
     }
 
     #[Test]
@@ -61,9 +61,9 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [1, 2, 3], [4]);
 
-        Expect::that($file->percentage())->because('percentage is covered over executable')->toBeWithin(0.001, 75.0)
-            ->and($file->executableLineCount())->toBe(4)
-            ->and($file->coveredLineCount())->toBe(3);
+        Expect::that($file->percentage())->because('percentage is covered over executable')->toBeWithin(0.001, 75.0);
+        Expect::that($file->executableLineCount())->toBe(4);
+        Expect::that($file->coveredLineCount())->toBe(3);
     }
 
     #[Test]
@@ -80,8 +80,8 @@ final class FileCoverageTest
 
         $merged = $a->merge($b);
 
-        Expect::that($merged->coveredLines)->because('merge unions coverage and covered wins')->toBe([3, 5])
-            ->and($merged->uncoveredLines)->toBe([7, 9]);
+        Expect::that($merged->coveredLines)->because('merge unions coverage and covered wins')->toBe([3, 5]);
+        Expect::that($merged->uncoveredLines)->toBe([7, 9]);
     }
 
     #[Test]

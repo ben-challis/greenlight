@@ -22,8 +22,8 @@ final readonly class NameFilterCaseTest
 
         Expect::that($canonical->accepts($class, $method, [], '/tests/InvoiceTest.php'))
             ->because('a class or method filter MUST accept the canonical letter case')
-            ->toBeTrue()
-            ->and($caseOnlyDifference->accepts($class, $method, [], '/tests/InvoiceTest.php'))
+            ->toBeTrue();
+        Expect::that($caseOnlyDifference->accepts($class, $method, [], '/tests/InvoiceTest.php'))
             ->because('class and method filters MUST use the same letter case')
             ->toBeFalse();
     }

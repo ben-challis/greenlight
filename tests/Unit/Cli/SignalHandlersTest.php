@@ -33,8 +33,8 @@ final class SignalHandlersTest
 
         Expect::that($shutdown->requested())
             ->because('each supported signal MUST request graceful shutdown on first delivery')
-            ->toBeTrue()
-            ->and($shutdown->exitCode())
+            ->toBeTrue();
+        Expect::that($shutdown->exitCode())
             ->toBe(128 + $signal);
     }
 
@@ -48,11 +48,11 @@ final class SignalHandlersTest
 
         Expect::that($operations->asyncEnabled)
             ->because('unavailable signal operations do not enable asynchronous signals')
-            ->toBeFalse()
-            ->and($operations->registrations)
+            ->toBeFalse();
+        Expect::that($operations->registrations)
             ->because('unavailable signal operations do not register handlers')
-            ->toBe([])
-            ->and($shutdown->requested())->toBeFalse();
+            ->toBe([]);
+        Expect::that($shutdown->requested())->toBeFalse();
     }
 
     #[Test]
@@ -65,8 +65,8 @@ final class SignalHandlersTest
 
         Expect::that($operations->asyncEnabled)
             ->because('available signal operations enable asynchronous signals')
-            ->toBeTrue()
-            ->and(\array_column($operations->registrations, 'signal'))
+            ->toBeTrue();
+        Expect::that(\array_column($operations->registrations, 'signal'))
             ->because('SIGINT and SIGTERM handlers are registered')
             ->toBe([\SIGINT, \SIGTERM]);
 
@@ -80,12 +80,12 @@ final class SignalHandlersTest
 
         Expect::that($shutdown->requested())
             ->because('the first signal requests graceful shutdown')
-            ->toBeTrue()
-            ->and($shutdown->exitCode())->toBe(128 + \SIGTERM)
-            ->and($operations->registrations[2] ?? null)
+            ->toBeTrue();
+        Expect::that($shutdown->exitCode())->toBe(128 + \SIGTERM);
+        Expect::that($operations->registrations[2] ?? null)
             ->because('the first signal restores the default SIGINT handler')
-            ->toBe(['signal' => \SIGINT, 'handler' => \SIG_DFL])
-            ->and($operations->registrations[3] ?? null)
+            ->toBe(['signal' => \SIGINT, 'handler' => \SIG_DFL]);
+        Expect::that($operations->registrations[3] ?? null)
             ->because('the first signal restores the default SIGTERM handler')
             ->toBe(['signal' => \SIGTERM, 'handler' => \SIG_DFL]);
     }

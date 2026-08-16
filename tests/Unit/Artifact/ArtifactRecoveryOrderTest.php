@@ -42,11 +42,11 @@ final readonly class ArtifactRecoveryOrderTest
 
             Expect::that($recovered->attachments)
                 ->because('crash recovery orders evidence by numeric attempt')
-                ->toHaveCount(2)
-                ->and(\array_map(
-                    static fn($attachment): array => [$attachment->attempt, $attachment->name],
-                    $recovered->attachments,
-                ))
+                ->toHaveCount(2);
+            Expect::that(\array_map(
+                static fn($attachment): array => [$attachment->attempt, $attachment->name],
+                $recovered->attachments,
+            ))
                 ->toBe([
                     [2, 'second.txt'],
                     [10, 'tenth.txt'],

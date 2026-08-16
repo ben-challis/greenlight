@@ -165,8 +165,8 @@ final readonly class RectorMigrationRunTest
     {
         $probe = RectorProbe::convert($this->tempDirectory, self::CONVERTIBLE, name: 'converts');
 
-        Expect::that($probe->changed)->toBeTrue()
-            ->and($probe->code)->not()->toContain('extends TestCase')
+        Expect::that($probe->changed)->toBeTrue();
+        Expect::that($probe->code)->not()->toContain('extends TestCase')
             ->toContain('#[\Greenlight\Attribute\Test]')
             ->toContain('#[\Greenlight\Attribute\Before]')
             ->toContain("#[\Greenlight\Attribute\Group('pricing')]")
@@ -187,8 +187,8 @@ final readonly class RectorMigrationRunTest
         $this->writeGreenlightConfig($probe->directory);
         $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
 
-        Expect::that($run->exitCode)->toBe(0)
-            ->and($run->stdout)->toContain('7 tests, 6 passed, 1 skipped')
+        Expect::that($run->exitCode)->toBe(0);
+        Expect::that($run->stdout)->toContain('7 tests, 6 passed, 1 skipped')
             ->toContain('no smtp server');
     }
 
@@ -199,8 +199,8 @@ final readonly class RectorMigrationRunTest
 
         Expect::that($probe->changed)
             ->because('the exception test MUST be convertible')
-            ->toBeTrue()
-            ->and($probe->code)
+            ->toBeTrue();
+        Expect::that($probe->code)
             ->because('the PHPUnit message pattern MUST remain the Greenlight matcher pattern')
             ->toContain(
                 "->toThrow(\\RuntimeException::class, matching: '/code=\\d+/');",
@@ -211,8 +211,8 @@ final readonly class RectorMigrationRunTest
 
         Expect::that($run->exitCode)
             ->because('the converted exception matcher MUST preserve runtime behavior')
-            ->toBe(0)
-            ->and($run->stdout)
+            ->toBe(0);
+        Expect::that($run->stdout)
             ->toContain('1 test, 1 passed');
     }
 
@@ -555,8 +555,8 @@ final readonly class RectorMigrationRunTest
             name: 'drops-messages',
         );
 
-        Expect::that($probe->changed)->toBeTrue()
-            ->and($probe->code)->toContain("\Greenlight\Expect\Expect::that('a')->toBe('a');")
+        Expect::that($probe->changed)->toBeTrue();
+        Expect::that($probe->code)->toContain("\Greenlight\Expect\Expect::that('a')->toBe('a');")
             ->not()->toContain('values must match');
     }
 
@@ -589,16 +589,16 @@ final readonly class RectorMigrationRunTest
             name: 'inline-rows',
         );
 
-        Expect::that($probe->changed)->toBeTrue()
-            ->and(\substr_count($probe->code, '#[\Greenlight\Attribute\DataRow'))->toBe(2)
-            ->and($probe->code)->toContain('#[\Greenlight\Attribute\DataRow([1])]')
+        Expect::that($probe->changed)->toBeTrue();
+        Expect::that(\substr_count($probe->code, '#[\Greenlight\Attribute\DataRow'))->toBe(2);
+        Expect::that($probe->code)->toContain('#[\Greenlight\Attribute\DataRow([1])]')
             ->toContain('#[\Greenlight\Attribute\DataRow([2])]');
 
         $this->writeGreenlightConfig($probe->directory);
         $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
 
-        Expect::that($run->exitCode)->toBe(0)
-            ->and($run->stdout)->toContain('2 tests, 2 passed');
+        Expect::that($run->exitCode)->toBe(0);
+        Expect::that($run->stdout)->toContain('2 tests, 2 passed');
     }
 
     #[Test]
@@ -675,15 +675,15 @@ final readonly class RectorMigrationRunTest
             name: 'assertions',
         );
 
-        Expect::that($probe->changed)->toBeTrue()
-            ->and($probe->code)->not()->toContain('->assert')
+        Expect::that($probe->changed)->toBeTrue();
+        Expect::that($probe->code)->not()->toContain('->assert')
             ->not()->toContain('::assert');
 
         $this->writeGreenlightConfig($probe->directory);
         $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
 
-        Expect::that($run->exitCode)->toBe(0)
-            ->and($run->stdout)->toContain('1 test, 1 passed');
+        Expect::that($run->exitCode)->toBe(0);
+        Expect::that($run->stdout)->toContain('1 test, 1 passed');
     }
 
     private function writeGreenlightConfig(string $directory): void

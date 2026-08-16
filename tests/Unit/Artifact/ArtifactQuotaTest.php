@@ -44,8 +44,8 @@ final readonly class ArtifactQuotaTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment quota path is unsafe.',
-            )
-            ->and((string) \file_get_contents($outside))
+            );
+        Expect::that((string) \file_get_contents($outside))
             ->because('a rejected quota path MUST NOT change its target')
             ->toBe('untouched');
     }
@@ -74,8 +74,8 @@ final readonly class ArtifactQuotaTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment quota metadata is corrupt.',
-            )
-            ->and(\glob($staging . '/*/attempt-*'))
+            );
+        Expect::that(\glob($staging . '/*/attempt-*'))
             ->because('a rejected quota reservation MUST NOT leave staging data')
             ->toBe([]);
     }

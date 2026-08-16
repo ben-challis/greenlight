@@ -27,14 +27,14 @@ final class MatcherMapTest
         $lengthType = $lengthParameters[0]->getType();
         $subjectType = $map->subjectParameter('toHaveDigestLength')?->getType();
 
-        Expect::that($map->has('toBeHexadecimal'))->because('collects matchers with subject stripped')->toBeTrue()
-            ->and($map->has('toHaveDigestLength'))->toBeTrue()
-            ->and($map->has('toBeSomethingElse'))->toBeFalse()
-            ->and($map->parameters('toBeHexadecimal'))->toBe([])
-            ->and(\count($lengthParameters))->toBe(1)
-            ->and($lengthParameters[0]->getName())->toBe('length')
-            ->and($lengthType instanceof \ReflectionNamedType ? $lengthType->getName() : null)->toBe('int')
-            ->and($subjectType instanceof \ReflectionNamedType ? $subjectType->getName() : null)->toBe('string');
+        Expect::that($map->has('toBeHexadecimal'))->because('collects matchers with subject stripped')->toBeTrue();
+        Expect::that($map->has('toHaveDigestLength'))->toBeTrue();
+        Expect::that($map->has('toBeSomethingElse'))->toBeFalse();
+        Expect::that($map->parameters('toBeHexadecimal'))->toBe([]);
+        Expect::that(\count($lengthParameters))->toBe(1);
+        Expect::that($lengthParameters[0]->getName())->toBe('length');
+        Expect::that($lengthType instanceof \ReflectionNamedType ? $lengthType->getName() : null)->toBe('int');
+        Expect::that($subjectType instanceof \ReflectionNamedType ? $subjectType->getName() : null)->toBe('string');
     }
 
     #[Test]

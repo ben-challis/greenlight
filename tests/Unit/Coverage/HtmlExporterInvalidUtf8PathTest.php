@@ -27,8 +27,8 @@ final readonly class HtmlExporterInvalidUtf8PathTest
         Expect::that($index)
             ->because('the HTML index MUST scrub invalid UTF-8 in file-system paths')
             ->toContain($scrubbed)
-            ->toMatch('//u')
-            ->and($file)
+            ->toMatch('//u');
+        Expect::that($file)
             ->because('the HTML file page MUST scrub invalid UTF-8 in its title')
             ->toContain('<h1>' . $scrubbed . '</h1>')
             ->toMatch('//u');

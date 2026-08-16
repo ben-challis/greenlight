@@ -155,11 +155,11 @@ final class EventsTest
 
         Expect::that($started->workerId)
             ->because('legacy class-started events have no worker attribution')
-            ->toBe('')
-            ->and($finished->workerId)
+            ->toBe('');
+        Expect::that($finished->workerId)
             ->because('legacy class-finished events have no worker attribution')
-            ->toBe('')
-            ->and($run->artifactsDirectory)
+            ->toBe('');
+        Expect::that($run->artifactsDirectory)
             ->because('legacy run-started events have no artifacts directory')
             ->toBeNull();
     }

@@ -62,8 +62,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('closes Markdown fences only with the opening marker')->toBe(1)
-            ->and($result->output())->toContain('sample.md:9: contraction:')
+        Expect::that($result->exitCode)->because('closes Markdown fences only with the opening marker')->toBe(1);
+        Expect::that($result->output())->toContain('sample.md:9: contraction:')
             ->toContain('sample.md:9: semicolon:')
             ->not()->toContain('sample.md:6:');
     }
@@ -79,8 +79,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks visible Markdown link labels but excludes destinations')->toBe(1)
-            ->and($result->output())->toContain('sample.md:1: british-spelling:')
+        Expect::that($result->exitCode)->because('checks visible Markdown link labels but excludes destinations')->toBe(1);
+        Expect::that($result->output())->toContain('sample.md:1: british-spelling:')
             ->toContain('sample.md:1: contraction:')
             ->toContain('sample.md:1: semicolon:');
     }
@@ -96,8 +96,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks Markdown image alt text')->toBe(1)
-            ->and($result->output())->toContain('sample.md:1: british-spelling:')
+        Expect::that($result->exitCode)->because('checks Markdown image alt text')->toBe(1);
+        Expect::that($result->output())->toContain('sample.md:1: british-spelling:')
             ->toContain('sample.md:1: contraction:');
     }
 
@@ -119,8 +119,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks markdown headings and tables')->toBe(1)
-            ->and($result->output())->toContain('sample.md:1: british-spelling:')
+        Expect::that($result->exitCode)->because('checks markdown headings and tables')->toBe(1);
+        Expect::that($result->output())->toContain('sample.md:1: british-spelling:')
             ->toContain('sample.md:5: contraction:');
     }
 
@@ -150,8 +150,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks website copy and excludes code')->toBe(1)
-            ->and($result->output())->toContain('website/src/pages/index.astro:')
+        Expect::that($result->exitCode)->because('checks website copy and excludes code')->toBe(1);
+        Expect::that($result->output())->toContain('website/src/pages/index.astro:')
             ->toContain('british-spelling')
             ->toContain('contraction')
             ->not()->toContain('codeSample');
@@ -173,8 +173,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks static and expression accessibility attributes')->toBe(1)
-            ->and($result->output())->toContain('website/src/pages/index.astro:1: semicolon:')
+        Expect::that($result->exitCode)->because('checks static and expression accessibility attributes')->toBe(1);
+        Expect::that($result->output())->toContain('website/src/pages/index.astro:1: semicolon:')
             ->toContain('website/src/pages/index.astro:2: contraction:');
     }
 
@@ -212,8 +212,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks structured descriptions and owned comments')->toBe(1)
-            ->and($result->output())->toContain('composer.json:2: british-spelling:')
+        Expect::that($result->exitCode)->because('checks structured descriptions and owned comments')->toBe(1);
+        Expect::that($result->output())->toContain('composer.json:2: british-spelling:')
             ->toContain('.github/ISSUE_TEMPLATE/feature.yml:2: british-spelling:')
             ->toContain('.github/ISSUE_TEMPLATE/feature.yml:3: contraction:')
             ->toContain('website/src/lib/docs.ts:3: british-spelling:');
@@ -252,8 +252,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks multiline structured and script prose')->toBe(1)
-            ->and($result->output())->toContain('composer.json:2: contraction:')
+        Expect::that($result->exitCode)->because('checks multiline structured and script prose')->toBe(1);
+        Expect::that($result->output())->toContain('composer.json:2: contraction:')
             ->toContain('composer.json:2: british-spelling:')
             ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: contraction:')
             ->toContain('.github/ISSUE_TEMPLATE/feature.yml:1: british-spelling:')
@@ -283,8 +283,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks script block comments')->toBe(1)
-            ->and($result->output())->toContain('website/scripts/status.mjs:6: semicolon:')
+        Expect::that($result->exitCode)->because('checks script block comments')->toBe(1);
+        Expect::that($result->output())->toContain('website/scripts/status.mjs:6: semicolon:')
             ->not()->toContain('website/scripts/status.mjs:2: contraction:');
     }
 
@@ -308,8 +308,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('joins script line-comment paragraphs')->toBe(1)
-            ->and($result->output())->toContain('website/scripts/status.mjs:5: sentence-length:')
+        Expect::that($result->exitCode)->because('joins script line-comment paragraphs')->toBe(1);
+        Expect::that($result->output())->toContain('website/scripts/status.mjs:5: sentence-length:')
             ->toContain('website/scripts/status.mjs:8: paragraph-length:')
             ->not()->toContain('website/scripts/status.mjs:2: contraction:');
     }
@@ -335,8 +335,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('review', $root);
-        Expect::that($result->exitCode)->because('excludes multiline Astro expressions')->toBe(0)
-            ->and($result->output())->toBe('');
+        Expect::that($result->exitCode)->because('excludes multiline Astro expressions')->toBe(0);
+        Expect::that($result->output())->toBe('');
     }
 
     #[Test]
@@ -350,8 +350,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('review', $root);
-        Expect::that($result->exitCode)->because('excludes registered literals')->toBe(0)
-            ->and($result->output())->toBe('');
+        Expect::that($result->exitCode)->because('excludes registered literals')->toBe(0);
+        Expect::that($result->output())->toBe('');
     }
 
     #[Test]
@@ -405,8 +405,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $includedResult = $this->run('check', $root);
-        Expect::that($includedResult->exitCode)->because('excludes PHPDoc tags and machine directives but checks narrative comments')->toBe(1)
-            ->and($includedResult->output())->toContain('src/Narrative.php:3:')
+        Expect::that($includedResult->exitCode)->because('excludes PHPDoc tags and machine directives but checks narrative comments')->toBe(1);
+        Expect::that($includedResult->output())->toContain('src/Narrative.php:3:')
             ->toContain('british-spelling')
             ->toContain('semicolon');
     }
@@ -438,8 +438,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks PHPDoc tag descriptions and human-readable strings')->toBe(1)
-            ->and($result->output())->toContain('src/Message.php:6: semicolon:')
+        Expect::that($result->exitCode)->because('checks PHPDoc tag descriptions and human-readable strings')->toBe(1);
+        Expect::that($result->output())->toContain('src/Message.php:6: semicolon:')
             ->toContain('src/Message.php:6: contraction:')
             ->toContain('src/Message.php:6: british-spelling:')
             ->toContain('src/Message.php:7: contraction:')
@@ -477,8 +477,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks prose-bearing PHPDoc tags')->toBe(1)
-            ->and($result->output())->toContain('src/Message.php:6: contraction:')
+        Expect::that($result->exitCode)->because('checks prose-bearing PHPDoc tags')->toBe(1);
+        Expect::that($result->output())->toContain('src/Message.php:6: contraction:')
             ->toContain('src/Message.php:6: semicolon:')
             ->toContain('src/Message.php:11: contraction:')
             ->toContain('src/Message.php:11: semicolon:');
@@ -495,8 +495,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks the extensionless PHP entry point')->toBe(1)
-            ->and($result->output())->toContain('bin/greenlight:3: contraction:')
+        Expect::that($result->exitCode)->because('checks the extensionless PHP entry point')->toBe(1);
+        Expect::that($result->output())->toContain('bin/greenlight:3: contraction:')
             ->toContain('bin/greenlight:3: semicolon:');
     }
 
@@ -533,8 +533,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('checks multiline PHPDoc and interpolated PHP strings')->toBe(1)
-            ->and($result->output())->toContain('src/Message.php:6: semicolon:')
+        Expect::that($result->exitCode)->because('checks multiline PHPDoc and interpolated PHP strings')->toBe(1);
+        Expect::that($result->output())->toContain('src/Message.php:6: semicolon:')
             ->toContain('src/Message.php:6: contraction:')
             ->toContain('src/Message.php:6: british-spelling:')
             ->toContain('src/Message.php:11: contraction:')
@@ -561,8 +561,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('joins wrapped Markdown list items')->toBe(1)
-            ->and($result->output())->toContain('sample.md:1: sentence-length:')
+        Expect::that($result->exitCode)->because('joins wrapped Markdown list items')->toBe(1);
+        Expect::that($result->output())->toContain('sample.md:1: sentence-length:')
             ->toContain('sample.md:4: paragraph-length:');
     }
 
@@ -620,8 +620,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('joins consecutive line comments and does not create delimiter text')->toBe(1)
-            ->and($result->output())->toContain('paragraph-length')
+        Expect::that($result->exitCode)->because('joins consecutive line comments and does not create delimiter text')->toBe(1);
+        Expect::that($result->output())->toContain('paragraph-length')
             ->not()->toContain('valid description. /');
     }
 
@@ -649,8 +649,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('review', $root);
-        Expect::that($result->exitCode)->because('review reports advisories without failure')->toBe(0)
-            ->and($result->output())->toContain('procedural-sentence-length')
+        Expect::that($result->exitCode)->because('review reports advisories without failure')->toBe(0);
+        Expect::that($result->output())->toContain('procedural-sentence-length')
             ->toContain('passive-voice')
             ->toContain('verbal-ing')
             ->toContain('discouraged-word')
@@ -671,9 +671,9 @@ final readonly class ProseCheckBehaviorTest
         $checked = $this->run('check', $root);
         $reviewed = $this->run('review', $root);
 
-        Expect::that($checked->exitCode)->because('reports long instructions without blocking them')->toBe(0)
-            ->and($reviewed->exitCode)->toBe(0)
-            ->and($reviewed->output())->toContain('procedural-sentence-length');
+        Expect::that($checked->exitCode)->because('reports long instructions without blocking them')->toBe(0);
+        Expect::that($reviewed->exitCode)->toBe(0);
+        Expect::that($reviewed->output())->toContain('procedural-sentence-length');
     }
 
     #[Test]
@@ -687,8 +687,8 @@ final readonly class ProseCheckBehaviorTest
         );
 
         $result = $this->run('review', $root);
-        Expect::that($result->exitCode)->because('does not report approved normative tokens as discouraged words')->toBe(0)
-            ->and($result->output())->not()->toContain('discouraged-word');
+        Expect::that($result->exitCode)->because('does not report approved normative tokens as discouraged words')->toBe(0);
+        Expect::that($result->output())->not()->toContain('discouraged-word');
     }
 
     #[Test]
@@ -703,13 +703,13 @@ final readonly class ProseCheckBehaviorTest
         $firstPosition = \strpos($first->output(), 'a-first.md:');
         $lastPosition = \strpos($first->output(), 'z-last.md:');
 
-        Expect::that($first->exitCode)->because('output is deterministic and sorted by path')->toBe(1)
-            ->and($second->exitCode)->toBe(1)
-            ->and($second->output())->toBe($first->output())
-            ->and($first->output())->toMatch('/^a-first\.md:\d+: contraction:/m')
-            ->and($firstPosition)->not()->toBeFalse()
-            ->and($lastPosition)->not()->toBeFalse()
-            ->and((int) $firstPosition)->toBeLessThan((int) $lastPosition);
+        Expect::that($first->exitCode)->because('output is deterministic and sorted by path')->toBe(1);
+        Expect::that($second->exitCode)->toBe(1);
+        Expect::that($second->output())->toBe($first->output());
+        Expect::that($first->output())->toMatch('/^a-first\.md:\d+: contraction:/m');
+        Expect::that($firstPosition)->not()->toBeFalse();
+        Expect::that($lastPosition)->not()->toBeFalse();
+        Expect::that((int) $firstPosition)->toBeLessThan((int) $lastPosition);
     }
 
     #[Test]
@@ -781,8 +781,8 @@ final readonly class ProseCheckBehaviorTest
             '--baseline-dir=' . $root . '/baseline',
         ]);
 
-        Expect::that($result->exitCode)->because('rejects removed baseline options')->toBe(1)
-            ->and($result->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
+        Expect::that($result->exitCode)->because('rejects removed baseline options')->toBe(1);
+        Expect::that($result->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
     }
 
     private function workspace(string $name): string

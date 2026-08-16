@@ -21,11 +21,11 @@ final class HelloTest
 
         Expect::that($hello->workerId)
             ->because('a worker introduction MUST retain each non-empty worker ID')
-            ->toBe($workerId)
-            ->and($hello->token)
+            ->toBe($workerId);
+        Expect::that($hello->token)
             ->because('a worker introduction MUST retain each non-empty authentication token')
-            ->toBe($token)
-            ->and($decoded->toWire())
+            ->toBe($token);
+        Expect::that($decoded->toWire())
             ->because('the worker introduction MUST survive the wire')
             ->toBe($hello->toWire());
     }

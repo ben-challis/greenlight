@@ -43,8 +43,8 @@ final class TemporalExpectationTest
                 ->toBe('ready');
         });
 
-        Expect::that($calls)->because('eventually() stops at the first matching observation')->toBe(3)
-            ->and($clock->sleeps)->toEqual([0.010, 0.010]);
+        Expect::that($calls)->because('eventually() stops at the first matching observation')->toBe(3);
+        Expect::that($clock->sleeps)->toEqual([0.010, 0.010]);
     }
 
     #[Test]
@@ -68,8 +68,8 @@ final class TemporalExpectationTest
 
         Expect::that($calls)
             ->because('eventually() reuses a one-shot iterable across retries')
-            ->toBe(2)
-            ->and($clock->sleeps)
+            ->toBe(2);
+        Expect::that($clock->sleeps)
             ->toEqual([0.010]);
     }
 
@@ -95,10 +95,10 @@ final class TemporalExpectationTest
             'The eventually() expectation did not pass within 0.030 seconds after 4 observations. '
             . 'Last failure: Expected 4 to equal 99. Observations: '
             . "+0.0ms 1\n+10.0ms 2\n+20.0ms 3\n+30.0ms 4.",
-        )
-            ->and($detail->expected)->toBe('99')
-            ->and($detail->actual)->toBe('4')
-            ->and($detail->location?->file)->toBe(__FILE__);
+        );
+        Expect::that($detail->expected)->toBe('99');
+        Expect::that($detail->actual)->toBe('4');
+        Expect::that($detail->location?->file)->toBe(__FILE__);
     }
 
     #[Test]
@@ -201,10 +201,10 @@ final class TemporalExpectationTest
             ->toBe(
                 'The eventually() expectation did not pass within 0.020 seconds after 3 observations. '
                 . "Observations: +0.0ms {$rendered} (×3).",
-            )
-            ->and($detail->expected)
-            ->toBeNull()
-            ->and($detail->actual)
+            );
+        Expect::that($detail->expected)
+            ->toBeNull();
+        Expect::that($detail->actual)
             ->toBe($rendered);
     }
 
@@ -287,14 +287,14 @@ final class TemporalExpectationTest
             });
         });
 
-        Expect::that($calls)->because('consistently() fails on the first violation')->toBe(3)
-            ->and($detail->message)->toBe(
-                'The consistently() expectation failed after 0.020 seconds and 3 observations. '
+        Expect::that($calls)->because('consistently() fails on the first violation')->toBe(3);
+        Expect::that($detail->message)->toBe(
+            'The consistently() expectation failed after 0.020 seconds and 3 observations. '
                 . "Last failure: Expected 'changed' to be 'stable'. Observations: "
                 . "+0.0ms 'stable' (×2)\n+20.0ms 'changed'.",
-            )
-            ->and($detail->expected)->toBe("'stable'")
-            ->and($detail->actual)->toBe("'changed'");
+        );
+        Expect::that($detail->expected)->toBe("'stable'");
+        Expect::that($detail->actual)->toBe("'changed'");
     }
 
     #[Test]

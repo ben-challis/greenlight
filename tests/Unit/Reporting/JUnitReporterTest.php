@@ -66,15 +66,15 @@ final class JUnitReporterTest
             return;
         }
 
-        Expect::that((string) $document['tests'])->because('XML parses and counts match the stream')->toBe('6')
-            ->and((string) $document['failures'])->toBe('1')
-            ->and((string) $document['errors'])->toBe('1')
-            ->and((string) $document['skipped'])->toBe('1')
-            ->and($document->xpath('//testcase'))->toHaveCount(6)
-            ->and($document->xpath('//testsuite'))->toHaveCount(2)
-            ->and($document->xpath('//failure'))->toHaveCount(1)
-            ->and($document->xpath('//error'))->toHaveCount(1)
-            ->and($document->xpath('//skipped'))->toHaveCount(1);
+        Expect::that((string) $document['tests'])->because('XML parses and counts match the stream')->toBe('6');
+        Expect::that((string) $document['failures'])->toBe('1');
+        Expect::that((string) $document['errors'])->toBe('1');
+        Expect::that((string) $document['skipped'])->toBe('1');
+        Expect::that($document->xpath('//testcase'))->toHaveCount(6);
+        Expect::that($document->xpath('//testsuite'))->toHaveCount(2);
+        Expect::that($document->xpath('//failure'))->toHaveCount(1);
+        Expect::that($document->xpath('//error'))->toHaveCount(1);
+        Expect::that($document->xpath('//skipped'))->toHaveCount(1);
     }
 
     #[Test]
@@ -109,8 +109,8 @@ final class JUnitReporterTest
 
         Expect::that((string) $document['failures'])
             ->because('one failed test contributes one suite failure')
-            ->toBe('1')
-            ->and($failures)
+            ->toBe('1');
+        Expect::that($failures)
             ->because('each failure detail remains visible to JUnit consumers')
             ->toHaveCount(2);
 
@@ -120,8 +120,8 @@ final class JUnitReporterTest
 
         Expect::that((string) $failures[0]['message'])
             ->because('failure details retain their encounter order')
-            ->toBe('first failure')
-            ->and((string) $failures[1]['message'])
+            ->toBe('first failure');
+        Expect::that((string) $failures[1]['message'])
             ->toBe('second failure');
     }
 
@@ -224,11 +224,11 @@ final class JUnitReporterTest
 
         Expect::that((string) $case['name'])
             ->because('forbidden characters in test names are replaced')
-            ->toBe("fails[case\u{FFFD}]")
-            ->and((string) $failure['message'])
+            ->toBe("fails[case\u{FFFD}]");
+        Expect::that((string) $failure['message'])
             ->because('forbidden characters in diagnostic attributes are replaced')
-            ->toBe("message\u{FFFD}")
-            ->and((string) $failure)
+            ->toBe("message\u{FFFD}");
+        Expect::that((string) $failure)
             ->because('forbidden characters in diagnostic text are replaced')
             ->toBe(
                 "expected: expected\u{FFFD}\n"

@@ -50,9 +50,7 @@ final readonly class PhpStanToThrowRuleTest
             function greenlightBadToThrowSubjectProbe(): void
             {
                 Expect::that(1)->toThrow(DomainException::class);
-                Expect::that(static fn() => null)
-                    ->and('not callable')
-                    ->toThrow(DomainException::class);
+                Expect::that('not callable')->toThrow(DomainException::class);
                 Expect::eventually(static fn(): int => 1)
                     ->within(1.0)
                     ->toThrow(DomainException::class);
@@ -63,10 +61,10 @@ final readonly class PhpStanToThrowRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('toThrow requires a callable subject')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(4)
-            ->and($probe->messages())->toContain('toThrow() requires a callable subject. The subject type is');
+        Expect::that($probe->exitCode)->because('toThrow requires a callable subject')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that($probe->messages())->toContain('toThrow() requires a callable subject. The subject type is');
     }
 
     #[Test]
@@ -132,9 +130,9 @@ final readonly class PhpStanToThrowRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(6)
-            ->and($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
+        Expect::that($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(6);
+        Expect::that($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
     }
 }

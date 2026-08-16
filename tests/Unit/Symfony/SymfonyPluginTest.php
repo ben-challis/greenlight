@@ -160,11 +160,11 @@ final class SymfonyPluginTest
             ));
         }
 
-        Expect::that($definitions)->because('the kernel is a per run harness service and boots once')->toHaveCount(1)
-            ->and($definition->type)->toBe(KernelInterface::class)
-            ->and($definition->scope)->toBe(Scope::PerRun)
-            ->and($first->getEnvironment())->toBe('test')
-            ->and(($definition->factory)())->toBe($first);
+        Expect::that($definitions)->because('the kernel is a per run harness service and boots once')->toHaveCount(1);
+        Expect::that($definition->type)->toBe(KernelInterface::class);
+        Expect::that($definition->scope)->toBe(Scope::PerRun);
+        Expect::that($first->getEnvironment())->toBe('test');
+        Expect::that(($definition->factory)())->toBe($first);
     }
 
     #[Test]
@@ -203,7 +203,8 @@ final class SymfonyPluginTest
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
 
-        Expect::that($counter->count())->because('after test resets stateful container services')->toBe(0)->and($returned)->toBe($result);
+        Expect::that($counter->count())->because('after test resets stateful container services')->toBe(0);
+        Expect::that($returned)->toBe($result);
     }
 
     #[Test]
@@ -236,7 +237,8 @@ final class SymfonyPluginTest
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
 
-        Expect::that($booted)->because('after test without a booted kernel is a no-op')->toBe(false)->and($returned)->toBe($result);
+        Expect::that($booted)->because('after test without a booted kernel is a no-op')->toBe(false);
+        Expect::that($returned)->toBe($result);
     }
 
     private function plugin(): SymfonyPlugin

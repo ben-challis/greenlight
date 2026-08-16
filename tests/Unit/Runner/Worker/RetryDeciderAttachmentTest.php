@@ -61,13 +61,13 @@ final readonly class RetryDeciderAttachmentTest
 
             Expect::that($decider->results)
                 ->because('a retry decider MUST receive the unsuccessful attempt result')
-                ->toHaveCount(1)
-                ->and($decider->results[0]->attachments)
+                ->toHaveCount(1);
+            Expect::that($decider->results[0]->attachments)
                 ->because('a retry decider MUST receive attachment metadata before it decides')
-                ->toHaveCount(1)
-                ->and($decider->results[0]->attachments[0]->name)
-                ->toBe('failure.txt')
-                ->and($decider->results[0]->attachments[0]->sizeBytes)
+                ->toHaveCount(1);
+            Expect::that($decider->results[0]->attachments[0]->name)
+                ->toBe('failure.txt');
+            Expect::that($decider->results[0]->attachments[0]->sizeBytes)
                 ->toBe(14);
         } finally {
             $store->cleanup();

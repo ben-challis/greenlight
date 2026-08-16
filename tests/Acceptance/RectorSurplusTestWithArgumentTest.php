@@ -47,8 +47,8 @@ final readonly class RectorSurplusTestWithArgumentTest
 
         Expect::that($probe->changed)
             ->because('a TestWith attribute with surplus arguments MUST remain unsupported')
-            ->toBeFalse()
-            ->and($probe->code)
+            ->toBeFalse();
+        Expect::that($probe->code)
             ->because('an unsupported class MUST remain byte-identical')
             ->toBe($source);
     }

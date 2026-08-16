@@ -94,18 +94,18 @@ final class TestResultTest
             ]);
         Expect::that($restored->output?->stdout)
             ->because('captured output and truncation state survive the wire')
-            ->toBe("first line\nsecond line")
-            ->and($restored->output?->diagnostics[0]->severity)
-            ->toBe(DiagnosticSeverity::Warning)
-            ->and($restored->output?->diagnostics[0]->message)
-            ->toBe('deprecated call')
-            ->and($restored->output?->diagnostics[0]->file)
-            ->toBe('/app/src/Foo.php')
-            ->and($restored->output?->diagnostics[0]->line)
-            ->toBe(21)
-            ->and($restored->output?->stdoutTruncated)
-            ->toBeTrue()
-            ->and($restored->output?->diagnosticsTruncated)
+            ->toBe("first line\nsecond line");
+        Expect::that($restored->output?->diagnostics[0]->severity)
+            ->toBe(DiagnosticSeverity::Warning);
+        Expect::that($restored->output?->diagnostics[0]->message)
+            ->toBe('deprecated call');
+        Expect::that($restored->output?->diagnostics[0]->file)
+            ->toBe('/app/src/Foo.php');
+        Expect::that($restored->output?->diagnostics[0]->line)
+            ->toBe(21);
+        Expect::that($restored->output?->stdoutTruncated)
+            ->toBeTrue();
+        Expect::that($restored->output?->diagnosticsTruncated)
             ->toBeTrue();
         Expect::that($restored->risky)->because('survives the wire with full payload')->toBeTrue();
         Expect::that($restored->expectations)->because('survives the wire with full payload')->toBe(7);
@@ -180,11 +180,11 @@ final class TestResultTest
 
         Expect::that($errored->outcome)
             ->because('a later lifecycle error MUST replace the final outcome')
-            ->toBe(Outcome::Errored)
-            ->and($errored->error)
+            ->toBe(Outcome::Errored);
+        Expect::that($errored->error)
             ->because('the lifecycle error MUST remain available for diagnostics')
-            ->toBe($error)
-            ->and($errored->failures)
+            ->toBe($error);
+        Expect::that($errored->failures)
             ->because('a later lifecycle error MUST NOT discard earlier failure evidence')
             ->toBe([$failure]);
         Expect::that($errored->attempts)

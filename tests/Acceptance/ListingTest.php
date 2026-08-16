@@ -67,8 +67,8 @@ final readonly class ListingTest
 
         Expect::that($result->exitCode)
             ->because('list tests MUST report discovery failures')
-            ->toBe(1)
-            ->and($result->stderr)
+            ->toBe(1);
+        Expect::that($result->stderr)
             ->toBe(\sprintf(
                 'greenlight: Test file "%s" does not declare a class, interface, trait, or enum.',
                 $testFile,
@@ -147,8 +147,8 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-suites']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->because('list suites with no suites configured prints zero')->toBe(0)
-            ->and($output)->toContain('0 suites');
+        Expect::that($result->exitCode)->because('list suites with no suites configured prints zero')->toBe(0);
+        Expect::that($output)->toContain('0 suites');
     }
 
     /**

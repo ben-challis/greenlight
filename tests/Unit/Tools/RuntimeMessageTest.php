@@ -24,17 +24,17 @@ final readonly class RuntimeMessageTest
             ['GITHUB_STEP_SUMMARY' => $summary],
         );
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->stderr)->toContain(
-                \sprintf(
-                    'Greenlight did not find the coverage export at %s/build/coverage/coverage.json. Run `composer tests:coverage` first.',
-                    (string) \realpath($root),
-                ),
-            )
-            ->and((string) \file_get_contents($summary))->toBe(
-                "## Code coverage\n\n"
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->stderr)->toContain(
+            \sprintf(
+                'Greenlight did not find the coverage export at %s/build/coverage/coverage.json. Run `composer tests:coverage` first.',
+                (string) \realpath($root),
+            ),
+        );
+        Expect::that((string) \file_get_contents($summary))->toBe(
+            "## Code coverage\n\n"
                 . "**Coverage unavailable.** Greenlight did not produce the coverage export.\n\n",
-            );
+        );
     }
 
     #[Test]
@@ -48,10 +48,10 @@ final readonly class RuntimeMessageTest
             ['GITHUB_STEP_SUMMARY' => $summaryDirectory],
         );
 
-        Expect::that($result->exitCode)->toBe(1)
-            ->and($result->stderr)->toContain(
-                'Warning: Greenlight did not write the GitHub Actions job summary.',
-            );
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->stderr)->toContain(
+            'Warning: Greenlight did not write the GitHub Actions job summary.',
+        );
     }
 
     #[Test]
@@ -60,10 +60,10 @@ final readonly class RuntimeMessageTest
         [$missingRoot, $missingScript] = $this->toolSandbox('phpstan-missing', 'extract-phpstan-api.php');
         $missing = Subprocess::run($missingRoot, [\PHP_BINARY, $missingScript]);
 
-        Expect::that($missing->exitCode)->toBe(0)
-            ->and($missing->stdout)->toBe(
-                'The tool cannot extract the PHPStan API stubs because phpstan.phar is not installed.',
-            );
+        Expect::that($missing->exitCode)->toBe(0);
+        Expect::that($missing->stdout)->toBe(
+            'The tool cannot extract the PHPStan API stubs because phpstan.phar is not installed.',
+        );
 
         [$successRoot, $successScript] = $this->toolSandbox('phpstan-success', 'extract-phpstan-api.php');
         $pharPath = $successRoot . '/vendor/phpstan/phpstan/phpstan.phar';
@@ -91,14 +91,14 @@ final readonly class RuntimeMessageTest
         $success = Subprocess::run($successRoot, [\PHP_BINARY, $successScript]);
         $target = \realpath($successRoot) . '/.phpstan-api-stubs';
 
-        Expect::that($success->exitCode)->toBe(0)
-            ->and($success->stdout)->toBe(
-                \sprintf(
-                    'Greenlight extracted the PHPStan API sources to %s. Editors can index these sources.',
-                    $target,
-                ),
-            )
-            ->and(\is_file($target . '/src/Fixture.php'))->toBeTrue();
+        Expect::that($success->exitCode)->toBe(0);
+        Expect::that($success->stdout)->toBe(
+            \sprintf(
+                'Greenlight extracted the PHPStan API sources to %s. Editors can index these sources.',
+                $target,
+            ),
+        );
+        Expect::that(\is_file($target . '/src/Fixture.php'))->toBeTrue();
     }
 
     #[Test]
@@ -119,10 +119,10 @@ final readonly class RuntimeMessageTest
             '--root=' . $root,
         ]);
 
-        Expect::that($sentence->exitCode)->toBe(1)
-            ->and($sentence->stdout)->toContain(
-                'sample.md:3: sentence-length: Write no more than 25 words in a descriptive sentence. Found 27 words.',
-            );
+        Expect::that($sentence->exitCode)->toBe(1);
+        Expect::that($sentence->stdout)->toContain(
+            'sample.md:3: sentence-length: Write no more than 25 words in a descriptive sentence. Found 27 words.',
+        );
 
         \file_put_contents($root . '/sample.md', "# Sample\n\nThe worker stops.\n");
         $removedOption = Subprocess::run($root, [
@@ -133,8 +133,8 @@ final readonly class RuntimeMessageTest
             '--baseline-dir=' . $root . '/baseline',
         ]);
 
-        Expect::that($removedOption->exitCode)->toBe(1)
-            ->and($removedOption->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
+        Expect::that($removedOption->exitCode)->toBe(1);
+        Expect::that($removedOption->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
     }
 
     #[Test]
@@ -143,10 +143,10 @@ final readonly class RuntimeMessageTest
         [$missingRoot, $missingScript] = $this->toolSandbox('memory-missing', 'memory-gate.php');
         $missing = Subprocess::run($missingRoot, [\PHP_BINARY, $missingScript]);
 
-        Expect::that($missing->exitCode)->toBe(1)
-            ->and($missing->stderr)->toContain(
-                'The memory probe wrote no samples. The run did not reach the sample points.',
-            );
+        Expect::that($missing->exitCode)->toBe(1);
+        Expect::that($missing->stderr)->toContain(
+            'The memory probe wrote no samples. The run did not reach the sample points.',
+        );
 
         [$successRoot, $successScript] = $this->toolSandbox('memory-success', 'memory-gate.php');
         $binDirectory = $this->tempDirectory->subdirectory('memory-success/bin');
@@ -167,11 +167,11 @@ final readonly class RuntimeMessageTest
 
         $success = Subprocess::run($successRoot, [\PHP_BINARY, $successScript]);
 
-        Expect::that($success->exitCode)->toBe(0)
-            ->and($success->stdout)->toContain(
-                'Memory after 2000 tests: 1.00 MiB. Memory after 10000 tests: 1.50 MiB. '
+        Expect::that($success->exitCode)->toBe(0);
+        Expect::that($success->stdout)->toContain(
+            'Memory after 2000 tests: 1.00 MiB. Memory after 10000 tests: 1.50 MiB. '
                 . 'Drift: +524288 bytes. Limit: 1048576 bytes.',
-            );
+        );
     }
 
     #[Test]
@@ -187,8 +187,8 @@ final readonly class RuntimeMessageTest
             $script,
         ]);
 
-        Expect::that($result->exitCode)->toBe(255)
-            ->and($result->stderr)->toContain('Greenlight did not create directory "')
+        Expect::that($result->exitCode)->toBe(255);
+        Expect::that($result->stderr)->toContain('Greenlight did not create directory "')
             ->toContain('/suite".');
     }
 
@@ -208,10 +208,10 @@ final readonly class RuntimeMessageTest
             '--runs=1',
         ]);
 
-        Expect::that($directoryFailure->exitCode)->toBe(1)
-            ->and($directoryFailure->stderr)->toContain(
-                'Greenlight did not create the benchmark project directory.',
-            );
+        Expect::that($directoryFailure->exitCode)->toBe(1);
+        Expect::that($directoryFailure->stderr)->toContain(
+            'Greenlight did not create the benchmark project directory.',
+        );
 
         $fakeBin = $this->tempDirectory->subdirectory('benchmark-composer/bin');
         \file_put_contents(
@@ -237,10 +237,10 @@ final readonly class RuntimeMessageTest
             ['PATH' => $fakeBin . \PATH_SEPARATOR . (\is_string($path) ? $path : '')],
         );
 
-        Expect::that($composerFailure->exitCode)->toBe(1)
-            ->and($composerFailure->stderr)->toContain(
-                "Composer did not install PHPUnit and ParaTest:\nfixture composer failure",
-            );
+        Expect::that($composerFailure->exitCode)->toBe(1);
+        Expect::that($composerFailure->stderr)->toContain(
+            "Composer did not install PHPUnit and ParaTest:\nfixture composer failure",
+        );
     }
 
     /**

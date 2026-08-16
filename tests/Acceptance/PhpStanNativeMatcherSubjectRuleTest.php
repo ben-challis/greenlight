@@ -80,11 +80,11 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('native matchers require compatible subject types')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(17)
-            ->and($probe->messages())->toContain('toContain() requires a string or iterable subject')
-            ->and($probe->messages())->toContain('toContain() requires a string needle for a string subject')
-            ->and($probe->messages())->toContain('toMatchJson() requires a string subject');
+        Expect::that($probe->exitCode)->because('native matchers require compatible subject types')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(17);
+        Expect::that($probe->messages())->toContain('toContain() requires a string or iterable subject');
+        Expect::that($probe->messages())->toContain('toContain() requires a string needle for a string subject');
+        Expect::that($probe->messages())->toContain('toMatchJson() requires a string subject');
     }
 }

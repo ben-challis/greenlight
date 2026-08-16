@@ -31,8 +31,8 @@ final readonly class CoverageDiffErrorTest
 
         Expect::that($result->exitCode)
             ->because('missing coverage exports name their role')
-            ->toBe(1)
-            ->and($result->output())
+            ->toBe(1);
+        Expect::that($result->output())
             ->toContain(\sprintf(
                 'Greenlight could not read the %s coverage export at "%s.json"',
                 $missingLabel,
@@ -69,8 +69,8 @@ final readonly class CoverageDiffErrorTest
 
         Expect::that($result->exitCode)
             ->because('malformed coverage exports name their role')
-            ->toBe(1)
-            ->and($result->output())
+            ->toBe(1);
+        Expect::that($result->output())
             ->toContain(\sprintf(
                 'The %s file is not a valid coverage export: '
                 . 'Coverage JSON document is invalid: use an object for "files".',
@@ -97,8 +97,8 @@ final readonly class CoverageDiffErrorTest
 
         Expect::that($result->exitCode)
             ->because('empty readable exports are malformed instead of unreadable')
-            ->toBe(1)
-            ->and($result->output())
+            ->toBe(1);
+        Expect::that($result->output())
             ->toContain(\sprintf(
                 'The %s file is not a valid coverage export: '
                 . 'Coverage JSON document is invalid: Syntax error',

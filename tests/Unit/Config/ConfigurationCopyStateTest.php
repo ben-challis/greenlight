@@ -40,11 +40,11 @@ final class ConfigurationCopyStateTest
         Expect::that($copy)
             ->because('a configuration copy MUST be a new value')
             ->not()
-            ->toBe($original)
-            ->and(\get_object_vars($copy))
+            ->toBe($original);
+        Expect::that(\get_object_vars($copy))
             ->because('a configuration copy MUST change only its requested selection')
-            ->toBe($expectedState)
-            ->and(\get_object_vars($original))
+            ->toBe($expectedState);
+        Expect::that(\get_object_vars($original))
             ->because('a configuration copy MUST leave its source unchanged')
             ->toBe($originalState);
     }

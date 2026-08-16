@@ -26,9 +26,9 @@ final readonly class WorkerFailureContainmentTest
     {
         $result = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1)
-            ->and($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations')
-            ->and($result->output())->toContain('crashed during this test');
+        Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1);
+        Expect::that($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
+        Expect::that($result->output())->toContain('crashed during this test');
     }
 
     #[Test]
@@ -74,9 +74,9 @@ final readonly class WorkerFailureContainmentTest
             Fail::because('The crashed retry did not emit TestFinished.');
         }
 
-        Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1)
-            ->and($finished->result->outcome)->toBe(Outcome::Errored)
-            ->and($finished->result->attempts)->toBe(2);
+        Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
+        Expect::that($finished->result->outcome)->toBe(Outcome::Errored);
+        Expect::that($finished->result->attempts)->toBe(2);
     }
 
     #[Test]
@@ -92,13 +92,13 @@ final readonly class WorkerFailureContainmentTest
             Fail::because('The hard timeout did not emit TestFinished.');
         }
 
-        Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1)
-            ->and($result->output())->toContain('time limit')
-            ->and($durationSeconds)->toBeLessThan(20.0)
-            ->and($finished->result->outcome)->toBe(Outcome::Failed)
-            ->and($finished->result->durationSeconds)->toBeGreaterThan(0.1)
-            ->and($finished->result->failures)->toHaveCount(1)
-            ->and($finished->result->error)->toBeNull();
+        Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1);
+        Expect::that($result->output())->toContain('time limit');
+        Expect::that($durationSeconds)->toBeLessThan(20.0);
+        Expect::that($finished->result->outcome)->toBe(Outcome::Failed);
+        Expect::that($finished->result->durationSeconds)->toBeGreaterThan(0.1);
+        Expect::that($finished->result->failures)->toHaveCount(1);
+        Expect::that($finished->result->error)->toBeNull();
     }
 
     #[Test]
@@ -146,8 +146,8 @@ final readonly class WorkerFailureContainmentTest
 
         Expect::that($result->exitCode)
             ->because('a hard timeout MUST fail the run')
-            ->toBe(1)
-            ->and($failure->message)
+            ->toBe(1);
+        Expect::that($failure->message)
             ->because('a hard timeout MUST preserve the worker diagnostic output')
             ->toContain("Worker output:\nThe timed-out worker emitted diagnostics.");
     }

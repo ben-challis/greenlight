@@ -35,13 +35,13 @@ final class IncrementalConfiguratorTest
 
         Expect::that($coverage->includePaths)
             ->because('repeated coverage blocks MUST retain earlier settings')
-            ->toBe(['src', 'packages'])
-            ->and($coverage->driver)
-            ->toBe('pcov')
-            ->and(\array_map(
-                static fn(CoverageExport $export): array => [$export->format, $export->target],
-                $coverage->exports,
-            ))
+            ->toBe(['src', 'packages']);
+        Expect::that($coverage->driver)
+            ->toBe('pcov');
+        Expect::that(\array_map(
+            static fn(CoverageExport $export): array => [$export->format, $export->target],
+            $coverage->exports,
+        ))
             ->toBe([
                 ['lcov', 'build/coverage.lcov'],
                 ['html', 'build/html'],

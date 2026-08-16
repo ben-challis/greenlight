@@ -39,8 +39,8 @@ final readonly class ArtifactStagingCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Greenlight did not create the attachment staging file.',
-            )
-            ->and((string) \file_get_contents($part))
+            );
+        Expect::that((string) \file_get_contents($part))
             ->because('a rejected file attachment MUST NOT delete the existing staging part')
             ->toBe('occupied');
 
@@ -80,8 +80,8 @@ final readonly class ArtifactStagingCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Greenlight did not create the attachment staging file.',
-            )
-            ->and((string) \file_get_contents($part))
+            );
+        Expect::that((string) \file_get_contents($part))
             ->because('a rejected byte attachment MUST NOT delete the existing staging part')
             ->toBe('occupied');
 
@@ -122,8 +122,8 @@ final readonly class ArtifactStagingCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment staging path already exists.',
-            )
-            ->and((string) \file_get_contents($path))
+            );
+        Expect::that((string) \file_get_contents($path))
             ->because('a rejected attachment MUST NOT replace the existing staging file')
             ->toBe('occupied');
 

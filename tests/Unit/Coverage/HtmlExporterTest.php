@@ -129,8 +129,8 @@ final readonly class HtmlExporterTest
 
         Expect::that($index)->because('paths are shown relative to the project root')->toContain('>src/A.php<')
             ->not()->toContain('/proj/src/A.php')
-            ->toContain(HtmlExporter::pageName('/proj/src/A.php'))
-            ->and($filePage)->toContain('<h1>src/A.php</h1>');
+            ->toContain(HtmlExporter::pageName('/proj/src/A.php'));
+        Expect::that($filePage)->toContain('<h1>src/A.php</h1>');
     }
 
     #[Test]

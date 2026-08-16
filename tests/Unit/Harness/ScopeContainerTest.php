@@ -42,7 +42,8 @@ final class ScopeContainerTest
         $container->get($definition);
         $failures = $container->dispose();
 
-        Expect::that($failures)->because('an untouched lazy service is never constructed nor disposed')->toBe([])->and(TraceLog::drain())->toBe([]);
+        Expect::that($failures)->because('an untouched lazy service is never constructed nor disposed')->toBe([]);
+        Expect::that(TraceLog::drain())->toBe([]);
     }
 
     #[Test]
@@ -77,11 +78,11 @@ final class ScopeContainerTest
 
         Expect::that($firstFailures)
             ->because('disposing touched services succeeds')
-            ->toBe([])
-            ->and($secondFailures)
+            ->toBe([]);
+        Expect::that($secondFailures)
             ->because('a disposed scope does not dispose its services twice')
-            ->toBe([])
-            ->and(TraceLog::drain())
+            ->toBe([]);
+        Expect::that(TraceLog::drain())
             ->because('touched services dispose in reverse creation order')
             ->toBe([
                 'probe1:created',
@@ -115,8 +116,8 @@ final class ScopeContainerTest
         $probe->touch();
         $failures = $container->dispose();
 
-        Expect::that($failures)->because('disposal failures are collected not thrown')->toHaveCount(1)
-            ->and($failures[0]->getMessage())->toBe('disposal broke');
+        Expect::that($failures)->because('disposal failures are collected not thrown')->toHaveCount(1);
+        Expect::that($failures[0]->getMessage())->toBe('disposal broke');
     }
 
     #[Test]
@@ -145,13 +146,13 @@ final class ScopeContainerTest
 
         Expect::that($first)
             ->because('the first disposal reports the service failure')
-            ->toHaveCount(1)
-            ->and($first[0]->getMessage())
-            ->toBe('disposal broke')
-            ->and($second)
+            ->toHaveCount(1);
+        Expect::that($first[0]->getMessage())
+            ->toBe('disposal broke');
+        Expect::that($second)
             ->because('a failed disposal MUST still leave the scope empty')
-            ->toBe([])
-            ->and(FailingDisposable::disposals())
+            ->toBe([]);
+        Expect::that(FailingDisposable::disposals())
             ->toBe(1);
     }
 }

@@ -124,8 +124,8 @@ final readonly class DiscoveryCacheContentFingerprintTest
         try {
             Expect::that($cache->persist())
                 ->because('the discovery cache MUST persist the provider fingerprint')
-                ->toBeTrue()
-                ->and(DiscoveryCache::forDirectories([$directory])->lookup($source))
+                ->toBeTrue();
+            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('unchanged provider content MUST keep the cached plan entry')
                 ->not()
                 ->toBeNull();

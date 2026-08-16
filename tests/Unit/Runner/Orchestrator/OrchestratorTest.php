@@ -109,10 +109,10 @@ final class OrchestratorTest
 
         Expect::that($summary->passed)
             ->because('a legitimate worker MUST complete the plan after an invalid hello token')
-            ->toBe(1)
-            ->and($summary->isSuccessful())->toBeTrue()
-            ->and($results)->toHaveCount(1)
-            ->and((string) $results[0]->id)
+            ->toBe(1);
+        Expect::that($summary->isSuccessful())->toBeTrue();
+        Expect::that($results)->toHaveCount(1);
+        Expect::that((string) $results[0]->id)
             ->toBe(CleanTest::class . '::passesAndIsCollectable');
     }
 
@@ -143,8 +143,8 @@ final class OrchestratorTest
 
         Expect::that($summary->passed)
             ->because('a replacement worker MUST complete the undelivered assignment')
-            ->toBe(1)
-            ->and($workers)
+            ->toBe(1);
+        Expect::that($workers)
             ->because('the disconnected worker MUST NOT start the test class')
             ->toBe(['w-2']);
     }
@@ -435,11 +435,11 @@ final class OrchestratorTest
 
         Expect::that($summary->passed)
             ->because('the worker completes both assignments before it reaches its cumulative test budget')
-            ->toBe(2)
-            ->and($recycled)
+            ->toBe(2);
+        Expect::that($recycled)
             ->because('the cumulative test budget recycles the worker after its second assignment')
-            ->toHaveCount(1)
-            ->and($recycled[0]->reason)
+            ->toHaveCount(1);
+        Expect::that($recycled[0]->reason)
             ->toBe(RecycleReason::TestCount);
     }
 
@@ -460,12 +460,12 @@ final class OrchestratorTest
 
         Expect::that($summary->total())
             ->because('the failure limit MUST stop before the queued class assignment runs')
-            ->toBe(1)
-            ->and($summary->errored)
-            ->toBe(1)
-            ->and($results)
-            ->toHaveCount(1)
-            ->and((string) $results[0]->id)
+            ->toBe(1);
+        Expect::that($summary->errored)
+            ->toBe(1);
+        Expect::that($results)
+            ->toHaveCount(1);
+        Expect::that((string) $results[0]->id)
             ->toBe(AaTest::class . '::fails');
     }
 
@@ -485,10 +485,10 @@ final class OrchestratorTest
 
         Expect::that($summary->errored)
             ->because('a worker crash MUST produce one synthetic error result')
-            ->toBe(1)
-            ->and($results)
-            ->toHaveCount(1)
-            ->and($results[0]->error?->message)
+            ->toBe(1);
+        Expect::that($results)
+            ->toHaveCount(1);
+        Expect::that($results[0]->error?->message)
             ->because('the synthetic error MUST preserve the worker diagnostic output')
             ->toBe(
                 "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"

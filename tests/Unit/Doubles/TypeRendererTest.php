@@ -56,11 +56,11 @@ final class TypeRendererTest
 
         Expect::that(TypeRenderer::render($nullableClass, $context))
             ->because('nullable class names MUST retain valid PHP syntax')
-            ->toBe('?\ArrayObject')
-            ->and(TypeRenderer::render($mixed, $context))
+            ->toBe('?\ArrayObject');
+        Expect::that(TypeRenderer::render($mixed, $context))
             ->because('mixed MUST NOT gain a nullable prefix')
-            ->toBe('mixed')
-            ->and(TypeRenderer::render($null, $context))
+            ->toBe('mixed');
+        Expect::that(TypeRenderer::render($null, $context))
             ->because('null MUST NOT gain a nullable prefix')
             ->toBe('null');
     }

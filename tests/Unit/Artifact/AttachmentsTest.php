@@ -120,8 +120,8 @@ final readonly class AttachmentsTest
             attachments: $attachments->seal(),
         ));
 
-        Expect::that($published->attachments)->because('output directory is created only when evidence is published')->toBe([])
-            ->and(\file_exists($output))->toBeFalse();
+        Expect::that($published->attachments)->because('output directory is created only when evidence is published')->toBe([]);
+        Expect::that(\file_exists($output))->toBeFalse();
 
         $store->cleanup();
     }
@@ -516,9 +516,9 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attachments)->because('completed evidence can be recovered after a worker crash')->toHaveCount(1)
-            ->and($recovered->attachments[0]->name)->toBe('last-response.txt')
-            ->and(\is_file($recovered->attachments[0]->path))->toBeTrue();
+        Expect::that($recovered->attachments)->because('completed evidence can be recovered after a worker crash')->toHaveCount(1);
+        Expect::that($recovered->attachments[0]->name)->toBe('last-response.txt');
+        Expect::that(\is_file($recovered->attachments[0]->path))->toBeTrue();
 
         $store->cleanup();
     }
@@ -538,10 +538,10 @@ final readonly class AttachmentsTest
 
         Expect::that($recovered->attachments)
             ->because('corrupt recovery metadata MUST NOT hide completed evidence')
-            ->toHaveCount(1)
-            ->and($recovered->attachments[0]->name)
-            ->toBe('completed.txt')
-            ->and(\is_file($recovered->attachments[0]->path))
+            ->toHaveCount(1);
+        Expect::that($recovered->attachments[0]->name)
+            ->toBe('completed.txt');
+        Expect::that(\is_file($recovered->attachments[0]->path))
             ->toBeTrue();
 
         $store->cleanup();
@@ -561,9 +561,9 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attempts)->because('crash recovery restores the latest attempt without an attachment')->toBe(2)
-            ->and($recovered->attachments)->toHaveCount(1)
-            ->and($recovered->attachments[0]->attempt)->toBe(1);
+        Expect::that($recovered->attempts)->because('crash recovery restores the latest attempt without an attachment')->toBe(2);
+        Expect::that($recovered->attachments)->toHaveCount(1);
+        Expect::that($recovered->attachments[0]->attempt)->toBe(1);
 
         $store->cleanup();
     }

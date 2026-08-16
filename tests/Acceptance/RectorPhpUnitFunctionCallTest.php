@@ -45,8 +45,8 @@ final readonly class RectorPhpUnitFunctionCallTest
 
         Expect::that($probe->changed)
             ->because('a PHPUnit function call MUST remain unsupported')
-            ->toBeFalse()
-            ->and($probe->code)
+            ->toBeFalse();
+        Expect::that($probe->code)
             ->because('an unsupported class MUST remain byte-identical')
             ->toBe($source);
     }

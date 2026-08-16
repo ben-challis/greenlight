@@ -76,12 +76,12 @@ final class PluginTest
 
         $quarantined = $byMethod['flakyAndQuarantined'];
 
-        Expect::that($quarantined->outcome)->because('quarantine plugin transforms failures with provenance')->toBe(Outcome::Skipped)
-            ->and($quarantined->transformations)->toHaveCount(1)
-            ->and($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class)
-            ->and($quarantined->transformations[0]->from)->toBe(Outcome::Errored)
-            ->and($quarantined->transformations[0]->to)->toBe(Outcome::Skipped)
-            ->and($byMethod['passes']->outcome)->toBe(Outcome::Passed);
+        Expect::that($quarantined->outcome)->because('quarantine plugin transforms failures with provenance')->toBe(Outcome::Skipped);
+        Expect::that($quarantined->transformations)->toHaveCount(1);
+        Expect::that($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class);
+        Expect::that($quarantined->transformations[0]->from)->toBe(Outcome::Errored);
+        Expect::that($quarantined->transformations[0]->to)->toBe(Outcome::Skipped);
+        Expect::that($byMethod['passes']->outcome)->toBe(Outcome::Passed);
     }
 
     #[Test]
@@ -109,8 +109,8 @@ final class PluginTest
 
         Expect::that($results[0]->outcome)
             ->because('unattributed outcome changes error the test naming the plugin')
-            ->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)
+            ->toBe(Outcome::Errored);
+        Expect::that($results[0]->error?->message)
             ->toBe($message);
     }
 
@@ -139,10 +139,10 @@ final class PluginTest
 
         Expect::that((string) $result->id)
             ->because('afterTest() MUST NOT replace the executed test identity')
-            ->toBe($expectedId)
-            ->and($result->outcome)
-            ->toBe(Outcome::Errored)
-            ->and($result->error?->message)
+            ->toBe($expectedId);
+        Expect::that($result->outcome)
+            ->toBe(Outcome::Errored);
+        Expect::that($result->error?->message)
             ->toBe(\sprintf(
                 'Plugin "%s" changed the test identity during afterTest() from "%s" to "Rogue\\InjectedTest::wrong".',
                 $rogue::class,
@@ -175,8 +175,8 @@ final class PluginTest
 
         Expect::that($results[0]->outcome)
             ->because('throwing before test errors the test naming the plugin')
-            ->toBe(Outcome::Errored)
-            ->and($results[0]->error?->message)
+            ->toBe(Outcome::Errored);
+        Expect::that($results[0]->error?->message)
             ->toBe($message);
     }
 
@@ -209,8 +209,8 @@ final class PluginTest
         // The passed test becomes an error that names the plugin.
         Expect::that($byMethod['passes']->outcome)
             ->because('throwing after test keeps the outcome and records the plugin failure')
-            ->toBe(Outcome::Errored)
-            ->and($byMethod['passes']->error?->message)
+            ->toBe(Outcome::Errored);
+        Expect::that($byMethod['passes']->error?->message)
             ->toBe($pluginFailure);
 
         // The test keeps its original error. Greenlight records the plugin
@@ -218,10 +218,10 @@ final class PluginTest
         $errored = $byMethod['explodes'];
         Expect::that($errored->outcome)
             ->because('throwing after test keeps the outcome and records the plugin failure')
-            ->toBe(Outcome::Errored)
-            ->and($errored->error?->message)
-            ->toContain('intentional boom')
-            ->and($errored->failures[0]->message ?? '')
+            ->toBe(Outcome::Errored);
+        Expect::that($errored->error?->message)
+            ->toContain('intentional boom');
+        Expect::that($errored->failures[0]->message ?? '')
             ->toBe($pluginFailure);
 
         // The test keeps its assertion failure. Greenlight adds the plugin
@@ -230,14 +230,14 @@ final class PluginTest
         $failed = $failedResults[0];
         Expect::that($failed->outcome)
             ->because('a plugin failure MUST NOT replace an assertion failure')
-            ->toBe(Outcome::Failed)
-            ->and($failed->error)
-            ->toBe(null)
-            ->and($failed->failures)
-            ->toHaveCount(2)
-            ->and($failed->failures[0]->message)
-            ->toContain('intentional assertion failure')
-            ->and($failed->failures[1]->message)
+            ->toBe(Outcome::Failed);
+        Expect::that($failed->error)
+            ->toBe(null);
+        Expect::that($failed->failures)
+            ->toHaveCount(2);
+        Expect::that($failed->failures[0]->message)
+            ->toContain('intentional assertion failure');
+        Expect::that($failed->failures[1]->message)
             ->toBe($pluginFailure);
     }
 
@@ -266,11 +266,11 @@ final class PluginTest
 
         Expect::that($byMethod['passes']->outcome)
             ->because('a retry decider MUST NOT run after a successful test')
-            ->toBe(Outcome::Passed)
-            ->and($byMethod['explodes']->outcome)
+            ->toBe(Outcome::Passed);
+        Expect::that($byMethod['explodes']->outcome)
             ->because('a retry decider failure MUST error the unsuccessful test')
-            ->toBe(Outcome::Errored)
-            ->and($byMethod['explodes']->error?->message)
+            ->toBe(Outcome::Errored);
+        Expect::that($byMethod['explodes']->error?->message)
             ->toBe('retry decision failed');
     }
 
@@ -293,8 +293,8 @@ final class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::that($summary->skipped)->because('context skip from before test skips the test')->toBe(1)
-            ->and($results[0]->skipReason)->toBe('flaky on this platform');
+        Expect::that($summary->skipped)->because('context skip from before test skips the test')->toBe(1);
+        Expect::that($results[0]->skipReason)->toBe('flaky on this platform');
     }
 
     #[Test]
@@ -322,8 +322,8 @@ final class PluginTest
 
         Expect::that($summary->skipped)
             ->because('the plugin skip stops test execution')
-            ->toBe(1)
-            ->and(TraceLog::drain())
+            ->toBe(1);
+        Expect::that(TraceLog::drain())
             ->because('the plugin skip MUST preserve fixture and subscriber teardown order')
             ->toBe(['construct', 'after2', 'after1', 'plugin-after']);
     }
@@ -347,8 +347,8 @@ final class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::that($summary->skipped)->because('skip signal from before test skips the test')->toBe(1)
-            ->and($results[0]->skipReason)->toBe('quarantined environment');
+        Expect::that($summary->skipped)->because('skip signal from before test skips the test')->toBe(1);
+        Expect::that($results[0]->skipReason)->toBe('quarantined environment');
     }
 
     #[Test]
@@ -411,8 +411,8 @@ final class PluginTest
 
         [$summary] = $this->runSuite('Lifecycle/Services', [new ProbeProvider()]);
 
-        Expect::that($summary->passed)->because('harness providers contribute injectable services')->toBe(2)
-            ->and(TraceLog::drain())->toContain('probe1:disposed');
+        Expect::that($summary->passed)->because('harness providers contribute injectable services')->toBe(2);
+        Expect::that(TraceLog::drain())->toContain('probe1:disposed');
     }
 
     #[Test]

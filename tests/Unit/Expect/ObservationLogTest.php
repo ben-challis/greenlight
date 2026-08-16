@@ -23,8 +23,8 @@ final class ObservationLogTest
 
         Expect::that($log->count())
             ->because('the observation count includes compressed and omitted values')
-            ->toBe(6)
-            ->and($log->render())
+            ->toBe(6);
+        Expect::that($log->render())
             ->because('the history keeps the first observation and the latest three value groups')
             ->toBe(
                 "+0.0ms same (×2)\n"
@@ -45,8 +45,8 @@ final class ObservationLogTest
 
         Expect::that($log->count())
             ->because('the observation count includes repeated tail values')
-            ->toBe(3)
-            ->and($log->render())
+            ->toBe(3);
+        Expect::that($log->render())
             ->because('consecutive tail values are one group with a repeat count')
             ->toBe("+0.0ms first\n+1.0ms changed (×2)");
     }

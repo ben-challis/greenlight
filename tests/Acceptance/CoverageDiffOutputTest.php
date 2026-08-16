@@ -44,8 +44,8 @@ final readonly class CoverageDiffOutputTest
 
         Expect::that($result->exitCode)
             ->because('removing an uncovered file MUST NOT fail the coverage diff')
-            ->toBe(0)
-            ->and($result->output())
+            ->toBe(0);
+        Expect::that($result->output())
             ->because('a removed zero-percent file has no useful file-level delta')
             ->toBe('Coverage: baseline 50.00%, current 100.00% (+50.00)');
     }

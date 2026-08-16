@@ -38,11 +38,11 @@ final class AssertionMapTest
             Fail::because(\sprintf('Expected a conversion for PHPUnit assertion "%s".', $method));
         }
 
-        Expect::that($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher'])
-            ->and($conversion->subject)->toBe($expected['subject'])
-            ->and($conversion->matcherArguments)->toBe($expected['matcherArguments'])
-            ->and($conversion->arity)->toBe($expected['arity'])
-            ->and($conversion->negated)->toBe($expected['negated']);
+        Expect::that($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher']);
+        Expect::that($conversion->subject)->toBe($expected['subject']);
+        Expect::that($conversion->matcherArguments)->toBe($expected['matcherArguments']);
+        Expect::that($conversion->arity)->toBe($expected['arity']);
+        Expect::that($conversion->negated)->toBe($expected['negated']);
     }
 
     /**

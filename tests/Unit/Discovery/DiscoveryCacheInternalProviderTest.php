@@ -52,8 +52,8 @@ final readonly class DiscoveryCacheInternalProviderTest
 
             Expect::that(new \ReflectionMethod($providerClass, 'listAbbreviations')->getFileName())
                 ->because('the inherited provider method belongs to the PHP runtime')
-                ->toBeFalse()
-                ->and($cache->persist())
+                ->toBeFalse();
+            Expect::that($cache->persist())
                 ->because('an internal provider method MUST NOT block cache persistence')
                 ->toBeTrue();
 

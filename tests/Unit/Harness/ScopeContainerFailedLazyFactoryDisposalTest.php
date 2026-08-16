@@ -45,11 +45,11 @@ final class ScopeContainerFailedLazyFactoryDisposalTest
 
         Expect::that($factoryCalls)
             ->because('scope disposal MUST NOT retry a failed lazy factory')
-            ->toBe(1)
-            ->and($failures)
+            ->toBe(1);
+        Expect::that($failures)
             ->because('an uninitialized service has nothing to dispose')
-            ->toBe([])
-            ->and(LazyDisposableFactoryProbe::disposals())
+            ->toBe([]);
+        Expect::that(LazyDisposableFactoryProbe::disposals())
             ->toBe(0);
     }
 }

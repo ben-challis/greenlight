@@ -56,8 +56,8 @@ final class StdinKeyInputTest
 
         Expect::that($blocking)
             ->because('terminal input becomes non-blocking')
-            ->toBe([false])
-            ->and($commands)
+            ->toBe([false]);
+        Expect::that($commands)
             ->because('terminal input enables raw mode')
             ->toBe(['stty -icanon -echo < /dev/tty 2> /dev/null']);
 
@@ -94,8 +94,8 @@ final class StdinKeyInputTest
 
         Expect::that($blocking)
             ->because('non-terminal input MUST remain non-blocking')
-            ->toBe([false])
-            ->and($commands)
+            ->toBe([false]);
+        Expect::that($commands)
             ->because('non-terminal input does not change terminal mode')
             ->toBe([]);
     }
