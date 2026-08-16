@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\MethodCallContract;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Wide;
@@ -48,6 +49,18 @@ final readonly class MethodArgumentContractTest
             );
 
         $doubles->dispose();
+    }
+
+    #[Test]
+    public function theCallContractRejectsMissingRequiredArguments(): void
+    {
+        $contract = MethodCallContract::from(Wide::class, 'unionType');
+
+        Expect::that(static fn() => $contract->assertCallArgumentCount(0))
+            ->toThrow(
+                DoublesError::class,
+                '/supplies 0 arguments, but the method requires 1 argument/',
+            );
     }
 
     /** @return non-empty-string */
