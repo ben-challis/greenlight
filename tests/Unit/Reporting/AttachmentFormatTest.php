@@ -36,8 +36,9 @@ final class AttachmentFormatTest
                 "    attachments:\n"
                 . "      attachment-1.txt (text/plain, 5 bytes): "
                 . "build/attachments/attachment-1.txt\n",
-            )
-            ->and(AttachmentFormat::paths($attachments))
+            );
+
+        Expect::that(AttachmentFormat::paths($attachments))
             ->because(
                 'machine-readable attachment metadata includes its name and path',
             )
@@ -51,14 +52,23 @@ final class AttachmentFormatTest
         $rendered = AttachmentFormat::render($this->result($attachments));
         $paths = AttachmentFormat::paths($attachments);
 
-        foreach ([$rendered, $paths] as $output) {
-            Expect::that($output)
-                ->because('attachment lists are bounded and report the remainder')
-                ->toContain('attachment-1.txt')
-                ->toContain('attachment-10.txt')
-                ->toContain('and 2 more')
-                ->not()->toContain('attachment-11.txt');
-        }
+        Expect::that($rendered)
+            ->because(
+                'the human-readable attachment list is bounded and reports the remainder',
+            )
+            ->toContain('attachment-1.txt')
+            ->toContain('attachment-10.txt')
+            ->toContain('and 2 more')
+            ->not()->toContain('attachment-11.txt');
+
+        Expect::that($paths)
+            ->because(
+                'the machine-readable attachment path list is bounded and reports the remainder',
+            )
+            ->toContain('attachment-1.txt')
+            ->toContain('attachment-10.txt')
+            ->toContain('and 2 more')
+            ->not()->toContain('attachment-11.txt');
     }
 
     /**
