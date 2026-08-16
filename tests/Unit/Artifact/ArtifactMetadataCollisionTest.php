@@ -49,11 +49,11 @@ final readonly class ArtifactMetadataCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Failed to finalize attachment recovery metadata.',
-            )
-            ->and(\is_dir($metadata))
+            );
+        Expect::that(\is_dir($metadata))
             ->because('rollback MUST preserve pre-existing metadata blockers')
-            ->toBeTrue()
-            ->and(\file_exists($staging . '/' . $storageKey))
+            ->toBeTrue();
+        Expect::that(\file_exists($staging . '/' . $storageKey))
             ->because('rollback MUST remove attachment content without completed metadata')
             ->toBeFalse();
 

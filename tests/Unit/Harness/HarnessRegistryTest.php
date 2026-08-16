@@ -34,8 +34,8 @@ final class HarnessRegistryTest
             ->toThrow(
                 \LogicException::class,
                 message: 'A harness service for ArrayObject is already registered.',
-            )
-            ->and($registry->find(\ArrayObject::class))
+            );
+        Expect::that($registry->find(\ArrayObject::class))
             ->because('a rejected duplicate does not replace the registered definition')
             ->toBe($registered);
     }

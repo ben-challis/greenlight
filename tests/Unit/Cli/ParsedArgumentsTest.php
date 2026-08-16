@@ -32,13 +32,13 @@ final class ParsedArgumentsTest
 
         Expect::that($arguments->values('option'))
             ->because('repeatable values retain input order and omit absent values')
-            ->toBe(['first', 'last'])
-            ->and($arguments->has('flag'))
+            ->toBe(['first', 'last']);
+        Expect::that($arguments->has('flag'))
             ->because('a flag with no value is still present')
-            ->toBeTrue()
-            ->and($arguments->value('flag'))
-            ->toBeNull()
-            ->and($arguments->has('missing'))
+            ->toBeTrue();
+        Expect::that($arguments->value('flag'))
+            ->toBeNull();
+        Expect::that($arguments->has('missing'))
             ->toBeFalse();
     }
 
@@ -51,8 +51,8 @@ final class ParsedArgumentsTest
 
         Expect::that($arguments->values('option'))
             ->because('repeatable option values MUST remove only absent null entries')
-            ->toBe(['', '0'])
-            ->and($arguments->value('option'))
+            ->toBe(['', '0']);
+        Expect::that($arguments->value('option'))
             ->because('a singular option lookup MUST preserve a final zero string')
             ->toBe('0');
     }

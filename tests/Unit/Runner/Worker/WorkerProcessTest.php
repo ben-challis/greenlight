@@ -39,8 +39,8 @@ final class WorkerProcessTest
 
         Expect::that($result->exitCode)
             ->because('a worker connection failure MUST fail startup')
-            ->toBe(1)
-            ->and($result->stderr)
+            ->toBe(1);
+        Expect::that($result->stderr)
             ->toContain('The worker did not connect to ' . $address . ':');
     }
 
@@ -109,11 +109,11 @@ final class WorkerProcessTest
 
             Expect::that($workerExit)
                 ->because('an assignment setup failure MUST stop the worker abnormally')
-                ->toBe(1)
-                ->and($serverResult->exitCode)
+                ->toBe(1);
+            Expect::that($serverResult->exitCode)
                 ->because('the orchestrator fixture MUST receive the worker fatal message')
-                ->toBe(0)
-                ->and($serverResult->stdout)
+                ->toBe(0);
+            Expect::that($serverResult->stdout)
                 ->toContain("Greenlight\\Config\\ConfigFileError\n")
                 ->toContain('Configuration file "' . $missingConfig . '" does not exist.');
         } finally {
@@ -127,8 +127,8 @@ final class WorkerProcessTest
     {
         [$workerExit, $serverExit] = $this->runScenario('idle-then-drain');
 
-        Expect::that($workerExit)->toBe(0)
-            ->and($serverExit)->toBe(0);
+        Expect::that($workerExit)->toBe(0);
+        Expect::that($serverExit)->toBe(0);
     }
 
     #[Test]
@@ -139,8 +139,8 @@ final class WorkerProcessTest
 
         Expect::that($workerExit)
             ->because('an empty assignment MUST complete and leave the worker available to drain')
-            ->toBe(0)
-            ->and($serverExit)
+            ->toBe(0);
+        Expect::that($serverExit)
             ->because('the protocol fixture MUST receive the empty completion before it drains the worker')
             ->toBe(0);
     }
@@ -153,8 +153,8 @@ final class WorkerProcessTest
 
         Expect::that($workerExit)
             ->because('a worker above its memory threshold MUST exit cleanly')
-            ->toBe(0)
-            ->and($serverExit)
+            ->toBe(0);
+        Expect::that($serverExit)
             ->because('the protocol fixture MUST receive the memory recycle request')
             ->toBe(0);
     }
@@ -167,8 +167,8 @@ final class WorkerProcessTest
 
         Expect::that($workerExit)
             ->because('a worker that reaches its test-count budget MUST exit cleanly')
-            ->toBe(0)
-            ->and($serverExit)
+            ->toBe(0);
+        Expect::that($serverExit)
             ->because('the protocol fixture MUST receive the completed result and recycle reason')
             ->toBe(0);
     }
@@ -181,8 +181,8 @@ final class WorkerProcessTest
 
         Expect::that($workerExit)
             ->because('a worker that reaches its cumulative test-count budget MUST exit cleanly')
-            ->toBe(0)
-            ->and($serverExit)
+            ->toBe(0);
+        Expect::that($serverExit)
             ->because('the protocol fixture MUST receive both completions before recycling')
             ->toBe(0);
     }
@@ -196,8 +196,8 @@ final class WorkerProcessTest
 
         Expect::that($workerExit)
             ->because('a control-channel ending MUST stop the worker cleanly')
-            ->toBe(0)
-            ->and($serverExit)
+            ->toBe(0);
+        Expect::that($serverExit)
             ->toBe(0);
     }
 

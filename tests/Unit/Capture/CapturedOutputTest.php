@@ -26,14 +26,14 @@ final class CapturedOutputTest
 
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip($original->toWire()));
 
-        Expect::that($restored->stdout)->because('survives a JSON round trip')->toBe('some output')
-            ->and($restored->stdoutTruncated)->toBeTrue()
-            ->and($restored->diagnosticsTruncated)->toBeFalse()
-            ->and($restored->diagnostics)->toHaveCount(1)
-            ->and($restored->diagnostics[0]->severity)->toBe(DiagnosticSeverity::Warning)
-            ->and($restored->diagnostics[0]->message)->toBe('careful')
-            ->and($restored->diagnostics[0]->file)->toBe('/tmp/UserTest.php')
-            ->and($restored->diagnostics[0]->line)->toBe(42);
+        Expect::that($restored->stdout)->because('survives a JSON round trip')->toBe('some output');
+        Expect::that($restored->stdoutTruncated)->toBeTrue();
+        Expect::that($restored->diagnosticsTruncated)->toBeFalse();
+        Expect::that($restored->diagnostics)->toHaveCount(1);
+        Expect::that($restored->diagnostics[0]->severity)->toBe(DiagnosticSeverity::Warning);
+        Expect::that($restored->diagnostics[0]->message)->toBe('careful');
+        Expect::that($restored->diagnostics[0]->file)->toBe('/tmp/UserTest.php');
+        Expect::that($restored->diagnostics[0]->line)->toBe(42);
     }
 
     #[Test]
@@ -48,10 +48,10 @@ final class CapturedOutputTest
 
         Expect::that($restored->stdout)->because('wire serialization replaces invalid bytes')->toMatch('//u')
             ->toContain('stdout with')
-            ->toContain('1')
-            ->and(\preg_match('//u', $restored->diagnostics[0]->message))->toBe(1)
-            ->and($restored->diagnostics[0]->message)->toContain('message with')
-            ->and(\preg_match('//u', $restored->diagnostics[0]->file))->toBe(1);
+            ->toContain('1');
+        Expect::that(\preg_match('//u', $restored->diagnostics[0]->message))->toBe(1);
+        Expect::that($restored->diagnostics[0]->message)->toContain('message with');
+        Expect::that(\preg_match('//u', $restored->diagnostics[0]->file))->toBe(1);
     }
 
     #[Test]
@@ -59,10 +59,10 @@ final class CapturedOutputTest
     {
         $restored = CapturedOutput::fromWire(JsonWire::roundTrip(new CapturedOutput('')->toWire()));
 
-        Expect::that($restored->stdout)->because('wire serialization preserves an empty capture')->toBe('')
-            ->and($restored->diagnostics)->toBe([])
-            ->and($restored->stdoutTruncated)->toBeFalse()
-            ->and($restored->diagnosticsTruncated)->toBeFalse();
+        Expect::that($restored->stdout)->because('wire serialization preserves an empty capture')->toBe('');
+        Expect::that($restored->diagnostics)->toBe([]);
+        Expect::that($restored->stdoutTruncated)->toBeFalse();
+        Expect::that($restored->diagnosticsTruncated)->toBeFalse();
     }
 
     #[Test]

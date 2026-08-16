@@ -20,10 +20,10 @@ final class InternalWorkerArityTest
 
         Expect::that($result->exitCode)
             ->because('the internal worker entry MUST accept exactly three operands')
-            ->toBe(64)
-            ->and($result->stderr)
-            ->toBe('__worker requires <address> <workerId> <token>.')
-            ->and($result->stdout)
+            ->toBe(64);
+        Expect::that($result->stderr)
+            ->toBe('__worker requires <address> <workerId> <token>.');
+        Expect::that($result->stdout)
             ->toBe('');
     }
 }

@@ -51,8 +51,8 @@ final readonly class RectorTicketGroupTest
 
         Expect::that($probe->changed)
             ->because('the ticket attribute MUST be convertible')
-            ->toBeTrue()
-            ->and($probe->code)
+            ->toBeTrue();
+        Expect::that($probe->code)
             ->because('the converted group MUST keep the ticket identifier')
             ->toContain("#[\Greenlight\Attribute\Group('GH-123')]");
 
@@ -78,8 +78,8 @@ final readonly class RectorTicketGroupTest
 
         Expect::that($run->exitCode)
             ->because('the converted ticket group MUST select its test')
-            ->toBe(0)
-            ->and($run->stdout)
+            ->toBe(0);
+        Expect::that($run->stdout)
             ->toContain('1 test, 1 passed')
             ->not()
             ->toContain('2 tests');

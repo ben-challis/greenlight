@@ -54,8 +54,8 @@ final class RunHeaderTest
         $header = new RunHeader('dev-main', null, null, phpVersion: '8.4.0');
 
         Expect::that($header->render(1, new Style(ansi: false)))->because('flags a missing configuration file')
-            ->toBe("Greenlight dev-main\nPHP 8.4.0 | configuration: (none) | workers: 1")
-            ->and($header->render(1, new Style(ansi: true)))
+            ->toBe("Greenlight dev-main\nPHP 8.4.0 | configuration: (none) | workers: 1");
+        Expect::that($header->render(1, new Style(ansi: true)))
             ->toContain("\x1b[33mconfiguration: (none)\x1b[0m");
     }
 
@@ -65,8 +65,8 @@ final class RunHeaderTest
         $header = new RunHeader('dev-main', 'greenlight.php', null, phpVersion: '8.4.0', workerFallback: true);
 
         Expect::that($header->render(1, new Style(ansi: true)))->because('flags the worker fallback')
-            ->toContain("\x1b[33mworkers: 1\x1b[0m")
-            ->and($header->render(1, new Style(ansi: false)))
+            ->toContain("\x1b[33mworkers: 1\x1b[0m");
+        Expect::that($header->render(1, new Style(ansi: false)))
             ->toContain('workers: 1');
     }
 

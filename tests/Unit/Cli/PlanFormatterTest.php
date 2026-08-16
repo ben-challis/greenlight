@@ -76,8 +76,8 @@ final class PlanFormatterTest
 
         Expect::that($formatted)
             ->because('the plan names runtime seed selection and configured plugins')
-            ->toContain('  order: random (seed chosen at run time)')
-            ->and($formatted)
+            ->toContain('  order: random (seed chosen at run time)');
+        Expect::that($formatted)
             ->toContain('  plugins: ' . NamedFakePlugin::class);
     }
 

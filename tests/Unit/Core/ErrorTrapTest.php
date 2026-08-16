@@ -56,8 +56,8 @@ final class ErrorTrapTest
 
             Expect::that($warning)
                 ->because('the trap MUST retain the diagnostic for its caller')
-                ->toBe('trapped warning')
-                ->and($handled)
+                ->toBe('trapped warning');
+            Expect::that($handled)
                 ->because('the trap MUST NOT send the diagnostic to the host error handler')
                 ->toBe([]);
         } finally {
@@ -80,8 +80,8 @@ final class ErrorTrapTest
 
         Expect::that($innerWarning)
             ->because('the inner trap MUST capture its own diagnostic')
-            ->toBe('inner warning')
-            ->and($outerWarning)
+            ->toBe('inner warning');
+        Expect::that($outerWarning)
             ->because('the outer trap MUST resume after the inner trap')
             ->toBe('outer after inner');
     }

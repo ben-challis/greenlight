@@ -23,8 +23,8 @@ final class ResultSummaryOutcomeTest
 
         Expect::that($original->add($outcome)->toWire())
             ->because('adding an outcome MUST increment only its matching summary count')
-            ->toBe($expected)
-            ->and($original->toWire())
+            ->toBe($expected);
+        Expect::that($original->toWire())
             ->because('adding an outcome MUST leave the original summary unchanged')
             ->toBe([
                 'passed' => 1,

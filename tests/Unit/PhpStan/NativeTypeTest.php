@@ -34,8 +34,8 @@ final class NativeTypeTest
 
         Expect::that($mapped->isObject()->yes())
             ->because('reflected object types stay object types')
-            ->toBeTrue()
-            ->and($mapped->getObjectClassNames())
+            ->toBeTrue();
+        Expect::that($mapped->getObjectClassNames())
             ->because('reflected object types keep every required class')
             ->toBe($expected);
     }
@@ -49,8 +49,8 @@ final class NativeTypeTest
 
         Expect::that($mapped::class)
             ->because('literal native booleans map to PHPStan boolean constants')
-            ->toBe(ConstantBooleanType::class)
-            ->and($mapped->describe(VerbosityLevel::typeOnly()))
+            ->toBe(ConstantBooleanType::class);
+        Expect::that($mapped->describe(VerbosityLevel::typeOnly()))
             ->toBe($expected ? 'true' : 'false');
     }
 

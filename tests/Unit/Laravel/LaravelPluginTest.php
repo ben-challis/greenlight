@@ -149,10 +149,10 @@ final class LaravelPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
-        })->toThrow(LaravelBridgeError::class, matching: '/does not exist.*bootstrap\/app\.php/s')
-            ->and(\getenv('APP_ENV'))->toBe('before-laravel')
-            ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
-            ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
+        })->toThrow(LaravelBridgeError::class, matching: '/does not exist.*bootstrap\/app\.php/s');
+        Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
+        Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
+        Expect::that($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
     }
 
     #[Test]
@@ -228,11 +228,11 @@ final class LaravelPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
-        })->toThrow(\RuntimeException::class, matching: '/could not bootstrap/')
-            ->and(Container::getInstance())->toBe($container)
-            ->and(\getenv('APP_ENV'))->toBe('before-laravel')
-            ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
-            ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
+        })->toThrow(\RuntimeException::class, matching: '/could not bootstrap/');
+        Expect::that(Container::getInstance())->toBe($container);
+        Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
+        Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
+        Expect::that($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
     }
 
     #[Test]
@@ -251,10 +251,10 @@ final class LaravelPluginTest
             ));
         }
 
-        Expect::that($definitions)->toHaveCount(1)
-            ->and($definition->type)->toBe(Application::class)
-            ->and($definition->scope)->toBe(Scope::PerTest)
-            ->and(($definition->factory)())->toBe($first);
+        Expect::that($definitions)->toHaveCount(1);
+        Expect::that($definition->type)->toBe(Application::class);
+        Expect::that($definition->scope)->toBe(Scope::PerTest);
+        Expect::that(($definition->factory)())->toBe($first);
     }
 
     #[Test]
@@ -327,9 +327,9 @@ final class LaravelPluginTest
             ));
         }
 
-        Expect::that($returned)->toBe($result)
-            ->and($second->count())->toBe(0)
-            ->and($second === $counter)->toBe(false);
+        Expect::that($returned)->toBe($result);
+        Expect::that($second->count())->toBe(0);
+        Expect::that($second === $counter)->toBe(false);
     }
 
     #[Test]
@@ -352,8 +352,8 @@ final class LaravelPluginTest
         $counter->record();
         $plugin->afterTest($this->context(), $this->result());
 
-        Expect::that($counter->count())->toBe(1)
-            ->and($plugin->resolve(VisitCounter::class, []))->toBe($counter);
+        Expect::that($counter->count())->toBe(1);
+        Expect::that($plugin->resolve(VisitCounter::class, []))->toBe($counter);
     }
 
     #[Test]
@@ -369,7 +369,8 @@ final class LaravelPluginTest
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
 
-        Expect::that($booted)->toBe(false)->and($returned)->toBe($result);
+        Expect::that($booted)->toBe(false);
+        Expect::that($returned)->toBe($result);
     }
 
     #[Test]
@@ -380,16 +381,16 @@ final class LaravelPluginTest
         $plugin = $this->plugin();
         $app = ($plugin->services()[0]->factory)();
 
-        Expect::that(Facade::getFacadeApplication())->toBe($app)
-            ->and(Container::getInstance())->toBe($app);
+        Expect::that(Facade::getFacadeApplication())->toBe($app);
+        Expect::that(Container::getInstance())->toBe($app);
 
         $plugin->afterTest($this->context(), $this->result());
 
-        Expect::that(Facade::getFacadeApplication())->toBeNull()
-            ->and(Container::getInstance())->toBe($container)
-            ->and(\getenv('APP_ENV'))->toBe('before-laravel')
-            ->and($_ENV['APP_ENV'] ?? null)->toBe('before-laravel')
-            ->and($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
+        Expect::that(Facade::getFacadeApplication())->toBeNull();
+        Expect::that(Container::getInstance())->toBe($container);
+        Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
+        Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
+        Expect::that($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
     }
 
     #[Test]
@@ -402,20 +403,20 @@ final class LaravelPluginTest
 
         Expect::that(\getenv('APP_ENV'))
             ->because('Laravel boot MUST set the configured application environment')
-            ->toBe('testing')
-            ->and($_ENV['APP_ENV'] ?? null)
-            ->toBe('testing')
-            ->and($_SERVER['APP_ENV'] ?? null)
+            ->toBe('testing');
+        Expect::that($_ENV['APP_ENV'] ?? null)
+            ->toBe('testing');
+        Expect::that($_SERVER['APP_ENV'] ?? null)
             ->toBe('testing');
 
         $plugin->afterTest($this->context(), $this->result());
 
         Expect::that(\getenv('APP_ENV'))
             ->because('application release MUST remove an environment that was initially absent')
-            ->toBeFalse()
-            ->and(\array_key_exists('APP_ENV', $_ENV))
-            ->toBeFalse()
-            ->and(\array_key_exists('APP_ENV', $_SERVER))
+            ->toBeFalse();
+        Expect::that(\array_key_exists('APP_ENV', $_ENV))
+            ->toBeFalse();
+        Expect::that(\array_key_exists('APP_ENV', $_SERVER))
             ->toBeFalse();
     }
 
@@ -435,9 +436,9 @@ final class LaravelPluginTest
         $exceptionAfter = \set_exception_handler(null);
         \restore_exception_handler();
 
-        Expect::that($errorAfter)->toBe($errorBefore)
-            ->and($exceptionAfter)->toBe($exceptionBefore)
-            ->and(\error_reporting())->toBe($reportingBefore);
+        Expect::that($errorAfter)->toBe($errorBefore);
+        Expect::that($exceptionAfter)->toBe($exceptionBefore);
+        Expect::that(\error_reporting())->toBe($reportingBefore);
     }
 
     #[Test]

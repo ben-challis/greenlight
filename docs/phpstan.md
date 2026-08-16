@@ -101,7 +101,7 @@ Expect::that(123)->toBeValidUuid();      // fails analysis: expects a string sub
 ```
 
 The first closure parameter declares the accepted subject type. PHPStan gets
-this type from `that()`, `and()`, and temporal probes.
+this type from `that()` and temporal probes.
 
 Each custom matcher returns the same typed chain. Thus, later custom matchers
 receive the same subject type.

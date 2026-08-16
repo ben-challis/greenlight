@@ -19,8 +19,8 @@ final readonly class TestMetadataZeroSkipReasonTest
 
         Expect::that($metadata->skipReason)
             ->because('test metadata MUST retain each non-empty skip reason')
-            ->toBe('0')
-            ->and($decoded->skipReason)
+            ->toBe('0');
+        Expect::that($decoded->skipReason)
             ->because('the skip reason MUST survive the wire')
             ->toBe('0');
     }

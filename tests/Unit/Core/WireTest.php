@@ -106,14 +106,14 @@ final class WireTest
             ->toThrow(
                 InvalidWirePayload::class,
                 message: 'Wire payload key "field" must be a map, got array.',
-            )
-            ->and(static fn(): ?array => Wire::nullableMap($list, 'field'))
+            );
+        Expect::that(static fn(): ?array => Wire::nullableMap($list, 'field'))
             ->because('a nullable wire map MUST validate its non-null shape')
             ->toThrow(
                 InvalidWirePayload::class,
                 message: 'Wire payload key "field" must be a map, got array.',
-            )
-            ->and(static fn(): array => Wire::listOfMaps($listOfLists, 'field'))
+            );
+        Expect::that(static fn(): array => Wire::listOfMaps($listOfLists, 'field'))
             ->because('each item in a wire list of maps MUST be a map')
             ->toThrow(
                 InvalidWirePayload::class,
@@ -128,10 +128,10 @@ final class WireTest
 
         Expect::that(Wire::map($emptyMap, 'field'))
             ->because('an empty decoded JSON object is a valid wire map')
-            ->toBe([])
-            ->and(Wire::nullableMap($emptyMap, 'field'))
-            ->toBe([])
-            ->and(Wire::listOfMaps(['field' => [[]]], 'field'))
+            ->toBe([]);
+        Expect::that(Wire::nullableMap($emptyMap, 'field'))
+            ->toBe([]);
+        Expect::that(Wire::listOfMaps(['field' => [[]]], 'field'))
             ->toBe([[]]);
     }
 
@@ -146,14 +146,14 @@ final class WireTest
             ->toThrow(
                 InvalidWirePayload::class,
                 message: 'Wire payload key "field" must be a map with string keys, got array.',
-            )
-            ->and(static fn(): ?array => Wire::nullableMap($map, 'field'))
+            );
+        Expect::that(static fn(): ?array => Wire::nullableMap($map, 'field'))
             ->because('nullable wire maps MUST validate non-null keys')
             ->toThrow(
                 InvalidWirePayload::class,
                 message: 'Wire payload key "field" must be a map with string keys, got array.',
-            )
-            ->and(static fn(): array => Wire::listOfMaps($listOfMaps, 'field'))
+            );
+        Expect::that(static fn(): array => Wire::listOfMaps($listOfMaps, 'field'))
             ->because('each wire map in a list MUST have string keys')
             ->toThrow(
                 InvalidWirePayload::class,
@@ -172,8 +172,8 @@ final class WireTest
             ->toThrow(
                 InvalidWirePayload::class,
                 message: 'Wire payload key "durationSeconds" must be a finite float, got float.',
-            )
-            ->and(static fn(): ?float => Wire::nullableFloat($payload, 'durationSeconds'))
+            );
+        Expect::that(static fn(): ?float => Wire::nullableFloat($payload, 'durationSeconds'))
             ->because('nullable protocol floats MUST reject non-finite values')
             ->toThrow(
                 InvalidWirePayload::class,

@@ -47,8 +47,8 @@ final class PlanOrderTest
 
         Expect::that($this->classes($ordered))
             ->because('priority inputs MUST preserve each planned test exactly once')
-            ->toBe(['Acme\B', 'Acme\A'])
-            ->and($ordered->count())
+            ->toBe(['Acme\B', 'Acme\A']);
+        Expect::that($ordered->count())
             ->toBe(2);
     }
 

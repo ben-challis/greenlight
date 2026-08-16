@@ -21,10 +21,10 @@ final class PathFilterTest
     {
         $filter = new PathFilter(['/project/src', '/project/lib/']);
 
-        Expect::that($filter->accepts('/project/src/A.php'))->because('accepts files under an include directory')->toBeTrue()
-            ->and($filter->accepts('/project/src/Deep/Nested/B.php'))->toBeTrue()
-            ->and($filter->accepts('/project/lib/C.php'))->toBeTrue()
-            ->and($filter->accepts('/project/vendor/D.php'))->toBeFalse();
+        Expect::that($filter->accepts('/project/src/A.php'))->because('accepts files under an include directory')->toBeTrue();
+        Expect::that($filter->accepts('/project/src/Deep/Nested/B.php'))->toBeTrue();
+        Expect::that($filter->accepts('/project/lib/C.php'))->toBeTrue();
+        Expect::that($filter->accepts('/project/vendor/D.php'))->toBeFalse();
     }
 
     #[Test]
@@ -42,8 +42,8 @@ final class PathFilterTest
 
         Expect::that($filter->accepts('/project/src/A.php'))
             ->because('the filesystem root MUST remain a valid coverage include directory')
-            ->toBeTrue()
-            ->and($filter->accepts('relative.php'))
+            ->toBeTrue();
+        Expect::that($filter->accepts('relative.php'))
             ->toBeFalse();
     }
 
@@ -54,8 +54,8 @@ final class PathFilterTest
 
         Expect::that($filter->accepts('0/Covered.php'))
             ->because('a zero-string include directory is not empty')
-            ->toBeTrue()
-            ->and($filter->accepts('01/NotCovered.php'))
+            ->toBeTrue();
+        Expect::that($filter->accepts('01/NotCovered.php'))
             ->because('relative include directories MUST match by path segment')
             ->toBeFalse();
     }

@@ -44,8 +44,8 @@ final readonly class RectorMessageOnlyThrowableTest
 
         Expect::that($probe->changed)
             ->because('the message-only exception expectation MUST be convertible')
-            ->toBeTrue()
-            ->and($probe->code)
+            ->toBeTrue();
+        Expect::that($probe->code)
             ->because('the converted expectation MUST accept all throwable values')
             ->toContain("->toThrow(\Throwable::class, matching: '/boom/');");
     }

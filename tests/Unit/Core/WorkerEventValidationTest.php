@@ -29,8 +29,8 @@ final readonly class WorkerEventValidationTest
 
         Expect::that($event->workerId)
             ->because('a worker event MUST retain each non-empty worker ID')
-            ->toBe('0')
-            ->and($decoded->workerId)
+            ->toBe('0');
+        Expect::that($decoded->workerId)
             ->because('the worker ID MUST survive the wire')
             ->toBe('0');
     }
@@ -43,8 +43,8 @@ final readonly class WorkerEventValidationTest
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Worker ID MUST NOT be empty.',
-            )
-            ->and(static fn(): WorkerRecycled => new WorkerRecycled('', RecycleReason::TestCount, 1.0))
+            );
+        Expect::that(static fn(): WorkerRecycled => new WorkerRecycled('', RecycleReason::TestCount, 1.0))
             ->because('a recycled-worker event MUST identify its worker')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -40,8 +40,8 @@ final readonly class CoverageDiffZeroPercentageOutputTest
 
         Expect::that($result->exitCode)
             ->because('a zero-percent current file MUST report a coverage regression')
-            ->toBe(1)
-            ->and($result->stdoutLines())
+            ->toBe(1);
+        Expect::that($result->stdoutLines())
             ->because('a present zero-percent file MUST NOT render as absent')
             ->toBe([
                 'Coverage: baseline 100.00%, current 0.00% (-100.00)',

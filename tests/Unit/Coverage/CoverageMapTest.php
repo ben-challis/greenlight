@@ -24,8 +24,8 @@ final class CoverageMapTest
 
         $file = $map->files()['/src/A.php'];
 
-        Expect::that($file->coveredLines)->because('from raw splits statuses and drops dead code')->toBe([3, 6])
-            ->and($file->uncoveredLines)->toBe([4]);
+        Expect::that($file->coveredLines)->because('from raw splits statuses and drops dead code')->toBe([3, 6]);
+        Expect::that($file->uncoveredLines)->toBe([4]);
     }
 
     #[Test]
@@ -58,8 +58,8 @@ final class CoverageMapTest
 
         Expect::that($map->files()['/src/A.php']->coveredLines)
             ->because('raw coverage drops non-positive line numbers')
-            ->toBe([1])
-            ->and($map->files()['/src/A.php']->uncoveredLines)
+            ->toBe([1]);
+        Expect::that($map->files()['/src/A.php']->uncoveredLines)
             ->toBe([]);
     }
 
@@ -129,8 +129,8 @@ final class CoverageMapTest
 
         $file = $sawItUncovered->merge($sawItCovered)->files()['/src/A.php'];
 
-        Expect::that($file->coveredLines)->because('covered wins over uncovered across merges')->toBe([10])
-            ->and($file->uncoveredLines)->toBe([]);
+        Expect::that($file->coveredLines)->because('covered wins over uncovered across merges')->toBe([10]);
+        Expect::that($file->uncoveredLines)->toBe([]);
     }
 
     #[Test]
@@ -141,9 +141,9 @@ final class CoverageMapTest
             new FileCoverage('/src/B.php', [1], [2, 3, 4]),
         ]);
 
-        Expect::that($map->coveredLineTotal())->because('percentages aggregate across files')->toBe(4)
-            ->and($map->executableLineTotal())->toBe(8)
-            ->and($map->totalPercentage())->toBeWithin(0.001, 50.0);
+        Expect::that($map->coveredLineTotal())->because('percentages aggregate across files')->toBe(4);
+        Expect::that($map->executableLineTotal())->toBe(8);
+        Expect::that($map->totalPercentage())->toBeWithin(0.001, 50.0);
     }
 
     #[Test]

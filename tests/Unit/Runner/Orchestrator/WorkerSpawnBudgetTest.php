@@ -28,8 +28,8 @@ final readonly class WorkerSpawnBudgetTest
 
         Expect::that($last)
             ->because('the replacement budget permits the final bounded worker')
-            ->toBe('w-25')
-            ->and($budget->nextWorkerId(...))
+            ->toBe('w-25');
+        Expect::that($budget->nextWorkerId(...))
             ->because('the replacement budget MUST stop a worker loop')
             ->toThrow(
                 ProtocolError::class,

@@ -68,10 +68,10 @@ final readonly class PhpStanAttributeArgumentRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(8)
-            ->and($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
+        Expect::that($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(8);
+        Expect::that($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
             ->toContain('#[Retry] times must be at least 1')
             ->toContain('#[SkipUnless] argument 1 must be a scalar or null')
             ->not()->toContain('#[SkipUnless] argument 0')

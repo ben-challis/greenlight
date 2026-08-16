@@ -73,20 +73,20 @@ final readonly class SocketChannelInterruptedReceiveTest
 
         Expect::that($received)
             ->because('a signal-interrupted select MUST end the receive attempt')
-            ->toBeNull()
-            ->and($eof)
+            ->toBeNull();
+        Expect::that($eof)
             ->because('an interrupted select MUST not claim that the peer closed')
-            ->toBeFalse()
-            ->and($waited)
+            ->toBeFalse();
+        Expect::that($waited)
             ->because('the signal helper MUST finish before the test exits')
-            ->toBe($childPid)
-            ->and($stopped)
+            ->toBe($childPid);
+        Expect::that($stopped)
             ->because('the signal helper MUST remain active until the receive attempt ends')
-            ->toBeTrue()
-            ->and(\pcntl_wifsignaled($status))
+            ->toBeTrue();
+        Expect::that(\pcntl_wifsignaled($status))
             ->because('the test MUST stop the signal helper after the receive attempt ends')
-            ->toBeTrue()
-            ->and(\pcntl_wtermsig($status))
+            ->toBeTrue();
+        Expect::that(\pcntl_wtermsig($status))
             ->toBe(\SIGTERM);
     }
 }

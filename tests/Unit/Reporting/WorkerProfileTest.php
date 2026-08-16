@@ -25,25 +25,25 @@ final class WorkerProfileTest
 
         Expect::that($profile->classFinished(15.75))
             ->because('the second class duration is measured')
-            ->toBe(1.75)
-            ->and($profile->busy)
+            ->toBe(1.75);
+        Expect::that($profile->busy)
             ->because('busy time accumulates every completed class')
-            ->toBe(3.0)
-            ->and($profile->classes)
-            ->toBe(2)
-            ->and($profile->openAt)
-            ->toBeNull()
-            ->and($profile->spawnedAt)
-            ->toBe(10.0)
-            ->and($profile->firstClassAt)
-            ->toBe(12.0)
-            ->and($profile->lastFinishAt)
-            ->toBe(15.75)
-            ->and($profile->bootLatency())
-            ->toBe(2.0)
-            ->and($profile->window())
-            ->toBe(5.75)
-            ->and($profile->utilizationPercent())
+            ->toBe(3.0);
+        Expect::that($profile->classes)
+            ->toBe(2);
+        Expect::that($profile->openAt)
+            ->toBeNull();
+        Expect::that($profile->spawnedAt)
+            ->toBe(10.0);
+        Expect::that($profile->firstClassAt)
+            ->toBe(12.0);
+        Expect::that($profile->lastFinishAt)
+            ->toBe(15.75);
+        Expect::that($profile->bootLatency())
+            ->toBe(2.0);
+        Expect::that($profile->window())
+            ->toBe(5.75);
+        Expect::that($profile->utilizationPercent())
             ->because('utilization is rounded from accumulated busy time')
             ->toBe(52);
     }
@@ -60,14 +60,14 @@ final class WorkerProfileTest
 
         Expect::that($profile->spawnedAt)
             ->because('repeated lifecycle events MUST NOT replace the first worker spawn time')
-            ->toBe(10.0)
-            ->and($profile->firstClassAt)
+            ->toBe(10.0);
+        Expect::that($profile->firstClassAt)
             ->because('repeated lifecycle events MUST NOT replace the first class start time')
-            ->toBe(12.0)
-            ->and($profile->bootLatency())
+            ->toBe(12.0);
+        Expect::that($profile->bootLatency())
             ->because('boot latency MUST use the first observed lifecycle timestamps')
-            ->toBe(2.0)
-            ->and($profile->window())
+            ->toBe(2.0);
+        Expect::that($profile->window())
             ->because('the worker window MUST start at the first observed spawn')
             ->toBe(5.0);
     }
@@ -79,10 +79,10 @@ final class WorkerProfileTest
 
         Expect::that($profile->bootLatency())
             ->because('incomplete timing data does not invent metrics')
-            ->toBeNull()
-            ->and($profile->window())
-            ->toBe(0.0)
-            ->and($profile->utilizationPercent())
+            ->toBeNull();
+        Expect::that($profile->window())
+            ->toBe(0.0);
+        Expect::that($profile->utilizationPercent())
             ->toBeNull();
     }
 
@@ -96,10 +96,10 @@ final class WorkerProfileTest
 
         Expect::that($profile->bootLatency())
             ->because('worker clock skew MUST NOT produce negative boot latency')
-            ->toBe(0.0)
-            ->and($profile->window())
-            ->toBe(10.0)
-            ->and($profile->utilizationPercent())
+            ->toBe(0.0);
+        Expect::that($profile->window())
+            ->toBe(10.0);
+        Expect::that($profile->utilizationPercent())
             ->because('worker utilization MUST stay within its percentage range')
             ->toBe(100);
     }
@@ -114,11 +114,11 @@ final class WorkerProfileTest
 
         Expect::that($profile->busy)
             ->because('a reversed class timestamp MUST NOT produce negative busy time')
-            ->toBe(0.0)
-            ->and($profile->window())
+            ->toBe(0.0);
+        Expect::that($profile->window())
             ->because('a reversed worker period MUST NOT produce a negative window')
-            ->toBe(0.0)
-            ->and($profile->utilizationPercent())
+            ->toBe(0.0);
+        Expect::that($profile->utilizationPercent())
             ->toBeNull();
     }
 }

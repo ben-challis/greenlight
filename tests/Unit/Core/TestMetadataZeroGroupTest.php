@@ -19,8 +19,8 @@ final readonly class TestMetadataZeroGroupTest
 
         Expect::that($metadata->groups)
             ->because('test metadata MUST retain each non-empty group name')
-            ->toBe(['0'])
-            ->and($decoded->groups)
+            ->toBe(['0']);
+        Expect::that($decoded->groups)
             ->because('the group name MUST survive the wire')
             ->toBe(['0']);
     }

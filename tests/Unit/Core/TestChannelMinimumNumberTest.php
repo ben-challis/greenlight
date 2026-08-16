@@ -17,8 +17,8 @@ final readonly class TestChannelMinimumNumberTest
 
         Expect::that($channel->number)
             ->because('in-process runs MUST use the first valid test channel')
-            ->toBe(1)
-            ->and($channel->label())
+            ->toBe(1);
+        Expect::that($channel->label())
             ->toBe('gl-1');
     }
 }

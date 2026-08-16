@@ -54,8 +54,8 @@ final readonly class GeneratedCoveragePathTest
         Expect::that($generatedFile)
             ->because('the export MUST contain the generated source')
             ->not()
-            ->toBeNull()
-            ->and($generatedFile['covered'] ?? [])
+            ->toBeNull();
+        Expect::that($generatedFile['covered'] ?? [])
             ->because('the generated source MUST contain covered lines')
             ->not()
             ->toHaveCount(0);

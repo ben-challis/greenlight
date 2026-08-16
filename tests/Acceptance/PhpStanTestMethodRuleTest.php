@@ -92,10 +92,10 @@ final readonly class PhpStanTestMethodRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(4)
-            ->and($probe->messages())->toContain('protectedTest() cannot run because it is not public')
+        Expect::that($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that($probe->messages())->toContain('protectedTest() cannot run because it is not public')
             ->toContain('staticTest() cannot run because it is static')
             ->toContain('abstractTest() cannot run because it is abstract')
             ->toContain('testWithoutDataSet() has required parameters but no #[DataRow] or #[DataSet] attribute');

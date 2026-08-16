@@ -31,10 +31,10 @@ final readonly class LaravelProcessZeroEnvironmentTest
 
             Expect::that(\getenv('APP_ENV'))
                 ->because('restore MUST preserve a zero process environment')
-                ->toBe('0')
-                ->and($_ENV['APP_ENV'])
-                ->toBe('environment-original')
-                ->and($_SERVER['APP_ENV'])
+                ->toBe('0');
+            Expect::that($_ENV['APP_ENV'])
+                ->toBe('environment-original');
+            Expect::that($_SERVER['APP_ENV'])
                 ->toBe('server-original');
         } finally {
             $state?->restore();

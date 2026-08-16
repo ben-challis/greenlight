@@ -27,8 +27,8 @@ final class ClassFailureTapTest
 
         Expect::that($inner->events)
             ->because('the watch tap MUST forward lifecycle events unchanged')
-            ->toBe([$event])
-            ->and($tap->failedClasses())
+            ->toBe([$event]);
+        Expect::that($tap->failedClasses())
             ->toBe([]);
     }
 
@@ -45,8 +45,8 @@ final class ClassFailureTapTest
 
         Expect::that($tap->failedClasses())
             ->because('failed classes are deduplicated while every result is forwarded')
-            ->toBe(['App\AlphaTest', 'App\BetaTest'])
-            ->and($inner->results())
+            ->toBe(['App\AlphaTest', 'App\BetaTest']);
+        Expect::that($inner->results())
             ->toHaveCount(4);
     }
 

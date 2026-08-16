@@ -18,8 +18,8 @@ final class ClassDeclarationTest
 
         Expect::that($global->fqcn())
             ->because('the fully qualified name handles global and named namespaces')
-            ->toBe('GlobalTest')
-            ->and($namespaced->fqcn())
+            ->toBe('GlobalTest');
+        Expect::that($namespaced->fqcn())
             ->toBe('Example\Tests\NamespacedTest');
     }
 }

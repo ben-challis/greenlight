@@ -54,8 +54,8 @@ final readonly class LaravelFrameworkUnavailableTest
 
         Expect::that($result->exitCode)
             ->because('the public framework probe MUST reject an installation without Laravel')
-            ->toBe(0)
-            ->and($result->stdout)
+            ->toBe(0);
+        Expect::that($result->stdout)
             ->because('the error MUST explain how to install the required Laravel framework')
             ->toBe(
                 'The Laravel framework is not available. LaravelPlugin requires the complete '

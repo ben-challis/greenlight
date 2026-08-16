@@ -37,10 +37,10 @@ final readonly class ChannelAllocatorTest
     {
         $allocator = new ChannelAllocator(4);
 
-        Expect::that($allocator->allocate())->because('allocates the lowest free channel first')->toBe(1)
-            ->and($allocator->allocate())->toBe(2)
-            ->and($allocator->allocate())->toBe(3)
-            ->and($allocator->allocate())->toBe(4);
+        Expect::that($allocator->allocate())->because('allocates the lowest free channel first')->toBe(1);
+        Expect::that($allocator->allocate())->toBe(2);
+        Expect::that($allocator->allocate())->toBe(3);
+        Expect::that($allocator->allocate())->toBe(4);
     }
 
     #[Test]

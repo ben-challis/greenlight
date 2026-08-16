@@ -60,8 +60,8 @@ final readonly class ArtifactSourceMutationTest
 
             Expect::that($attachments->collected())
                 ->because('a rejected source releases its run quota')
-                ->toHaveCount(1)
-                ->and($attachments->collected()[0]->name)
+                ->toHaveCount(1);
+            Expect::that($attachments->collected()[0]->name)
                 ->toBe('replacement.txt');
         } finally {
             $store?->cleanup();
@@ -106,11 +106,11 @@ final readonly class ArtifactSourceMutationTest
 
             Expect::that(\file_exists($failedPath))
                 ->because('a failed source read MUST remove the incomplete staging file')
-                ->toBeFalse()
-                ->and(\file_exists($failedPath . '.part'))
+                ->toBeFalse();
+            Expect::that(\file_exists($failedPath . '.part'))
                 ->because('a failed source read MUST remove the partial staging file')
-                ->toBeFalse()
-                ->and(\file_exists($failedPath . '.meta.json'))
+                ->toBeFalse();
+            Expect::that(\file_exists($failedPath . '.meta.json'))
                 ->because('a failed source read MUST not leave recovery metadata')
                 ->toBeFalse();
 
@@ -118,8 +118,8 @@ final readonly class ArtifactSourceMutationTest
 
             Expect::that($attachments->collected())
                 ->because('a failed source read MUST release its run quota')
-                ->toHaveCount(1)
-                ->and($attachments->collected()[0]->name)
+                ->toHaveCount(1);
+            Expect::that($attachments->collected()[0]->name)
                 ->toBe('replacement.txt');
         } finally {
             $store?->cleanup();

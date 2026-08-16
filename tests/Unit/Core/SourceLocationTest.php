@@ -20,11 +20,11 @@ final class SourceLocationTest
 
         Expect::that((string) $location)
             ->because('diagnostics MUST render a conventional file and line location')
-            ->toBe('/project/tests/PaymentTest.php:42')
-            ->and($restored->file)
+            ->toBe('/project/tests/PaymentTest.php:42');
+        Expect::that($restored->file)
             ->because('the file MUST survive the wire')
-            ->toBe('/project/tests/PaymentTest.php')
-            ->and($restored->line)
+            ->toBe('/project/tests/PaymentTest.php');
+        Expect::that($restored->line)
             ->because('the line MUST survive the wire')
             ->toBe(42);
     }
@@ -37,8 +37,8 @@ final class SourceLocationTest
 
         Expect::that((string) $location)
             ->because('a zero-string source file is not empty')
-            ->toBe('0:1')
-            ->and($restored->file)
+            ->toBe('0:1');
+        Expect::that($restored->file)
             ->because('the zero-string source file MUST survive the wire')
             ->toBe('0');
     }

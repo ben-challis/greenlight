@@ -53,10 +53,10 @@ final readonly class ArtifactIntermittentReadTest
 
             Expect::that(\file_get_contents($stagedPath))
                 ->because('a transient empty source read MUST not truncate the staged attachment')
-                ->toBe('evidence')
-                ->and($attachment->sizeBytes)
-                ->toBe(8)
-                ->and($attachment->sha256)
+                ->toBe('evidence');
+            Expect::that($attachment->sizeBytes)
+                ->toBe(8);
+            Expect::that($attachment->sha256)
                 ->toBe(\hash('sha256', 'evidence'));
         } finally {
             $store?->cleanup();

@@ -65,8 +65,8 @@ final class ThrowableDetailTest
 
         Expect::that($detail->stackFrames)
             ->because('deep throwable traces are bounded with a truncation marker')
-            ->toHaveCount(33)
-            ->and($detail->stackFrames[32])
+            ->toHaveCount(33);
+        Expect::that($detail->stackFrames[32])
             ->toBe('... (trace truncated)');
     }
 

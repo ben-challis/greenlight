@@ -28,12 +28,12 @@ final readonly class EnvironmentBackupNullServerTest
 
             Expect::that(\getenv($name))
                 ->because('restore MUST preserve explicit null presence in the server environment')
-                ->toBe('process-original')
-                ->and($_ENV[$name] ?? null)
-                ->toBe('env-original')
-                ->and(\array_key_exists($name, $_SERVER))
-                ->toBeTrue()
-                ->and($_SERVER[$name])
+                ->toBe('process-original');
+            Expect::that($_ENV[$name] ?? null)
+                ->toBe('env-original');
+            Expect::that(\array_key_exists($name, $_SERVER))
+                ->toBeTrue();
+            Expect::that($_SERVER[$name])
                 ->toBeNull();
         } finally {
             \putenv($name);

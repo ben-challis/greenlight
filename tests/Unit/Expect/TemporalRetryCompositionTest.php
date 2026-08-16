@@ -42,8 +42,8 @@ final readonly class TemporalRetryCompositionTest
 
         Expect::that($calls)
             ->because('repeated retry configuration MUST accumulate exception types')
-            ->toBe(3)
-            ->and($clock->sleeps)
+            ->toBe(3);
+        Expect::that($clock->sleeps)
             ->toBe([0.010, 0.010]);
     }
 }

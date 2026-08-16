@@ -44,12 +44,12 @@ final readonly class ReporterSelectionTest
 
         Expect::that($result->exitCode)
             ->because('an explicitly selected TTY reporter MUST run without a terminal')
-            ->toBe(0)
-            ->and($result->stdout)
+            ->toBe(0);
+        Expect::that($result->stdout)
             ->toContain('7 tests, 7 passed')
             ->not()
-            ->toContain("\x1b[")
-            ->and($result->stderr)
+            ->toContain("\x1b[");
+        Expect::that($result->stderr)
             ->toBe('');
     }
 }

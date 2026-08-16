@@ -52,8 +52,8 @@ final readonly class RectorSizeAttributeTest
 
         Expect::that($probe->changed)
             ->because('the PHPUnit size attribute MUST be convertible')
-            ->toBeTrue()
-            ->and($probe->code)
+            ->toBeTrue();
+        Expect::that($probe->code)
             ->because('the converted size MUST remain available for group selection')
             ->toContain(\sprintf("#[\\Greenlight\\Attribute\\Group('%s')]", $group))
             ->not()

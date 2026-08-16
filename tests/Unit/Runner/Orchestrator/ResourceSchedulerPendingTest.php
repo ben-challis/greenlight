@@ -40,17 +40,17 @@ final class ResourceSchedulerPendingTest
 
         Expect::that($scheduler->pendingCount())
             ->because('clear pending MUST remove both queues')
-            ->toBe(0)
-            ->and($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Drain);
+            ->toBe(0);
+        Expect::that($scheduler->dispatch(true)->kind)->toBe(DispatchKind::Drain);
 
         $scheduler->release($lease);
         $scheduler->requeue($queued);
 
         Expect::that($scheduler->pendingCount())
             ->because('pooled work can be requeued after pending work is cleared')
-            ->toBe(1)
-            ->and($this->assigned($scheduler, fresh: false)->unit)->toBe($queued)
-            ->and($scheduler->pendingCount())->toBe(0);
+            ->toBe(1);
+        Expect::that($this->assigned($scheduler, fresh: false)->unit)->toBe($queued);
+        Expect::that($scheduler->pendingCount())->toBe(0);
     }
 
     /**

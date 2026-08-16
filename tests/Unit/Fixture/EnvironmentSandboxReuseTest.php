@@ -29,10 +29,10 @@ final readonly class EnvironmentSandboxReuseTest
 
             Expect::that(\getenv($name))
                 ->because('use after disposal MUST capture the new environment baseline')
-                ->toBe('new baseline')
-                ->and($_ENV[$name] ?? null)
-                ->toBe('new baseline')
-                ->and($_SERVER[$name] ?? null)
+                ->toBe('new baseline');
+            Expect::that($_ENV[$name] ?? null)
+                ->toBe('new baseline');
+            Expect::that($_SERVER[$name] ?? null)
                 ->toBe('new baseline');
         } finally {
             $sandbox->dispose();

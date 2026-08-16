@@ -46,8 +46,8 @@ final readonly class RectorExceptionExpectationArityTest
 
         Expect::that($probe->changed)
             ->because('exception expectations with surplus arguments MUST remain unsupported')
-            ->toBeFalse()
-            ->and($probe->code)
+            ->toBeFalse();
+        Expect::that($probe->code)
             ->because('an unsupported class MUST remain byte-identical')
             ->toBe($source);
     }

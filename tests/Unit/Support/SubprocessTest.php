@@ -40,9 +40,9 @@ final readonly class SubprocessTest
             ));
         }
 
-        Expect::that($result->exitCode)->because('run captures the result and honors its execution context')->toBe(7)
-            ->and($result->stdout)->toBe($workingDirectory . "\nenvironment")
-            ->and($result->stderr)->toBe('warning');
+        Expect::that($result->exitCode)->because('run captures the result and honors its execution context')->toBe(7);
+        Expect::that($result->stdout)->toBe($workingDirectory . "\nenvironment");
+        Expect::that($result->stderr)->toBe('warning');
     }
 
     #[Test]
@@ -60,8 +60,8 @@ final readonly class SubprocessTest
             ],
         );
 
-        Expect::that($result->stdout)->because('run drains large outputs from both streams')->toHaveLength(131072)
-            ->and($result->stderr)->toHaveLength(131072);
+        Expect::that($result->stdout)->because('run drains large outputs from both streams')->toHaveLength(131072);
+        Expect::that($result->stderr)->toHaveLength(131072);
     }
 
     #[Test]
@@ -88,10 +88,10 @@ final readonly class SubprocessTest
             $process->write("payload\n");
             $result = $process->wait(2.0);
 
-            Expect::that($ready)->toBe("ready\n")
-                ->and($result->exitCode)->toBe(3)
-                ->and($result->stdout)->toBe("ready\nreceived:payload")
-                ->and($result->stderr)->toBe('note');
+            Expect::that($ready)->toBe("ready\n");
+            Expect::that($result->exitCode)->toBe(3);
+            Expect::that($result->stdout)->toBe("ready\nreceived:payload");
+            Expect::that($result->stderr)->toBe('note');
         } finally {
             $process->terminate();
         }
@@ -108,8 +108,8 @@ final readonly class SubprocessTest
         try {
             $result = $process->complete();
 
-            Expect::that($result->exitCode)->toBe(9)
-                ->and($result->stderr)->toBe('failed');
+            Expect::that($result->exitCode)->toBe(9);
+            Expect::that($result->stderr)->toBe('failed');
 
             Expect::that(static fn(): string => $process->readStdoutUntil('ready', 2.0))
                 ->toThrow(\RuntimeException::class, '/Process exited before stdout contained/');

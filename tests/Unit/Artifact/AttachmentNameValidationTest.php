@@ -74,16 +74,16 @@ final readonly class AttachmentNameValidationTest
                         'Attachment name "%s" is not a safe non-empty name.',
                         $name,
                     ),
-                )
-                ->and($attachments->collected())
+                );
+            Expect::that($attachments->collected())
                 ->toBe([]);
             Expect::that($budget->attachments)
                 ->because('an unsafe attachment name MUST NOT consume an attachment slot')
                 ->toBe(0);
             Expect::that($budget->bytes)
                 ->because('an unsafe attachment name MUST NOT consume the byte budget')
-                ->toBe(0)
-                ->and(\file_exists($store->session()->stagingDirectory))
+                ->toBe(0);
+            Expect::that(\file_exists($store->session()->stagingDirectory))
                 ->toBeFalse();
         } finally {
             $store->cleanup();

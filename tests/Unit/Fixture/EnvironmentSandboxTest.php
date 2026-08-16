@@ -19,15 +19,15 @@ final class EnvironmentSandboxTest
 
         $sandbox->set($name, 'value');
 
-        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBe('value')
-            ->and($this->envValue($name))->toBe('value')
-            ->and($this->serverValue($name))->toBe('value');
+        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBe('value');
+        Expect::that($this->envValue($name))->toBe('value');
+        Expect::that($this->serverValue($name))->toBe('value');
 
         $sandbox->dispose();
 
-        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBeFalse()
-            ->and($this->envHas($name))->toBeFalse()
-            ->and($this->serverHas($name))->toBeFalse();
+        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBeFalse();
+        Expect::that($this->envHas($name))->toBeFalse();
+        Expect::that($this->serverHas($name))->toBeFalse();
     }
 
     #[Test]
@@ -43,9 +43,9 @@ final class EnvironmentSandboxTest
             $sandbox->set($name, 'changed');
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))->toBe('original')
-                ->and($this->envValue($name))->toBe('original')
-                ->and($this->serverValue($name))->toBe('original');
+            Expect::that(\getenv($name))->toBe('original');
+            Expect::that($this->envValue($name))->toBe('original');
+            Expect::that($this->serverValue($name))->toBe('original');
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -67,14 +67,14 @@ final class EnvironmentSandboxTest
 
             Expect::that(\getenv($name))
                 ->because('dispose MUST distinguish present falsey values from absent values')
-                ->toBe('')
-                ->and($this->envHas($name))
-                ->toBeTrue()
-                ->and($this->envValue($name))
-                ->toBeNull()
-                ->and($this->serverHas($name))
-                ->toBeTrue()
-                ->and($this->serverValue($name))
+                ->toBe('');
+            Expect::that($this->envHas($name))
+                ->toBeTrue();
+            Expect::that($this->envValue($name))
+                ->toBeNull();
+            Expect::that($this->serverHas($name))
+                ->toBeTrue();
+            Expect::that($this->serverValue($name))
                 ->toBeFalse();
         } finally {
             \putenv($name);
@@ -105,16 +105,16 @@ final class EnvironmentSandboxTest
 
             Expect::that(\getenv($processAndServer))
                 ->because('dispose restores each environment channel independently')
-                ->toBe('process-original')
-                ->and($this->envHas($processAndServer))
-                ->toBeFalse()
-                ->and($this->serverValue($processAndServer))
-                ->toBe('server-original')
-                ->and(\getenv($envOnly))
-                ->toBeFalse()
-                ->and($this->envValue($envOnly))
-                ->toBe('env-original')
-                ->and($this->serverHas($envOnly))
+                ->toBe('process-original');
+            Expect::that($this->envHas($processAndServer))
+                ->toBeFalse();
+            Expect::that($this->serverValue($processAndServer))
+                ->toBe('server-original');
+            Expect::that(\getenv($envOnly))
+                ->toBeFalse();
+            Expect::that($this->envValue($envOnly))
+                ->toBe('env-original');
+            Expect::that($this->serverHas($envOnly))
                 ->toBeFalse();
         } finally {
             $sandbox->dispose();
@@ -141,15 +141,15 @@ final class EnvironmentSandboxTest
             $sandbox = new EnvironmentSandbox();
             $sandbox->unset($name);
 
-            Expect::that(\getenv($name))->toBeFalse()
-                ->and($this->envHas($name))->toBeFalse()
-                ->and($this->serverHas($name))->toBeFalse();
+            Expect::that(\getenv($name))->toBeFalse();
+            Expect::that($this->envHas($name))->toBeFalse();
+            Expect::that($this->serverHas($name))->toBeFalse();
 
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))->toBe('present')
-                ->and($this->envValue($name))->toBe('present')
-                ->and($this->serverValue($name))->toBe('present');
+            Expect::that(\getenv($name))->toBe('present');
+            Expect::that($this->envValue($name))->toBe('present');
+            Expect::that($this->serverValue($name))->toBe('present');
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -171,9 +171,9 @@ final class EnvironmentSandboxTest
             $sandbox->unset($name);
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))->toBe('first')
-                ->and($this->envValue($name))->toBe('first')
-                ->and($this->serverValue($name))->toBe('first');
+            Expect::that(\getenv($name))->toBe('first');
+            Expect::that($this->envValue($name))->toBe('first');
+            Expect::that($this->serverValue($name))->toBe('first');
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -198,10 +198,10 @@ final class EnvironmentSandboxTest
 
         Expect::that(\getenv())
             ->because('set rejects invalid names before it changes the environment')
-            ->toBe($processBefore)
-            ->and($_ENV)
-            ->toBe($envBefore)
-            ->and($_SERVER)
+            ->toBe($processBefore);
+        Expect::that($_ENV)
+            ->toBe($envBefore);
+        Expect::that($_SERVER)
             ->toBe($serverBefore);
     }
 
@@ -223,10 +223,10 @@ final class EnvironmentSandboxTest
 
         Expect::that(\getenv())
             ->because('unset rejects invalid names before it changes the environment')
-            ->toBe($processBefore)
-            ->and($_ENV)
-            ->toBe($envBefore)
-            ->and($_SERVER)
+            ->toBe($processBefore);
+        Expect::that($_ENV)
+            ->toBe($envBefore);
+        Expect::that($_SERVER)
             ->toBe($serverBefore);
     }
 

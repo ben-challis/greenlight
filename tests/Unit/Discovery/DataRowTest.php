@@ -23,9 +23,9 @@ final class DataRowTest
     {
         $rows = new DataSetExpander()->rowsFor(new \ReflectionClass(InlineRowsTest::class), 'addsUp', null, 5.0);
 
-        Expect::that(\array_keys($rows))->because('inline rows expand with labels and positions')->toBe(['small', '#1'])
-            ->and($rows['small'])->toBe([1, 2, 3])
-            ->and($rows['#1'])->toBe([10, 20, 30]);
+        Expect::that(\array_keys($rows))->because('inline rows expand with labels and positions')->toBe(['small', '#1']);
+        Expect::that($rows['small'])->toBe([1, 2, 3]);
+        Expect::that($rows['#1'])->toBe([10, 20, 30]);
     }
 
     #[Test]

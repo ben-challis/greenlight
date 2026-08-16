@@ -26,16 +26,16 @@ final class ExtensionMatcherParameterTest
 
         Expect::that($parameter->getName())
             ->because('extension matcher parameters MUST preserve their reflected signature')
-            ->toBe($name)
-            ->and($parameter->isOptional())
-            ->toBe($optional)
-            ->and($parameter->isVariadic())
-            ->toBe($variadic)
-            ->and($parameter->getType()->describe(VerbosityLevel::typeOnly()))
-            ->toBe($type)
-            ->and($parameter->passedByReference()->no())
-            ->toBeTrue()
-            ->and($parameter->getDefaultValue())
+            ->toBe($name);
+        Expect::that($parameter->isOptional())
+            ->toBe($optional);
+        Expect::that($parameter->isVariadic())
+            ->toBe($variadic);
+        Expect::that($parameter->getType()->describe(VerbosityLevel::typeOnly()))
+            ->toBe($type);
+        Expect::that($parameter->passedByReference()->no())
+            ->toBeTrue();
+        Expect::that($parameter->getDefaultValue())
             ->toBeNull();
     }
 

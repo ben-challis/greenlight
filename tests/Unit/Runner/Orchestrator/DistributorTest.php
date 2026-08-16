@@ -30,24 +30,24 @@ final class DistributorTest
             ->because(
                 'pooled entries stay grouped by class and isolated entries each get a unit',
             )
-            ->toHaveCount(2)
-            ->and((string) $pooled[0]->plan->entries[0]->id)
-            ->toBe('ExampleTest::pooled')
-            ->and((string) $pooled[1]->plan->entries[0]->id)
-            ->toBe('OtherTest::pooled')
-            ->and($isolated)
-            ->toHaveCount(2)
-            ->and($isolated[0]->plan->entries)
-            ->toHaveCount(1)
-            ->and((string) $isolated[0]->plan->entries[0]->id)
-            ->toBe('ExampleTest::isolatedOne')
-            ->and($isolated[0]->plan->seed)
-            ->toBe(42)
-            ->and($isolated[1]->plan->entries)
-            ->toHaveCount(1)
-            ->and((string) $isolated[1]->plan->entries[0]->id)
-            ->toBe('ExampleTest::isolatedTwo')
-            ->and($isolated[1]->plan->seed)
+            ->toHaveCount(2);
+        Expect::that((string) $pooled[0]->plan->entries[0]->id)
+            ->toBe('ExampleTest::pooled');
+        Expect::that((string) $pooled[1]->plan->entries[0]->id)
+            ->toBe('OtherTest::pooled');
+        Expect::that($isolated)
+            ->toHaveCount(2);
+        Expect::that($isolated[0]->plan->entries)
+            ->toHaveCount(1);
+        Expect::that((string) $isolated[0]->plan->entries[0]->id)
+            ->toBe('ExampleTest::isolatedOne');
+        Expect::that($isolated[0]->plan->seed)
+            ->toBe(42);
+        Expect::that($isolated[1]->plan->entries)
+            ->toHaveCount(1);
+        Expect::that((string) $isolated[1]->plan->entries[0]->id)
+            ->toBe('ExampleTest::isolatedTwo');
+        Expect::that($isolated[1]->plan->seed)
             ->toBe(42);
     }
 

@@ -99,9 +99,9 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test', [$marker]);
 
-        Expect::that($resolved)->because('fallback resolvers receive the type and attributes')->toBeInstanceOf(\ArrayObject::class)
-            ->and($resolver->type)->toBe(\ArrayObject::class)
-            ->and($resolver->attributes)->toBe([$marker]);
+        Expect::that($resolved)->because('fallback resolvers receive the type and attributes')->toBeInstanceOf(\ArrayObject::class);
+        Expect::that($resolver->type)->toBe(\ArrayObject::class);
+        Expect::that($resolver->attributes)->toBe([$marker]);
     }
 
     #[Test]
@@ -161,10 +161,10 @@ final class HarnessScopesTest
 
         Expect::that($resolved)
             ->because('the resolver retains ownership of the service lifecycle')
-            ->toBe($service)
-            ->and($service->disposeCalls)
-            ->toBe(0)
-            ->and($failures)
+            ->toBe($service);
+        Expect::that($service->disposeCalls)
+            ->toBe(0);
+        Expect::that($failures)
             ->toBe([]);
     }
 
@@ -219,8 +219,8 @@ final class HarnessScopesTest
 
         Expect::that($scopes->closeTest())
             ->because('closing an inactive test scope MUST be a safe no-op')
-            ->toBe([])
-            ->and($scopes->closeClass())
+            ->toBe([]);
+        Expect::that($scopes->closeClass())
             ->because('closing an inactive class scope MUST be a safe no-op')
             ->toBe([]);
     }

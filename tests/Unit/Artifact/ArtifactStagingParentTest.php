@@ -49,8 +49,8 @@ final readonly class ArtifactStagingParentTest
             ->toThrow(
                 AttachmentError::class,
                 message: 'Failed to create attachment staging subdirectory: mkdir(): File exists.',
-            )
-            ->and((string) \file_get_contents($blocker))
+            );
+        Expect::that((string) \file_get_contents($blocker))
             ->because('a rejected attachment MUST NOT replace the blocking entry')
             ->toBe('keep');
 

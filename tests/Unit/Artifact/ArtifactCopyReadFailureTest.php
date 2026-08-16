@@ -37,8 +37,8 @@ final readonly class ArtifactCopyReadFailureTest
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Failed to read attachment staging content.',
-                )
-                ->and(UnreadableCopySourceStream::closedStreams())
+                );
+            Expect::that(UnreadableCopySourceStream::closedStreams())
                 ->because('a read failure MUST close the source stream')
                 ->toBe(1);
         } finally {

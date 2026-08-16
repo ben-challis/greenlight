@@ -22,7 +22,7 @@ final readonly class RectorUnsupportedProcessControlTest
     {
         $probe = RectorProbe::convert($this->tempDirectory, $source, name: 'unsupported');
 
-        Expect::that($probe->changed)->toBeFalse()
-            ->and($probe->code)->toBe($source);
+        Expect::that($probe->changed)->toBeFalse();
+        Expect::that($probe->code)->toBe($source);
     }
 }

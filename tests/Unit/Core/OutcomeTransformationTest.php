@@ -20,13 +20,13 @@ final readonly class OutcomeTransformationTest
 
         Expect::that($transformation->transformedBy)
             ->because('an outcome transformation MUST retain each non-empty source')
-            ->toBe('0')
-            ->and($decoded->transformedBy)
+            ->toBe('0');
+        Expect::that($decoded->transformedBy)
             ->because('the transformation source MUST survive the wire')
-            ->toBe('0')
-            ->and($decoded->from)
-            ->toBe(Outcome::Failed)
-            ->and($decoded->to)
+            ->toBe('0');
+        Expect::that($decoded->from)
+            ->toBe(Outcome::Failed);
+        Expect::that($decoded->to)
             ->toBe(Outcome::Skipped);
     }
 

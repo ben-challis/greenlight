@@ -27,8 +27,8 @@ final readonly class ClassLifecycleZeroWorkerWireTest
 
         Expect::that($event->workerId)
             ->because('class lifecycle events MUST retain non-empty zero-string worker IDs')
-            ->toBe('0')
-            ->and($event->toWire()['workerId'])
+            ->toBe('0');
+        Expect::that($event->toWire()['workerId'])
             ->toBe('0');
     }
 

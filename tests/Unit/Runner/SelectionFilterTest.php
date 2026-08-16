@@ -24,54 +24,54 @@ final class SelectionFilterTest
             '/project/tests/FastTest.php',
         ))
             ->because('a test that satisfies every configured selection dimension MUST be accepted')
-            ->toBeTrue()
-            ->and($filter->accepts(
-                'Acme\FastTest',
-                'works',
-                ['slow'],
-                '/project/tests/FastTest.php',
-            ))
+            ->toBeTrue();
+        Expect::that($filter->accepts(
+            'Acme\FastTest',
+            'works',
+            ['slow'],
+            '/project/tests/FastTest.php',
+        ))
             ->because('the configured include group MUST restrict selection')
-            ->toBeFalse()
-            ->and($filter->accepts(
-                'Acme\FastTest',
-                'works',
-                ['fast', 'quarantined'],
-                '/project/tests/FastTest.php',
-            ))
+            ->toBeFalse();
+        Expect::that($filter->accepts(
+            'Acme\FastTest',
+            'works',
+            ['fast', 'quarantined'],
+            '/project/tests/FastTest.php',
+        ))
             ->because('the configured exclude group MUST override the include group')
-            ->toBeFalse()
-            ->and($filter->accepts(
-                'Acme\LegacyTest',
-                'works',
-                ['fast'],
-                '/project/tests/LegacyTest.php',
-            ))
+            ->toBeFalse();
+        Expect::that($filter->accepts(
+            'Acme\LegacyTest',
+            'works',
+            ['fast'],
+            '/project/tests/LegacyTest.php',
+        ))
             ->because('the configured class exclusion MUST restrict selection')
-            ->toBeFalse()
-            ->and($filter->accepts(
-                'Acme\FastTest',
-                'manualCheck',
-                ['fast'],
-                '/project/tests/FastTest.php',
-            ))
+            ->toBeFalse();
+        Expect::that($filter->accepts(
+            'Acme\FastTest',
+            'manualCheck',
+            ['fast'],
+            '/project/tests/FastTest.php',
+        ))
             ->because('the configured method exclusion MUST restrict selection')
-            ->toBeFalse()
-            ->and($filter->accepts(
-                'Acme\FastTest',
-                'works',
-                ['fast'],
-                '/vendor/tests/FastTest.php',
-            ))
+            ->toBeFalse();
+        Expect::that($filter->accepts(
+            'Acme\FastTest',
+            'works',
+            ['fast'],
+            '/vendor/tests/FastTest.php',
+        ))
             ->because('the configured path exclusion MUST restrict selection')
-            ->toBeFalse()
-            ->and($filter->acceptsId('Acme\FastTest::worksNow'))
+            ->toBeFalse();
+        Expect::that($filter->acceptsId('Acme\FastTest::worksNow'))
             ->because('the configured test ID pattern MUST select matching IDs')
-            ->toBeTrue()
-            ->and($filter->acceptsId('Acme\ExactTest::only'))
+            ->toBeTrue();
+        Expect::that($filter->acceptsId('Acme\ExactTest::only'))
             ->because('the configured exact test ID MUST select that complete ID')
-            ->toBeTrue()
-            ->and($filter->acceptsId('Acme\FastTest::other'))
+            ->toBeTrue();
+        Expect::that($filter->acceptsId('Acme\FastTest::other'))
             ->because('configured test IDs MUST reject an ID that matches neither form')
             ->toBeFalse();
     }

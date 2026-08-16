@@ -98,10 +98,10 @@ final readonly class PhpStanTestAttributePlacementRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('test metadata on methods requires the test attribute')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(10)
-            ->and($probe->messages())->toContain('#[Group] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
+        Expect::that($probe->exitCode)->because('test metadata on methods requires the test attribute')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(10);
+        Expect::that($probe->messages())->toContain('#[Group] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
             ->toContain('#[DataRow] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
             ->toContain('#[NoExpectations] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::assertionHelper() has no effect')
             ->toContain(

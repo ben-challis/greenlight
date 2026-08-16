@@ -106,10 +106,10 @@ final readonly class PhpStanTestConstructorRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('test constructors must have resolvable shapes')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(5)
-            ->and($probe->messages())->toContain('Greenlight cannot instantiate test class GreenlightTestConstructorProbe\PrivateConstructorProbe because its constructor is not public')
+        Expect::that($probe->exitCode)->because('test constructors must have resolvable shapes')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(5);
+        Expect::that($probe->messages())->toContain('Greenlight cannot instantiate test class GreenlightTestConstructorProbe\PrivateConstructorProbe because its constructor is not public')
             ->toContain('Greenlight cannot resolve constructor parameter $scalar of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $union of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $object of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
@@ -165,12 +165,12 @@ final readonly class PhpStanTestConstructorRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('scalar variadic parameters cannot be resolved')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and($probe->errors)->toHaveCount(1)
-            ->and($probe->messages())->toContain(
-                'Greenlight cannot resolve constructor parameter $values of test class '
+        Expect::that($probe->exitCode)->because('scalar variadic parameters cannot be resolved')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that($probe->errors)->toHaveCount(1);
+        Expect::that($probe->messages())->toContain(
+            'Greenlight cannot resolve constructor parameter $values of test class '
                 . 'GreenlightTestConstructorVariadicProbe\ScalarVariadicConstructorProbe',
-            );
+        );
     }
 }

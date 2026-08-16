@@ -39,11 +39,11 @@ final class SlowTestsTest
             static fn(string $line): bool => $line !== '',
         ));
 
-        Expect::that($lines[0])->because('renders slowest first and caps at five')->toBe('Slowest tests:')
-            ->and(\count($lines))->toBe(6)
-            ->and($lines[1])->toBe('  0.580s Acme\SlowTest::case08')
-            ->and($lines[5])->toBe('  0.540s Acme\SlowTest::case04')
-            ->and($rendered)->not()->toContain('case03');
+        Expect::that($lines[0])->because('renders slowest first and caps at five')->toBe('Slowest tests:');
+        Expect::that(\count($lines))->toBe(6);
+        Expect::that($lines[1])->toBe('  0.580s Acme\SlowTest::case08');
+        Expect::that($lines[5])->toBe('  0.540s Acme\SlowTest::case04');
+        Expect::that($rendered)->not()->toContain('case03');
     }
 
     #[Test]
@@ -72,12 +72,12 @@ final class SlowTestsTest
 
         Expect::that(\count($lines))
             ->because('profile mode MUST list exactly the 25 slowest tests')
-            ->toBe(26)
-            ->and($lines[1])
-            ->toBe('  0.760s Acme\SlowTest::case26')
-            ->and($lines[25])
-            ->toBe('  0.520s Acme\SlowTest::case02')
-            ->and($rendered)
+            ->toBe(26);
+        Expect::that($lines[1])
+            ->toBe('  0.760s Acme\SlowTest::case26');
+        Expect::that($lines[25])
+            ->toBe('  0.520s Acme\SlowTest::case02');
+        Expect::that($rendered)
             ->not()
             ->toContain('case01');
     }

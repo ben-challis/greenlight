@@ -23,8 +23,8 @@ final class TestMetadataCaptureWireTest
 
         Expect::that($payload['capture'])
             ->because('worker metadata MUST preserve disabled output capture')
-            ->toBeFalse()
-            ->and($restored->capture)
+            ->toBeFalse();
+        Expect::that($restored->capture)
             ->toBeFalse();
     }
 }

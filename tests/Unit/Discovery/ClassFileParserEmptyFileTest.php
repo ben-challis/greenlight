@@ -21,8 +21,8 @@ final readonly class ClassFileParserEmptyFileTest
 
         Expect::that(\is_readable($file))
             ->because('the empty test file MUST be readable')
-            ->toBeTrue()
-            ->and(ClassFileParser::declarationsIn($file))
+            ->toBeTrue();
+        Expect::that(ClassFileParser::declarationsIn($file))
             ->because('an empty test file MUST contain no declarations')
             ->toBe([]);
     }

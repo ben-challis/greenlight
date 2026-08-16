@@ -73,8 +73,8 @@ final class PcovDriverTest
                     10 => 1,
                     11 => -1,
                 ],
-            ])
-            ->and($runtime->calls)
+            ]);
+        Expect::that($runtime->calls)
             ->because('PCOV collection MUST stop and clear extension state after reading it')
             ->toBe(['start', 'collect', 'stop', 'clear']);
     }

@@ -22,8 +22,8 @@ final class LaravelOnceStateResetTest
         try {
             Expect::that($this->memoizedValue())
                 ->because('Laravel once() MUST memoize a value before the reset')
-                ->toBe(1)
-                ->and($this->memoizedValue())
+                ->toBe(1);
+            Expect::that($this->memoizedValue())
                 ->toBe(1);
 
             LaravelStateResetter::reset();

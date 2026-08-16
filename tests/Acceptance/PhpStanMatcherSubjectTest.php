@@ -29,10 +29,12 @@ final readonly class PhpStanMatcherSubjectTest
 
             function greenlightGoodSubjectProbe(): void
             {
-                Expect::that('c0ffee')->toBeHexadecimal()
-                    ->and(1)->toBePositive();
-                Expect::that(1)->toBePositive()
-                    ->and('c0ffee')->toHaveDigestLength(6);
+                Expect::that('c0ffee')
+                    ->toBeHexadecimal()
+                    ->toHaveDigestLength(6);
+                Expect::that(1)
+                    ->toBePositive()
+                    ->toBe(1);
             }
             PHP,
             <<<'PHP'
@@ -47,15 +49,15 @@ final readonly class PhpStanMatcherSubjectTest
                 Expect::that(1)->toBePositive()
                     ->toBeHexadecimal();
                 Expect::that('c0ffee')->toHaveDigestLength(6)
-                    ->and(1)->toBeHexadecimal();
+                    ->toBePositive();
             }
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('fluent chains preserve matcher subject types')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(2)
-            ->and($probe->messages())->toContain('requires subject type string, but the subject has type int');
+        Expect::that($probe->exitCode)->because('fluent chains preserve matcher subject types')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(2);
+        Expect::that($probe->messages())->toContain('requires subject type string, but the subject has type int');
     }
 
     #[Test]
@@ -104,9 +106,9 @@ final readonly class PhpStanMatcherSubjectTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('temporal chains preserve matcher subject types')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(3)
-            ->and($probe->messages())->toContain('requires subject type string, but the subject has type int');
+        Expect::that($probe->exitCode)->because('temporal chains preserve matcher subject types')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(3);
+        Expect::that($probe->messages())->toContain('requires subject type string, but the subject has type int');
     }
 }

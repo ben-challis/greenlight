@@ -25,8 +25,8 @@ final class SkipTestTest
 
         Expect::that($skip->reason)
             ->because('a skip signal MUST preserve a zero-string reason')
-            ->toBe('0')
-            ->and($skip->getMessage())
+            ->toBe('0');
+        Expect::that($skip->getMessage())
             ->toBe('0');
     }
 }

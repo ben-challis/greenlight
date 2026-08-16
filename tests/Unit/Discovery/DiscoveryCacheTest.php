@@ -96,8 +96,8 @@ final class DiscoveryCacheTest
 
             Expect::that($plan->count())
                 ->because('an invalid cache document becomes a cache miss')
-                ->toBe(2)
-                ->and($rewritten)
+                ->toBe(2);
+            Expect::that($rewritten)
                 ->toContain('"version":3')
                 ->toContain($className . '.php');
         } finally {
@@ -167,8 +167,8 @@ final class DiscoveryCacheTest
 
             Expect::that($plan->count())
                 ->because('a corrupt cached plan entry becomes a cache miss')
-                ->toBe(2)
-                ->and($rewritten)
+                ->toBe(2);
+            Expect::that($rewritten)
                 ->because('discovery replaces the corrupt plan entry')
                 ->not()
                 ->toContain('"entries":[[]]');
@@ -384,8 +384,8 @@ final class DiscoveryCacheTest
 
             Expect::that($cache->persist())
                 ->because('a vanished discovery source MUST not make cache persistence fail')
-                ->toBeTrue()
-                ->and(\is_file($cacheFile))
+                ->toBeTrue();
+            Expect::that(\is_file($cacheFile))
                 ->because('a vanished source MUST not create an empty cache document')
                 ->toBeFalse();
         } finally {
@@ -410,8 +410,8 @@ final class DiscoveryCacheTest
 
             Expect::that($cache->persist())
                 ->because('an unencodable source path MUST disable advisory cache persistence cleanly')
-                ->toBeFalse()
-                ->and(\is_file($cacheFile))
+                ->toBeFalse();
+            Expect::that(\is_file($cacheFile))
                 ->because('failed cache encoding MUST not leave a cache document')
                 ->toBeFalse();
         } finally {

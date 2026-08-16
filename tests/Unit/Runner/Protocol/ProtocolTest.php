@@ -111,15 +111,15 @@ final class ProtocolTest
             artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
         )->toWire());
 
-        Expect::that($assign->slice->seed)->because('assign carries the plan intact')->toBe(42)
-            ->and($assign->recycleAfterTests)->toBe(10)
-            ->and($assign->recycleAboveMemoryBytes)->toBeNull()
-            ->and($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging')
-            ->and($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1')
-            ->and($assign->artifactConfiguration?->maxRunAttachments)->toBe(123)
-            ->and($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one')
-            ->and($assign->slice->entries[0]->metadata->isolated)->toBeTrue()
-            ->and($assign->slice->entries[0]->metadata->resources)->toBe(['postgres']);
+        Expect::that($assign->slice->seed)->because('assign carries the plan intact')->toBe(42);
+        Expect::that($assign->recycleAfterTests)->toBe(10);
+        Expect::that($assign->recycleAboveMemoryBytes)->toBeNull();
+        Expect::that($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging');
+        Expect::that($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1');
+        Expect::that($assign->artifactConfiguration?->maxRunAttachments)->toBe(123);
+        Expect::that($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one');
+        Expect::that($assign->slice->entries[0]->metadata->isolated)->toBeTrue();
+        Expect::that($assign->slice->entries[0]->metadata->resources)->toBe(['postgres']);
     }
 
     #[Test]
@@ -147,8 +147,8 @@ final class ProtocolTest
 
         Expect::that($assign->artifactSession)
             ->because('legacy assignments have no artifact session')
-            ->toBeNull()
-            ->and($assign->artifactConfiguration)
+            ->toBeNull();
+        Expect::that($assign->artifactConfiguration)
             ->because('legacy assignments have no artifact configuration')
             ->toBeNull();
     }

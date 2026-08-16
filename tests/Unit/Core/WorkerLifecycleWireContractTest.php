@@ -21,8 +21,8 @@ final class WorkerLifecycleWireContractTest
                 'workerId' => 'worker-7',
                 'pid' => 321,
                 'occurredAt' => 123.5,
-            ])
-            ->and(new WorkerRecycled('worker-7', RecycleReason::Crash, 124.5)->toWire())
+            ]);
+        Expect::that(new WorkerRecycled('worker-7', RecycleReason::Crash, 124.5)->toWire())
             ->because('worker-recycled payloads MUST keep their published field names and values')
             ->toBe([
                 'workerId' => 'worker-7',

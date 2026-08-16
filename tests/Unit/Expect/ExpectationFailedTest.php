@@ -29,10 +29,10 @@ final class ExpectationFailedTest
                 "2 expectations failed:\n"
                 . "1) Expected the value to be ready. (at /project/tests/ProbeTest.php:12)\n"
                 . '2) Expected the callback to run.',
-            )
-            ->and($failure->details)
-            ->toBe([$first, $second])
-            ->and($failure->detail())
+            );
+        Expect::that($failure->details)
+            ->toBe([$first, $second]);
+        Expect::that($failure->detail())
             ->toBe($first);
     }
 }

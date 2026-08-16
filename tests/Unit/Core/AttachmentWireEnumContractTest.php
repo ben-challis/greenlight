@@ -21,8 +21,8 @@ final class AttachmentWireEnumContractTest
                 'Text' => 'text',
                 'Binary' => 'binary',
                 'File' => 'file',
-            ])
-            ->and(\array_column(AttachmentRetention::cases(), 'value', 'name'))
+            ]);
+        Expect::that(\array_column(AttachmentRetention::cases(), 'value', 'name'))
             ->because('attachment retention MUST keep its published wire values')
             ->toBe([
                 'OnFailure' => 'on-failure',

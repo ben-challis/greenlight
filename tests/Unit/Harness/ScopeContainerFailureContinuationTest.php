@@ -43,12 +43,12 @@ final class ScopeContainerFailureContinuationTest
 
         Expect::that($failures)
             ->because('a disposal failure MUST NOT prevent disposal of the remaining services')
-            ->toHaveCount(1)
-            ->and($failures[0]->getMessage())
-            ->toBe('disposal broke')
-            ->and(FailingDisposable::disposals())
-            ->toBe(1)
-            ->and(RecordingDisposable::disposals())
+            ->toHaveCount(1);
+        Expect::that($failures[0]->getMessage())
+            ->toBe('disposal broke');
+        Expect::that(FailingDisposable::disposals())
+            ->toBe(1);
+        Expect::that(RecordingDisposable::disposals())
             ->toBe(1);
     }
 }

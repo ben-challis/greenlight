@@ -33,8 +33,8 @@ final class ArtifactStreamPartialWriteTest
 
             Expect::that(PartialWriteStream::$written)
                 ->because('a partial write MUST continue from the first unwritten byte')
-                ->toBe('evidence')
-                ->and(PartialWriteStream::$writes)
+                ->toBe('evidence');
+            Expect::that(PartialWriteStream::$writes)
                 ->because('the fixture accepts at most two bytes from each write')
                 ->toBe(4);
         } finally {

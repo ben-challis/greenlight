@@ -38,8 +38,8 @@ final readonly class TeamCityReporterAutoloadCacheTest
 
         Expect::that($autoloadCalls)
             ->because('a failed optional location lookup MUST not rerun the autoloader for each event')
-            ->toBe(1)
-            ->and($output->buffer())
+            ->toBe(1);
+        Expect::that($output->buffer())
             ->because('cached lookup failure MUST not stop later report events')
             ->toBe(
                 "##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n"

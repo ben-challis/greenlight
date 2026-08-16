@@ -28,14 +28,14 @@ final readonly class OutputCaptureBufferReplacementTest
 
         Expect::that($captured->stdout)
             ->because('closing the capture buffer MUST preserve the output collected before replacement')
-            ->toBe('captured')
-            ->and($levelAfterStop)
+            ->toBe('captured');
+        Expect::that($levelAfterStop)
             ->because('stop MUST leave a replacement buffer at the captured stack level open')
-            ->toBe($baseline + 1)
-            ->and($replacement)
+            ->toBe($baseline + 1);
+        Expect::that($replacement)
             ->because('stop MUST preserve content in the replacement buffer')
-            ->toBe('replacement')
-            ->and(\ob_get_level())
+            ->toBe('replacement');
+        Expect::that(\ob_get_level())
             ->because('the test MUST restore the output-buffer baseline')
             ->toBe($baseline);
     }

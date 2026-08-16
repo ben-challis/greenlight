@@ -90,8 +90,8 @@ final class ArgumentMatchingTest
         } catch (ExpectationFailed $failure) {
             $detail = $failure->detail();
 
-            Expect::that($detail->expected)->toContain('type(int)')
-                ->and($detail->actual)->toBe("record('not an int')");
+            Expect::that($detail->expected)->toContain('type(int)');
+            Expect::that($detail->actual)->toBe("record('not an int')");
 
             return;
         }
@@ -214,8 +214,8 @@ final class ArgumentMatchingTest
         $calculator->add(1, 7);
         $calculator->add(999, 7);
 
-        Expect::that($captor->values())->because('a captor in with collects values in call order')->toEqual([1, 999])
-            ->and($captor->value())->toBe(999);
+        Expect::that($captor->values())->because('a captor in with collects values in call order')->toEqual([1, 999]);
+        Expect::that($captor->value())->toBe(999);
 
         $doubles->dispose();
     }
@@ -308,8 +308,8 @@ final class ArgumentMatchingTest
         $calculator->add(1, 10);
         $calculator->add(2, 20);
 
-        Expect::that($first->values())->because('captors only see calls their own expectation matched')->toEqual([10])
-            ->and($second->values())->toEqual([20]);
+        Expect::that($first->values())->because('captors only see calls their own expectation matched')->toEqual([10]);
+        Expect::that($second->values())->toEqual([20]);
 
         $doubles->dispose();
     }

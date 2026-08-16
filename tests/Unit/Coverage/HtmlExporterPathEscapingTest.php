@@ -27,8 +27,8 @@ final readonly class HtmlExporterPathEscapingTest
             ->because('coverage file paths MUST remain text in the HTML index')
             ->toContain('>' . $escaped . '</a>')
             ->not()
-            ->toContain('<script>coverage</script>')
-            ->and($file)
+            ->toContain('<script>coverage</script>');
+        Expect::that($file)
             ->because('coverage file paths MUST remain text in the HTML file page')
             ->toContain('<title>' . $escaped . '</title>')
             ->toContain('<h1>' . $escaped . '</h1>')

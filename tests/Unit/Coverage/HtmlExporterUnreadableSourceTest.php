@@ -28,8 +28,8 @@ final readonly class HtmlExporterUnreadableSourceTest
 
             Expect::that(\is_file($path))
                 ->because('the fixture MUST be a regular file')
-                ->toBeTrue()
-                ->and(\is_readable($path))
+                ->toBeTrue();
+            Expect::that(\is_readable($path))
                 ->because('the fixture MUST reject reads')
                 ->toBeFalse();
 
@@ -41,8 +41,8 @@ final readonly class HtmlExporterUnreadableSourceTest
             Expect::that($page)
                 ->because('an unreadable source shows only coverage line numbers')
                 ->toContain('<span class="cov"><span class="num">2</span></span>')
-                ->toContain('<span class="unc"><span class="num">4</span></span>')
-                ->and(UnreadableSourceStream::$openCalls)
+                ->toContain('<span class="unc"><span class="num">4</span></span>');
+            Expect::that(UnreadableSourceStream::$openCalls)
                 ->because('the exporter rejects an unreadable source before opening it')
                 ->toBe(0);
         } finally {

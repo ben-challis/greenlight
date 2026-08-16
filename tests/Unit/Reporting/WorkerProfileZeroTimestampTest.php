@@ -19,10 +19,10 @@ final readonly class WorkerProfileZeroTimestampTest
 
         Expect::that($profile->classFinished(0.5))
             ->because('a zero class-start timestamp is known timing data')
-            ->toBe(0.5)
-            ->and($profile->busy)->toBe(0.5)
-            ->and($profile->bootLatency())->toBe(0.0)
-            ->and($profile->window())->toBe(0.5)
-            ->and($profile->utilizationPercent())->toBe(100);
+            ->toBe(0.5);
+        Expect::that($profile->busy)->toBe(0.5);
+        Expect::that($profile->bootLatency())->toBe(0.0);
+        Expect::that($profile->window())->toBe(0.5);
+        Expect::that($profile->utilizationPercent())->toBe(100);
     }
 }

@@ -67,11 +67,11 @@ final class ClassContextTest
 
         Expect::that($first)
             ->because('the class context MUST return the first cached data row')
-            ->toBe(['alpha'])
-            ->and($second)
+            ->toBe(['alpha']);
+        Expect::that($second)
             ->because('the class context MUST return another row from the same cache')
-            ->toBe(['beta'])
-            ->and(CachedDataSetProbe::$providerCalls)
+            ->toBe(['beta']);
+        Expect::that(CachedDataSetProbe::$providerCalls)
             ->because('the class context MUST evaluate its data provider only once')
             ->toBe(1);
     }

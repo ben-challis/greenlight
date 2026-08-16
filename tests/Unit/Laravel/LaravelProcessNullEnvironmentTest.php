@@ -31,14 +31,14 @@ final readonly class LaravelProcessNullEnvironmentTest
 
             Expect::that(\getenv('APP_ENV'))
                 ->because('restore MUST preserve present null environment values')
-                ->toBe('process-original')
-                ->and(\array_key_exists('APP_ENV', $_ENV))
-                ->toBeTrue()
-                ->and($_ENV['APP_ENV'])
-                ->toBeNull()
-                ->and(\array_key_exists('APP_ENV', $_SERVER))
-                ->toBeTrue()
-                ->and($_SERVER['APP_ENV'])
+                ->toBe('process-original');
+            Expect::that(\array_key_exists('APP_ENV', $_ENV))
+                ->toBeTrue();
+            Expect::that($_ENV['APP_ENV'])
+                ->toBeNull();
+            Expect::that(\array_key_exists('APP_ENV', $_SERVER))
+                ->toBeTrue();
+            Expect::that($_SERVER['APP_ENV'])
                 ->toBeNull();
         } finally {
             $state?->restore();

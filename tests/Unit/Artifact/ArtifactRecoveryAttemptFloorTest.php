@@ -39,12 +39,12 @@ final readonly class ArtifactRecoveryAttemptFloorTest
 
             Expect::that($recovered->attempts)
                 ->because('stale recovery metadata MUST NOT reduce a reported attempt count')
-                ->toBe(10)
-                ->and($recovered->attachments)
-                ->toHaveCount(1)
-                ->and($recovered->attachments[0]->name)
-                ->toBe('evidence.txt')
-                ->and((string) \file_get_contents($recovered->attachments[0]->path))
+                ->toBe(10);
+            Expect::that($recovered->attachments)
+                ->toHaveCount(1);
+            Expect::that($recovered->attachments[0]->name)
+                ->toBe('evidence.txt');
+            Expect::that((string) \file_get_contents($recovered->attachments[0]->path))
                 ->toBe('completed evidence');
         } finally {
             $store->cleanup();

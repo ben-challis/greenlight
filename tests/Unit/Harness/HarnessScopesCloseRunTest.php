@@ -54,8 +54,8 @@ final class HarnessScopesCloseRunTest
             $failures,
         ))
             ->because('suite cleanup MUST finish before run cleanup and retain both failures')
-            ->toBe(['suite disposal failed', 'run disposal failed'])
-            ->and($scopes->closeRun())
+            ->toBe(['suite disposal failed', 'run disposal failed']);
+        Expect::that($scopes->closeRun())
             ->because('failed cleanup MUST still empty both long-lived scopes')
             ->toBe([]);
     }

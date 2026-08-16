@@ -42,8 +42,8 @@ final readonly class HtmlExporterSourceFailureTest
             Expect::that($warning ?? '')
                 ->because('the source becomes unreadable when the exporter opens it')
                 ->toContain('file_get_contents(' . $path . ')')
-                ->toContain('Failed to open stream')
-                ->and($page)
+                ->toContain('Failed to open stream');
+            Expect::that($page)
                 ->because('a late read failure shows only coverage line numbers')
                 ->toContain('<span class="cov"><span class="num">2</span></span>')
                 ->toContain('<span class="unc"><span class="num">4</span></span>');

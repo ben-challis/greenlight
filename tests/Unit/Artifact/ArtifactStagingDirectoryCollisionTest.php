@@ -51,8 +51,8 @@ final readonly class ArtifactStagingDirectoryCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging subdirectory/',
-            )
-            ->and((string) \file_get_contents($blocker))
+            );
+        Expect::that((string) \file_get_contents($blocker))
             ->because('a rejected attachment MUST preserve the existing entry')
             ->toBe('occupied');
 

@@ -36,8 +36,8 @@ final class TempDirectoryRootSymbolicLinkTest
 
             Expect::that(\is_link($root))
                 ->because('disposal MUST remove the root symbolic link')
-                ->toBeFalse()
-                ->and(\file_get_contents($sentinel))
+                ->toBeFalse();
+            Expect::that(\file_get_contents($sentinel))
                 ->because('disposal MUST leave the root symbolic link target unchanged')
                 ->toBe('keep');
         } finally {

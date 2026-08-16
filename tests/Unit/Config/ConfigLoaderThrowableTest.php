@@ -25,8 +25,8 @@ final readonly class ConfigLoaderThrowableTest
                 ->toBe(
                     'Configuration file "' . $directory . '/greenlight.php" threw '
                     . 'TypeError: config type exploded',
-                )
-                ->and($error->getPrevious())
+                );
+            Expect::that($error->getPrevious())
                 ->because('the wrapped configuration error MUST remain available as the cause')
                 ->toBeInstanceOf(\TypeError::class);
 

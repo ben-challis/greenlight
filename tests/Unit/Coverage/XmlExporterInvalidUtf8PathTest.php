@@ -40,8 +40,8 @@ final readonly class XmlExporterInvalidUtf8PathTest
 
         Expect::that((string) $cloverFiles[0]['name'])
             ->because('Clover MUST scrub invalid UTF-8 in file-system paths')
-            ->toBe("/src/\u{FFFD}.php")
-            ->and((string) $coberturaClasses[0]['filename'])
+            ->toBe("/src/\u{FFFD}.php");
+        Expect::that((string) $coberturaClasses[0]['filename'])
             ->because('Cobertura MUST scrub invalid UTF-8 in file-system paths')
             ->toBe("src/\u{FFFD}.php");
     }

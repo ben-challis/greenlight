@@ -40,8 +40,8 @@ final readonly class InProcessRunnerTest
         Expect::that($subscriber->sequence())
             ->because('the subscriber observes both run boundaries')
             ->toContain('RunStarted')
-            ->toContain('RunFinished')
-            ->and($result->summary->passed)
+            ->toContain('RunFinished');
+        Expect::that($result->summary->passed)
             ->toBe(7);
     }
 
@@ -59,10 +59,10 @@ final readonly class InProcessRunnerTest
 
         Expect::that($first->seed)
             ->because('the run result MUST report its explicit random seed')
-            ->toBe(4242)
-            ->and($second->seed)
-            ->toBe(4242)
-            ->and($this->resultIds($firstSink))
+            ->toBe(4242);
+        Expect::that($second->seed)
+            ->toBe(4242);
+        Expect::that($this->resultIds($firstSink))
             ->because('the same explicit seed MUST reproduce the in-process run order')
             ->toBe($this->resultIds($secondSink));
     }
@@ -90,8 +90,8 @@ final readonly class InProcessRunnerTest
 
             Expect::that($result->plannedTests)
                 ->because('each in-process shard reports the number of tests it executes')
-                ->toBe(\count($ids))
-                ->and($result->summary->total())
+                ->toBe(\count($ids));
+            Expect::that($result->summary->total())
                 ->toBe(\count($ids));
 
             $shardedIds = [...$shardedIds, ...$ids];

@@ -67,11 +67,11 @@ final readonly class ArtifactOutputSafetyTest
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Attachment output directory contains a symbolic link.',
-                )
-                ->and(\glob($outside . '/*'))
+                );
+            Expect::that(\glob($outside . '/*'))
                 ->because('a rejected publication MUST NOT write outside its output directory')
-                ->toBe([])
-                ->and(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+                ->toBe([]);
+            Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
                 ->because('rejected evidence remains available for recovery')
                 ->toBeTrue();
         } finally {

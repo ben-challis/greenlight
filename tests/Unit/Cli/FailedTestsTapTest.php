@@ -27,10 +27,10 @@ final class FailedTestsTapTest
 
         Expect::that($inner->events)
             ->because('the tap MUST forward lifecycle events unchanged')
-            ->toBe([$event])
-            ->and($tap->failedTests())
-            ->toBe([])
-            ->and($tap->classSeconds())
+            ->toBe([$event]);
+        Expect::that($tap->failedTests())
+            ->toBe([]);
+        Expect::that($tap->classSeconds())
             ->toBe([]);
     }
 
@@ -56,14 +56,14 @@ final class FailedTestsTapTest
             ->toBe([
                 'App\AlphaTest::fails',
                 'App\BetaTest::errors',
-            ])
-            ->and($tap->classSeconds())
+            ]);
+        Expect::that($tap->classSeconds())
             ->because('scheduling history MUST accumulate every result duration by class')
             ->toBe([
                 'App\AlphaTest' => 11.0,
                 'App\BetaTest' => 20.0,
-            ])
-            ->and($inner->events)
+            ]);
+        Expect::that($inner->events)
             ->because('the tap MUST forward every event unchanged')
             ->toBe($events);
     }

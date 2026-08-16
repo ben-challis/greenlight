@@ -21,8 +21,8 @@ final readonly class IdeHelperTest
         $target = $this->tempDirectory->path() . '/ide-helper.php';
 
         $result = GreenlightCli::run($root . '/tests/Fixture/PhpStanExtension', ['ide-helper', '--output=' . $target]);
-        Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0)
-            ->and($result->output())->toContain('3 matchers');
+        Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
+        Expect::that($result->output())->toContain('3 matchers');
 
         $helper = (string) \file_get_contents($target);
         Expect::that($helper)->because('writes a lintable helper and skips when nothing is configured')->toContain('@method self toHaveDigestLength(int $length)')
@@ -32,9 +32,9 @@ final readonly class IdeHelperTest
         Expect::that($lint->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
 
         $result = GreenlightCli::run($root . '/tests/Fixture/ListTestsConfig', ['ide-helper', '--output=' . $target . '.none']);
-        Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0)
-            ->and($result->output())->toContain('The configuration has no extension matchers')
-            ->and(\is_file($target . '.none'))->toBeFalse();
+        Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
+        Expect::that($result->output())->toContain('The configuration has no extension matchers');
+        Expect::that(\is_file($target . '.none'))->toBeFalse();
     }
 
     #[Test]
@@ -46,8 +46,8 @@ final readonly class IdeHelperTest
 
         Expect::that($result->exitCode)
             ->because('ide-helper MUST report configuration errors before it writes output')
-            ->toBe(1)
-            ->and($result->stderr)
+            ->toBe(1);
+        Expect::that($result->stderr)
             ->toBe(
                 \sprintf(
                     'greenlight: Configuration file "%s" returned string. It must return a '
@@ -55,8 +55,8 @@ final readonly class IdeHelperTest
                     . '"return GreenlightConfig::create()->...;".',
                     $config,
                 ),
-            )
-            ->and($result->stdout)
+            );
+        Expect::that($result->stdout)
             ->toBe('');
     }
 }

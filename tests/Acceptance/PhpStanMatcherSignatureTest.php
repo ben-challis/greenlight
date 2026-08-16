@@ -29,8 +29,8 @@ final readonly class PhpStanMatcherSignatureTest
 
             function greenlightGoodProbe(): void
             {
-                Expect::that('c0ffee')->toBeHexadecimal()
-                    ->and('c0ffee')->toHaveDigestLength(6);
+                Expect::that('c0ffee')->toBeHexadecimal();
+                Expect::that('c0ffee')->toHaveDigestLength(6);
             }
             PHP,
             <<<'PHP'
@@ -42,16 +42,16 @@ final readonly class PhpStanMatcherSignatureTest
 
             function greenlightBadProbe(): void
             {
-                Expect::that('c0ffee')->toHaveDigestLength('six')
-                    ->and('c0ffee')->toBeHexadecimal(123);
+                Expect::that('c0ffee')->toHaveDigestLength('six');
+                Expect::that('c0ffee')->toBeHexadecimal(123);
             }
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('reflected matcher signatures are enforced')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(2)
-            ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
+        Expect::that($probe->exitCode)->because('reflected matcher signatures are enforced')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(2);
+        Expect::that($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
             ->toContain('invoked with 1 parameter, 0 required');
     }
 
@@ -96,10 +96,10 @@ final readonly class PhpStanMatcherSignatureTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('temporal matcher signatures are enforced')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(2)
-            ->and($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
+        Expect::that($probe->exitCode)->because('temporal matcher signatures are enforced')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(2);
+        Expect::that($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
             ->toContain('invoked with 1 parameter, 0 required');
     }
 }

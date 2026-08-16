@@ -64,20 +64,20 @@ final class CliOverridesTest
 
         Expect::that($overrides->groups)
             ->because('a zero string MUST remain a group selection')
-            ->toBe(['0'])
-            ->and($overrides->filters)
+            ->toBe(['0']);
+        Expect::that($overrides->filters)
             ->because('a zero string MUST remain a filter selection')
-            ->toBe(['0'])
-            ->and($overrides->excludeGroups)
+            ->toBe(['0']);
+        Expect::that($overrides->excludeGroups)
             ->because('a zero string MUST remain an excluded group selection')
-            ->toBe(['0'])
-            ->and($overrides->excludeClasses)
+            ->toBe(['0']);
+        Expect::that($overrides->excludeClasses)
             ->because('a zero string MUST remain an excluded class selection')
-            ->toBe(['0'])
-            ->and($overrides->excludeMethods)
+            ->toBe(['0']);
+        Expect::that($overrides->excludeMethods)
             ->because('a zero string MUST remain an excluded method selection')
-            ->toBe(['0'])
-            ->and($overrides->excludePaths)
+            ->toBe(['0']);
+        Expect::that($overrides->excludePaths)
             ->because('a zero string MUST remain an excluded path selection')
             ->toBe(['0']);
     }

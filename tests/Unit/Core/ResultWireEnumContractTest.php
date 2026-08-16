@@ -21,8 +21,8 @@ final class ResultWireEnumContractTest
                 'Failed' => 'failed',
                 'Errored' => 'errored',
                 'Skipped' => 'skipped',
-            ])
-            ->and(\array_column(DiagnosticSeverity::cases(), 'value', 'name'))
+            ]);
+        Expect::that(\array_column(DiagnosticSeverity::cases(), 'value', 'name'))
             ->because('diagnostic severities MUST keep their published wire values')
             ->toBe([
                 'Notice' => 'notice',

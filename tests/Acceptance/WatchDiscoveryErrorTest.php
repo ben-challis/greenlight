@@ -66,8 +66,8 @@ final readonly class WatchDiscoveryErrorTest
 
             Expect::that($result->exitCode)
                 ->because('watch mode MUST remain available after a discovery error')
-                ->toBe(0)
-                ->and($result->stderr)
+                ->toBe(0);
+            Expect::that($result->stderr)
                 ->because('watch mode MUST report the discovery error')
                 ->toContain('BrokenTest.php')
                 ->toContain('WrongName');

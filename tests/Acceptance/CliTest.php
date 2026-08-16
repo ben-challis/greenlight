@@ -66,8 +66,8 @@ final readonly class CliTest
         Expect::that($result->output())->because('help and version exit zero')->toContain('Usage:');
 
         $result = $this->runCli(['--version']);
-        Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0)
-            ->and($result->outputLines())->toContain('Greenlight dev-main');
+        Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);
+        Expect::that($result->outputLines())->toContain('Greenlight dev-main');
     }
 
     #[Test]
@@ -145,8 +145,8 @@ final readonly class CliTest
 
         Expect::that($result->exitCode)
             ->because('list tests reports an explicitly missing configuration')
-            ->toBe(1)
-            ->and($result->output())
+            ->toBe(1);
+        Expect::that($result->output())
             ->toContain('Configuration file "' . $projectDirectory . '/missing.php" does not exist.');
     }
 
@@ -180,10 +180,10 @@ final readonly class CliTest
 
         Expect::that($result->exitCode)
             ->because('an invalid internal worker entry MUST stop before connection')
-            ->toBe(64)
-            ->and($result->stderr)
-            ->toBe('__worker requires <address> <workerId> <token>.')
-            ->and($result->stdout)
+            ->toBe(64);
+        Expect::that($result->stderr)
+            ->toBe('__worker requires <address> <workerId> <token>.');
+        Expect::that($result->stdout)
             ->toBe('');
     }
 
@@ -210,10 +210,10 @@ final readonly class CliTest
 
         Expect::that($result->exitCode)
             ->because('an internal worker connection failure MUST report a failed process')
-            ->toBe(1)
-            ->and($result->stderr)
-            ->toStartWith('The worker did not connect to invalid://worker:')
-            ->and($result->stdout)
+            ->toBe(1);
+        Expect::that($result->stderr)
+            ->toStartWith('The worker did not connect to invalid://worker:');
+        Expect::that($result->stdout)
             ->toBe('');
     }
 

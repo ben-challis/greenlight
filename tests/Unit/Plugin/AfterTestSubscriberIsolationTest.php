@@ -70,8 +70,8 @@ final readonly class AfterTestSubscriberIsolationTest
             ->toBe([
                 'broken:after',
                 'observer:after:errored',
-            ])
-            ->and($sink->results()[0]->outcome)
+            ]);
+        Expect::that($sink->results()[0]->outcome)
             ->because('the later subscriber MUST receive the errored result')
             ->toBe(Outcome::Errored);
     }

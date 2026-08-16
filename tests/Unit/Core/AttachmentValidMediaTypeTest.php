@@ -29,8 +29,8 @@ final readonly class AttachmentValidMediaTypeTest
 
         Expect::that($attachment->mediaType)
             ->because('attachment construction MUST preserve a valid media type')
-            ->toBe($mediaType)
-            ->and($restored->mediaType)
+            ->toBe($mediaType);
+        Expect::that($restored->mediaType)
             ->because('attachment wire decoding MUST preserve a valid media type')
             ->toBe($mediaType);
     }

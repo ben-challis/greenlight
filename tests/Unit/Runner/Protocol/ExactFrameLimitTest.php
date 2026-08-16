@@ -38,8 +38,8 @@ final class ExactFrameLimitTest
 
         Expect::that($codec->decode($body))
             ->because('the exact-limit frame MUST survive the protocol round trip')
-            ->toBe($envelope)
-            ->and($buffer->hasPendingBytes())
+            ->toBe($envelope);
+        Expect::that($buffer->hasPendingBytes())
             ->toBeFalse();
     }
 
@@ -67,8 +67,8 @@ final class ExactFrameLimitTest
 
         Expect::that(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
             ->because('frame lengths MUST count Unicode bytes, not characters')
-            ->toBe($envelope)
-            ->and($buffer->hasPendingBytes())
+            ->toBe($envelope);
+        Expect::that($buffer->hasPendingBytes())
             ->toBeFalse();
     }
 }

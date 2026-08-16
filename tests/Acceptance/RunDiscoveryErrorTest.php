@@ -39,8 +39,8 @@ final readonly class RunDiscoveryErrorTest
 
         Expect::that($result->exitCode)
             ->because('a discovery failure MUST stop the run cleanly')
-            ->toBe(1)
-            ->and($result->stderr)
+            ->toBe(1);
+        Expect::that($result->stderr)
             ->toContain('MissingProviderTest::needsData() references data-set provider')
             ->toContain('MissingProviderTest::doesNotExist(), but the provider does not exist.');
     }

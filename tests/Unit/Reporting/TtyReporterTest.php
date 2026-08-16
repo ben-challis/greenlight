@@ -279,8 +279,8 @@ final class TtyReporterTest
 
         // A blank line separates the first permanent line from the header. The
         // second permanent line occurs directly below the first.
-        Expect::that($lines[$gammaLine - 1] ?? null)->because('the first permanent line gets a gap and later ones stack')->toBe('')
-            ->and($deltaLine)->toBe($gammaLine + 1);
+        Expect::that($lines[$gammaLine - 1] ?? null)->because('the first permanent line gets a gap and later ones stack')->toBe('');
+        Expect::that($deltaLine)->toBe($gammaLine + 1);
     }
 
     #[Test]
@@ -371,9 +371,9 @@ final class TtyReporterTest
     #[Test]
     public function windowCapacityClampsToTerminalHeightWithAFloor(): void
     {
-        Expect::that(TtyReporter::windowCapacity(50))->because('window capacity clamps to terminal height with a floor')->toBe(10)
-            ->and(TtyReporter::windowCapacity(12))->toBe(7)
-            ->and(TtyReporter::windowCapacity(6))->toBe(3);
+        Expect::that(TtyReporter::windowCapacity(50))->because('window capacity clamps to terminal height with a floor')->toBe(10);
+        Expect::that(TtyReporter::windowCapacity(12))->toBe(7);
+        Expect::that(TtyReporter::windowCapacity(6))->toBe(3);
     }
 
     #[Test]

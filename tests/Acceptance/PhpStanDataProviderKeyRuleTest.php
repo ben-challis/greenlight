@@ -114,10 +114,10 @@ final readonly class PhpStanDataProviderKeyRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('PHPStan checks provider keys, empty providers, and duplicate row keys')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(4)
-            ->and($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
+        Expect::that($probe->exitCode)->because('PHPStan checks provider keys, empty providers, and duplicate row keys')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
             ->toContain('#[DataRow] key "#0" occurs more than once on duplicateGeneratedLabel()')
             ->toContain('invalidKeys() keys must be int or string. The provider returns keys of type bool')
             ->toContain('empty() must provide at least one argument array');

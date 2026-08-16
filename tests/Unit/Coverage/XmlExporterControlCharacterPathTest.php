@@ -42,8 +42,8 @@ final readonly class XmlExporterControlCharacterPathTest
 
         Expect::that((string) $cloverFiles[0]['name'])
             ->because('Clover MUST produce a round-trippable file-system path')
-            ->toBe($expected)
-            ->and((string) $coberturaClasses[0]['filename'])
+            ->toBe($expected);
+        Expect::that((string) $coberturaClasses[0]['filename'])
             ->because('Cobertura MUST produce a round-trippable file-system path')
             ->toBe(\ltrim($expected, '/'));
     }

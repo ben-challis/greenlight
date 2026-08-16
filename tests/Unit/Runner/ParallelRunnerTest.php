@@ -42,8 +42,8 @@ final readonly class ParallelRunnerTest
         Expect::that($subscriber->sequence())
             ->because('the parallel subscriber observes both run boundaries')
             ->toContain('RunStarted')
-            ->toContain('RunFinished')
-            ->and($result->summary->passed)
+            ->toContain('RunFinished');
+        Expect::that($result->summary->passed)
             ->toBe(7);
     }
 }

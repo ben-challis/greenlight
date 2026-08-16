@@ -39,10 +39,10 @@ final readonly class LeakDetectorWhitespaceIniModeTest
 
         Expect::that($result->exitCode)
             ->because('the fallback process MUST accept comma-separated Xdebug modes')
-            ->toBe(0)
-            ->and($result->stderr)
-            ->toBe('')
-            ->and($result->stdout)
+            ->toBe(0);
+        Expect::that($result->stderr)
+            ->toBe('');
+        Expect::that($result->stdout)
             ->because('the fallback MUST detect develop mode after separator whitespace')
             ->toBe(
                 'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports '

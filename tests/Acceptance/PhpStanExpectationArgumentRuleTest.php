@@ -67,11 +67,11 @@ final readonly class PhpStanExpectationArgumentRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('constant expectation arguments must satisfy runtime constraints')->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and(\count($probe->errors))->toBe(7)
-            ->and($probe->messages())->toContain('Regular expression "/[/" for toMatch() is invalid')
-            ->and($probe->messages())->toContain('toMatchJson() requires valid expected JSON')
-            ->and($probe->messages())->toContain('within() requires a finite duration greater than 0.000 seconds');
+        Expect::that($probe->exitCode)->because('constant expectation arguments must satisfy runtime constraints')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(7);
+        Expect::that($probe->messages())->toContain('Regular expression "/[/" for toMatch() is invalid');
+        Expect::that($probe->messages())->toContain('toMatchJson() requires valid expected JSON');
+        Expect::that($probe->messages())->toContain('within() requires a finite duration greater than 0.000 seconds');
     }
 }

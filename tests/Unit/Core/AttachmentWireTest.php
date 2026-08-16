@@ -33,8 +33,8 @@ final class AttachmentWireTest
 
         Expect::that($payload['retention'])
             ->because('explicit attachment retention survives the wire round-trip')
-            ->toBe(AttachmentRetention::Always->value)
-            ->and($decoded)
+            ->toBe(AttachmentRetention::Always->value);
+        Expect::that($decoded)
             ->toEqual($attachment);
     }
 
@@ -79,8 +79,8 @@ final class AttachmentWireTest
 
         Expect::that($attachment->retention)
             ->because('older attachment payloads use on-failure retention')
-            ->toBe(AttachmentRetention::OnFailure)
-            ->and($staged->retention)
+            ->toBe(AttachmentRetention::OnFailure);
+        Expect::that($staged->retention)
             ->toBe(AttachmentRetention::OnFailure);
     }
 

@@ -30,10 +30,10 @@ final readonly class ToThrowZeroMessageTest
             ->toBe(
                 "Expected a callable that threw RuntimeException with message 'other' "
                 . "to throw RuntimeException with message '0'.",
-            )
-            ->and($detail->expected)
-            ->toBe(\RuntimeException::class)
-            ->and($detail->actual)
+            );
+        Expect::that($detail->expected)
+            ->toBe(\RuntimeException::class);
+        Expect::that($detail->actual)
             ->toBe("a callable that threw RuntimeException with message 'other'");
     }
 }

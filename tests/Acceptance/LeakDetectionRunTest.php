@@ -17,8 +17,8 @@ final readonly class LeakDetectionRunTest
     {
         $withFlag = $this->run(['run', '--detect-leaks', '--workers=2']);
 
-        Expect::that($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1)
-            ->and($withFlag->output())->toContain('Test instance leaks:')
+        Expect::that($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1);
+        Expect::that($withFlag->output())->toContain('Test instance leaks:')
             ->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         $withoutFlag = $this->run(['run', '--workers=2']);

@@ -50,8 +50,8 @@ final readonly class RectorNullsafeMethodCallTest
 
         Expect::that($probe->changed)
             ->because('a nullsafe method call MUST remain unsupported')
-            ->toBeFalse()
-            ->and($probe->code)
+            ->toBeFalse();
+        Expect::that($probe->code)
             ->because('an unsupported class MUST remain byte-identical')
             ->toBe($source);
     }

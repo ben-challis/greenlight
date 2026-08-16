@@ -24,11 +24,11 @@ final readonly class EnvironmentVariableConditionTest
 
         Expect::that(new EnvironmentVariableSet($name)->isSatisfied())
             ->because('falsey values MUST remain distinct from missing environment variables')
-            ->toBeTrue()
-            ->and(new EnvironmentVariableEquals($name, $value)->isSatisfied())
+            ->toBeTrue();
+        Expect::that(new EnvironmentVariableEquals($name, $value)->isSatisfied())
             ->because('environment variable comparisons MUST preserve the exact falsey value')
-            ->toBeTrue()
-            ->and(new EnvironmentVariableEquals($name, 'different')->isSatisfied())
+            ->toBeTrue();
+        Expect::that(new EnvironmentVariableEquals($name, 'different')->isSatisfied())
             ->toBeFalse();
     }
 

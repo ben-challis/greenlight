@@ -30,9 +30,9 @@ final class JsonlEventsTest
 
         $events = JsonlEvents::from($result);
 
-        Expect::that($events)->because('restores typed events in order from stdout only')->toHaveCount(2)
-            ->and($events[0])->toBeInstanceOf(WorkerSpawned::class)
-            ->and($events[1])->toBeInstanceOf(TestClassStarted::class);
+        Expect::that($events)->because('restores typed events in order from stdout only')->toHaveCount(2);
+        Expect::that($events[0])->toBeInstanceOf(WorkerSpawned::class);
+        Expect::that($events[1])->toBeInstanceOf(TestClassStarted::class);
 
         $restoredSpawned = $events[0];
         $restoredStarted = $events[1];
@@ -45,10 +45,10 @@ final class JsonlEventsTest
             ));
         }
 
-        Expect::that($restoredSpawned->workerId)->because('restores typed events in order from stdout only')->toBe('worker-2')
-            ->and($restoredSpawned->pid)->toBe(42)
-            ->and($restoredStarted->class)->toBe('ExampleTest')
-            ->and($restoredStarted->workerId)->toBe('worker-2');
+        Expect::that($restoredSpawned->workerId)->because('restores typed events in order from stdout only')->toBe('worker-2');
+        Expect::that($restoredSpawned->pid)->toBe(42);
+        Expect::that($restoredStarted->class)->toBe('ExampleTest');
+        Expect::that($restoredStarted->workerId)->toBe('worker-2');
     }
 
     #[Test]

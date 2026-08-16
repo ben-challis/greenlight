@@ -49,8 +49,8 @@ final class SuiteBuilderTest
 
         Expect::that($configuration->paths)
             ->because('a rejected path call retains the prior paths')
-            ->toBe(['tests/Existing'])
-            ->and($configuration->tags)
+            ->toBe(['tests/Existing']);
+        Expect::that($configuration->tags)
             ->because('a rejected tag call retains the prior tags')
             ->toBe(['existing']);
     }

@@ -183,8 +183,8 @@ final class DataSetExpansionTest
 
         Expect::that($message)
             ->because('a non-public data-set provider MUST fail discovery')
-            ->toContain('Declare the provider as public and static')
-            ->and($message)
+            ->toContain('Declare the provider as public and static');
+        Expect::that($message)
             ->toContain('privateProvider');
     }
 
@@ -213,8 +213,8 @@ final class DataSetExpansionTest
 
         Expect::that($message)
             ->because('provider that throws during iteration fails discovery with the cause')
-            ->toContain('iteration exploded')
-            ->and($message)
+            ->toContain('iteration exploded');
+        Expect::that($message)
             ->toContain('rows');
     }
 

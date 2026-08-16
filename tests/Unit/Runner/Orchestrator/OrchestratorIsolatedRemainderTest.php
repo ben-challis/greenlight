@@ -51,8 +51,8 @@ final class OrchestratorIsolatedRemainderTest
 
         Expect::that($summary)
             ->because('the replacement worker MUST execute the requeued isolated test')
-            ->toEqual(new ResultSummary(passed: 1))
-            ->and($workers)
+            ->toEqual(new ResultSummary(passed: 1));
+        Expect::that($workers)
             ->toBe(['w-2']);
     }
 }

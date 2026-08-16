@@ -36,11 +36,11 @@ final class SuiteConfigurationTest
 
         Expect::that($suite->name)
             ->because('a zero-string suite name is not empty')
-            ->toBe('0')
-            ->and($suite->paths)
+            ->toBe('0');
+        Expect::that($suite->paths)
             ->because('a zero-string suite path is not empty')
-            ->toBe(['0'])
-            ->and($suite->tags)
+            ->toBe(['0']);
+        Expect::that($suite->tags)
             ->because('a zero-string suite tag is not empty')
             ->toBe(['0']);
     }

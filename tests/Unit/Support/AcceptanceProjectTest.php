@@ -21,9 +21,9 @@ final readonly class AcceptanceProjectTest
         $project = AcceptanceProject::create($this->workspace, 'project');
         $project->writeFile('nested/example.txt', 'contents');
 
-        Expect::that($project->directory)->because('creates a project and writes nested files')->toBe($this->workspace->path() . '/project')
-            ->and($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt')
-            ->and(\file_get_contents($project->path('nested/example.txt')))->toBe('contents');
+        Expect::that($project->directory)->because('creates a project and writes nested files')->toBe($this->workspace->path() . '/project');
+        Expect::that($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt');
+        Expect::that(\file_get_contents($project->path('nested/example.txt')))->toBe('contents');
     }
 
     #[Test]
@@ -62,10 +62,10 @@ final readonly class AcceptanceProjectTest
             ));
         }
 
-        Expect::that(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond')
-            ->and($configuration->paths)->toBe([$testsDirectory])
-            ->and($configuration->workers->fixed)->toBe(3)
-            ->and($configuration->randomizeOrder)->toBeFalse();
+        Expect::that(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond');
+        Expect::that($configuration->paths)->toBe([$testsDirectory]);
+        Expect::that($configuration->workers->fixed)->toBe(3);
+        Expect::that($configuration->randomizeOrder)->toBeFalse();
     }
 
     #[Test]

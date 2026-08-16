@@ -48,11 +48,11 @@ final readonly class ArtifactPostCopyIntegrityTest
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Published attachment content does not match its metadata.',
-                )
-                ->and(\is_file($staged->path))
+                );
+            Expect::that(\is_file($staged->path))
                 ->because('a rejected publication MUST NOT leave the final attachment')
-                ->toBeFalse()
-                ->and(\glob($staged->path . '.part-*'))
+                ->toBeFalse();
+            Expect::that(\glob($staged->path . '.part-*'))
                 ->because('a rejected publication MUST remove its partial attachment')
                 ->toBe([]);
         } finally {

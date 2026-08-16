@@ -23,8 +23,8 @@ final readonly class LaravelRunTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->toBe(0)
-            ->and($result->output())->toContain('4 tests, 4 passed');
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->output())->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -107,10 +107,10 @@ final readonly class LaravelRunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!')
-                        ->and($this->named->greet())->toContain('fixture.named_greeter')
-                        ->and($this->app->environment())->toBe('testing')
-                        ->and($this->counter->count())->toBe(1);
+                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    Expect::that($this->named->greet())->toContain('fixture.named_greeter');
+                    Expect::that($this->app->environment())->toBe('testing');
+                    Expect::that($this->counter->count())->toBe(1);
                 }
 
                 #[Test]

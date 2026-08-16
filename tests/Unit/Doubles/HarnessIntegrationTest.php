@@ -55,8 +55,8 @@ final class HarnessIntegrationTest
 
         $failures = $container->dispose();
 
-        Expect::that($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1)
-            ->and($failures[0])->toBeInstanceOf(ExpectationFailed::class);
+        Expect::that($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1);
+        Expect::that($failures[0])->toBeInstanceOf(ExpectationFailed::class);
 
         $failure = $failures[0];
 
@@ -76,11 +76,11 @@ final class HarnessIntegrationTest
         $wire = $doubles->stub(WireSerializable::class);
         $events = $doubles->spy(EventSink::class);
 
-        Expect::that($condition)->because('every greenlight interface can be doubled')->toBeInstanceOf(Condition::class)
-            ->and($disposable)->toBeInstanceOf(Disposable::class)
-            ->and($wire)->toBeInstanceOf(WireSerializable::class)
-            ->and($extension)->toBeInstanceOf(ExpectationExtension::class)
-            ->and($events)->toBeInstanceOf(EventSink::class);
+        Expect::that($condition)->because('every greenlight interface can be doubled')->toBeInstanceOf(Condition::class);
+        Expect::that($disposable)->toBeInstanceOf(Disposable::class);
+        Expect::that($wire)->toBeInstanceOf(WireSerializable::class);
+        Expect::that($extension)->toBeInstanceOf(ExpectationExtension::class);
+        Expect::that($events)->toBeInstanceOf(EventSink::class);
 
         $doubles->dispose();
     }

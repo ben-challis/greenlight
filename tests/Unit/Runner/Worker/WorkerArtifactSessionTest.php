@@ -141,8 +141,8 @@ final readonly class WorkerArtifactSessionTest
 
         Expect::that($workerExit)
             ->because('a worker with artifact settings MUST complete its assignment')
-            ->toBe(0)
-            ->and($serverExit)
+            ->toBe(0);
+        Expect::that($serverExit)
             ->because('the worker MUST stage evidence in the assigned artifact session')
             ->toBe(0);
     }

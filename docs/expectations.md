@@ -15,18 +15,22 @@ them.
 
 ## Matcher chains
 
-`and()` starts a new chain from another value:
+Matchers in a chain use the same subject:
 
 ```php
-Expect::that($response->status())->toBe(200)
-    ->and($response->body())->toMatchJson('{"accepted":true}');
+Expect::that($response->body())
+    ->toBeString()
+    ->toMatchJson('{"accepted":true}');
 ```
+
+Start a separate expectation for each subject.
 
 `not()` negates the next matcher only:
 
 ```php
-Expect::that($result)->not()->toBeNull()
-    ->and($errors)->toBeEmpty();
+Expect::that($errors)
+    ->not()->toBeEmpty()
+    ->toHaveCount(1);
 ```
 
 `because()` adds a reason to the next matcher only:

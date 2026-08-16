@@ -43,8 +43,8 @@ final readonly class DiscoveryCacheCorruptPlanTest
 
             Expect::that($cache->persist())
                 ->because('discarding a corrupt plan entry MUST leave no cache data to persist')
-                ->toBeTrue()
-                ->and(\is_file($cacheFile))
+                ->toBeTrue();
+            Expect::that(\is_file($cacheFile))
                 ->because('persistence MUST NOT recreate a discarded corrupt plan entry')
                 ->toBeFalse();
         } finally {

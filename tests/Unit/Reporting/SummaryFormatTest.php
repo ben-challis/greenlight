@@ -155,8 +155,8 @@ final class SummaryFormatTest
     {
         $block = SummaryFormat::leaks([new TestId('App\AlphaTest', 'one')], new Style(ansi: true));
 
-        Expect::that($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mTest instance leaks:\x1b[0m")
-            ->and(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
+        Expect::that($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mTest instance leaks:\x1b[0m");
+        Expect::that(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
     }
 
     #[Test]

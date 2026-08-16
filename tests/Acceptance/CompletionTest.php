@@ -19,8 +19,8 @@ final readonly class CompletionTest
     public function printsAScriptPerShellAndRejectsUnknownShells(): void
     {
         $result = $this->run('bash');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0)
-            ->and($result->stdout)->toContain('_greenlight_completions')
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
+        Expect::that($result->stdout)->toContain('_greenlight_completions')
             ->toContain('coverage:diff')
             ->toContain('--detect-leaks')
             ->toContain('teamcity');
@@ -28,24 +28,24 @@ final readonly class CompletionTest
         $bashScript = $result->stdout;
 
         $result = $this->run('zsh');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0)
-            ->and($result->stdout)->toContain('compdef _greenlight greenlight')
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
+        Expect::that($result->stdout)->toContain('compdef _greenlight greenlight')
             ->toContain('--detect-leaks')
             ->toContain('teamcity');
 
         $result = $this->run('fish');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0)
-            ->and($result->stdout)->toContain('complete -c greenlight')
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
+        Expect::that($result->stdout)->toContain('complete -c greenlight')
             ->toContain('-l detect-leaks')
             ->toContain('teamcity');
 
         $result = $this->run('powershell');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64)
-            ->and($result->stderr)->toContain('Unknown shell');
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64);
+        Expect::that($result->stderr)->toContain('Unknown shell');
 
         $result = $this->run();
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64)
-            ->and($result->stderr)->toContain('requires a shell argument');
+        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64);
+        Expect::that($result->stderr)->toContain('requires a shell argument');
 
         $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }

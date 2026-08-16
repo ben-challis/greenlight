@@ -43,8 +43,8 @@ final readonly class SuitePathDiscoveryTest
 
         Expect::that($result->exitCode)
             ->because('test discovery MUST include top-level and named-suite paths')
-            ->toBe(0)
-            ->and($result->output())
+            ->toBe(0);
+        Expect::that($result->output())
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest::fails')
             ->toContain('Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest::wouldAlsoPass');

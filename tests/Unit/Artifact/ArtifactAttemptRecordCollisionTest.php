@@ -37,11 +37,11 @@ final readonly class ArtifactAttemptRecordCollisionTest
             ->toThrow(
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging subdirectory/',
-            )
-            ->and((string) \file_get_contents($testDirectory))
+            );
+        Expect::that((string) \file_get_contents($testDirectory))
             ->because('a rejected attempt record MUST preserve the existing entry')
-            ->toBe('occupied')
-            ->and(\file_exists($testDirectory . '/.attempt'))
+            ->toBe('occupied');
+        Expect::that(\file_exists($testDirectory . '/.attempt'))
             ->because('a rejected attempt record MUST not create an attempt file')
             ->toBeFalse();
     }

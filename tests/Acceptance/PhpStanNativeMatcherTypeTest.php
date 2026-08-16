@@ -57,12 +57,12 @@ final readonly class PhpStanNativeMatcherTypeTest
 
         Expect::that($probe->exitCode)
             ->because('native matcher types keep nullable union and intersection shapes')
-            ->toBe(1)
-            ->and($probe->goodPassed)->toBeTrue()
-            ->and($probe->errors)->toBe([
-                'Extension matcher toAcceptNullableDateTime() requires subject type DateTimeInterface|null, but the subject has type int.',
-                'Extension matcher toAcceptIntegerOrString() requires subject type int|string, but the subject has type array.',
-                'Extension matcher toAcceptSerializableString() requires subject type JsonSerializable&Stringable, but the subject has type stdClass.',
-            ]);
+            ->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that($probe->errors)->toBe([
+            'Extension matcher toAcceptNullableDateTime() requires subject type DateTimeInterface|null, but the subject has type int.',
+            'Extension matcher toAcceptIntegerOrString() requires subject type int|string, but the subject has type array.',
+            'Extension matcher toAcceptSerializableString() requires subject type JsonSerializable&Stringable, but the subject has type stdClass.',
+        ]);
     }
 }

@@ -20,14 +20,14 @@ final class PluginRegistryTest
 
         Expect::that($registry->testSubscribers())
             ->because('an empty registry MUST expose no plugin capabilities or harness services')
-            ->toBe([])
-            ->and($registry->retryDeciders())
-            ->toBe([])
-            ->and($registry->runSubscribers())
-            ->toBe([])
-            ->and($registry->harnessServices())
-            ->toBe([])
-            ->and($registry->serviceResolvers())
+            ->toBe([]);
+        Expect::that($registry->retryDeciders())
+            ->toBe([]);
+        Expect::that($registry->runSubscribers())
+            ->toBe([]);
+        Expect::that($registry->harnessServices())
+            ->toBe([]);
+        Expect::that($registry->serviceResolvers())
             ->toBe([]);
     }
 
@@ -44,10 +44,10 @@ final class PluginRegistryTest
 
         Expect::that($registry->testSubscribers())
             ->because('capability accessors filter plugins and keep stable priority order')
-            ->toBe($expected)
-            ->and($registry->retryDeciders())->toBe($expected)
-            ->and($registry->runSubscribers())->toBe($expected)
-            ->and($registry->serviceResolvers())->toBe($expected)
-            ->and($registry->ofType(NamedFakePlugin::class))->toBe([$unrelated]);
+            ->toBe($expected);
+        Expect::that($registry->retryDeciders())->toBe($expected);
+        Expect::that($registry->runSubscribers())->toBe($expected);
+        Expect::that($registry->serviceResolvers())->toBe($expected);
+        Expect::that($registry->ofType(NamedFakePlugin::class))->toBe([$unrelated]);
     }
 }
