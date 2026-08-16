@@ -114,8 +114,14 @@ final readonly class BoundaryTest
     public function planningAMissingMethodIsAnAuthoringError(): void
     {
         Expect::that(fn(): object => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
-            $plan->expects('subtract');
+            $plan->expects(self::missingMethod());
         }))->because('planning a missing method is an authoring error')->toThrow(DoublesError::class, '/has no method subtract\(\)/');
+    }
+
+    /** @return non-empty-string */
+    private static function missingMethod(): string
+    {
+        return 'subtract';
     }
 
     /**

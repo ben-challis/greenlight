@@ -27,10 +27,14 @@ final readonly class CallHandler
     ) {}
 
     /**
+     * @param non-empty-string $method
      * @param list<mixed> $arguments
      */
     public function invoke(object $double, string $method, array $arguments): mixed
     {
+        MethodCallContract::from($this->state->type, $method)
+            ->assertCallArgumentCount(\count($arguments));
+
         $this->state->recordedCalls[$method][] = $arguments;
 
         return match ($this->state->kind) {

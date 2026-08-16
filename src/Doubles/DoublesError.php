@@ -191,6 +191,74 @@ final class DoublesError extends \LogicException
         return new self(\sprintf('atLeast(%d) requires a count of one or more.', $count));
     }
 
+    /**
+     * @param class-string $type
+     */
+    public static function tooFewPlannedArguments(
+        string $selector,
+        string $type,
+        string $method,
+        int $actual,
+        int $required,
+    ): self {
+        return new self(\sprintf(
+            '%s() supplies %s for %s::%s(), but the method requires %s.',
+            $selector,
+            self::argumentCount($actual),
+            $type,
+            $method,
+            self::argumentCount($required),
+        ));
+    }
+
+    /**
+     * @param class-string $type
+     */
+    public static function tooManyPlannedArguments(
+        string $selector,
+        string $type,
+        string $method,
+        int $actual,
+        int $maximum,
+    ): self {
+        return new self(\sprintf(
+            '%s() supplies %s for %s::%s(), but the method accepts at most %s.',
+            $selector,
+            self::argumentCount($actual),
+            $type,
+            $method,
+            self::argumentCount($maximum),
+        ));
+    }
+
+    /**
+     * @param class-string $type
+     */
+    public static function tooFewCallArguments(string $type, string $method, int $actual, int $required): self
+    {
+        return new self(\sprintf(
+            'The call to %s::%s() supplies %s, but the method requires %s.',
+            $type,
+            $method,
+            self::argumentCount($actual),
+            self::argumentCount($required),
+        ));
+    }
+
+    /**
+     * @param class-string $type
+     */
+    public static function tooManyCallArguments(string $type, string $method, int $actual, int $maximum): self
+    {
+        return new self(\sprintf(
+            'The call to %s::%s() supplies %s, but the method accepts at most %s.',
+            $type,
+            $method,
+            self::argumentCount($actual),
+            self::argumentCount($maximum),
+        ));
+    }
+
     public static function conflictingAnswers(string $method): self
     {
         return new self(\sprintf(
@@ -227,5 +295,10 @@ final class DoublesError extends \LogicException
     public static function invalidArgumentType(): self
     {
         return new self('Argument::type() requires a type name that contains a non-space character.');
+    }
+
+    private static function argumentCount(int $count): string
+    {
+        return \sprintf('%d argument%s', $count, $count === 1 ? '' : 's');
     }
 }

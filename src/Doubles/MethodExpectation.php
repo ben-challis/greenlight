@@ -16,6 +16,9 @@ use Greenlight\Expect\ValueRenderer;
  * @internal
  *
  * Argument values compare with the same deep equality as Expect's toEqual().
+ *
+ * @template TTarget of object = object
+ * @template TMethod of non-empty-string = non-empty-string
  */
 final class MethodExpectation
 {
@@ -53,16 +56,35 @@ final class MethodExpectation
      */
     private array $registeredCaptors = [];
 
+    public readonly string $method;
+
     /**
      * @internal Only MockPlan::expects() constructs this object.
      *
-     * @param non-empty-string $method
+     * @param MethodCallContract<TTarget, TMethod> $contract
      */
-    public function __construct(public readonly string $method) {}
-
-    public function with(mixed ...$arguments): self
+    public function __construct(private readonly MethodCallContract $contract)
     {
-        $this->arguments = \array_values($arguments);
+        $this->method = $contract->method;
+    }
+
+    public function withNoArguments(): self
+    {
+        return $this->withArguments([], 'withNoArguments');
+    }
+
+    public function with(mixed $first, mixed ...$rest): self
+    {
+        return $this->withArguments([$first, ...\array_values($rest)], 'with');
+    }
+
+    /**
+     * @param list<mixed> $arguments
+     */
+    private function withArguments(array $arguments, string $selector): self
+    {
+        $this->contract->assertPlannedArgumentCount($selector, \count($arguments));
+        $this->arguments = $arguments;
 
         return $this;
     }

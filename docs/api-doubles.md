@@ -205,7 +205,7 @@ PHPDoc:
 
 - `@template T of object`
 - `@param class-string<T> $type`
-- `@param \Closure(MockPlan): void|null $plan`
+- `@param \Closure(MockPlan<T>): void|null $plan`
 - `@return T`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L87)
@@ -306,7 +306,11 @@ scope closes.
 final readonly class MockPlan
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L16)
+
+PHPDoc:
+
+- `@template TTarget of object = object`
 
 ### `any()`
 
@@ -316,7 +320,7 @@ Returns the `with()` wildcard that accepts all values in its position.
 public static function any(): Any
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L31)
 
 ### `expects()`
 
@@ -326,6 +330,8 @@ public function expects(string $method): MethodExpectation
 
 PHPDoc:
 
-- `@param non-empty-string $method`
+- `@template TMethod of non-empty-string`
+- `@param TMethod $method`
+- `@return MethodExpectation<TTarget, TMethod>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L43)
