@@ -11,59 +11,49 @@ use Greenlight\Coverage\Ignore\IgnoreFilter;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 
-final class IgnoreFilterTest
+final readonly class IgnoreFilterTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function subtractsIgnoredLinesFromBothSets(): void
     {
-        $directory = new TempDirectory();
+        $path = $this->tempDirectory->subdirectory('subtracts-ignored-lines') . '/subject.php';
+        \file_put_contents($path, <<<'PHP'
+            <?php
+            $a = 1;
+            // @codeCoverageIgnoreStart
+            $b = 2;
+            $c = 3;
+            // @codeCoverageIgnoreEnd
+            $d = 4;
 
-        try {
-            $path = $directory->path() . '/subject.php';
-            \file_put_contents($path, <<<'PHP'
-                <?php
-                $a = 1;
-                // @codeCoverageIgnoreStart
-                $b = 2;
-                $c = 3;
-                // @codeCoverageIgnoreEnd
-                $d = 4;
+            PHP);
 
-                PHP);
+        $map = new CoverageMap([new FileCoverage($path, [2, 4], [5, 7])]);
 
-            $map = new CoverageMap([new FileCoverage($path, [2, 4], [5, 7])]);
+        $filtered = new IgnoreFilter()->apply($map);
+        $file = $filtered->files()[$path];
 
-            $filtered = new IgnoreFilter()->apply($map);
-            $file = $filtered->files()[$path];
-
-            Expect::that($file->coveredLines)->toBe([2])
-                ->and($file->uncoveredLines)->toBe([7]);
-        } finally {
-            $directory->dispose();
-        }
+        Expect::that($file->coveredLines)->toBe([2]);
+        Expect::that($file->uncoveredLines)->toBe([7]);
     }
 
     #[Test]
     public function fullyIgnoredFilesAreDroppedFromTheMap(): void
     {
-        $directory = new TempDirectory();
+        $path = $this->tempDirectory->subdirectory('fully-ignored-files') . '/gone.php';
+        \file_put_contents($path, <<<'PHP'
+            <?php
+            // @codeCoverageIgnoreStart
+            $a = 1;
+            $b = 2;
 
-        try {
-            $path = $directory->path() . '/gone.php';
-            \file_put_contents($path, <<<'PHP'
-                <?php
-                // @codeCoverageIgnoreStart
-                $a = 1;
-                $b = 2;
+            PHP);
 
-                PHP);
+        $map = new CoverageMap([new FileCoverage($path, [3], [4])]);
 
-            $map = new CoverageMap([new FileCoverage($path, [3], [4])]);
-
-            Expect::that(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
-        } finally {
-            $directory->dispose();
-        }
+        Expect::that(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
     }
 
     #[Test]
@@ -74,8 +64,8 @@ final class IgnoreFilterTest
         $filtered = new IgnoreFilter()->apply($map);
         $file = $filtered->files()['/nonexistent/plain.php'];
 
-        Expect::that($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2])
-            ->and($file->uncoveredLines)->toBe([3]);
+        Expect::that($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2]);
+        Expect::that($file->uncoveredLines)->toBe([3]);
     }
 
     #[Test]
