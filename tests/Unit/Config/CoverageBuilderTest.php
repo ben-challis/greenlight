@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Config;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\InvalidConfiguration;
@@ -52,18 +53,17 @@ final class CoverageBuilderTest
     }
 
     #[Test]
-    public function aCoverageExportNeedsAFormatAndTarget(): void
+    #[DataSet('invalidExports')]
+    public function aCoverageExportNeedsAFormatAndTarget(string $format, string $target): void
     {
-        foreach ([['', 'coverage.json'], ['json', '']] as [$format, $target]) {
-            Expect::that(static function () use ($format, $target): void {
-                new CoverageBuilder()->export($format, $target);
-            })
-                ->because('a coverage export needs a format and target')
-                ->toThrow(
-                    InvalidConfiguration::class,
-                    message: 'Coverage exports need a non-empty format and target.',
-                );
-        }
+        Expect::that(static function () use ($format, $target): void {
+            new CoverageBuilder()->export($format, $target);
+        })
+            ->because('a coverage export needs a format and target')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Coverage exports need a non-empty format and target.',
+            );
     }
 
     #[Test]
@@ -77,15 +77,24 @@ final class CoverageBuilderTest
 
         Expect::that($configuration->includePaths)
             ->because('a zero-string coverage include path is not empty')
-            ->toBe(['0'])
-            ->and($configuration->driver)
+            ->toBe(['0']);
+        Expect::that($configuration->driver)
             ->because('a zero-string coverage driver is not empty')
-            ->toBe('0')
-            ->and($configuration->exports[0]->format)
+            ->toBe('0');
+        Expect::that($configuration->exports[0]->format)
             ->because('a zero-string coverage export format is not empty')
-            ->toBe('0')
-            ->and($configuration->exports[0]->target)
+            ->toBe('0');
+        Expect::that($configuration->exports[0]->target)
             ->because('a zero-string coverage export target is not empty')
             ->toBe('0');
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function invalidExports(): iterable
+    {
+        yield 'empty format' => ['', 'coverage.json'];
+        yield 'empty target' => ['json', ''];
     }
 }
