@@ -132,7 +132,7 @@ deptrac:
     Reporting: [Core]
     Runner: [Core, Attribute, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
-    PhpStan: [Core, Attribute, Config, Expect, PhpStanFramework, PhpParserFramework]
+    PhpStan: [Core, Attribute, Config, Doubles, Expect, PhpStanFramework, PhpParserFramework]
     Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
     Laravel: [Core, Harness, Plugin, LaravelFramework]

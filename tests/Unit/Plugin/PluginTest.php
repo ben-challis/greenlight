@@ -77,8 +77,10 @@ final class PluginTest
         $quarantined = $byMethod['flakyAndQuarantined'];
 
         Expect::that($quarantined->outcome)->because('quarantine plugin transforms failures with provenance')->toBe(Outcome::Skipped);
+        Expect::that($quarantined->transformations)->toHaveCount(1);
         Expect::that($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class);
         Expect::that($quarantined->transformations[0]->from)->toBe(Outcome::Errored);
+        Expect::that($quarantined->transformations[0]->to)->toBe(Outcome::Skipped);
         Expect::that($byMethod['passes']->outcome)->toBe(Outcome::Passed);
     }
 

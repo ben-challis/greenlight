@@ -65,7 +65,7 @@ final readonly class SpyTest
     {
         $foreign = new \stdClass();
 
-        Expect::that(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects')
+        Expect::that(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects') // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
             ->toThrow(
                 DoublesError::class,
                 message: 'This Doubles factory did not create the stdClass instance.',
