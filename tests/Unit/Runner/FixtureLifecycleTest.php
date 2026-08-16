@@ -4,51 +4,63 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Runner;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Support\CollectingEventSink;
 
-final class FixtureLifecycleTest
+final readonly class FixtureLifecycleTest
 {
+    public function __construct(private EnvironmentSandbox $environment) {}
+
     #[Test]
-    public function defaultFixturesAreInjectedAndCleanedUpAfterTheTest(): void
+    #[DataSet('initialEnvironmentValues')]
+    public function defaultFixturesAreInjectedAndCleanedUpAfterTheTest(?string $initialValue): void
     {
         TraceLog::drain();
-        \putenv('GREENLIGHT_FIXTURE_E2E=outside');
-        $_ENV['GREENLIGHT_FIXTURE_E2E'] = 'outside';
-        $_SERVER['GREENLIGHT_FIXTURE_E2E'] = 'outside';
 
-        try {
-            $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/HarnessFixtures';
-            $plan = new TestDiscoverer()->discover([$directory]);
-            $sink = new CollectingEventSink();
-
-            $outcome = new Worker(DefaultServices::registry(), PluginRegistry::forWorker([]))
-                ->run($plan, $sink);
-
-            $tempPath = null;
-
-            foreach (TraceLog::drain() as $entry) {
-                if (\str_starts_with($entry, 'temp:')) {
-                    $tempPath = \substr($entry, 5);
-                }
-            }
-
-            Expect::that($outcome->summary->passed)->toBe(1)
-                ->and($tempPath)->not()->toBeNull()
-                ->and(\file_exists((string) $tempPath))->toBeFalse()
-                ->and(\getenv('GREENLIGHT_FIXTURE_E2E'))->toBe('outside')
-                ->and($this->superglobalValue($_ENV, 'GREENLIGHT_FIXTURE_E2E'))->toBe('outside')
-                ->and($this->superglobalValue($_SERVER, 'GREENLIGHT_FIXTURE_E2E'))->toBe('outside');
-        } finally {
-            \putenv('GREENLIGHT_FIXTURE_E2E');
-            unset($_ENV['GREENLIGHT_FIXTURE_E2E'], $_SERVER['GREENLIGHT_FIXTURE_E2E']);
+        if ($initialValue === null) {
+            $this->environment->unset('GREENLIGHT_FIXTURE_E2E');
+        } else {
+            $this->environment->set('GREENLIGHT_FIXTURE_E2E', $initialValue);
         }
+
+        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/HarnessFixtures';
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $sink = new CollectingEventSink();
+
+        $outcome = new Worker(DefaultServices::registry(), PluginRegistry::forWorker([]))
+            ->run($plan, $sink);
+
+        $tempPath = null;
+
+        foreach (TraceLog::drain() as $entry) {
+            if (\str_starts_with($entry, 'temp:')) {
+                $tempPath = \substr($entry, 5);
+            }
+        }
+
+        Expect::that($outcome->summary->passed)->toBe(1);
+        Expect::that($tempPath)->not()->toBeNull();
+        Expect::that(\file_exists((string) $tempPath))->toBeFalse();
+        Expect::that(\getenv('GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue ?? false);
+        Expect::that($this->superglobalValue($_ENV, 'GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue);
+        Expect::that($this->superglobalValue($_SERVER, 'GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue);
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function initialEnvironmentValues(): iterable
+    {
+        yield 'present initial state' => ['outside'];
+        yield 'absent initial state' => [null];
     }
 
     /**
