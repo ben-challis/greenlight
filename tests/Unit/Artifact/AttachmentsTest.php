@@ -51,15 +51,19 @@ final readonly class AttachmentsTest
             attachments: $retained,
         ));
 
-        Expect::that($published->attachments)->because('stages publishes and hashes every attachment kind')->toHaveCount(5)
-            ->and($published->attachments[1]->name)->toBe('response.txt')
-            ->and($published->attachments[3]->name)->toBe('response.txt')
-            ->and($published->attachments[3]->path)->toContain('response-2.txt');
+        Expect::that($published->attachments)->because('stages publishes and hashes every attachment kind')->toHaveCount(5);
+        Expect::that($published->attachments[1]->name)->because('stages publishes and hashes every attachment kind')->toBe('response.txt');
+        Expect::that($published->attachments[3]->name)->because('stages publishes and hashes every attachment kind')->toBe('response.txt');
+        Expect::that($published->attachments[3]->path)->because('stages publishes and hashes every attachment kind')->toContain('response-2.txt');
 
         foreach ($published->attachments as $attachment) {
             $path = $this->absolute($root, $attachment->path);
-            Expect::that(\is_file($path))->toBeTrue()
-                ->and(\hash_file('sha256', $path))->toBe($attachment->sha256);
+            Expect::that(\is_file($path))
+                ->because(\sprintf('published attachment "%s" exists as a file', $attachment->path))
+                ->toBeTrue();
+            Expect::that(\hash_file('sha256', $path))
+                ->because(\sprintf('published attachment "%s" has its recorded SHA-256 digest', $attachment->path))
+                ->toBe($attachment->sha256);
         }
 
         Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[0]->path)))->because('stages publishes and hashes every attachment kind')
@@ -87,8 +91,8 @@ final readonly class AttachmentsTest
             attachments: $attachments->seal(),
         ));
 
-        Expect::that($published->attachments)->because('passing attempts discard on failure attachments but keep always')->toHaveCount(1)
-            ->and($published->attachments[0]->name)->toBe('kept.txt');
+        Expect::that($published->attachments)->because('passing attempts discard on failure attachments but keep always')->toHaveCount(1);
+        Expect::that($published->attachments[0]->name)->because('passing attempts discard on failure attachments but keep always')->toBe('kept.txt');
 
         $store->cleanup();
     }
