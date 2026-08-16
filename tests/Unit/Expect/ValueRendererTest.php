@@ -130,7 +130,12 @@ final class ValueRendererTest
     {
         $inner = new Holder(new Holder(new Holder(new Holder(null))));
 
-        Expect::that(new ValueRenderer()->render($inner))->because('limits object nesting depth')->toContain('{...}');
+        Expect::that(new ValueRenderer()->render($inner))->because('limits object nesting depth')->toBe(
+            Holder::class . ' {inner: '
+            . Holder::class . ' {inner: '
+            . Holder::class . ' {inner: '
+            . Holder::class . ' {...}}}}',
+        );
     }
 
     #[Test]
