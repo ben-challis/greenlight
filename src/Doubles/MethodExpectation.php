@@ -185,6 +185,8 @@ final class MethodExpectation
      * expectation for a call. The method returns the captor and ends the
      * fluent chain. Before you call this method, configure the cardinality. If
      * the doubled method returns a value, configure its result first.
+     *
+     * @return ArgumentCaptor<mixed>
      */
     public function captureArgument(int $position = 0): ArgumentCaptor
     {

@@ -121,6 +121,10 @@ is `method`, `arity`, `argument`, `cardinality`, `answer`, or `capturePosition`.
 Greenlight validates each plan at run time when PHPStan cannot resolve a method
 name or argument list.
 
+For a constant method name and capture position, `captureArgument()` keeps the
+selected parameter type. Its `value()` and `values()` results use that type.
+A dynamic method name or position keeps the documented `mixed` value type.
+
 ## Custom matcher checks
 
 These checks apply when a plugin adds matchers through `ExpectationExtension`.
