@@ -9,24 +9,20 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\PlanningBoundaries;
 
-final class FinalMethodDoubleTest
+final readonly class FinalMethodDoubleTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function aClassDoubleKeepsItsOriginalFinalMethods(): void
     {
-        $doubles = new Doubles();
+        $double = $this->doubles->stub(PlanningBoundaries::class);
 
-        try {
-            $double = $doubles->stub(PlanningBoundaries::class);
-
-            Expect::that(static function () use ($double): void {
-                $double->finalMethod();
-            })
-                ->because('a class double MUST keep its original final methods')
-                ->not()
-                ->toThrow(\Throwable::class);
-        } finally {
-            $doubles->dispose();
-        }
+        Expect::that(static function () use ($double): void {
+            $double->finalMethod();
+        })
+            ->because('a class double MUST keep its original final methods')
+            ->not()
+            ->toThrow(\Throwable::class);
     }
 }
