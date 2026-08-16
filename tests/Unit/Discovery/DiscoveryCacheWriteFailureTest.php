@@ -7,16 +7,18 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 
 final readonly class DiscoveryCacheWriteFailureTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function aCacheWriteFailureReturnsFalseWithoutChangingTheTarget(): void
     {
-        $directory = \sys_get_temp_dir() . '/greenlight-cache-write-failure-' . \bin2hex(\random_bytes(6));
+        $directory = $this->tempDirectory->subdirectory('cache-write-failure');
         $source = $directory . '/ExampleTest.php';
         $cacheFile = $this->cacheFile($directory);
-        \mkdir($directory, 0o777, true);
         \file_put_contents($source, '<?php');
         \mkdir($cacheFile);
         \file_put_contents($cacheFile . '/occupant.txt', 'keep');
@@ -27,20 +29,18 @@ final readonly class DiscoveryCacheWriteFailureTest
         try {
             Expect::that($cache->persist())
                 ->because('an advisory cache write failure MUST be reported to its caller')
-                ->toBeFalse()
-                ->and(\is_dir($cacheFile))
+                ->toBeFalse();
+            Expect::that(\is_dir($cacheFile))
                 ->because('the failed write MUST leave the target unchanged')
-                ->toBeTrue()
-                ->and((string) \file_get_contents($cacheFile . '/occupant.txt'))
-                ->toBe('keep')
-                ->and(\glob($cacheFile . '.tmp-*'))
+                ->toBeTrue();
+            Expect::that((string) \file_get_contents($cacheFile . '/occupant.txt'))
+                ->toBe('keep');
+            Expect::that(\glob($cacheFile . '.tmp-*'))
                 ->because('the failed write MUST remove its temporary file')
                 ->toBe([]);
         } finally {
             @\unlink($cacheFile . '/occupant.txt');
             @\rmdir($cacheFile);
-            @\unlink($source);
-            @\rmdir($directory);
         }
     }
 
