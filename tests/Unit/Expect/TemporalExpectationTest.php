@@ -358,18 +358,25 @@ final class TemporalExpectationTest
     public function temporalExpectationsDispatchConfiguredExtensionMatchers(): void
     {
         $clock = new FakePollingClock();
+        $subjects = [-1, 2];
         Expect::install([new PositiveNumbersExtension()]);
 
         try {
             ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::eventually(static fn(): int => 2)
+                static fn() => Expect::eventually(static function () use (&$subjects): int {
+                    return \array_shift($subjects) ?? 2;
+                })
                     ->within(0.100)
                     ->__call('toBePositive', []),
             );
         } finally {
             Expect::install([]);
         }
+
+        Expect::that($clock->sleeps)
+            ->because('the extension matcher MUST reject the negative probe before it accepts the positive probe')
+            ->toBe([0.025]);
     }
 
     #[Test]
