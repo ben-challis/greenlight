@@ -10,25 +10,26 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 
-final class MockExpectationDispatchTest
+final readonly class MockExpectationDispatchTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function saturatedExpectationYieldsToTheNextMatchingPlan(): void
     {
-        $doubles = new Doubles();
-        $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        $calculator = $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->with(1, 2)->once()->andReturns(3);
             $plan->expects('add')->with(1, 2)->once()->andReturns(4);
         });
 
-        $answers = [
-            $calculator->add(1, 2),
-            $calculator->add(1, 2),
-        ];
-        $doubles->dispose();
+        $firstAnswer = $calculator->add(1, 2);
+        $secondAnswer = $calculator->add(1, 2);
 
-        Expect::that($answers)
+        Expect::that($firstAnswer)
+            ->because('the first expectation answers the first matching call')
+            ->toBe(3);
+        Expect::that($secondAnswer)
             ->because('a saturated expectation MUST yield to the next matching plan')
-            ->toBe([3, 4]);
+            ->toBe(4);
     }
 }
