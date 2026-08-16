@@ -95,7 +95,7 @@ final class SummaryFormatTest
     }
 
     #[Test]
-    public function exactlyFiveListsAllWithoutOverflowAndSixOverflowsByOne(): void
+    public function exactlyFiveListsAllWithoutOverflow(): void
     {
         $five = [];
 
@@ -103,7 +103,7 @@ final class SummaryFormatTest
             $five[] = $this->skip(\sprintf('App\DeltaTest::case%d', $i), 'shared reason');
         }
 
-        Expect::that(SummaryFormat::skipped($five, new Style(ansi: false)))->because('exactly five lists all without overflow and six overflows by one')->toBe(
+        Expect::that(SummaryFormat::skipped($five, new Style(ansi: false)))->because('exactly five lists all without overflow')->toBe(
             "\nSkipped:\n"
             . "  shared reason:\n"
             . "    App\DeltaTest::case1\n"
@@ -112,10 +112,27 @@ final class SummaryFormatTest
             . "    App\DeltaTest::case4\n"
             . "    App\DeltaTest::case5\n",
         );
+    }
 
-        $six = [...$five, $this->skip('App\DeltaTest::case6', 'shared reason')];
+    #[Test]
+    public function sixListsFiveAndReportsOneOverflow(): void
+    {
+        $six = [];
 
-        Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->because('exactly five lists all without overflow and six overflows by one')->toContain('… and 1 more');
+        for ($i = 1; $i <= 6; ++$i) {
+            $six[] = $this->skip(\sprintf('App\DeltaTest::case%d', $i), 'shared reason');
+        }
+
+        Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->because('six lists five and reports one overflow')->toBe(
+            "\nSkipped:\n"
+            . "  shared reason:\n"
+            . "    App\DeltaTest::case1\n"
+            . "    App\DeltaTest::case2\n"
+            . "    App\DeltaTest::case3\n"
+            . "    App\DeltaTest::case4\n"
+            . "    App\DeltaTest::case5\n"
+            . "    … and 1 more\n",
+        );
     }
 
     #[Test]
