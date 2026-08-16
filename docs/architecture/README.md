@@ -1,12 +1,11 @@
 # Architecture
 
-Greenlight is a parallel-first PHP test runner with no runtime package
-dependencies. Deep modules contain discovery, process control, schedules,
-recovery, and reports. Thus, the interface for test authors stays small.
+Discovery, process control, schedules, recovery, and reports are internal. Test
+authors use a small public interface.
 
 This page gives contributors an architecture summary. The user documentation
-explains user-visible behavior. The pages in this directory explain module
-seams, invariants, and machine-readable formats.
+explains user-visible behavior. The pages in this directory describe module
+responsibilities, interfaces, invariants, and machine-readable formats.
 
 ## Runtime flow
 
@@ -29,14 +28,14 @@ flowchart LR
 
 The CLI resolves the configuration once. Discovery produces an immutable
 execution plan. The runner selects in-process execution or process-pool
-execution. Both paths emit the same event model. Reporters consume events and
+execution. Both methods emit the same events. Reporters consume the events and
 do not access runner state.
 
-The orchestrator controls all decisions that affect more than one worker. These
-decisions include assignments, resource capacity, bail, hard timeouts, and
-crash containment. They also include summary totals, artifact publication, and
-the final coverage merge. Workers execute their plan sections in sequence and
-send each result immediately.
+The orchestrator makes decisions that apply to more than one worker. It
+controls assignments, resource capacity, bail, hard timeouts, crash
+containment, summary totals, artifact publication, and the final coverage
+merge. Workers execute their plan sections in sequence and send each result
+immediately.
 
 ## Module map
 
@@ -46,7 +45,7 @@ public.
 
 | Module group | Responsibility | Permitted dependencies |
 | --- | --- | --- |
-| `Core` | Shared immutable values, events, results, wire primitives | Nothing |
+| `Core` | Shared immutable values, events, results, and worker-protocol data | Nothing |
 | `Attribute`, `Condition` | User test metadata | `Core` |
 | `Config` | Public builders and resolved internal configuration | `Core`, `Plugin` |
 | `Expect` | Immediate and temporal expectations | `Core`, `Plugin` |
@@ -55,16 +54,17 @@ public.
 | `Discovery` | PHP declaration discovery and execution plans | `Core`, `Attribute` |
 | `Capture`, `Coverage` | Bounded output capture and line-coverage values | `Core` |
 | `Reporting` | Event consumers and output formats | `Core` |
-| `Runner` | Execution, workers, schedules, containment, artifacts | All engine modules |
-| `Cli` | Process edge, argument parse, orchestration, commands | Configuration and engine modules |
-| `PhpStan`, `Symfony` | Optional adapters at external seams | Their narrow Greenlight interfaces and development-only frameworks |
+| `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
+| `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
+| `PhpStan`, `Symfony` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
-Dependencies first point toward values and test-author interfaces. They then
-point through the runner and CLI. `Core` **MUST NOT** know about discovery,
-processes, reporters, or integrations. Reporters **MUST NOT** control execution.
-Optional integrations **MUST NOT** become runtime package dependencies.
+Dependencies point from modules near the bottom of the table to modules near
+the top. Modules near the top do not depend on the `Runner` or `Cli` modules.
+`Core` **MUST NOT** know about discovery, processes, reporters, or integrations.
+Reporters **MUST NOT** control execution. Optional integrations **MUST NOT**
+become runtime package dependencies.
 
-## Important seams
+## Module interfaces
 
 ### Configuration
 
@@ -74,28 +74,28 @@ The CLI applies overrides once between these two forms.
 
 ### Test authors
 
-Attributes, `Expect`, fixtures, doubles, attachments, conditions, and
-documented harness and plugin interfaces form the test-author seam. The
-interface defines lifecycle and error semantics in addition to PHP signatures.
+Test authors use attributes, `Expect`, fixtures, doubles, attachments, and
+conditions. They can also use the documented harness and plugin interfaces.
+These interfaces define PHP signatures, lifecycle rules, and error behavior.
 
 ### Execution
 
-The execution plan is the seam between discovery and execution. Workers receive
-plan values and emit typed events. They do not rediscover tests. The in-process
-and parallel paths adapt the same execution behavior.
+Discovery gives an execution plan to the runner. Workers receive plan values
+and emit typed events. They do not discover tests again. The in-process and
+parallel methods use the same execution behavior.
 
 ### Extensions
 
-Plugins add lifecycle subscribers, retry decisions, harness providers, and
-expectation extensions through narrow interfaces. Each worker runs the plugin
-implementations. Plugins **SHOULD NOT** depend on orchestrator classes or
-protocol implementation classes.
+Plugins use capability interfaces to add lifecycle subscribers, retry
+decisions, harness providers, and expectation extensions. Each worker runs the
+plugin implementations. Plugins **SHOULD NOT** depend on orchestrator classes
+or protocol implementation classes.
 
 ### Output
 
-Human reporters control presentation. Each JSONL and coverage JSON external
-interface has a version. The worker protocol is internal. Before you change an
-output shape, read [compatibility](compatibility.md).
+Human reporters control presentation. Each JSONL and coverage JSON format has
+a version. The worker protocol is internal. Before you change an output shape,
+read [compatibility](compatibility.md).
 
 ## Architectural invariants
 
@@ -122,5 +122,5 @@ output shape, read [compatibility](compatibility.md).
 - [Code conventions](conventions.md)
 
 If a decision changes an invariant or compatibility promise, update the
-applicable page in the same change. Do not keep a time-limited proposal here as
-a description of the current implementation.
+applicable page in the same change. This page describes the current
+implementation. Do not add temporary proposals to it.
