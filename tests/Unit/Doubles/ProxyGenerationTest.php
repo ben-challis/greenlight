@@ -9,6 +9,7 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\Doubles\CacheAlpha;
 use Greenlight\Tests\Fixture\Doubles\CacheBeta;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
@@ -20,30 +21,29 @@ use Greenlight\Tests\Fixture\Doubles\SelfConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
-final class ProxyGenerationTest
+final readonly class ProxyGenerationTest
 {
+    public function __construct(
+        private Doubles $doubles,
+        private TempDirectory $tempDirectory,
+    ) {}
+
     #[Test]
     public function theSameTypeReusesTheGeneratedClass(): void
     {
-        $doubles = new Doubles();
-        $first = $doubles->spy(Calculator::class);
-        $second = $doubles->spy(Calculator::class);
+        $first = $this->doubles->spy(Calculator::class);
+        $second = $this->doubles->spy(Calculator::class);
 
         Expect::that($second::class)->because('the same type reuses the generated class')->toBe($first::class);
-
-        $doubles->dispose();
     }
 
     #[Test]
     public function differentSignaturesGenerateDifferentClasses(): void
     {
-        $doubles = new Doubles();
-        $alpha = $doubles->spy(CacheAlpha::class);
-        $beta = $doubles->spy(CacheBeta::class);
+        $alpha = $this->doubles->spy(CacheAlpha::class);
+        $beta = $this->doubles->spy(CacheBeta::class);
 
         Expect::that($alpha::class)->because('different signatures generate different classes')->not()->toBe($beta::class);
-
-        $doubles->dispose();
     }
 
     #[Test]
@@ -62,10 +62,9 @@ final class ProxyGenerationTest
         // its generated file has a deterministic name. Other tests can leave
         // this file in the cache, so start with an empty cache.
         $expectedFile = null;
-        $doubles = new Doubles();
 
         try {
-            $proxyClass = $doubles->spy(Calculator::class)::class;
+            $proxyClass = $this->doubles->spy(Calculator::class)::class;
             $separator = \strrpos($proxyClass, '\\');
             \assert($separator !== false);
             $shortName = \substr($proxyClass, $separator + 1);
@@ -73,8 +72,6 @@ final class ProxyGenerationTest
 
             Expect::that(\is_file($expectedFile))->toBeTrue();
         } finally {
-            $doubles->dispose();
-
             if ($expectedFile !== null) {
                 @\unlink($expectedFile);
             }
@@ -84,18 +81,21 @@ final class ProxyGenerationTest
     #[Test]
     public function theProxyFileIsWrittenOnceAndReused(): void
     {
-        $directory = \sys_get_temp_dir() . '/greenlight-doubles-' . \bin2hex(\random_bytes(6));
+        $directory = $this->tempDirectory->subdirectory('proxy-file-reuse');
         $doubles = new Doubles($directory);
 
-        $doubles->spy(ProxyFileProbe::class);
-        $doubles->spy(ProxyFileProbe::class);
+        try {
+            $doubles->spy(ProxyFileProbe::class);
+            $doubles->spy(ProxyFileProbe::class);
 
-        $files = \glob($directory . '/*.php');
+            $files = \glob($directory . '/*.php');
 
-        Expect::that($files === false ? [] : $files)->because('the proxy file is written once and reused')->toHaveCount(1);
-
-        $doubles->dispose();
-        $this->removeDirectory($directory);
+            Expect::that($files === false ? [] : $files)
+                ->because('the proxy file is written once and reused')
+                ->toHaveCount(1);
+        } finally {
+            $doubles->dispose();
+        }
     }
 
     #[Test]
@@ -103,7 +103,7 @@ final class ProxyGenerationTest
     {
         // The Clock constructor throws. Creation of the double without an
         // exception shows that Greenlight did not run the constructor.
-        $directory = \sys_get_temp_dir() . '/greenlight-doubles-' . \bin2hex(\random_bytes(6));
+        $directory = $this->tempDirectory->subdirectory('constructor-suppression');
         $doubles = new Doubles($directory);
 
         try {
@@ -114,7 +114,6 @@ final class ProxyGenerationTest
                 ->toBeInstanceOf(Clock::class);
         } finally {
             $doubles->dispose();
-            $this->removeDirectory($directory);
         }
     }
 
@@ -122,73 +121,56 @@ final class ProxyGenerationTest
     public function classDoublesNeverRunTheDoubledDestructor(): void
     {
         DestructorProbe::$calls = 0;
-        $doubles = new Doubles();
-        $double = $doubles->stub(DestructorProbe::class);
+        $double = $this->doubles->stub(DestructorProbe::class);
 
         unset($double);
 
         Expect::that(DestructorProbe::$calls)
             ->because('class doubles suppress the doubled destructor')
             ->toBe(0);
-
-        $doubles->dispose();
     }
 
     #[Test]
     public function interfacePropertiesAreDeclaredOnTheGeneratedProxy(): void
     {
-        $doubles = new Doubles();
-        $double = $doubles->stub(PropertyContract::class);
+        $double = $this->doubles->stub(PropertyContract::class);
         $double->status = 'ready';
 
         Expect::that($double->status)
             ->because('a generated proxy satisfies its interface property contract')
             ->toBe('ready');
-
-        $doubles->dispose();
     }
 
     #[Test]
     public function selfConstantDefaultsResolveAgainstTheDoubledType(): void
     {
-        $doubles = new Doubles();
-        $double = $doubles->mock(SelfConstantDefault::class, static function (MockPlan $plan): void {
+        $double = $this->doubles->mock(SelfConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('mode')->andReturns('answered');
         });
         $parameter = new \ReflectionMethod($double, 'mode')->getParameters()[0];
 
         Expect::that($parameter->getDefaultValue())
             ->because('self constant defaults resolve against the doubled type')
-            ->toBe('fast')
-            ->and($double->mode())
-            ->toBe('answered');
-
-        $doubles->dispose();
+            ->toBe('fast');
+        Expect::that($double->mode())->toBe('answered');
     }
 
     #[Test]
     public function unavailableInternalDefaultsAreRejectedBeforeProxyGeneration(): void
     {
-        $doubles = new Doubles();
-
-        try {
-            Expect::that(static fn(): object => $doubles->stub(\ReflectionClass::class))
-                ->because('an unavailable internal default cannot produce a valid proxy signature')
-                ->toThrow(
-                    DoublesError::class,
-                    message: 'Doubles cannot reproduce the default value of parameter $default '
-                        . 'from ReflectionClass::getStaticPropertyValue() in a proxy.',
-                );
-        } finally {
-            $doubles->dispose();
-        }
+        Expect::that(fn(): object => $this->doubles->stub(\ReflectionClass::class))
+            ->because('an unavailable internal default cannot produce a valid proxy signature')
+            ->toThrow(
+                DoublesError::class,
+                message: 'Doubles cannot reproduce the default value of parameter $default '
+                    . 'from ReflectionClass::getStaticPropertyValue() in a proxy.',
+            );
     }
 
     #[Test]
     public function wideSignaturesRoundTripThroughTheProxy(): void
     {
-        $doubles = new Doubles();
-        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('byReference');
             $plan->expects('returnsVoid');
             $plan->expects('unionType')->with('text')->andReturns('answered');
@@ -200,18 +182,17 @@ final class ProxyGenerationTest
         $wide->byReference($items);
         $wide->returnsVoid();
 
-        Expect::that($wide->unionType('text'))->because('wide signatures round trip through the proxy')->toBe('answered')
-            ->and($wide->nullable('x'))->toBeNull()
-            ->and($wide->variadic('head', 1, 2))->toBe(['head']);
-
-        $doubles->dispose();
+        Expect::that($wide->unionType('text'))
+            ->because('wide signatures round trip through the proxy')
+            ->toBe('answered');
+        Expect::that($wide->nullable('x'))->toBeNull();
+        Expect::that($wide->variadic('head', 1, 2))->toBe(['head']);
     }
 
     #[Test]
     public function aNeverReturningMethodRejectsAConfiguredReturnValue(): void
     {
-        $doubles = new Doubles();
-        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('returnsNever')->andReturns(null);
         });
 
@@ -221,15 +202,12 @@ final class ProxyGenerationTest
                 message: 'Greenlight\Tests\Fixture\Doubles\Wide::returnsNever() declares never. '
                     . 'Configure it with andThrows().',
             );
-
-        $doubles->dispose();
     }
 
     #[Test]
     public function aStaticInterfaceMethodExplainsThatDoublesCannotInterceptIt(): void
     {
-        $doubles = new Doubles();
-        $double = $doubles->mock(StaticMethodFixture::class);
+        $double = $this->doubles->mock(StaticMethodFixture::class);
         $proxyClass = $double::class;
 
         Expect::that(static fn(): string => $proxyClass::lookup())
@@ -238,32 +216,17 @@ final class ProxyGenerationTest
                 message: StaticMethodFixture::class . '::lookup() is static. '
                     . 'Doubles cannot intercept static methods.',
             );
-
-        $doubles->dispose();
     }
 
     #[Test]
     public function aConfiguredNeverReturningMethodThrowsItsPlan(): void
     {
-        $doubles = new Doubles();
-        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('returnsNever')->andThrows(new \DomainException('halt'));
         });
 
         Expect::that(static fn() => $wide->returnsNever())->because('a configured never returning method throws its plan')
             ->toThrow(\DomainException::class, '/halt/');
-
-        $doubles->dispose();
     }
 
-    private function removeDirectory(string $directory): void
-    {
-        $files = \glob($directory . '/*');
-
-        foreach ($files === false ? [] : $files as $file) {
-            @\unlink($file);
-        }
-
-        @\rmdir($directory);
-    }
 }
