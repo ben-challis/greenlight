@@ -10,15 +10,16 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 
-final class NamedArgumentTest
+final readonly class NamedArgumentTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function namedArgumentsFollowTheDeclaredParameterOrder(): void
     {
-        $doubles = new Doubles();
         /** @var list<int>|null $received */
         $received = null;
-        $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan) use (&$received): void {
+        $calculator = $this->doubles->mock(Calculator::class, static function (MockPlan $plan) use (&$received): void {
             $plan->expects('add')
                 ->with(1, 2)
                 ->once()
@@ -33,10 +34,7 @@ final class NamedArgumentTest
 
         Expect::that($calculator->add(...$arguments))
             ->because('named double arguments follow their declared parameter order')
-            ->toBe(3)
-            ->and($received)
-            ->toBe([1, 2]);
-
-        $doubles->dispose();
+            ->toBe(3);
+        Expect::that($received)->toBe([1, 2]);
     }
 }
