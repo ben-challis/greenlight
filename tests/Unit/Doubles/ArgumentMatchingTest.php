@@ -161,12 +161,14 @@ final class ArgumentMatchingTest
     #[Test]
     public function equalsUsesDeepEquality(): void
     {
+        $expected = ['a' => (object) ['values' => [1, 2]]];
+        $actual = ['a' => (object) ['values' => [1, 2]]];
         $doubles = new Doubles();
-        $recorder = $doubles->mock(Recorder::class, static function (MockPlan $plan): void {
-            $plan->expects('record')->with(Argument::equals(['a' => [1, 2]]))->once();
+        $recorder = $doubles->mock(Recorder::class, static function (MockPlan $plan) use ($expected): void {
+            $plan->expects('record')->with(Argument::equals($expected))->once();
         });
 
-        $recorder->record(['a' => [1, 2]]);
+        $recorder->record($actual);
 
         $doubles->dispose();
     }
