@@ -11,53 +11,45 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Notifier;
 
-final class SpyTest
+final readonly class SpyTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function recordsEveryCallInOrderWithArguments(): void
     {
-        $doubles = new Doubles();
-        $spy = $doubles->spy(Notifier::class);
+        $spy = $this->doubles->spy(Notifier::class);
 
         $spy->notify('ops', 'first');
         $spy->flush();
         $spy->notify('dev', 'second');
 
-        Expect::that($doubles->callsTo($spy, 'notify'))->because('records every call in order with arguments')->toBe([['ops', 'first'], ['dev', 'second']])
-            ->and($doubles->callsTo($spy, 'flush'))->toBe([[]]);
-
-        $doubles->dispose();
+        Expect::that($this->doubles->callsTo($spy, 'notify'))->because('records every call in order with arguments')->toBe([['ops', 'first'], ['dev', 'second']]);
+        Expect::that($this->doubles->callsTo($spy, 'flush'))->toBe([[]]);
     }
 
     #[Test]
     public function anUncalledMethodHasNoRecordedCalls(): void
     {
-        $doubles = new Doubles();
-        $spy = $doubles->spy(Notifier::class);
+        $spy = $this->doubles->spy(Notifier::class);
 
-        Expect::that($doubles->callsTo($spy, 'notify'))->because('an uncalled method has no recorded calls')->toBe([]);
-
-        $doubles->dispose();
+        Expect::that($this->doubles->callsTo($spy, 'notify'))->because('an uncalled method has no recorded calls')->toBe([]);
     }
 
     #[Test]
     public function variadicArgumentsAreRecordedFlattened(): void
     {
-        $doubles = new Doubles();
-        $spy = $doubles->spy(Notifier::class);
+        $spy = $this->doubles->spy(Notifier::class);
 
         $spy->tag('first', 1, 2, 3);
 
-        Expect::that($doubles->callsTo($spy, 'tag'))->because('variadic arguments are recorded flattened')->toBe([['first', 1, 2, 3]]);
-
-        $doubles->dispose();
+        Expect::that($this->doubles->callsTo($spy, 'tag'))->because('variadic arguments are recorded flattened')->toBe([['first', 1, 2, 3]]);
     }
 
     #[Test]
     public function valueReturningMethodsCannotBeSpiedOn(): void
     {
-        $doubles = new Doubles();
-        $spy = $doubles->spy(Calculator::class);
+        $spy = $this->doubles->spy(Calculator::class);
 
         Expect::that(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
             ->toThrow(
@@ -66,17 +58,14 @@ final class SpyTest
                     . 'Spies only record interactions. '
                     . 'Use mock() with explicit expectations for calls that return values.',
             );
-
-        $doubles->dispose();
     }
 
     #[Test]
     public function callsToRejectsForeignObjects(): void
     {
-        $doubles = new Doubles();
         $foreign = new \stdClass();
 
-        Expect::that(static fn(): array => $doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects')
+        Expect::that(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects')
             ->toThrow(
                 DoublesError::class,
                 message: 'This Doubles factory did not create the stdClass instance.',
@@ -86,14 +75,11 @@ final class SpyTest
     #[Test]
     public function spyRecordingsWorkWithExpectDirectly(): void
     {
-        $doubles = new Doubles();
-        $spy = $doubles->spy(Notifier::class);
+        $spy = $this->doubles->spy(Notifier::class);
 
         $spy->notify('ops', 'deploy finished');
 
-        Expect::that($doubles->callsTo($spy, 'notify'))->because('spy recordings work with expect directly')->toHaveCount(1)
-            ->and($doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
-
-        $doubles->dispose();
+        Expect::that($this->doubles->callsTo($spy, 'notify'))->because('spy recordings work with expect directly')->toHaveCount(1);
+        Expect::that($this->doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
     }
 }
