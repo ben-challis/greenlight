@@ -66,12 +66,26 @@ final class AttributeContractTest
             ->and($external->providerClass)->toBe(self::class);
     }
 
+    /**
+     * @param class-string<Skip|SkipUnless|Retry|Timeout|Isolated> $attribute
+     */
     #[Test]
-    public function methodOrClassAttributesTargetBoth(): void
+    #[DataSet('methodOrClassAttributes')]
+    public function methodOrClassAttributesTargetBoth(string $attribute): void
     {
-        foreach ([Skip::class, SkipUnless::class, Retry::class, Timeout::class, Isolated::class] as $attribute) {
-            Expect::that($this->flags($attribute))->toBe(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS);
-        }
+        Expect::that($this->flags($attribute))->toBe(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS);
+    }
+
+    /**
+     * @return iterable<string, array{class-string<Skip|SkipUnless|Retry|Timeout|Isolated>}>
+     */
+    public static function methodOrClassAttributes(): iterable
+    {
+        yield 'Skip' => [Skip::class];
+        yield 'SkipUnless' => [SkipUnless::class];
+        yield 'Retry' => [Retry::class];
+        yield 'Timeout' => [Timeout::class];
+        yield 'Isolated' => [Isolated::class];
     }
 
     #[Test]
