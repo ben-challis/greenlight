@@ -39,15 +39,26 @@ final readonly class HtmlExporterTest
     {
         $map = new CoverageMap([
             new FileCoverage('/src/A.php', [1, 2, 3], [4]),
+            new FileCoverage('/src/B.php', [1], [2, 3]),
         ]);
 
         $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
+        \preg_match_all('/<tr>.*<\/tr>/', $index, $rows);
 
-        Expect::that($index)->because('index lists every file with its percentage and the total')->toContain('/src/A.php')
-            ->toContain('75.00%')
-            ->toContain(HtmlExporter::pageName('/src/A.php'))
-            ->toContain('<th>Total</th>')
-            ->not()->toContain('<script');
+        Expect::that($rows[0])->because('index lists every file with its percentage and the total')->toBe([
+            '<tr><th>File</th><th colspan="2">Coverage</th><th>Lines</th></tr>',
+            \sprintf(
+                '<tr><td><a href="%s">/src/A.php</a></td><td><div class="bar"><span class="mid" style="width:75.00%%"></span></div></td><td class="mid">75.00%%</td><td>3/4</td></tr>',
+                HtmlExporter::pageName('/src/A.php'),
+            ),
+            \sprintf(
+                '<tr><td><a href="%s">/src/B.php</a></td><td><div class="bar"><span class="lo" style="width:33.33%%"></span></div></td><td class="lo">33.33%%</td><td>1/3</td></tr>',
+                HtmlExporter::pageName('/src/B.php'),
+            ),
+            '<tr><th>Total</th><th></th><th class="mid">57.14%</th><th>4/7</th></tr>',
+        ]);
+
+        Expect::that($index)->because('index contains no scripts')->not()->toContain('<script');
     }
 
     #[Test]
