@@ -193,7 +193,7 @@ final readonly class ProxyGenerationTest
     public function aNeverReturningMethodRejectsAConfiguredReturnValue(): void
     {
         $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
-            $plan->expects('returnsNever')->andReturns(null);
+            $plan->expects('returnsNever')->andReturns(null); // @phpstan-ignore greenlight.mockPlan.answer (deliberately invalid: tests runtime validation)
         });
 
         Expect::that(static fn() => $wide->returnsNever())->because('a never returning method requires andThrows()')

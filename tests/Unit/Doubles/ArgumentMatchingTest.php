@@ -289,7 +289,7 @@ final class ArgumentMatchingTest
         $doubles = new Doubles();
 
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
-            $plan->expects('add')->captureArgument(-1);
+            $plan->expects('add')->captureArgument(-1); // @phpstan-ignore greenlight.mockPlan.capturePosition (deliberately invalid: tests runtime validation)
         }))->because('capture argument rejects negative positions')
             ->toThrow(DoublesError::class, message: 'captureArgument(-1) requires a position of zero or more.');
     }

@@ -19,7 +19,10 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\CallableType;
+use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\StaticType;
 use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
@@ -50,6 +53,9 @@ final readonly class DoublePlanRule implements Rule
         return match ($node->name->toString()) {
             'expects' => $this->expectsErrors($node, $scope),
             'with', 'withNoArguments' => $this->argumentErrors($node, $scope),
+            'times', 'atLeast' => $this->cardinalityErrors($node, $scope),
+            'andReturns', 'andReturnsSequence', 'andReturnsUsing' => $this->answerErrors($node, $scope),
+            'captureArgument' => $this->captureErrors($node, $scope),
             default => [],
         };
     }
@@ -106,31 +112,13 @@ final readonly class DoublePlanRule implements Rule
      */
     private function argumentErrors(MethodCall $call, Scope $scope): array
     {
-        $receiver = $scope->getType($call->var);
+        $selected = $this->selectedMethod($scope->getType($call->var));
 
-        if (!new ObjectType(MethodExpectation::class)->isSuperTypeOf($receiver)->yes()) {
+        if ($selected === null || \array_any($call->getArgs(), static fn(Node\Arg $argument): bool => $argument->unpack)) {
             return [];
         }
 
-        $target = $this->targetClass($receiver, MethodExpectation::class, 'TTarget');
-        $methodType = $receiver->getTemplateType(MethodExpectation::class, 'TMethod');
-        $methodNames = $methodType->getConstantStrings();
-
-        if (!$target instanceof ClassReflection || \count($methodNames) !== 1) {
-            return [];
-        }
-
-        $method = $methodNames[0]->getValue();
-
-        if (!$target->hasNativeMethod($method)) {
-            return [];
-        }
-
-        $acceptor = $this->singleAcceptor($target->getNativeMethod($method)->getVariants());
-
-        if (!$acceptor instanceof ParametersAcceptor || \array_any($call->getArgs(), static fn(Node\Arg $argument): bool => $argument->unpack)) {
-            return [];
-        }
+        [$target, $method, $acceptor] = $selected;
 
         $arguments = $call->getArgs();
         $selector = $call->name instanceof Identifier ? $call->name->toString() : '';
@@ -208,6 +196,257 @@ final readonly class DoublePlanRule implements Rule
         }
 
         return $errors;
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function cardinalityErrors(MethodCall $call, Scope $scope): array
+    {
+        if (!$this->isMethodExpectation($scope->getType($call->var))) {
+            return [];
+        }
+
+        $count = $this->argument($call, 'count', 0);
+
+        if (!$count instanceof Node\Arg) {
+            return [];
+        }
+
+        $selector = $call->name instanceof Identifier ? $call->name->toString() : '';
+        $minimum = $selector === 'times' ? 0 : 1;
+        $errors = [];
+
+        foreach ($scope->getType($count->value)->getConstantScalarValues() as $value) {
+            if (!\is_int($value) || $value >= $minimum) {
+                continue;
+            }
+
+            $errors[] = $this->error(
+                \sprintf(
+                    '%s(%d) requires a count of %s or more.',
+                    $selector,
+                    $value,
+                    $minimum === 0 ? 'zero' : 'one',
+                ),
+                'cardinality',
+                $count->getStartLine(),
+            );
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function answerErrors(MethodCall $call, Scope $scope): array
+    {
+        $selected = $this->selectedMethod($scope->getType($call->var));
+
+        if ($selected === null) {
+            return [];
+        }
+
+        [$target, $method, $acceptor] = $selected;
+        $selector = $call->name instanceof Identifier ? $call->name->toString() : '';
+        $arguments = $call->getArgs();
+        $returnType = $acceptor->getReturnType();
+
+        if ($selector === 'andReturnsSequence' && $arguments === []) {
+            return [$this->error(
+                \sprintf('andReturnsSequence() on %s::%s() requires at least one value.', $target->getDisplayName(), $method),
+                'answer',
+                $call->getStartLine(),
+            )];
+        }
+
+        if ($selector === 'andReturnsUsing') {
+            $answer = $this->argument($call, 'answer', 0);
+
+            if (!$answer instanceof Node\Arg) {
+                return [];
+            }
+
+            $expected = new CallableType(
+                $acceptor->getParameters(),
+                $returnType instanceof StaticType ? new MixedType() : $returnType,
+                $acceptor->isVariadic(),
+            );
+            $actual = $scope->getType($answer->value);
+
+            if (!$expected->accepts($actual, $scope->isDeclareStrictTypes())->no()) {
+                return [];
+            }
+
+            return [$this->error(
+                \sprintf(
+                    'andReturnsUsing() answer for %s::%s() has type %s, but it requires %s.',
+                    $target->getDisplayName(),
+                    $method,
+                    $actual->describe(VerbosityLevel::typeOnly()),
+                    $expected->describe(VerbosityLevel::typeOnly()),
+                ),
+                'answer',
+                $answer->getStartLine(),
+            )];
+        }
+
+        if ($returnType instanceof StaticType) {
+            return [];
+        }
+
+        $errors = [];
+
+        foreach ($arguments as $index => $argument) {
+            if ($argument->unpack) {
+                continue;
+            }
+
+            $actual = $scope->getType($argument->value);
+
+            if (!$returnType->accepts($actual, $scope->isDeclareStrictTypes())->no()) {
+                continue;
+            }
+
+            $errors[] = $this->error(
+                \sprintf(
+                    '%s() value #%d for %s::%s() has type %s, but the method returns %s.',
+                    $selector,
+                    $index + 1,
+                    $target->getDisplayName(),
+                    $method,
+                    $actual->describe(VerbosityLevel::typeOnly()),
+                    $returnType->describe(VerbosityLevel::typeOnly()),
+                ),
+                'answer',
+                $argument->getStartLine(),
+            );
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function captureErrors(MethodCall $call, Scope $scope): array
+    {
+        $selected = $this->selectedMethod($scope->getType($call->var));
+
+        if ($selected === null) {
+            return [];
+        }
+
+        [$target, $method, $acceptor] = $selected;
+        $positionArgument = $this->argument($call, 'position', 0);
+        $positions = $positionArgument instanceof Node\Arg
+            ? $scope->getType($positionArgument->value)->getConstantScalarValues()
+            : [0];
+        $parameters = $acceptor->getParameters();
+        $variadic = $parameters !== [] && $parameters[\array_key_last($parameters)]->isVariadic();
+        $errors = [];
+
+        foreach ($positions as $position) {
+            if (!\is_int($position)) {
+                continue;
+            }
+
+            if ($position >= 0 && ($variadic || $position < \count($parameters))) {
+                continue;
+            }
+
+            if ($parameters === []) {
+                $errors[] = $this->error(
+                    \sprintf(
+                        'captureArgument(%d) cannot select an argument on %s::%s() because the method has no parameters.',
+                        $position,
+                        $target->getDisplayName(),
+                        $method,
+                    ),
+                    'capturePosition',
+                    $positionArgument?->getStartLine() ?? $call->getStartLine(),
+                );
+
+                continue;
+            }
+
+            $requirement = $variadic
+                ? 'a position of zero or more'
+                : \sprintf('a position from zero to %d', \count($parameters) - 1);
+            $errors[] = $this->error(
+                \sprintf(
+                    'captureArgument(%d) for %s::%s() requires %s.',
+                    $position,
+                    $target->getDisplayName(),
+                    $method,
+                    $requirement,
+                ),
+                'capturePosition',
+                $positionArgument?->getStartLine() ?? $call->getStartLine(),
+            );
+        }
+
+        return $errors;
+    }
+
+    private function isMethodExpectation(Type $receiver): bool
+    {
+        return new ObjectType(MethodExpectation::class)->isSuperTypeOf($receiver)->yes();
+    }
+
+    /**
+     * @return array{ClassReflection, string, ParametersAcceptor}|null
+     */
+    private function selectedMethod(Type $receiver): ?array
+    {
+        if (!$this->isMethodExpectation($receiver)) {
+            return null;
+        }
+
+        $target = $this->targetClass($receiver, MethodExpectation::class, 'TTarget');
+        $methodNames = $receiver->getTemplateType(MethodExpectation::class, 'TMethod')->getConstantStrings();
+
+        if (!$target instanceof ClassReflection || \count($methodNames) !== 1) {
+            return null;
+        }
+
+        $method = $methodNames[0]->getValue();
+
+        if (!$target->hasNativeMethod($method)) {
+            return null;
+        }
+
+        $acceptor = $this->singleAcceptor($target->getNativeMethod($method)->getVariants());
+
+        return $acceptor instanceof ParametersAcceptor ? [$target, $method, $acceptor] : null;
+    }
+
+    private function argument(MethodCall $call, string $name, int $position): ?Node\Arg
+    {
+        $nextPosition = 0;
+
+        foreach ($call->getArgs() as $argument) {
+            if ($argument->unpack) {
+                continue;
+            }
+
+            if ($argument->name instanceof Identifier) {
+                if ($argument->name->toString() === $name) {
+                    return $argument;
+                }
+
+                continue;
+            }
+
+            if ($nextPosition === $position) {
+                return $argument;
+            }
+
+            ++$nextPosition;
+        }
+
+        return null;
     }
 
     /**
