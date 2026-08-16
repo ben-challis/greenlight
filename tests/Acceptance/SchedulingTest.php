@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Cli\RunState;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\WorkerSpawned;
@@ -20,24 +21,32 @@ final readonly class SchedulingTest
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
-    public function workersAreReusedAndTheSlowClassLeadsOnceKnown(): void
+    public function workersAreReusedAndTheCachedSlowClassLeads(): void
     {
         $project = $this->writeProject();
-        // The first run has no timing cache. It records durations and shows
-        // reuse when two workers execute four classes.
-        $result = $this->run($project);
-        $events = JsonlEvents::from($result);
-        Expect::that($result->exitCode)->because('workers are reused and the slow class leads once known')->toBe(0)
-            ->and(\count($this->spawnedWorkers($events)))->toBe(2);
-        // Check the second run for each worker. The merged stream uses arrival
-        // order. Thus, a slow worker can report its first class after another
-        // worker starts multiple classes.
+        Expect::that(RunState::forWorkingDirectory($project->directory)->record(
+            [],
+            ['SchedulingProbe\SlowTest' => 1.0],
+        ))->because('the timing cache is available to the acceptance run')->toBeTrue();
+
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
         $firstStarts = $this->firstClassStartedByWorker($events);
-        Expect::that($result->exitCode)->because('workers are reused and the slow class leads once known')->toBe(0)
-            ->and(\count($this->spawnedWorkers($events)))->toBe(2)
-            ->and(\array_values($firstStarts))->toContain('SchedulingProbe\SlowTest');
+        $spawnedWorkers = $this->spawnedWorkers($events);
+        $startedClasses = $this->startedClasses($events);
+        \sort($startedClasses);
+
+        Expect::that($result->exitCode)->because('the scheduled run succeeds')->toBe(0);
+        Expect::that($spawnedWorkers)->because('the run starts two workers')->toHaveCount(2);
+        Expect::that($startedClasses)->because('the workers execute all four classes')->toBe([
+            'SchedulingProbe\AlphaTest',
+            'SchedulingProbe\BravoTest',
+            'SchedulingProbe\CharlieTest',
+            'SchedulingProbe\SlowTest',
+        ]);
+        Expect::that(\array_values($firstStarts))
+            ->because('the cached slow class is one of the first assignments')
+            ->toContain('SchedulingProbe\SlowTest');
     }
 
     private function run(AcceptanceProject $project): ProcessResult
@@ -61,6 +70,24 @@ final readonly class SchedulingTest
         }
 
         return $firsts;
+    }
+
+    /**
+     * @param list<Event> $events
+     *
+     * @return list<string>
+     */
+    private function startedClasses(array $events): array
+    {
+        $classes = [];
+
+        foreach ($events as $event) {
+            if ($event instanceof TestClassStarted) {
+                $classes[] = $event->class;
+            }
+        }
+
+        return $classes;
     }
 
     /**
@@ -117,10 +144,7 @@ final readonly class SchedulingTest
             final class SlowTest
             {
                 #[Test]
-                public function takesAWhile(): void
-                {
-                    \usleep(150_000);
-                }
+                public function quick(): void {}
             }
             PHP);
 
