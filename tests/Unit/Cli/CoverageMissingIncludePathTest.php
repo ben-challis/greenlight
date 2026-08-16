@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\Application;
+use Greenlight\Cli\CoverageSettingsResolver;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Driver\DriverSelector;
 use Greenlight\Expect\Expect;
@@ -19,10 +19,8 @@ final class CoverageMissingIncludePathTest
     #[Test]
     public function anUnresolvedIncludePathRemainsRestrictive(): void
     {
-        $application = new \ReflectionClass(Application::class)->newInstanceWithoutConstructor();
         $configuration = new CoverageConfiguration(['future/src'], null, []);
-        $settings = new \ReflectionMethod(Application::class, 'coverageSettings')
-            ->invoke($application, $configuration, '/project');
+        $settings = CoverageSettingsResolver::resolve($configuration, '/project');
 
         if (!$settings instanceof CoverageSettings) {
             Fail::because('Expected coverage configuration to create coverage settings.');
