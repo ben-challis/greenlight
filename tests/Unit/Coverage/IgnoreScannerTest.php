@@ -9,8 +9,10 @@ use Greenlight\Coverage\Ignore\IgnoreScanner;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 
-final class IgnoreScannerTest
+final readonly class IgnoreScannerTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function unreadableFileYieldsNoIgnoredLines(): void
     {
@@ -349,18 +351,12 @@ final class IgnoreScannerTest
      */
     private function scan(string $source): array
     {
-        $directory = new TempDirectory();
+        $path = $this->tempDirectory->path() . '/fixture.php';
+        \file_put_contents($path, $source);
 
-        try {
-            $path = $directory->path() . '/fixture.php';
-            \file_put_contents($path, $source);
+        $lines = \array_keys(new IgnoreScanner()->ignoredLines($path));
+        \sort($lines);
 
-            $lines = \array_keys(new IgnoreScanner()->ignoredLines($path));
-            \sort($lines);
-
-            return $lines;
-        } finally {
-            $directory->dispose();
-        }
+        return $lines;
     }
 }
