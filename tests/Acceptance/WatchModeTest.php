@@ -41,7 +41,12 @@ final readonly class WatchModeTest
 
             $process->write('q');
             $result = $process->wait(10.0);
+            $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
+            $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
+
             Expect::that($result->exitCode)->toBe(0);
+            Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
+            Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
         } finally {
             $process->terminate();
         }
@@ -70,6 +75,36 @@ final readonly class WatchModeTest
             Expect::that($result->exitCode)
                 ->because('watch mode exits cleanly when PHP disables shell_exec')
                 ->toBe(0);
+        } finally {
+            $process->terminate();
+        }
+    }
+
+    #[Test]
+    public function fixtureCleanupFailuresAreReportedBeforeWatchModeContinues(): void
+    {
+        $project = $this->writeProject(failCleanup: true);
+        $process = GreenlightCli::start(
+            $project->directory,
+            ['run', '--watch', '--reporter=plain'],
+        );
+
+        try {
+            $process->readStdoutUntil('Waiting for changes', 20.0);
+
+            $process->write('q');
+            $result = $process->wait(10.0);
+
+            Expect::that($result->exitCode)
+                ->because('watch mode MUST remain interactive after a fixture cleanup failure')
+                ->toBe(0);
+            Expect::that($result->output())
+                ->because('watch mode MUST report integration fixture cleanup failures')
+                ->toContain('Integration fixture teardown failed.')
+                ->toContain('intentional fixture cleanup failure');
+            Expect::that($this->matches($project->path('markers/resource-*')))
+                ->because('watch mode MUST remove orchestrator-owned resources after cleanup failures')
+                ->toBe([]);
         } finally {
             $process->terminate();
         }
@@ -111,9 +146,12 @@ final readonly class WatchModeTest
         }
     }
 
-    private function writeProject(bool $watchCoverageSource = false): AcceptanceProject
-    {
+    private function writeProject(
+        bool $watchCoverageSource = false,
+        bool $failCleanup = false,
+    ): AcceptanceProject {
         $project = AcceptanceProject::create($this->tempDirectory, 'watch');
+        $project->writeFile('markers/.gitkeep', '');
         $project->writeFile('tests/WatchProbeTest.php', <<<'PHP'
             <?php
 
@@ -134,6 +172,8 @@ final readonly class WatchModeTest
                 . "\n        ->include(__DIR__ . '/source')"
                 . "\n        ->driver('pcov'))"
             : '';
+        $markerDirectory = \var_export($project->path('markers'), true);
+        $failCleanupValue = $failCleanup ? 'true' : 'false';
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
@@ -141,17 +181,31 @@ final readonly class WatchModeTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
+            use Greenlight\Tests\Fixture\Plugins\IntegrationProbePlugin;
 
             require_once __DIR__ . '/tests/WatchProbeTest.php';
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)%s
-                ->watch(fn($watch) => $watch->debounceMilliseconds(50));
+                ->watch(fn($watch) => $watch->debounceMilliseconds(50))
+                ->plugins(new IntegrationProbePlugin(%s, failCleanup: %s));
             PHP,
             $coverage,
+            $markerDirectory,
+            $failCleanupValue,
         ));
 
         return $project;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function matches(string $pattern): array
+    {
+        $matches = \glob($pattern);
+
+        return \is_array($matches) ? $matches : [];
     }
 }

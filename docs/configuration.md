@@ -353,6 +353,13 @@ A test can use both. Its channel can select a private database while
 `#[RequiresResource('payments-sandbox')]` limits access to a shared external
 service.
 
+For infrastructure that must be created and destroyed with the run, a plugin
+can implement `IntegrationFixtureProvider`. The provider runs in the
+orchestrator after discovery and sharding, creates shared or per-channel
+resources, and registers teardown. Workers receive an injectable
+`IntegrationResources` catalog containing shared values plus only their own
+channel overlay. See [Writing plugins](plugins.md#integrationfixtureprovider).
+
 ## CLI reference
 
 ```sh

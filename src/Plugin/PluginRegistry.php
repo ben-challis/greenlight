@@ -68,6 +68,21 @@ final readonly class PluginRegistry
     }
 
     /**
+     * @return list<IntegrationFixtureProvider>
+     */
+    public function integrationFixtureProviders(): array
+    {
+        return $this->sorted($this->ofType(IntegrationFixtureProvider::class));
+    }
+
+    public function bootstrapWorker(WorkerBootstrapContext $context): void
+    {
+        foreach ($this->sorted($this->ofType(WorkerBootstrapSubscriber::class)) as $subscriber) {
+            $subscriber->onWorkerBootstrap($context);
+        }
+    }
+
+    /**
      * @return list<ServiceDefinition>
      */
     public function harnessServices(): array

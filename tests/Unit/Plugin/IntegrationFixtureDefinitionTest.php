@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Plugin;
+
+use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Plugin\IntegrationFixtureDefinition;
+
+final readonly class IntegrationFixtureDefinitionTest
+{
+    /**
+     * @param list<string> $dependencies
+     */
+    #[Test]
+    #[DataSet('invalidDefinitions')]
+    public function invalidDefinitionsAreRejected(
+        string $id,
+        array $dependencies,
+        string $message,
+    ): void {
+        Expect::that(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+            $id,
+            static function (): void {},
+            $dependencies,
+        ))
+            ->because('integration fixture definitions MUST reject invalid identifiers')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    /**
+     * @return iterable<string, array{string, list<string>, string}>
+     */
+    public static function invalidDefinitions(): iterable
+    {
+        yield 'empty fixture ID' => [
+            '',
+            [],
+            'Integration fixture IDs must be non-empty UTF-8 strings.',
+        ];
+        yield 'non-UTF-8 fixture ID' => [
+            "\xB1\x31",
+            [],
+            'Integration fixture IDs must be non-empty UTF-8 strings.',
+        ];
+        yield 'integer-string fixture ID' => [
+            '123',
+            [],
+            'Integration fixture IDs must not use integer strings.',
+        ];
+        yield 'negative integer-string fixture ID' => [
+            '-123',
+            [],
+            'Integration fixture IDs must not use integer strings.',
+        ];
+        yield 'empty dependency ID' => [
+            'database',
+            [''],
+            'Integration fixture "database" has an invalid dependency ID.',
+        ];
+        yield 'non-UTF-8 dependency ID' => [
+            'database',
+            ["\xB1\x31"],
+            'Integration fixture "database" has an invalid dependency ID.',
+        ];
+        yield 'integer-string dependency ID' => [
+            'database',
+            ['123'],
+            'Integration fixture "database" has an invalid dependency ID.',
+        ];
+        yield 'duplicate dependency' => [
+            'database',
+            ['network', 'network'],
+            'Integration fixture "database" declares dependency "network" more than once.',
+        ];
+    }
+
+    /**
+     * @param list<mixed> $dependencies
+     */
+    #[Test]
+    #[DataSet('invalidRuntimeDependencies')]
+    public function invalidRuntimeDependencyTypesAreRejected(array $dependencies): void
+    {
+        Expect::that(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+            'database',
+            static function (): void {},
+            $dependencies,
+        ))
+            ->because('integration fixture dependencies MUST reject invalid runtime types at their boundary')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Integration fixture "database" has an invalid dependency ID.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{array<mixed>}>
+     */
+    public static function invalidRuntimeDependencies(): iterable
+    {
+        yield 'integer' => [[123]];
+        yield 'object' => [[new \stdClass()]];
+    }
+
+    #[Test]
+    public function numericLookingIdsThatRemainStringMapKeysAreAccepted(): void
+    {
+        $ids = ['01', '+1', '1.0'];
+        $definitions = \array_map(
+            static fn(string $id): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+                $id,
+                static function (): void {},
+            ),
+            $ids,
+        );
+
+        Expect::that(\array_map(
+            static fn(IntegrationFixtureDefinition $definition): string => $definition->id,
+            $definitions,
+        ))->toBe($ids);
+    }
+}

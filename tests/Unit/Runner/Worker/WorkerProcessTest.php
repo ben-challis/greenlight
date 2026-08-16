@@ -9,11 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Runner\Worker\WorkerProcess;
 use Greenlight\Tests\Support\Subprocess;
 
-final class WorkerProcessTest
+final readonly class WorkerProcessTest
 {
+    public function __construct(private EnvironmentSandbox $environment) {}
+
     #[Test]
     public function connectionFailureNamesTheExactAddress(): void
     {
@@ -81,9 +84,10 @@ final class WorkerProcessTest
                 exit(4);
             }
 
-            $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
-                new Greenlight\Discovery\ExecutionPlan([]),
-                configFile: $missingConfig,
+            $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
+                1,
+                $missingConfig,
+                Greenlight\Harness\IntegrationResources::empty(),
             ));
             $fatal = $channel->receive(2.0);
 
@@ -104,6 +108,7 @@ final class WorkerProcessTest
                 Fail::because('Worker protocol server did not publish its address.');
             }
 
+            $this->environment->set('GREENLIGHT_CHANNEL', '1');
             $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
             $serverResult = $server->wait(2.0);
 
@@ -252,6 +257,16 @@ final class WorkerProcessTest
                 exit(0);
             }
 
+            $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
+                1,
+                null,
+                Greenlight\Harness\IntegrationResources::empty(),
+            ));
+
+            if (!$channel->receive(2.0) instanceof Greenlight\Runner\Protocol\Messages\Ready) {
+                exit(5);
+            }
+
             if ($scenario === 'passing-assignment-recycles') {
                 $class = Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::class;
                 $id = new Greenlight\Core\Test\TestId($class, 'one');
@@ -275,7 +290,7 @@ final class WorkerProcessTest
                     || $recycling->summary->passed !== 1
                     || $recycling->remaining !== []
                 ) {
-                    exit(5);
+                    exit(6);
                 }
 
                 exit(0);
@@ -309,7 +324,7 @@ final class WorkerProcessTest
                         || $done->summary->passed !== 1
                         || $done->wantsRecycle !== $expectedRecycle
                     ) {
-                        exit(6);
+                        exit(7);
                     }
                 }
 
@@ -343,14 +358,14 @@ final class WorkerProcessTest
                     || $done->summary->total() !== 0
                     || $done->wantsRecycle !== null
                 ) {
-                    exit(7);
+                    exit(8);
                 }
             } elseif ($scenario === 'unexpected-then-drain') {
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Hello('unexpected', 'token', 1));
             } elseif ($scenario === 'idle-then-drain') {
                 usleep(100_000);
             } else {
-                exit(8);
+                exit(9);
             }
 
             $channel->send(new Greenlight\Runner\Protocol\Messages\Drain());
@@ -366,6 +381,7 @@ final class WorkerProcessTest
                 Fail::because('Worker protocol server did not publish its address.');
             }
 
+            $this->environment->set('GREENLIGHT_CHANNEL', '1');
             $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
             $serverResult = $server->wait(2.0);
 
