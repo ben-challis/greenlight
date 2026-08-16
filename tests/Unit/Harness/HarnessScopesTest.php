@@ -40,7 +40,7 @@ final class HarnessScopesTest
     #[Test]
     public function registeredServicesWinOverFallbackResolvers(): void
     {
-        $registered = new \ArrayObject();
+        $registered = new \ArrayObject(['registered']);
         $registry = new HarnessRegistry([
             new ServiceDefinition(\ArrayObject::class, Scope::PerRun, static fn(): \ArrayObject => $registered),
         ]);
@@ -52,7 +52,7 @@ final class HarnessScopesTest
             {
                 $this->consulted = true;
 
-                return new \ArrayObject();
+                return new \ArrayObject(['fallback']);
             }
         };
 
@@ -66,10 +66,14 @@ final class HarnessScopesTest
             ));
         }
 
-        // Initialize the lazy proxy so it contains state from the factory
-        // result.
-        Expect::that($resolver->consulted)->because('registered services win over fallback resolvers')->toBe(false)
-            ->and($resolved->getArrayCopy())->toBe($registered->getArrayCopy());
+        $values = $resolved->getArrayCopy();
+
+        Expect::that($values)
+            ->because('registered services MUST win over fallback resolvers')
+            ->toBe(['registered']);
+        Expect::that($resolver->consulted)
+            ->because('a registered service MUST NOT consult a fallback resolver')
+            ->toBeFalse();
     }
 
     #[Test]
