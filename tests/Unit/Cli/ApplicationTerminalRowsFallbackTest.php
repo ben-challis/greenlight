@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\Application;
+use Greenlight\Cli\TerminalRowsResolver;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -25,7 +25,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
         $this->environment->set('PATH', $this->temporaryDirectory->path());
         $this->installTput("31\n");
 
-        $rows = $this->terminalRows();
+        $rows = TerminalRowsResolver::resolve();
 
         Expect::that($rows)
             ->because('the terminal probe MUST set the reporter height when LINES is unavailable')
@@ -38,7 +38,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
         $this->environment->unset('LINES');
         $this->environment->set('PATH', $this->temporaryDirectory->path());
 
-        $rows = $this->terminalRows();
+        $rows = TerminalRowsResolver::resolve();
 
         Expect::that($rows)
             ->because('the reporter MUST use 24 rows when terminal height detection fails')
@@ -53,12 +53,5 @@ final readonly class ApplicationTerminalRowsFallbackTest
         if ($written === false || !\chmod($path, 0o700)) {
             Fail::because('The test could not install its terminal probe.');
         }
-    }
-
-    private function terminalRows(): mixed
-    {
-        $application = new \ReflectionClass(Application::class)->newInstanceWithoutConstructor();
-
-        return new \ReflectionMethod(Application::class, 'terminalRows')->invoke($application);
     }
 }

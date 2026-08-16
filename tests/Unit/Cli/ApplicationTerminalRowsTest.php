@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\Application;
+use Greenlight\Cli\TerminalRowsResolver;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\EnvironmentSandbox;
 
@@ -18,8 +18,7 @@ final readonly class ApplicationTerminalRowsTest
     {
         $this->environment->set('LINES', '37');
 
-        $application = new \ReflectionClass(Application::class)->newInstanceWithoutConstructor();
-        $rows = new \ReflectionMethod(Application::class, 'terminalRows')->invoke($application);
+        $rows = TerminalRowsResolver::resolve();
 
         Expect::that($rows)
             ->because('a positive LINES value MUST set the reporter terminal height')
