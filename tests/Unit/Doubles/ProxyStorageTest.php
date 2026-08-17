@@ -64,8 +64,7 @@ final readonly class ProxyStorageTest
         Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a directory at the proxy file path MUST produce a typed file error')
             ->toThrow(
-                DoublesError::class,
-                matching: static function (DoublesError $error) use ($file): void {
+                static function (DoublesError $error) use ($file): void {
                     Expect::that($error->getMessage())
                         ->toBe('Doubles could not write the proxy file ' . $file . '.');
                     Expect::that($error->getPrevious())

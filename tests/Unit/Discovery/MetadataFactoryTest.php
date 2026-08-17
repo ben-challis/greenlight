@@ -25,8 +25,7 @@ final class MetadataFactoryTest
         Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid attribute arguments with their location')
             ->toThrow(
-                DiscoveryError::class,
-                matching: static function (DiscoveryError $error) use ($class): void {
+                static function (DiscoveryError $error) use ($class): void {
                     Expect::that($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')
@@ -47,8 +46,7 @@ final class MetadataFactoryTest
         Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid group arguments with their method location')
             ->toThrow(
-                DiscoveryError::class,
-                matching: static function (DiscoveryError $error) use ($class): void {
+                static function (DiscoveryError $error) use ($class): void {
                     Expect::that($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')

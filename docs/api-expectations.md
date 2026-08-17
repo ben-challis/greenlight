@@ -674,34 +674,36 @@ PHPDoc:
 
 The subject must be callable. The matcher calls it with no arguments.
 It passes when the subject throws an instance of the specified class.
-The optional `matching:` argument can be a message regular expression
-or a callback. Greenlight gives the caught throwable to the callback
-after its type matches. The callback matches when it returns without an
-expectation failure.
 
-The `message:` argument checks the exact message.
+The throwable can instead be a callback with one typed Throwable
+parameter. Its parameter type specifies the expected throwable class.
+Greenlight gives the caught throwable to the callback after its type
+matches. The callback matches when it returns without an expectation
+failure.
+
+The optional `matching:` argument checks the message with a regular
+expression. The `message:` argument checks the exact message. Do not use
+these arguments with a throwable callback.
 
 With `not()`, a throwable that does not satisfy both conditions makes the
 matcher pass.
 
 ```php
 public function toThrow(
-    string $throwable,
-    string|\Closure|null $matching = null,
+    string|\Closure $throwable,
+    ?string $matching = null,
     ?string $message = null,
 ): self
 ```
 
 PHPDoc:
 
-- `@template TThrowable of \Throwable`
-- `@param class-string<TThrowable> $throwable`
-- `@param (\Closure(TThrowable): void)|string|null $matching`
+- `@param class-string<\Throwable>|\Closure $throwable`
 - `@return self<T>`
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L781)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L782)
 
 ## `ExpectationExtension`
 

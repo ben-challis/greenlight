@@ -295,18 +295,22 @@ abstract class TemporalExpectation
     }
 
     /**
-     * @template TThrowable of \Throwable
-     *
-     * @param class-string<TThrowable> $throwable
-     * @param (\Closure(TThrowable): void)|string|null $matching
+     * @param class-string<\Throwable>|\Closure $throwable
      *
      * @return Expectation<T>
      */
     final public function toThrow(
-        string $throwable,
-        string|\Closure|null $matching = null,
+        string|\Closure $throwable,
+        ?string $matching = null,
         ?string $message = null,
     ): Expectation {
+        if ($throwable instanceof \Closure && ($matching !== null || $message !== null)) {
+            throw ExpectationFailed::fromDetail(new FailureDetail(
+                'Do not specify matching: or message: when the throwable is a callback.',
+                location: CallSite::capture(),
+            ));
+        }
+
         if ($matching !== null && $message !== null) {
             throw ExpectationFailed::fromDetail(new FailureDetail(
                 'Specify matching: or message: for toThrow(). Do not specify both.',
@@ -316,6 +320,10 @@ abstract class TemporalExpectation
 
         return $this->apply(
             static function (Expectation $expectation) use ($throwable, $matching, $message): Expectation {
+                if ($throwable instanceof \Closure) {
+                    return $expectation->toThrow($throwable);
+                }
+
                 if ($matching !== null) {
                     return $expectation->toThrow($throwable, matching: $matching);
                 }

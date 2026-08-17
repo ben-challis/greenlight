@@ -58,7 +58,35 @@ final class TemporalToThrowTest
     }
 
     #[Test]
-    public function eventuallyRetriesWhenTheMatchingCallbackExpectationFails(): void
+    public function temporalToThrowRejectsAConstraintWithAThrowableCallbackBeforePolling(): void
+    {
+        $calls = 0;
+        $eventually = Expect::eventually(static function () use (&$calls): \Closure {
+            ++$calls;
+
+            return static fn() => throw new \RuntimeException('boom');
+        })->within(0.100);
+
+        $detail = FailureProbe::detailOf(
+            static function () use ($eventually): void {
+                new \ReflectionMethod($eventually, 'toThrow')->invokeArgs(
+                    $eventually,
+                    [
+                        'throwable' => static function (\RuntimeException $error): void {},
+                        'message' => 'boom',
+                    ],
+                );
+            },
+        );
+
+        Expect::that($detail->message)->toBe(
+            'Do not specify matching: or message: when the throwable is a callback.',
+        );
+        Expect::that($calls)->toBe(0);
+    }
+
+    #[Test]
+    public function eventuallyRetriesWhenTheThrowableCallbackExpectationFails(): void
     {
         $clock = new FakePollingClock();
         $calls = 0;
@@ -68,8 +96,7 @@ final class TemporalToThrowTest
                 ->pollEvery(0.010)
                 ->within(0.100)
                 ->toThrow(
-                    \RuntimeException::class,
-                    matching: static function (\RuntimeException $error) use (&$calls): void {
+                    static function (\RuntimeException $error) use (&$calls): void {
                         ++$calls;
                         Expect::that($calls)->toBe(2);
                         Expect::that($error->getMessage())->toBe('ready');
@@ -82,7 +109,7 @@ final class TemporalToThrowTest
     }
 
     #[Test]
-    public function eventuallyReportsTheFinalMatchingCallbackFailure(): void
+    public function eventuallyReportsTheFinalThrowableCallbackFailure(): void
     {
         $clock = new FakePollingClock();
 
@@ -94,8 +121,7 @@ final class TemporalToThrowTest
                 ->pollEvery(0.010)
                 ->within(0.020)
                 ->toThrow(
-                    \RuntimeException::class,
-                    matching: static function (\RuntimeException $error): void {
+                    static function (\RuntimeException $error): void {
                         Expect::that($error->getMessage())->toBe('ready');
                     },
                 ),

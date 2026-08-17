@@ -20,8 +20,7 @@ final readonly class MetadataFactoryResourceErrorTest
         Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery MUST wrap an invalid resource attribute with its method location')
             ->toThrow(
-                DiscoveryError::class,
-                matching: static function (DiscoveryError $error) use ($class): void {
+                static function (DiscoveryError $error) use ($class): void {
                     Expect::that($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')

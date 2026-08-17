@@ -32,14 +32,13 @@ final class ToThrowTest
     }
 
     #[Test]
-    public function toThrowPassesTheTypedThrowableToAMatchingCallback(): void
+    public function toThrowPassesTheTypedThrowableToACallback(): void
     {
         $previous = new \LengthException('too short');
 
         Expect::that(static fn() => throw new \DomainException('invalid value', previous: $previous))
             ->toThrow(
-                \DomainException::class,
-                matching: static function (\DomainException $error) use ($previous): void {
+                static function (\DomainException $error) use ($previous): void {
                     Expect::that($error->getPrevious())->toBe($previous);
                 },
             );
@@ -53,8 +52,7 @@ final class ToThrowTest
         $detail = FailureProbe::detailOf(
             static fn() => Expect::that(static fn() => throw new \RuntimeException('boom'))
                 ->toThrow(
-                    \DomainException::class,
-                    matching: static function (\DomainException $error) use (&$called): void {
+                    static function (\DomainException $error) use (&$called): void {
                         $called = true;
                     },
                 ),
@@ -63,18 +61,17 @@ final class ToThrowTest
         Expect::that($called)->toBeFalse();
         Expect::that($detail->message)->toBe(
             "Expected a callable that threw RuntimeException with message 'boom' "
-            . 'to throw DomainException with a throwable that satisfies the matching callback.',
+            . 'to throw DomainException and satisfy the throwable callback.',
         );
     }
 
     #[Test]
-    public function toThrowPreservesAMatchingCallbackExpectationFailure(): void
+    public function toThrowPreservesAThrowableCallbackExpectationFailure(): void
     {
         $detail = FailureProbe::detailOf(
             static fn() => Expect::that(static fn() => throw new \DomainException('boom'))
                 ->toThrow(
-                    \DomainException::class,
-                    matching: static function (\DomainException $error): void {
+                    static function (\DomainException $error): void {
                         Expect::that($error->getMessage())->toBe('expected message');
                     },
                 ),
@@ -165,27 +162,25 @@ final class ToThrowTest
     }
 
     #[Test]
-    public function notToThrowPassesWhenTheMatchingCallbackExpectationFails(): void
+    public function notToThrowPassesWhenTheThrowableCallbackExpectationFails(): void
     {
         Expect::that(static fn() => throw new \DomainException('boom'))
             ->not()
             ->toThrow(
-                \DomainException::class,
-                matching: static function (\DomainException $error): void {
+                static function (\DomainException $error): void {
                     Expect::that($error->getMessage())->toBe('different');
                 },
             );
     }
 
     #[Test]
-    public function notToThrowFailsWhenTheMatchingCallbackPasses(): void
+    public function notToThrowFailsWhenTheThrowableCallbackPasses(): void
     {
         $detail = FailureProbe::detailOf(
             static fn() => Expect::that(static fn() => throw new \DomainException('boom'))
                 ->not()
                 ->toThrow(
-                    \DomainException::class,
-                    matching: static function (\DomainException $error): void {
+                    static function (\DomainException $error): void {
                         Expect::that($error->getMessage())->toBe('boom');
                     },
                 ),
@@ -193,7 +188,7 @@ final class ToThrowTest
 
         Expect::that($detail->message)->toBe(
             "Expected a callable that threw DomainException with message 'boom' "
-            . 'not to throw DomainException with a throwable that satisfies the matching callback.',
+            . 'not to throw DomainException and satisfy the throwable callback.',
         );
     }
 
@@ -250,26 +245,53 @@ final class ToThrowTest
         Expect::that($invoked)->because('toThrow() rejects pattern and exact message before invoking the subject')->toBeFalse();
     }
 
-    /**
-     * @param \Closure(): mixed $matching
-     */
     #[Test]
-    #[DataSet('invalidMatchingCallbacks')]
-    public function toThrowRejectsAnInvalidMatchingCallbackBeforeInvokingTheSubject(
-        \Closure $matching,
-        string $message,
-    ): void {
+    public function toThrowRejectsAConstraintWithAThrowableCallbackBeforeInvokingTheSubject(): void
+    {
         $invoked = false;
 
         $detail = FailureProbe::detailOf(
-            static function () use (&$invoked, $matching): void {
+            static function () use (&$invoked): void {
                 $expectation = Expect::that(static function () use (&$invoked): void {
                     $invoked = true;
                 });
 
                 new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
                     $expectation,
-                    [\DomainException::class, $matching],
+                    [
+                        'throwable' => static function (\DomainException $error): void {},
+                        'matching' => '/boom/',
+                    ],
+                );
+            },
+        );
+
+        Expect::that($detail->message)->toBe(
+            'Do not specify matching: or message: when the throwable is a callback.',
+        );
+        Expect::that($invoked)->toBeFalse();
+    }
+
+    /**
+     * @param \Closure(): mixed $throwable
+     */
+    #[Test]
+    #[DataSet('invalidThrowableCallbacks')]
+    public function toThrowRejectsAnInvalidThrowableCallbackBeforeInvokingTheSubject(
+        \Closure $throwable,
+        string $message,
+    ): void {
+        $invoked = false;
+
+        $detail = FailureProbe::detailOf(
+            static function () use (&$invoked, $throwable): void {
+                $expectation = Expect::that(static function () use (&$invoked): void {
+                    $invoked = true;
+                });
+
+                new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+                    $expectation,
+                    [$throwable],
                 );
             },
         );
@@ -281,55 +303,59 @@ final class ToThrowTest
     /**
      * @return iterable<string, array{\Closure, non-empty-string}>
      */
-    public static function invalidMatchingCallbacks(): iterable
+    public static function invalidThrowableCallbacks(): iterable
     {
         yield 'no throwable parameter' => [
             static function (): void {},
-            'The matching callback for toThrow() must accept one throwable argument.',
+            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
         ];
         yield 'too many required parameters' => [
             static function (\DomainException $error, string $context): void {},
-            'The matching callback for toThrow() must accept one throwable argument.',
+            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
+        ];
+        yield 'variadic throwable parameter' => [
+            static function (\DomainException ...$error): void {},
+            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
         ];
         yield 'parameter by reference' => [
             static function (\DomainException &$error): void {},
-            'The matching callback for toThrow() must accept its throwable argument by value.',
+            'The throwable callback for toThrow() MUST accept its argument by value.',
         ];
         yield 'declared return value' => [
             static fn(\DomainException $error): int => 1,
-            'The matching callback for toThrow() must return void. Its return type is int.',
+            'The throwable callback for toThrow() MUST return void. Its return type is int.',
         ];
-        yield 'incompatible throwable parameter' => [
-            static function (\LengthException $error): void {},
-            'The matching callback for toThrow() must accept DomainException. Its parameter type is LengthException.',
+        yield 'missing parameter type' => [
+            static function ($error): void {},
+            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is missing.',
         ];
         yield 'built-in parameter type' => [
             static function (string $error): void {},
-            'The matching callback for toThrow() must accept DomainException. Its parameter type is string.',
+            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is string.',
+        ];
+        yield 'nullable parameter type' => [
+            static function (?\DomainException $error): void {},
+            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is ?DomainException.',
         ];
         yield 'union parameter type' => [
             static function (\LengthException|\OutOfBoundsException $error): void {},
-            'The matching callback for toThrow() must accept DomainException. Its parameter type is LengthException|OutOfBoundsException.',
+            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is LengthException|OutOfBoundsException.',
         ];
         yield 'intersection parameter type' => [
             static function (\Throwable&\Countable $error): void {},
-            'The matching callback for toThrow() must accept DomainException. Its parameter type is Throwable&Countable.',
+            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is Throwable&Countable.',
+        ];
+        yield 'non-throwable class parameter type' => [
+            static function (\stdClass $error): void {},
+            'The throwable callback for toThrow() MUST declare a Throwable parameter type. Its parameter type is stdClass.',
         ];
     }
 
     #[Test]
-    public function toThrowAcceptsBroadAndScopedMatchingCallbackParameterTypes(): void
+    public function toThrowAcceptsScopedThrowableCallbackParameterTypes(): void
     {
-        Expect::that(static fn() => throw new \DomainException('object'))
-            ->toThrow(
-                \DomainException::class,
-                matching: static function (object $error): void {
-                    Expect::that($error)->toBeInstanceOf(\DomainException::class);
-                },
-            );
-
         $selfScopedError = new class ('self') extends \DomainException {
-            public function matchingCallback(): \Closure
+            public function throwableCallback(): \Closure
             {
                 return static function (self $error): void {
                     Expect::that($error)->toBeInstanceOf(self::class);
@@ -337,14 +363,11 @@ final class ToThrowTest
             }
         };
 
-        $expectation = Expect::that(static fn() => throw $selfScopedError);
-        new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
-            $expectation,
-            [$selfScopedError::class, $selfScopedError->matchingCallback()],
-        );
+        Expect::that(static fn() => throw $selfScopedError)
+            ->toThrow($selfScopedError->throwableCallback());
 
         $parentScopedCallback = new class ('parent') extends \Exception {
-            public function matchingCallback(): \Closure
+            public function throwableCallback(): \Closure
             {
                 return static function (parent $error): void {
                     Expect::that($error)->toBeInstanceOf(\Exception::class);
@@ -352,15 +375,12 @@ final class ToThrowTest
             }
         };
 
-        $expectation = Expect::that(static fn() => throw new \DomainException('parent'));
-        new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
-            $expectation,
-            [\DomainException::class, $parentScopedCallback->matchingCallback()],
-        );
+        Expect::that(static fn() => throw new \DomainException('parent'))
+            ->toThrow($parentScopedCallback->throwableCallback());
     }
 
     #[Test]
-    public function toThrowRejectsAMatchingCallbackReturnValue(): void
+    public function toThrowRejectsAThrowableCallbackReturnValue(): void
     {
         $detail = FailureProbe::detailOf(
             static function (): void {
@@ -368,13 +388,13 @@ final class ToThrowTest
 
                 new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
                     $expectation,
-                    [\DomainException::class, static fn(\DomainException $error) => 1],
+                    [static fn(\DomainException $error) => 1],
                 );
             },
         );
 
         Expect::that($detail->message)->toBe(
-            'The matching callback for toThrow() must return void. It returned int.',
+            'The throwable callback for toThrow() MUST return void. It returned int.',
         );
     }
 }

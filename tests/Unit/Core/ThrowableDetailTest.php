@@ -17,8 +17,7 @@ final class ThrowableDetailTest
         $callLine = __LINE__ + 2;
 
         Expect::that(fn() => $this->throwFromInstanceMethod())->toThrow(
-            \RuntimeException::class,
-            matching: static function (\RuntimeException $threw) use ($callLine): void {
+            static function (\RuntimeException $threw) use ($callLine): void {
                 Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
                     ->because('a throwable detail MUST identify the method and source of each stack frame')
                     ->toBe(
@@ -36,8 +35,7 @@ final class ThrowableDetailTest
     public function deepTracesAreBoundedWithATruncationMarker(): void
     {
         Expect::that(fn() => $this->throwAtDepth(40))->toThrow(
-            \RuntimeException::class,
-            matching: static function (\RuntimeException $threw): void {
+            static function (\RuntimeException $threw): void {
                 Expect::that($threw->getMessage())->toBe('bottom');
 
                 $detail = ThrowableDetail::fromThrowable($threw);

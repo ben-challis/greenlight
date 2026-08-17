@@ -17,17 +17,19 @@ use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\ClosureType;
+use PHPStan\Type\NeverType;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\VerbosityLevel;
 
 /**
- * Checks the argument count and reference mode of a `toThrow()` matching
- * callback. The method PHPDoc checks its parameter and return types.
+ * Checks the parameter and return type of a `toThrow()` throwable callback.
  *
  * @internal
  *
  * @implements Rule<MethodCall>
  */
-final class ToThrowMatchingCallbackRule implements Rule
+final class ToThrowCallbackRule implements Rule
 {
     #[\Override]
     public function getNodeType(): string
@@ -52,7 +54,7 @@ final class ToThrowMatchingCallbackRule implements Rule
             return [];
         }
 
-        $argument = $this->matchingArgument($node);
+        $argument = $this->throwableArgument($node);
 
         if (!$argument instanceof Arg) {
             return [];
@@ -60,7 +62,7 @@ final class ToThrowMatchingCallbackRule implements Rule
 
         $type = $scope->getType($argument->value);
 
-        if (!new ObjectType(\Closure::class)->isSuperTypeOf($type)->yes()) {
+        if (!$type instanceof ClosureType) {
             return [];
         }
 
@@ -75,28 +77,22 @@ final class ToThrowMatchingCallbackRule implements Rule
         return [];
     }
 
-    private function matchingArgument(MethodCall $call): ?Arg
+    private function throwableArgument(MethodCall $call): ?Arg
     {
-        $position = 0;
-
         foreach ($call->getArgs() as $argument) {
             if ($argument->unpack) {
                 continue;
             }
 
             if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === 'matching') {
+                if ($argument->name->toString() === 'throwable') {
                     return $argument;
                 }
 
                 continue;
             }
 
-            if ($position === 1) {
-                return $argument;
-            }
-
-            ++$position;
+            return $argument;
         }
 
         return null;
@@ -110,18 +106,38 @@ final class ToThrowMatchingCallbackRule implements Rule
             static fn(ParameterReflection $parameter): bool => !$parameter->isOptional() && !$parameter->isVariadic(),
         );
 
-        if ($parameters === [] || \count($required) > 1) {
+        if ($parameters === [] || $parameters[0]->isVariadic() || \count($required) > 1) {
             return $this->error(
-                'The matching callback for toThrow() must accept one throwable argument.',
+                'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
                 $line,
             );
         }
 
         if ($parameters[0]->passedByReference()->yes()) {
             return $this->error(
-                'The matching callback for toThrow() must accept its throwable argument by value.',
+                'The throwable callback for toThrow() MUST accept its argument by value.',
                 $line,
             );
+        }
+
+        $parameterType = $parameters[0]->getType();
+
+        if (\count($parameterType->getObjectClassNames()) !== 1
+            || !new ObjectType(\Throwable::class)->isSuperTypeOf($parameterType)->yes()
+        ) {
+            return $this->error(\sprintf(
+                'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is %s.',
+                $parameterType->describe(VerbosityLevel::typeOnly()),
+            ), $line);
+        }
+
+        $returnType = $callback->getReturnType();
+
+        if (!$returnType->isVoid()->yes() && !$returnType instanceof NeverType) {
+            return $this->error(\sprintf(
+                'The throwable callback for toThrow() MUST return void. Its return type is %s.',
+                $returnType->describe(VerbosityLevel::typeOnly()),
+            ), $line);
         }
 
         return null;
@@ -130,7 +146,7 @@ final class ToThrowMatchingCallbackRule implements Rule
     private function error(string $message, int $line): IdentifierRuleError
     {
         return RuleErrorBuilder::message($message)
-            ->identifier('greenlight.toThrow.matchingCallback')
+            ->identifier('greenlight.toThrow.callback')
             ->line($line)
             ->build();
     }

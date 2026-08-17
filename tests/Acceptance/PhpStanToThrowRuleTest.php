@@ -126,18 +126,32 @@ final readonly class PhpStanToThrowRuleTest
                 Expect::consistently(static fn(): Closure => static fn() => throw new DomainException('boom'))
                     ->for(0.1)
                     ->toThrow(DomainException::class, matching: '/boom/', message: 'boom');
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        static function (DomainException $error): void {},
+                        matching: '/boom/',
+                    );
+                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->within(1.0)
+                    ->toThrow(
+                        static function (DomainException $error): void {},
+                        message: 'boom',
+                    );
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(6);
+        Expect::that(\count($probe->errors))->toBe(8);
         Expect::that($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
+        Expect::that($probe->messages())->toContain(
+            'Do not specify matching: or message: when the throwable is a callback.',
+        );
     }
 
     #[Test]
-    public function matchingCallbackParameterUsesTheConfiguredThrowableType(): void
+    public function throwableCallbackDeclaresTheExpectedThrowableType(): void
     {
         $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
@@ -152,21 +166,18 @@ final readonly class PhpStanToThrowRuleTest
             {
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(
-                        DomainException::class,
-                        matching: static function (DomainException $error): void {
+                        static function (DomainException $error): void {
                             Expect::that($error->getPrevious())->toBeNull();
                         },
                     );
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(
-                        DomainException::class,
-                        matching: static function (Throwable $error): void {},
+                        throwable: static function (Throwable $error): void {},
                     );
                 Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
                     ->within(1.0)
                     ->toThrow(
-                        DomainException::class,
-                        matching: static function (DomainException $error): void {},
+                        static function (DomainException $error): void {},
                     );
             }
             PHP,
@@ -181,24 +192,32 @@ final readonly class PhpStanToThrowRuleTest
             {
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(
-                        DomainException::class,
-                        matching: static function (LengthException $error): void {},
+                        static function (): void {},
                     );
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(
-                        DomainException::class,
-                        matching: static function (): void {},
+                        static function (string $error): void {},
                     );
                 Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
                     ->within(1.0)
                     ->toThrow(
-                        DomainException::class,
-                        matching: static function (LengthException $error): void {},
+                        static function (DomainException &$error): void {},
                     );
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(
-                        DomainException::class,
-                        matching: static fn(DomainException $error): int => 1,
+                        static function (DomainException $error, string $context): void {},
+                    );
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        static function (DomainException ...$error): void {},
+                    );
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        static fn(DomainException $error): int => 1,
+                    );
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        static function (?DomainException $error): void {},
                     );
             }
             PHP,
@@ -206,13 +225,15 @@ final readonly class PhpStanToThrowRuleTest
 
         Expect::that($probe->exitCode)->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that(\count($probe->errors))->toBe(7);
         Expect::that($probe->messages())->toContain(
-            'Parameter $matching of method Greenlight\\Expect\\Expectation<Closure>::toThrow() expects',
+            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
         );
-        Expect::that($probe->messages())->toContain('Closure(DomainException): void');
         Expect::that($probe->messages())->toContain(
-            'The matching callback for toThrow() must accept one throwable argument.',
+            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'The throwable callback for toThrow() MUST return void.',
         );
     }
 }
