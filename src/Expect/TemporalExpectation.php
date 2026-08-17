@@ -295,7 +295,9 @@ abstract class TemporalExpectation
     }
 
     /**
-     * @param class-string<\Throwable>|\Closure $throwable
+     * @template TThrowable of \Throwable
+     *
+     * @param class-string<TThrowable>|\Closure(TThrowable): void $throwable
      *
      * @return Expectation<T>
      */

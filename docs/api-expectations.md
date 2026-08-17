@@ -698,12 +698,13 @@ public function toThrow(
 
 PHPDoc:
 
-- `@param class-string<\Throwable>|\Closure $throwable`
+- `@template TThrowable of \Throwable`
+- `@param class-string<TThrowable>|\Closure(TThrowable): void $throwable`
 - `@return self<T>`
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L782)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L784)
 
 ## `ExpectationExtension`
 

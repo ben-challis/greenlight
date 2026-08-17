@@ -92,9 +92,10 @@ A call that supplies both `message:` and `matching:` causes the
 at run time. Thus, the constraint does not depend on PHPStan.
 
 A call that supplies a message constraint with a throwable callback causes the
-`greenlight.toThrow.callbackConstraint` error. The
-`greenlight.toThrow.callback` error reports an invalid callback parameter or
-return type. Greenlight applies the same checks at run time.
+`greenlight.toThrow.callbackConstraint` error. The generic closure signature
+reports incompatible parameter and return types. The
+`greenlight.toThrow.callback` error reports constraints that the signature
+cannot express. Greenlight applies all callback checks at run time.
 
 The subject for `toThrow()` must be callable. The extension reports a known
 incompatible subject before the test runs:

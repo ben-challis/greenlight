@@ -18,12 +18,11 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\ClosureType;
-use PHPStan\Type\NeverType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * Checks the parameter and return type of a `toThrow()` throwable callback.
+ * Checks throwable callback constraints that the generic signature cannot express.
  *
  * @internal
  *
@@ -106,11 +105,15 @@ final class ToThrowCallbackRule implements Rule
             static fn(ParameterReflection $parameter): bool => !$parameter->isOptional() && !$parameter->isVariadic(),
         );
 
-        if ($parameters === [] || $parameters[0]->isVariadic() || \count($required) > 1) {
+        if ($parameters === [] || $parameters[0]->isVariadic()) {
             return $this->error(
                 'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
                 $line,
             );
+        }
+
+        if (\count($required) > 1) {
+            return null;
         }
 
         if ($parameters[0]->passedByReference()->yes()) {
@@ -121,22 +124,22 @@ final class ToThrowCallbackRule implements Rule
         }
 
         $parameterType = $parameters[0]->getType();
+        $classNames = $parameterType->getObjectClassNames();
+        $throwable = new ObjectType(\Throwable::class);
 
-        if (\count($parameterType->getObjectClassNames()) !== 1
-            || !new ObjectType(\Throwable::class)->isSuperTypeOf($parameterType)->yes()
+        if ($parameterType->isObject()->no()
+            || (\count($classNames) === 1
+                && !$throwable->isSuperTypeOf(new ObjectType($classNames[0]))->yes())
+        ) {
+            return null;
+        }
+
+        if (\count($classNames) !== 1
+            || !$throwable->isSuperTypeOf($parameterType)->yes()
         ) {
             return $this->error(\sprintf(
                 'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is %s.',
                 $parameterType->describe(VerbosityLevel::typeOnly()),
-            ), $line);
-        }
-
-        $returnType = $callback->getReturnType();
-
-        if (!$returnType->isVoid()->yes() && !$returnType instanceof NeverType) {
-            return $this->error(\sprintf(
-                'The throwable callback for toThrow() MUST return void. Its return type is %s.',
-                $returnType->describe(VerbosityLevel::typeOnly()),
             ), $line);
         }
 

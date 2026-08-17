@@ -233,7 +233,7 @@ final readonly class PhpStanToThrowRuleTest
             'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type.',
         );
         Expect::that($probe->messages())->toContain(
-            'The throwable callback for toThrow() MUST return void.',
+            'Parameter #1 $throwable of method Greenlight\\Expect\\Expectation<Closure>::toThrow() expects',
         );
     }
 }

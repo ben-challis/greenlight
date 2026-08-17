@@ -772,7 +772,9 @@ final class Expectation
      * With `not()`, a throwable that does not satisfy both conditions makes the
      * matcher pass.
      *
-     * @param class-string<\Throwable>|\Closure $throwable
+     * @template TThrowable of \Throwable
+     *
+     * @param class-string<TThrowable>|\Closure(TThrowable): void $throwable
      *
      * @return self<T>
      *
