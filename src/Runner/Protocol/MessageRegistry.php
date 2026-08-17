@@ -64,6 +64,7 @@ final class MessageRegistry
     /**
      * @param array<string, mixed> $envelope
      *
+     * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws InvalidWirePayload
      */

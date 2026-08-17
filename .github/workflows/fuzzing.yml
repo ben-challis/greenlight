@@ -1,0 +1,119 @@
+name: "PHP-Fuzzer campaign"
+
+on:
+  schedule:
+    - cron: "41 3 * * 0"
+  workflow_dispatch: ~
+
+concurrency:
+  group: "php-fuzzing"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  fuzz:
+    name: "Fuzz ${{ matrix.target }}"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+    permissions:
+      contents: "read"
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - "json-frame"
+          - "protocol-message"
+    env:
+      FUZZ_TARGET: "${{ matrix.target }}"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
+        with:
+          php-version: "8.4"
+          extensions: "pcntl"
+          coverage: "none"
+          ini-values: "memory_limit=512M"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # 4.0.0
+        with:
+          dependency-versions: "locked"
+
+      - name: "Install PHP-Fuzzer"
+        shell: "bash"
+        run: |
+          set -euo pipefail
+          readonly php_fuzzer="${RUNNER_TEMP}/php-fuzzer-v0.0.11.phar"
+          curl \
+            --fail \
+            --location \
+            --proto '=https' \
+            --tlsv1.2 \
+            --output "${php_fuzzer}" \
+            https://github.com/nikic/PHP-Fuzzer/releases/download/v0.0.11/php-fuzzer.phar
+          printf '%s  %s\n' \
+            '8e8af960a993042b392b98927e9cb40237d466c22f0fc10feab2a40b1d679177' \
+            "${php_fuzzer}" \
+            | sha256sum --check --strict
+
+      - name: "Run the fuzz campaign"
+        shell: "bash"
+        run: |
+          set -euo pipefail
+
+          readonly fuzz_directory="${GITHUB_WORKSPACE}/build/fuzz/${FUZZ_TARGET}"
+          readonly php_fuzzer="${RUNNER_TEMP}/php-fuzzer-v0.0.11.phar"
+          readonly target="${GITHUB_WORKSPACE}/tools/fuzz/${FUZZ_TARGET}.php"
+          readonly dictionary="${GITHUB_WORKSPACE}/tools/fuzz/json.dict"
+
+          mkdir -p "${fuzz_directory}/corpus"
+          cp "${GITHUB_WORKSPACE}/tools/fuzz/corpus/${FUZZ_TARGET}/"* "${fuzz_directory}/corpus/"
+          cd "${fuzz_directory}"
+
+          set +e
+          timeout --signal=INT --kill-after=10s 4m \
+            php "${php_fuzzer}" fuzz \
+              --dict "${dictionary}" \
+              --timeout 2 \
+              "${target}" \
+              corpus
+          campaign_status=$?
+          set -e
+
+          shopt -s nullglob
+          crashes=(crash-*.txt)
+
+          if [[ "${#crashes[@]}" -gt 0 ]]; then
+            timeout --signal=INT --kill-after=10s 1m \
+              php "${php_fuzzer}" minimize-crash \
+                --dict "${dictionary}" \
+                --max-runs 10000 \
+                --timeout 2 \
+                "${target}" \
+                "${crashes[0]}" \
+              || true
+
+            printf 'PHP-Fuzzer found %s crash input(s).\n' "${#crashes[@]}" >&2
+            exit 1
+          fi
+
+          if [[ "${campaign_status}" -ne 0 && "${campaign_status}" -ne 124 && "${campaign_status}" -ne 130 ]]; then
+            printf 'PHP-Fuzzer stopped with status %s.\n' "${campaign_status}" >&2
+            exit "${campaign_status}"
+          fi
+
+      - name: "Upload the working corpus and crashes"
+        if: "always()"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7
+        with:
+          name: "fuzz-${{ matrix.target }}-${{ github.run_id }}"
+          path: "build/fuzz/${{ matrix.target }}"
+          if-no-files-found: "error"
+          retention-days: 14
