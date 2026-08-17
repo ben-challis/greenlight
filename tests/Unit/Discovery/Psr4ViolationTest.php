@@ -18,43 +18,48 @@ final readonly class Psr4ViolationTest
 {
     public function __construct(private TempDirectory $tempDirectory) {}
 
-    private function discoveryErrorMessage(string $fixture): string
+    /**
+     * @return \Closure(): ExecutionPlan
+     */
+    private function discoverFixture(string $fixture): \Closure
     {
-        try {
-            new TestDiscoverer()->discover([\dirname(__DIR__, 2) . '/Fixture/' . $fixture]);
-        } catch (DiscoveryError $e) {
-            return $e->getMessage();
-        }
+        $directory = \dirname(__DIR__, 2) . '/Fixture/' . $fixture;
 
-        Fail::because(\sprintf('Expected discovery of %s to fail.', $fixture));
+        return static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]);
     }
 
     #[Test]
     public function wrongNamespaceProducesATypedErrorNamingFileAndClass(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryPsr4Violation');
-
-        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('The autoloader cannot load class');
-        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain(MismatchTest::class);
-        Expect::that($message)->because('wrong namespace produces a typed error naming file and class')->toContain('MismatchTest.php');
+        Expect::that($this->discoverFixture('DiscoveryPsr4Violation'))
+            ->because('wrong namespace produces a typed error naming file and class')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('The autoloader cannot load class');
+                Expect::that($error->getMessage())->toContain(MismatchTest::class);
+                Expect::that($error->getMessage())->toContain('MismatchTest.php');
+            });
     }
 
     #[Test]
     public function classNameNotMatchingFileNameProducesATypedError(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryClassNameMismatch');
-
-        Expect::that($message)->because('class name not matching file name produces a typed error')->toContain('SomethingElseTest');
-        Expect::that($message)->because('class name not matching file name produces a typed error')->toContain('WrongNameTest');
+        Expect::that($this->discoverFixture('DiscoveryClassNameMismatch'))
+            ->because('class name not matching file name produces a typed error')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('SomethingElseTest');
+                Expect::that($error->getMessage())->toContain('WrongNameTest');
+            });
     }
 
     #[Test]
     public function fileWithoutAnyDeclarationProducesATypedError(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryNoClass');
-
-        Expect::that($message)->because('a file without a declaration produces a typed error')->toContain('does not declare a class');
-        Expect::that($message)->because('a file without a declaration produces a typed error')->toContain('NothingHereTest.php');
+        Expect::that($this->discoverFixture('DiscoveryNoClass'))
+            ->because('a file without a declaration produces a typed error')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('does not declare a class');
+                Expect::that($error->getMessage())->toContain('NothingHereTest.php');
+            });
     }
 
     #[Test]

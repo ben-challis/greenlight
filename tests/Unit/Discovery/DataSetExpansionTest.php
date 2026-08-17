@@ -11,7 +11,6 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Discovery\FakeMonotonicClock;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\InvalidKeyProvider;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest;
@@ -43,15 +42,14 @@ final class DataSetExpansionTest
         return $keys;
     }
 
-    private function discoveryErrorMessage(string $fixture, float $budgetSeconds = 5.0): string
+    /**
+     * @return \Closure(): ExecutionPlan
+     */
+    private function discoverFixture(string $fixture, float $budgetSeconds = 5.0): \Closure
     {
-        try {
-            new TestDiscoverer($budgetSeconds)->discover([$this->fixtureDir($fixture)]);
-        } catch (DiscoveryError $e) {
-            return $e->getMessage();
-        }
+        $directory = $this->fixtureDir($fixture);
 
-        Fail::because(\sprintf('Expected discovery of %s to fail.', $fixture));
+        return static fn(): ExecutionPlan => new TestDiscoverer($budgetSeconds)->discover([$directory]);
     }
 
     #[Test]
@@ -141,10 +139,12 @@ final class DataSetExpansionTest
     #[Test]
     public function missingProviderFailsNamingIt(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderMissing');
-
-        Expect::that($message)->because('missing provider fails naming it')->toContain('doesNotExist');
-        Expect::that($message)->because('missing provider fails naming it')->toContain('MissingProviderTest');
+        Expect::that($this->discoverFixture('DiscoveryProviderMissing'))
+            ->because('missing provider fails naming it')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('doesNotExist');
+                Expect::that($error->getMessage())->toContain('MissingProviderTest');
+            });
     }
 
     #[Test]
@@ -170,61 +170,71 @@ final class DataSetExpansionTest
     #[Test]
     public function nonStaticProviderIsRejected(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderInvalid');
-
-        Expect::that($message)->because('non static provider is rejected')->toContain('Declare the provider as public and static');
-        Expect::that($message)->because('non static provider is rejected')->toContain('instanceProvider');
+        Expect::that($this->discoverFixture('DiscoveryProviderInvalid'))
+            ->because('non static provider is rejected')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('Declare the provider as public and static');
+                Expect::that($error->getMessage())->toContain('instanceProvider');
+            });
     }
 
     #[Test]
     public function nonPublicProviderIsRejected(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderNonPublic');
-
-        Expect::that($message)
+        Expect::that($this->discoverFixture('DiscoveryProviderNonPublic'))
             ->because('a non-public data-set provider MUST fail discovery')
-            ->toContain('Declare the provider as public and static');
-        Expect::that($message)
-            ->toContain('privateProvider');
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('Declare the provider as public and static');
+                Expect::that($error->getMessage())->toContain('privateProvider');
+            });
     }
 
     #[Test]
     public function nonIterableProviderIsRejected(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderNotIterable');
-
-        Expect::that($message)->because('non iterable provider is rejected')->toContain('Return an iterable from the provider');
-        Expect::that($message)->because('non iterable provider is rejected')->toContain('string');
+        Expect::that($this->discoverFixture('DiscoveryProviderNotIterable'))
+            ->because('non iterable provider is rejected')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('Return an iterable from the provider');
+                Expect::that($error->getMessage())->toContain('string');
+            });
     }
 
     #[Test]
     public function throwingProviderFailsDiscoveryWithTheCause(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderThrows');
-
-        Expect::that($message)->because('throwing provider fails discovery with the cause')->toContain('provider exploded');
-        Expect::that($message)->because('throwing provider fails discovery with the cause')->toContain('boom');
+        Expect::that($this->discoverFixture('DiscoveryProviderThrows'))
+            ->because('throwing provider fails discovery with the cause')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('provider exploded');
+                Expect::that($error->getMessage())->toContain('boom');
+                Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
+                Expect::that($error->getPrevious()?->getMessage())->toBe('provider exploded');
+            });
     }
 
     #[Test]
     public function providerThatThrowsDuringIterationFailsDiscoveryWithTheCause(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderIterationThrows');
-
-        Expect::that($message)
+        Expect::that($this->discoverFixture('DiscoveryProviderIterationThrows'))
             ->because('provider that throws during iteration fails discovery with the cause')
-            ->toContain('iteration exploded');
-        Expect::that($message)
-            ->toContain('rows');
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('iteration exploded');
+                Expect::that($error->getMessage())->toContain('rows');
+                Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
+                Expect::that($error->getPrevious()?->getMessage())->toBe('iteration exploded');
+            });
     }
 
     #[Test]
     public function slowProviderExceedsTheConfiguredBudget(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderSlow', 0.005);
-
-        Expect::that($message)->because('slow provider exceeds the configured budget')->toContain('time budget');
-        Expect::that($message)->because('slow provider exceeds the configured budget')->toContain('dawdles');
+        Expect::that($this->discoverFixture('DiscoveryProviderSlow', 0.005))
+            ->because('slow provider exceeds the configured budget')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('time budget');
+                Expect::that($error->getMessage())->toContain('dawdles');
+            });
     }
 
     #[Test]
@@ -259,9 +269,11 @@ final class DataSetExpansionTest
     #[Test]
     public function emptyProviderIsRejected(): void
     {
-        $message = $this->discoveryErrorMessage('DiscoveryProviderEmpty');
-
-        Expect::that($message)->because('empty provider is rejected')->toContain('produced no data sets');
+        Expect::that($this->discoverFixture('DiscoveryProviderEmpty'))
+            ->because('empty provider is rejected')
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toContain('produced no data sets');
+            });
     }
 
     #[Test]
