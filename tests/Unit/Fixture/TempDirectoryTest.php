@@ -255,10 +255,12 @@ final class TempDirectoryTest
                 ->because('fixture cleanup MUST report a root that it cannot remove')
                 ->toThrow(
                     \RuntimeException::class,
-                    message: \sprintf(
-                        'Failed to remove temp directory "%s": rmdir(%s): Permission denied.',
-                        $path,
-                        $path,
+                    // PHP 8.5 includes the path argument.
+                    // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
+                    matching: \sprintf(
+                        '/^Failed to remove temp directory "%s": rmdir\((?:%s)?\): Permission denied\.$/',
+                        \preg_quote($path, '/'),
+                        \preg_quote($path, '/'),
                     ),
                 );
         } finally {
