@@ -41,7 +41,9 @@ final readonly class HtmlExporterSourceFailureTest
 
             Expect::that($warning ?? '')
                 ->because('the source becomes unreadable when the exporter opens it')
-                ->toContain('file_get_contents(' . $path . ')')
+                // PHP 8.5 includes the path in this warning, but PHP 8.6 omits it.
+                // Require file_get_contents() when PHP 8.6 is the minimum version.
+                ->toContain('file_get_contents')
                 ->toContain('Failed to open stream');
             Expect::that($page)
                 ->because('a late read failure shows only coverage line numbers')

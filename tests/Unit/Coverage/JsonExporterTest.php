@@ -87,15 +87,24 @@ final class JsonExporterTest
             ->toThrow(CoverageError::class, message: $message);
     }
 
+    #[Test]
+    public function importReportsMalformedJsonWithOptionalPhpLocation(): void
+    {
+        Expect::that(static fn(): CoverageMap => JsonExporter::import('not json'))
+            ->because('malformed coverage JSON MUST include the PHP syntax error')
+            ->toThrow(
+                CoverageError::class,
+                // PHP 8.5 omits the location, but PHP 8.6 adds it.
+                // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
+                matching: '/^Coverage JSON document is invalid: Syntax error(?: near location 1:1)?$/',
+            );
+    }
+
     /**
      * @return iterable<string, array{non-empty-string, non-empty-string}>
      */
     public static function invalidDocuments(): iterable
     {
-        yield 'malformed JSON' => [
-            'not json',
-            'Coverage JSON document is invalid: Syntax error',
-        ];
         yield 'unsupported schema version' => [
             '{"v":2,"files":{}}',
             'Coverage JSON document is invalid: unsupported or missing schema version, expected 1.',

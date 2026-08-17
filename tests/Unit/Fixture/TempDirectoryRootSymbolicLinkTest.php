@@ -75,10 +75,12 @@ final class TempDirectoryRootSymbolicLinkTest
                 ->because('fixture cleanup MUST report a root symbolic link that it cannot remove')
                 ->toThrow(
                     \RuntimeException::class,
-                    message: \sprintf(
-                        'Failed to remove temp directory symbolic link "%s": unlink(%s): Permission denied.',
-                        $root,
-                        $root,
+                    // PHP 8.5 includes the path argument.
+                    // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
+                    matching: \sprintf(
+                        '/^Failed to remove temp directory symbolic link "%s": unlink\((?:%s)?\): Permission denied\.$/',
+                        \preg_quote($root, '/'),
+                        \preg_quote($root, '/'),
                     ),
                 );
         } finally {
