@@ -130,6 +130,48 @@ final class IntegrationFixtureManagerTest
     }
 
     #[Test]
+    public function provisioningFailuresRetainCleanupFailuresWithoutReplacingThePrimaryCause(): void
+    {
+        $provisioningFailure = new \RuntimeException('database start failed');
+        $cleanupFailure = new \LogicException('network stop failed');
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition(
+                'network',
+                static function (IntegrationFixtureContext $context) use ($cleanupFailure): void {
+                    $context->defer(static function () use ($cleanupFailure): void {
+                        throw $cleanupFailure;
+                    });
+                },
+            ),
+            new IntegrationFixtureDefinition(
+                'database',
+                static function () use ($provisioningFailure): void {
+                    throw $provisioningFailure;
+                },
+                ['network'],
+            ),
+        ]);
+
+        Expect::that(static fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-3',
+            1,
+            1,
+            null,
+        ))
+            ->because('provisioning diagnostics MUST include cleanup failures without replacing the primary failure')
+            ->toThrow(static function (IntegrationFixtureError $error) use ($provisioningFailure): void {
+                Expect::that($error->getMessage())->toBe(
+                    "Integration fixture \"database\" failed to provision: database start failed.\n"
+                    . 'Additionally, cleanup for integration fixture "network" failed: network stop failed.',
+                );
+                Expect::that($error->getPrevious())
+                    ->because('the provisioning failure MUST remain the previous exception')
+                    ->toBe($provisioningFailure);
+            });
+    }
+
+    #[Test]
     public function missingDependenciesAndCyclesFailBeforeProvisioning(): void
     {
         $missing = $this->provider([
