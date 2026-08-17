@@ -12,7 +12,6 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArguments\ArgumentsMergeTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysFalse;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
@@ -108,18 +107,14 @@ final class AttributeMergeTest
     {
         $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryAttributeArgumentsInvalid';
 
-        try {
-            new TestDiscoverer()->discover([$dir]);
-        } catch (DiscoveryError $error) {
-            Expect::that($error->getMessage())->toBe(
-                'Attribute on Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\NonScalarArgumentTest::neverDiscovered() is invalid: '
-                . 'Use a scalar or null for #[SkipUnless] argument 1 of condition "Greenlight\Condition\EnvironmentVariableEquals". Received array.',
-            );
-
-            return;
-        }
-
-        Fail::because('Expected discovery to reject a non-scalar SkipUnless argument.');
+        Expect::that(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())->toBe(
+                    'Attribute on Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\NonScalarArgumentTest::neverDiscovered() is invalid: '
+                    . 'Use a scalar or null for #[SkipUnless] argument 1 of condition "Greenlight\Condition\EnvironmentVariableEquals". Received array.',
+                );
+                Expect::that($error->getPrevious())->toBeInstanceOf(\InvalidArgumentException::class);
+            });
     }
 
     #[Test]
@@ -127,18 +122,14 @@ final class AttributeMergeTest
     {
         $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryResourceInvalid';
 
-        try {
-            new TestDiscoverer()->discover([$dir]);
-        } catch (DiscoveryError $error) {
-            Expect::that($error->getMessage())
-                ->toContain('InvalidResourceTest')
-                ->toContain('neverDiscovered')
-                ->toContain('Resource names');
-
-            return;
-        }
-
-        Fail::because('Expected discovery to reject an invalid resource name.');
+        Expect::that(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
+            ->toThrow(static function (DiscoveryError $error): void {
+                Expect::that($error->getMessage())
+                    ->toContain('InvalidResourceTest')
+                    ->toContain('neverDiscovered')
+                    ->toContain('Resource names');
+                Expect::that($error->getPrevious())->toBeInstanceOf(\InvalidArgumentException::class);
+            });
     }
 
     #[Test]
