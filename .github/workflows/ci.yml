@@ -327,7 +327,6 @@ jobs:
     name: "PHP 8.6 pre-release compatibility"
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
-    continue-on-error: true # Allow failures until PHP 8.6 is stable.
     permissions:
       contents: "read"
     env:
@@ -354,7 +353,19 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Tests"
+        id: "compatibility-tests"
+        continue-on-error: true # Allow failures until PHP 8.6 is stable.
         run: "composer tests"
+
+      - name: "Report compatibility failure"
+        if: "steps.compatibility-tests.outcome == 'failure'"
+        run: |
+          echo "::warning title=PHP 8.6 compatibility failure::The PHP 8.6 test suite failed. Review the Tests step."
+          {
+            echo "### PHP 8.6 compatibility failure"
+            echo
+            echo "The PHP 8.6 test suite failed. Review the Tests step."
+          } >> "${GITHUB_STEP_SUMMARY}"
 
   memory:
     name: "Flat-memory gate (10,000 tests, one worker)"
