@@ -16,7 +16,8 @@ final class PcovDriverFailureTest
     public function startFailureLeavesTheCollectionWindowClosed(): void
     {
         $runtime = new FailingPcovDriverRuntime();
-        $runtime->startFailure = new \RuntimeException('PCOV start failed.');
+        $failure = new \RuntimeException('PCOV start failed.');
+        $runtime->startFailure = $failure;
         $driver = new PcovDriver($runtime);
 
         Expect::that(static function () use ($driver): void {
@@ -24,8 +25,9 @@ final class PcovDriverFailureTest
         })
             ->because('a PCOV start failure MUST remain the reported failure')
             ->toThrow(
-                \RuntimeException::class,
-                message: 'PCOV start failed.',
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
             );
         Expect::that($runtime->calls)
             ->because('a PCOV start failure MUST stop before collection begins')
@@ -43,15 +45,17 @@ final class PcovDriverFailureTest
     public function collectionFailureStopsAndClearsTheRuntimeAndClosesTheWindow(): void
     {
         $runtime = new FailingPcovDriverRuntime();
-        $runtime->collectFailure = new \RuntimeException('PCOV collection failed.');
+        $failure = new \RuntimeException('PCOV collection failed.');
+        $runtime->collectFailure = $failure;
         $driver = new PcovDriver($runtime);
         $driver->start();
 
         Expect::that(static fn(): mixed => $driver->stop())
             ->because('a PCOV collection failure MUST remain the reported failure')
             ->toThrow(
-                \RuntimeException::class,
-                message: 'PCOV collection failed.',
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
             );
         Expect::that($runtime->calls)
             ->because('a PCOV collection failure MUST still stop and clear extension state')
@@ -75,11 +79,12 @@ final class PcovDriverFailureTest
         string $message,
     ): void {
         $runtime = new FailingPcovDriverRuntime();
+        $failure = new \RuntimeException($message);
 
         if ($operation === 'stop') {
-            $runtime->stopFailure = new \RuntimeException($message);
+            $runtime->stopFailure = $failure;
         } else {
-            $runtime->clearFailure = new \RuntimeException($message);
+            $runtime->clearFailure = $failure;
         }
 
         $driver = new PcovDriver($runtime);
@@ -88,8 +93,9 @@ final class PcovDriverFailureTest
         Expect::that(static fn(): mixed => $driver->stop())
             ->because('a PCOV cleanup failure MUST remain the reported failure')
             ->toThrow(
-                \RuntimeException::class,
-                message: $message,
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
             );
         Expect::that($runtime->calls)
             ->because('PCOV cleanup MUST attempt clear even if stop fails')
