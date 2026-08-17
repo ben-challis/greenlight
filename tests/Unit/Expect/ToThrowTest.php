@@ -303,6 +303,60 @@ final class ToThrowTest
             static function (\LengthException $error): void {},
             'The matching callback for toThrow() must accept DomainException. Its parameter type is LengthException.',
         ];
+        yield 'built-in parameter type' => [
+            static function (string $error): void {},
+            'The matching callback for toThrow() must accept DomainException. Its parameter type is string.',
+        ];
+        yield 'union parameter type' => [
+            static function (\LengthException|\OutOfBoundsException $error): void {},
+            'The matching callback for toThrow() must accept DomainException. Its parameter type is LengthException|OutOfBoundsException.',
+        ];
+        yield 'intersection parameter type' => [
+            static function (\Throwable&\Countable $error): void {},
+            'The matching callback for toThrow() must accept DomainException. Its parameter type is Throwable&Countable.',
+        ];
+    }
+
+    #[Test]
+    public function toThrowAcceptsBroadAndScopedMatchingCallbackParameterTypes(): void
+    {
+        Expect::that(static fn() => throw new \DomainException('object'))
+            ->toThrow(
+                \DomainException::class,
+                matching: static function (object $error): void {
+                    Expect::that($error)->toBeInstanceOf(\DomainException::class);
+                },
+            );
+
+        $selfScopedError = new class ('self') extends \DomainException {
+            public function matchingCallback(): \Closure
+            {
+                return static function (self $error): void {
+                    Expect::that($error)->toBeInstanceOf(self::class);
+                };
+            }
+        };
+
+        $expectation = Expect::that(static fn() => throw $selfScopedError);
+        new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+            $expectation,
+            [$selfScopedError::class, $selfScopedError->matchingCallback()],
+        );
+
+        $parentScopedCallback = new class ('parent') extends \Exception {
+            public function matchingCallback(): \Closure
+            {
+                return static function (parent $error): void {
+                    Expect::that($error)->toBeInstanceOf(\Exception::class);
+                };
+            }
+        };
+
+        $expectation = Expect::that(static fn() => throw new \DomainException('parent'));
+        new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+            $expectation,
+            [\DomainException::class, $parentScopedCallback->matchingCallback()],
+        );
     }
 
     #[Test]

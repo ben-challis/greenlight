@@ -1028,7 +1028,7 @@ final class Expectation
         }
 
         if (!$type instanceof \ReflectionNamedType) {
-            return false;
+            return false; // @codeCoverageIgnore
         }
 
         $name = $type->getName();
@@ -1069,7 +1069,7 @@ final class Expectation
         }
 
         if (!$type instanceof \ReflectionNamedType) {
-            return 'unknown';
+            return 'unknown'; // @codeCoverageIgnore
         }
 
         return ($type->allowsNull() && $type->getName() !== 'mixed' && $type->getName() !== 'null' ? '?' : '')
