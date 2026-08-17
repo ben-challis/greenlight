@@ -66,31 +66,20 @@ final readonly class AtomicFileTest
                 throw $this->cause;
             }
         });
-        $capture = new class implements Fake {
-            public ?AtomicFileError $error = null;
-        };
-
-        Expect::that(static function () use ($path, $randomizer, $capture): void {
-            try {
-                AtomicFile::write($path, 'content', $randomizer);
-            } catch (AtomicFileError $error) {
-                $capture->error = $error;
-
-                throw $error;
-            }
-        })
+        Expect::that(static fn() => AtomicFile::write($path, 'content', $randomizer))
             ->because('the temporary-name failure MUST identify its target and cause')
             ->toThrow(
-                AtomicFileError::class,
-                message: \sprintf(
-                    'Cannot generate a temporary name for "%s": entropy unavailable',
-                    $path,
-                ),
+                static function (AtomicFileError $error) use ($cause, $path): void {
+                    Expect::that($error->getMessage())->toBe(\sprintf(
+                        'Cannot generate a temporary name for "%s": entropy unavailable',
+                        $path,
+                    ));
+                    Expect::that($error->getPrevious())
+                        ->because('the temporary-name failure MUST preserve its original cause')
+                        ->toBe($cause);
+                },
             );
 
-        Expect::that($capture->error?->getPrevious())
-            ->because('the temporary-name failure MUST preserve its original cause')
-            ->toBe($cause);
         Expect::that(\file_exists($path))
             ->because('an entropy failure MUST NOT create the target file')
             ->toBeFalse();
