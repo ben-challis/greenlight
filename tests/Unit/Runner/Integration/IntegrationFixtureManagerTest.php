@@ -256,11 +256,14 @@ final class IntegrationFixtureManagerTest
     #[Test]
     public function providerFailuresAreReportedAsIntegrationFixtureErrors(): void
     {
-        $provider = new class implements IntegrationFixtureProvider {
+        $failure = new \RuntimeException('provider exploded');
+        $provider = new readonly class ($failure) implements IntegrationFixtureProvider {
+            public function __construct(private \RuntimeException $failure) {}
+
             #[\Override]
             public function integrationFixtures(): array
             {
-                throw new \RuntimeException('provider exploded');
+                throw $this->failure;
             }
         };
 
@@ -270,7 +273,13 @@ final class IntegrationFixtureManagerTest
             1,
             1,
             null,
-        ))->toThrow(IntegrationFixtureError::class, matching: '/provider.*provider exploded/');
+        ))->toThrow(static function (IntegrationFixtureError $error) use ($failure, $provider): void {
+            Expect::that($error->getMessage())->toBe(\sprintf(
+                'Integration fixture provider "%s" failed: provider exploded.',
+                $provider::class,
+            ));
+            Expect::that($error->getPrevious())->toBe($failure);
+        });
     }
 
     #[Test]
