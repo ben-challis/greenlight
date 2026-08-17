@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
@@ -86,14 +87,30 @@ final class MockTest
 
         Expect::that(static fn() => $doubles->dispose())
             ->because('disposal MUST report every unmet expectation in plan order')
-            ->toThrow(
-                ExpectationFailed::class,
-                message: "2 expectations failed:\n"
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                Expect::that($failure->getMessage())->toBe(
+                    "2 expectations failed:\n"
                     . '1) Calls to ' . Calculator::class . '::add(): 0 times. '
                     . "The expectation requires exactly 1 time.\n"
                     . '2) Calls to ' . Calculator::class . '::describe(): 0 times. '
                     . 'The expectation requires exactly 1 time.',
-            );
+                );
+
+                Expect::that($failure->details)->toEqual([
+                    new FailureDetail(
+                        'Calls to ' . Calculator::class . '::add(): 0 times. '
+                            . 'The expectation requires exactly 1 time.',
+                        'add(all arguments) exactly 1 time',
+                        'never called',
+                    ),
+                    new FailureDetail(
+                        'Calls to ' . Calculator::class . '::describe(): 0 times. '
+                            . 'The expectation requires exactly 1 time.',
+                        'describe(all arguments) exactly 1 time',
+                        'never called',
+                    ),
+                ]);
+            });
     }
 
     #[Test]
