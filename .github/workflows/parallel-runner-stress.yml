@@ -41,6 +41,7 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the stress campaign"
+        shell: "bash"
         run: |
           set -euo pipefail
 
