@@ -149,6 +149,8 @@ final class Doubles implements Disposable
     /**
      * Verifies mocks and clears their state when the test scope closes.
      * One `ExpectationFailed` contains the details for all unmet expectations.
+     *
+     * @throws ExpectationFailed
      */
     #[\Override]
     public function dispose(): void

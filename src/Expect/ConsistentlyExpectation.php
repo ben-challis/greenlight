@@ -44,6 +44,8 @@ final class ConsistentlyExpectation extends TemporalExpectation
      * @param non-empty-string|null $reason
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     #[\Override]
     protected function waitFor(

@@ -80,6 +80,8 @@ abstract class TemporalExpectation
      * @param array<int, mixed> $arguments
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     final public function __call(string $name, array $arguments): Expectation
     {
@@ -88,25 +90,41 @@ abstract class TemporalExpectation
         );
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBe(mixed $expected): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBe($expected));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toEqual(mixed $expected): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toEqual($expected));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toEqualCanonicalizing(mixed $expected): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toEqualCanonicalizing($expected));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeOneOf(mixed ...$options): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeOneOf(...$options));
@@ -116,6 +134,8 @@ abstract class TemporalExpectation
      * @param iterable<mixed> $haystack
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     final public function toBeIn(iterable $haystack): Expectation
     {
@@ -128,97 +148,159 @@ abstract class TemporalExpectation
      * @param class-string $class
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     final public function toBeInstanceOf(string $class): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeInstanceOf($class));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeTrue(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeTrue());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeFalse(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeFalse());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeNull(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeNull());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeArray(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeArray());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeString(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeString());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeInt(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeInt());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeFloat(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeFloat());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeBool(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeBool());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeCallable(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeCallable());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeIterable(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeIterable());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toContain(mixed $needle): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toContain($needle));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toHaveCount(int $count): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toHaveCount($count));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeEmpty(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeEmpty());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toHaveLength(int $length): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toHaveLength($length));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toHaveKey(int|string $key): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toHaveKey($key));
@@ -228,67 +310,109 @@ abstract class TemporalExpectation
      * @param array<array-key, mixed> $subset
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     final public function toContainSubset(array $subset): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toContainSubset($subset));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeGreaterThan(int|float $bound): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeGreaterThan($bound));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeGreaterThanOrEqual(int|float $bound): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeGreaterThanOrEqual($bound));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeLessThan(int|float $bound): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeLessThan($bound));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeLessThanOrEqual(int|float $bound): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeLessThanOrEqual($bound));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeWithin(float $delta, float $of): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeWithin($delta, $of));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toMatch(string $pattern): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toMatch($pattern));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toStartWith(string $prefix): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toStartWith($prefix));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toEndWith(string $suffix): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toEndWith($suffix));
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toBeJson(): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeJson());
     }
 
-    /** @return Expectation<T> */
+    /**
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
     final public function toMatchJson(string $expected): Expectation
     {
         return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toMatchJson($expected));
@@ -300,6 +424,8 @@ abstract class TemporalExpectation
      * @param class-string<TThrowable>|\Closure(TThrowable): void $throwable
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     final public function toThrow(
         string|\Closure $throwable,
@@ -343,6 +469,8 @@ abstract class TemporalExpectation
      * @param \Closure(Expectation<T>): Expectation<T> $matcher
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     final protected function apply(\Closure $matcher): Expectation
     {
@@ -359,6 +487,8 @@ abstract class TemporalExpectation
      * @param non-empty-string|null $reason
      *
      * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
      */
     abstract protected function waitFor(
         \Closure $matcher,
@@ -373,6 +503,8 @@ abstract class TemporalExpectation
      * @param list<class-string<\Exception>> $retryOnExceptions
      *
      * @return TemporalValueObservation<T>|TemporalExceptionObservation
+     *
+     * @throws ExpectationFailed
      */
     final protected function observe(
         \Closure $matcher,
@@ -458,6 +590,7 @@ abstract class TemporalExpectation
         }
     }
 
+    /** @throws ExpectationFailed */
     final protected function failure(
         string $summary,
         ObservationLog $observations,
