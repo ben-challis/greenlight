@@ -758,21 +758,40 @@ final class Expectation
     /**
      * The subject must be callable. The matcher calls it with no arguments.
      * It passes when the subject throws an instance of the specified class.
-     * The message must satisfy the optional regular expression or exact-text
-     * constraint.
+     *
+     * The throwable can instead be a callback with one typed Throwable
+     * parameter. Its parameter type specifies the expected throwable class.
+     * Greenlight gives the caught throwable to the callback after its type
+     * matches. The callback matches when it returns without an expectation
+     * failure.
+     *
+     * The optional `matching:` argument checks the message with a regular
+     * expression. The `message:` argument checks the exact message. Do not use
+     * these arguments with a throwable callback.
      *
      * With `not()`, a throwable that does not satisfy both conditions makes the
      * matcher pass.
      *
-     * @param class-string<\Throwable> $throwable
+     * @template TThrowable of \Throwable
+     *
+     * @param class-string<TThrowable>|\Closure(TThrowable): void $throwable
      *
      * @return self<T>
      *
      * @throws \InvalidArgumentException when the match pattern is not a valid regular expression
      * @throws ExpectationFailed
      */
-    public function toThrow(string $throwable, ?string $matching = null, ?string $message = null): self
-    {
+    public function toThrow(
+        string|\Closure $throwable,
+        ?string $matching = null,
+        ?string $message = null,
+    ): self {
+        $callback = $throwable instanceof \Closure ? $throwable : null;
+
+        if ($callback instanceof \Closure && ($matching !== null || $message !== null)) {
+            $this->usageFailure('Do not specify matching: or message: when the throwable is a callback.');
+        }
+
         if ($matching !== null && $message !== null) {
             $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
         }
@@ -780,6 +799,10 @@ final class Expectation
         if ($matching !== null) {
             $this->requireValidPattern($matching, 'toThrow');
         }
+
+        $expectedThrowable = $callback instanceof \Closure
+            ? $this->requireThrowableCallback($callback)
+            : $throwable;
 
         if (!\is_callable($this->subject)) {
             $this->usageFailure(\sprintf(
@@ -796,14 +819,43 @@ final class Expectation
             $thrown = $caught;
         }
 
-        $matched = $thrown instanceof $throwable
-            && ($matching === null || \preg_match($matching, $thrown->getMessage()) === 1)
-            && ($message === null || $thrown->getMessage() === $message);
+        $matched = $thrown instanceof $expectedThrowable;
 
-        $description = 'to throw ' . $throwable;
+        if ($matched && $matching !== null) {
+            $matched = \preg_match($matching, $thrown->getMessage()) === 1;
+        } elseif ($matched && $callback instanceof \Closure) {
+            try {
+                $result = $this->invokeThrowableCallback($callback, $thrown);
+            } catch (ExpectationFailed $failure) {
+                if (!$this->negated) {
+                    $this->negated = false;
+                    $this->reason = null;
+
+                    throw $failure;
+                }
+
+                $matched = false;
+                $result = null;
+            }
+
+            if ($result !== null) {
+                $this->usageFailure(\sprintf(
+                    'The throwable callback for toThrow() MUST return void. It returned %s.',
+                    \get_debug_type($result),
+                ));
+            }
+        }
+
+        if ($matched && $message !== null) {
+            $matched = $thrown instanceof \Throwable && $thrown->getMessage() === $message;
+        }
+
+        $description = 'to throw ' . $expectedThrowable;
 
         if ($matching !== null) {
             $description .= ' with message matching ' . $matching;
+        } elseif ($callback instanceof \Closure) {
+            $description .= ' and satisfy the throwable callback';
         } elseif ($message !== null) {
             $description .= ' with message ' . $this->renderer->render($message);
         }
@@ -816,7 +868,7 @@ final class Expectation
             )
             : 'a callable that did not throw';
 
-        return $this->verify($matched, $description, $throwable, $actual);
+        return $this->verify($matched, $description, $expectedThrowable, $actual);
     }
 
     /**
@@ -913,6 +965,98 @@ final class Expectation
             $this->renderer->render($this->subject),
             CallSite::capture(),
         ));
+    }
+
+    /**
+     * Returns the Throwable class declared by a throwable callback.
+     *
+     * @return class-string<\Throwable>
+     *
+     * @throws ExpectationFailed
+     */
+    private function requireThrowableCallback(\Closure $callback): string
+    {
+        $reflection = new \ReflectionFunction($callback);
+        $parameters = $reflection->getParameters();
+        $parameter = $parameters[0] ?? null;
+
+        if (!$parameter instanceof \ReflectionParameter
+            || $parameter->isVariadic()
+            || $reflection->getNumberOfRequiredParameters() > 1
+        ) {
+            $this->usageFailure('The throwable callback for toThrow() MUST accept one typed Throwable argument.');
+        }
+
+        if ($parameter->isPassedByReference()) {
+            $this->usageFailure('The throwable callback for toThrow() MUST accept its argument by value.');
+        }
+
+        $returnType = $reflection->getReturnType();
+
+        if ($returnType instanceof \ReflectionType
+            && (!$returnType instanceof \ReflectionNamedType
+                || ($returnType->getName() !== 'void' && $returnType->getName() !== 'never'))
+        ) {
+            $this->usageFailure(\sprintf(
+                'The throwable callback for toThrow() MUST return void. Its return type is %s.',
+                $this->renderReflectionType($returnType),
+            ));
+        }
+
+        $type = $parameter->getType();
+
+        if (!$type instanceof \ReflectionNamedType || $type->isBuiltin() || $type->allowsNull()) {
+            $this->usageFailure(\sprintf(
+                'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is %s.',
+                $type instanceof \ReflectionType ? $this->renderReflectionType($type) : 'missing',
+            ));
+        }
+
+        $scope = $reflection->getClosureScopeClass();
+        $parent = $scope?->getParentClass();
+        $throwable = match ($type->getName()) {
+            'self', 'static' => $scope?->getName() ?? $type->getName(),
+            'parent' => $parent instanceof \ReflectionClass ? $parent->getName() : $type->getName(),
+            default => $type->getName(),
+        };
+
+        if (!\is_a($throwable, \Throwable::class, true)) {
+            $this->usageFailure(\sprintf(
+                'The throwable callback for toThrow() MUST declare a Throwable parameter type. Its parameter type is %s.',
+                $type->getName(),
+            ));
+        }
+
+        return $throwable;
+    }
+
+    private function invokeThrowableCallback(\Closure $callback, \Throwable $throwable): mixed
+    {
+        return $callback($throwable);
+    }
+
+    private function renderReflectionType(\ReflectionType $type): string
+    {
+        if ($type instanceof \ReflectionUnionType) {
+            return \implode('|', \array_map(
+                $this->renderReflectionType(...),
+                $type->getTypes(),
+            ));
+        }
+
+        if ($type instanceof \ReflectionIntersectionType) {
+            return \implode('&', \array_map(
+                $this->renderReflectionType(...),
+                $type->getTypes(),
+            ));
+        }
+
+        if (!$type instanceof \ReflectionNamedType) {
+            return 'unknown'; // @codeCoverageIgnore
+        }
+
+        return ($type->allowsNull() && $type->getName() !== 'mixed' && $type->getName() !== 'null' ? '?' : '')
+            . $type->getName();
     }
 
     /**

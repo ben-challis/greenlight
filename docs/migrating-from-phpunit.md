@@ -152,10 +152,43 @@ These differences are important:
 * `toThrow()` accepts a callable subject and an optional message constraint.
   * Use `message:` for exact equality.
   * Use `matching:` for a regular expression.
+  * Use a typed throwable callback to check the caught throwable.
   * Do not use `message:` and `matching:` in one call.
 * `Fail::because()` replaces `$this->fail()` and supports explicit type guards.
 * `Fail::because()` counts as an expectation and reports the guard location.
 * A failed matcher throws immediately. Greenlight has no soft-assertion mode.
+
+A throwable callback removes manual exception capture. Its parameter type
+specifies the expected throwable class. Its body can check the message, the
+previous throwable, and other throwable state.
+
+Replace this pattern:
+
+```php
+try {
+    $fixtureManager->start();
+    $this->fail('Expected the fixture manager to fail.');
+} catch (IntegrationFixtureError $error) {
+    $this->assertInstanceOf(
+        LengthException::class,
+        $error->getPrevious(),
+    );
+}
+```
+
+Use this expectation:
+
+```php
+Expect::that(fn() => $fixtureManager->start())
+    ->toThrow(
+        static function (IntegrationFixtureError $error): void {
+            Expect::that($error->getPrevious())
+                ->toBeInstanceOf(LengthException::class);
+        },
+    );
+```
+
+The callback runs only after the throwable type matches.
 
 Replace manual `sleep()` calls or retry loops with `eventually()`:
 

@@ -20,7 +20,8 @@ rules:
     - Greenlight\PhpStan\TestAttributePlacementRule
     - Greenlight\PhpStan\TestConstructorRule
     - Greenlight\PhpStan\TestMethodRule
-    - Greenlight\PhpStan\ToThrowMessageRule
+    - Greenlight\PhpStan\ToThrowCallbackRule
+    - Greenlight\PhpStan\ToThrowConstraintRule
     - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:

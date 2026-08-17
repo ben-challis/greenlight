@@ -19,15 +19,13 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
 /**
- * For compatibility, the `toThrow()` signature keeps the pattern and
- * exact-message arguments nullable. A call-site rule makes these arguments
- * mutually exclusive.
+ * Checks the mutually exclusive `toThrow()` throwable constraints.
  *
  * @internal
  *
  * @implements Rule<MethodCall>
  */
-final class ToThrowMessageRule implements Rule
+final class ToThrowConstraintRule implements Rule
 {
     #[\Override]
     public function getNodeType(): string
@@ -53,12 +51,20 @@ final class ToThrowMessageRule implements Rule
         }
 
         foreach ($this->constraintStates($node, $scope) as $state) {
+            if ($state['throwable'] instanceof Type
+                && new ObjectType(\Closure::class)->isSuperTypeOf($state['throwable'])->yes()
+                && (($state['matching'] instanceof Type && !$state['matching']->isNull()->yes())
+                    || ($state['message'] instanceof Type && !$state['message']->isNull()->yes()))
+            ) {
+                return [$this->callbackConstraintError($node->getStartLine())];
+            }
+
             if ($state['matching'] instanceof Type
                 && $state['message'] instanceof Type
                 && !$state['matching']->isNull()->yes()
                 && !$state['message']->isNull()->yes()
             ) {
-                return [$this->error($node->getStartLine())];
+                return [$this->messageConstraintError($node->getStartLine())];
             }
         }
 
@@ -70,11 +76,12 @@ final class ToThrowMessageRule implements Rule
      *
      * Greenlight validates dynamic unpack operations at run time.
      *
-     * @return list<array{matching: ?Type, message: ?Type, nextPosition: int}>
+     * @return list<array{throwable: ?Type, matching: ?Type, message: ?Type, nextPosition: int}>
      */
     private function constraintStates(MethodCall $call, Scope $scope): array
     {
         $states = [[
+            'throwable' => null,
             'matching' => null,
             'message' => null,
             'nextPosition' => 0,
@@ -129,13 +136,15 @@ final class ToThrowMessageRule implements Rule
     }
 
     /**
-     * @param array{matching: ?Type, message: ?Type, nextPosition: int} $state
+     * @param array{throwable: ?Type, matching: ?Type, message: ?Type, nextPosition: int} $state
      *
-     * @return array{matching: ?Type, message: ?Type, nextPosition: int}
+     * @return array{throwable: ?Type, matching: ?Type, message: ?Type, nextPosition: int}
      */
     private function withArgument(array $state, Type $type, ?string $name): array
     {
-        if ($name === 'matching' || ($name === null && $state['nextPosition'] === 1)) {
+        if ($name === 'throwable' || ($name === null && $state['nextPosition'] === 0)) {
+            $state['throwable'] = $type;
+        } elseif ($name === 'matching' || ($name === null && $state['nextPosition'] === 1)) {
             $state['matching'] = $type;
         } elseif ($name === 'message' || ($name === null && $state['nextPosition'] === 2)) {
             $state['message'] = $type;
@@ -148,10 +157,20 @@ final class ToThrowMessageRule implements Rule
         return $state;
     }
 
-    private function error(int $line): IdentifierRuleError
+    private function messageConstraintError(int $line): IdentifierRuleError
     {
         return RuleErrorBuilder::message('toThrow() accepts either matching: or message:, not both.')
             ->identifier('greenlight.toThrow.messageConstraint')
+            ->line($line)
+            ->build();
+    }
+
+    private function callbackConstraintError(int $line): IdentifierRuleError
+    {
+        return RuleErrorBuilder::message(
+            'Do not specify matching: or message: when the throwable is a callback.',
+        )
+            ->identifier('greenlight.toThrow.callbackConstraint')
             ->line($line)
             ->build();
     }

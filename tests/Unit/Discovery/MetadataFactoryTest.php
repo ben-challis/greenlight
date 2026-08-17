@@ -9,7 +9,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\MetadataFactory;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongCaptureTypeTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongGroupTypeTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\AbstractMethodTest;
@@ -22,74 +21,42 @@ final class MetadataFactoryTest
     public function invalidAttributeArgumentsAreWrappedWithTheirLocationAndCause(): void
     {
         $class = $this->wrongCaptureTypeClass();
-        $capture = new class {
-            public ?DiscoveryError $error = null;
-        };
-        $attempt = static function () use ($capture, $class): array {
-            try {
-                return new MetadataFactory()->forClass(new \ReflectionClass($class));
-            } catch (DiscoveryError $error) {
-                $capture->error = $error;
 
-                throw $error;
-            }
-        };
-
-        Expect::that($attempt)
+        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid attribute arguments with their location')
             ->toThrow(
-                DiscoveryError::class,
-                matching: '/^Attribute on '
-                    . \preg_quote($class . '::neverDiscovered()', '/')
-                    . ' is invalid:/',
+                static function (DiscoveryError $error) use ($class): void {
+                    Expect::that($error->getMessage())->toMatch(
+                        '/^Attribute on '
+                        . \preg_quote($class . '::neverDiscovered()', '/')
+                        . ' is invalid:/',
+                    );
+                    Expect::that($error->getPrevious())
+                        ->because('the discovery error preserves the invalid attribute cause')
+                        ->toBeInstanceOf(\TypeError::class);
+                },
             );
-
-        $error = $capture->error;
-
-        if (!$error instanceof DiscoveryError) {
-            Fail::because('Expected discovery to throw the captured DiscoveryError.');
-        }
-
-        Expect::that($error->getPrevious())
-            ->because('the discovery error preserves the invalid attribute cause')
-            ->toBeInstanceOf(\TypeError::class);
     }
 
     #[Test]
     public function invalidGroupArgumentsAreWrappedWithTheirLocationAndCause(): void
     {
         $class = $this->wrongGroupTypeClass();
-        $capture = new class {
-            public ?DiscoveryError $error = null;
-        };
-        $attempt = static function () use ($capture, $class): array {
-            try {
-                return new MetadataFactory()->forClass(new \ReflectionClass($class));
-            } catch (DiscoveryError $error) {
-                $capture->error = $error;
 
-                throw $error;
-            }
-        };
-
-        Expect::that($attempt)
+        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid group arguments with their method location')
             ->toThrow(
-                DiscoveryError::class,
-                matching: '/^Attribute on '
-                    . \preg_quote($class . '::neverDiscovered()', '/')
-                    . ' is invalid:/',
+                static function (DiscoveryError $error) use ($class): void {
+                    Expect::that($error->getMessage())->toMatch(
+                        '/^Attribute on '
+                        . \preg_quote($class . '::neverDiscovered()', '/')
+                        . ' is invalid:/',
+                    );
+                    Expect::that($error->getPrevious())
+                        ->because('the discovery error preserves the invalid group cause')
+                        ->toBeInstanceOf(\TypeError::class);
+                },
             );
-
-        $error = $capture->error;
-
-        if (!$error instanceof DiscoveryError) {
-            Fail::because('Expected discovery to throw the captured DiscoveryError.');
-        }
-
-        Expect::that($error->getPrevious())
-            ->because('the discovery error preserves the invalid group cause')
-            ->toBeInstanceOf(\TypeError::class);
     }
 
     /**

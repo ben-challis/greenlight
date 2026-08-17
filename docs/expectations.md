@@ -152,7 +152,32 @@ Expect::that($callback)->toThrow(
 );
 ```
 
-`message:` and `matching:` are mutually exclusive.
+`message:` and `matching:` are mutually exclusive. Use them only with a
+throwable class-string.
+
+A typed callback can specify the throwable type and check the caught
+throwable. Greenlight runs it only after the throwable type matches:
+
+```php
+Expect::that(fn() => $fixtureManager->start())
+    ->toThrow(
+        static function (IntegrationFixtureError $error): void {
+            Expect::that($error->getPrevious())
+                ->toBeInstanceOf(LengthException::class);
+        },
+    );
+```
+
+The callback MUST declare one named, non-null Throwable parameter type by
+value. It MUST return `void`. The parameter type specifies the expected
+throwable class.
+
+The callback can contain ordinary expectations. A failed callback expectation
+keeps its diagnostic. An `eventually()` expectation retries this failure.
+
+With `not()`, a failed callback expectation means that the throwable does not
+match. Thus, the negated `toThrow()` expectation passes. Other throwables from
+the callback stop the matcher.
 
 ## Asynchronous state
 
