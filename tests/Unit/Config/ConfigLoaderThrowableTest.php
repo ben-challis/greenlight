@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 
 final readonly class ConfigLoaderThrowableTest
 {
@@ -17,22 +16,20 @@ final readonly class ConfigLoaderThrowableTest
     {
         $directory = \dirname(__DIR__, 2) . '/Fixture/ConfigFiles/ThrowingError';
 
-        try {
-            new ConfigLoader()->loadFromDirectory($directory);
-        } catch (ConfigFileError $error) {
-            Expect::that($error->getMessage())
-                ->because('configuration errors MUST retain their type, source file, and message')
-                ->toBe(
-                    'Configuration file "' . $directory . '/greenlight.php" threw '
-                    . 'TypeError: config type exploded',
-                );
-            Expect::that($error->getPrevious())
-                ->because('the wrapped configuration error MUST remain available as the cause')
-                ->toBeInstanceOf(\TypeError::class);
-
-            return;
-        }
-
-        Fail::because('Expected ConfigLoader to wrap the TypeError from the configuration file.');
+        Expect::that(static fn() => new ConfigLoader()->loadFromDirectory($directory))
+            ->toThrow(
+                static function (ConfigFileError $error) use ($directory): void {
+                    Expect::that($error->getMessage())
+                        ->because('configuration errors MUST retain their type, source file, and message')
+                        ->toBe(
+                            'Configuration file "' . $directory . '/greenlight.php" threw '
+                            . 'TypeError: config type exploded',
+                        );
+                    Expect::that($error->getPrevious())
+                        ->because('the wrapped configuration error MUST remain available as the cause')
+                        ->toBeInstanceOf(\TypeError::class);
+                    Expect::that($error->getPrevious()?->getMessage())->toBe('config type exploded');
+                },
+            );
     }
 }
