@@ -9,7 +9,6 @@ use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 
 final class ConfigLoaderTest
 {
@@ -57,36 +56,28 @@ final class ConfigLoaderTest
     #[Test]
     public function fileReturningTheWrongTypeIsRejectedWithTheActualType(): void
     {
-        try {
-            new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn'));
-        } catch (ConfigFileError $error) {
-            Expect::that($error->getMessage())->toContain('must return a Greenlight\Config\GreenlightConfig instance');
-            Expect::that($error->getMessage())->toContain('returned string');
-
-            return;
-        }
-
-        Fail::because(
-            'Expected ConfigLoader::loadFromDirectory() to throw ConfigFileError when greenlight.php returns a string.',
-        );
+        Expect::that(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn')))
+            ->toThrow(
+                static function (ConfigFileError $error): void {
+                    Expect::that($error->getMessage())
+                        ->toContain('must return a Greenlight\Config\GreenlightConfig instance');
+                    Expect::that($error->getMessage())->toContain('returned string');
+                },
+            );
     }
 
     #[Test]
     public function throwingConfigFileIsWrappedWithTheOriginalMessage(): void
     {
-        try {
-            new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing'));
-        } catch (ConfigFileError $error) {
-            Expect::that($error->getMessage())->toContain('config exploded');
-            Expect::that($error->getMessage())->toContain('RuntimeException');
-            Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
-
-            return;
-        }
-
-        Fail::because(
-            'Expected ConfigLoader::loadFromDirectory() to wrap the configuration RuntimeException in ConfigFileError.',
-        );
+        Expect::that(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing')))
+            ->toThrow(
+                static function (ConfigFileError $error): void {
+                    Expect::that($error->getMessage())->toContain('config exploded');
+                    Expect::that($error->getMessage())->toContain('RuntimeException');
+                    Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
+                    Expect::that($error->getPrevious()?->getMessage())->toBe('config exploded');
+                },
+            );
     }
 
     private static function fixtureDir(string $name): string
