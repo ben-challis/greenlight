@@ -1,0 +1,28 @@
+{
+    "name": "greenlight/consumer-smoke",
+    "description": "Tests the installed Greenlight package.",
+    "license": "proprietary",
+    "require-dev": {
+        "greenlight/greenlight": "1.0.0"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../greenlight-export",
+            "options": {
+                "symlink": false,
+                "versions": {
+                    "greenlight/greenlight": "1.0.0"
+                }
+            }
+        },
+        {
+            "packagist.org": false
+        }
+    ],
+    "autoload-dev": {
+        "psr-4": {
+            "Greenlight\\ConsumerSmoke\\": "tests/"
+        }
+    }
+}
