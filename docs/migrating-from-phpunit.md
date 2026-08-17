@@ -165,20 +165,15 @@ previous throwable, and other throwable state.
 Replace this pattern:
 
 ```php
-$error = null;
-
 try {
     $fixtureManager->start();
-} catch (IntegrationFixtureError $caught) {
-    $error = $caught;
+    $this->fail('Expected the fixture manager to fail.');
+} catch (IntegrationFixtureError $error) {
+    $this->assertInstanceOf(
+        LengthException::class,
+        $error->getPrevious(),
+    );
 }
-
-if (!$error instanceof IntegrationFixtureError) {
-    Fail::because('Expected the fixture manager to fail.');
-}
-
-Expect::that($error->getPrevious())
-    ->toBeInstanceOf(LengthException::class);
 ```
 
 Use this expectation:
