@@ -154,6 +154,30 @@ Expect::that($callback)->toThrow(
 
 `message:` and `matching:` are mutually exclusive.
 
+The `matching:` argument also accepts a callback. Greenlight runs the callback
+only after the throwable type matches:
+
+```php
+Expect::that(fn() => $fixtureManager->start())
+    ->toThrow(
+        IntegrationFixtureError::class,
+        matching: static function (IntegrationFixtureError $error): void {
+            Expect::that($error->getPrevious())
+                ->toBeInstanceOf(LengthException::class);
+        },
+    );
+```
+
+The callback must accept the configured throwable type and return `void`.
+PHPStan infers its parameter type from the class-string argument.
+
+The callback can contain ordinary expectations. A failed callback expectation
+keeps its diagnostic. An `eventually()` expectation retries this failure.
+
+With `not()`, a failed callback expectation means that the throwable does not
+match. Thus, the negated `toThrow()` expectation passes. Other callback
+throwables stop the matcher.
+
 ## Asynchronous state
 
 `Expect::eventually()` calls a probe immediately. It then polls until its

@@ -7,67 +7,48 @@ namespace Greenlight\Tests\Unit\Core;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 
 final class ThrowableDetailTest
 {
     #[Test]
     public function rendersNormalInstanceMethodStackFrames(): void
     {
-        $threw = null;
+        $callLine = __LINE__ + 2;
 
-        try {
-            $callLine = __LINE__ + 1;
-            $this->throwFromInstanceMethod();
-        } catch (\RuntimeException $exception) {
-            $threw = $exception;
-        }
-
-        Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
-            ->because('a throwable detail MUST identify the method and source of each stack frame')
-            ->toBe(
-                self::class
-                . '->throwFromInstanceMethod at '
-                . __FILE__
-                . ':'
-                . $callLine,
-            );
+        Expect::that(fn() => $this->throwFromInstanceMethod())->toThrow(
+            \RuntimeException::class,
+            matching: static function (\RuntimeException $threw) use ($callLine): void {
+                Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
+                    ->because('a throwable detail MUST identify the method and source of each stack frame')
+                    ->toBe(
+                        self::class
+                        . '->throwFromInstanceMethod at '
+                        . __FILE__
+                        . ':'
+                        . $callLine,
+                    );
+            },
+        );
     }
 
     #[Test]
     public function deepTracesAreBoundedWithATruncationMarker(): void
     {
-        $capture = new class implements Fake {
-            public ?\RuntimeException $exception = null;
-        };
+        Expect::that(fn() => $this->throwAtDepth(40))->toThrow(
+            \RuntimeException::class,
+            matching: static function (\RuntimeException $threw): void {
+                Expect::that($threw->getMessage())->toBe('bottom');
 
-        Expect::that(function () use ($capture): void {
-            try {
-                $this->throwAtDepth(40);
-            } catch (\RuntimeException $exception) {
-                $capture->exception = $exception;
+                $detail = ThrowableDetail::fromThrowable($threw);
 
-                throw $exception;
-            }
-        })
-            ->because('the recursive helper MUST throw at its terminal depth')
-            ->toThrow(\RuntimeException::class, message: 'bottom');
-
-        $threw = $capture->exception;
-
-        if (!$threw instanceof \RuntimeException) {
-            Fail::because('Expected to capture the recursive helper exception.');
-        }
-
-        $detail = ThrowableDetail::fromThrowable($threw);
-
-        Expect::that($detail->stackFrames)
-            ->because('deep throwable traces are bounded with a truncation marker')
-            ->toHaveCount(33);
-        Expect::that($detail->stackFrames[32])
-            ->toBe('... (trace truncated)');
+                Expect::that($detail->stackFrames)
+                    ->because('deep throwable traces are bounded with a truncation marker')
+                    ->toHaveCount(33);
+                Expect::that($detail->stackFrames[32])
+                    ->toBe('... (trace truncated)');
+            },
+        );
     }
 
     #[Test]

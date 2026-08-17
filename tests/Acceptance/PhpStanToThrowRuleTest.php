@@ -135,4 +135,84 @@ final readonly class PhpStanToThrowRuleTest
         Expect::that(\count($probe->errors))->toBe(6);
         Expect::that($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
     }
+
+    #[Test]
+    public function matchingCallbackParameterUsesTheConfiguredThrowableType(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightGoodToThrowCallbackProbe(): void
+            {
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static function (DomainException $error): void {
+                            Expect::that($error->getPrevious())->toBeNull();
+                        },
+                    );
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static function (Throwable $error): void {},
+                    );
+                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->within(1.0)
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static function (DomainException $error): void {},
+                    );
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightBadToThrowCallbackProbe(): void
+            {
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static function (LengthException $error): void {},
+                    );
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static function (): void {},
+                    );
+                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                    ->within(1.0)
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static function (LengthException $error): void {},
+                    );
+                Expect::that(static fn() => throw new DomainException('boom'))
+                    ->toThrow(
+                        DomainException::class,
+                        matching: static fn(DomainException $error): int => 1,
+                    );
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that($probe->messages())->toContain(
+            'Parameter $matching of method Greenlight\\Expect\\Expectation<Closure>::toThrow() expects',
+        );
+        Expect::that($probe->messages())->toContain('Closure(DomainException): void');
+        Expect::that($probe->messages())->toContain(
+            'The matching callback for toThrow() must accept one throwable argument.',
+        );
+    }
 }

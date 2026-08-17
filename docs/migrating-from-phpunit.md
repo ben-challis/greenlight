@@ -152,10 +152,49 @@ These differences are important:
 * `toThrow()` accepts a callable subject and an optional message constraint.
   * Use `message:` for exact equality.
   * Use `matching:` for a regular expression.
+  * Use a typed `matching:` callback to check the caught throwable.
   * Do not use `message:` and `matching:` in one call.
 * `Fail::because()` replaces `$this->fail()` and supports explicit type guards.
 * `Fail::because()` counts as an expectation and reports the guard location.
 * A failed matcher throws immediately. Greenlight has no soft-assertion mode.
+
+A matching callback removes manual exception capture. It can check the message,
+the previous throwable, and other throwable state.
+
+Replace this pattern:
+
+```php
+$error = null;
+
+try {
+    $fixtureManager->start();
+} catch (IntegrationFixtureError $caught) {
+    $error = $caught;
+}
+
+if (!$error instanceof IntegrationFixtureError) {
+    Fail::because('Expected the fixture manager to fail.');
+}
+
+Expect::that($error->getPrevious())
+    ->toBeInstanceOf(LengthException::class);
+```
+
+Use this expectation:
+
+```php
+Expect::that(fn() => $fixtureManager->start())
+    ->toThrow(
+        IntegrationFixtureError::class,
+        matching: static function (IntegrationFixtureError $error): void {
+            Expect::that($error->getPrevious())
+                ->toBeInstanceOf(LengthException::class);
+        },
+    );
+```
+
+The callback runs only after the throwable type matches. PHPStan infers
+`IntegrationFixtureError` from the first argument.
 
 Replace manual `sleep()` calls or retry loops with `eventually()`:
 

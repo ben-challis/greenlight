@@ -56,4 +56,56 @@ final class TemporalToThrowTest
         yield 'message pattern' => ['pattern'];
         yield 'exact message' => ['message'];
     }
+
+    #[Test]
+    public function eventuallyRetriesWhenTheMatchingCallbackExpectationFails(): void
+    {
+        $clock = new FakePollingClock();
+        $calls = 0;
+
+        ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
+            Expect::eventually(static fn(): \Closure => static fn() => throw new \RuntimeException('ready'))
+                ->pollEvery(0.010)
+                ->within(0.100)
+                ->toThrow(
+                    \RuntimeException::class,
+                    matching: static function (\RuntimeException $error) use (&$calls): void {
+                        ++$calls;
+                        Expect::that($calls)->toBe(2);
+                        Expect::that($error->getMessage())->toBe('ready');
+                    },
+                );
+        });
+
+        Expect::that($calls)->toBe(2);
+        Expect::that($clock->sleeps)->toBe([0.010]);
+    }
+
+    #[Test]
+    public function eventuallyReportsTheFinalMatchingCallbackFailure(): void
+    {
+        $clock = new FakePollingClock();
+
+        $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
+            $clock,
+            static fn() => Expect::eventually(
+                static fn(): \Closure => static fn() => throw new \RuntimeException('not ready'),
+            )
+                ->pollEvery(0.010)
+                ->within(0.020)
+                ->toThrow(
+                    \RuntimeException::class,
+                    matching: static function (\RuntimeException $error): void {
+                        Expect::that($error->getMessage())->toBe('ready');
+                    },
+                ),
+        ));
+
+        Expect::that($detail->message)->toContain(
+            "Last failure: Expected 'not ready' to be 'ready'.",
+        );
+        Expect::that($detail->expected)->toBe("'ready'");
+        Expect::that($detail->actual)->toBe("'not ready'");
+        Expect::that($clock->sleeps)->toBe([0.010, 0.010]);
+    }
 }

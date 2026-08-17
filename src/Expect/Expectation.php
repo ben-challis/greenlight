@@ -758,27 +758,39 @@ final class Expectation
     /**
      * The subject must be callable. The matcher calls it with no arguments.
      * It passes when the subject throws an instance of the specified class.
-     * The message must satisfy the optional regular expression or exact-text
-     * constraint.
+     * The optional `matching:` argument can be a message regular expression
+     * or a callback. Greenlight gives the caught throwable to the callback
+     * after its type matches. The callback matches when it returns without an
+     * expectation failure.
+     *
+     * The `message:` argument checks the exact message.
      *
      * With `not()`, a throwable that does not satisfy both conditions makes the
      * matcher pass.
      *
-     * @param class-string<\Throwable> $throwable
+     * @template TThrowable of \Throwable
+     *
+     * @param class-string<TThrowable> $throwable
+     * @param (\Closure(TThrowable): void)|string|null $matching
      *
      * @return self<T>
      *
      * @throws \InvalidArgumentException when the match pattern is not a valid regular expression
      * @throws ExpectationFailed
      */
-    public function toThrow(string $throwable, ?string $matching = null, ?string $message = null): self
-    {
+    public function toThrow(
+        string $throwable,
+        string|\Closure|null $matching = null,
+        ?string $message = null,
+    ): self {
         if ($matching !== null && $message !== null) {
             $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
         }
 
-        if ($matching !== null) {
+        if (\is_string($matching)) {
             $this->requireValidPattern($matching, 'toThrow');
+        } elseif ($matching instanceof \Closure) {
+            $this->requireThrowableCallback($matching, $throwable);
         }
 
         if (!\is_callable($this->subject)) {
@@ -796,14 +808,43 @@ final class Expectation
             $thrown = $caught;
         }
 
-        $matched = $thrown instanceof $throwable
-            && ($matching === null || \preg_match($matching, $thrown->getMessage()) === 1)
-            && ($message === null || $thrown->getMessage() === $message);
+        $matched = $thrown instanceof $throwable;
+
+        if ($matched && \is_string($matching)) {
+            $matched = \preg_match($matching, $thrown->getMessage()) === 1;
+        } elseif ($matched && $matching instanceof \Closure) {
+            try {
+                $result = $this->invokeThrowableCallback($matching, $thrown);
+            } catch (ExpectationFailed $failure) {
+                if (!$this->negated) {
+                    $this->negated = false;
+                    $this->reason = null;
+
+                    throw $failure;
+                }
+
+                $matched = false;
+                $result = null;
+            }
+
+            if ($result !== null) {
+                $this->usageFailure(\sprintf(
+                    'The matching callback for toThrow() must return void. It returned %s.',
+                    \get_debug_type($result),
+                ));
+            }
+        }
+
+        if ($matched && $message !== null) {
+            $matched = $thrown instanceof \Throwable && $thrown->getMessage() === $message;
+        }
 
         $description = 'to throw ' . $throwable;
 
-        if ($matching !== null) {
+        if (\is_string($matching)) {
             $description .= ' with message matching ' . $matching;
+        } elseif ($matching instanceof \Closure) {
+            $description .= ' with a throwable that satisfies the matching callback';
         } elseif ($message !== null) {
             $description .= ' with message ' . $this->renderer->render($message);
         }
@@ -913,6 +954,126 @@ final class Expectation
             $this->renderer->render($this->subject),
             CallSite::capture(),
         ));
+    }
+
+    /**
+     * Confirms that a matching callback can accept one configured throwable.
+     *
+     * @param class-string<\Throwable> $throwable
+     *
+     * @throws ExpectationFailed
+     */
+    private function requireThrowableCallback(\Closure $callback, string $throwable): void
+    {
+        $reflection = new \ReflectionFunction($callback);
+        $parameters = $reflection->getParameters();
+        $parameter = $parameters[0] ?? null;
+
+        if (!$parameter instanceof \ReflectionParameter || $reflection->getNumberOfRequiredParameters() > 1) {
+            $this->usageFailure('The matching callback for toThrow() must accept one throwable argument.');
+        }
+
+        if ($parameter->isPassedByReference()) {
+            $this->usageFailure('The matching callback for toThrow() must accept its throwable argument by value.');
+        }
+
+        $returnType = $reflection->getReturnType();
+
+        if ($returnType instanceof \ReflectionType
+            && (!$returnType instanceof \ReflectionNamedType
+                || ($returnType->getName() !== 'void' && $returnType->getName() !== 'never'))
+        ) {
+            $this->usageFailure(\sprintf(
+                'The matching callback for toThrow() must return void. Its return type is %s.',
+                $this->renderReflectionType($returnType),
+            ));
+        }
+
+        $type = $parameter->getType();
+
+        if ($type instanceof \ReflectionType && !$this->reflectionTypeAcceptsClass($type, $throwable, $reflection)) {
+            $this->usageFailure(\sprintf(
+                'The matching callback for toThrow() must accept %s. Its parameter type is %s.',
+                $throwable,
+                $this->renderReflectionType($type),
+            ));
+        }
+    }
+
+    private function invokeThrowableCallback(\Closure $callback, \Throwable $throwable): mixed
+    {
+        return $callback($throwable);
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function reflectionTypeAcceptsClass(
+        \ReflectionType $type,
+        string $class,
+        \ReflectionFunction $callback,
+    ): bool {
+        if ($type instanceof \ReflectionUnionType) {
+            return \array_any(
+                $type->getTypes(),
+                fn(\ReflectionType $member): bool => $this->reflectionTypeAcceptsClass($member, $class, $callback),
+            );
+        }
+
+        if ($type instanceof \ReflectionIntersectionType) {
+            return \array_all(
+                $type->getTypes(),
+                fn(\ReflectionType $member): bool => $this->reflectionTypeAcceptsClass($member, $class, $callback),
+            );
+        }
+
+        if (!$type instanceof \ReflectionNamedType) {
+            return false;
+        }
+
+        $name = $type->getName();
+
+        if ($name === 'mixed' || $name === 'object') {
+            return true;
+        }
+
+        if ($type->isBuiltin()) {
+            return false;
+        }
+
+        $scope = $callback->getClosureScopeClass();
+        $parent = $scope?->getParentClass();
+        $name = match ($name) {
+            'self', 'static' => $scope?->getName() ?? $name,
+            'parent' => $parent instanceof \ReflectionClass ? $parent->getName() : $name,
+            default => $name,
+        };
+
+        return \is_a($class, $name, true);
+    }
+
+    private function renderReflectionType(\ReflectionType $type): string
+    {
+        if ($type instanceof \ReflectionUnionType) {
+            return \implode('|', \array_map(
+                $this->renderReflectionType(...),
+                $type->getTypes(),
+            ));
+        }
+
+        if ($type instanceof \ReflectionIntersectionType) {
+            return \implode('&', \array_map(
+                $this->renderReflectionType(...),
+                $type->getTypes(),
+            ));
+        }
+
+        if (!$type instanceof \ReflectionNamedType) {
+            return 'unknown';
+        }
+
+        return ($type->allowsNull() && $type->getName() !== 'mixed' && $type->getName() !== 'null' ? '?' : '')
+            . $type->getName();
     }
 
     /**

@@ -60,35 +60,19 @@ final readonly class ProxyStorageTest
         }
 
         $doubles = new Doubles($blockedDirectory);
-        $capture = new class {
-            public ?DoublesError $error = null;
-        };
-        $attempt = static function () use ($capture, $doubles): object {
-            try {
-                return $doubles->stub(ProxyStorageContract::class);
-            } catch (DoublesError $error) {
-                $capture->error = $error;
 
-                throw $error;
-            }
-        };
-
-        Expect::that($attempt)
+        Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a directory at the proxy file path MUST produce a typed file error')
             ->toThrow(
                 DoublesError::class,
-                message: 'Doubles could not write the proxy file ' . $file . '.',
+                matching: static function (DoublesError $error) use ($file): void {
+                    Expect::that($error->getMessage())
+                        ->toBe('Doubles could not write the proxy file ' . $file . '.');
+                    Expect::that($error->getPrevious())
+                        ->because('the proxy error preserves the atomic file failure')
+                        ->toBeInstanceOf(AtomicFileError::class);
+                },
             );
-
-        $error = $capture->error;
-
-        if (!$error instanceof DoublesError) {
-            Fail::because('Expected proxy generation to throw the captured DoublesError.');
-        }
-
-        Expect::that($error->getPrevious())
-            ->because('the proxy error preserves the atomic file failure')
-            ->toBeInstanceOf(AtomicFileError::class);
     }
 
     /**

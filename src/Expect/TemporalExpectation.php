@@ -295,12 +295,18 @@ abstract class TemporalExpectation
     }
 
     /**
-     * @param class-string<\Throwable> $throwable
+     * @template TThrowable of \Throwable
+     *
+     * @param class-string<TThrowable> $throwable
+     * @param (\Closure(TThrowable): void)|string|null $matching
      *
      * @return Expectation<T>
      */
-    final public function toThrow(string $throwable, ?string $matching = null, ?string $message = null): Expectation
-    {
+    final public function toThrow(
+        string $throwable,
+        string|\Closure|null $matching = null,
+        ?string $message = null,
+    ): Expectation {
         if ($matching !== null && $message !== null) {
             throw ExpectationFailed::fromDetail(new FailureDetail(
                 'Specify matching: or message: for toThrow(). Do not specify both.',
