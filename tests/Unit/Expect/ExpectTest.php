@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension;
 
 final class ExpectTest
@@ -37,15 +36,10 @@ final class ExpectTest
     #[Test]
     public function singleFailureMessageCarriesTheLocation(): void
     {
-        try {
-            Expect::that(1)->toBe(2);
-        } catch (ExpectationFailed $failure) {
-            Expect::that($failure->getMessage())->toContain('Expected 1 to be 2. (at ' . __FILE__ . ':');
-
-            return;
-        }
-
-        Fail::because('Expected Expect::that(1)->toBe(2) to throw ExpectationFailed.');
+        Expect::that(static fn() => Expect::that(1)->toBe(2))
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                Expect::that($failure->getMessage())->toContain('Expected 1 to be 2. (at ' . __FILE__ . ':');
+            });
     }
 
     #[Test]
