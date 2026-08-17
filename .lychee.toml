@@ -1,0 +1,23 @@
+# Check only external destinations. The built-site check validates internal targets.
+scheme = ["https", "http"]
+extensions = ["md", "astro"]
+
+# Retry temporary failures and limit the request rate for each service.
+max_retries = 3
+retry_wait_time = 2
+timeout = 30
+max_concurrency = 16
+host_concurrency = 4
+host_request_interval = "100ms"
+
+# Some services deny automated requests or rate-limit them after authentication.
+accept = ["100..=103", "200..=299", "403", "429"]
+
+# Dynamic badge images are not documentation destinations.
+exclude = [
+    '^https://codecov\.io/.+/badge\.svg',
+    '^https://github\.com/.+/badge\.svg',
+    '^https://img\.shields\.io/',
+]
+
+no_progress = true
