@@ -79,6 +79,23 @@ jobs:
       - name: "Run zizmor"
         uses: "zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054" # v0.6.2
 
+  actionlint:
+    name: "GitHub Actions workflows"
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Run actionlint"
+        uses: "docker://rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667"
+        with:
+          args: "-color"
+
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
     runs-on: "ubuntu-latest"
@@ -343,6 +360,7 @@ jobs:
       - "documentation"
       - "renovate-config"
       - "zizmor"
+      - "actionlint"
       - "ci"
       - "memory"
       - "coverage"
@@ -352,6 +370,7 @@ jobs:
     steps:
       - name: "Verify required jobs"
         env:
+          ACTIONLINT_RESULT: "${{ needs.actionlint.result }}"
           BENCHMARK_HARNESS_RESULT: "${{ needs.benchmark-harness.result }}"
           CI_RESULT: "${{ needs.ci.result }}"
           COVERAGE_RESULT: "${{ needs.coverage.result }}"
@@ -363,6 +382,7 @@ jobs:
           test "${DOCUMENTATION_RESULT}" = "success"
           test "${RENOVATE_CONFIG_RESULT}" = "success"
           test "${ZIZMOR_RESULT}" = "success"
+          test "${ACTIONLINT_RESULT}" = "success"
           test "${CI_RESULT}" = "success"
           test "${MEMORY_RESULT}" = "success"
           test "${COVERAGE_RESULT}" = "success"
