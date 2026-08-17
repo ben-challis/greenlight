@@ -85,18 +85,16 @@ final class ArgumentMatchingTest
             $plan->expects('record')->with(Argument::type('int'))->once();
         });
 
-        try {
+        Expect::that(static function () use ($recorder): void {
             $recorder->record('not an int');
-        } catch (ExpectationFailed $failure) {
-            $detail = $failure->detail();
+        })
+            ->because("record('not an int') MUST fail its type(int) argument matcher")
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                $detail = $failure->detail();
 
-            Expect::that($detail->expected)->toContain('type(int)');
-            Expect::that($detail->actual)->toBe("record('not an int')");
-
-            return;
-        }
-
-        Fail::because("Expected record('not an int') to fail its type(int) argument matcher.");
+                Expect::that($detail->expected)->toContain('type(int)');
+                Expect::that($detail->actual)->toBe("record('not an int')");
+            });
     }
 
     #[Test]
@@ -147,15 +145,11 @@ final class ArgumentMatchingTest
                 ->andReturns(3);
         });
 
-        try {
-            $calculator->add(-2, 1);
-        } catch (ExpectationFailed $failure) {
-            Expect::that($failure->detail()->expected)->toContain('predicate(positive)');
-
-            return;
-        }
-
-        Fail::because('Expected add(-2, 1) to fail its predicate(positive) argument matcher.');
+        Expect::that(static fn(): int => $calculator->add(-2, 1))
+            ->because('add(-2, 1) MUST fail its predicate(positive) argument matcher')
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                Expect::that($failure->detail()->expected)->toContain('predicate(positive)');
+            });
     }
 
     #[Test]

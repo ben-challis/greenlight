@@ -221,12 +221,15 @@ final readonly class ProxyGenerationTest
     #[Test]
     public function aConfiguredNeverReturningMethodThrowsItsPlan(): void
     {
-        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
-            $plan->expects('returnsNever')->andThrows(new \DomainException('halt'));
+        $throwable = new \DomainException('halt');
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan) use ($throwable): void {
+            $plan->expects('returnsNever')->andThrows($throwable);
         });
 
         Expect::that(static fn() => $wide->returnsNever())->because('a configured never returning method throws its plan')
-            ->toThrow(\DomainException::class, '/halt/');
+            ->toThrow(static function (\DomainException $error) use ($throwable): void {
+                Expect::that($error)->toBe($throwable);
+            });
     }
 
 }

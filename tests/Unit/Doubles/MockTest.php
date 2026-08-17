@@ -11,7 +11,6 @@ use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\UntypedMethod;
 
@@ -62,22 +61,18 @@ final class MockTest
         $calculator->add(1, 2);
 
 
-        try {
-            $doubles->dispose();
-        } catch (ExpectationFailed $failure) {
-            $detail = $failure->detail();
+        Expect::that(static fn() => $doubles->dispose())
+            ->because('Doubles::dispose() MUST fail for the unmet add() expectation')
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                $detail = $failure->detail();
 
-            Expect::that($detail->message)->toBe(
-                'Calls to Greenlight\Tests\Fixture\Doubles\Calculator::add(): 1 time. '
-                . 'The expectation requires exactly 2 times.',
-            );
-            Expect::that($detail->expected)->toBe('add(all arguments) exactly 2 times');
-            Expect::that($detail->actual)->toBe('add(1, 2)');
-
-            return;
-        }
-
-        Fail::because('Expected Doubles::dispose() to fail for the unmet add() expectation.');
+                Expect::that($detail->message)->toBe(
+                    'Calls to Greenlight\Tests\Fixture\Doubles\Calculator::add(): 1 time. '
+                    . 'The expectation requires exactly 2 times.',
+                );
+                Expect::that($detail->expected)->toBe('add(all arguments) exactly 2 times');
+                Expect::that($detail->actual)->toBe('add(1, 2)');
+            });
     }
 
     #[Test]
@@ -163,20 +158,16 @@ final class MockTest
         $calculator = $doubles->mock(Calculator::class);
 
 
-        try {
-            $calculator->add(4, 5);
-        } catch (ExpectationFailed $failure) {
-            $detail = $failure->detail();
+        Expect::that(static fn(): int => $calculator->add(4, 5))
+            ->because('the unplanned add(4, 5) call MUST fail immediately')
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                $detail = $failure->detail();
 
-            Expect::that($detail->message)->toContain('unexpected call')
-                ->toContain('add');
-            Expect::that($detail->actual)->toBe('add(4, 5)');
-            Expect::that($detail->expected)->toContain('no calls to add()');
-
-            return;
-        }
-
-        Fail::because('Expected the unplanned add(4, 5) call to fail immediately.');
+                Expect::that($detail->message)->toContain('unexpected call')
+                    ->toContain('add');
+                Expect::that($detail->actual)->toBe('add(4, 5)');
+                Expect::that($detail->expected)->toContain('no calls to add()');
+            });
     }
 
     #[Test]
@@ -188,18 +179,14 @@ final class MockTest
         });
 
 
-        try {
-            $calculator->describe('other label');
-        } catch (ExpectationFailed $failure) {
-            $detail = $failure->detail();
+        Expect::that(static fn(): string => $calculator->describe('other label'))
+            ->because("describe('other label') MUST fail its exact argument matcher")
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                $detail = $failure->detail();
 
-            Expect::that($detail->expected)->toContain("describe('expected label') exactly 1 time");
-            Expect::that($detail->actual)->toBe("describe('other label')");
-
-            return;
-        }
-
-        Fail::because("Expected describe('other label') to fail its exact argument matcher.");
+                Expect::that($detail->expected)->toContain("describe('expected label') exactly 1 time");
+                Expect::that($detail->actual)->toBe("describe('other label')");
+            });
     }
 
     #[Test]
@@ -238,14 +225,12 @@ final class MockTest
         });
 
 
-        try {
-            $calculator->add(1, 1);
-
-            Fail::because('Expected add(1, 1) to fail because add() was configured with never().');
-        } catch (ExpectationFailed $failure) {
-            Expect::that($failure->detail()->message)->toContain('unexpected call');
-            Expect::that($failure->detail()->expected)->toContain('never');
-        }
+        Expect::that(static fn(): int => $calculator->add(1, 1))
+            ->because('add(1, 1) MUST fail because add() was configured with never()')
+            ->toThrow(static function (ExpectationFailed $failure): void {
+                Expect::that($failure->detail()->message)->toContain('unexpected call');
+                Expect::that($failure->detail()->expected)->toContain('never');
+            });
 
         // Greenlight keeps the call failure. Thus, verification reports it
         // again.
@@ -286,12 +271,15 @@ final class MockTest
     public function andThrowsRaisesTheConfiguredThrowable(): void
     {
         $doubles = new Doubles();
-        $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
-            $plan->expects('add')->once()->andThrows(new \RuntimeException('gateway down'));
+        $throwable = new \RuntimeException('gateway down');
+        $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan) use ($throwable): void {
+            $plan->expects('add')->once()->andThrows($throwable);
         });
 
         Expect::that(static fn(): int => $calculator->add(1, 2))->because('andThrows() raises the configured throwable')
-            ->toThrow(\RuntimeException::class, '/gateway down/');
+            ->toThrow(static function (\RuntimeException $error) use ($throwable): void {
+                Expect::that($error)->toBe($throwable);
+            });
 
         $doubles->dispose();
     }
