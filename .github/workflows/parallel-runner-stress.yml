@@ -1,0 +1,61 @@
+name: "Parallel runner stress"
+
+on:
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch: ~
+
+concurrency:
+  group: "parallel-runner-stress"
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  stress:
+    name: "Stress the parallel runner"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 30
+    permissions:
+      contents: "read"
+    env:
+      XDEBUG_MODE: "off"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
+        with:
+          php-version: "8.4"
+          extensions: "pcntl, sockets"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # 4.0.0
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the stress campaign"
+        run: |
+          set -euo pipefail
+
+          readonly repetitions=6
+          readonly worker_counts=(2 4 8)
+          readonly seeds=(104729 130363 155921)
+
+          for workers in "${worker_counts[@]}"; do
+            for seed in "${seeds[@]}"; do
+              printf 'Reproduction inputs: workers=%s seed=%s repetitions=%s\n' "${workers}" "${seed}" "${repetitions}"
+              printf 'Reproduce with: php bin/greenlight run --workers=%s --seed=%s --repeat=%s --reporter=github\n' "${workers}" "${seed}" "${repetitions}"
+              php bin/greenlight run \
+                --workers="${workers}" \
+                --seed="${seed}" \
+                --repeat="${repetitions}" \
+                --reporter=github
+            done
+          done
