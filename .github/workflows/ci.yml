@@ -100,6 +100,43 @@ jobs:
         with:
           args: "-color"
 
+  installed-package:
+    name: "Installed package"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+    permissions:
+      contents: "read"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
+        with:
+          php-version: "8.4"
+          coverage: "none"
+
+      - name: "Install and run the exported package"
+        shell: "bash"
+        run: |
+          mkdir -p "${RUNNER_TEMP}/greenlight-export" "${RUNNER_TEMP}/greenlight-consumer/tests"
+          composer archive --format=zip --dir="${RUNNER_TEMP}" --file=greenlight
+          unzip -q "${RUNNER_TEMP}/greenlight.zip" -d "${RUNNER_TEMP}/greenlight-export"
+          cp .github/fixtures/installed-package-consumer/composer.json "${RUNNER_TEMP}/greenlight-consumer"
+          cp .github/fixtures/installed-package-consumer/greenlight.php "${RUNNER_TEMP}/greenlight-consumer"
+          cp .github/fixtures/installed-package-consumer/InstalledPackageTest.php "${RUNNER_TEMP}/greenlight-consumer/tests"
+          cd "${RUNNER_TEMP}/greenlight-consumer"
+          composer install --no-interaction --no-progress --prefer-dist
+          test ! -L vendor/greenlight/greenlight
+          test "$(composer show --name-only)" = "greenlight/greenlight"
+          # shellcheck disable=SC2016
+          php -r '$metadata = json_decode(file_get_contents("vendor/greenlight/greenlight/composer.json"), true, flags: JSON_THROW_ON_ERROR); exit(array_diff(array_keys($metadata["require"] ?? []), ["php"]) === [] ? 0 : 1);'
+          vendor/bin/greenlight --version | grep -Eq '^Greenlight [^[:space:]]+$'
+          vendor/bin/greenlight run --no-ansi
+
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
     runs-on: "ubuntu-latest"
@@ -442,6 +479,7 @@ jobs:
       - "renovate-config"
       - "zizmor"
       - "actionlint"
+      - "installed-package"
       - "ci"
       - "macos-portability"
       - "memory"
@@ -459,6 +497,7 @@ jobs:
           CI_RESULT: "${{ needs.ci.result }}"
           COVERAGE_RESULT: "${{ needs.coverage.result }}"
           DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
+          INSTALLED_PACKAGE_RESULT: "${{ needs.installed-package.result }}"
           MACOS_PORTABILITY_RESULT: "${{ needs.macos-portability.result }}"
           MEMORY_RESULT: "${{ needs.memory.result }}"
           PCOV_RESULT: "${{ needs.pcov.result }}"
@@ -469,6 +508,7 @@ jobs:
           test "${RENOVATE_CONFIG_RESULT}" = "success"
           test "${ZIZMOR_RESULT}" = "success"
           test "${ACTIONLINT_RESULT}" = "success"
+          test "${INSTALLED_PACKAGE_RESULT}" = "success"
           test "${CI_RESULT}" = "success"
           test "${MACOS_PORTABILITY_RESULT}" = "success"
           test "${MEMORY_RESULT}" = "success"
