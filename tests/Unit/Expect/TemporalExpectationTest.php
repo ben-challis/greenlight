@@ -150,13 +150,18 @@ final class TemporalExpectationTest
     public function probeExceptionsPropagateUnlessExplicitlyRetryable(): void
     {
         $clock = new FakePollingClock();
+        $failure = new TransientProbeFailure('not ready');
 
         Expect::that(static fn() => ExpectationRuntime::withClock(
             $clock,
             static fn() => Expect::eventually(
-                static fn(): never => throw new TransientProbeFailure('not ready'),
+                static fn(): never => throw $failure,
             )->within(0.100)->toBe('ready'),
-        ))->because('probe exceptions propagate unless explicitly retryable')->toThrow(TransientProbeFailure::class, message: 'not ready');
+        ))->because('probe exceptions propagate unless explicitly retryable')->toThrow(
+            static function (TransientProbeFailure $caught) use ($failure): void {
+                Expect::that($caught)->toBe($failure);
+            },
+        );
 
         $calls = 0;
         ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
@@ -213,6 +218,7 @@ final class TemporalExpectationTest
     {
         $clock = new FakePollingClock();
         $calls = 0;
+        $failure = new \Error('programming error');
 
         Expect::that(static function () use ($clock, &$calls): void {
             ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
@@ -229,18 +235,22 @@ final class TemporalExpectationTest
 
         Expect::that($calls)->because('errors and matcher misuse are never retried')->toBe(1);
 
-        Expect::that(static function () use ($clock, &$calls): void {
-            ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
-                Expect::eventually(static function () use (&$calls): never {
+        Expect::that(static function () use ($clock, &$calls, $failure): void {
+            ExpectationRuntime::withClock($clock, static function () use (&$calls, $failure): void {
+                Expect::eventually(static function () use (&$calls, $failure): never {
                     ++$calls;
 
-                    throw new \Error('programming error');
+                    throw $failure;
                 })
                     ->retryOnException(\Exception::class)
                     ->within(0.100)
                     ->toBe('unreachable');
             });
-        })->because('errors and matcher misuse are never retried')->toThrow(\Error::class, message: 'programming error');
+        })->because('errors and matcher misuse are never retried')->toThrow(
+            static function (\Error $caught) use ($failure): void {
+                Expect::that($caught)->toBe($failure);
+            },
+        );
 
         Expect::that($calls)->because('errors and matcher misuse are never retried')->toBe(2);
     }

@@ -73,11 +73,14 @@ final class PluginEventSinkTest
     #[Test]
     public function aSubscriberFailurePropagatesBeforeTheInnerSinkReceivesTheEvent(): void
     {
-        $subscriber = new class implements RunLifecycleSubscriber, Fake {
+        $failure = new \RuntimeException('subscriber broke');
+        $subscriber = new readonly class ($failure) implements RunLifecycleSubscriber, Fake {
+            public function __construct(private \RuntimeException $failure) {}
+
             #[\Override]
             public function onRunEvent(Event $event): never
             {
-                throw new \RuntimeException('subscriber broke');
+                throw $this->failure;
             }
         };
         $inner = new CollectingEventSink();
@@ -91,7 +94,11 @@ final class PluginEventSinkTest
             $sink->emit($event);
         })
             ->because('an orchestrator subscriber failure MUST fail event delivery')
-            ->toThrow(\RuntimeException::class, message: 'subscriber broke');
+            ->toThrow(
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
+            );
 
         Expect::that($inner->events)
             ->because('the inner sink MUST not observe an event rejected by a subscriber')
