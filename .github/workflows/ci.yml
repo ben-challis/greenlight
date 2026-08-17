@@ -356,6 +356,36 @@ jobs:
         if: "always()"
         run: "composer coverage-gate"
 
+  pcov:
+    name: "PCOV coverage integration"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 15
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Install PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
+        with:
+          php-version: "8.4"
+          extensions: "pcntl, sockets"
+          coverage: "pcov"
+          ini-values: "memory_limit=-1, pcov.directory=${{ github.workspace }}/tests/Fixture/CoverageLib"
+
+      - name: "Verify the coverage driver"
+        run: "php -r 'exit(extension_loaded(\"pcov\") && !extension_loaded(\"xdebug\") ? 0 : 1);'"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # 4.0.0
+        with:
+          dependency-versions: "locked"
+
+      - name: "Collect and export coverage with PCOV"
+        run: "php bin/greenlight run --filter='Greenlight\\Tests\\Acceptance\\CoverageRunTest::collectsAndExportsCoverageThroughTheProcessPool'"
+
   benchmark-harness:
     name: "Benchmark harness smoke (numbers not published)"
     runs-on: "ubuntu-latest"
@@ -416,6 +446,7 @@ jobs:
       - "macos-portability"
       - "memory"
       - "coverage"
+      - "pcov"
       - "benchmark-harness"
     runs-on: "ubuntu-latest"
     timeout-minutes: 5
@@ -430,6 +461,7 @@ jobs:
           DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
           MACOS_PORTABILITY_RESULT: "${{ needs.macos-portability.result }}"
           MEMORY_RESULT: "${{ needs.memory.result }}"
+          PCOV_RESULT: "${{ needs.pcov.result }}"
           RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
           ZIZMOR_RESULT: "${{ needs.zizmor.result }}"
         run: |
@@ -441,4 +473,5 @@ jobs:
           test "${MACOS_PORTABILITY_RESULT}" = "success"
           test "${MEMORY_RESULT}" = "success"
           test "${COVERAGE_RESULT}" = "success"
+          test "${PCOV_RESULT}" = "success"
           test "${BENCHMARK_HARNESS_RESULT}" = "success"
