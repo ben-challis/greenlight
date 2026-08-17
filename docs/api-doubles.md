@@ -280,7 +280,11 @@ One `ExpectationFailed` contains the details for all unmet expectations.
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L153)
+PHPDoc:
+
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L155)
 
 ## `Fake`
 
