@@ -12,6 +12,8 @@ concurrency:
   group: "ci-${{ github.head_ref || github.run_id }}"
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   documentation:
     name: "Build documentation"
@@ -22,6 +24,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
 
       - name: "Set up Node"
         uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7
@@ -49,6 +53,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
 
       - name: "Set up Node"
         uses: "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020" # v7
@@ -57,6 +63,21 @@ jobs:
 
       - name: "Validate Renovate configuration"
         run: "npx --yes --package renovate@44.30.3 -- renovate-config-validator --strict"
+
+  zizmor:
+    name: "GitHub Actions security"
+    runs-on: "ubuntu-latest"
+    permissions:
+      security-events: "write" # This permission uploads results to GitHub code scanning.
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Run zizmor"
+        uses: "zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054" # v0.6.2
 
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
@@ -104,6 +125,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
 
       - name: "Set up PHP"
         uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
@@ -206,6 +229,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
@@ -233,6 +258,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
@@ -270,6 +297,8 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
 
       - name: "Install PHP"
         uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
@@ -313,6 +342,7 @@ jobs:
     needs:
       - "documentation"
       - "renovate-config"
+      - "zizmor"
       - "ci"
       - "memory"
       - "coverage"
@@ -321,10 +351,19 @@ jobs:
 
     steps:
       - name: "Verify required jobs"
+        env:
+          BENCHMARK_HARNESS_RESULT: "${{ needs.benchmark-harness.result }}"
+          CI_RESULT: "${{ needs.ci.result }}"
+          COVERAGE_RESULT: "${{ needs.coverage.result }}"
+          DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
+          MEMORY_RESULT: "${{ needs.memory.result }}"
+          RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
+          ZIZMOR_RESULT: "${{ needs.zizmor.result }}"
         run: |
-          test "${{ needs.documentation.result }}" = "success"
-          test "${{ needs.renovate-config.result }}" = "success"
-          test "${{ needs.ci.result }}" = "success"
-          test "${{ needs.memory.result }}" = "success"
-          test "${{ needs.coverage.result }}" = "success"
-          test "${{ needs.benchmark-harness.result }}" = "success"
+          test "${DOCUMENTATION_RESULT}" = "success"
+          test "${RENOVATE_CONFIG_RESULT}" = "success"
+          test "${ZIZMOR_RESULT}" = "success"
+          test "${CI_RESULT}" = "success"
+          test "${MEMORY_RESULT}" = "success"
+          test "${COVERAGE_RESULT}" = "success"
+          test "${BENCHMARK_HARNESS_RESULT}" = "success"
