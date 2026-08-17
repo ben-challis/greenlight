@@ -19,14 +19,15 @@ final class ScopeContainerFailedLazyFactoryDisposalTest
     {
         LazyDisposableFactoryProbe::reset();
         $factoryCalls = 0;
+        $failure = new \RuntimeException('factory broke');
         $container = new ScopeContainer();
         $service = $container->get(new ServiceDefinition(
             LazyDisposableFactoryProbe::class,
             Scope::PerTest,
-            static function () use (&$factoryCalls): LazyDisposableFactoryProbe {
+            static function () use (&$factoryCalls, $failure): LazyDisposableFactoryProbe {
                 ++$factoryCalls;
 
-                throw new \RuntimeException('factory broke');
+                throw $failure;
             },
         ));
 
@@ -39,7 +40,11 @@ final class ScopeContainerFailedLazyFactoryDisposalTest
 
         Expect::that(static fn(): string => $service->value())
             ->because('the lazy factory failure MUST propagate from service use')
-            ->toThrow(\RuntimeException::class, message: 'factory broke');
+            ->toThrow(
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
+            );
 
         $failures = $container->dispose();
 
