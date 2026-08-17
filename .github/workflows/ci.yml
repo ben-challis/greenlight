@@ -244,6 +244,48 @@ jobs:
           report_type: "test_results"
           use_oidc: true
 
+  macos-portability:
+    name: "macOS portability smoke"
+    runs-on: "macos-15"
+    timeout-minutes: 10
+    permissions:
+      contents: "read"
+    env:
+      XDEBUG_MODE: "off"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
+        with:
+          php-version: "8.4"
+          extensions: "pcntl, sockets"
+          coverage: "none"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install dependencies"
+        uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # 4.0.0
+        with:
+          dependency-versions: "locked"
+
+      - name: "Run the portability smoke tests"
+        run: |
+          php bin/greenlight run \
+            --filter=CpuCoresTest \
+            --filter=InterruptionTest \
+            --filter=ReporterSmokeTest \
+            --filter=ServerSocketTest \
+            --filter=SocketChannelTest \
+            --filter=SuitePathDiscoveryTest \
+            --filter=TempDirectoryRootSymbolicLinkTest \
+            --filter=TempDirectorySubdirectoryLinkTest \
+            --filter=TerminalTest \
+            --filter=WorkerProcessRunTest
+
   memory:
     name: "Flat-memory gate (10,000 tests, one worker)"
     runs-on: "ubuntu-latest"
@@ -371,6 +413,7 @@ jobs:
       - "zizmor"
       - "actionlint"
       - "ci"
+      - "macos-portability"
       - "memory"
       - "coverage"
       - "benchmark-harness"
@@ -385,6 +428,7 @@ jobs:
           CI_RESULT: "${{ needs.ci.result }}"
           COVERAGE_RESULT: "${{ needs.coverage.result }}"
           DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
+          MACOS_PORTABILITY_RESULT: "${{ needs.macos-portability.result }}"
           MEMORY_RESULT: "${{ needs.memory.result }}"
           RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
           ZIZMOR_RESULT: "${{ needs.zizmor.result }}"
@@ -394,6 +438,7 @@ jobs:
           test "${ZIZMOR_RESULT}" = "success"
           test "${ACTIONLINT_RESULT}" = "success"
           test "${CI_RESULT}" = "success"
+          test "${MACOS_PORTABILITY_RESULT}" = "success"
           test "${MEMORY_RESULT}" = "success"
           test "${COVERAGE_RESULT}" = "success"
           test "${BENCHMARK_HARNESS_RESULT}" = "success"
