@@ -18,6 +18,7 @@ jobs:
   documentation:
     name: "Build documentation"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 15
     env:
       ASTRO_TELEMETRY_DISABLED: "1"
 
@@ -49,6 +50,7 @@ jobs:
   renovate-config:
     name: "Renovate configuration"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
 
     steps:
       - name: "Checkout"
@@ -67,6 +69,7 @@ jobs:
   zizmor:
     name: "GitHub Actions security"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
     permissions:
       security-events: "write" # This permission uploads results to GitHub code scanning.
 
@@ -82,6 +85,7 @@ jobs:
   actionlint:
     name: "GitHub Actions workflows"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
     permissions:
       contents: "read"
 
@@ -99,6 +103,7 @@ jobs:
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 30
     permissions:
       contents: "read"
       id-token: "write"
@@ -242,6 +247,7 @@ jobs:
   memory:
     name: "Flat-memory gate (10,000 tests, one worker)"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 15
 
     steps:
       - name: "Checkout"
@@ -268,6 +274,7 @@ jobs:
   coverage:
     name: "Self-coverage gate"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 30
     permissions:
       contents: "read"
       id-token: "write"
@@ -310,6 +317,7 @@ jobs:
   benchmark-harness:
     name: "Benchmark harness smoke (numbers not published)"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 15
 
     steps:
       - name: "Checkout"
@@ -341,6 +349,7 @@ jobs:
       group: "pages"
       cancel-in-progress: false
     runs-on: "ubuntu-latest"
+    timeout-minutes: 10
     permissions:
       pages: "write"
       id-token: "write"
@@ -366,6 +375,7 @@ jobs:
       - "coverage"
       - "benchmark-harness"
     runs-on: "ubuntu-latest"
+    timeout-minutes: 5
 
     steps:
       - name: "Verify required jobs"
