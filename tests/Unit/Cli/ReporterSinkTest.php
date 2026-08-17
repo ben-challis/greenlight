@@ -42,11 +42,14 @@ final class ReporterSinkTest
     #[Test]
     public function reporterFailuresPropagateToTheEmitter(): void
     {
-        $reporter = new class implements Reporter, Fake {
+        $failure = ReportingError::writeFailed();
+        $reporter = new readonly class ($failure) implements Reporter, Fake {
+            public function __construct(private ReportingError $failure) {}
+
             #[\Override]
             public function onEvent(Event $event): never
             {
-                throw ReportingError::writeFailed();
+                throw $this->failure;
             }
 
             #[\Override]
@@ -59,8 +62,9 @@ final class ReporterSinkTest
         })
             ->because('a reporter failure MUST stop event delivery')
             ->toThrow(
-                ReportingError::class,
-                message: 'Greenlight did not write reporter output to the stream.',
+                static function (ReportingError $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
             );
     }
 }

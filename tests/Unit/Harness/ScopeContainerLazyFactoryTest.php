@@ -18,14 +18,15 @@ final class ScopeContainerLazyFactoryTest
     public function aLazyFactoryFailureIsDeferredAndPropagated(): void
     {
         $factoryCalls = 0;
+        $failure = new \RuntimeException('factory broke');
         $container = new ScopeContainer();
         $service = $container->get(new ServiceDefinition(
             LazyFactoryProbe::class,
             Scope::PerTest,
-            static function () use (&$factoryCalls): LazyFactoryProbe {
+            static function () use (&$factoryCalls, $failure): LazyFactoryProbe {
                 ++$factoryCalls;
 
-                throw new \RuntimeException('factory broke');
+                throw $failure;
             },
         ));
 
@@ -42,7 +43,11 @@ final class ScopeContainerLazyFactoryTest
 
         Expect::that(static fn() => $service->value())
             ->because('the lazy factory failure MUST propagate from the first service use')
-            ->toThrow(\RuntimeException::class, message: 'factory broke');
+            ->toThrow(
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
+            );
         Expect::that($factoryCalls)
             ->toBe(1);
     }

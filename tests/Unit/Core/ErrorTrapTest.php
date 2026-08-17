@@ -90,6 +90,7 @@ final class ErrorTrapTest
     public function restoresThePreviousHandlerWhenTheOperationThrows(): void
     {
         $handled = null;
+        $failure = new \RuntimeException('operation failed');
 
         \set_error_handler(static function (int $severity, string $message) use (&$handled): bool {
             $handled = [$severity, $message];
@@ -99,10 +100,14 @@ final class ErrorTrapTest
 
         try {
             Expect::that(static fn(): mixed => ErrorTrap::run(
-                static fn(): never => throw new \RuntimeException('operation failed'),
+                static fn(): never => throw $failure,
             ))
                 ->because('the trap MUST propagate an operation error')
-                ->toThrow(\RuntimeException::class, message: 'operation failed');
+                ->toThrow(
+                    static function (\RuntimeException $caught) use ($failure): void {
+                        Expect::that($caught)->toBe($failure);
+                    },
+                );
 
             \trigger_error('after trap', \E_USER_WARNING);
 

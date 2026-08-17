@@ -19,29 +19,25 @@ final class ExpectationRuntimeTest
         $inner = new FakePollingClock();
         $expected = new \RuntimeException('clock operation failed');
 
-        [$thrown, $afterInner] = ExpectationRuntime::withClock(
+        ExpectationRuntime::withClock(
             $outer,
-            static function () use ($inner, $expected): array {
-                $thrown = null;
-
-                try {
-                    ExpectationRuntime::withClock(
-                        $inner,
-                        static fn(): never => throw $expected,
+            static function () use ($inner, $outer, $expected): void {
+                Expect::that(static fn(): mixed => ExpectationRuntime::withClock(
+                    $inner,
+                    static fn(): never => throw $expected,
+                ))
+                    ->because('withClock propagates the operation exception')
+                    ->toThrow(
+                        static function (\RuntimeException $caught) use ($expected): void {
+                            Expect::that($caught)->toBe($expected);
+                        },
                     );
-                } catch (\RuntimeException $caught) {
-                    $thrown = $caught;
-                }
 
-                return [$thrown, ExpectationRuntime::clock()];
+                Expect::that(ExpectationRuntime::clock())
+                    ->toBe($outer);
             },
         );
 
-        Expect::that($thrown)
-            ->because('withClock propagates the operation exception')
-            ->toBe($expected);
-        Expect::that($afterInner)
-            ->toBe($outer);
         Expect::that(ExpectationRuntime::clock())
             ->toBe($baseline);
     }
