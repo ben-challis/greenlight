@@ -7,6 +7,12 @@ includes:
 parameters:
     level: max
     tmpDir: build/cache/phpstan
+    exceptions:
+        checkedExceptionClasses:
+            - Greenlight\Core\Test\SkipTest
+            - Greenlight\Expect\ExpectationFailed
+        check:
+            missingCheckedExceptionInThrows: true
     paths:
         - src
         - tests
@@ -21,3 +27,7 @@ parameters:
     greenlight:
         configFiles:
             - tests/Fixture/PhpStanExtension/greenlight.php
+
+services:
+    exceptionTypeResolver!:
+        class: Greenlight\Tests\Support\TestCodeExceptionTypeResolver
