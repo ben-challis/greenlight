@@ -97,8 +97,10 @@ jobs:
 
       - name: "Run actionlint"
         uses: "docker://rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667"
+        env:
+          SHELLCHECK_OPTS: "--enable=add-default-case,avoid-nullary-conditions,check-extra-masked-returns,check-set-e-suppressed,deprecate-which,require-double-brackets"
         with:
-          args: "-color"
+          args: "-color -shellcheck=shellcheck"
 
   installed-package:
     name: "Installed package"
@@ -131,7 +133,8 @@ jobs:
           cd "${RUNNER_TEMP}/greenlight-consumer"
           composer install --no-interaction --no-progress --prefer-dist
           test ! -L vendor/greenlight/greenlight
-          test "$(composer show --name-only)" = "greenlight/greenlight"
+          package_name="$(composer show --name-only)"
+          test "${package_name}" = "greenlight/greenlight"
           # shellcheck disable=SC2016
           php -r '$metadata = json_decode(file_get_contents("vendor/greenlight/greenlight/composer.json"), true, flags: JSON_THROW_ON_ERROR); exit(array_diff(array_keys($metadata["require"] ?? []), ["php"]) === [] ? 0 : 1);'
           vendor/bin/greenlight --version | grep -Eq '^Greenlight [^[:space:]]+$'
@@ -204,6 +207,7 @@ jobs:
       # composer.json.
       - name: "Set up Symfony Flex"
         if: "matrix.symfony-version"
+        shell: "bash"
         run: |
           composer global config --no-plugins allow-plugins.symfony/flex true
           composer global require --no-progress --no-scripts --no-plugins symfony/flex
@@ -266,6 +270,7 @@ jobs:
 
       - name: "Tests with JUnit output"
         if: "matrix.analytics == true"
+        shell: "bash"
         run: |
           mkdir -p build/test-results
           php bin/greenlight run --reporter=junit > build/test-results/greenlight.junit.xml
@@ -310,6 +315,7 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the portability smoke tests"
+        shell: "bash"
         run: |
           php bin/greenlight run \
             --filter=CpuCoresTest \
@@ -359,6 +365,7 @@ jobs:
 
       - name: "Report compatibility failure"
         if: "steps.compatibility-tests.outcome == 'failure'"
+        shell: "bash"
         run: |
           echo "::warning title=PHP 8.6 compatibility failure::The PHP 8.6 test suite failed. Review the Tests step."
           {
@@ -547,6 +554,7 @@ jobs:
           PCOV_RESULT: "${{ needs.pcov.result }}"
           RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
           ZIZMOR_RESULT: "${{ needs.zizmor.result }}"
+        shell: "bash"
         run: |
           test "${DOCUMENTATION_RESULT}" = "success"
           test "${RENOVATE_CONFIG_RESULT}" = "success"

@@ -93,12 +93,14 @@
             "@composer normalize --dry-run",
             "@lint",
             "@prose:check",
+            "@workflow-shell:check",
             "@code-style:check",
             "@phpstan",
             "@rector:check",
             "@deptrac"
         ],
         "tests": "@php bin/greenlight run",
-        "tests:coverage": "XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.coverage.php"
+        "tests:coverage": "XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.coverage.php",
+        "workflow-shell:check": "@php tools/workflow-shell-check.php"
     }
 }
