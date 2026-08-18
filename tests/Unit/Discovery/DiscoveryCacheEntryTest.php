@@ -105,6 +105,10 @@ final class DiscoveryCacheEntryTest
 
         yield 'entry is not a map' => [[...$valid, 'entries' => ['not a map']]];
 
+        yield 'entries are not a list' => [[...$valid, 'entries' => [
+            'first' => ['class' => 'Example\\Test'],
+        ]]];
+
         yield 'entry key is not a string' => [[...$valid, 'entries' => [[0 => 'value']]]];
 
         yield 'dependencies are not a map' => [[...$valid, 'dependencies' => 'not a map']];

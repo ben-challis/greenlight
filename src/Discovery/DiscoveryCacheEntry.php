@@ -32,7 +32,14 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
      */
     public static function fromDecoded(array $decoded): ?self
     {
-        if (!\is_int($decoded['mtime'] ?? null) || !\is_int($decoded['size'] ?? null) || !\is_array($decoded['entries'] ?? null)) {
+        $decodedEntries = $decoded['entries'] ?? null;
+
+        if (
+            !\is_int($decoded['mtime'] ?? null)
+            || !\is_int($decoded['size'] ?? null)
+            || !\is_array($decodedEntries)
+            || !\array_is_list($decodedEntries)
+        ) {
             return null;
         }
 
@@ -44,7 +51,7 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
 
         $payloads = [];
 
-        foreach ($decoded['entries'] as $payload) {
+        foreach ($decodedEntries as $payload) {
             if (!\is_array($payload)) {
                 return null;
             }
