@@ -25,11 +25,7 @@ readonly class Attachment implements WireSerializable
         public AttachmentRetention $retention = AttachmentRetention::OnFailure,
     ) {
         if ($name === ''
-            || \preg_match('/[\x00-\x1F\x7F]/', $mediaType) === 1
-            || \preg_match(
-                '~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*[^=\s]+=(?:"[^"]*"|[^;\s]+))*$~',
-                $mediaType,
-            ) !== 1
+            || !AttachmentMediaType::isValid($mediaType)
             || $sizeBytes < 0
             || \preg_match('/^[0-9a-f]{64}$/', $sha256) !== 1
             || $attempt < 1
