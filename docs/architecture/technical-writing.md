@@ -157,6 +157,9 @@ and meaning. Use the singular form unless the context requires a plural.
 | plugin | Technical noun | An extension that adds a Greenlight capability |
 | PSR-11 bridge | Technical noun | The component that connects the Greenlight harness to a PSR-11 container |
 | PSR-11 container | Technical noun | A service container that implements the PSR-11 container interface |
+| PSR-7 response | Technical noun | An HTTP response that implements the PSR-7 response interface |
+| PSR-7 server request | Technical noun | An HTTP server request that implements the PSR-7 server request interface |
+| PSR-15 harness | Technical noun | The test environment that sends PSR-7 server requests to a PSR-15 request handler |
 | PSR-15 request handler | Technical noun | An object that accepts a PSR-7 server request and returns a PSR-7 response |
 | proxy class | Technical noun | A generated class that implements or extends a doubled type |
 | proxy object | Technical noun | An instance of a proxy class that acts as a double |
