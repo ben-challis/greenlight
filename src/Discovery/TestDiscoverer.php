@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\TestId;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -240,7 +241,7 @@ final readonly class TestDiscoverer
         $files = [];
 
         foreach ($directories as $directory) {
-            $real = \realpath($directory);
+            $real = ErrorTrap::run(static fn(): string|false => \realpath($directory));
 
             if ($real === false || !\is_dir($real)) {
                 throw DiscoveryError::directoryNotFound($directory);
