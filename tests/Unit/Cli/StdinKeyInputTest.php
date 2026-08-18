@@ -99,4 +99,19 @@ final class StdinKeyInputTest
             ->because('non-terminal input does not change terminal mode')
             ->toBe([]);
     }
+
+    #[Test]
+    public function failureToDisableBlockingInputIsRejected(): void
+    {
+        Expect::that(static fn(): StdinKeyInput => new StdinKeyInput(
+            configureBlocking: static fn(bool $enabled): false => false,
+            isTty: static fn(): bool => false,
+            read: static fn(): false => false,
+        ))
+            ->because('watch input MUST NOT continue with a potentially blocking read')
+            ->toThrow(
+                \RuntimeException::class,
+                message: 'Greenlight could not make standard input non-blocking.',
+            );
+    }
 }
