@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/ben-challis/greenlight/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ben-challis/greenlight)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ben-challis/greenlight/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ben-challis/greenlight)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D8.4-777BB4?logo=php&logoColor=white)](composer.json)
 [![License](https://img.shields.io/github/license/ben-challis/greenlight)](LICENSE)
 
