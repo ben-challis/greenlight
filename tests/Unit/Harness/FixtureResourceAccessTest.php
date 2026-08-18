@@ -50,6 +50,22 @@ final readonly class FixtureResourceAccessTest
     }
 
     #[Test]
+    public function emptyCollectionsCanBeReadAsListsOrMaps(): void
+    {
+        $resource = FixtureResource::fromWire(FixtureResource::from([
+            'list' => [],
+            'map' => [],
+        ])->toWire());
+
+        Expect::that($resource->list('list'))
+            ->because('an empty transported collection MUST remain usable as a list')
+            ->toBe([]);
+        Expect::that($resource->map('map'))
+            ->because('an empty transported collection MUST remain usable as a map')
+            ->toBe([]);
+    }
+
+    #[Test]
     #[DataSet('wrongTypedValues')]
     public function typedAccessorsReportWrongValuesExactly(
         string $accessor,
