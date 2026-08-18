@@ -90,9 +90,31 @@ final class GreenlightConfig
      */
     public function paths(array $tests): self
     {
+        $this->paths = $this->validatePaths($tests);
+
+        return $this;
+    }
+
+    /**
+     * @param array<mixed> $tests
+     *
+     * @return non-empty-list<non-empty-string>
+     *
+     * @throws InvalidConfiguration
+     */
+    private function validatePaths(array $tests): array
+    {
+        if (!\array_is_list($tests)) {
+            throw new InvalidConfiguration('Test paths must be a list.');
+        }
+
         $validated = [];
 
         foreach ($tests as $path) {
+            if (!\is_string($path)) {
+                throw new InvalidConfiguration('Test paths must contain only strings.');
+            }
+
             if ($path === '') {
                 throw new InvalidConfiguration('Test paths cannot be empty strings.');
             }
@@ -104,9 +126,7 @@ final class GreenlightConfig
             throw new InvalidConfiguration('paths() needs at least one directory.');
         }
 
-        $this->paths = $validated;
-
-        return $this;
+        return $validated;
     }
 
     /**

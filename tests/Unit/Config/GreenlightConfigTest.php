@@ -257,28 +257,37 @@ final class GreenlightConfigTest
         Expect::that($callable)->toThrow(InvalidConfiguration::class);
     }
 
-    /**
-     * @param list<string> $paths
-     */
+    /** @param array<mixed> $paths */
     #[Test]
     #[DataSet('invalidPaths')]
     public function invalidPathsGiveExactGuidance(array $paths, string $message): void
     {
         Expect::that(static function () use ($paths): void {
-            GreenlightConfig::create()->paths($paths);
+            new \ReflectionMethod(GreenlightConfig::class, 'paths')
+                ->invoke(GreenlightConfig::create(), $paths);
         })
             ->because('each invalid path shape MUST identify the required fix')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
 
     /**
-     * @return iterable<string, array{list<string>, non-empty-string}>
+     * @return iterable<string, array{array<mixed>, non-empty-string}>
      */
     public static function invalidPaths(): iterable
     {
         yield 'no directories' => [
             [],
             'paths() needs at least one directory.',
+        ];
+
+        yield 'directories are not a list' => [
+            ['unit' => 'tests/Unit'],
+            'Test paths must be a list.',
+        ];
+
+        yield 'directory is not a string' => [
+            [42],
+            'Test paths must contain only strings.',
         ];
 
         yield 'empty directory' => [
