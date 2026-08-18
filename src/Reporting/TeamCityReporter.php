@@ -141,9 +141,20 @@ final class TeamCityReporter implements Reporter
 
         $this->message('testFinished', [
             'name' => $name,
-            'duration' => (string) (int) \round($result->durationSeconds * 1000),
+            'duration' => (string) $this->durationMilliseconds($result->durationSeconds),
             'flowId' => $flowId,
         ]);
+    }
+
+    private function durationMilliseconds(float $seconds): int
+    {
+        $milliseconds = \round($seconds * 1000);
+
+        if (!\is_finite($milliseconds) || $milliseconds >= \PHP_INT_MAX) {
+            return \PHP_INT_MAX;
+        }
+
+        return (int) $milliseconds;
     }
 
     /**

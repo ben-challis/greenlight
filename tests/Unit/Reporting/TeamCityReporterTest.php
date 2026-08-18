@@ -74,6 +74,28 @@ final class TeamCityReporterTest
     }
 
     #[Test]
+    public function anUnrepresentableDurationSaturatesAtTheIntegerMaximum(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TeamCityReporter($output);
+        $id = new TestId('Acme\DurationTest', 'reports');
+
+        $reporter->onEvent(new TestFinished(new TestResult(
+            $id,
+            Outcome::Passed,
+            \PHP_FLOAT_MAX,
+            0,
+        ), 1.0));
+
+        Expect::that($output->buffer())
+            ->because('an unrepresentable TeamCity duration MUST NOT collapse to zero')
+            ->toBe(\sprintf(
+                "##teamcity[testFinished name='Acme\\DurationTest::reports' duration='%d' flowId='Acme\\DurationTest']\n",
+                \PHP_INT_MAX,
+            ));
+    }
+
+    #[Test]
     public function zeroStringFailureMessagesRemainDistinctFromMissingDetails(): void
     {
         $output = new BufferOutput();
