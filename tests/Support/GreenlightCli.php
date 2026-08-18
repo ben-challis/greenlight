@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
+use Greenlight\Expect\Fail;
+
 /** Passes arguments directly to PHP and does not ask a shell to parse them. */
 final class GreenlightCli
 {
@@ -50,5 +52,16 @@ final class GreenlightCli
             ],
             $environment,
         );
+    }
+
+    public static function summaryLine(ProcessResult $result): string
+    {
+        $output = $result->output();
+
+        if (\preg_match('/^\d+ tests?, \d+ passed(?:, \d+ failed)?(?:, \d+ errored)?(?:, \d+ skipped)?, \d+ expectations?$/m', $output, $matches) !== 1) {
+            Fail::because("No summary line found in output:\n" . $output);
+        }
+
+        return $matches[0];
     }
 }

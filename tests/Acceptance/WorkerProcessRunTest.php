@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
@@ -26,8 +25,8 @@ final readonly class WorkerProcessRunTest
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
         Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0);
         Expect::that($parallel->exitCode)->toBe(0);
-        Expect::that($this->summaryLine($sequential->output()))->toBe('7 tests, 7 passed, 0 expectations');
-        Expect::that($this->summaryLine($parallel->output()))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that(GreenlightCli::summaryLine($sequential))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that(GreenlightCli::summaryLine($parallel))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     #[Test]
@@ -36,7 +35,7 @@ final readonly class WorkerProcessRunTest
         $result = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
         Expect::that($result->exitCode)->because('configured plugins reach workers across the process boundary')->toBe(0);
-        Expect::that($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
+        Expect::that(GreenlightCli::summaryLine($result))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
     }
 
     #[Test]
@@ -45,7 +44,7 @@ final readonly class WorkerProcessRunTest
         $result = $this->runIn('RecycleConfig', ['run']);
 
         Expect::that($result->exitCode)->because('worker recycling keeps results intact')->toBe(0);
-        Expect::that($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that(GreenlightCli::summaryLine($result))->toBe('7 tests, 7 passed, 0 expectations');
     }
 
     /**
@@ -56,12 +55,4 @@ final readonly class WorkerProcessRunTest
         return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments);
     }
 
-    private function summaryLine(string $output): string
-    {
-        if (\preg_match('/^\d+ tests?, \d+ passed(?:, \d+ failed)?(?:, \d+ errored)?(?:, \d+ skipped)?, \d+ expectations?$/m', $output, $matches) !== 1) {
-            Fail::because("No summary line found in output:\n" . $output);
-        }
-
-        return $matches[0];
-    }
 }

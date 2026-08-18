@@ -27,7 +27,7 @@ final readonly class WorkerFailureContainmentTest
         $result = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
         Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1);
-        Expect::that($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
+        Expect::that(GreenlightCli::summaryLine($result))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
         Expect::that($result->output())->toContain('crashed during this test');
     }
 
@@ -160,12 +160,4 @@ final readonly class WorkerFailureContainmentTest
         return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments);
     }
 
-    private function summaryLine(string $output): string
-    {
-        if (\preg_match('/^\d+ tests?, \d+ passed(?:, \d+ failed)?(?:, \d+ errored)?(?:, \d+ skipped)?, \d+ expectations?$/m', $output, $matches) !== 1) {
-            Fail::because("No summary line found in output:\n" . $output);
-        }
-
-        return $matches[0];
-    }
 }
