@@ -201,6 +201,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | temporal expectation | Technical noun | An expectation that observes probe values over time |
 | terminal emulator | Technical noun | Test support that models the terminal state after control sequences |
 | terminal result | Technical noun | The final result after all test and plugin changes |
+| Tempest bridge | Technical noun | The component that connects the Greenlight harness to a Tempest kernel and container |
 | test | Technical noun | One invocation of a test method with one optional data set |
 | test class | Technical noun | A class that contains one or more test methods |
 | test container | Technical noun | A Symfony container that makes test services available |

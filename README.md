@@ -137,6 +137,7 @@ for the complete model.
 * [Test Hyperf applications](docs/hyperf.md)
 * [Test PSR applications](docs/psr.md)
 * [Test PSR-15 applications](docs/psr15.md)
+* [Test Tempest applications](docs/tempest.md)
 * [Move from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
 * [Architecture](docs/architecture/README.md)

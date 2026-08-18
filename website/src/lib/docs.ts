@@ -77,6 +77,11 @@ export const docSections = [
         description: 'This guide explains how tests send PSR-7 requests directly to PSR-15 applications.',
       },
       {
+        id: 'tempest',
+        title: 'Tempest',
+        description: 'This guide explains how tests use Tempest discovery, configuration, container services, and reset.',
+      },
+      {
         id: 'phpstan',
         title: 'PHPStan',
         description: 'This guide explains how PHPStan checks matchers, data providers, and extension matchers.',
@@ -154,7 +159,7 @@ export const docSections = [
       {
         id: 'api-integrations',
         title: 'Integration API',
-        description: 'This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, and Symfony.',
+        description: 'This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.',
       },
     ],
   },

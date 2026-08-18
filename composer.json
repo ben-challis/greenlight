@@ -51,7 +51,8 @@
         "psr/http-message": "Provides the PSR-7 request and response interfaces that HttpHarness requires",
         "psr/http-server-handler": "Provides the PSR-15 request handler interface that Psr15Plugin requires",
         "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled 'PhpUnitToGreenlightRector' rule",
-        "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the 'SymfonyPlugin' bridge"
+        "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the 'SymfonyPlugin' bridge",
+        "tempest/framework": "Enables discovery, configuration, container injection, and reset-safe tests through the 'TempestPlugin' bridge"
     },
     "autoload": {
         "psr-4": {
