@@ -69,10 +69,14 @@ final class TempDirectory implements Disposable
 ### `__construct()`
 
 ```php
-public function __construct(private readonly ?string $temporaryRoot = null)
+public function __construct(?string $temporaryRoot = null)
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L19)
+PHPDoc:
+
+- `@throws \InvalidArgumentException If $temporaryRoot contains a null byte.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L22)
 
 ### `path()`
 
@@ -84,7 +88,7 @@ PHPDoc:
 
 - `@throws TempDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L32)
 
 ### `subdirectory()`
 
@@ -99,7 +103,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 - `@throws TempDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L59)
 
 ### `dispose()`
 
@@ -112,7 +116,7 @@ PHPDoc:
 
 - `@throws TempDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L106)
 
 ## `TempDirectoryError`
 
