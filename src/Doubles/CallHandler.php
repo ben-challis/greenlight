@@ -31,6 +31,7 @@ final readonly class CallHandler
      * @param list<mixed> $arguments
      *
      * @throws ExpectationFailed
+     * @throws DoublesError
      */
     public function invoke(object $double, string $method, array $arguments): mixed
     {
@@ -50,6 +51,7 @@ final readonly class CallHandler
      * @param list<mixed> $arguments
      *
      * @throws ExpectationFailed
+     * @throws DoublesError
      */
     private function invokeOnMock(object $double, string $method, array $arguments): mixed
     {
@@ -70,6 +72,9 @@ final readonly class CallHandler
         throw ExpectationFailed::fromDetail($detail);
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function invokeOnSpy(object $double, string $method): mixed
     {
         if ($this->returnsNothing($double, $method)) {
@@ -81,6 +86,7 @@ final readonly class CallHandler
 
     /**
      * @param list<mixed> $arguments
+     * @throws DoublesError
      */
     private function answer(MethodExpectation $expectation, object $double, string $method, array $arguments): mixed
     {

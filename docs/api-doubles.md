@@ -35,7 +35,11 @@ It also accepts values when `get_debug_type()` returns `$type`.
 public static function type(string $type): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L24)
+PHPDoc:
+
+- `@throws DoublesError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L25)
 
 ### `predicate()`
 
@@ -46,7 +50,7 @@ The description identifies the constraint in failure messages.
 public static function predicate(\Closure $predicate, string $description = 'predicate'): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L34)
 
 ### `equals()`
 
@@ -57,7 +61,7 @@ This form states the comparison explicitly.
 public static function equals(mixed $value): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L43)
 
 ### `captor()`
 
@@ -68,7 +72,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L52)
 
 ## `ArgumentCaptor`
 
@@ -128,8 +132,9 @@ public function value(): mixed
 PHPDoc:
 
 - `@return TValue`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentCaptor.php#L56)
 
 ## `ArgumentMatcher`
 
@@ -197,8 +202,9 @@ public function __construct(?string $proxyDirectory = null)
 PHPDoc:
 
 - `@param string|null $proxyDirectory Directory for generated proxy classes. An empty string is invalid. The default is a project directory in the system temporary directory. A hash of the current working directory identifies it.`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L52)
 
 ### `mock()`
 
@@ -215,8 +221,9 @@ PHPDoc:
 - `@param class-string<T> $type`
 - `@param \Closure(MockPlan<T>): void|null $plan`
 - `@return T`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L89)
 
 ### `stub()`
 
@@ -233,8 +240,9 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L103)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L106)
 
 ### `spy()`
 
@@ -251,8 +259,9 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L119)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L123)
 
 ### `callsTo()`
 
@@ -267,8 +276,9 @@ public function callsTo(object $double, string $method): array
 PHPDoc:
 
 - `@return list<list<mixed>>`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L131)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L136)
 
 ### `dispose()`
 
@@ -284,7 +294,7 @@ PHPDoc:
 
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L155)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L160)
 
 ## `Fake`
 
@@ -345,5 +355,6 @@ PHPDoc:
 - `@template TMethod of non-empty-string`
 - `@param TMethod $method`
 - `@return MethodExpectation<TTarget, TMethod>`
+- `@throws DoublesError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MockPlan.php#L44)

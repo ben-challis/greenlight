@@ -25,6 +25,7 @@ final class MatcherMapProvider
     /**
      * @throws ConfigFileError
      * @throws InvalidConfiguration
+     * @throws MatcherMapError
      */
     public function get(): MatcherMap
     {

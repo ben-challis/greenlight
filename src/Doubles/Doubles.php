@@ -47,6 +47,7 @@ final class Doubles implements Disposable
      *   classes. An empty string is invalid. The default is a project
      *   directory in the system temporary directory. A hash of the current
      *   working directory identifies it.
+     * @throws DoublesError
      */
     public function __construct(?string $proxyDirectory = null)
     {
@@ -83,6 +84,7 @@ final class Doubles implements Disposable
      * @param \Closure(MockPlan<T>): void|null $plan
      *
      * @return T
+     * @throws DoublesError
      */
     public function mock(string $type, ?\Closure $plan = null): object
     {
@@ -99,6 +101,7 @@ final class Doubles implements Disposable
      * @param class-string<T> $type
      *
      * @return T
+     * @throws DoublesError
      */
     public function stub(string $type): object
     {
@@ -115,6 +118,7 @@ final class Doubles implements Disposable
      * @param class-string<T> $type
      *
      * @return T
+     * @throws DoublesError
      */
     public function spy(string $type): object
     {
@@ -127,6 +131,7 @@ final class Doubles implements Disposable
      * method must exist on the doubled type.
      *
      * @return list<list<mixed>>
+     * @throws DoublesError
      */
     public function callsTo(object $double, string $method): array
     {
@@ -190,6 +195,7 @@ final class Doubles implements Disposable
      * @param \Closure(MockPlan<T>): void|null $plan
      *
      * @return T
+     * @throws DoublesError
      */
     private function create(string $type, DoubleKind $kind, ?\Closure $plan): object
     {

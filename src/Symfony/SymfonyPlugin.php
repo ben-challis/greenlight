@@ -80,6 +80,7 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
     /**
      * @param class-string $type
      * @param list<object> $attributes
+     * @throws SymfonyBridgeError
      */
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
@@ -127,6 +128,7 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
     /**
      * Greenlight does not cache an invalid kernel. Thus, each use fails before
      * a test runs without isolation.
+     * @throws SymfonyBridgeError
      */
     private function kernel(): KernelInterface
     {
@@ -162,6 +164,9 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
         return $kernel;
     }
 
+    /**
+     * @throws SymfonyBridgeError
+     */
     private function container(): ContainerInterface
     {
         $this->kernel();

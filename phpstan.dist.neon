@@ -19,7 +19,11 @@ parameters:
             - Greenlight\Core\Wire\InvalidWirePayload
             - Greenlight\Coverage\CoverageError
             - Greenlight\Discovery\DiscoveryError
+            - Greenlight\Doubles\DoublesError
             - Greenlight\Expect\ExpectationFailed
+            - Greenlight\Laravel\LaravelBridgeError
+            - Greenlight\PhpStan\MatcherMapError
+            - Greenlight\Symfony\SymfonyBridgeError
         check:
             missingCheckedExceptionInThrows: true
             throwTypeCovariance: true

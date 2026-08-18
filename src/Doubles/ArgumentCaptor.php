@@ -49,7 +49,10 @@ final class ArgumentCaptor implements ArgumentMatcher
         return $this->captured;
     }
 
-    /** @return TValue */
+    /**
+     * @return TValue
+     * @throws DoublesError
+     */
     public function value(): mixed
     {
         if ($this->captured === []) {

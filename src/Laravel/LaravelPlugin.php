@@ -77,6 +77,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
     /**
      * @param class-string $type
      * @param list<object> $attributes
+     * @throws LaravelBridgeError
      */
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
@@ -123,7 +124,10 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
         return $result;
     }
 
-    /** An invalid application fails before Greenlight supplies a container service. */
+    /**
+     * An invalid application fails before Greenlight supplies a container service.
+     * @throws LaravelBridgeError
+     */
     private function application(): Application
     {
         if ($this->app instanceof Application) {

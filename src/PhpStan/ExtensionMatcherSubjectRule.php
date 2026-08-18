@@ -41,6 +41,7 @@ final readonly class ExtensionMatcherSubjectRule implements Rule
     /**
      * @throws ConfigFileError
      * @throws InvalidConfiguration
+     * @throws MatcherMapError
      */
     #[\Override]
     public function processNode(Node $node, Scope $scope): array

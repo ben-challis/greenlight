@@ -39,6 +39,7 @@ final readonly class MockPlan
      * @param TMethod $method
      *
      * @return MethodExpectation<TTarget, TMethod>
+     * @throws DoublesError
      */
     public function expects(string $method): MethodExpectation
     {
@@ -56,6 +57,7 @@ final readonly class MockPlan
      * @param TMethod $method
      *
      * @return MethodCallContract<TTarget, TMethod>
+     * @throws DoublesError
      */
     private function assertPlannable(string $method): MethodCallContract
     {

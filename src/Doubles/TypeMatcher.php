@@ -7,6 +7,9 @@ namespace Greenlight\Doubles;
 /** @internal */
 final readonly class TypeMatcher implements ArgumentMatcher
 {
+    /**
+     * @throws DoublesError
+     */
     public function __construct(private string $type)
     {
         if (\trim($type) === '') {

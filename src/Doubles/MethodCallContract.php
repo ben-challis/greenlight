@@ -60,6 +60,9 @@ final readonly class MethodCallContract
         );
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function assertPlannedArgumentCount(string $selector, int $count): void
     {
         if ($count < $this->requiredArguments) {
@@ -83,6 +86,9 @@ final readonly class MethodCallContract
         }
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function assertCallArgumentCount(int $count): void
     {
         if ($count < $this->requiredArguments) {
