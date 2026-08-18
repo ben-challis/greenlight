@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
+use Greenlight\Core\DecimalInteger;
 use Greenlight\Core\ErrorTrap;
 
 /**
@@ -18,15 +19,28 @@ final class TerminalRowsResolver
 
     public static function resolve(): int
     {
-        $linesEnv = \getenv('LINES');
-        $lines = $linesEnv === false || $linesEnv === '' ? 0 : (int) $linesEnv;
+        $lines = self::positiveRows(\getenv('LINES'));
 
-        if ($lines > 0) {
+        if ($lines !== null) {
             return $lines;
         }
 
-        $probed = (int) ErrorTrap::run(static fn(): string|false => \exec('tput lines 2>/dev/null'));
+        $probed = ErrorTrap::run(static fn(): string|false => \exec('tput lines 2>/dev/null'));
 
-        return $probed > 0 ? $probed : 24;
+        return self::positiveRows($probed) ?? 24;
+    }
+
+    /**
+     * @return positive-int|null
+     */
+    private static function positiveRows(string|false $raw): ?int
+    {
+        if (!\is_string($raw)) {
+            return null;
+        }
+
+        $rows = DecimalInteger::parse($raw);
+
+        return $rows !== null && $rows > 0 ? $rows : null;
     }
 }
