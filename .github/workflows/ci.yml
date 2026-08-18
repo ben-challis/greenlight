@@ -510,6 +510,7 @@ jobs:
     concurrency:
       group: "pages"
       cancel-in-progress: false
+      queue: "max"
     runs-on: "ubuntu-latest"
     timeout-minutes: 10
     permissions:
