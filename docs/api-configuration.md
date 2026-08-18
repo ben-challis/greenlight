@@ -404,7 +404,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L52)
 
 ## `WatchBuilder`
 
