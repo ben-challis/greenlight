@@ -37,8 +37,8 @@ final readonly class CheckoutTest
 media type. `file()` copies a regular file and detects its media type when
 possible.
 
-Greenlight accepts media types in `type/subtype` form. A media type can include
-parameters. Greenlight rejects malformed values and control characters.
+Media types use `type/subtype` form with optional parameters. Greenlight rejects
+malformed values and control characters.
 
 Greenlight copies the content before the method returns. You can remove a
 temporary source file after `file()` returns. Later changes to a value or file
@@ -105,8 +105,8 @@ source does not change during the copy operation. Published paths stay in the
 configured run directory. Greenlight creates artifact files with private
 permissions on supported platforms.
 
-Greenlight does not inspect attachment content. It does not redact attachment
-content. Before you attach a value or file, remove secrets and personal data.
+Greenlight does not inspect or redact attachment content. Before you attach a
+value or file, remove secrets and personal data.
 Apply the policy for sensitive CI artifacts to the output directory.
 
 ## Limits

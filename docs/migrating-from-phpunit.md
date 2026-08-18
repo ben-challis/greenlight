@@ -67,21 +67,15 @@ Two conversions change the code shape. An `expectException()` block becomes a
 not move. `expectExceptionMessage()` finds a substring, so the rule writes a
 quoted `matching:` pattern and not an exact `message:` constraint.
 
-The rule preserves each repeated `#[TestWith]` row. It converts
-`#[RunInSeparateProcess]` and `#[RunTestsInSeparateProcesses]` to `#[Isolated]`.
-It rejects class-process and global-state options that have different
-Greenlight behavior.
+The rule preserves each repeated `#[TestWith]` row. It rejects class-process
+and global-state options that have different Greenlight behavior.
 
-The rule converts supported PHPUnit attributes as follows:
+Some attribute conversions are less direct:
 
 | PHPUnit | Greenlight |
 | --- | --- |
-| `#[DataProvider]` | `#[DataSet]` |
-| `#[TestWith]` | `#[DataRow]` |
-| `#[Group]` or `#[Ticket]` | `#[Group]` |
-| `#[Small]` | `#[Group('small')]` |
-| `#[Medium]` | `#[Group('medium')]` |
-| `#[Large]` | `#[Group('large')]` |
+| `#[Ticket]` | `#[Group]` |
+| `#[Small]`, `#[Medium]`, and `#[Large]` | `#[Group('small')]`, `#[Group('medium')]`, and `#[Group('large')]` |
 | `#[RunInSeparateProcess]` or `#[RunTestsInSeparateProcesses]` | `#[Isolated]` |
 | `#[DoesNotPerformAssertions]` | `#[NoExpectations]` |
 | `#[RequiresPhpExtension]` | `#[SkipUnless]` with `ExtensionLoaded` |
@@ -89,9 +83,7 @@ The rule converts supported PHPUnit attributes as follows:
 
 The rule removes coverage metadata attributes, for example `#[CoversClass]`,
 because coverage configuration belongs in `greenlight.php`. It also removes
-the `#[UsesClass]`, `#[UsesFunction]`, `#[UsesMethod]`, and `#[UsesTrait]`
-attributes. It removes `#[TestDox]` and
-`#[DisableReturnValueGenerationForTestDoubles]` too.
+use metadata, `#[TestDox]`, and `#[DisableReturnValueGenerationForTestDoubles]`.
 
 Rector's printer also reflows each converted class. Run your code-style fixer
 after the conversion. Then run the suite one time with `--workers=1` before you
@@ -225,10 +217,8 @@ stops the poll unless `retryOnException()` lists its type.
 
 Constructor injection supplies the `Doubles` service.
 
-Greenlight does not create tolerant doubles. PHPUnit `createMock()` can create
-a double whose methods return `null` or automatic stubs.
-
-Greenlight has no equivalent object.
+PHPUnit `createMock()` can create a tolerant double whose methods return `null`
+or automatic stubs. Greenlight has no tolerant double equivalent.
 
 `mock(Type::class, fn (MockPlan $plan) => ...)` creates a strict mock.
 Greenlight verifies each planned expectation at the end of the test.
@@ -282,11 +272,9 @@ $gateway = $this->doubles->mock(PaymentGateway::class, function (MockPlan $plan)
 Greenlight verifies mocks when the per-test scope closes. You do not need a
 `Mockery::close()` equivalent.
 
-Greenlight can double interfaces and non-final classes. It rejects final
-classes, readonly classes, and enums.
-
-The error recommends an interface. Greenlight does not support partial mocks
-or static method mocks.
+Double targets are interfaces or non-final, non-readonly classes. Prefer an
+interface because class doubles preserve final, static, and protected
+implementations.
 
 After migration, strict doubles can expose interactions that old tests
 accepted.

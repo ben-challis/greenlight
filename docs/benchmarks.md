@@ -1,7 +1,5 @@
 # Benchmarks
 
-The benchmark script generates reproducible results.
-
 Run the full benchmark with:
 
 ```sh
