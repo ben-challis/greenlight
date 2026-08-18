@@ -6,17 +6,17 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class WorkerHandlePipeLifecycleTest
 {
     #[Test]
     public function pipeDrainSkipsClosedPipesWithoutDuplicatingDiagnostics(): void
     {
-        $process = $this->stream();
-        $stdout = $this->stream();
-        $stderr = $this->stream("standard error\n");
+        $process = MemoryStream::open();
+        $stdout = MemoryStream::open();
+        $stderr = MemoryStream::open("standard error\n");
         \fclose($stdout);
 
         try {
@@ -36,33 +36,7 @@ final readonly class WorkerHandlePipeLifecycleTest
                 ->because('pipe draining MUST skip closed output pipes')
                 ->toBe("standard error\n");
         } finally {
-            $this->close($process);
-            $this->close($stdout);
-            $this->close($stderr);
-        }
-    }
-
-    /**
-     * @return resource
-     */
-    private function stream(string $contents = ''): mixed
-    {
-        $stream = \fopen('php://memory', 'r+');
-
-        if (!\is_resource($stream)) {
-            Fail::because('Expected the in-memory stream to open.');
-        }
-
-        \fwrite($stream, $contents);
-        \rewind($stream);
-
-        return $stream;
-    }
-
-    private function close(mixed $stream): void
-    {
-        if (\is_resource($stream)) {
-            \fclose($stream);
+            MemoryStream::close($process, $stdout, $stderr);
         }
     }
 }

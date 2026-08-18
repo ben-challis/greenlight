@@ -11,9 +11,9 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
 use Greenlight\Tests\Support\ConnectedStreamPair;
+use Greenlight\Tests\Support\MemoryStream;
 
 final class WorkerHandleTest
 {
@@ -36,14 +36,14 @@ final class WorkerHandleTest
     #[Test]
     public function aClosedProcessHandleIsNotRunning(): void
     {
-        $process = $this->stream();
+        $process = MemoryStream::open();
         \fclose($process);
         $handle = new WorkerHandle(
             'worker-1',
             1,
             $process,
-            $this->stream(),
-            $this->stream(),
+            MemoryStream::open(),
+            MemoryStream::open(),
         );
 
         Expect::that($handle->isRunning())
@@ -75,16 +75,16 @@ final class WorkerHandleTest
     #[Test]
     public function drainedDiagnosticsKeepACompleteUnicodeTailWithinTheByteLimit(): void
     {
-        $stdout = $this->stream();
+        $stdout = MemoryStream::open();
         \fwrite($stdout, 'z');
         \rewind($stdout);
 
         $handle = new WorkerHandle(
             'worker-1',
             1,
-            $this->stream(),
+            MemoryStream::open(),
             $stdout,
-            $this->stream(),
+            MemoryStream::open(),
         );
         $handle->diagnostics = 'xx€' . \str_repeat('y', 65_533);
 
@@ -109,9 +109,9 @@ final class WorkerHandleTest
         $handle = new WorkerHandle(
             'worker-1',
             1,
-            $this->stream(),
+            MemoryStream::open(),
             $reader,
-            $this->stream(),
+            MemoryStream::open(),
         );
 
         \fwrite($writer, $lead);
@@ -132,9 +132,9 @@ final class WorkerHandleTest
         $handle = new WorkerHandle(
             'worker-1',
             1,
-            $this->stream(),
+            MemoryStream::open(),
             $reader,
-            $this->stream(),
+            MemoryStream::open(),
         );
 
         \fwrite($writer, $malformed);
@@ -183,24 +183,9 @@ final class WorkerHandleTest
         return new WorkerHandle(
             'worker-1',
             1,
-            $this->stream(),
-            $this->stream(),
-            $this->stream(),
+            MemoryStream::open(),
+            MemoryStream::open(),
+            MemoryStream::open(),
         );
     }
-
-    /**
-     * @return resource
-     */
-    private function stream(): mixed
-    {
-        $stream = \fopen('php://memory', 'r+');
-
-        if (!\is_resource($stream)) {
-            Fail::because('Expected the in-memory stream to open.');
-        }
-
-        return $stream;
-    }
-
 }
