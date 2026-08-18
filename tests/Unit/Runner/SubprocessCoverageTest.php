@@ -19,6 +19,7 @@ use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessCoverageTest
@@ -387,7 +388,6 @@ final readonly class SubprocessCoverageTest
 
     private function dump(string $directory, string $name, CoverageMap $map): void
     {
-        $export = new JsonExporter()->export($map);
-        \file_put_contents($directory . '/' . $name, \reset($export));
+        CoverageJson::write($directory . '/' . $name, $map);
     }
 }

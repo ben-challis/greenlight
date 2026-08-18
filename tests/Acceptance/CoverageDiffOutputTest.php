@@ -6,10 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class CoverageDiffOutputTest
@@ -21,14 +21,14 @@ final readonly class CoverageDiffOutputTest
     {
         $directory = $this->tempDirectory->subdirectory('neutral-file-delta');
         $kept = new FileCoverage('/project/src/Kept.php', [1], []);
-        $this->writeExport(
+        CoverageJson::write(
             $directory . '/baseline.json',
             new CoverageMap([
                 $kept,
                 new FileCoverage('/project/src/Removed.php', [], [1]),
             ]),
         );
-        $this->writeExport(
+        CoverageJson::write(
             $directory . '/current.json',
             new CoverageMap([$kept]),
         );
@@ -48,11 +48,5 @@ final readonly class CoverageDiffOutputTest
         Expect::that($result->output())
             ->because('a removed zero-percent file has no useful file-level delta')
             ->toBe('Coverage: baseline 50.00%, current 100.00% (+50.00)');
-    }
-
-    private function writeExport(string $path, CoverageMap $map): void
-    {
-        $files = new JsonExporter()->export($map);
-        \file_put_contents($path, $files[JsonExporter::FILE_NAME]);
     }
 }
