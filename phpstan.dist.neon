@@ -9,10 +9,20 @@ parameters:
     tmpDir: build/cache/phpstan
     exceptions:
         checkedExceptionClasses:
+            - Greenlight\Capture\CaptureError
+            - Greenlight\Cli\CliError
+            - Greenlight\Config\ConfigFileError
+            - Greenlight\Config\InvalidConfiguration
+            - Greenlight\Core\Artifact\AttachmentError
+            - Greenlight\Core\AtomicFileError
             - Greenlight\Core\Test\SkipTest
+            - Greenlight\Core\Wire\InvalidWirePayload
+            - Greenlight\Coverage\CoverageError
+            - Greenlight\Discovery\DiscoveryError
             - Greenlight\Expect\ExpectationFailed
         check:
             missingCheckedExceptionInThrows: true
+            throwTypeCovariance: true
     paths:
         - src
         - tests

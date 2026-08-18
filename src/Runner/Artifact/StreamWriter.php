@@ -16,6 +16,7 @@ final class StreamWriter
 {
     /**
      * @param resource $stream
+     * @throws AttachmentError
      */
     public static function writeFully($stream, string $bytes): void
     {

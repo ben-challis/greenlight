@@ -11,6 +11,9 @@ namespace Greenlight\Core\Artifact;
  */
 final class UnavailableAttachments implements Attachments
 {
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function value(
         string $name,
@@ -20,6 +23,9 @@ final class UnavailableAttachments implements Attachments
         throw AttachmentError::unavailable();
     }
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function text(
         string $name,
@@ -30,6 +36,9 @@ final class UnavailableAttachments implements Attachments
         throw AttachmentError::unavailable();
     }
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function bytes(
         string $name,
@@ -40,6 +49,9 @@ final class UnavailableAttachments implements Attachments
         throw AttachmentError::unavailable();
     }
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function file(
         string $name,

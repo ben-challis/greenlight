@@ -23,6 +23,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\InvalidWirePayload;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Export\CloverExporter;
@@ -172,6 +173,7 @@ final readonly class Application
 
     /**
      * @param list<string> $argv the arguments after the script name
+     * @throws CoverageError
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
@@ -206,6 +208,7 @@ final readonly class Application
 
     /**
      * @param list<string> $argv the arguments after the script name
+     * @throws CoverageError
      */
     private function dispatch(array $argv, string $workingDirectory, ?string $binPath): int
     {
@@ -263,6 +266,9 @@ final readonly class Application
         return self::EXIT_USAGE;
     }
 
+    /**
+     * @throws CoverageError
+     */
     private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
     {
         try {
@@ -437,6 +443,7 @@ final readonly class Application
      *
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
+     * @throws CoverageError
      */
     private function executeRun(
         ParsedArguments $arguments,

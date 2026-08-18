@@ -187,6 +187,9 @@ final readonly class DataSetExpander
         return $dataSets;
     }
 
+    /**
+     * @throws DiscoveryError
+     */
     private function deriveKey(string $class, string $provider, mixed $key): string
     {
         if (\is_int($key)) {

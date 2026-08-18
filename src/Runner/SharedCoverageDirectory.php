@@ -23,6 +23,9 @@ final readonly class SharedCoverageDirectory
         private string|false $previousInclude,
     ) {}
 
+    /**
+     * @throws CoverageError
+     */
     public static function open(CoverageSettings $settings): self
     {
         $directory = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-coverage-' . \bin2hex(\random_bytes(6));

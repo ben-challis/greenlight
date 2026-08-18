@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
@@ -120,6 +121,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
 
     /**
      * @throws \InvalidArgumentException when entries are not grouped by class or contain duplicate test IDs
+     * @throws InvalidWirePayload
      */
     #[\Override]
     public static function fromWire(array $payload): static

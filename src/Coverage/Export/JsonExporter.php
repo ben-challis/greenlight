@@ -51,6 +51,7 @@ final readonly class JsonExporter implements CoverageExporter
     /**
      * Reads a document from export() into a CoverageMap. The method calculates
      * totals and percentages because export() derives these values.
+     * @throws CoverageError
      */
     public static function import(string $json): CoverageMap
     {
@@ -96,6 +97,7 @@ final readonly class JsonExporter implements CoverageExporter
      * @param array<mixed> $entry
      *
      * @return list<int>
+     * @throws CoverageError
      */
     private static function lineList(array $entry, string $key, string $path): array
     {

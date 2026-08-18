@@ -40,6 +40,9 @@ final class StagedAttachments implements Attachments
         private bool $attemptRecorded = false,
     ) {}
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function value(
         string $name,
@@ -59,6 +62,9 @@ final class StagedAttachments implements Attachments
         $this->stage($name, $encoded . "\n", 'application/json', AttachmentKind::Value, $retention);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function text(
         string $name,
@@ -69,6 +75,9 @@ final class StagedAttachments implements Attachments
         $this->stage($name, $text, $mediaType, AttachmentKind::Text, $retention);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function bytes(
         string $name,
@@ -79,6 +88,9 @@ final class StagedAttachments implements Attachments
         $this->stage($name, $bytes, $mediaType, AttachmentKind::Binary, $retention);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function file(
         string $name,
@@ -135,6 +147,9 @@ final class StagedAttachments implements Attachments
         return $this->attachments;
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function stage(
         string $name,
         string $bytes,
@@ -158,6 +173,9 @@ final class StagedAttachments implements Attachments
         $this->record($attachment);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function recordAttempt(): void
     {
         if ($this->attemptRecorded) {
@@ -168,6 +186,9 @@ final class StagedAttachments implements Attachments
         $this->attemptRecorded = true;
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function record(StagedAttachment $attachment): void
     {
         if ($this->budget->bytes + $attachment->sizeBytes > $this->configuration->maxTestBytes) {
@@ -184,6 +205,9 @@ final class StagedAttachments implements Attachments
         $this->attachments[] = $attachment;
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function guard(string $name, string $mediaType): void
     {
         if ($this->sealed) {

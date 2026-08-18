@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Core\DecimalInteger;
 use Greenlight\Core\Test\ResourceName;
@@ -55,6 +56,7 @@ final readonly class CliOverrides
 
     /**
      * @throws CliError
+     * @throws InvalidConfiguration
      */
     public static function fromArguments(ParsedArguments $arguments): self
     {
@@ -225,6 +227,7 @@ final readonly class CliOverrides
 
     /**
      * @return positive-int
+     * @throws CliError
      */
     private static function positiveInt(string $raw, string $flag): int
     {

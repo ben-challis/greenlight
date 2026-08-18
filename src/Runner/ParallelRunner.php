@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\GracefulShutdown;
@@ -44,6 +45,7 @@ final readonly class ParallelRunner
      * @param array<string, float> $classSeconds Recorded class durations for longest-first ordering. Seeded runs ignore this value.
      *
      * @throws DiscoveryError
+     * @throws AttachmentError
      */
     public function run(
         Configuration $configuration,

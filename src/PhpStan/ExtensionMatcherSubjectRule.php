@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Config\ConfigFileError;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\TemporalExpectation;
 use PhpParser\Node;
@@ -36,6 +38,10 @@ final readonly class ExtensionMatcherSubjectRule implements Rule
         return MethodCall::class;
     }
 
+    /**
+     * @throws ConfigFileError
+     * @throws InvalidConfiguration
+     */
     #[\Override]
     public function processNode(Node $node, Scope $scope): array
     {

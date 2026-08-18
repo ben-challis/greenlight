@@ -24,7 +24,11 @@ final class ArtifactBuilder
 public function directory(string $directory): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L19)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L22)
 
 ### `maxAttachmentsPerTest()`
 
@@ -32,7 +36,11 @@ public function directory(string $directory): self
 public function maxAttachmentsPerTest(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L34)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L40)
 
 ### `maxAttachmentSize()`
 
@@ -40,7 +48,11 @@ public function maxAttachmentsPerTest(int $count): self
 public function maxAttachmentSize(string $size): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L45)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L54)
 
 ### `maxTestSize()`
 
@@ -48,7 +60,11 @@ public function maxAttachmentSize(string $size): self
 public function maxTestSize(string $size): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L52)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L64)
 
 ### `maxRunAttachments()`
 
@@ -56,7 +72,11 @@ public function maxTestSize(string $size): self
 public function maxRunAttachments(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L59)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L74)
 
 ### `maxRunSize()`
 
@@ -64,7 +84,11 @@ public function maxRunAttachments(int $count): self
 public function maxRunSize(string $size): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L70)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L88)
 
 ## `CoverageBuilder`
 
@@ -287,7 +311,11 @@ or "?" matches the complete message. Multiple calls add patterns.
 public function ignoreDeprecationsMatching(string ...$patterns): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L275)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L276)
 
 ### `plugins()`
 
@@ -295,7 +323,7 @@ public function ignoreDeprecationsMatching(string ...$patterns): self
 public function plugins(Plugin ...$plugins): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L292)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L293)
 
 ### `failFast()`
 
@@ -303,7 +331,7 @@ public function plugins(Plugin ...$plugins): self
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L301)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L302)
 
 ### `randomizeOrder()`
 
@@ -313,7 +341,7 @@ If the seed is null, Greenlight generates and prints a seed at run time.
 public function randomizeOrder(?int $seed = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L309)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L310)
 
 ### `build()`
 
@@ -321,7 +349,11 @@ public function randomizeOrder(?int $seed = null): self
 public function build(): Configuration
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L337)
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L342)
 
 ## `SuiteBuilder`
 

@@ -6,6 +6,7 @@ namespace Greenlight\PhpStan;
 
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Expect\ExpectationExtension;
 
 /**
@@ -35,6 +36,7 @@ final readonly class MatcherMap
      *
      * @throws ConfigFileError
      * @throws MatcherMapError
+     * @throws InvalidConfiguration
      */
     public static function fromConfigFiles(array $configFiles): self
     {

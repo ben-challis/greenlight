@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
@@ -20,6 +21,7 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
@@ -168,6 +170,8 @@ final class Orchestrator
      * @param positive-int $workerCount
      *
      * @throws ProtocolError
+     * @throws AttachmentError
+     * @throws InvalidWirePayload
      */
     public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount): ResultSummary
     {
@@ -318,6 +322,8 @@ final class Orchestrator
     /**
      * @param resource $server
      * @param non-empty-string $token
+     * @throws AttachmentError
+     * @throws InvalidWirePayload
      */
     private function tick(mixed $server, string $token, EventSink $sink): void
     {
@@ -354,6 +360,8 @@ final class Orchestrator
 
     /**
      * @param non-empty-string $token
+     * @throws InvalidWirePayload
+     * @throws AttachmentError
      */
     private function processHellos(string $token, EventSink $sink): void
     {
@@ -401,6 +409,7 @@ final class Orchestrator
      *
      * If no suitable work remains, drains the worker. A worker can remain
      * connected without an assignment while a resource lease is unavailable.
+     * @throws AttachmentError
      */
     private function assignNext(WorkerHandle $handle, EventSink $sink): void
     {
@@ -459,6 +468,10 @@ final class Orchestrator
         }
     }
 
+    /**
+     * @throws AttachmentError
+     * @throws InvalidWirePayload
+     */
     private function pumpChannels(EventSink $sink): void
     {
         foreach ($this->handles as $handle) {
@@ -552,6 +565,9 @@ final class Orchestrator
 
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function openInitialBarrier(EventSink $sink): void
     {
         $ready = 0;
@@ -577,6 +593,9 @@ final class Orchestrator
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function onEvent(WorkerHandle $handle, Event $event, EventSink $sink): void
     {
         if ($event instanceof TestFinished && $this->artifactStore instanceof ArtifactStore) {
@@ -655,6 +674,9 @@ final class Orchestrator
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function detectCrashes(EventSink $sink): void
     {
         foreach ($this->handles as $handle) {
@@ -703,6 +725,9 @@ final class Orchestrator
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function enforceTimeouts(EventSink $sink): void
     {
         foreach ($this->handles as $handle) {
@@ -753,6 +778,9 @@ final class Orchestrator
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function containTimeout(WorkerHandle $handle, EventSink $sink, float $budget): void
     {
         $inFlight = $handle->inFlight;
@@ -783,6 +811,9 @@ final class Orchestrator
         $this->retireFailedWorker($handle, $sink);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function containCrash(WorkerHandle $handle, EventSink $sink, string $reason): void
     {
         $handle->drainPipes();
@@ -808,6 +839,9 @@ final class Orchestrator
         $this->retireFailedWorker($handle, $sink);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function recordSyntheticResult(WorkerHandle $handle, EventSink $sink, TestResult $result): void
     {
         $result = $result->withAttempts(\max($result->attempts, $handle->inFlightAttempt));
@@ -904,6 +938,9 @@ final class Orchestrator
         $this->retryWaitingWorkers = true;
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function assignWaiting(EventSink $sink): void
     {
         if (!$this->retryWaitingWorkers) {

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Config\ConfigFileError;
+use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Expect\ConsistentlyExpectation;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
@@ -27,6 +29,10 @@ final readonly class ExpectationMethodsExtension implements MethodsClassReflecti
 {
     public function __construct(private MatcherMapProvider $matcherMap) {}
 
+    /**
+     * @throws ConfigFileError
+     * @throws InvalidConfiguration
+     */
     #[\Override]
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
     {
@@ -39,6 +45,10 @@ final readonly class ExpectationMethodsExtension implements MethodsClassReflecti
             && $this->matcherMap->get()->has($methodName);
     }
 
+    /**
+     * @throws ConfigFileError
+     * @throws InvalidConfiguration
+     */
     #[\Override]
     public function getMethod(ClassReflection $classReflection, string $methodName): MethodReflection
     {

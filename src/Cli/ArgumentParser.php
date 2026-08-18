@@ -115,6 +115,7 @@ final class ArgumentParser
 
     /**
      * @param array<string, list<string|null>> $options
+     * @throws CliError
      */
     private function record(array &$options, OptionSpec $spec, ?string $value): void
     {
