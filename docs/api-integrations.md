@@ -204,7 +204,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
 ```php
 public function __construct(
     string|\Closure $application,
-    private readonly string $env = 'testing',
+    string $env = 'testing',
     private readonly bool $refreshBetweenTests = true,
 )
 ```
@@ -212,10 +212,9 @@ public function __construct(
 PHPDoc:
 
 - `@param string|\Closure(): Application $application A path to the file that returns the application, usually bootstrap/app.php, or a closure returning the application when exotic construction is needed.`
-- `@param non-empty-string $env`
 - `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L51)
 
 ### `services()`
 
@@ -228,7 +227,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L75)
 
 ### `resolve()`
 
@@ -243,7 +242,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws LaravelBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L83)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L92)
 
 ### `beforeTest()`
 
@@ -252,7 +251,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L113)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L122)
 
 ### `afterTest()`
 
@@ -261,7 +260,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L116)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L125)
 
 ## `Laravel\Service`
 
@@ -716,10 +715,9 @@ public function __construct(
 PHPDoc:
 
 - `@param string|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
-- `@param non-empty-string $env`
 - `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L51)
 
 ### `services()`
 
@@ -747,7 +745,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws SymfonyBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L85)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L88)
 
 ### `beforeTest()`
 
@@ -756,7 +754,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L118)
 
 ### `afterTest()`
 
@@ -765,7 +763,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L118)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L121)
 
 ## `TempestPlugin`
 

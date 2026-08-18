@@ -17,7 +17,7 @@ final class FrameworkPluginEnvironmentValidationTest
      */
     #[Test]
     #[DataSet('frameworkPlugins')]
-    public function emptyEnvironmentIsRejected(\Closure $construct): void
+    public function blankEnvironmentIsRejected(\Closure $construct): void
     {
         Expect::that($construct)
             ->because('a framework plugin environment MUST identify the environment to boot')
@@ -32,12 +32,20 @@ final class FrameworkPluginEnvironmentValidationTest
      */
     public static function frameworkPlugins(): iterable
     {
-        yield 'Laravel' => [
+        yield 'Laravel empty' => [
             static fn(): LaravelPlugin => new LaravelPlugin('/unused/bootstrap.php', env: ''),
         ];
 
-        yield 'Symfony' => [
+        yield 'Laravel whitespace' => [
+            static fn(): LaravelPlugin => new LaravelPlugin('/unused/bootstrap.php', env: " \t"),
+        ];
+
+        yield 'Symfony empty' => [
             static fn(): SymfonyPlugin => new SymfonyPlugin('UnusedKernel', env: ''),
+        ];
+
+        yield 'Symfony whitespace' => [
+            static fn(): SymfonyPlugin => new SymfonyPlugin('UnusedKernel', env: " \t"),
         ];
     }
 }

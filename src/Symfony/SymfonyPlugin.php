@@ -54,7 +54,7 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
         bool $debug = false,
         private readonly bool $resetBetweenTests = true,
     ) {
-        if ($env === '') {
+        if (\trim($env) === '') {
             throw new \InvalidArgumentException('Framework environment MUST NOT be empty.');
         }
 
