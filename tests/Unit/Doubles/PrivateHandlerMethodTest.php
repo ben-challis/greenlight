@@ -9,12 +9,14 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\PrivateHandlerMethod;
 
-final class PrivateHandlerMethodTest
+final readonly class PrivateHandlerMethodTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function privateParentHandlerMethodsRemainValid(): void
     {
-        Expect::that(new Doubles()->stub(PrivateHandlerMethod::class))
+        Expect::that($this->doubles->stub(PrivateHandlerMethod::class))
             ->because('a private parent method does not conflict with the proxy handler method')
             ->toBeInstanceOf(PrivateHandlerMethod::class);
     }

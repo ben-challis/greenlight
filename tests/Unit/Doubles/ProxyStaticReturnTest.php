@@ -10,26 +10,23 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
-final class ProxyStaticReturnTest
+final readonly class ProxyStaticReturnTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function aConfiguredStaticReturnAcceptsTheGeneratedProxy(): void
     {
         $double = null;
-        $doubles = new Doubles();
 
-        try {
-            $double = $doubles->mock(Wide::class, static function (MockPlan $plan) use (&$double): void {
-                $plan->expects('returnsStatic')->andReturnsUsing(static function () use (&$double): ?Wide {
-                    return $double;
-                });
+        $double = $this->doubles->mock(Wide::class, static function (MockPlan $plan) use (&$double): void {
+            $plan->expects('returnsStatic')->andReturnsUsing(static function () use (&$double): ?Wide {
+                return $double;
             });
+        });
 
-            Expect::that($double->returnsStatic())
-                ->because('a static return type MUST accept the generated proxy instance')
-                ->toBe($double);
-        } finally {
-            $doubles->dispose();
-        }
+        Expect::that($double->returnsStatic())
+            ->because('a static return type MUST accept the generated proxy instance')
+            ->toBe($double);
     }
 }

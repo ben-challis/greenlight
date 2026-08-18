@@ -10,13 +10,14 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
-final class ProxyByReferenceTest
+final readonly class ProxyByReferenceTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     public function configuredCallbacksCanChangeByReferenceArguments(): void
     {
-        $doubles = new Doubles();
-        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('byReference')
                 ->andReturnsUsing(static function (array &$items): void {
                     $items[] = 'changed';
@@ -24,14 +25,10 @@ final class ProxyByReferenceTest
         });
         $items = ['original'];
 
-        try {
-            $wide->byReference($items);
+        $wide->byReference($items);
 
-            Expect::that($items)
-                ->because('a doubled method MUST preserve by-reference argument changes')
-                ->toBe(['original', 'changed']);
-        } finally {
-            $doubles->dispose();
-        }
+        Expect::that($items)
+            ->because('a doubled method MUST preserve by-reference argument changes')
+            ->toBe(['original', 'changed']);
     }
 }
