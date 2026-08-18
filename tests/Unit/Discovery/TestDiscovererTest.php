@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
@@ -152,6 +154,36 @@ final class TestDiscovererTest
             DiscoveryError::class,
             message: \sprintf('Discovery directory "%s" is missing or is not a directory.', $directory),
         );
+    }
+
+    #[Test]
+    #[Isolated]
+    public function inaccessibleDirectoryFailsWithoutEngineDiagnostics(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $directory = \dirname($root);
+        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
+
+        Expect::that($previousOpenBasedir)
+            ->because('the isolated fixture MUST restrict access to the discovery directory')
+            ->not()
+            ->toBeFalse();
+
+        Expect::that(
+            static function () use ($directory, &$warning): void {
+                ErrorTrap::run(
+                    static fn(): array => new TestDiscoverer()->testFiles([$directory]),
+                    $warning,
+                );
+            },
+        )->because('an inaccessible discovery directory causes a domain error')->toThrow(
+            DiscoveryError::class,
+            message: \sprintf('Discovery directory "%s" is missing or is not a directory.', $directory),
+        );
+
+        Expect::that($warning)
+            ->because('inaccessible discovery paths MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 
     #[Test]
