@@ -92,6 +92,7 @@ final readonly class AcceptanceProjectTest
         yield 'nested parent-directory segment' => ['tests/../fixture.php'];
         yield 'empty segment' => ['tests//fixture.php'];
         yield 'backslash separator' => ['tests\\fixture.php'];
+        yield 'null byte' => ["tests/fixture\0.php"];
     }
 
     #[Test]
