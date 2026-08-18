@@ -58,8 +58,6 @@ use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Reporting\TtyReporter;
-use Greenlight\Runner\CoverageCollector;
-use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
@@ -67,7 +65,6 @@ use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\SelectionFilter;
-use Greenlight\Runner\SharedCoverageDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
@@ -499,63 +496,42 @@ final readonly class Application
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
 
-        $orchestratorCollector = null;
-        $shared = null;
-
-        if ($coverageSettings instanceof CoverageSettings) {
-            // The worker-pool path collects orchestrator coverage unless this
-            // process inherits relay variables. A second driver period closes
-            // the inherited process period too early.
-            if ($workers !== 1 && $realBin !== false && !SubprocessCoverage::requested()) {
-                $orchestratorCollector = CoverageCollector::create($coverageSettings);
-                $orchestratorCollector?->start();
-            }
-
-            $shared = SharedCoverageDirectory::open($coverageSettings);
-        }
+        // The worker-pool path collects orchestrator coverage unless this
+        // process inherits relay variables. A second driver period closes
+        // the inherited process period too early.
+        $coverageSession = CoverageSession::open(
+            $coverageSettings,
+            $workers !== 1 && $realBin !== false && !SubprocessCoverage::requested(),
+        );
 
         try {
-            if ($workers === 1 || $realBin === false) {
-                $run = new InProcessRunner($workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
-            } else {
-                $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
-                    ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
+            try {
+                if ($workers === 1 || $realBin === false) {
+                    $run = new InProcessRunner($workingDirectory)
+                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
+                } else {
+                    $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
+                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
+                }
+            } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+                $reporter->finish();
+                $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+                $interruptExit = $shutdown->exitCode();
+
+                if ($interruptExit !== null) {
+                    ($this->err)("Interrupted. Integration fixture teardown was attempted before exit.\n");
+                }
+
+                return $interruptExit ?? self::EXIT_FAILURE;
             }
-        } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
-            $orchestratorCollector?->stop();
-            $shared?->drain();
-            $reporter->finish();
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            $interruptExit = $shutdown->exitCode();
-
-            if ($interruptExit !== null) {
-                ($this->err)("Interrupted. Integration fixture teardown was attempted before exit.\n");
-            }
-
-            return $interruptExit ?? self::EXIT_FAILURE;
-        }
-
-        // Merge before an early return. Thus, this operation restores relay
-        // variables and removes the shared directory for interrupted or empty
-        // runs.
-        $coverage = $run->coverage;
-
-        if ($orchestratorCollector instanceof CoverageCollector) {
-            $collected = $orchestratorCollector->stop();
-
-            if (!$collected->isEmpty()) {
-                $coverage = $coverage instanceof CoverageMap ? $coverage->merge($collected) : $collected;
-            }
-        }
-
-        if ($shared instanceof SharedCoverageDirectory) {
-            $dumped = $shared->drain();
-
-            if ($dumped instanceof CoverageMap) {
-                $coverage = $coverage instanceof CoverageMap ? $coverage->merge($dumped) : $dumped;
-            }
+            // Merge before an early return. Thus, this operation restores relay
+            // variables and removes the shared directory for interrupted or empty
+            // runs.
+            $coverage = $coverageSession->finish($run->coverage);
+        } finally {
+            $coverageSession->close();
         }
 
         // Apply the filter after all source maps merge. Thus, exclusion markers
