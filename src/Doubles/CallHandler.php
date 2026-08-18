@@ -29,6 +29,8 @@ final readonly class CallHandler
     /**
      * @param non-empty-string $method
      * @param list<mixed> $arguments
+     *
+     * @throws ExpectationFailed
      */
     public function invoke(object $double, string $method, array $arguments): mixed
     {
@@ -46,6 +48,8 @@ final readonly class CallHandler
 
     /**
      * @param list<mixed> $arguments
+     *
+     * @throws ExpectationFailed
      */
     private function invokeOnMock(object $double, string $method, array $arguments): mixed
     {
