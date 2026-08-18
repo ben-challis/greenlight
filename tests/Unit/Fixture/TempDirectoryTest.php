@@ -43,6 +43,17 @@ final class TempDirectoryTest
     }
 
     #[Test]
+    public function aTemporaryRootCannotContainANullByte(): void
+    {
+        Expect::that(static fn(): TempDirectory => new TempDirectory("root\0suffix"))
+            ->because('the fixture MUST reject an invalid temporary root before a file-system operation')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Temporary root MUST NOT contain a null byte.',
+            );
+    }
+
+    #[Test]
     public function aBlockedTempRootGivesExactGuidance(): void
     {
         $directory = new TempDirectory();
@@ -185,6 +196,10 @@ final class TempDirectoryTest
         yield 'current-directory segment' => [
             'a/./b',
             'Subdirectory name "a/./b" must not contain empty or traversal segments.',
+        ];
+        yield 'null byte' => [
+            "a\0b",
+            'Subdirectory name MUST NOT contain a null byte.',
         ];
     }
 

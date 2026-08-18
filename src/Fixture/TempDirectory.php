@@ -16,7 +16,17 @@ final class TempDirectory implements Disposable
 {
     private ?string $path = null;
 
-    public function __construct(private readonly ?string $temporaryRoot = null) {}
+    private readonly ?string $temporaryRoot;
+
+    /** @throws \InvalidArgumentException If $temporaryRoot contains a null byte. */
+    public function __construct(?string $temporaryRoot = null)
+    {
+        if ($temporaryRoot !== null && \str_contains($temporaryRoot, "\0")) {
+            throw new \InvalidArgumentException('Temporary root MUST NOT contain a null byte.');
+        }
+
+        $this->temporaryRoot = $temporaryRoot;
+    }
 
     /** @throws TempDirectoryError */
     public function path(): string
@@ -48,6 +58,10 @@ final class TempDirectory implements Disposable
      */
     public function subdirectory(string $name): string
     {
+        if (\str_contains($name, "\0")) {
+            throw new \InvalidArgumentException('Subdirectory name MUST NOT contain a null byte.');
+        }
+
         if ($name === '' || \str_starts_with($name, '/') || \str_contains($name, '\\')) {
             throw new \InvalidArgumentException(\sprintf('Subdirectory name "%s" must be a relative path.', $name));
         }
