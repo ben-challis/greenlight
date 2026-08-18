@@ -75,6 +75,9 @@ final readonly class RunStateTest
 
         \file_put_contents($file, '{"failed": "not a list"}');
         Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+
+        \file_put_contents($file, '{"failed": {"first": "Acme\\\\AlphaTest::one"}}');
+        Expect::that(RunState::forFile($file)->failedTests())->because('object-shaped state reads as absent')->toBeNull();
     }
 
     #[Test]

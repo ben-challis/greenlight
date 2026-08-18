@@ -44,14 +44,15 @@ final readonly class RunState
     public function failedTests(): ?array
     {
         $decoded = $this->decoded();
+        $failed = $decoded['failed'] ?? null;
 
-        if ($decoded === null || !\is_array($decoded['failed'] ?? null)) {
+        if (!\is_array($failed) || !\array_is_list($failed)) {
             return null;
         }
 
         $ids = [];
 
-        foreach ($decoded['failed'] as $id) {
+        foreach ($failed as $id) {
             if (\is_string($id) && $id !== '') {
                 $ids[] = $id;
             }
