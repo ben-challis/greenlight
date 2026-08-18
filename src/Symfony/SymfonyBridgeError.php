@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Symfony;
 
+use Greenlight\Harness\ServiceResolutionError;
+
 /** @internal */
-final class SymfonyBridgeError extends \RuntimeException
+final class SymfonyBridgeError extends ServiceResolutionError
 {
     private function __construct(string $message)
     {

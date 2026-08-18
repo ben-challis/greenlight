@@ -45,6 +45,7 @@ final readonly class InProcessRunner
      *
      * @throws DiscoveryError
      * @throws AttachmentError
+     * @throws IntegrationFixtureError
      */
     public function run(
         Configuration $configuration,

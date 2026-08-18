@@ -43,9 +43,18 @@ final readonly class PhpStanCheckedExceptionTest
             namespace Greenlight\Probe;
 
             use Greenlight\Core\Result\FailureDetail;
+            use Greenlight\Core\Wire\WireError;
             use Greenlight\Coverage\CoverageError;
             use Greenlight\Doubles\DoublesError;
             use Greenlight\Expect\ExpectationFailed;
+            use Greenlight\Harness\ServiceResolutionError;
+            use Greenlight\Harness\UnresolvableService;
+            use Greenlight\Reporting\ReportingError;
+            use Greenlight\Runner\Integration\IntegrationFixtureError;
+            use Greenlight\Runner\Protocol\ProtocolError;
+
+            final class ProbeWireError extends WireError {}
+            final class ProbeServiceResolutionError extends ServiceResolutionError {}
 
             function undocumentedProductionHelper(): void
             {
@@ -61,6 +70,36 @@ final readonly class PhpStanCheckedExceptionTest
             {
                 throw DoublesError::invalidTimes(-1);
             }
+
+            function undocumentedResolutionError(): void
+            {
+                throw UnresolvableService::unknownType(\stdClass::class, \stdClass::class);
+            }
+
+            function undocumentedReportingError(): void
+            {
+                throw ReportingError::writeFailed();
+            }
+
+            function undocumentedIntegrationError(): void
+            {
+                throw IntegrationFixtureError::cleanup([]);
+            }
+
+            function undocumentedProtocolError(): void
+            {
+                throw ProtocolError::malformedFrame('probe');
+            }
+
+            function undocumentedWireErrorSubtype(): void
+            {
+                throw new ProbeWireError('Expected wire failure.');
+            }
+
+            function undocumentedServiceResolutionErrorSubtype(): void
+            {
+                throw new ProbeServiceResolutionError('Expected service resolution failure.');
+            }
             PHP,
             \dirname(__DIR__, 2) . '/phpstan.dist.neon',
         );
@@ -71,7 +110,7 @@ final readonly class PhpStanCheckedExceptionTest
         Expect::that($probe->goodPassed)
             ->because('PHPStan MUST not require throws tags in test code')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(3);
+        Expect::that($probe->errors)->toHaveCount(9);
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
@@ -80,6 +119,24 @@ final readonly class PhpStanCheckedExceptionTest
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Doubles\\DoublesError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Harness\\UnresolvableService but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Reporting\\ReportingError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Runner\\Integration\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Runner\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Probe\\ProbeWireError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionError but it\'s missing from the PHPDoc @throws tag.',
         );
     }
 
@@ -149,5 +206,52 @@ final readonly class PhpStanCheckedExceptionTest
             ->toBeTrue();
         Expect::that($probe->errors)->toHaveCount(1);
         Expect::that($probe->messages())->toContain('should be covariant with PHPDoc @throws type');
+    }
+
+    #[Test]
+    public function throwsTagsMustNotBeWiderThanTheImplementation(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace Greenlight\Probe\ExactThrows;
+
+            use Greenlight\Coverage\CoverageError;
+
+            /** @throws CoverageError */
+            function documentedFailure(): void
+            {
+                throw CoverageError::driverUnavailable('probe', 'Expected operational failure.');
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace Greenlight\Probe\WideThrows;
+
+            use Greenlight\Coverage\CoverageError;
+
+            /** @throws CoverageError */
+            function documentedFailure(): void {}
+            PHP,
+            \dirname(__DIR__, 2) . '/phpstan.dist.neon',
+        );
+
+        Expect::that($probe->exitCode)
+            ->because('PHPStan MUST reject a throws type that the implementation does not throw')
+            ->toBe(1);
+        Expect::that($probe->goodPassed)
+            ->because('PHPStan MUST accept an exact throws contract')
+            ->toBeTrue();
+        Expect::that($probe->errors)->toHaveCount(1);
+        Expect::that($probe->messages())->toContain(
+            'has Greenlight\\Coverage\\CoverageError in PHPDoc @throws tag but it\'s not thrown.',
+        );
     }
 }

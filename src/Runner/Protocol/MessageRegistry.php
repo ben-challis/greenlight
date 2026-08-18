@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Protocol;
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
+use Greenlight\Core\Wire\WireError;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Bootstrap;
@@ -66,6 +67,7 @@ final class MessageRegistry
      *
      * @throws ProtocolError
      * @throws InvalidWirePayload
+     * @throws WireError
      */
     public static function open(array $envelope): Message
     {

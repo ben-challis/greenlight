@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
+use Greenlight\Core\Wire\WireError;
+
 /**
  * Greenlight raises this error when a frame, envelope, or message violates
  * the worker protocol. Causes include an oversized or truncated frame and
@@ -12,7 +14,7 @@ namespace Greenlight\Runner\Protocol;
  *
  * @internal
  */
-final class ProtocolError extends \RuntimeException
+final class ProtocolError extends WireError
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {

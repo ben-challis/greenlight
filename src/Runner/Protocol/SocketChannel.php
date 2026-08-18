@@ -6,6 +6,7 @@ namespace Greenlight\Runner\Protocol;
 
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Wire\InvalidWirePayload;
+use Greenlight\Core\Wire\WireError;
 
 /**
  * Sends framed messages through one stream socket.
@@ -79,6 +80,7 @@ final class SocketChannel
      *
      * @throws ProtocolError
      * @throws InvalidWirePayload
+     * @throws WireError
      */
     public function receive(float $timeoutSeconds): ?Message
     {
@@ -123,6 +125,7 @@ final class SocketChannel
      *
      * @throws ProtocolError
      * @throws InvalidWirePayload
+     * @throws WireError
      */
     public function poll(): ?Message
     {

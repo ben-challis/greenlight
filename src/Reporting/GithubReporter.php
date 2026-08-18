@@ -64,6 +64,9 @@ final class GithubReporter implements Reporter
         }
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function writeFailures(TestResult $result): void
     {
         foreach ($result->failures as $failure) {
@@ -101,6 +104,9 @@ final class GithubReporter implements Reporter
         }
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function writeError(TestResult $result): void
     {
         $error = $result->error;
@@ -126,6 +132,9 @@ final class GithubReporter implements Reporter
         $this->write($error->file, $error->line, $message);
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function write(?string $file, ?int $line, string $message): void
     {
         $properties = '';

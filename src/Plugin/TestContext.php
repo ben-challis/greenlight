@@ -10,6 +10,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Harness\ServiceResolutionError;
 use Greenlight\Harness\UnresolvableService;
 
 /**
@@ -38,7 +39,7 @@ final readonly class TestContext
      *
      * @return T
      *
-     * @throws \RuntimeException when a service resolver cannot supply a valid service
+     * @throws ServiceResolutionError when a service resolver cannot supply a valid service
      * @throws UnresolvableService
      */
     public function service(string $type): object

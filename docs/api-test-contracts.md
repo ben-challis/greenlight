@@ -133,7 +133,7 @@ Identifies a test across processes for assignment, rerun selection, and the timi
 final readonly class TestId implements WireSerializable, \Stringable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L14)
 
 ### `$class`
 
@@ -145,7 +145,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L19)
 
 ### `$method`
 
@@ -157,7 +157,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L24)
 
 ### `__construct()`
 
@@ -173,7 +173,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L29)
 
 ### `equals()`
 
@@ -181,7 +181,7 @@ PHPDoc:
 public function equals(self $other): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L46)
 
 ### `__toString()`
 
@@ -190,7 +190,7 @@ public function equals(self $other): bool
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L53)
 
 ### `toWire()`
 
@@ -199,7 +199,7 @@ public function __toString(): string
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L63)
 
 ### `fromWire()`
 
@@ -208,7 +208,12 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L72)
+PHPDoc:
+
+- `@throws \InvalidArgumentException when the decoded identity is empty`
+- `@throws InvalidWirePayload when a required field is missing or has the wrong type`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L77)
 
 ## `TestMetadata`
 
@@ -336,7 +341,12 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L146)
+PHPDoc:
+
+- `@throws \InvalidArgumentException when the decoded metadata violates a domain invariant`
+- `@throws InvalidWirePayload when a required field is missing or has the wrong type`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L150)
 
 ## `InvalidWirePayload`
 
@@ -349,7 +359,7 @@ The error always names the applicable key. Thus, its message identifies the
 protocol error.
 
 ```php
-final class InvalidWirePayload extends \RuntimeException
+final class InvalidWirePayload extends WireError
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/InvalidWirePayload.php#L14)
@@ -369,6 +379,20 @@ public static function wrongType(string $key, string $expected, mixed $actual): 
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/InvalidWirePayload.php#L26)
+
+## `WireError`
+
+Namespace: `Greenlight\Core\Wire`
+
+A value or frame cannot cross the orchestrator-worker wire boundary.
+
+```php
+abstract class WireError extends \RuntimeException
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireError.php#L10)
+
+This type does not declare public members.
 
 ## `WireSerializable`
 
@@ -408,6 +432,6 @@ PHPDoc:
 
 - `@param array<string, mixed> $payload`
 - `@throws \InvalidArgumentException when a decoded value violates a domain invariant`
-- `@throws InvalidWirePayload`
+- `@throws WireError when the payload cannot be decoded`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireSerializable.php#L27)

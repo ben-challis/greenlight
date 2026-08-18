@@ -30,6 +30,7 @@ final class WorkerSpawnBudget
 
     /**
      * @return non-empty-string
+     * @throws ProtocolError
      */
     public function nextWorkerId(): string
     {

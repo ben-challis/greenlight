@@ -39,7 +39,7 @@ final class HarnessScopes
      * @param non-empty-string $consumer
      * @param list<object> $attributes
      *
-     * @throws \RuntimeException when a service resolver cannot supply a valid service
+     * @throws ServiceResolutionError when a service resolver cannot supply a valid service
      * @throws UnresolvableService
      */
     public function resolve(string $type, string $consumer, array $attributes = []): object

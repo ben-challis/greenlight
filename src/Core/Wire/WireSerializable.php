@@ -22,7 +22,7 @@ interface WireSerializable
      * @param array<string, mixed> $payload
      *
      * @throws \InvalidArgumentException when a decoded value violates a domain invariant
-     * @throws InvalidWirePayload
+     * @throws WireError when the payload cannot be decoded
      */
     public static function fromWire(array $payload): static;
 }

@@ -16,17 +16,19 @@ parameters:
             - Greenlight\Core\Artifact\AttachmentError
             - Greenlight\Core\AtomicFileError
             - Greenlight\Core\Test\SkipTest
-            - Greenlight\Core\Wire\InvalidWirePayload
+            - Greenlight\Core\Wire\WireError
             - Greenlight\Coverage\CoverageError
             - Greenlight\Discovery\DiscoveryError
             - Greenlight\Doubles\DoublesError
             - Greenlight\Expect\ExpectationFailed
-            - Greenlight\Laravel\LaravelBridgeError
+            - Greenlight\Harness\ServiceResolutionError
             - Greenlight\PhpStan\MatcherMapError
-            - Greenlight\Symfony\SymfonyBridgeError
+            - Greenlight\Reporting\ReportingError
+            - Greenlight\Runner\Integration\IntegrationFixtureError
         check:
             missingCheckedExceptionInThrows: true
             throwTypeCovariance: true
+            tooWideThrowType: true
     paths:
         - src
         - tests

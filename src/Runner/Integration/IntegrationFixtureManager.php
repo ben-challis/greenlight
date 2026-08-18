@@ -23,6 +23,7 @@ final class IntegrationFixtureManager
      * @param positive-int $configuredWorkers
      * @param positive-int $channelCount
      * @param array{int, int}|null $shard
+     * @throws IntegrationFixtureError
      */
     public static function provision(
         PluginRegistry $plugins,
@@ -90,6 +91,7 @@ final class IntegrationFixtureManager
      * @param array<mixed> $provided
      *
      * @return list<IntegrationFixtureDefinition>
+     * @throws IntegrationFixtureError
      */
     private static function validatedDefinitions(IntegrationFixtureProvider $provider, array $provided): array
     {
@@ -115,6 +117,7 @@ final class IntegrationFixtureManager
      * @param array<string, IntegrationFixtureDefinition> $definitions
      *
      * @return list<IntegrationFixtureDefinition>
+     * @throws IntegrationFixtureError
      */
     private static function ordered(array $definitions): array
     {
@@ -134,6 +137,7 @@ final class IntegrationFixtureManager
      * @param array<string, int> $state
      * @param list<string> $path
      * @param list<IntegrationFixtureDefinition> $ordered
+     * @throws IntegrationFixtureError
      */
     private static function visit(
         IntegrationFixtureDefinition $definition,

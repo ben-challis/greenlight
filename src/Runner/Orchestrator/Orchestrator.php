@@ -23,9 +23,11 @@ use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Utf8;
+use Greenlight\Core\Wire\WireError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Reporting\ReportingError;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
@@ -173,6 +175,8 @@ final class Orchestrator
      * @throws ProtocolError
      * @throws AttachmentError
      * @throws InvalidWirePayload
+     * @throws ReportingError
+     * @throws WireError
      */
     public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount): ResultSummary
     {
@@ -224,6 +228,7 @@ final class Orchestrator
      * @param positive-int $workerCount
      * @param non-empty-string $address
      * @param non-empty-string $token
+     * @throws ProtocolError
      */
     private function spawnUpTo(
         int $workerCount,
@@ -325,6 +330,8 @@ final class Orchestrator
      * @param non-empty-string $token
      * @throws AttachmentError
      * @throws InvalidWirePayload
+     * @throws ProtocolError
+     * @throws WireError
      */
     private function tick(mixed $server, string $token, EventSink $sink): void
     {
@@ -363,6 +370,8 @@ final class Orchestrator
      * @param non-empty-string $token
      * @throws InvalidWirePayload
      * @throws AttachmentError
+     * @throws ProtocolError
+     * @throws WireError
      */
     private function processHellos(string $token, EventSink $sink): void
     {
@@ -472,6 +481,8 @@ final class Orchestrator
     /**
      * @throws AttachmentError
      * @throws InvalidWirePayload
+     * @throws ProtocolError
+     * @throws WireError
      */
     private function pumpChannels(EventSink $sink): void
     {
@@ -634,6 +645,9 @@ final class Orchestrator
         }
     }
 
+    /**
+     * @throws ProtocolError
+     */
     private function onAttemptStarted(WorkerHandle $handle, AttemptStarted $message): void
     {
         $inFlight = $handle->inFlight;
@@ -677,6 +691,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function detectCrashes(EventSink $sink): void
     {
@@ -728,6 +743,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function enforceTimeouts(EventSink $sink): void
     {
@@ -901,6 +917,7 @@ final class Orchestrator
 
     /**
      * @param list<TestId> $reported
+     * @throws ProtocolError
      */
     private function assertRemainder(WorkerHandle $handle, array $reported): void
     {
@@ -968,6 +985,9 @@ final class Orchestrator
         return $this->scheduler;
     }
 
+    /**
+     * @throws ProtocolError
+     */
     private function crossCheck(WorkerHandle $handle, ResultSummary $reported): void
     {
         if ($handle->tally->toWire() !== $reported->toWire()) {

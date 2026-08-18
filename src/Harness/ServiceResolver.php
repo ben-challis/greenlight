@@ -19,7 +19,7 @@ interface ServiceResolver
      * @param class-string $type
      * @param list<object> $attributes
      *
-     * @throws \RuntimeException when the resolver cannot supply a valid service
+     * @throws ServiceResolutionError when the resolver cannot supply a valid service
      */
     public function resolve(string $type, array $attributes): ?object;
 }

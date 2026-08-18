@@ -46,6 +46,7 @@ final readonly class ParallelRunner
      *
      * @throws DiscoveryError
      * @throws AttachmentError
+     * @throws IntegrationFixtureError
      */
     public function run(
         Configuration $configuration,
