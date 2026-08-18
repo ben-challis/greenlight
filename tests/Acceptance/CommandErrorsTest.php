@@ -113,15 +113,33 @@ final readonly class CommandErrorsTest
             'A line does not contain an event envelope.',
         ];
 
+        yield 'invalid envelope key' => [
+            'profile-invalid-envelope-key',
+            '{"0":true,"v":2,"event":"future-event","data":{}}',
+            'A line does not contain an event envelope.',
+        ];
+
+        yield 'unsupported envelope version' => [
+            'profile-unsupported-version',
+            '{"v":3,"event":"run-started","data":{}}',
+            'The input uses unsupported JSONL version 3.',
+        ];
+
         yield 'invalid known event payload' => [
             'profile-invalid-payload',
-            '{"event":"run-started","data":[]}',
+            '{"v":2,"event":"run-started","data":[]}',
             'Greenlight could not decode a "run-started" event:',
+        ];
+
+        yield 'invalid event data map' => [
+            'profile-invalid-data-map',
+            '{"v":2,"event":"future-event","data":{"0":true}}',
+            'A line does not contain an event envelope.',
         ];
 
         yield 'no finished run' => [
             'profile-no-finished-run',
-            '{"event":"future-event","data":[]}',
+            '{"v":2,"event":"future-event","data":[]}',
             'The stream has no finished run to profile.',
         ];
     }
