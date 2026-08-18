@@ -49,6 +49,37 @@ final readonly class ArtifactSessionTest
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }
 
+    #[Test]
+    #[DataSet('nullByteDirectories')]
+    public function artifactSessionsRejectNullByteDirectories(
+        string $field,
+        string $value,
+        string $message,
+    ): void {
+        Expect::that(static fn(): ArtifactSession => new ArtifactSession(
+            $field === 'stagingDirectory' ? $value : '/project/.greenlight/staging/run-1',
+            $field === 'publicDirectory' ? $value : '/project/build/artifacts/run-1',
+        ))
+            ->because('artifact session directories MUST be valid file-system paths')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
+    #[Test]
+    #[DataSet('nullByteDirectories')]
+    public function artifactSessionWireRejectsNullByteDirectories(
+        string $field,
+        string $value,
+        string $message,
+    ): void {
+        $payload = new ArtifactSession('/project/.greenlight/staging/run-1', '/project/build/artifacts/run-1')
+            ->toWire();
+        $payload[$field] = $value;
+
+        Expect::that(static fn(): ArtifactSession => ArtifactSession::fromWire($payload))
+            ->because('artifact session directories MUST remain valid file-system paths across the worker wire')
+            ->toThrow(\InvalidArgumentException::class, message: $message);
+    }
+
     /**
      * @return iterable<string, array{string, string, string}>
      */
@@ -63,6 +94,23 @@ final readonly class ArtifactSessionTest
             '/project/.greenlight/staging/run-1',
             '',
             'Artifact public directory must not be empty.',
+        ];
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, non-empty-string, non-empty-string}>
+     */
+    public static function nullByteDirectories(): iterable
+    {
+        yield 'staging directory' => [
+            'stagingDirectory',
+            "/project/.greenlight/staging\0hidden",
+            'Artifact staging directory must not contain a null byte.',
+        ];
+        yield 'public directory' => [
+            'publicDirectory',
+            "/project/build/artifacts\0hidden",
+            'Artifact public directory must not contain a null byte.',
         ];
     }
 

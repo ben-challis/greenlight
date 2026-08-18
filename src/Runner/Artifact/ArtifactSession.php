@@ -31,16 +31,8 @@ final readonly class ArtifactSession implements WireSerializable
         string $stagingDirectory,
         string $publicDirectory,
     ) {
-        if ($stagingDirectory === '') {
-            throw new \InvalidArgumentException('Artifact staging directory must not be empty.');
-        }
-
-        if ($publicDirectory === '') {
-            throw new \InvalidArgumentException('Artifact public directory must not be empty.');
-        }
-
-        $this->stagingDirectory = $stagingDirectory;
-        $this->publicDirectory = $publicDirectory;
+        $this->stagingDirectory = $this->validatedDirectory($stagingDirectory, 'staging');
+        $this->publicDirectory = $this->validatedDirectory($publicDirectory, 'public');
     }
 
     #[\Override]
@@ -59,5 +51,23 @@ final readonly class ArtifactSession implements WireSerializable
             Wire::nonEmptyString($payload, 'stagingDirectory'),
             Wire::nonEmptyString($payload, 'publicDirectory'),
         );
+    }
+
+    /**
+     * @param 'public'|'staging' $role
+     *
+     * @return non-empty-string
+     */
+    private function validatedDirectory(string $directory, string $role): string
+    {
+        if ($directory === '') {
+            throw new \InvalidArgumentException(\sprintf('Artifact %s directory must not be empty.', $role));
+        }
+
+        if (\str_contains($directory, "\0")) {
+            throw new \InvalidArgumentException(\sprintf('Artifact %s directory must not contain a null byte.', $role));
+        }
+
+        return $directory;
     }
 }
