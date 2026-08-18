@@ -111,8 +111,13 @@ final class TempDirectory implements Disposable
         }
 
         $path = $this->path;
+        $isLink = ErrorTrap::run(static fn(): bool => \is_link($path), $warning);
 
-        if (\is_link($path)) {
+        if ($warning !== null) {
+            throw TempDirectoryError::rootRemovalFailed($path, $warning);
+        }
+
+        if ($isLink) {
             if (!ErrorTrap::run(static fn(): bool => \unlink($path), $warning)) {
                 throw TempDirectoryError::rootLinkRemovalFailed($path, $warning);
             }
@@ -122,7 +127,13 @@ final class TempDirectory implements Disposable
             return;
         }
 
-        if (!\is_dir($path)) {
+        $isDirectory = ErrorTrap::run(static fn(): bool => \is_dir($path), $warning);
+
+        if ($warning !== null) {
+            throw TempDirectoryError::rootRemovalFailed($path, $warning);
+        }
+
+        if (!$isDirectory) {
             $this->path = null;
 
             return;
