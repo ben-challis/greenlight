@@ -21,4 +21,9 @@ final class CaptureError extends \LogicException
     {
         return new self('Output capture is not active. Call start() before stop().');
     }
+
+    public static function nestedBufferCannotBeRemoved(): self
+    {
+        return new self('Output capture cannot stop because a nested output buffer cannot be removed.');
+    }
 }

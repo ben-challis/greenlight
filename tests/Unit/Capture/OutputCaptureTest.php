@@ -10,6 +10,7 @@ use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
 use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\Subprocess;
 
 final class OutputCaptureTest
 {
@@ -339,6 +340,43 @@ final class OutputCaptureTest
                 ->toThrow(CaptureError::class, '/already active.*stop\(\)/');
         } finally {
             $capture->stop();
+        }
+    }
+
+    #[Test]
+    public function aNonRemovableNestedBufferDoesNotHangStop(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $process = Subprocess::start($root, [
+            \PHP_BINARY,
+            '-r',
+            <<<'PHP_WRAP'
+            require $argv[1];
+
+            $capture = new Greenlight\Capture\OutputCapture();
+            $capture->start();
+            ob_start(null, 0, PHP_OUTPUT_HANDLER_STDFLAGS & ~PHP_OUTPUT_HANDLER_REMOVABLE);
+
+            try {
+                $capture->stop();
+            } catch (Greenlight\Capture\CaptureError $error) {
+                fwrite(STDERR, $error->getMessage());
+                exit(23);
+            }
+            PHP_WRAP,
+            $root . '/vendor/autoload.php',
+        ]);
+
+        try {
+            $result = $process->wait(0.5);
+
+            Expect::that($result->exitCode)
+                ->because('a blocked nested output buffer MUST fail without hanging the worker')
+                ->toBe(23);
+            Expect::that($result->stderr)
+                ->toBe('Output capture cannot stop because a nested output buffer cannot be removed.');
+        } finally {
+            $process->terminate();
         }
     }
 
