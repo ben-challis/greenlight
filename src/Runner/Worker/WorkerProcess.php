@@ -17,6 +17,7 @@ use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Runner\ChannelEnvironment;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
@@ -111,9 +112,7 @@ final readonly class WorkerProcess
                         throw ProtocolError::duplicateBootstrap();
                     }
 
-                    $rawChannel = \getenv('GREENLIGHT_CHANNEL');
-
-                    if (!\is_string($rawChannel) || (int) $rawChannel !== $message->channel) {
+                    if (ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) !== $message->channel) {
                         throw ProtocolError::bootstrapChannelMismatch();
                     }
 

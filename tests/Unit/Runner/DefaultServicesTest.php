@@ -56,6 +56,8 @@ final readonly class DefaultServicesTest
         yield 'zero' => ['0', 1];
         yield 'negative' => ['-2', 1];
         yield 'not numeric' => ['worker', 1];
+        yield 'numeric prefix' => ['3workers', 1];
+        yield 'integer overflow' => [\str_repeat('9', 30), 1];
         yield 'positive' => ['3', 3];
     }
 }
