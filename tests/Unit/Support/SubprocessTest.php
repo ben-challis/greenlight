@@ -196,6 +196,7 @@ final readonly class SubprocessTest
         );
 
         try {
+            $process->readStdoutUntil('parent exited', 5.0);
             $started = \hrtime(true);
             $result = $process->wait(0.5);
             $elapsedSeconds = (\hrtime(true) - $started) / 1_000_000_000;
