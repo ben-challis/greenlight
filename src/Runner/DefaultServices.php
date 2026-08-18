@@ -39,11 +39,11 @@ final class DefaultServices
             new ServiceDefinition(TempDirectory::class, Scope::PerTest, static fn(): TempDirectory => new TempDirectory()),
             new ServiceDefinition(EnvironmentSandbox::class, Scope::PerTest, static fn(): EnvironmentSandbox => new EnvironmentSandbox()),
             new ServiceDefinition(IntegrationResources::class, Scope::PerRun, static fn(): IntegrationResources => $integrationResources),
-            new ServiceDefinition(TestChannel::class, Scope::PerRun, static function (): TestChannel {
-                $raw = \getenv('GREENLIGHT_CHANNEL');
-
-                return new TestChannel(\max(1, \is_string($raw) ? (int) $raw : 1));
-            }),
+            new ServiceDefinition(
+                TestChannel::class,
+                Scope::PerRun,
+                static fn(): TestChannel => new TestChannel(ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) ?? 1),
+            ),
         ]);
 
         foreach ($plugins->harnessServices() as $definition) {

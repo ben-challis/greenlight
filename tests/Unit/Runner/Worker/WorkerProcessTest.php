@@ -128,6 +128,20 @@ final readonly class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
+    public function bootstrapRejectsATruncatedChannelEnvironmentValue(): void
+    {
+        [$workerExit, $serverExit] = $this->runScenario('bootstrap-channel-mismatch', '1worker');
+
+        Expect::that($workerExit)
+            ->because('a malformed channel environment value MUST fail worker bootstrap')
+            ->toBe(1);
+        Expect::that($serverExit)
+            ->because('the protocol fixture MUST receive the channel mismatch diagnostic')
+            ->toBe(0);
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
     public function itKeepsPollingAfterAnIdleReceiveTimesOut(): void
     {
         [$workerExit, $serverExit] = $this->runScenario('idle-then-drain');
@@ -218,7 +232,7 @@ final readonly class WorkerProcessTest
     /**
      * @return array{int, int}
      */
-    private function runScenario(string $scenario): array
+    private function runScenario(string $scenario, string $environmentChannel = '1'): array
     {
         $root = \dirname(__DIR__, 4);
         $server = Subprocess::start($root, [
@@ -263,7 +277,19 @@ final readonly class WorkerProcessTest
                 Greenlight\Harness\IntegrationResources::empty(),
             ));
 
-            if (!$channel->receive(2.0) instanceof Greenlight\Runner\Protocol\Messages\Ready) {
+            $bootstrapResponse = $channel->receive(2.0);
+
+            if ($scenario === 'bootstrap-channel-mismatch') {
+                if (!$bootstrapResponse instanceof Greenlight\Runner\Protocol\Messages\Fatal
+                    || $bootstrapResponse->detail->message !== 'Worker bootstrap channel does not match GREENLIGHT_CHANNEL.'
+                ) {
+                    exit(5);
+                }
+
+                exit(0);
+            }
+
+            if (!$bootstrapResponse instanceof Greenlight\Runner\Protocol\Messages\Ready) {
                 exit(5);
             }
 
@@ -381,7 +407,7 @@ final readonly class WorkerProcessTest
                 Fail::because('Worker protocol server did not publish its address.');
             }
 
-            $this->environment->set('GREENLIGHT_CHANNEL', '1');
+            $this->environment->set('GREENLIGHT_CHANNEL', $environmentChannel);
             $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
             $serverResult = $server->wait(2.0);
 
