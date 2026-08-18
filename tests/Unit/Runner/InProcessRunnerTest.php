@@ -11,6 +11,7 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
@@ -21,7 +22,10 @@ use Greenlight\Tests\Support\CollectingEventSink;
 
 final readonly class InProcessRunnerTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private EnvironmentSandbox $environment,
+    ) {}
 
     #[Test]
     public function runSubscribersObserveTheCompleteInProcessEventStream(): void
@@ -110,8 +114,31 @@ final readonly class InProcessRunnerTest
     }
 
     #[Test]
+    public function runRestoresTheCallerChannelEnvironment(): void
+    {
+        $this->environment->set('GREENLIGHT_CHANNEL', 'caller-channel');
+        $configuration = GreenlightConfig::create()->build();
+        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+
+        new InProcessRunner($this->tempDirectory->path())->run(
+            $configuration,
+            [$fixtureDirectory],
+            new CollectingEventSink(),
+        );
+
+        Expect::that(\getenv('GREENLIGHT_CHANNEL'))
+            ->because('an in-process run MUST restore the caller process environment')
+            ->toBe('caller-channel');
+        Expect::that($_ENV['GREENLIGHT_CHANNEL'] ?? null)
+            ->toBe('caller-channel');
+        Expect::that($_SERVER['GREENLIGHT_CHANNEL'] ?? null)
+            ->toBe('caller-channel');
+    }
+
+    #[Test]
     public function workerBootstrapFailuresUseTheWorkerFatalProtocolError(): void
     {
+        $this->environment->unset('GREENLIGHT_CHANNEL');
         $failure = new \RuntimeException('worker bootstrap exploded');
         $plugin = new readonly class ($failure) implements WorkerBootstrapSubscriber, Fake {
             public function __construct(private \RuntimeException $failure) {}
@@ -141,6 +168,14 @@ final readonly class InProcessRunnerTest
                     Expect::that($error->getPrevious())->toBe($failure);
                 },
             );
+
+        Expect::that(\getenv('GREENLIGHT_CHANNEL'))
+            ->because('a failed in-process run MUST restore an absent caller environment value')
+            ->toBeFalse();
+        Expect::that(\array_key_exists('GREENLIGHT_CHANNEL', $_ENV))
+            ->toBeFalse();
+        Expect::that(\array_key_exists('GREENLIGHT_CHANNEL', $_SERVER))
+            ->toBeFalse();
     }
 
     /**
