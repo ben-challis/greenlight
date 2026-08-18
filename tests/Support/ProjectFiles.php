@@ -25,7 +25,11 @@ final readonly class ProjectFiles
 
     public function path(string $relative): string
     {
-        if ($relative === '' || \str_starts_with($relative, '/') || \str_contains($relative, '\\')) {
+        if ($relative === ''
+            || \str_starts_with($relative, '/')
+            || \str_contains($relative, '\\')
+            || \str_contains($relative, "\0")
+        ) {
             throw $this->invalidPath($relative);
         }
 
