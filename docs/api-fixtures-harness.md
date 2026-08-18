@@ -72,7 +72,11 @@ final class TempDirectory implements Disposable
 public function path(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L21)
+PHPDoc:
+
+- `@throws TempDirectoryError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L22)
 
 ### `subdirectory()`
 
@@ -84,6 +88,8 @@ PHPDoc:
 
 - `@param string $name A relative path of plain segments. The path can contain separators but cannot contain traversal segments.`
 - `@return non-empty-string`
+- `@throws \InvalidArgumentException`
+- `@throws TempDirectoryError`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L49)
 
@@ -94,7 +100,71 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L97)
+PHPDoc:
+
+- `@throws TempDirectoryError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L92)
+
+## `TempDirectoryError`
+
+Namespace: `Greenlight\Fixture`
+
+A temporary-directory operation cannot create, validate, or remove a path.
+
+```php
+final class TempDirectoryError extends \RuntimeException
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L10)
+
+### `rootCreationFailed()`
+
+```php
+public static function rootCreationFailed(string $path, ?string $warning): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L17)
+
+### `subdirectoryCreationFailed()`
+
+```php
+public static function subdirectoryCreationFailed(string $path, ?string $warning): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L26)
+
+### `symbolicLink()`
+
+```php
+public static function symbolicLink(string $path): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L35)
+
+### `rootLinkRemovalFailed()`
+
+```php
+public static function rootLinkRemovalFailed(string $path, ?string $warning): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L40)
+
+### `entryRemovalFailed()`
+
+```php
+public static function entryRemovalFailed(string $entry, string $root): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L49)
+
+### `rootRemovalFailed()`
+
+```php
+public static function rootRemovalFailed(string $path, ?string $warning): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectoryError.php#L54)
 
 ## `Disposable`
 

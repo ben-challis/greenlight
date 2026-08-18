@@ -108,13 +108,13 @@ final readonly class WorkerProcess
 
                 if ($message instanceof Bootstrap) {
                     if ($plugins instanceof PluginRegistry) {
-                        throw new \RuntimeException('Worker received bootstrap more than once.');
+                        throw ProtocolError::duplicateBootstrap();
                     }
 
                     $rawChannel = \getenv('GREENLIGHT_CHANNEL');
 
                     if (!\is_string($rawChannel) || (int) $rawChannel !== $message->channel) {
-                        throw new \RuntimeException('Worker bootstrap channel does not match GREENLIGHT_CHANNEL.');
+                        throw ProtocolError::bootstrapChannelMismatch();
                     }
 
                     $userPlugins = $message->configFile === null
@@ -138,7 +138,7 @@ final readonly class WorkerProcess
                 }
 
                 if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
-                    throw new \RuntimeException('Worker received an assignment before bootstrap completed.');
+                    throw ProtocolError::assignmentBeforeBootstrap();
                 }
 
                 $collector = null;

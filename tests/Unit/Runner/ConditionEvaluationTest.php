@@ -20,6 +20,7 @@ use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Tests\Fixture\Condition\ThrowingCondition;
 use Greenlight\Tests\Fixture\Lifecycle\ConditionArguments\ConditionArgumentsTest;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -53,11 +54,15 @@ final readonly class ConditionEvaluationTest
     /**
      * @param non-empty-string $conditionClass
      * @param non-empty-string $message
+     * @param class-string<\Throwable> $errorClass
      */
     #[Test]
     #[DataSet('invalidConditions')]
-    public function invalidRuntimeConditionMetadataErrorsTheTest(string $conditionClass, string $message): void
-    {
+    public function invalidRuntimeConditionMetadataErrorsTheTest(
+        string $conditionClass,
+        string $message,
+        string $errorClass,
+    ): void {
         $id = new TestId(ConditionArgumentsTest::class, 'runsWhenTheVersionIsSatisfied');
         $plan = new ExecutionPlan([
             new PlanEntry(
@@ -80,16 +85,18 @@ final readonly class ConditionEvaluationTest
             ->because('invalid runtime condition metadata errors the test')
             ->toBe(Outcome::Errored);
         Expect::that($result->error?->message)->toBe($message);
+        Expect::that($result->error?->class)->toBe($errorClass);
     }
 
     /**
-     * @return iterable<string, array{non-empty-string, non-empty-string}>
+     * @return iterable<string, array{non-empty-string, non-empty-string, class-string<\Throwable>}>
      */
     public static function invalidConditions(): iterable
     {
         yield 'missing class' => [
             'Example\MissingCondition',
             'Condition class "Example\MissingCondition" does not exist.',
+            WorkerError::class,
         ];
 
         yield 'wrong interface' => [
@@ -99,11 +106,13 @@ final readonly class ConditionEvaluationTest
                 \stdClass::class,
                 Condition::class,
             ),
+            WorkerError::class,
         ];
 
         yield 'throws while evaluating' => [
             ThrowingCondition::class,
             'condition evaluation failed',
+            \RuntimeException::class,
         ];
     }
 

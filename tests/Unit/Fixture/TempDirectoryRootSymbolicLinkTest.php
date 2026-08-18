@@ -9,6 +9,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Fixture\TempDirectoryError;
 
 final class TempDirectoryRootSymbolicLinkTest
 {
@@ -74,7 +75,7 @@ final class TempDirectoryRootSymbolicLinkTest
             Expect::that(static fn() => $directory->dispose())
                 ->because('fixture cleanup MUST report a root symbolic link that it cannot remove')
                 ->toThrow(
-                    \RuntimeException::class,
+                    TempDirectoryError::class,
                     // PHP 8.5 includes the path argument.
                     // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
                     matching: \sprintf(
