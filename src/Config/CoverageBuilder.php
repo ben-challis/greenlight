@@ -34,6 +34,10 @@ final class CoverageBuilder
                 throw new InvalidConfiguration('Coverage include paths cannot be empty.');
             }
 
+            if (\str_contains($path, "\0")) {
+                throw new InvalidConfiguration('Coverage include paths cannot contain a null byte.');
+            }
+
             $validated[] = $path;
         }
 
