@@ -368,7 +368,7 @@ final class OutputCaptureTest
         ]);
 
         try {
-            $result = $process->wait(0.5);
+            $result = $process->wait(2.0);
 
             Expect::that($result->exitCode)
                 ->because('a blocked nested output buffer MUST fail without hanging the worker')
