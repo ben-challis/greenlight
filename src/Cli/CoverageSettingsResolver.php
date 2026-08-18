@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\CoverageConfiguration;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Runner\CoverageSettings;
 
 /** Resolves CLI coverage configuration into runner settings.
@@ -28,7 +29,7 @@ final class CoverageSettingsResolver
             $absolute = \str_starts_with($path, '/')
                 ? $path
                 : \rtrim($workingDirectory, '/') . '/' . $path;
-            $real = \realpath($absolute);
+            $real = ErrorTrap::run(static fn(): string|false => \realpath($absolute));
 
             if ($real !== false) {
                 $include[] = $real;
