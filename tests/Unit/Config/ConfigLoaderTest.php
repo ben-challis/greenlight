@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Config;
 
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 
 final class ConfigLoaderTest
@@ -51,6 +53,45 @@ final class ConfigLoaderTest
         Expect::that(static function (): void {
             new ConfigLoader()->loadFile(self::fixtureDir('Empty') . '/greenlight.php');
         })->because('missing explicit file is reported')->toThrow(ConfigFileError::class);
+    }
+
+    #[Test]
+    #[Isolated]
+    public function restrictedPathsFailWithoutEngineDiagnostics(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $restrictedDirectory = \dirname($root);
+        $restrictedFile = $restrictedDirectory . '/greenlight.php';
+        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
+
+        Expect::that($previousOpenBasedir)
+            ->because('the isolated fixture MUST restrict access to configuration paths')
+            ->not()
+            ->toBeFalse();
+
+        $loader = new ConfigLoader();
+        Expect::that(
+            static function () use ($loader, $restrictedDirectory, &$directoryWarning): void {
+                ErrorTrap::run(
+                    static fn(): GreenlightConfig => $loader->loadFromDirectory($restrictedDirectory),
+                    $directoryWarning,
+                );
+            },
+        )->because('a restricted configuration directory causes a configuration error')
+            ->toThrow(ConfigFileError::class);
+        Expect::that(
+            static function () use ($loader, $restrictedFile, &$fileWarning): void {
+                ErrorTrap::run(
+                    static fn(): GreenlightConfig => $loader->loadFile($restrictedFile),
+                    $fileWarning,
+                );
+            },
+        )->because('a restricted configuration file causes a configuration error')
+            ->toThrow(ConfigFileError::class);
+
+        Expect::that([$directoryWarning, $fileWarning])
+            ->because('restricted configuration paths MUST not leak engine diagnostics')
+            ->toBe([null, null]);
     }
 
     #[Test]
