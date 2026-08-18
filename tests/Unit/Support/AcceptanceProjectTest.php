@@ -27,6 +27,42 @@ final readonly class AcceptanceProjectTest
     }
 
     #[Test]
+    public function aBlockedParentDirectoryFailsWithTheTargetPath(): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'blocked-parent');
+        $project->writeFile('blocked', 'keep');
+        $parent = $project->path('blocked');
+
+        Expect::that(static fn() => $project->writeFile('blocked/example.txt', 'contents'))
+            ->because('a blocked parent directory MUST fail before the fixture continues')
+            ->toThrow(
+                \RuntimeException::class,
+                matching: \sprintf('/^Failed to create acceptance project directory "%s"/', \preg_quote($parent, '/')),
+            );
+        Expect::that(\file_get_contents($parent))
+            ->because('a failed directory creation MUST preserve the blocking file')
+            ->toBe('keep');
+    }
+
+    #[Test]
+    public function anUnwritableTargetFailsWithTheTargetPath(): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'blocked-target');
+        $project->writeFile('blocked/seed.txt', 'keep');
+        $target = $project->path('blocked');
+
+        Expect::that(static fn() => $project->writeFile('blocked', 'contents'))
+            ->because('an unwritable target MUST fail before the fixture continues')
+            ->toThrow(
+                \RuntimeException::class,
+                matching: \sprintf('/^Failed to write acceptance project file "%s"/', \preg_quote($target, '/')),
+            );
+        Expect::that(\file_get_contents($project->path('blocked/seed.txt')))
+            ->because('a failed file write MUST preserve the target directory contents')
+            ->toBe('keep');
+    }
+
+    #[Test]
     public function configuresTheProjectWithTestFilesAndTheRequestedWorkerCount(): void
     {
         $project = AcceptanceProject::create($this->workspace, 'configured');
