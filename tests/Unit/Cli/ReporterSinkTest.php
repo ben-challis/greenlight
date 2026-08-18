@@ -61,10 +61,6 @@ final class ReporterSinkTest
             $sink->emit(new SuiteStarted('unit', 1.0));
         })
             ->because('a reporter failure MUST stop event delivery')
-            ->toThrow(
-                static function (ReportingError $caught) use ($failure): void {
-                    Expect::that($caught)->toBe($failure);
-                },
-            );
+            ->toThrow($failure);
     }
 }

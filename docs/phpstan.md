@@ -75,11 +75,13 @@ parameter.
 ## Native matcher constraints
 
 `toThrow()` can constrain the exception message with an exact string or a
-regular expression. A typed callback can specify and check the throwable:
+regular expression. A Throwable instance requires the exact object. A typed
+callback can specify and check the throwable:
 
 ```php
 Expect::that($callback)->toThrow(DomainException::class, message: 'Exact message');
 Expect::that($callback)->toThrow(DomainException::class, matching: '/message/i');
+Expect::that($callback)->toThrow($failure);
 Expect::that($callback)->toThrow(
     static function (DomainException $error): void {
         Expect::that($error->getPrevious())->toBeInstanceOf(LengthException::class);
@@ -96,6 +98,10 @@ A call that supplies a message constraint with a throwable callback causes the
 reports incompatible parameter and return types. The
 `greenlight.toThrow.callback` error reports constraints that the signature
 cannot express. Greenlight applies all callback checks at run time.
+
+A call that supplies a message constraint with a Throwable instance causes the
+`greenlight.toThrow.instanceConstraint` error. Greenlight also rejects the call
+at run time.
 
 The subject for `toThrow()` must be callable. The extension reports a known
 incompatible subject before the test runs:

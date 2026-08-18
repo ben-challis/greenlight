@@ -35,9 +35,7 @@ final readonly class XdebugDriverFailureTest
 
         Expect::that(static fn(): mixed => $driver->stop())
             ->because('an Xdebug runtime failure MUST remain the reported failure')
-            ->toThrow(static function (\RuntimeException $caught) use ($failure): void {
-                Expect::that($caught)->toBe($failure);
-            });
+            ->toThrow($failure);
 
         Expect::that($runtime->calls)
             ->because('Xdebug collection MUST stop the runtime after every collection attempt')

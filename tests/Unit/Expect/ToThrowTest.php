@@ -32,6 +32,32 @@ final class ToThrowTest
     }
 
     #[Test]
+    public function toThrowPassesOnTheExactThrowableInstance(): void
+    {
+        $failure = new \DomainException('insufficient funds');
+
+        Expect::that(static fn() => throw $failure)
+            ->toThrow($failure);
+    }
+
+    #[Test]
+    public function toThrowFailsOnADifferentThrowableInstance(): void
+    {
+        $failure = new \DomainException('insufficient funds');
+
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(static fn() => throw new \DomainException('insufficient funds'))
+                ->toThrow($failure),
+        );
+
+        Expect::that($detail->message)->toBe(
+            "Expected a callable that threw DomainException with message 'insufficient funds' "
+            . 'to throw the exact DomainException instance.',
+        );
+        Expect::that($detail->expected)->toBe('the exact DomainException instance');
+    }
+
+    #[Test]
     public function toThrowPassesTheTypedThrowableToACallback(): void
     {
         $previous = new \LengthException('too short');
@@ -162,6 +188,27 @@ final class ToThrowTest
     }
 
     #[Test]
+    public function notToThrowUsesThrowableIdentity(): void
+    {
+        $failure = new \DomainException('boom');
+
+        Expect::that(static fn() => throw new \DomainException('boom'))
+            ->not()
+            ->toThrow($failure);
+
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(static fn() => throw $failure)
+                ->not()
+                ->toThrow($failure),
+        );
+
+        Expect::that($detail->message)->toBe(
+            "Expected a callable that threw DomainException with message 'boom' "
+            . 'not to throw the exact DomainException instance.',
+        );
+    }
+
+    #[Test]
     public function notToThrowPassesWhenTheThrowableCallbackExpectationFails(): void
     {
         Expect::that(static fn() => throw new \DomainException('boom'))
@@ -268,6 +315,34 @@ final class ToThrowTest
 
         Expect::that($detail->message)->toBe(
             'Do not specify matching: or message: when the throwable is a callback.',
+        );
+        Expect::that($invoked)->toBeFalse();
+    }
+
+    #[Test]
+    public function toThrowRejectsAConstraintWithAThrowableInstanceBeforeInvokingTheSubject(): void
+    {
+        $invoked = false;
+        $failure = new \DomainException('boom');
+
+        $detail = FailureProbe::detailOf(
+            static function () use (&$invoked, $failure): void {
+                $expectation = Expect::that(static function () use (&$invoked): void {
+                    $invoked = true;
+                });
+
+                new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+                    $expectation,
+                    [
+                        'throwable' => $failure,
+                        'message' => 'boom',
+                    ],
+                );
+            },
+        );
+
+        Expect::that($detail->message)->toBe(
+            'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
         );
         Expect::that($invoked)->toBeFalse();
     }

@@ -59,6 +59,14 @@ final class ToThrowConstraintRule implements Rule
                 return [$this->callbackConstraintError($node->getStartLine())];
             }
 
+            if ($state['throwable'] instanceof Type
+                && new ObjectType(\Throwable::class)->isSuperTypeOf($state['throwable'])->yes()
+                && (($state['matching'] instanceof Type && !$state['matching']->isNull()->yes())
+                    || ($state['message'] instanceof Type && !$state['message']->isNull()->yes()))
+            ) {
+                return [$this->instanceConstraintError($node->getStartLine())];
+            }
+
             if ($state['matching'] instanceof Type
                 && $state['message'] instanceof Type
                 && !$state['matching']->isNull()->yes()
@@ -171,6 +179,16 @@ final class ToThrowConstraintRule implements Rule
             'Do not specify matching: or message: when the throwable is a callback.',
         )
             ->identifier('greenlight.toThrow.callbackConstraint')
+            ->line($line)
+            ->build();
+    }
+
+    private function instanceConstraintError(int $line): IdentifierRuleError
+    {
+        return RuleErrorBuilder::message(
+            'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
+        )
+            ->identifier('greenlight.toThrow.instanceConstraint')
             ->line($line)
             ->build();
     }

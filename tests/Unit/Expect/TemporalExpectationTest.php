@@ -157,11 +157,7 @@ final class TemporalExpectationTest
             static fn() => Expect::eventually(
                 static fn(): never => throw $failure,
             )->within(0.100)->toBe('ready'),
-        ))->because('probe exceptions propagate unless explicitly retryable')->toThrow(
-            static function (TransientProbeFailure $caught) use ($failure): void {
-                Expect::that($caught)->toBe($failure);
-            },
-        );
+        ))->because('probe exceptions propagate unless explicitly retryable')->toThrow($failure);
 
         $calls = 0;
         ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
@@ -246,11 +242,7 @@ final class TemporalExpectationTest
                     ->within(0.100)
                     ->toBe('unreachable');
             });
-        })->because('errors and matcher misuse are never retried')->toThrow(
-            static function (\Error $caught) use ($failure): void {
-                Expect::that($caught)->toBe($failure);
-            },
-        );
+        })->because('errors and matcher misuse are never retried')->toThrow($failure);
 
         Expect::that($calls)->because('errors and matcher misuse are never retried')->toBe(2);
     }

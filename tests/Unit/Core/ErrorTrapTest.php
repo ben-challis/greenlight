@@ -103,11 +103,7 @@ final class ErrorTrapTest
                 static fn(): never => throw $failure,
             ))
                 ->because('the trap MUST propagate an operation error')
-                ->toThrow(
-                    static function (\RuntimeException $caught) use ($failure): void {
-                        Expect::that($caught)->toBe($failure);
-                    },
-                );
+                ->toThrow($failure);
 
             \trigger_error('after trap', \E_USER_WARNING);
 

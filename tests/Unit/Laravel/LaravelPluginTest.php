@@ -236,11 +236,7 @@ final class LaravelPluginTest
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
-        })->toThrow(
-            static function (\RuntimeException $caught) use ($failure): void {
-                Expect::that($caught)->toBe($failure);
-            },
-        );
+        })->toThrow($failure);
         Expect::that(Container::getInstance())->toBe($container);
         Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
         Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');

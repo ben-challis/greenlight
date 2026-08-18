@@ -674,6 +674,8 @@ PHPDoc:
 
 The subject must be callable. The matcher calls it with no arguments.
 It passes when the subject throws an instance of the specified class.
+A Throwable instance instead requires the subject to throw that exact
+object.
 
 The throwable can instead be a callback with one typed Throwable
 parameter. Its parameter type specifies the expected throwable class.
@@ -683,14 +685,15 @@ failure.
 
 The optional `matching:` argument checks the message with a regular
 expression. The `message:` argument checks the exact message. Do not use
-these arguments with a throwable callback.
+these arguments with a throwable callback or instance.
 
-With `not()`, a throwable that does not satisfy both conditions makes the
-matcher pass.
+With `not()`, a throwable that does not satisfy all applicable
+constraints makes the matcher pass. A different object does not satisfy
+an instance constraint.
 
 ```php
 public function toThrow(
-    string|\Closure $throwable,
+    string|\Closure|\Throwable $throwable,
     ?string $matching = null,
     ?string $message = null,
 ): self
@@ -699,12 +702,12 @@ public function toThrow(
 PHPDoc:
 
 - `@template TThrowable of \Throwable`
-- `@param class-string<TThrowable>|\Closure(TThrowable): void $throwable`
+- `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
 - `@return self<T>`
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L784)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L787)
 
 ## `ExpectationExtension`
 

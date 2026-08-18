@@ -22,9 +22,7 @@ final readonly class XdebugDriverStartFailureTest
             $driver->start();
         })
             ->because('an Xdebug start failure MUST remain the reported failure')
-            ->toThrow(static function (\RuntimeException $caught) use ($failure): void {
-                Expect::that($caught)->toBe($failure);
-            });
+            ->toThrow($failure);
 
         Expect::that($runtime->calls)
             ->because('a failed Xdebug start MUST NOT collect or stop the runtime')

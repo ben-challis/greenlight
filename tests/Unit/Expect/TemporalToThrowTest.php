@@ -58,6 +58,30 @@ final class TemporalToThrowTest
     }
 
     #[Test]
+    public function eventuallyRetriesUntilACallableThrowsTheExactThrowableInstance(): void
+    {
+        $clock = new FakePollingClock();
+        $calls = 0;
+        $failure = new \RuntimeException('ready');
+
+        ExpectationRuntime::withClock($clock, static function () use (&$calls, $failure): void {
+            Expect::eventually(static function () use (&$calls, $failure): \Closure {
+                ++$calls;
+
+                return $calls === 1
+                    ? static fn() => throw new \RuntimeException('ready')
+                    : static fn() => throw $failure;
+            })
+                ->pollEvery(0.010)
+                ->within(0.100)
+                ->toThrow($failure);
+        });
+
+        Expect::that($calls)->toBe(2);
+        Expect::that($clock->sleeps)->toBe([0.010]);
+    }
+
+    #[Test]
     public function temporalToThrowRejectsAConstraintWithAThrowableCallbackBeforePolling(): void
     {
         $calls = 0;
@@ -81,6 +105,35 @@ final class TemporalToThrowTest
 
         Expect::that($detail->message)->toBe(
             'Do not specify matching: or message: when the throwable is a callback.',
+        );
+        Expect::that($calls)->toBe(0);
+    }
+
+    #[Test]
+    public function temporalToThrowRejectsAConstraintWithAThrowableInstanceBeforePolling(): void
+    {
+        $calls = 0;
+        $failure = new \RuntimeException('boom');
+        $eventually = Expect::eventually(static function () use (&$calls, $failure): \Closure {
+            ++$calls;
+
+            return static fn() => throw $failure;
+        })->within(0.100);
+
+        $detail = FailureProbe::detailOf(
+            static function () use ($eventually, $failure): void {
+                new \ReflectionMethod($eventually, 'toThrow')->invokeArgs(
+                    $eventually,
+                    [
+                        'throwable' => $failure,
+                        'matching' => '/boom/',
+                    ],
+                );
+            },
+        );
+
+        Expect::that($detail->message)->toBe(
+            'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
         );
         Expect::that($calls)->toBe(0);
     }

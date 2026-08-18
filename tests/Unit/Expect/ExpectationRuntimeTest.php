@@ -27,11 +27,7 @@ final class ExpectationRuntimeTest
                     static fn(): never => throw $expected,
                 ))
                     ->because('withClock propagates the operation exception')
-                    ->toThrow(
-                        static function (\RuntimeException $caught) use ($expected): void {
-                            Expect::that($caught)->toBe($expected);
-                        },
-                    );
+                    ->toThrow($expected);
 
                 Expect::that(ExpectationRuntime::clock())
                     ->toBe($outer);
