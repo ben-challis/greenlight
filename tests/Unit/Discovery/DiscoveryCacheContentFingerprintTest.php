@@ -12,6 +12,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheContentFingerprintTest
 {
@@ -22,7 +23,7 @@ final readonly class DiscoveryCacheContentFingerprintTest
     {
         $directory = $this->tempDirectory->subdirectory('discovery-content');
         $source = $directory . '/ContentProbeTest.php';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         $original = '<?php // alpha';
         $replacement = '<?php // bravo';
         $mtime = 1_700_000_000;
@@ -79,7 +80,7 @@ final readonly class DiscoveryCacheContentFingerprintTest
         $directory = $this->tempDirectory->subdirectory('discovery-provider-content');
         $source = $directory . '/ProviderProbeTest.php';
         $provider = $directory . '/ContentRows.php';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         $shortClass = 'ContentRows' . \bin2hex(\random_bytes(6));
         $providerClass = 'GreenlightDiscoveryFingerprint\\' . $shortClass;
         $providerSource = <<<PHP
@@ -152,12 +153,4 @@ final readonly class DiscoveryCacheContentFingerprintTest
         }
     }
 
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
-    }
 }

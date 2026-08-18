@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCachePersistenceTest
 {
@@ -21,7 +22,7 @@ final readonly class DiscoveryCachePersistenceTest
     {
         $directory = $this->tempDirectory->subdirectory('unencodable-cache');
         $source = $directory . '/InvalidUtf8Test.php';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         \file_put_contents($source, '<?php');
 
         $id = new TestId('Example\InvalidUtf8Test', 'runs');
@@ -44,15 +45,4 @@ final readonly class DiscoveryCachePersistenceTest
         }
     }
 
-    /**
-     * @param non-empty-string $directory
-     */
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
-    }
 }

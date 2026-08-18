@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheCorruptPlanTest
 {
@@ -18,7 +19,7 @@ final readonly class DiscoveryCacheCorruptPlanTest
     {
         $directory = $this->tempDirectory->subdirectory('corrupt-plan');
         $source = $directory . '/ExampleTest.php';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         \file_put_contents($source, '<?php');
         \file_put_contents($cacheFile, \json_encode([
             'version' => 3,
@@ -52,15 +53,4 @@ final readonly class DiscoveryCacheCorruptPlanTest
         }
     }
 
-    /**
-     * @param non-empty-string $directory
-     */
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
-    }
 }

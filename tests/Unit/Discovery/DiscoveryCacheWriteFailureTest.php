@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheWriteFailureTest
 {
@@ -18,7 +19,7 @@ final readonly class DiscoveryCacheWriteFailureTest
     {
         $directory = $this->tempDirectory->subdirectory('cache-write-failure');
         $source = $directory . '/ExampleTest.php';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         \file_put_contents($source, '<?php');
         \mkdir($cacheFile);
         \file_put_contents($cacheFile . '/occupant.txt', 'keep');
@@ -44,15 +45,4 @@ final readonly class DiscoveryCacheWriteFailureTest
         }
     }
 
-    /**
-     * @param non-empty-string $directory
-     */
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
-    }
 }

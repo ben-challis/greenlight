@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheEmptyPlanTest
 {
@@ -19,11 +20,7 @@ final readonly class DiscoveryCacheEmptyPlanTest
         $directory = $this->tempDirectory->subdirectory('empty-plan');
         $source = $directory . '/NoTests.php';
         \file_put_contents($source, '<?php');
-        $cacheFile = \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
 
         try {
             $cache = DiscoveryCache::forDirectories([$directory]);

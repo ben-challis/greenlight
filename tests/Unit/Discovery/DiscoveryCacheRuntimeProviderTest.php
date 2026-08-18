@@ -10,6 +10,7 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final class DiscoveryCacheRuntimeProviderTest
 {
@@ -20,7 +21,7 @@ final class DiscoveryCacheRuntimeProviderTest
         $provider = 'GreenlightRuntimeProvider\\Rows' . $suffix;
         $directory = \sys_get_temp_dir() . '/greenlight-runtime-provider-' . $suffix;
         $source = $directory . '/RuntimeProviderTest.php';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
 
         eval(\sprintf(
             <<<'PHP'
@@ -68,15 +69,4 @@ final class DiscoveryCacheRuntimeProviderTest
         }
     }
 
-    /**
-     * @param non-empty-string $directory
-     */
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
-    }
 }
