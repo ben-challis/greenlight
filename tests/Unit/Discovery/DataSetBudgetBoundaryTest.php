@@ -31,4 +31,23 @@ final readonly class DataSetBudgetBoundaryTest
                 'second case' => ['b'],
             ]);
     }
+
+    #[Test]
+    public function aLargeFiniteBudgetDoesNotOverflowTheDeadline(): void
+    {
+        $clock = new FakeMonotonicClock(10, 11, 12, 13);
+        $rows = new DataSetExpander($clock)->rowsFor(
+            new \ReflectionClass(ProviderKeysTest::class),
+            'withStringKeys',
+            'stringKeys',
+            \PHP_FLOAT_MAX,
+        );
+
+        Expect::that($rows)
+            ->because('a finite provider budget MUST retain its duration after conversion to nanoseconds')
+            ->toBe([
+                'first case' => ['a'],
+                'second case' => ['b'],
+            ]);
+    }
 }

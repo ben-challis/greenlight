@@ -144,7 +144,8 @@ final readonly class DataSetExpander
             throw DiscoveryError::providerNotPublicStatic($testClassName, $testMethod, $providerClassName, $provider);
         }
 
-        $deadline = ($this->monotonicTime)() + (int) \round($budgetSeconds * 1_000_000_000);
+        $startedAt = ($this->monotonicTime)();
+        $budgetNanoseconds = $budgetSeconds * 1_000_000_000;
 
         try {
             $result = $method->invoke(null);
@@ -160,7 +161,7 @@ final readonly class DataSetExpander
 
         try {
             foreach ($result as $key => $value) {
-                if (($this->monotonicTime)() > $deadline) {
+                if (($this->monotonicTime)() - $startedAt > $budgetNanoseconds) {
                     throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
                 }
 
@@ -178,7 +179,7 @@ final readonly class DataSetExpander
             throw DiscoveryError::providerThrew($providerClassName, $provider, $e);
         }
 
-        if (($this->monotonicTime)() > $deadline) {
+        if (($this->monotonicTime)() - $startedAt > $budgetNanoseconds) {
             throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
         }
 
