@@ -9,24 +9,26 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Worker\WorkerProcess;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class WorkerProcessFatalSendFailureTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(
+        private EnvironmentSandbox $environment,
+        private TempDirectory $tempDirectory,
+    ) {}
 
     #[Test]
     #[Timeout(5.0)]
     public function aClosedChannelCannotHideTheAssignmentFailure(): void
     {
         $root = \dirname(__DIR__, 4);
-        $config = \sys_get_temp_dir()
-            . '/greenlight-failing-config-' . \bin2hex(\random_bytes(6)) . '.php';
-        $ready = \sys_get_temp_dir()
-            . '/greenlight-failing-config-ready-' . \bin2hex(\random_bytes(6));
-        $release = \sys_get_temp_dir()
-            . '/greenlight-failing-config-release-' . \bin2hex(\random_bytes(6));
+        $temporaryDirectory = $this->tempDirectory->path();
+        $config = $temporaryDirectory . '/failing-config.php';
+        $ready = $temporaryDirectory . '/failing-config-ready';
+        $release = $temporaryDirectory . '/failing-config-release';
         $server = Subprocess::start($root, [
             \PHP_BINARY,
             '-r',
