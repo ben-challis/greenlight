@@ -40,6 +40,17 @@ final class CoverageBuilderTest
     }
 
     #[Test]
+    public function aNullByteIncludePathIsRejected(): void
+    {
+        Expect::that(static fn(): CoverageBuilder => new CoverageBuilder()->include("src\0hidden"))
+            ->because('coverage include paths MUST be valid filesystem inputs')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Coverage include paths cannot contain a null byte.',
+            );
+    }
+
+    #[Test]
     public function anEmptyDriverNameIsRejected(): void
     {
         Expect::that(static function (): void {
