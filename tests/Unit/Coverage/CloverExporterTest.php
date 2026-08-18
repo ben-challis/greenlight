@@ -9,6 +9,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\CloverExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\SimpleXml;
 
 final class CloverExporterTest
 {
@@ -139,14 +140,14 @@ final class CloverExporterTest
     {
         $projects = [];
 
-        foreach ($this->xpath($xml, '/coverage/project') as $project) {
+        foreach (SimpleXml::xpath($xml, '/coverage/project') as $project) {
             $files = [];
 
-            foreach ($this->xpath($project, 'file') as $file) {
+            foreach (SimpleXml::xpath($project, 'file') as $file) {
                 $files[] = [
                     'path' => (string) $file['name'],
-                    'lines' => $this->attributeSets($this->xpath($file, 'line')),
-                    'metrics' => $this->attributeSets($this->xpath($file, 'metrics')),
+                    'lines' => SimpleXml::attributeSets(SimpleXml::xpath($file, 'line')),
+                    'metrics' => SimpleXml::attributeSets(SimpleXml::xpath($file, 'metrics')),
                 ];
             }
 
@@ -154,7 +155,7 @@ final class CloverExporterTest
                 'timestamp' => (string) $project['timestamp'],
                 'name' => (string) $project['name'],
                 'files' => $files,
-                'metrics' => $this->attributeSets($this->xpath($project, 'metrics')),
+                'metrics' => SimpleXml::attributeSets(SimpleXml::xpath($project, 'metrics')),
             ];
         }
 
@@ -164,39 +165,4 @@ final class CloverExporterTest
         ];
     }
 
-    /**
-     * @param list<\SimpleXMLElement> $elements
-     *
-     * @return list<array<string, string>>
-     */
-    private function attributeSets(array $elements): array
-    {
-        $sets = [];
-
-        foreach ($elements as $element) {
-            $attributes = [];
-
-            foreach ($element->attributes() as $name => $value) {
-                $attributes[$name] = (string) $value;
-            }
-
-            $sets[] = $attributes;
-        }
-
-        return $sets;
-    }
-
-    /**
-     * @return list<\SimpleXMLElement>
-     */
-    private function xpath(\SimpleXMLElement $xml, string $expression): array
-    {
-        $nodes = $xml->xpath($expression);
-
-        if (!\is_array($nodes)) {
-            throw new \RuntimeException(\sprintf('XPath query "%s" failed.', $expression));
-        }
-
-        return \array_values($nodes);
-    }
 }

@@ -9,6 +9,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\CoberturaExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\SimpleXml;
 
 final class CoberturaExporterTest
 {
@@ -128,71 +129,34 @@ final class CoberturaExporterTest
     {
         $sources = [];
 
-        foreach ($this->xpath($xml, '/coverage/sources/source') as $source) {
+        foreach (SimpleXml::xpath($xml, '/coverage/sources/source') as $source) {
             $sources[] = (string) $source;
         }
 
         $packages = [];
 
-        foreach ($this->xpath($xml, '/coverage/packages/package') as $package) {
+        foreach (SimpleXml::xpath($xml, '/coverage/packages/package') as $package) {
             $classes = [];
 
-            foreach ($this->xpath($package, 'classes/class') as $class) {
+            foreach (SimpleXml::xpath($package, 'classes/class') as $class) {
                 $classes[] = [
-                    'attributes' => $this->attributes($class),
-                    'methods' => $this->attributeSets($this->xpath($class, 'methods')),
-                    'lines' => $this->attributeSets($this->xpath($class, 'lines/line')),
+                    'attributes' => SimpleXml::attributes($class),
+                    'methods' => SimpleXml::attributeSets(SimpleXml::xpath($class, 'methods')),
+                    'lines' => SimpleXml::attributeSets(SimpleXml::xpath($class, 'lines/line')),
                 ];
             }
 
             $packages[] = [
-                'attributes' => $this->attributes($package),
+                'attributes' => SimpleXml::attributes($package),
                 'classes' => $classes,
             ];
         }
 
         return [
-            'attributes' => $this->attributes($xml),
+            'attributes' => SimpleXml::attributes($xml),
             'sources' => $sources,
             'packages' => $packages,
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    private function attributes(\SimpleXMLElement $element): array
-    {
-        $attributes = [];
-
-        foreach ($element->attributes() as $name => $value) {
-            $attributes[$name] = (string) $value;
-        }
-
-        return $attributes;
-    }
-
-    /**
-     * @param list<\SimpleXMLElement> $elements
-     *
-     * @return list<array<string, string>>
-     */
-    private function attributeSets(array $elements): array
-    {
-        return \array_map($this->attributes(...), $elements);
-    }
-
-    /**
-     * @return list<\SimpleXMLElement>
-     */
-    private function xpath(\SimpleXMLElement $xml, string $expression): array
-    {
-        $nodes = $xml->xpath($expression);
-
-        if (!\is_array($nodes)) {
-            throw new \RuntimeException(\sprintf('XPath query "%s" failed.', $expression));
-        }
-
-        return \array_values($nodes);
-    }
 }
