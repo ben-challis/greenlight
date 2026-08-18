@@ -161,10 +161,17 @@ final readonly class Application
         HELP;
 
     /**
+     * @param resource $stdout
+     * @param resource $stderr
      * @param \Closure(string): void $out
      * @param \Closure(string): void $err
      */
-    private function __construct(private \Closure $out, private \Closure $err) {}
+    private function __construct(
+        private mixed $stdout,
+        private mixed $stderr,
+        private \Closure $out,
+        private \Closure $err,
+    ) {}
 
     /**
      * @param resource|null $stdout
@@ -172,10 +179,14 @@ final readonly class Application
      */
     public static function forStreams($stdout = null, $stderr = null): self
     {
-        $out = new StreamOutput($stdout ?? \STDOUT);
-        $err = new StreamOutput($stderr ?? \STDERR);
+        $stdout ??= \STDOUT;
+        $stderr ??= \STDERR;
+        $out = new StreamOutput($stdout);
+        $err = new StreamOutput($stderr);
 
         return new self(
+            $stdout,
+            $stderr,
             static function (string $text) use ($out): void {
                 $out->write($text);
             },
@@ -648,7 +659,7 @@ final readonly class Application
     private function stdoutStyle(bool $noAnsiFlag): Style
     {
         $capabilities = TerminalCapabilities::detect(
-            Terminal::isTty(\STDOUT),
+            Terminal::isTty($this->stdout),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $noAnsiFlag,
         );
@@ -659,7 +670,7 @@ final readonly class Application
     private function stderrStyle(bool $noAnsiFlag): Style
     {
         $capabilities = TerminalCapabilities::detect(
-            Terminal::isTty(\STDERR),
+            Terminal::isTty($this->stderr),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $noAnsiFlag,
         );
@@ -888,9 +899,9 @@ final readonly class Application
      */
     private function buildReporter(ParsedArguments $arguments, ?int $seed, string $configFile, string $workingDirectory, bool $workerFallback = false): Reporter
     {
-        $output = new StreamOutput(\STDOUT);
+        $output = new StreamOutput($this->stdout);
         $capabilities = TerminalCapabilities::detect(
-            Terminal::isTty(\STDOUT),
+            Terminal::isTty($this->stdout),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $arguments->has('no-ansi'),
         );
@@ -1088,7 +1099,7 @@ final readonly class Application
         }
 
         $report = $aggregator->render(new Style(TerminalCapabilities::detect(
-            Terminal::isTty(\STDOUT),
+            Terminal::isTty($this->stdout),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $arguments->has('no-ansi'),
         )->color));
