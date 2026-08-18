@@ -89,6 +89,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Laravel/.*
+    - name: Psr
+      collectors:
+        - type: directory
+          value: src/Psr/.*
     - name: PhpStanFramework
       collectors:
         - type: classNameRegex
@@ -101,6 +105,10 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^Illuminate\\/
+    - name: PsrFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Psr\\Container\\/
     - name: CpuCoreCounter
       collectors:
         - type: classNameRegex
@@ -136,9 +144,11 @@ deptrac:
     Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
     Laravel: [Core, Harness, Plugin, LaravelFramework]
+    Psr: [Core, Harness, Plugin, PsrFramework]
     PhpStanFramework: []
     SymfonyFramework: []
     LaravelFramework: []
+    PsrFramework: []
     CpuCoreCounter: []
     PhpParserFramework: []
     RectorFramework: []

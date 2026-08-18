@@ -8,12 +8,13 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Laravel\Service as LaravelService;
+use Greenlight\Psr\Service as PsrService;
 use Greenlight\Symfony\Service as SymfonyService;
 
 final readonly class ServiceAttributeTest
 {
     /**
-     * @param class-string<LaravelService|SymfonyService> $attribute
+     * @param class-string<LaravelService|PsrService|SymfonyService> $attribute
      */
     #[Test]
     #[DataSet('serviceAttributes')]
@@ -28,7 +29,7 @@ final readonly class ServiceAttributeTest
     }
 
     /**
-     * @param class-string<LaravelService|SymfonyService> $attribute
+     * @param class-string<LaravelService|PsrService|SymfonyService> $attribute
      */
     #[Test]
     #[DataSet('serviceAttributes')]
@@ -40,11 +41,12 @@ final readonly class ServiceAttributeTest
     }
 
     /**
-     * @return iterable<string, array{class-string<LaravelService|SymfonyService>}>
+     * @return iterable<string, array{class-string<LaravelService|PsrService|SymfonyService>}>
      */
     public static function serviceAttributes(): iterable
     {
         yield 'Laravel' => [LaravelService::class];
+        yield 'PSR-11' => [PsrService::class];
         yield 'Symfony' => [SymfonyService::class];
     }
 }

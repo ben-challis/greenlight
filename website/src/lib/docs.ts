@@ -62,6 +62,11 @@ export const docSections = [
         description: 'This guide explains how tests receive container services from a fresh Laravel application.',
       },
       {
+        id: 'psr',
+        title: 'PSR applications',
+        description: 'This guide explains PSR-11 container services and PSR-15 request handlers.',
+      },
+      {
         id: 'phpstan',
         title: 'PHPStan',
         description: 'This guide explains how PHPStan checks matchers, data providers, and extension matchers.',
@@ -139,7 +144,7 @@ export const docSections = [
       {
         id: 'api-integrations',
         title: 'Integration API',
-        description: 'This reference lists public integration types for Laravel, Rector, and Symfony.',
+        description: 'This reference lists public integration types for Laravel, PSR standards, Rector, and Symfony.',
       },
     ],
   },
