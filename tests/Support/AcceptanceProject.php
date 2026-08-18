@@ -70,7 +70,10 @@ final readonly class AcceptanceProject
         $requires = [];
 
         foreach ($testFiles as $relative) {
-            $requires[] = \sprintf("require_once __DIR__ . '/%s';", $relative);
+            $requires[] = \sprintf(
+                'require_once __DIR__ . %s;',
+                \var_export('/' . $relative, true),
+            );
         }
 
         $this->writeFile('greenlight.php', \sprintf(
