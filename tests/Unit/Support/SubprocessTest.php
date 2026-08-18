@@ -98,6 +98,36 @@ final readonly class SubprocessTest
     }
 
     #[Test]
+    public function interactiveProcessReceivesTheCompleteInput(): void
+    {
+        $input = \str_repeat('payload', 131_072);
+        $process = Subprocess::start(
+            $this->workspace->path(),
+            [
+                \PHP_BINARY,
+                '-r',
+                <<<'PHP'
+                $input = stream_get_contents(STDIN);
+                fwrite(STDOUT, hash('sha256', $input));
+                PHP,
+            ],
+        );
+
+        try {
+            $process->write($input);
+            $result = $process->complete();
+
+            Expect::that($result->exitCode)
+                ->because('a subprocess MUST receive the complete input before stdin closes')
+                ->toBe(0);
+            Expect::that($result->stdout)
+                ->toBe(\hash('sha256', $input));
+        } finally {
+            $process->terminate();
+        }
+    }
+
+    #[Test]
     public function readStdoutUntilReportsAProcessThatAlreadyExited(): void
     {
         $process = Subprocess::start(
