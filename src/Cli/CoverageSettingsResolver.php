@@ -6,6 +6,7 @@ namespace Greenlight\Cli;
 
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Core\ErrorTrap;
+use Greenlight\Core\FilePath;
 use Greenlight\Runner\CoverageSettings;
 
 /** Resolves CLI coverage configuration into runner settings.
@@ -17,8 +18,11 @@ final class CoverageSettingsResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function resolve(?CoverageConfiguration $configuration, string $workingDirectory): ?CoverageSettings
-    {
+    public static function resolve(
+        ?CoverageConfiguration $configuration,
+        string $workingDirectory,
+        string $directorySeparator = \DIRECTORY_SEPARATOR,
+    ): ?CoverageSettings {
         if (!$configuration instanceof CoverageConfiguration) {
             return null;
         }
@@ -26,9 +30,7 @@ final class CoverageSettingsResolver
         $include = [];
 
         foreach ($configuration->includePaths as $path) {
-            $absolute = \str_starts_with($path, '/')
-                ? $path
-                : \rtrim($workingDirectory, '/') . '/' . $path;
+            $absolute = FilePath::resolve($path, $workingDirectory, $directorySeparator);
             $real = ErrorTrap::run(static fn() => \realpath($absolute));
 
             if ($real !== false) {

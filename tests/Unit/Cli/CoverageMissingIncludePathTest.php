@@ -19,6 +19,22 @@ use Greenlight\Tests\Support\FilesystemRestriction;
 final class CoverageMissingIncludePathTest
 {
     #[Test]
+    public function unresolvedWindowsIncludePathsRemainAbsolute(): void
+    {
+        $paths = ['C:\\project\\src', '\\\\server\\share\\src'];
+        $configuration = new CoverageConfiguration($paths, null, []);
+        $settings = CoverageSettingsResolver::resolve($configuration, 'C:\\project', '\\');
+
+        Expect::that($settings)
+            ->because('The coverage configuration MUST create coverage settings.')
+            ->toBeInstanceOf(CoverageSettings::class);
+
+        Expect::that($settings->includePaths)
+            ->because('Windows absolute include paths MUST NOT use the current working directory')
+            ->toBe($paths);
+    }
+
+    #[Test]
     public function anUnresolvedIncludePathRemainsRestrictive(): void
     {
         $configuration = new CoverageConfiguration(['future/src'], null, []);

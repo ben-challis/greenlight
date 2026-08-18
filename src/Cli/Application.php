@@ -21,6 +21,7 @@ use Greenlight\Core\AtomicFile;
 use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\EventTags;
+use Greenlight\Core\FilePath;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
@@ -1369,10 +1370,6 @@ final readonly class Application
 
     private function absolutePath(string $path, string $workingDirectory): string
     {
-        if (\str_starts_with($path, '/')) {
-            return $path;
-        }
-
-        return \rtrim($workingDirectory, '/') . '/' . $path;
+        return FilePath::resolve($path, $workingDirectory);
     }
 }
