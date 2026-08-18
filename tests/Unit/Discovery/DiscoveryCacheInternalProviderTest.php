@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheInternalProviderTest
 {
@@ -23,7 +24,7 @@ final readonly class DiscoveryCacheInternalProviderTest
         $source = $directory . '/ProbeTest.php';
         $providerSource = $directory . '/InternalProviderRows.php';
         $providerClass = 'GreenlightCacheInternalProvider\\InternalProviderRows';
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         \file_put_contents($source, "<?php\n");
         \file_put_contents($providerSource, <<<'PHP'
             <?php
@@ -77,12 +78,4 @@ final readonly class DiscoveryCacheInternalProviderTest
         }
     }
 
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
-    }
 }

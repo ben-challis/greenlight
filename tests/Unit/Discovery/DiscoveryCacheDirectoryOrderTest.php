@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheDirectoryOrderTest
 {
@@ -30,7 +31,7 @@ final readonly class DiscoveryCacheDirectoryOrderTest
             new TestMetadata($id->class, $id->method),
         );
         $directories = [$first, $second];
-        $cacheFile = $this->cacheFile($directories);
+        $cacheFile = DiscoveryCachePath::forDirectories($directories);
 
         try {
             $cache = DiscoveryCache::forDirectories($directories);
@@ -47,19 +48,4 @@ final readonly class DiscoveryCacheDirectoryOrderTest
         }
     }
 
-    /**
-     * @param list<non-empty-string> $directories
-     *
-     * @return non-empty-string
-     */
-    private function cacheFile(array $directories): string
-    {
-        \sort($directories);
-
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1(\implode("\n", $directories)), 0, 12),
-        );
-    }
 }
