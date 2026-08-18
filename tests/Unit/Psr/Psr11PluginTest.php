@@ -5,19 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Psr;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Harness\HarnessRegistry;
-use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Psr\Psr11BridgeError;
 use Greenlight\Psr\Psr11Plugin;
 use Greenlight\Psr\Service;
+use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\Psr\ArrayContainer;
 use Greenlight\Tests\Support\Psr\Greeter;
 use Psr\Container\ContainerInterface;
@@ -382,16 +378,11 @@ final readonly class Psr11PluginTest
 
     private function context(): TestContext
     {
-        return new TestContext(
-            new \stdClass(),
-            new TestId('Fixture', 'probe'),
-            new TestMetadata('Fixture', 'probe'),
-            new HarnessScopes(new HarnessRegistry()),
-        );
+        return PluginLifecycle::context();
     }
 
     private function result(): TestResult
     {
-        return new TestResult(new TestId('Fixture', 'probe'), Outcome::Passed, 0.0, 0);
+        return PluginLifecycle::passedResult();
     }
 }

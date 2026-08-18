@@ -10,17 +10,12 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Harness\HarnessRegistry;
-use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Laravel\LaravelBridgeError;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
@@ -31,6 +26,7 @@ use Greenlight\Tests\Fixture\Laravel\FixtureApplication;
 use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
+use Greenlight\Tests\Support\PluginLifecycle;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Foundation\Application;
@@ -530,16 +526,11 @@ final class LaravelPluginTest
 
     private function context(): TestContext
     {
-        return new TestContext(
-            new \stdClass(),
-            new TestId('Fixture', 'probe'),
-            new TestMetadata('Fixture', 'probe'),
-            new HarnessScopes(new HarnessRegistry()),
-        );
+        return PluginLifecycle::context();
     }
 
     private function result(): TestResult
     {
-        return new TestResult(new TestId('Fixture', 'probe'), Outcome::Passed, 0.0, 0);
+        return PluginLifecycle::passedResult();
     }
 }
