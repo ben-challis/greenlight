@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Artifact;
 
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\ErrorTrap;
 
 /** @internal */
 final readonly class NativeFileCopier implements FileCopier
@@ -17,8 +18,8 @@ final readonly class NativeFileCopier implements FileCopier
     #[\Override]
     public function copy(string $sourcePath, string $destinationPath): void
     {
-        $source = \fopen($sourcePath, 'rb');
-        $destination = \fopen($destinationPath, 'xb');
+        $source = ErrorTrap::run(static fn() => \fopen($sourcePath, 'rb'));
+        $destination = ErrorTrap::run(static fn() => \fopen($destinationPath, 'xb'));
 
         if ($source === false || $destination === false) {
             if (\is_resource($source)) {

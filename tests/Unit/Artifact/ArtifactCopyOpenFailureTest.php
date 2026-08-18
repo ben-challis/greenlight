@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Artifact;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
@@ -30,15 +31,24 @@ final readonly class ArtifactCopyOpenFailureTest
         try {
             TrackedOpenStream::reset();
 
-            Expect::that(static fn() => new NativeFileCopier()->copy(
-                $root . '/missing-source.txt',
-                self::SCHEME . '://destination',
-            ))
+            $sourceWarning = null;
+            Expect::that(static function () use ($root, &$sourceWarning): void {
+                ErrorTrap::run(
+                    static fn() => new NativeFileCopier()->copy(
+                        $root . '/missing-source.txt',
+                        self::SCHEME . '://destination',
+                    ),
+                    $sourceWarning,
+                );
+            })
                 ->because('a missing source MUST fail the attachment copy')
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Failed to copy attachment into its output directory.',
                 );
+            Expect::that($sourceWarning)
+                ->because('a source open failure MUST not leak an engine diagnostic')
+                ->toBeNull();
 
             Expect::that(TrackedOpenStream::closedStreams())
                 ->because('a source open failure MUST close the destination stream')
@@ -46,15 +56,24 @@ final readonly class ArtifactCopyOpenFailureTest
 
             TrackedOpenStream::reset();
 
-            Expect::that(static fn() => new NativeFileCopier()->copy(
-                self::SCHEME . '://source',
-                $root . '/missing/destination.txt',
-            ))
+            $destinationWarning = null;
+            Expect::that(static function () use ($root, &$destinationWarning): void {
+                ErrorTrap::run(
+                    static fn() => new NativeFileCopier()->copy(
+                        self::SCHEME . '://source',
+                        $root . '/missing/destination.txt',
+                    ),
+                    $destinationWarning,
+                );
+            })
                 ->because('an unavailable destination MUST fail the attachment copy')
                 ->toThrow(
                     AttachmentError::class,
                     message: 'Failed to copy attachment into its output directory.',
                 );
+            Expect::that($destinationWarning)
+                ->because('a destination open failure MUST not leak an engine diagnostic')
+                ->toBeNull();
 
             Expect::that(TrackedOpenStream::closedStreams())
                 ->because('a destination open failure MUST close the source stream')
