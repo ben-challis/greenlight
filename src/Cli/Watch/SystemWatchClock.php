@@ -12,7 +12,7 @@ final readonly class SystemWatchClock implements WatchClock
     #[\Override]
     public function now(): float
     {
-        return \microtime(true);
+        return \hrtime(true) / 1_000_000_000;
     }
 
     #[\Override]
