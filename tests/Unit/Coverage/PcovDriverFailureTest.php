@@ -69,6 +69,44 @@ final class PcovDriverFailureTest
             );
     }
 
+    #[Test]
+    public function simultaneousFailuresPreserveCleanupPrecedenceAndCauseChain(): void
+    {
+        $runtime = new FailingPcovDriverRuntime();
+        $collectFailure = new \RuntimeException('PCOV collection failed.');
+        $stopFailure = new \RuntimeException('PCOV stop failed.');
+        $clearFailure = new \RuntimeException('PCOV clear failed.');
+        $runtime->collectFailure = $collectFailure;
+        $runtime->stopFailure = $stopFailure;
+        $runtime->clearFailure = $clearFailure;
+        $driver = new PcovDriver($runtime);
+        $driver->start();
+
+        Expect::that(static fn(): mixed => $driver->stop())
+            ->because('PCOV cleanup failures MUST preserve their precedence and causes')
+            ->toThrow(
+                static function (\RuntimeException $caught) use (
+                    $clearFailure,
+                    $stopFailure,
+                    $collectFailure,
+                ): void {
+                    Expect::that($caught)->toBe($clearFailure);
+                    Expect::that($caught->getPrevious())->toBe($stopFailure);
+                    Expect::that($caught->getPrevious()?->getPrevious())->toBe($collectFailure);
+                },
+            );
+        Expect::that($runtime->calls)
+            ->because('PCOV cleanup MUST attempt every operation after collection fails')
+            ->toBe(['start', 'collect', 'stop', 'clear']);
+
+        Expect::that(static fn(): mixed => $driver->stop())
+            ->because('simultaneous PCOV failures MUST close the collection window')
+            ->toThrow(
+                \LogicException::class,
+                message: 'The pcov collection window is not open. Call start() before stop().',
+            );
+    }
+
     /**
      * @param 'stop'|'clear' $operation
      */
