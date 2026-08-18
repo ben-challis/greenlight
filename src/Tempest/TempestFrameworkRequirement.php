@@ -27,7 +27,7 @@ final class TempestFrameworkRequirement
             || !\interface_exists(Container::class)
             || !\class_exists(GenericContainer::class)
         ) {
-            throw TempestBridgeError::frameworkUnavailable();
+            throw TempestBridgeError::frameworkUnavailable(); // @codeCoverageIgnore
         }
 
         self::checkVersion(Kernel::VERSION);

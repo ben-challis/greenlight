@@ -5,16 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Tempest;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
-use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Tempest\TempestPlugin;
+use Greenlight\Tests\Support\PluginLifecycle;
 use Tempest\Container\Container;
 use Tempest\Core\Kernel;
 
@@ -62,16 +58,11 @@ final readonly class TempestPluginConfigurationTest
 
     private function context(): TestContext
     {
-        return new TestContext(
-            new \stdClass(),
-            new TestId('Fixture', 'probe'),
-            new TestMetadata('Fixture', 'probe'),
-            new HarnessScopes(new HarnessRegistry()),
-        );
+        return PluginLifecycle::context();
     }
 
     private function result(): TestResult
     {
-        return new TestResult(new TestId('Fixture', 'probe'), Outcome::Passed, 0.0, 0);
+        return PluginLifecycle::passedResult();
     }
 }

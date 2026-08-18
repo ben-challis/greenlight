@@ -382,6 +382,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: "read"
+      id-token: "write"
     env:
       XDEBUG_MODE: "off"
 
@@ -396,7 +397,7 @@ jobs:
         with:
           php-version: "8.5"
           extensions: "pcntl, sockets"
-          coverage: "none"
+          coverage: "xdebug"
           ini-values: "memory_limit=-1"
 
       - name: "Install Tempest and test dependencies"
@@ -405,16 +406,24 @@ jobs:
           composer config platform.php 8.5.0
           composer require --dev --no-interaction --no-progress --with-all-dependencies "tempest/framework:^3.18"
 
-      - name: "Run Tempest bridge tests"
+      - name: "Run Tempest bridge tests with coverage"
         shell: "bash"
         run: |
-          php bin/greenlight run \
-            --filter=TempestRunTest \
-            --filter=TempestFrameworkRequirementTest \
-            --filter=TempestFrameworkVersionBoundaryTest \
-            --filter=TempestFrameworkUnavailableTest \
-            --filter=TempestPluginConfigurationTest \
-            --filter=TempestProcessEnvironmentValidationTest
+          XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.tempest-coverage.php \
+            --filter='*Tempest*Test::*'
+
+      - name: "Upload Tempest coverage to Codecov"
+        continue-on-error: true
+        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        with:
+          disable_search: true
+          fail_ci_if_error: false
+          files: "build/coverage/cobertura.xml"
+          use_oidc: true
+
+      - name: "Run the Tempest coverage gate"
+        if: "always()"
+        run: "composer coverage-gate"
 
   php-next:
     name: "PHP 8.6 pre-release compatibility"

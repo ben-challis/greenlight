@@ -13,6 +13,19 @@ use Greenlight\Tempest\TempestFrameworkRequirement;
 final readonly class TempestFrameworkVersionBoundaryTest
 {
     #[Test]
+    public function rejectsAnUnavailableFrameworkVersion(): void
+    {
+        Expect::that(static function (): void {
+            TempestFrameworkRequirement::checkVersion(null);
+        })->toThrow(
+            TempestBridgeError::class,
+            message: 'The Tempest framework is not available. TempestPlugin requires '
+                . 'tempest/framework 3.18 or later in major version 3. Install the framework '
+                . 'before you activate the plugin.',
+        );
+    }
+
+    #[Test]
     #[DataSet('supportedVersions')]
     public function acceptsSupportedTempestThreeVersions(string $version): void
     {

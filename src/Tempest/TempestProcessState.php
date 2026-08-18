@@ -14,7 +14,7 @@ use Tempest\Container\GenericContainer;
  */
 final readonly class TempestProcessState
 {
-    private function __construct(
+    private function __construct(// @codeCoverageIgnore
         private ?GenericContainer $container,
         private string|false $processEnvironment,
         private bool $environmentWasSet,
