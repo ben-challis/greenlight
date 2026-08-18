@@ -140,11 +140,10 @@ assignment. Thus, the normal progress deadline does not classify the worker as
 stalled. After capacity becomes available, the orchestrator checks the workers
 that wait for resources.
 
-Resource assignment occurs only in the orchestrator. The `assign` message
-already contains the test metadata, so resource assignment requires no
-additional protocol message. Each Greenlight process, worktree, or shard has
-separate resource counters. Different runs require an external lock or service
-for coordination.
+The orchestrator claims resource capacity from the test metadata in `assign`,
+without another protocol message. Each Greenlight process, worktree, or shard
+has separate resource counters. Different runs require an external lock or
+service for coordination.
 
 The orchestrator controls capacity, not resource identity. A limit of two
 permits two assignments that require the resource at the same time. It does not
@@ -260,6 +259,5 @@ user-facing contract.
 
 Integration fixtures use the same channel pool. Greenlight merges shared values
 with the allocated channel overlay before bootstrap, so a worker never receives
-another channel's resource catalog. Replacement workers reuse released
-channels. Fresh workers running isolated tests draw from the same pool and
-receive the resources for their assigned channel.
+another channel's resource catalog. Fresh workers running isolated tests draw
+from the same pool and receive the resources for their assigned channel.

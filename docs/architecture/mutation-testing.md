@@ -69,8 +69,6 @@ The adapter has these responsibilities:
 * call Greenlight with `--test-id` for those test IDs
 * use the result to classify each mutant as killed or survived
 
-The proposed design requires no other runner changes.
-
 ## Decision
 
 Defer the adapter until a per-test coverage map exists.

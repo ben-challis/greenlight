@@ -55,9 +55,8 @@ Each test retry has a new instance, scope, deadline, and observation log. The
 first interrupt signal still lets active tests finish. This rule includes tests
 that use a temporal expectation.
 
-`retryOnException()` accepts `Exception` subclasses only. PHP `Error` values are
-never valid for a retry. The method rejects a broad type that is not an
-`Exception` subtype.
+`retryOnException()` accepts only `Exception` subclasses, which excludes
+`Error`, `Throwable`, and other broader types.
 
 ## Failures
 

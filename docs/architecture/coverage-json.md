@@ -37,11 +37,8 @@ The schema has a version. The fields and meanings in version 1 are stable. See
 
 ### v
 
-The schema version.
-
-For this revision, this value is always the integer `1`.
-
-Readers **MUST** reject all other values.
+The current schema version is the integer `1`. Readers **MUST** reject all
+other values.
 
 ### files
 
@@ -61,8 +58,6 @@ you compare them. Project-relative keys require a new schema version.
 ```json id="g6nqcx"
 {}
 ```
-
-It is never an array.
 
 ### files.*.covered
 
@@ -117,13 +112,12 @@ miss.
 
 ## Semantics
 
-The format stores line coverage only.
+The format stores covered and uncovered line sets, not hit counts.
 
 The format excludes lines that the coverage driver identifies as dead or
 unreachable code. These lines do not appear in `covered` or `uncovered`.
 
-A line has coverage if one or more tests in the run executed it. The format
-does not store hit counts.
+A line has coverage if one or more tests in the run executed it.
 
 The line lists supply the `percentage` values and the `totals` object.
 `import()` calculates these values again and ignores the stored values.
@@ -139,6 +133,3 @@ Readers **MUST** ignore unknown keys.
 
 If version 1 defines a field, a change to its definition or shape **MUST** use a
 new `v` value.
-
-Greenlight **MAY** add per-test coverage maps later as an optional extension.
-This extension **MUST** use an additive key and separate documentation.
