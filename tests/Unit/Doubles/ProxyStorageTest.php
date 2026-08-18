@@ -14,6 +14,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\Doubles\ProxyStorageContract;
+use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class ProxyStorageTest
@@ -47,12 +48,7 @@ final readonly class ProxyStorageTest
     {
         $root = \dirname(__DIR__, 3);
         $directory = \dirname($root) . '/proxies';
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to the proxy directory')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $doubles = new Doubles($directory);
         Expect::that(
