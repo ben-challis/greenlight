@@ -75,7 +75,7 @@ final class WorkerHandle
         public readonly mixed $stderr,
     ) {
         $this->tally = new ResultSummary();
-        $this->spawnedAt = \microtime(true);
+        $this->spawnedAt = \hrtime(true) / 1_000_000_000;
         $this->lastProgressAt = $this->spawnedAt;
     }
 
