@@ -53,7 +53,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
         string $env = 'testing',
         private readonly bool $refreshBetweenTests = true,
     ) {
-        if ($env === '') {
+        if (\trim($env) === '') {
             throw new \InvalidArgumentException('Framework environment MUST NOT be empty.');
         }
 
