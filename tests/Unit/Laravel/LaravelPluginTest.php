@@ -12,6 +12,8 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Doubles\Doubles;
+use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -26,7 +28,6 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Tests\Fixture\Laravel\FixtureApplication;
 use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
-use Greenlight\Tests\Fixture\Laravel\ThrowingKernel;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel;
@@ -42,7 +43,10 @@ final class LaravelPluginTest
      */
     private array $plugins = [];
 
-    public function __construct(private readonly EnvironmentSandbox $environment) {}
+    public function __construct(
+        private readonly EnvironmentSandbox $environment,
+        private readonly Doubles $doubles,
+    ) {}
 
     /** A failed expectation MUST NOT leak a Laravel application into another test. */
     #[After]
@@ -219,16 +223,24 @@ final class LaravelPluginTest
     {
         $this->environment->set('APP_ENV', 'before-laravel');
         $container = Container::getInstance();
-        $plugin = $this->track(new LaravelPlugin(function (): Application {
+        $failure = new \RuntimeException('The kernel could not bootstrap.');
+        $kernel = $this->doubles->mock(Kernel::class, static function (MockPlan $plan) use ($failure): void {
+            $plan->expects('bootstrap')->once()->andThrows($failure);
+        });
+        $plugin = $this->track(new LaravelPlugin(function () use ($kernel): Application {
             $app = $this->bareApplication();
-            $app->instance(Kernel::class, new ThrowingKernel());
+            $app->instance(Kernel::class, $kernel);
 
             return $app;
         }));
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
-        })->toThrow(\RuntimeException::class, matching: '/could not bootstrap/');
+        })->toThrow(
+            static function (\RuntimeException $caught) use ($failure): void {
+                Expect::that($caught)->toBe($failure);
+            },
+        );
         Expect::that(Container::getInstance())->toBe($container);
         Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
         Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
