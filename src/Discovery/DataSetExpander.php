@@ -75,7 +75,9 @@ final readonly class DataSetExpander
                 throw DiscoveryError::invalidAttribute($className . '::' . $testMethod . '()', $e);
             }
 
-            $key = $row->label ?? \sprintf('#%d', $position);
+            $key = $row->label === null
+                ? \sprintf('#%d', $position)
+                : $this->deriveKey($className, $testMethod, $row->label);
 
             if (\array_key_exists($key, $rows)) {
                 throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $key);
