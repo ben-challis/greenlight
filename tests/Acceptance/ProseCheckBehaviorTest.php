@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\ProcessResult;
+use Greenlight\Tests\Support\ProjectFiles;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class ProseCheckBehaviorTest
@@ -787,24 +788,12 @@ final readonly class ProseCheckBehaviorTest
 
     private function workspace(string $name): string
     {
-        $directory = $this->tempDirectory->subdirectory($name);
-        $root = $directory . '/project';
-
-        \mkdir($root);
-
-        return $root;
+        return ProjectFiles::create($this->tempDirectory, $name . '/project')->directory;
     }
 
     private function write(string $root, string $relativePath, string $contents): void
     {
-        $path = $root . '/' . $relativePath;
-        $directory = \dirname($path);
-
-        if (!\is_dir($directory)) {
-            \mkdir($directory, 0o777, true);
-        }
-
-        \file_put_contents($path, $contents);
+        new ProjectFiles($root)->write($relativePath, $contents);
     }
 
     private function run(string $command, string $root): ProcessResult

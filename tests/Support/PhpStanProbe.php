@@ -28,12 +28,13 @@ final readonly class PhpStanProbe
     ): self {
         $root = \dirname(__DIR__, 2);
         $configFile ??= $root . '/tests/Fixture/PhpStanExtension/probe.neon';
-        $probeDirectory = $workspace->subdirectory('phpstan-probe');
+        $files = ProjectFiles::create($workspace, 'phpstan-probe');
+        $probeDirectory = $files->directory;
         $goodFile = $probeDirectory . '/GoodProbe.php';
         $badFile = $probeDirectory . '/BadProbe.php';
 
-        \file_put_contents($goodFile, $goodSource);
-        \file_put_contents($badFile, $badSource);
+        $files->write('GoodProbe.php', $goodSource);
+        $files->write('BadProbe.php', $badSource);
 
         $result = Subprocess::run(
             $root,
