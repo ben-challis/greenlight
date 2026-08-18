@@ -10,21 +10,20 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Notifier;
 
-final class SpyMethodCaseTest
+final readonly class SpyMethodCaseTest
 {
+    public function __construct(private Doubles $doubles) {}
+
     #[Test]
     #[DataSet('methodNames')]
     public function recordedMethodNamesFollowPhpCaseInsensitivity(string $method): void
     {
-        $doubles = new Doubles();
-        $notifier = $doubles->spy(Notifier::class);
+        $notifier = $this->doubles->spy(Notifier::class);
         $notifier->notify('ops', 'deployed');
 
-        Expect::that($doubles->callsTo($notifier, $method))
+        Expect::that($this->doubles->callsTo($notifier, $method))
             ->because('recorded method names MUST follow PHP case-insensitive dispatch')
             ->toBe([['ops', 'deployed']]);
-
-        $doubles->dispose();
     }
 
     /**
