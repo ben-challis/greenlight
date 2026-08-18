@@ -18,6 +18,7 @@ final class TempDirectory implements Disposable
 
     public function __construct(private readonly ?string $temporaryRoot = null) {}
 
+    /** @throws TempDirectoryError */
     public function path(): string
     {
         if ($this->path === null) {
@@ -27,11 +28,7 @@ final class TempDirectory implements Disposable
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
 
             if (!ErrorTrap::run(static fn(): bool => \mkdir($path, 0700), $warning)) {
-                throw new \RuntimeException(\sprintf(
-                    'Failed to create temp directory "%s"%s.',
-                    $path,
-                    $warning === null ? '' : ': ' . $warning,
-                ));
+                throw TempDirectoryError::rootCreationFailed($path, $warning);
             }
 
             $this->path = $path;
@@ -45,6 +42,9 @@ final class TempDirectory implements Disposable
      *   contain separators but cannot contain traversal segments.
      *
      * @return non-empty-string
+     *
+     * @throws \InvalidArgumentException
+     * @throws TempDirectoryError
      */
     public function subdirectory(string $name): string
     {
@@ -74,26 +74,21 @@ final class TempDirectory implements Disposable
         $path = $root . '/' . $name;
 
         if (!\is_dir($path) && !ErrorTrap::run(static fn(): bool => \mkdir($path, 0700, true), $warning)) {
-            throw new \RuntimeException(\sprintf(
-                'Failed to create subdirectory "%s"%s.',
-                $path,
-                $warning === null ? '' : ': ' . $warning,
-            ));
+            throw TempDirectoryError::subdirectoryCreationFailed($path, $warning);
         }
 
         return $path;
     }
 
+    /** @throws TempDirectoryError */
     private function assertNotSymbolicLink(string $path): void
     {
         if (\is_link($path)) {
-            throw new \RuntimeException(\sprintf(
-                'Subdirectory path "%s" contains a symbolic link.',
-                $path,
-            ));
+            throw TempDirectoryError::symbolicLink($path);
         }
     }
 
+    /** @throws TempDirectoryError */
     #[\Override]
     public function dispose(): void
     {
@@ -105,11 +100,7 @@ final class TempDirectory implements Disposable
 
         if (\is_link($path)) {
             if (!ErrorTrap::run(static fn(): bool => \unlink($path), $warning)) {
-                throw new \RuntimeException(\sprintf(
-                    'Failed to remove temp directory symbolic link "%s"%s.',
-                    $path,
-                    $warning === null ? '' : ': ' . $warning,
-                ));
+                throw TempDirectoryError::rootLinkRemovalFailed($path, $warning);
             }
 
             $this->path = null;
@@ -135,17 +126,13 @@ final class TempDirectory implements Disposable
                 $removed = !$entry->isLink() && $entry->isDir() ? \rmdir($pathname) : \unlink($pathname);
 
                 if (!$removed) {
-                    throw new \RuntimeException(\sprintf('Failed to remove "%s" while disposing temp directory "%s".', $pathname, $path));
+                    throw TempDirectoryError::entryRemovalFailed($pathname, $path);
                 }
             }
         });
 
         if (!ErrorTrap::run(static fn(): bool => \rmdir($path), $warning)) {
-            throw new \RuntimeException(\sprintf(
-                'Failed to remove temp directory "%s"%s.',
-                $path,
-                $warning === null ? '' : ': ' . $warning,
-            ));
+            throw TempDirectoryError::rootRemovalFailed($path, $warning);
         }
 
         $this->path = null;

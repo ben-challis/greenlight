@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Fixture\TempDirectoryError;
 
 final class TempDirectorySubdirectoryLinkTest
 {
@@ -39,7 +40,7 @@ final class TempDirectorySubdirectoryLinkTest
             Expect::that(static fn(): string => $directory->subdirectory($name))
                 ->because('a subdirectory MUST remain inside its temp directory')
                 ->toThrow(
-                    \RuntimeException::class,
+                    TempDirectoryError::class,
                     message: \sprintf(
                         'Subdirectory path "%s" contains a symbolic link.',
                         $link,

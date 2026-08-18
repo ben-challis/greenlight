@@ -31,6 +31,40 @@ final readonly class ProtocolErrorTest
     }
 
     /**
+     * @param \Closure(): ProtocolError $factory
+     */
+    #[Test]
+    #[DataSet('workerStateErrors')]
+    public function workerStateErrorsHaveNamedProtocolErrors(\Closure $factory, string $message): void
+    {
+        $error = $factory();
+
+        Expect::that($error)
+            ->because('invalid worker message order MUST produce a protocol error')
+            ->toBeInstanceOf(ProtocolError::class);
+        Expect::that($error->getMessage())->toBe($message);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(): ProtocolError, string}>
+     */
+    public static function workerStateErrors(): iterable
+    {
+        yield 'duplicate bootstrap' => [
+            ProtocolError::duplicateBootstrap(...),
+            'Worker received bootstrap more than once.',
+        ];
+        yield 'bootstrap channel mismatch' => [
+            ProtocolError::bootstrapChannelMismatch(...),
+            'Worker bootstrap channel does not match GREENLIGHT_CHANNEL.',
+        ];
+        yield 'assignment before bootstrap' => [
+            ProtocolError::assignmentBeforeBootstrap(...),
+            'Worker received an assignment before bootstrap completed.',
+        ];
+    }
+
+    /**
      * @param \Closure(string, float, string): ProtocolError $factory
      */
     #[Test]

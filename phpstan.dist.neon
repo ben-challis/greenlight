@@ -21,10 +21,12 @@ parameters:
             - Greenlight\Discovery\DiscoveryError
             - Greenlight\Doubles\DoublesError
             - Greenlight\Expect\ExpectationFailed
+            - Greenlight\Fixture\TempDirectoryError
             - Greenlight\Harness\ServiceResolutionError
             - Greenlight\PhpStan\MatcherMapError
             - Greenlight\Reporting\ReportingError
             - Greenlight\Runner\Integration\IntegrationFixtureError
+            - Greenlight\Runner\Worker\WorkerError
         check:
             missingCheckedExceptionInThrows: true
             throwTypeCovariance: true

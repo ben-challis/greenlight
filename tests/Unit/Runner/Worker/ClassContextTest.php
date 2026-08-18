@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Worker\ClassContext;
+use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Tests\Fixture\Runner\Worker\CachedDataSetProbe;
 use Greenlight\Tests\Fixture\Runner\Worker\ClassContextDataProbe;
 
@@ -18,7 +19,7 @@ final class ClassContextTest
         Expect::that(static fn(): ClassContext => ClassContext::for('Missing\ExampleTest'))
             ->because('the worker cannot execute a class that is absent from its process')
             ->toThrow(
-                \RuntimeException::class,
+                WorkerError::class,
                 message: 'This process cannot load test class "Missing\ExampleTest" from the execution plan.',
             );
     }
@@ -31,7 +32,7 @@ final class ClassContextTest
         Expect::that(static fn(): array => $context->argumentsFor('scalarRows', null, 'accepts', 'removed'))
             ->because('the worker rejects an execution-plan data set that no longer exists')
             ->toThrow(
-                \RuntimeException::class,
+                WorkerError::class,
                 message: \sprintf(
                     'The execution plan contains data set "removed" for "%s::accepts()", '
                     . 'but its data provider no longer returns it. Run discovery again.',
@@ -48,7 +49,7 @@ final class ClassContextTest
         Expect::that(static fn(): array => $context->argumentsFor('scalarRows', null, 'accepts', 'bad'))
             ->because('the worker requires each data set to contain positional arguments')
             ->toThrow(
-                \RuntimeException::class,
+                WorkerError::class,
                 message: \sprintf(
                     'Data set "bad" of "%s::accepts()" requires an argument array. Actual type: string.',
                     ClassContextDataProbe::class,

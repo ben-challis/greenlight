@@ -41,14 +41,13 @@ final class ClassContext
 
     /**
      * @param non-empty-string $class
+     *
+     * @throws WorkerError
      */
     public static function for(string $class, float $providerBudgetSeconds = 5.0): self
     {
         if (!\class_exists($class)) {
-            throw new \RuntimeException(\sprintf(
-                'This process cannot load test class "%s" from the execution plan.',
-                $class,
-            ));
+            throw WorkerError::classUnavailable($class);
         }
 
         $reflection = new \ReflectionClass($class);
@@ -89,6 +88,7 @@ final class ClassContext
      * @return list<mixed>
      *
      * @throws DiscoveryError
+     * @throws WorkerError
      */
     public function argumentsFor(?string $provider, ?string $providerClass, string $testMethod, string $key): array
     {
@@ -105,25 +105,22 @@ final class ClassContext
         $sets = $this->dataSets[$testMethod];
 
         if (!\array_key_exists($key, $sets)) {
-            throw new \RuntimeException(\sprintf(
-                'The execution plan contains data set "%s" for "%s::%s()", but its data provider no longer returns it. '
-                . 'Run discovery again.',
+            throw WorkerError::dataSetMissing(
                 $key,
                 $this->reflection->getName(),
                 $testMethod,
-            ));
+            );
         }
 
         $value = $sets[$key];
 
         if (!\is_array($value)) {
-            throw new \RuntimeException(\sprintf(
-                'Data set "%s" of "%s::%s()" requires an argument array. Actual type: %s.',
+            throw WorkerError::invalidDataSet(
                 $key,
                 $this->reflection->getName(),
                 $testMethod,
                 \get_debug_type($value),
-            ));
+            );
         }
 
         return \array_values($value);

@@ -10,6 +10,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Fixture\TempDirectoryError;
 use Greenlight\Tests\Support\Subprocess;
 
 final class TempDirectoryTest
@@ -63,7 +64,7 @@ final class TempDirectoryTest
 
                         try {
                             new Greenlight\Fixture\TempDirectory()->path();
-                        } catch (RuntimeException $error) {
+                        } catch (Greenlight\Fixture\TempDirectoryError $error) {
                             fwrite(STDOUT, $error->getMessage());
                             exit(23);
                         }
@@ -129,7 +130,7 @@ final class TempDirectoryTest
         Expect::that(static fn(): string => $directory->subdirectory('blocked/nested'))
             ->because('an existing file blocks a nested subdirectory with the full target')
             ->toThrow(
-                \RuntimeException::class,
+                TempDirectoryError::class,
                 message: \sprintf(
                     'Failed to create subdirectory "%s": mkdir(): Not a directory.',
                     $target,
@@ -221,7 +222,7 @@ final class TempDirectoryTest
             })
                 ->because('fixture cleanup MUST report the entry that it cannot remove')
                 ->toThrow(
-                    \RuntimeException::class,
+                    TempDirectoryError::class,
                     message: \sprintf(
                         'Failed to remove "%s" while disposing temp directory "%s".',
                         $file,
@@ -254,7 +255,7 @@ final class TempDirectoryTest
             })
                 ->because('fixture cleanup MUST report a root that it cannot remove')
                 ->toThrow(
-                    \RuntimeException::class,
+                    TempDirectoryError::class,
                     // PHP 8.5 includes the path argument.
                     // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
                     matching: \sprintf(

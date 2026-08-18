@@ -47,11 +47,13 @@ final readonly class PhpStanCheckedExceptionTest
             use Greenlight\Coverage\CoverageError;
             use Greenlight\Doubles\DoublesError;
             use Greenlight\Expect\ExpectationFailed;
+            use Greenlight\Fixture\TempDirectoryError;
             use Greenlight\Harness\ServiceResolutionError;
             use Greenlight\Harness\UnresolvableService;
             use Greenlight\Reporting\ReportingError;
             use Greenlight\Runner\Integration\IntegrationFixtureError;
             use Greenlight\Runner\Protocol\ProtocolError;
+            use Greenlight\Runner\Worker\WorkerError;
 
             final class ProbeWireError extends WireError {}
             final class ProbeServiceResolutionError extends ServiceResolutionError {}
@@ -86,6 +88,11 @@ final readonly class PhpStanCheckedExceptionTest
                 throw IntegrationFixtureError::cleanup([]);
             }
 
+            function undocumentedTempDirectoryError(): void
+            {
+                throw TempDirectoryError::symbolicLink('/probe');
+            }
+
             function undocumentedProtocolError(): void
             {
                 throw ProtocolError::malformedFrame('probe');
@@ -100,6 +107,11 @@ final readonly class PhpStanCheckedExceptionTest
             {
                 throw new ProbeServiceResolutionError('Expected service resolution failure.');
             }
+
+            function undocumentedWorkerError(): void
+            {
+                throw WorkerError::conditionClassMissing(\stdClass::class);
+            }
             PHP,
             \dirname(__DIR__, 2) . '/phpstan.dist.neon',
         );
@@ -110,7 +122,7 @@ final readonly class PhpStanCheckedExceptionTest
         Expect::that($probe->goodPassed)
             ->because('PHPStan MUST not require throws tags in test code')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(9);
+        Expect::that($probe->errors)->toHaveCount(11);
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
@@ -130,6 +142,9 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Runner\\Integration\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Fixture\\TempDirectoryError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Runner\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
@@ -137,6 +152,9 @@ final readonly class PhpStanCheckedExceptionTest
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Runner\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',
         );
     }
 

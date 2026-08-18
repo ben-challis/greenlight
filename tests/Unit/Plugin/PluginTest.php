@@ -28,6 +28,7 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Fixture\Plugins\EvenNumbersExtension;
@@ -112,6 +113,7 @@ final class PluginTest
             ->toBe(Outcome::Errored);
         Expect::that($results[0]->error?->message)
             ->toBe($message);
+        Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
     }
 
     #[Test]
@@ -148,6 +150,7 @@ final class PluginTest
                 $rogue::class,
                 $expectedId,
             ));
+        Expect::that($result->error?->class)->toBe(WorkerError::class);
     }
 
     #[Test]
@@ -178,6 +181,7 @@ final class PluginTest
             ->toBe(Outcome::Errored);
         Expect::that($results[0]->error?->message)
             ->toBe($message);
+        Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
     }
 
     #[Test]
@@ -212,6 +216,7 @@ final class PluginTest
             ->toBe(Outcome::Errored);
         Expect::that($byMethod['passes']->error?->message)
             ->toBe($pluginFailure);
+        Expect::that($byMethod['passes']->error?->class)->toBe(WorkerError::class);
 
         // The test keeps its original error. Greenlight records the plugin
         // failure as a failure detail.

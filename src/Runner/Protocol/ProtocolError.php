@@ -50,6 +50,21 @@ final class ProtocolError extends WireError
         return new self(\sprintf('Unknown event type "%s".', $tag));
     }
 
+    public static function duplicateBootstrap(): self
+    {
+        return new self('Worker received bootstrap more than once.');
+    }
+
+    public static function bootstrapChannelMismatch(): self
+    {
+        return new self('Worker bootstrap channel does not match GREENLIGHT_CHANNEL.');
+    }
+
+    public static function assignmentBeforeBootstrap(): self
+    {
+        return new self('Worker received an assignment before bootstrap completed.');
+    }
+
     public static function summaryMismatch(string $workerId, string $expected, string $reported): self
     {
         return new self(\sprintf(

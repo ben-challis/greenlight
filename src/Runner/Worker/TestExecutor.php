@@ -192,11 +192,7 @@ final readonly class TestExecutor
 
                     break;
                 } catch (\Throwable $threw) {
-                    $cause = new \RuntimeException(\sprintf(
-                        'Plugin "%s" caused an error during beforeTest(): %s',
-                        $subscriber::class,
-                        $threw->getMessage(),
-                    ), 0, $threw);
+                    $cause = WorkerError::pluginHookFailed($subscriber::class, 'beforeTest', $threw);
                     $error = ThrowableDetail::fromThrowable($cause);
 
                     break;
@@ -335,11 +331,7 @@ final readonly class TestExecutor
             } catch (\Throwable $threw) {
                 if ($result->outcome->isSuccessful()) {
                     $result = $result->erroredBy(
-                        ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                            'Plugin "%s" caused an error during afterTest(): %s',
-                            $subscriber::class,
-                            $threw->getMessage(),
-                        ), 0, $threw)),
+                        ThrowableDetail::fromThrowable(WorkerError::pluginHookFailed($subscriber::class, 'afterTest', $threw)),
                     );
                 } else {
                     $result = $result->withFailures([
@@ -357,12 +349,11 @@ final readonly class TestExecutor
 
             if (!$replacement->id->equals($result->id)) {
                 $result = $result->erroredBy(
-                    ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                        'Plugin "%s" changed the test identity during afterTest() from "%s" to "%s".',
+                    ThrowableDetail::fromThrowable(WorkerError::pluginChangedTestIdentity(
                         $subscriber::class,
                         $result->id,
                         $replacement->id,
-                    ))),
+                    )),
                 );
 
                 continue;
@@ -372,12 +363,11 @@ final readonly class TestExecutor
                 && \count($replacement->transformations) <= \count($result->transformations)
             ) {
                 $result = $result->erroredBy(
-                    ThrowableDetail::fromThrowable(new \RuntimeException(\sprintf(
-                        'Plugin "%s" changed the outcome from %s to %s without a new transformation-log entry from withOutcome().',
+                    ThrowableDetail::fromThrowable(WorkerError::pluginChangedOutcome(
                         $subscriber::class,
-                        $result->outcome->value,
-                        $replacement->outcome->value,
-                    ))),
+                        $result->outcome,
+                        $replacement->outcome,
+                    )),
                 );
 
                 continue;
@@ -439,17 +429,13 @@ final readonly class TestExecutor
     {
         try {
             if (!\class_exists($conditionClass)) {
-                return new \RuntimeException(\sprintf('Condition class "%s" does not exist.', $conditionClass));
+                return WorkerError::conditionClassMissing($conditionClass);
             }
 
             $condition = new $conditionClass(...$arguments);
 
             if (!$condition instanceof Condition) {
-                return new \RuntimeException(\sprintf(
-                    'Condition class "%s" does not implement %s.',
-                    $conditionClass,
-                    Condition::class,
-                ));
+                return WorkerError::invalidConditionClass($conditionClass);
             }
 
             return $condition->isSatisfied();

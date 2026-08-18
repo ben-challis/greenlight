@@ -46,6 +46,7 @@ use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\EventSink;
+use Greenlight\Runner\Worker\WorkerError;
 
 /**
  * Workers request test classes when required. Isolated entries use new
@@ -838,18 +839,17 @@ final class Orchestrator
 
         if ($inFlight instanceof TestId) {
             $diagnostics = \trim($handle->diagnostics);
-            $message = \sprintf('Worker "%s" crashed during this test: %s.', $handle->workerId, $reason);
-
-            if ($diagnostics !== '') {
-                $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
-            }
 
             $this->recordSyntheticResult($handle, $sink, new TestResult(
                 $inFlight,
                 Outcome::Errored,
                 0.0,
                 0,
-                error: ThrowableDetail::fromThrowable(new \RuntimeException($message)),
+                error: ThrowableDetail::fromThrowable(WorkerError::crashedDuringTest(
+                    $handle->workerId,
+                    $reason,
+                    Utf8::tailBytes($diagnostics, 2_048),
+                )),
             ));
         }
 

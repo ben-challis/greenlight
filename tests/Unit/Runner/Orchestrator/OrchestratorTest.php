@@ -18,6 +18,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Tests\Fixture\CrashDiagnostics\CrashDiagnosticsTest;
 use Greenlight\Tests\Fixture\CrashUnicodeDiagnostics\CrashUnicodeDiagnosticsTest;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
@@ -534,6 +535,7 @@ final class OrchestratorTest
                 "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"
                 . "Worker output:\nThe worker emitted crash diagnostics.",
             );
+        Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
     }
 
     #[Test]
