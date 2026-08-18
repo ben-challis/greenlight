@@ -49,7 +49,7 @@ final readonly class ProxyGenerator
         if (!\class_exists($proxyClass, false)) {
             $file = $this->directory . '/' . $shortName . '.php';
 
-            if (!\is_file($file)) {
+            if (!ErrorTrap::run(static fn(): bool => \is_file($file))) {
                 $this->write($file, $this->renderFile($reflection, $shortName, $body));
             }
 
@@ -395,8 +395,14 @@ final readonly class ProxyGenerator
     {
         $directory = $this->directory;
 
-        if (!\is_dir($directory) && !ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o777, true), $warning) && !\is_dir($directory)) {
-            throw DoublesError::proxyDirectoryNotCreated($directory, $warning);
+        $directoryExists = ErrorTrap::run(static fn(): bool => \is_dir($directory));
+
+        if (!$directoryExists && !ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o777, true), $warning)) {
+            $directoryExists = ErrorTrap::run(static fn(): bool => \is_dir($directory));
+
+            if (!$directoryExists) {
+                throw DoublesError::proxyDirectoryNotCreated($directory, $warning);
+            }
         }
 
         try {
