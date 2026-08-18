@@ -52,6 +52,10 @@ final readonly class SuiteConfiguration
                 throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $name));
             }
 
+            if (\str_contains($path, "\0")) {
+                throw new InvalidConfiguration(\sprintf('Suite "%s" paths cannot contain a null byte.', $name));
+            }
+
             $validatedPaths[] = $path;
         }
 

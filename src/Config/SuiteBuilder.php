@@ -34,6 +34,10 @@ final class SuiteBuilder
                 throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $this->name));
             }
 
+            if (\str_contains($path, "\0")) {
+                throw new InvalidConfiguration(\sprintf('Suite "%s" paths cannot contain a null byte.', $this->name));
+            }
+
             $validated[] = $path;
         }
 

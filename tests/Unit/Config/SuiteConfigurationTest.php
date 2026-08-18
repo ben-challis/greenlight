@@ -74,6 +74,12 @@ final class SuiteConfigurationTest
             [],
             'Suite "unit" was given an empty path.',
         ];
+        yield 'path contains a null byte' => [
+            'unit',
+            ["tests\0nested"],
+            [],
+            'Suite "unit" paths cannot contain a null byte.',
+        ];
         yield 'no paths' => [
             'unit',
             [],

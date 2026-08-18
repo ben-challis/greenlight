@@ -55,6 +55,19 @@ final class SuiteBuilderTest
             ->toBe(['existing']);
     }
 
+    #[Test]
+    public function rejectsNullBytesAtTheBuilderBoundary(): void
+    {
+        $builder = new SuiteBuilder('integration');
+
+        Expect::that(static fn(): SuiteBuilder => $builder->in("tests/Integration\0nested"))
+            ->because('suite paths MUST be valid filesystem inputs')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Suite "integration" paths cannot contain a null byte.',
+            );
+    }
+
     /**
      * @param list<string> $paths
      * @param list<string> $tags
