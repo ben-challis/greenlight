@@ -191,9 +191,12 @@ final class ValueRenderer
                 break;
             }
 
-            $parts[] = $property->getName() . ': ' . ($property->isInitialized($value)
-                ? $this->renderValue($property->getValue($value), $depth + 1)
-                : '(uninitialized)');
+            $renderedValue = match (true) {
+                $property->isVirtual() => '(virtual)',
+                !$property->isInitialized($value) => '(uninitialized)',
+                default => $this->renderValue($property->getRawValue($value), $depth + 1),
+            };
+            $parts[] = $property->getName() . ': ' . $renderedValue;
             ++$rendered;
         }
 

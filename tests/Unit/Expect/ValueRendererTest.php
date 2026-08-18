@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\ValueRenderer;
 use Greenlight\Tests\Fixture\Expect\Credentials;
 use Greenlight\Tests\Fixture\Expect\Holder;
+use Greenlight\Tests\Fixture\Expect\HookedProperties;
 use Greenlight\Tests\Fixture\Expect\LateInit;
 use Greenlight\Tests\Fixture\Expect\Signal;
 
@@ -123,6 +124,14 @@ final class ValueRendererTest
         $rendered = new ValueRenderer()->render(new LateInit());
 
         Expect::that($rendered)->because('marks uninitialized properties')->toBe(LateInit::class . ' {value: (uninitialized)}');
+    }
+
+    #[Test]
+    public function rendersHookedPropertiesWithoutInvokingUserCode(): void
+    {
+        Expect::that(new ValueRenderer()->render(new HookedProperties()))
+            ->because('failure rendering MUST NOT invoke property hooks')
+            ->toBe(HookedProperties::class . " {backed: 'stored', virtual: (virtual)}");
     }
 
     #[Test]
