@@ -11,6 +11,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final readonly class SocketChannelInterruptedReceiveTest
 {
@@ -23,11 +24,7 @@ final readonly class SocketChannelInterruptedReceiveTest
             throw new SkipTest('Process control is not available.');
         }
 
-        $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
-
-        if ($pair === false || \count($pair) !== 2 || !isset($pair[0], $pair[1])) {
-            Fail::because('Expected stream_socket_pair() to create a connected socket pair.');
-        }
+        $pair = ConnectedStreamPair::open();
 
         $channel = new SocketChannel($pair[0]);
         $previousAsyncSignals = \pcntl_async_signals(true);

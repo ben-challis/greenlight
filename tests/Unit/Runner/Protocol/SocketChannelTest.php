@@ -11,6 +11,7 @@ use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Tests\Fixture\Runner\Protocol\UnselectableStream;
+use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final class SocketChannelTest
 {
@@ -19,7 +20,7 @@ final class SocketChannelTest
     #[Test]
     public function receiveTimeoutLeavesTheChannelOpenForLaterMessages(): void
     {
-        [$stream, $peer] = $this->socketPair();
+        [$stream, $peer] = ConnectedStreamPair::open();
         $receiver = new SocketChannel($stream);
         $sender = new SocketChannel($peer);
 
@@ -45,7 +46,7 @@ final class SocketChannelTest
     #[Test]
     public function aCompleteFinalFrameIsDeliveredBeforeCleanEof(): void
     {
-        [$stream, $peer] = $this->socketPair();
+        [$stream, $peer] = ConnectedStreamPair::open();
         $receiver = new SocketChannel($stream);
         $sender = new SocketChannel($peer);
 
@@ -70,7 +71,7 @@ final class SocketChannelTest
     #[Test]
     public function peerEofRejectsAnIncompleteFrame(): void
     {
-        [$stream, $peer] = $this->socketPair();
+        [$stream, $peer] = ConnectedStreamPair::open();
         $channel = new SocketChannel($stream);
 
         try {
@@ -106,7 +107,7 @@ final class SocketChannelTest
     #[Test]
     public function anExternallyClosedStreamEndsPollingAndRejectsWrites(): void
     {
-        [$stream, $peer] = $this->socketPair();
+        [$stream, $peer] = ConnectedStreamPair::open();
         $channel = new SocketChannel($stream);
 
         try {
@@ -160,17 +161,4 @@ final class SocketChannelTest
         }
     }
 
-    /**
-     * @return array{resource, resource}
-     */
-    private function socketPair(): array
-    {
-        $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
-
-        if ($pair === false || \count($pair) !== 2 || !isset($pair[0], $pair[1])) {
-            Fail::because('Expected stream_socket_pair() to create a connected socket pair.');
-        }
-
-        return [$pair[0], $pair[1]];
-    }
 }

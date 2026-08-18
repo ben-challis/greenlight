@@ -11,13 +11,14 @@ use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\SocketEventSink;
+use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final class SocketEventSinkTest
 {
     #[Test]
     public function emittedEventsCrossTheWorkerChannelInAnEventEnvelope(): void
     {
-        [$senderStream, $receiverStream] = $this->socketPair();
+        [$senderStream, $receiverStream] = ConnectedStreamPair::open();
         $sender = new SocketChannel($senderStream);
         $receiver = new SocketChannel($receiverStream);
         $sink = new SocketEventSink($sender);
@@ -43,17 +44,4 @@ final class SocketEventSinkTest
         }
     }
 
-    /**
-     * @return array{resource, resource}
-     */
-    private function socketPair(): array
-    {
-        $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
-
-        if ($pair === false || \count($pair) !== 2 || !isset($pair[0], $pair[1])) {
-            Fail::because('Expected stream_socket_pair() to create a connected socket pair.');
-        }
-
-        return [$pair[0], $pair[1]];
-    }
 }

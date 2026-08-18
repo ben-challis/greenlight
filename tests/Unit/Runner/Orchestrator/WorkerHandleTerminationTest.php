@@ -11,6 +11,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final readonly class WorkerHandleTerminationTest
 {
@@ -42,11 +43,7 @@ final readonly class WorkerHandleTerminationTest
                 Fail::because('Expected the worker process fixture to start.');
             }
 
-            $sockets = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, 0);
-
-            if ($sockets === false) {
-                Fail::because('Expected the worker channel fixture to open.');
-            }
+            $sockets = ConnectedStreamPair::open();
 
             \stream_set_timeout($pipes[1], 2);
 
@@ -74,9 +71,7 @@ final readonly class WorkerHandleTerminationTest
         } finally {
             $resources = $pipes;
 
-            if (\is_array($sockets)) {
-                $resources = [...$resources, ...$sockets];
-            }
+            $resources = [...$resources, ...$sockets];
 
             foreach ($resources as $resource) {
                 if (\is_resource($resource)) {
