@@ -92,7 +92,8 @@ final readonly class Application
         Commands:
           run            Find and run tests (default)
           list-tests     List each found test ID, one per line
-          coverage:diff  Compare two coverage JSON exports (--baseline, --current)
+          coverage:diff  Compare two coverage JSON exports. Fail if total coverage
+                         decreases or a line becomes newly uncovered.
           profile:report Create a run profile from a saved JSONL stream (--input)
           ide-helper     Write the IDE autocomplete helper for extension matchers
                          (--output, default _greenlight_ide_helper.php)
@@ -113,13 +114,15 @@ final readonly class Application
           --test-id=<id>     Run only this exact test ID. You can repeat this option.
           --exclude-group=<name>     Skip tests in this group. You can repeat this option.
           --exclude-class=<pattern>  Skip classes that match this pattern.
-                             Use a substring or * wildcards. You can repeat this option.
+                             Matching is case-sensitive. Use a substring or * wildcards.
+                             You can repeat this option.
           --exclude-method=<pattern> Skip methods that match this pattern.
-                             Use a substring or * wildcards. You can repeat this option.
+                             Matching is case-sensitive. Use a substring or * wildcards.
+                             You can repeat this option.
           --exclude-path=<prefix>    Skip test files under this path prefix.
                              Greenlight resolves relative prefixes against the
                              working directory. You can repeat this option.
-          --failed           Run only tests that failed in the previous run
+          --failed           Run only tests that failed or had an error in the previous run
           --list-tests       Print the selected test IDs. Do not run the tests.
           --list-groups      Print each selected group and its test count
           --list-suites      Print the configured suites
@@ -134,8 +137,8 @@ final readonly class Application
           --reporter=<name>  Select tty, plain, junit, jsonl, github, or teamcity.
                              You can repeat this option.
           --artifacts-dir=<path> Persistent directory for retained test attachments
-          --watch            Run tests again after file changes. Enter runs all tests.
-                             q quits.
+          --watch            Run selected tests at startup and after file changes.
+                             Enter reruns them. q quits with exit code 0.
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
           --verbose          Print a permanent line per completed class in
                              interactive output
@@ -147,7 +150,8 @@ final readonly class Application
           --profile          Add a run profile after the summary. It contains worker
                              utilization, boot latency, makespan spread, and slow classes.
                              It also extends the slow-test list.
-          --dry-run          Print the resolved configuration. Do not run tests.
+          --dry-run          Print a run-settings summary without test discovery
+                             or execution.
           -h, --help         Show this help
           -V, --version      Show the version
 
