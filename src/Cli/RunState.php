@@ -66,11 +66,12 @@ final readonly class RunState
      */
     private function decoded(): ?array
     {
-        if (!\is_file($this->file)) {
+        $file = $this->file;
+
+        if (!ErrorTrap::run(static fn(): bool => \is_file($file))) {
             return null;
         }
 
-        $file = $this->file;
         $raw = ErrorTrap::run(static fn(): string|false => \file_get_contents($file));
 
         if (!\is_string($raw)) {
