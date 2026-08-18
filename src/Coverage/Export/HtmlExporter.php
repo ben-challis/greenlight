@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Export;
 
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
@@ -203,7 +204,7 @@ final readonly class HtmlExporter implements CoverageExporter
             return null;
         }
 
-        $content = \file_get_contents($path);
+        $content = ErrorTrap::run(static fn(): string|false => \file_get_contents($path));
 
         if ($content === false) {
             return null;
