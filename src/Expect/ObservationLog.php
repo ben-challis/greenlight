@@ -110,12 +110,6 @@ final class ObservationLog
             return $rendered;
         }
 
-        $truncated = \substr($rendered, 0, self::MAX_RENDERED_BYTES - 3);
-
-        while (\preg_match('//u', $truncated) !== 1) {
-            $truncated = \substr($truncated, 0, -1);
-        }
-
-        return $truncated . '...';
+        return Utf8::headBytes($rendered, self::MAX_RENDERED_BYTES - 3) . '...';
     }
 }

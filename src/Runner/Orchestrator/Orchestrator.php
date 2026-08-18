@@ -22,6 +22,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\InvalidWirePayload;
+use Greenlight\Core\Wire\Utf8;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
@@ -707,7 +708,7 @@ final class Orchestrator
                     throw ProtocolError::workerNeverConnected(
                         $handle->workerId,
                         $this->connectDeadlineSeconds,
-                        \substr(\trim($handle->diagnostics), -2048),
+                        Utf8::tailBytes(\trim($handle->diagnostics), 2_048),
                     );
                 }
 
@@ -755,7 +756,7 @@ final class Orchestrator
                     throw ProtocolError::workerStalled(
                         $handle->workerId,
                         $this->progressDeadlineSeconds,
-                        \substr(\trim($handle->diagnostics), -2048),
+                        Utf8::tailBytes(\trim($handle->diagnostics), 2_048),
                     );
                 }
 
@@ -796,7 +797,7 @@ final class Orchestrator
             $diagnostics = \trim($handle->diagnostics);
 
             if ($diagnostics !== '') {
-                $message .= "\nWorker output:\n" . \substr($diagnostics, -2048);
+                $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
             }
 
             $this->recordSyntheticResult($handle, $sink, new TestResult(
@@ -824,7 +825,7 @@ final class Orchestrator
             $message = \sprintf('Worker "%s" crashed during this test: %s.', $handle->workerId, $reason);
 
             if ($diagnostics !== '') {
-                $message .= "\nWorker output:\n" . \substr($diagnostics, -2048);
+                $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
             }
 
             $this->recordSyntheticResult($handle, $sink, new TestResult(

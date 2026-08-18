@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Orchestrator;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Core\Wire\Utf8;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Runner\Protocol\SocketChannel;
 
@@ -18,6 +19,8 @@ use Greenlight\Runner\Protocol\SocketChannel;
  */
 final class WorkerHandle
 {
+    private const int MAX_DIAGNOSTIC_BYTES = 65_536;
+
     public ?SocketChannel $channel = null;
 
     public bool $ready = false;
@@ -49,6 +52,9 @@ final class WorkerHandle
     public bool $done = false;
 
     public string $diagnostics = '';
+
+    /** @var array{string, string} */
+    private array $diagnosticCarry = ['', ''];
 
     public readonly float $spawnedAt;
 
@@ -116,7 +122,7 @@ final class WorkerHandle
     public function drainPipes(): void
     {
         ErrorTrap::run(function (): void {
-            foreach ([$this->stdout, $this->stderr] as $pipe) {
+            foreach ([$this->stdout, $this->stderr] as $index => $pipe) {
                 if (!\is_resource($pipe)) {
                     continue;
                 }
@@ -124,11 +130,88 @@ final class WorkerHandle
                 \stream_set_blocking($pipe, false);
                 $bytes = \fread($pipe, 8192);
 
-                if (\is_string($bytes) && $bytes !== '') {
-                    $this->diagnostics = \substr($this->diagnostics . $bytes, -65536);
+                if (!\is_string($bytes)) {
+                    continue;
+                }
+
+                [$complete, $this->diagnosticCarry[$index]] = $this->completeUtf8Prefix(
+                    $this->diagnosticCarry[$index] . $bytes,
+                );
+
+                if (\feof($pipe) && $this->diagnosticCarry[$index] !== '') {
+                    $complete .= $this->diagnosticCarry[$index];
+                    $this->diagnosticCarry[$index] = '';
+                }
+
+                if ($complete !== '') {
+                    $this->diagnostics = Utf8::tailBytes(
+                        $this->diagnostics . $complete,
+                        self::MAX_DIAGNOSTIC_BYTES,
+                    );
                 }
             }
         });
+    }
+
+    /**
+     * @return array{string, string}
+     */
+    private function completeUtf8Prefix(string $value): array
+    {
+        if (\preg_match('//u', $value) === 1) {
+            return [$value, ''];
+        }
+
+        $maxCarryBytes = \min(3, \strlen($value));
+
+        for ($carryBytes = 1; $carryBytes <= $maxCarryBytes; ++$carryBytes) {
+            $prefix = \substr($value, 0, -$carryBytes);
+            $carry = \substr($value, -$carryBytes);
+
+            if (\preg_match('//u', $prefix) === 1 && $this->isIncompleteUtf8Suffix($carry)) {
+                return [$prefix, $carry];
+            }
+        }
+
+        return [Utf8::scrub($value), ''];
+    }
+
+    private function isIncompleteUtf8Suffix(string $value): bool
+    {
+        $length = \strlen($value);
+        $lead = \ord($value[0]);
+        $expectedLength = match (true) {
+            $lead >= 0xC2 && $lead <= 0xDF => 2,
+            $lead >= 0xE0 && $lead <= 0xEF => 3,
+            $lead >= 0xF0 && $lead <= 0xF4 => 4,
+            default => 0,
+        };
+
+        if ($expectedLength === 0 || $length >= $expectedLength) {
+            return false;
+        }
+
+        for ($index = 1; $index < $length; ++$index) {
+            $byte = \ord($value[$index]);
+            $minimum = match (true) {
+                $index !== 1 => 0x80,
+                $lead === 0xE0 => 0xA0,
+                $lead === 0xF0 => 0x90,
+                default => 0x80,
+            };
+            $maximum = match (true) {
+                $index !== 1 => 0xBF,
+                $lead === 0xED => 0x9F,
+                $lead === 0xF4 => 0x8F,
+                default => 0xBF,
+            };
+
+            if ($byte < $minimum || $byte > $maximum) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function terminate(): void
