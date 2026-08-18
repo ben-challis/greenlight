@@ -37,4 +37,20 @@ final class ProcessResultTest
         Expect::that($empty->output())->toBe('');
         Expect::that($empty->outputLines())->toBe([]);
     }
+
+    #[Test]
+    public function lineListsRemoveOneFinalTerminatorAndPreserveBlankContent(): void
+    {
+        $terminated = new ProcessResult(0, "first\nsecond\n", "warning\n");
+        $blankFinalLine = new ProcessResult(0, "first\n\n", '');
+
+        Expect::that($terminated->stdoutLines())
+            ->because('a final line terminator MUST NOT create a phantom output line')
+            ->toBe(['first', 'second']);
+        Expect::that($terminated->outputLines())
+            ->toBe(['first', 'second', 'warning']);
+        Expect::that($blankFinalLine->stdoutLines())
+            ->because('line normalization MUST preserve intentional blank content')
+            ->toBe(['first', '']);
+    }
 }
