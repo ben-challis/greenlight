@@ -138,6 +138,15 @@ Expect::that(fn() => $service->load('missing'))
     ->toThrow(NotFound::class);
 ```
 
+Pass a Throwable instance to require the callable to throw that exact object:
+
+```php
+$failure = new DomainException('Order is closed.');
+
+Expect::that(fn() => throw $failure)
+    ->toThrow($failure);
+```
+
 Constrain the message by exact value or regular expression:
 
 ```php
@@ -153,7 +162,8 @@ Expect::that($callback)->toThrow(
 ```
 
 `message:` and `matching:` are mutually exclusive. Use them only with a
-throwable class-string.
+throwable class-string. A Throwable instance already specifies one exact
+object.
 
 A typed callback can specify the throwable type and check the caught
 throwable. Greenlight runs it only after the throwable type matches:
@@ -177,7 +187,11 @@ keeps its diagnostic. An `eventually()` expectation retries this failure.
 
 With `not()`, a failed callback expectation means that the throwable does not
 match. Thus, the negated `toThrow()` expectation passes. Other throwables from
-the callback stop the matcher.
+the callback stop the matcher. An instance constraint matches only the exact
+object. A different instance passes the negated expectation.
+
+An `eventually()` expectation retries when the callable throws a different
+instance. It passes when the callable throws the specified object.
 
 ## Asynchronous state
 

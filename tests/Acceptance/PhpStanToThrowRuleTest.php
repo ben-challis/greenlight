@@ -81,8 +81,12 @@ final readonly class PhpStanToThrowRuleTest
 
             function greenlightGoodToThrowProbe(): void
             {
+                $failure = new DomainException('boom');
+
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class);
+                Expect::that(static fn() => throw $failure)
+                    ->toThrow($failure);
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, matching: '/boom/');
                 Expect::that(static fn() => throw new DomainException('boom'))
@@ -97,6 +101,9 @@ final readonly class PhpStanToThrowRuleTest
                 Expect::consistently(static fn(): Closure => static fn() => throw new DomainException('boom'))
                     ->for(0.1)
                     ->toThrow(DomainException::class, message: 'boom');
+                Expect::eventually(static fn(): Closure => static fn() => throw $failure)
+                    ->within(1.0)
+                    ->toThrow($failure);
             }
             PHP,
             <<<'PHP'
@@ -108,6 +115,8 @@ final readonly class PhpStanToThrowRuleTest
 
             function greenlightBadToThrowProbe(): void
             {
+                $failure = new DomainException('boom');
+
                 Expect::that(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, matching: '/boom/', message: 'boom');
                 Expect::that(static fn() => throw new DomainException('boom'))
@@ -137,16 +146,24 @@ final readonly class PhpStanToThrowRuleTest
                         static function (DomainException $error): void {},
                         message: 'boom',
                     );
+                Expect::that(static fn() => throw $failure)
+                    ->toThrow($failure, matching: '/boom/');
+                Expect::eventually(static fn(): Closure => static fn() => throw $failure)
+                    ->within(1.0)
+                    ->toThrow($failure, message: 'boom');
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(8);
+        Expect::that(\count($probe->errors))->toBe(10);
         Expect::that($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
         Expect::that($probe->messages())->toContain(
             'Do not specify matching: or message: when the throwable is a callback.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
         );
     }
 

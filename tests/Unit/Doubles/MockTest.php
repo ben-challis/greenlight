@@ -294,9 +294,7 @@ final class MockTest
         });
 
         Expect::that(static fn(): int => $calculator->add(1, 2))->because('andThrows() raises the configured throwable')
-            ->toThrow(static function (\RuntimeException $error) use ($throwable): void {
-                Expect::that($error)->toBe($throwable);
-            });
+            ->toThrow($throwable);
 
         $doubles->dispose();
     }

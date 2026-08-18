@@ -94,11 +94,7 @@ final class PluginEventSinkTest
             $sink->emit($event);
         })
             ->because('an orchestrator subscriber failure MUST fail event delivery')
-            ->toThrow(
-                static function (\RuntimeException $caught) use ($failure): void {
-                    Expect::that($caught)->toBe($failure);
-                },
-            );
+            ->toThrow($failure);
 
         Expect::that($inner->events)
             ->because('the inner sink MUST not observe an event rejected by a subscriber')

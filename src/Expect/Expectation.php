@@ -758,6 +758,8 @@ final class Expectation
     /**
      * The subject must be callable. The matcher calls it with no arguments.
      * It passes when the subject throws an instance of the specified class.
+     * A Throwable instance instead requires the subject to throw that exact
+     * object.
      *
      * The throwable can instead be a callback with one typed Throwable
      * parameter. Its parameter type specifies the expected throwable class.
@@ -767,14 +769,15 @@ final class Expectation
      *
      * The optional `matching:` argument checks the message with a regular
      * expression. The `message:` argument checks the exact message. Do not use
-     * these arguments with a throwable callback.
+     * these arguments with a throwable callback or instance.
      *
-     * With `not()`, a throwable that does not satisfy both conditions makes the
-     * matcher pass.
+     * With `not()`, a throwable that does not satisfy all applicable
+     * constraints makes the matcher pass. A different object does not satisfy
+     * an instance constraint.
      *
      * @template TThrowable of \Throwable
      *
-     * @param class-string<TThrowable>|\Closure(TThrowable): void $throwable
+     * @param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable
      *
      * @return self<T>
      *
@@ -782,14 +785,21 @@ final class Expectation
      * @throws ExpectationFailed
      */
     public function toThrow(
-        string|\Closure $throwable,
+        string|\Closure|\Throwable $throwable,
         ?string $matching = null,
         ?string $message = null,
     ): self {
         $callback = $throwable instanceof \Closure ? $throwable : null;
+        $instance = $throwable instanceof \Throwable ? $throwable : null;
 
         if ($callback instanceof \Closure && ($matching !== null || $message !== null)) {
             $this->usageFailure('Do not specify matching: or message: when the throwable is a callback.');
+        }
+
+        if ($instance instanceof \Throwable && ($matching !== null || $message !== null)) {
+            $this->usageFailure(
+                'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
+            );
         }
 
         if ($matching !== null && $message !== null) {
@@ -800,9 +810,11 @@ final class Expectation
             $this->requireValidPattern($matching, 'toThrow');
         }
 
-        $expectedThrowable = $callback instanceof \Closure
-            ? $this->requireThrowableCallback($callback)
-            : $throwable;
+        $expectedThrowable = match (true) {
+            $callback instanceof \Closure => $this->requireThrowableCallback($callback),
+            $instance instanceof \Throwable => $instance::class,
+            default => $throwable,
+        };
 
         if (!\is_callable($this->subject)) {
             $this->usageFailure(\sprintf(
@@ -819,7 +831,9 @@ final class Expectation
             $thrown = $caught;
         }
 
-        $matched = $thrown instanceof $expectedThrowable;
+        $matched = $instance instanceof \Throwable
+            ? $thrown === $instance
+            : $thrown instanceof $expectedThrowable;
 
         if ($matched && $matching !== null) {
             $matched = \preg_match($matching, $thrown->getMessage()) === 1;
@@ -850,7 +864,9 @@ final class Expectation
             $matched = $thrown instanceof \Throwable && $thrown->getMessage() === $message;
         }
 
-        $description = 'to throw ' . $expectedThrowable;
+        $description = $instance instanceof \Throwable
+            ? 'to throw the exact ' . $expectedThrowable . ' instance'
+            : 'to throw ' . $expectedThrowable;
 
         if ($matching !== null) {
             $description .= ' with message matching ' . $matching;
@@ -868,7 +884,11 @@ final class Expectation
             )
             : 'a callable that did not throw';
 
-        return $this->verify($matched, $description, $expectedThrowable, $actual);
+        $expected = $instance instanceof \Throwable
+            ? 'the exact ' . $expectedThrowable . ' instance'
+            : $expectedThrowable;
+
+        return $this->verify($matched, $description, $expected, $actual);
     }
 
     /**

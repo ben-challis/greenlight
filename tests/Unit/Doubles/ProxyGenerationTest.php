@@ -227,9 +227,7 @@ final readonly class ProxyGenerationTest
         });
 
         Expect::that(static fn() => $wide->returnsNever())->because('a configured never returning method throws its plan')
-            ->toThrow(static function (\DomainException $error) use ($throwable): void {
-                Expect::that($error)->toBe($throwable);
-            });
+            ->toThrow($throwable);
     }
 
 }

@@ -274,11 +274,7 @@ final class OutputCaptureTest
             }
         })
             ->because('stop in a finally block restores everything when user code throws')
-            ->toThrow(
-                static function (\RuntimeException $caught) use ($failure): void {
-                    Expect::that($caught)->toBe($failure);
-                },
-            );
+            ->toThrow($failure);
 
         Expect::that($captured?->stdout)->toBe('before the throw');
         Expect::that(\ob_get_level())->toBe($baseline);

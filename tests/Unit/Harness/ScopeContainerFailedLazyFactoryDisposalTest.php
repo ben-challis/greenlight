@@ -40,11 +40,7 @@ final class ScopeContainerFailedLazyFactoryDisposalTest
 
         Expect::that(static fn(): string => $service->value())
             ->because('the lazy factory failure MUST propagate from service use')
-            ->toThrow(
-                static function (\RuntimeException $caught) use ($failure): void {
-                    Expect::that($caught)->toBe($failure);
-                },
-            );
+            ->toThrow($failure);
 
         $failures = $container->dispose();
 

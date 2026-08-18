@@ -152,6 +152,7 @@ These differences are important:
 * `toThrow()` accepts a callable subject and an optional message constraint.
   * Use `message:` for exact equality.
   * Use `matching:` for a regular expression.
+  * Pass a Throwable instance to require the exact object.
   * Use a typed throwable callback to check the caught throwable.
   * Do not use `message:` and `matching:` in one call.
 * `Fail::because()` replaces `$this->fail()` and supports explicit type guards.
