@@ -142,7 +142,7 @@ final readonly class FixtureResource implements WireSerializable
     {
         $value = $this->value($key);
 
-        if (!\is_array($value) || \array_is_list($value)) {
+        if (!\is_array($value) || ($value !== [] && \array_is_list($value))) {
             throw $this->wrongType($key, 'a map', $value);
         }
 
