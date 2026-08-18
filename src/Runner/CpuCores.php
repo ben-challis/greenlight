@@ -35,7 +35,7 @@ final class CpuCores
     {
         if (\class_exists(CpuCoreCounter::class)) {
             try {
-                return new CpuCoreCounter()->getCount();
+                return ErrorTrap::run(static fn(): int => new CpuCoreCounter()->getCount());
             } catch (NumberOfCpuCoreNotFound) {
             }
         }
@@ -48,7 +48,7 @@ final class CpuCores
      */
     private static function probe(): int
     {
-        if (\is_file('/proc/cpuinfo')) {
+        if (ErrorTrap::run(static fn(): bool => \is_file('/proc/cpuinfo'))) {
             $cpuinfo = ErrorTrap::run(static fn(): string|false => \file_get_contents('/proc/cpuinfo'));
 
             if (\is_string($cpuinfo)) {
