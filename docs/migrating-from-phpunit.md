@@ -72,11 +72,30 @@ The rule preserves each repeated `#[TestWith]` row. It converts
 It rejects class-process and global-state options that have different
 Greenlight behavior.
 
+The rule converts supported PHPUnit attributes as follows:
+
+| PHPUnit | Greenlight |
+| --- | --- |
+| `#[DataProvider]` | `#[DataSet]` |
+| `#[TestWith]` | `#[DataRow]` |
+| `#[Group]` or `#[Ticket]` | `#[Group]` |
+| `#[Small]` | `#[Group('small')]` |
+| `#[Medium]` | `#[Group('medium')]` |
+| `#[Large]` | `#[Group('large')]` |
+| `#[RunInSeparateProcess]` or `#[RunTestsInSeparateProcesses]` | `#[Isolated]` |
+| `#[DoesNotPerformAssertions]` | `#[NoExpectations]` |
+| `#[RequiresPhpExtension]` | `#[SkipUnless]` with `ExtensionLoaded` |
+| `#[RequiresOperatingSystemFamily]` | `#[SkipUnless]` with `OperatingSystemFamily` |
+
 The rule removes coverage metadata attributes, for example `#[CoversClass]`,
-because coverage configuration belongs in `greenlight.php`. Rector's printer
-also reflows each converted class. Run your code-style fixer after the
-conversion. Then run the suite one time with `--workers=1` before you enable
-parallel workers.
+because coverage configuration belongs in `greenlight.php`. It also removes
+the `#[UsesClass]`, `#[UsesFunction]`, `#[UsesMethod]`, and `#[UsesTrait]`
+attributes. It removes `#[TestDox]` and
+`#[DisableReturnValueGenerationForTestDoubles]` too.
+
+Rector's printer also reflows each converted class. Run your code-style fixer
+after the conversion. Then run the suite one time with `--workers=1` before you
+enable parallel workers.
 
 ## Map the concepts
 

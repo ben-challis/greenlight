@@ -6,6 +6,13 @@ supplies native matcher constraints that the PHP type system cannot express.
 
 ## Setup
 
+Greenlight supports PHPStan 2.2 and later 2.x releases. Install PHPStan as a
+development dependency:
+
+```console
+composer require --dev phpstan/phpstan:^2.2
+```
+
 Include the extension in your PHPStan configuration. Set the Greenlight
 configuration files:
 
@@ -261,6 +268,9 @@ Errors have identifiers under `greenlight.lifecycleMethod.*` (`visibility`,
 For `#[SkipUnless]`, PHPStan checks the transferred arguments against the
 constructor of the referenced condition. It reports invalid argument counts
 and types before a worker evaluates the condition.
+
+Errors use `greenlight.skipUnlessCondition.arity` and
+`greenlight.skipUnlessCondition.argument`.
 
 ## Data provider checks
 

@@ -161,6 +161,8 @@ Adds one inline data set.
 the data-set key in test IDs and reports. Without a label, Greenlight uses
 `#<position>` as the key for the inline row.
 
+An explicit label must not be empty.
+
 Inline rows can contain only values that PHP attributes can express. Examples
 include scalars, arrays, and constants. Use a `#[DataSet]` provider for
 calculated rows, ranges, or objects.
@@ -204,6 +206,8 @@ string $name
 ```
 
 Tags a test method, or every test in a class, with a group name.
+
+A group name must not be empty.
 
 Select groups at run time with `--group=<name>`. The flag is
 repeatable. `list-tests` applies the same filter.
@@ -339,7 +343,7 @@ Parameters:
 float $seconds
 ```
 
-`$seconds` must be greater than zero.
+`$seconds` must be finite and greater than zero.
 
 Fails the test if it runs longer than the configured budget.
 
