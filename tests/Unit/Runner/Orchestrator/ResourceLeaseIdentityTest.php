@@ -5,33 +5,27 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\DispatchKind;
-use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
-use Greenlight\Runner\Orchestrator\SchedulingUnit;
+use Greenlight\Tests\Support\SchedulingFixture;
 
 final readonly class ResourceLeaseIdentityTest
 {
     #[Test]
     public function concurrentLeasesHaveDistinctIdentityAndReleaseIndependently(): void
     {
-        $thirdUnit = $this->unit('Acme\\ThirdTest');
-        $fourthUnit = $this->unit('Acme\\FourthTest');
+        $thirdUnit = SchedulingFixture::unit('Acme\\ThirdTest', ['database']);
+        $fourthUnit = SchedulingFixture::unit('Acme\\FourthTest', ['database']);
         $scheduler = new ResourceScheduler([
-            $this->unit('Acme\\FirstTest'),
-            $this->unit('Acme\\SecondTest'),
+            SchedulingFixture::unit('Acme\\FirstTest', ['database']),
+            SchedulingFixture::unit('Acme\\SecondTest', ['database']),
             $thirdUnit,
             $fourthUnit,
         ], [], ['database' => 2]);
 
-        $first = $this->assigned($scheduler);
-        $second = $this->assigned($scheduler);
+        $first = SchedulingFixture::assignedLease($scheduler);
+        $second = SchedulingFixture::assignedLease($scheduler);
 
         Expect::that($first->id)
             ->because('the first resource lease MUST use the first lease ID')
@@ -46,7 +40,7 @@ final readonly class ResourceLeaseIdentityTest
 
         $scheduler->release($first);
 
-        Expect::that($this->assigned($scheduler)->unit)
+        Expect::that(SchedulingFixture::assignedLease($scheduler)->unit)
             ->because('the first release MUST restore one resource slot')
             ->toBe($thirdUnit);
         Expect::that($scheduler->dispatch(true)->kind)
@@ -55,31 +49,9 @@ final readonly class ResourceLeaseIdentityTest
 
         $scheduler->release($second);
 
-        Expect::that($this->assigned($scheduler)->unit)
+        Expect::that(SchedulingFixture::assignedLease($scheduler)->unit)
             ->because('the second release MUST independently restore one resource slot')
             ->toBe($fourthUnit);
     }
 
-    /**
-     * @param non-empty-string $class
-     */
-    private function unit(string $class): SchedulingUnit
-    {
-        $id = new TestId($class, 'runs');
-
-        return new SchedulingUnit(new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($class, 'runs', resources: ['database'])),
-        ]), false);
-    }
-
-    private function assigned(ResourceScheduler $scheduler): ResourceLease
-    {
-        $decision = $scheduler->dispatch(true);
-
-        if (!$decision->lease instanceof ResourceLease) {
-            Fail::because(\sprintf('Expected an assignment, got %s.', $decision->kind->name));
-        }
-
-        return $decision->lease;
-    }
 }

@@ -5,25 +5,20 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
-use Greenlight\Runner\Orchestrator\SchedulingUnit;
+use Greenlight\Tests\Support\SchedulingFixture;
 
 final readonly class ResourceSchedulerLeaseIdentityTest
 {
     #[Test]
     public function aLeaseIdDoesNotAuthorizeADifferentLeaseObject(): void
     {
-        $first = $this->unit('Acme\\FirstTest');
-        $second = $this->unit('Acme\\SecondTest');
+        $first = SchedulingFixture::unit('Acme\\FirstTest', ['database']);
+        $second = SchedulingFixture::unit('Acme\\SecondTest', ['database']);
         $scheduler = new ResourceScheduler([$first, $second], [], []);
-        $lease = $this->assigned($scheduler);
+        $lease = SchedulingFixture::assignedLease($scheduler);
         $forged = new ResourceLease($lease->id, $lease->unit);
 
         Expect::that(static fn() => $scheduler->release($forged))
@@ -38,31 +33,9 @@ final readonly class ResourceSchedulerLeaseIdentityTest
             ->not()
             ->toThrow(\Throwable::class);
 
-        Expect::that($this->assigned($scheduler)->unit)
+        Expect::that(SchedulingFixture::assignedLease($scheduler)->unit)
             ->because('the real lease MUST release its resource slot')
             ->toBe($second);
     }
 
-    /**
-     * @param non-empty-string $class
-     */
-    private function unit(string $class): SchedulingUnit
-    {
-        $id = new TestId($class, 'runs');
-
-        return new SchedulingUnit(new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($class, 'runs', resources: ['database'])),
-        ]), isolated: false);
-    }
-
-    private function assigned(ResourceScheduler $scheduler): ResourceLease
-    {
-        $decision = $scheduler->dispatch(freshWorker: true);
-
-        if (!$decision->lease instanceof ResourceLease) {
-            Fail::because(\sprintf('Expected an assignment, got %s.', $decision->kind->name));
-        }
-
-        return $decision->lease;
-    }
 }

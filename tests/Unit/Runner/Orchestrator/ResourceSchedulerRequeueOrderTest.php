@@ -6,15 +6,9 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
-use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
-use Greenlight\Runner\Orchestrator\SchedulingUnit;
+use Greenlight\Tests\Support\SchedulingFixture;
 
 final readonly class ResourceSchedulerRequeueOrderTest
 {
@@ -22,8 +16,8 @@ final readonly class ResourceSchedulerRequeueOrderTest
     #[DataSet('queueKinds')]
     public function requeuedWorkAppendsBehindPendingWork(bool $isolated, bool $freshWorker): void
     {
-        $pending = $this->unit('Acme\\PendingTest', $isolated);
-        $requeued = $this->unit('Acme\\RetriedTest', $isolated);
+        $pending = SchedulingFixture::unit('Acme\\PendingTest', ['database'], $isolated);
+        $requeued = SchedulingFixture::unit('Acme\\RetriedTest', ['database'], $isolated);
         $scheduler = new ResourceScheduler(
             $isolated ? [] : [$pending],
             $isolated ? [$pending] : [],
@@ -31,9 +25,9 @@ final readonly class ResourceSchedulerRequeueOrderTest
         );
         $scheduler->requeue($requeued);
 
-        $first = $this->assigned($scheduler, $freshWorker);
+        $first = SchedulingFixture::assignedLease($scheduler, $freshWorker);
         $scheduler->release($first);
-        $second = $this->assigned($scheduler, $freshWorker);
+        $second = SchedulingFixture::assignedLease($scheduler, $freshWorker);
 
         Expect::that($first->unit->plan->classes())
             ->because('pending work MUST remain first in its queue')
@@ -52,26 +46,4 @@ final readonly class ResourceSchedulerRequeueOrderTest
         yield 'isolated queue' => [true, true];
     }
 
-    /**
-     * @param non-empty-string $class
-     */
-    private function unit(string $class, bool $isolated): SchedulingUnit
-    {
-        $id = new TestId($class, 'runs');
-
-        return new SchedulingUnit(new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($class, 'runs', resources: ['database'])),
-        ]), $isolated);
-    }
-
-    private function assigned(ResourceScheduler $scheduler, bool $freshWorker): ResourceLease
-    {
-        $decision = $scheduler->dispatch($freshWorker);
-
-        if (!$decision->lease instanceof ResourceLease) {
-            Fail::because(\sprintf('Expected an assignment, got %s.', $decision->kind->name));
-        }
-
-        return $decision->lease;
-    }
 }
