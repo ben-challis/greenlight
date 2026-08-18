@@ -84,6 +84,30 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L15)
 
+### `$summary`
+
+```php
+public ResultSummary $summary
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L22)
+
+### `$durationSeconds`
+
+```php
+public float $durationSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L23)
+
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L24)
+
 ### `__construct()`
 
 ```php
@@ -165,6 +189,22 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L24)
 
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L33)
+
+### `$artifactsDirectory`
+
+```php
+public ?string $artifactsDirectory
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L34)
+
 ### `__construct()`
 
 ```php
@@ -223,6 +263,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L14)
 
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L19)
+
 ### `__construct()`
 
 ```php
@@ -275,6 +323,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L14)
 
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L19)
+
 ### `__construct()`
 
 ```php
@@ -326,6 +382,22 @@ PHPDoc:
 - `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L14)
+
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L24)
+
+### `$workerId`
+
+```php
+public string $workerId
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L25)
 
 ### `__construct()`
 
@@ -384,6 +456,22 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L14)
 
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L24)
+
+### `$workerId`
+
+```php
+public string $workerId
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L25)
+
 ### `__construct()`
 
 ```php
@@ -429,6 +517,22 @@ final readonly class TestFinished implements Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L10)
 
+### `$result`
+
+```php
+public TestResult $result
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L12)
+
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L12)
+
 ### `__construct()`
 
 ```php
@@ -464,6 +568,22 @@ final readonly class TestStarted implements Event
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L10)
+
+### `$id`
+
+```php
+public TestId $id
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L12)
+
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L12)
 
 ### `__construct()`
 
@@ -512,6 +632,22 @@ PHPDoc:
 - `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L14)
+
+### `$reason`
+
+```php
+public RecycleReason $reason
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L21)
+
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L22)
 
 ### `__construct()`
 
@@ -580,6 +716,14 @@ PHPDoc:
 - `@var positive-int`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L19)
+
+### `$occurredAt`
+
+```php
+public float $occurredAt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L27)
 
 ### `__construct()`
 

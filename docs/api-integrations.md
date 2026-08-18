@@ -20,6 +20,24 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L24)
 
+### `__construct()`
+
+```php
+public function __construct(
+    string|\Closure $application,
+    private readonly string $env = 'testing',
+    private readonly bool $refreshBetweenTests = true,
+)
+```
+
+PHPDoc:
+
+- `@param string|\Closure(): Application $application A path to the file that returns the application, usually bootstrap/app.php, or a closure returning the application when exotic construction is needed.`
+- `@param non-empty-string $env`
+- `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L46)
+
 ### `services()`
 
 ```php
@@ -228,6 +246,25 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L29)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string|\Closure $kernel,
+    string $env = 'test',
+    bool $debug = false,
+    private readonly bool $resetBetweenTests = true,
+)
+```
+
+PHPDoc:
+
+- `@param string|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
+- `@param non-empty-string $env`
+- `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L52)
 
 ### `services()`
 
