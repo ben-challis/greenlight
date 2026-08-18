@@ -79,17 +79,17 @@ final readonly class ServerSocketUnixCleanupTest
     }
 
     #[Test]
-    public function aRootBeyondThePortableUnixPathLimitUsesTcpWithoutCreatingIt(): void
+    public function aMissingTemporaryRootUsesTcpWithoutCreatingIt(): void
     {
-        $longRoot = $this->tempDirectory->path() . '/' . \str_repeat('x', 100);
-        $socket = ServerSocket::listen($longRoot);
+        $missingRoot = $this->tempDirectory->path() . '/missing';
+        $socket = ServerSocket::listen($missingRoot);
 
         try {
             Expect::that($socket->address)
-                ->because('an oversized Unix socket path MUST use the TCP fallback')
+                ->because('a missing temporary root MUST use the TCP listener')
                 ->toStartWith('tcp://127.0.0.1:');
-            Expect::that(\is_dir($longRoot))
-                ->because('the rejected Unix socket path MUST NOT create directories')
+            Expect::that(\is_dir($missingRoot))
+                ->because('the Unix listener MUST NOT create the supplied temporary root')
                 ->toBeFalse();
         } finally {
             $socket->close();

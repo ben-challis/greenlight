@@ -321,7 +321,7 @@ jobs:
             --filter=CpuCoresTest \
             --filter=InterruptionTest \
             --filter=ReporterSmokeTest \
-            --filter=ServerSocketTest \
+            --filter=ServerSocket \
             --filter=SocketChannelTest \
             --filter=SuitePathDiscoveryTest \
             --filter=TempDirectoryRootSymbolicLinkTest \

@@ -14,8 +14,6 @@ use Greenlight\Runner\Protocol\ProtocolError;
  */
 final class ServerSocket
 {
-    private const int PORTABLE_UNIX_PATH_BYTES = 100;
-
     /**
      * @param resource $stream
      * @param non-empty-string $address
@@ -35,24 +33,35 @@ final class ServerSocket
     ): self {
         $temporaryDirectory ??= \sys_get_temp_dir();
         $runtime ??= new NativeServerSocketRuntime();
-        $socketPath = \rtrim($temporaryDirectory, '/')
-            . '/gl-' . \bin2hex(\random_bytes(6)) . '/s';
+        $socketDirectory = \rtrim($temporaryDirectory, '/')
+            . '/gl-' . \bin2hex(\random_bytes(6));
+        $socketPath = $socketDirectory . '/s';
         $errorMessage = null;
-        $server = false;
 
-        if (\strlen($socketPath) <= self::PORTABLE_UNIX_PATH_BYTES) {
-            $server = ErrorTrap::run(static function () use ($runtime, $socketPath, &$errorMessage) {
-                \mkdir(\dirname($socketPath), 0o700, true);
+        $server = ErrorTrap::run(static function () use ($runtime, $socketDirectory, $socketPath, &$errorMessage) {
+            \mkdir($socketDirectory, 0o700);
 
-                return $runtime->listen('unix://' . $socketPath, $errorMessage);
+            return $runtime->listen('unix://' . $socketPath, $errorMessage);
+        });
+
+        if (\is_resource($server)) {
+            $boundPath = $runtime->name($server);
+
+            if ($boundPath === $socketPath) {
+                return new self($server, 'unix://' . $socketPath, $socketPath);
+            }
+
+            ErrorTrap::run(static function () use ($server, $boundPath, $socketPath): void {
+                if (\is_string($boundPath)) {
+                    \unlink($boundPath);
+                }
+
+                \unlink($socketPath);
+                \fclose($server);
             });
         }
 
-        if (\is_resource($server)) {
-            return new self($server, 'unix://' . $socketPath, $socketPath);
-        }
-
-        ErrorTrap::run(static fn(): bool => \rmdir(\dirname($socketPath)));
+        ErrorTrap::run(static fn(): bool => \rmdir($socketDirectory));
 
         $server = ErrorTrap::run(static function () use ($runtime, &$errorMessage) {
             return $runtime->listen('tcp://127.0.0.1:0', $errorMessage);
