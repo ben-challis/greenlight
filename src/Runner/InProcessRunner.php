@@ -16,6 +16,7 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Fixture\EnvironmentBackup;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\Artifact\ArtifactStore;
@@ -77,6 +78,7 @@ final readonly class InProcessRunner
             $this->workingDirectory,
             $runId,
         );
+        $channelEnvironment = null;
 
         try {
             $plugins = PluginRegistry::forWorker($configuration->plugins);
@@ -113,6 +115,7 @@ final readonly class InProcessRunner
                 // A single in-process worker always uses channel 1. Set the
                 // variable to replace a value inherited from an outer Greenlight
                 // run.
+                $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
                 \putenv('GREENLIGHT_CHANNEL=1');
 
                 $resources = $fixtures->forChannel(1);
@@ -188,6 +191,7 @@ final readonly class InProcessRunner
 
             return $result;
         } finally {
+            $channelEnvironment?->restore();
             $artifactStore->cleanup();
         }
     }
