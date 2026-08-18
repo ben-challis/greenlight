@@ -16,6 +16,9 @@ final class ArtifactBuilder
     private int $maxRunAttachments = ArtifactConfiguration::DEFAULT_MAX_RUN_ATTACHMENTS;
     private int $maxRunBytes = ArtifactConfiguration::DEFAULT_MAX_RUN_BYTES;
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function directory(string $directory): self
     {
         if ($directory === '') {
@@ -31,6 +34,9 @@ final class ArtifactBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function maxAttachmentsPerTest(int $count): self
     {
         if ($count < 1) {
@@ -42,6 +48,9 @@ final class ArtifactBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function maxAttachmentSize(string $size): self
     {
         $this->maxAttachmentBytes = MemorySize::parseToBytes($size);
@@ -49,6 +58,9 @@ final class ArtifactBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function maxTestSize(string $size): self
     {
         $this->maxTestBytes = MemorySize::parseToBytes($size);
@@ -56,6 +68,9 @@ final class ArtifactBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function maxRunAttachments(int $count): self
     {
         if ($count < 1) {
@@ -67,6 +82,9 @@ final class ArtifactBuilder
         return $this;
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function maxRunSize(string $size): self
     {
         $this->maxRunBytes = MemorySize::parseToBytes($size);

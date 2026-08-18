@@ -22,6 +22,9 @@ final class PcovDriver implements CoverageDriver
 
     private readonly PcovRuntime $runtime;
 
+    /**
+     * @throws CoverageError
+     */
     public function __construct(?PcovRuntime $runtime = null)
     {
         if (!$runtime instanceof PcovRuntime && !self::isAvailable()) {

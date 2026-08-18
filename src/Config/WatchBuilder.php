@@ -30,6 +30,7 @@ final class WatchBuilder
 
     /**
      * @internal
+     * @throws InvalidConfiguration
      */
     public function toConfiguration(): WatchConfiguration
     {

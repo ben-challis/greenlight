@@ -12,12 +12,18 @@ namespace Greenlight\Core\Artifact;
  */
 interface Attachments
 {
+    /**
+     * @throws AttachmentError when the attachment cannot be accepted
+     */
     public function value(
         string $name,
         mixed $value,
         AttachmentRetention $retention = AttachmentRetention::OnFailure,
     ): void;
 
+    /**
+     * @throws AttachmentError when the attachment cannot be accepted
+     */
     public function text(
         string $name,
         string $text,
@@ -25,6 +31,9 @@ interface Attachments
         AttachmentRetention $retention = AttachmentRetention::OnFailure,
     ): void;
 
+    /**
+     * @throws AttachmentError when the attachment cannot be accepted
+     */
     public function bytes(
         string $name,
         string $bytes,
@@ -32,6 +41,9 @@ interface Attachments
         AttachmentRetention $retention = AttachmentRetention::OnFailure,
     ): void;
 
+    /**
+     * @throws AttachmentError when the attachment cannot be accepted
+     */
     public function file(
         string $name,
         string $sourcePath,

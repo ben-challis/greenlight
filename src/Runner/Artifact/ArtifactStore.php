@@ -32,6 +32,9 @@ final class ArtifactStore
         private readonly FileCopier $fileCopier,
     ) {}
 
+    /**
+     * @throws AttachmentError
+     */
     public static function open(
         ArtifactConfiguration $configuration,
         string $workingDirectory,
@@ -96,6 +99,9 @@ final class ArtifactStore
         return $this->session->publicDirectory;
     }
 
+    /**
+     * @throws AttachmentError
+     */
     public function forAttempt(TestId $id, int $attempt, TestArtifactBudget $budget): StagedAttachments
     {
         $attemptRecorded = \is_dir(
@@ -125,6 +131,9 @@ final class ArtifactStore
         return $slug . '-' . \substr(\hash('sha256', $raw), 0, 12);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     public function stageBytes(
         string $bytes,
         string $name,
@@ -190,6 +199,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     public function stageFile(
         string $sourcePath,
         string $name,
@@ -302,6 +314,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     public function discard(StagedAttachment $attachment): void
     {
         $storageKey = $attachment->storageKey;
@@ -311,6 +326,9 @@ final class ArtifactStore
         $this->release($attachment->sizeBytes);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     public function publish(TestResult $result): TestResult
     {
         if ($result->attachments === []) {
@@ -390,6 +408,7 @@ final class ArtifactStore
     /**
      * Recovers evidence that completed atomically from a worker that stopped
      * before TestFinished.
+     * @throws AttachmentError
      */
     public function recover(TestResult $result): TestResult
     {
@@ -476,6 +495,9 @@ final class ArtifactStore
         @\rmdir($directory);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function validateSize(int $size, ArtifactConfiguration $configuration): void
     {
         if ($size < 0) {
@@ -491,6 +513,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function preparePath(string $storageKey): string
     {
         $this->ensureStaging();
@@ -508,6 +533,9 @@ final class ArtifactStore
         return $path;
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function reserve(int $bytes): void
     {
         $this->updateQuota(function (int $count, int $used) use ($bytes): array {
@@ -529,6 +557,9 @@ final class ArtifactStore
         });
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function release(int $bytes): void
     {
         $this->updateQuota(static fn(int $count, int $used): array => [
@@ -539,6 +570,7 @@ final class ArtifactStore
 
     /**
      * @param \Closure(int, int): array{int, int} $update
+     * @throws AttachmentError
      */
     private function updateQuota(\Closure $update): void
     {
@@ -610,6 +642,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function writeMetadata(StagedAttachment $attachment): void
     {
         $storageKey = $attachment->storageKey;
@@ -635,6 +670,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     public function recordAttempt(TestId $id, int $attempt): void
     {
         $this->ensureStaging();
@@ -665,6 +703,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function ensureStaging(): void
     {
         $directory = $this->session->stagingDirectory;
@@ -683,6 +724,9 @@ final class ArtifactStore
         \chmod($directory, 0o700);
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function rollbackStagedAttachment(
         string $storageKey,
         ?string $path,
@@ -701,6 +745,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function removeFile(string $path, string $description): void
     {
         if (!\file_exists($path) && !\is_link($path)) {
@@ -717,6 +764,9 @@ final class ArtifactStore
         return $this->session->stagingDirectory . '/' . $storageKey . '.meta.json';
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function assertSafeStorageKey(string $storageKey): void
     {
         if ($storageKey === '' || \str_starts_with($storageKey, '/') || \str_contains($storageKey, '\\')) {
@@ -731,6 +781,9 @@ final class ArtifactStore
         }
     }
 
+    /**
+     * @throws AttachmentError
+     */
     private function createDirectorySafely(string $directory): void
     {
         $absolute = \str_starts_with($directory, '/');

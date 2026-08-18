@@ -132,6 +132,7 @@ final class MetadataFactory
      * @param \ReflectionClass<object>|\ReflectionMethod $reflector
      *
      * @return list<non-empty-string>
+     * @throws DiscoveryError
      */
     private function groupNames(\ReflectionClass|\ReflectionMethod $reflector, string $where): array
     {
@@ -152,6 +153,7 @@ final class MetadataFactory
      * @param \ReflectionClass<object>|\ReflectionMethod $reflector
      *
      * @return list<non-empty-string>
+     * @throws DiscoveryError
      */
     private function resourceNames(\ReflectionClass|\ReflectionMethod $reflector, string $where): array
     {
@@ -175,6 +177,7 @@ final class MetadataFactory
      * @param class-string<T> $attribute
      *
      * @return T|null
+     * @throws DiscoveryError
      */
     private function attributeInstance(\ReflectionClass|\ReflectionMethod $reflector, string $attribute, string $where): ?object
     {

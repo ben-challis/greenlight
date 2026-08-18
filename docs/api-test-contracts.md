@@ -407,6 +407,7 @@ public static function fromWire(array $payload): static;
 PHPDoc:
 
 - `@param array<string, mixed> $payload`
+- `@throws \InvalidArgumentException when a decoded value violates a domain invariant`
 - `@throws InvalidWirePayload`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireSerializable.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireSerializable.php#L27)

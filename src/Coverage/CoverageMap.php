@@ -181,6 +181,7 @@ final readonly class CoverageMap implements WireSerializable
 
     /**
      * @return list<int>
+     * @throws InvalidWirePayload
      */
     private static function lineList(mixed $value): array
     {

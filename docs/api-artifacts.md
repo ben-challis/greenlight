@@ -226,7 +226,11 @@ public function value(
 ): void;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L15)
+PHPDoc:
+
+- `@throws AttachmentError when the attachment cannot be accepted`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L18)
 
 ### `text()`
 
@@ -239,7 +243,11 @@ public function text(
 ): void;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L21)
+PHPDoc:
+
+- `@throws AttachmentError when the attachment cannot be accepted`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L27)
 
 ### `bytes()`
 
@@ -252,7 +260,11 @@ public function bytes(
 ): void;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L28)
+PHPDoc:
+
+- `@throws AttachmentError when the attachment cannot be accepted`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L37)
 
 ### `file()`
 
@@ -265,4 +277,8 @@ public function file(
 ): void;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L35)
+PHPDoc:
+
+- `@throws AttachmentError when the attachment cannot be accepted`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L47)

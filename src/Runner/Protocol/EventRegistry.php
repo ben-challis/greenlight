@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Protocol;
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\EventTags;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 
 /** @internal */
@@ -33,6 +34,7 @@ final class EventRegistry
      * @param array<string, mixed> $tagged
      *
      * @throws ProtocolError
+     * @throws InvalidWirePayload
      */
     public static function fromTagged(array $tagged): Event
     {

@@ -22,6 +22,9 @@ final class XdebugDriver implements CoverageDriver
 
     private readonly XdebugRuntime $runtime;
 
+    /**
+     * @throws CoverageError
+     */
     public function __construct(
         ?XdebugRuntime $runtime = null,
         private readonly ?int $flags = null,

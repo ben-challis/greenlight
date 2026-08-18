@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
+use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
+use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\Attachments;
 use Greenlight\Core\Artifact\UnavailableAttachments;
 use Greenlight\Core\Condition;
@@ -65,6 +67,10 @@ final readonly class TestExecutor
         private ?\Closure $attemptStarted = null,
     ) {}
 
+    /**
+     * @throws CaptureError
+     * @throws AttachmentError
+     */
     public function execute(PlanEntry $entry): TestResult
     {
         $metadata = $entry->metadata;
@@ -144,6 +150,8 @@ final readonly class TestExecutor
 
     /**
      * @return array{TestResult, ?\Throwable, ?StagedAttachments}
+     * @throws CaptureError
+     * @throws AttachmentError
      */
     private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
     {

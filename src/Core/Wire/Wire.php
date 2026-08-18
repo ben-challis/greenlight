@@ -316,6 +316,7 @@ final class Wire
 
     /**
      * @param array<string, mixed> $payload
+     * @throws InvalidWirePayload
      */
     private static function require(array $payload, string $key): mixed
     {

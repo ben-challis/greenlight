@@ -11,6 +11,9 @@ final readonly class NativeFileCopier implements FileCopier
 {
     private const int COPY_CHUNK_BYTES = 1024 * 1024;
 
+    /**
+     * @throws AttachmentError
+     */
     #[\Override]
     public function copy(string $sourcePath, string $destinationPath): void
     {

@@ -271,6 +271,7 @@ final class GreenlightConfig
      * Exempts deprecation messages from `failOnDeprecation()`. A pattern matches
      * part of a message without case sensitivity. A pattern that contains "*"
      * or "?" matches the complete message. Multiple calls add patterns.
+     * @throws InvalidConfiguration
      */
     public function ignoreDeprecationsMatching(string ...$patterns): self
     {
@@ -317,6 +318,7 @@ final class GreenlightConfig
     /**
      * Uses a wider parameter type than the public contract. This gives callers
      * without static analysis a clear runtime error for invalid strings.
+     * @throws InvalidConfiguration
      */
     private function workerCount(int|string $count): WorkerCount
     {
@@ -334,6 +336,9 @@ final class GreenlightConfig
         ));
     }
 
+    /**
+     * @throws InvalidConfiguration
+     */
     public function build(): Configuration
     {
         return new Configuration(

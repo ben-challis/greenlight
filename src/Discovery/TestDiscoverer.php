@@ -113,6 +113,7 @@ final readonly class TestDiscoverer
      * @param non-empty-string $file
      *
      * @return list<PlanEntry>
+     * @throws DiscoveryError
      */
     private function entriesForFile(string $file): array
     {
@@ -185,6 +186,7 @@ final readonly class TestDiscoverer
      * @param non-empty-string $file
      *
      * @return class-string|null
+     * @throws DiscoveryError
      */
     private function resolveClass(string $file): ?string
     {
