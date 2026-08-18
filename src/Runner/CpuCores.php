@@ -7,6 +7,7 @@ namespace Greenlight\Runner;
 use Fidry\CpuCoreCounter\CpuCoreCounter;
 use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
 use Greenlight\Attribute\CoverageIgnore;
+use Greenlight\Core\DecimalInteger;
 use Greenlight\Core\ErrorTrap;
 
 /**
@@ -62,8 +63,12 @@ final class CpuCores
         if (\PHP_OS_FAMILY === 'Darwin' && \function_exists('shell_exec')) {
             $output = ErrorTrap::run(static fn(): string|false|null => \shell_exec('sysctl -n hw.logicalcpu 2>/dev/null'));
 
-            if (\is_string($output) && (int) \trim($output) > 0) {
-                return \max(1, (int) \trim($output));
+            if (\is_string($output)) {
+                $count = DecimalInteger::parse(\trim($output));
+
+                if ($count !== null && $count > 0) {
+                    return $count;
+                }
             }
         }
 
