@@ -37,8 +37,7 @@ final readonly class MethodArgumentContractTest
     #[Test]
     public function aDoubleRejectsArgumentsThatTheMethodDoesNotDeclare(): void
     {
-        $doubles = new Doubles();
-        $wide = $doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects('returnsVoid')->never();
         });
 
@@ -47,8 +46,6 @@ final readonly class MethodArgumentContractTest
                 DoublesError::class,
                 '/accepts at most 0 arguments/',
             );
-
-        $doubles->dispose();
     }
 
     #[Test]
