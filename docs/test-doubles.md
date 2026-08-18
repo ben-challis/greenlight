@@ -71,8 +71,7 @@ unmet expectation fails the test. Greenlight reports all unmet expectations
 together.
 
 Greenlight examines expectations in declaration order. It uses the first
-unsaturated expectation that accepts the call. When that expectation reaches
-its maximum cardinality, Greenlight continues to the next expectation.
+unsaturated expectation that accepts the call.
 
 Without an argument constraint, an expectation accepts each argument list that
 the method declaration permits. Greenlight rejects arguments that the method
@@ -177,16 +176,12 @@ Expect::that(
 
 ## Supported types and limits
 
-Greenlight can create doubles for interfaces and non-final, non-readonly
-classes. It rejects final classes, readonly classes, enums, and traits.
+Double targets are interfaces or non-final, non-readonly classes.
 
-A class double intercepts overridable public instance methods. A mock plan
-accepts only these methods.
+A class double intercepts only overridable public instance methods.
 
-Concrete final and static methods keep their original implementations.
-Concrete protected methods also keep their original implementations. Calls
-through these methods can run application code.
+Concrete final, static, and protected methods keep their original
+implementations. Calls through these methods can run application code.
 
-Greenlight does not run the class constructor when it creates a double. It does
-not support static method interception. Prefer an interface at the application
-boundary.
+Greenlight does not run the class constructor when it creates a double. Prefer
+an interface at the application boundary.

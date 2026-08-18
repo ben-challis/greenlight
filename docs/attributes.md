@@ -188,9 +188,6 @@ Declares that the test intentionally verifies no expectations.
 Use this for tests that pass and do not throw. Risky-test detection and
 `--fail-on-risky` ignore tests marked with this attribute.
 
-The attribute makes the intent explicit. Thus, Greenlight does not confuse this
-test with a test that has a missing assertion.
-
 An `eventually()` or `consistently()` matcher counts as one expectation.
 
 ## Group
@@ -206,8 +203,6 @@ string $name
 ```
 
 Tags a test method, or every test in a class, with a group name.
-
-A group name must not be empty.
 
 Select groups at run time with `--group=<name>`. The flag is
 repeatable. `list-tests` applies the same filter.

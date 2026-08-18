@@ -29,8 +29,8 @@ resources. Use integration resources in both runner modes.
 
 ## Capability interfaces
 
-`Greenlight\Reporting\Reporter` is not a plugin capability. You cannot pass a
-reporter to `plugins()`. Use `--reporter` to select a built-in reporter.
+The `plugins()` method does not accept `Greenlight\Reporting\Reporter`. Use
+`--reporter` to select a built-in reporter.
 
 ### IntegrationFixtureProvider
 
@@ -284,8 +284,8 @@ public function onRunEvent(Event $event): void;
 Run subscribers receive the event stream in the orchestrator process. The
 stream contains run, worker, suite, class, and test events.
 
-This side is observation-only. Results cannot be changed across the process
-boundary. Integration fixture provisioning completes before `RunStarted`.
+Run subscribers cannot change results across the process boundary. Integration
+fixture provisioning completes before `RunStarted`.
 `RunFinished` is delivered before fixture teardown begins. If a run subscriber
 throws, the run fails and fixtures are still torn down.
 
@@ -328,8 +328,7 @@ In `Greenlight\Harness`.
 public function resolve(string $type, array $attributes): ?object;
 ```
 
-A service resolver is a fallback source for a constructor parameter type. Use
-it when no harness service provides that type.
+A service resolver is a fallback source for a constructor parameter type.
 
 Registered harness services always take precedence. If no service matches,
 Greenlight calls resolvers in registration order. Each call receives the
@@ -426,8 +425,6 @@ process. Each worker also runs the plugin constructors.
 
 ## Plugin order and error policy
 
-Subscribers run in registration order.
-
 A plugin can also implement `Greenlight\Plugin\Prioritized`:
 
 ```php
@@ -447,8 +444,7 @@ Priority applies to these capabilities:
 * `HarnessProvider`
 * `ServiceResolver`
 
-Priority does not apply to `ExpectationExtension`. Greenlight calls expectation
-extensions in registration order.
+`ExpectationExtension` uses registration order.
 
 Greenlight reports all plugin failures. A worker-side failure causes an error
 for the affected test and names the plugin. An orchestrator-side failure causes

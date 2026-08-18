@@ -1,7 +1,7 @@
 # Laravel applications
 
-The Laravel bridge supplies Laravel container services to test constructors. It
-supplies these services together with the built-in Greenlight harness services.
+The Laravel bridge supplies Laravel container services and built-in Greenlight
+harness services to test constructors.
 
 The bridge boots a fresh application for each test that uses it. Register the
 plugin to activate the bridge. The bridge uses the Laravel package that the
@@ -43,9 +43,8 @@ worker lifetime.
 The application boots when a test first requests a container service. A worker
 does not boot Laravel when its tests do not use the container.
 
-Greenlight tests the bridge with `laravel/framework` 13. The bridge does not
-support applications that install individual `illuminate/*` components. A
-standard Laravel 13 application has the required package.
+The bridge requires the complete `laravel/framework` 13 package instead of
+individual `illuminate/*` components.
 
 ## Container services
 
@@ -127,8 +126,7 @@ false` to the plugin. The application then boots once for each worker and no
 reset occurs. Do not use this value with services that keep state. Tests on the
 same worker will share those service instances.
 
-The bridge boots and discards the Laravel application. Isolation for databases
-and other external services remains the test suite's responsibility.
+The bridge does not isolate databases or other external services.
 
 ## Parallel resources
 
@@ -172,15 +170,10 @@ resource rules.
 
 ## Doubles and the container
 
-The bridge injects only real Laravel container services.
-
-There is no API that replaces a container service with a double. If a test needs
-a doubled collaborator, get the double through `Doubles`. Then construct the
-test subject directly. Greenlight then controls the double lifecycle and
+The bridge does not replace container services with doubles. If a test needs a
+doubled collaborator, get the double through `Doubles`. Then construct the test
+subject directly. Greenlight then controls the double lifecycle and
 verification.
-
-Container-level replacement remains a possible future addition. Its design must
-prevent uncertain service replacement.
 
 ## Non-goals
 
@@ -192,6 +185,3 @@ The current bridge does not cover:
 * database creation or migration tools
 * bootstrap file auto-discovery
 * Dusk browser tests
-
-The bridge has a deliberately small scope. It provides the application,
-container services, per-test refreshes, and worker channels.

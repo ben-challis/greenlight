@@ -6,8 +6,7 @@ supplies native matcher constraints that the PHP type system cannot express.
 
 ## Setup
 
-Greenlight supports PHPStan 2.2 and later 2.x releases. Install PHPStan as a
-development dependency:
+Install PHPStan 2.2 or a later 2.x release as a development dependency:
 
 ```console
 composer require --dev phpstan/phpstan:^2.2

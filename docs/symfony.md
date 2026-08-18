@@ -1,7 +1,7 @@
 # Symfony applications
 
-The Symfony bridge supplies Symfony services to test constructors. It supplies
-these services together with the built-in Greenlight harness services.
+The Symfony bridge supplies Symfony services and built-in Greenlight harness
+services to test constructors.
 
 The bridge boots the application kernel once for each worker. Register the
 plugin to activate the bridge. The bridge uses the Symfony packages that the
@@ -37,11 +37,8 @@ At boot, the bridge requires the kernel container to expose
 `services_resetter`. A standard FrameworkBundle test environment provides the
 test container when `framework.test` is active.
 
-At boot, the bridge checks that the container supports the features it needs.
-The bridge reports a configuration error if the Symfony test container is not
-present. It also reports a configuration error if an active service reset has
-no `services_resetter`. The error message contains a correction. The bridge
-reports an error and does not use weaker isolation.
+If a required container service is absent, the bridge reports a configuration
+error with a correction. It does not use weaker isolation.
 
 ## Container services
 
@@ -106,16 +103,14 @@ mechanism Symfony uses between requests. The resetter resets services with the
 each stateful service that must keep tests isolated.
 
 The bridge captures and checks the resetter when the kernel boots. If service
-resets are active without a container resetter, every test fails. No test runs
-with shared state that has not had a reset.
+resets are active without a container resetter, every test fails.
 
 For a container that has no stateful services, pass `resetBetweenTests: false`
 to the plugin. This value disables the resetter requirement. Do not use this
 value with services that keep state. Tests on the same worker will share those
 service instances.
 
-The bridge boots and resets the Symfony kernel. Isolation for databases and
-other external services remains the test suite's responsibility.
+The bridge does not isolate databases or other external services.
 
 ## Parallel resources
 
@@ -164,15 +159,10 @@ complete resource rules.
 
 ## Doubles and the container
 
-The bridge injects only real Symfony container services.
-
-There is no API that replaces a container service with a double. If a test needs
-a doubled collaborator, get the double through `Doubles`. Then construct the
-test subject directly. Greenlight then controls the double lifecycle and
+The bridge does not replace container services with doubles. If a test needs a
+doubled collaborator, get the double through `Doubles`. Then construct the test
+subject directly. Greenlight then controls the double lifecycle and
 verification.
-
-Container-level replacement remains a possible future addition. Its design must
-prevent uncertain service replacement.
 
 ## Non-goals
 
@@ -184,6 +174,3 @@ The current bridge does not cover:
 * kernel auto-discovery
 * database creation or migration tools
 * Messenger assertions
-
-The bridge has a deliberately small scope. It provides the kernel, container
-services, service resets, and worker channels.

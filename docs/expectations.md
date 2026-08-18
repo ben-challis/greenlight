@@ -70,8 +70,8 @@ scalars strictly. It compares arrays by key and recursively equal values.
 Objects must have the same class and recursively equal properties. This rule
 includes private properties.
 
-Object comparisons preserve shared references and cycles. Object graphs with
-different relationships are not equal.
+Object comparisons distinguish shared objects from equal copies. They also
+require equal cycle shapes.
 
 Enum cases compare by identity.
 `DateTimeInterface` values compare by instant at microsecond precision.
@@ -218,11 +218,7 @@ Expect::eventually(fn() => $client->fetch($id))
     ->toBeInstanceOf(Response::class);
 ```
 
-`pollEvery()` accepts a finite duration of at least 0.001 seconds. `within()`
-accepts a finite duration greater than zero.
-
-`retryOnException()` accepts only subclasses of `Exception`. It does not accept
-`Error` types.
+`retryOnException()` accepts `Exception` subclasses, but not `Error` types.
 
 `Expect::consistently()` requires the first probe result to match, then checks
 for the full duration:
@@ -234,8 +230,8 @@ Expect::consistently(fn() => $outbox->messagesFor($id))
     ->toHaveCount(1);
 ```
 
-For consistent checks, `pollEvery()` has the same minimum. `for()` accepts a
-finite duration greater than zero.
+For both temporal chains, `pollEvery()` accepts a finite duration of at least
+0.001 seconds. `within()` and `for()` accept finite durations greater than zero.
 
 Each temporal matcher counts as one expectation. The test timeout limits its
 duration. The worker timeout remains the hard limit for a blocked probe.
