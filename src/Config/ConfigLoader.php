@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+use Greenlight\Core\ErrorTrap;
+
 /** @internal */
 final class ConfigLoader
 {
@@ -16,7 +18,7 @@ final class ConfigLoader
     {
         $file = \rtrim($directory, '/') . '/' . self::FILE_NAME;
 
-        if (!\is_file($file)) {
+        if (!ErrorTrap::run(static fn(): bool => \is_file($file))) {
             throw ConfigFileError::noneInDirectory($directory);
         }
 
@@ -28,7 +30,7 @@ final class ConfigLoader
      */
     public function loadFile(string $file): GreenlightConfig
     {
-        if (!\is_file($file)) {
+        if (!ErrorTrap::run(static fn(): bool => \is_file($file))) {
             throw ConfigFileError::notFound($file);
         }
 
