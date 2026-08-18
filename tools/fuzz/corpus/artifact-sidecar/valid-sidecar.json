@@ -1,0 +1,1 @@
+{"name":"diagnostic.log","kind":"text","mediaType":"text/plain; charset=utf-8","sizeBytes":12,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","attempt":1,"path":"artifacts/diagnostic.log","retention":"on-failure","storageKey":"attempt-1/diagnostic.log"}

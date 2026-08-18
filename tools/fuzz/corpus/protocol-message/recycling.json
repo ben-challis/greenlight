@@ -1,0 +1,1 @@
+{"v":2,"t":"recycling","p":{"reason":"memory","remaining":[{"class":"App\\FooTest","method":"bar","dataSetKey":null}],"summary":{"passed":2,"failed":0,"errored":0,"skipped":0},"coverage":null}}

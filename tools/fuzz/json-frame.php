@@ -8,6 +8,7 @@ use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\ProtocolError;
 
 require_once __DIR__ . '/FuzzerConfiguration.php';
+require_once __DIR__ . '/GuardedTarget.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /** @var FuzzerConfiguration $config */
@@ -16,7 +17,7 @@ $config->setMaxLen(64 * 1024);
 
 $codec = new JsonFrameCodec();
 
-$config->setTarget(static function (string $input) use ($codec): void {
+$config->setTarget(GuardedTarget::wrap(static function (string $input) use ($codec): void {
     if ($input === '') {
         return;
     }
@@ -42,4 +43,4 @@ $config->setTarget(static function (string $input) use ($codec): void {
     if ($restored !== $decoded) {
         throw new \Error('The JSON frame round trip changed the decoded payload.');
     }
-});
+}));

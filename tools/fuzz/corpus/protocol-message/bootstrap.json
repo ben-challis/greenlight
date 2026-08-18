@@ -1,0 +1,1 @@
+{"v":2,"t":"bootstrap","p":{"channel":2,"configFile":"/project/greenlight.php","resources":{"fixtures":{"postgres":{"values":{"database":"example"},"secrets":[]}}}}}

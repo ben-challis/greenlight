@@ -10,6 +10,7 @@ use Greenlight\Runner\Protocol\MessageRegistry;
 use Greenlight\Runner\Protocol\ProtocolError;
 
 require_once __DIR__ . '/FuzzerConfiguration.php';
+require_once __DIR__ . '/GuardedTarget.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /** @var FuzzerConfiguration $config */
@@ -18,7 +19,7 @@ $config->setMaxLen(64 * 1024);
 
 $codec = new JsonFrameCodec();
 
-$config->setTarget(static function (string $input) use ($codec): void {
+$config->setTarget(GuardedTarget::wrap(static function (string $input) use ($codec): void {
     if ($input === '') {
         return;
     }
@@ -26,8 +27,12 @@ $config->setTarget(static function (string $input) use ($codec): void {
     try {
         $envelope = $codec->decode($input);
         $message = MessageRegistry::open($envelope);
-    } catch (InvalidWirePayload|ProtocolError) {
-        return;
+    } catch (\Throwable $error) {
+        if ($error instanceof InvalidWirePayload || $error instanceof ProtocolError || $error instanceof \InvalidArgumentException) {
+            return;
+        }
+
+        throw $error;
     }
 
     try {
@@ -46,4 +51,4 @@ $config->setTarget(static function (string $input) use ($codec): void {
     if ($restored::class !== $message::class || $restored->toWire() !== $message->toWire()) {
         throw new \Error('The framed round trip changed the protocol message.');
     }
-});
+}));

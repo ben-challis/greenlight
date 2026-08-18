@@ -13,18 +13,26 @@ permissions: {}
 
 jobs:
   fuzz:
-    name: "Fuzz ${{ matrix.target }}"
+    name: "Fuzz ${{ matrix.target }} on PHP ${{ matrix.php-version }}"
     runs-on: "ubuntu-latest"
-    timeout-minutes: 10
+    timeout-minutes: 12
     permissions:
       contents: "read"
     strategy:
       fail-fast: false
       matrix:
+        php-version:
+          - "8.4"
+          - "8.5"
         target:
+          - "artifact-sidecar"
+          - "discovery-cache-entry"
+          - "frame-stream"
           - "json-frame"
           - "protocol-message"
+          - "wire-message"
     env:
+      FUZZ_PHP_VERSION: "${{ matrix.php-version }}"
       FUZZ_TARGET: "${{ matrix.target }}"
 
     steps:
@@ -36,7 +44,7 @@ jobs:
       - name: "Set up PHP"
         uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
         with:
-          php-version: "8.4"
+          php-version: "${{ matrix.php-version }}"
           extensions: "pcntl"
           coverage: "none"
           ini-values: "memory_limit=512M"
@@ -63,6 +71,14 @@ jobs:
             "${php_fuzzer}" \
             | sha256sum --check --strict
 
+      - name: "Restore the evolving corpus"
+        uses: "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: "build/fuzz/${{ matrix.target }}/corpus"
+          key: "php-fuzzer-v1-${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.target }}-${{ github.run_id }}"
+          restore-keys: |
+            php-fuzzer-v1-${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.target }}-
+
       - name: "Run the fuzz campaign"
         shell: "bash"
         run: |
@@ -74,7 +90,9 @@ jobs:
           readonly dictionary="${GITHUB_WORKSPACE}/tools/fuzz/json.dict"
 
           mkdir -p "${fuzz_directory}/corpus"
-          cp "${GITHUB_WORKSPACE}/tools/fuzz/corpus/${FUZZ_TARGET}/"* "${fuzz_directory}/corpus/"
+          cp --no-clobber \
+            "${GITHUB_WORKSPACE}/tools/fuzz/corpus/${FUZZ_TARGET}/"* \
+            "${fuzz_directory}/corpus/"
           cd "${fuzz_directory}"
 
           set +e
@@ -109,11 +127,29 @@ jobs:
             exit "${campaign_status}"
           fi
 
+          timeout --signal=INT --kill-after=10s 2m \
+            php "${php_fuzzer}" report-coverage \
+              --dict "${dictionary}" \
+              --max-runs 50000 \
+              --timeout 2 \
+              "${target}" \
+              corpus \
+              coverage
+
+          corpus_files="$(find corpus -type f | wc -l)"
+          corpus_bytes="$(du --bytes --summarize corpus | cut --fields=1)"
+          {
+            printf '### %s on PHP %s\n\n' "${FUZZ_TARGET}" "${FUZZ_PHP_VERSION}"
+            printf -- '- Corpus inputs: %s\n' "${corpus_files}"
+            printf -- '- Corpus bytes: %s\n' "${corpus_bytes}"
+            printf -- '- Campaign duration: 4 minutes\n'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
       - name: "Upload the working corpus and crashes"
         if: "always()"
         uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7
         with:
-          name: "fuzz-${{ matrix.target }}-${{ github.run_id }}"
+          name: "fuzz-${{ matrix.target }}-php-${{ matrix.php-version }}-${{ github.run_id }}"
           path: "build/fuzz/${{ matrix.target }}"
           if-no-files-found: "error"
           retention-days: 14
