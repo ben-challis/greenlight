@@ -9,7 +9,7 @@ namespace Greenlight\Core\Artifact;
  *
  * @internal
  */
-final class AttachmentMediaType
+final readonly class AttachmentMediaType
 {
     private const string PATTERN = '~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*[^=\s]+=(?:"[^"]*"|[^;\s]+))*$~';
 
