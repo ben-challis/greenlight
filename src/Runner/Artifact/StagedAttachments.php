@@ -7,6 +7,7 @@ namespace Greenlight\Runner\Artifact;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\AttachmentKind;
+use Greenlight\Core\Artifact\AttachmentMediaType;
 use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\Attachments;
 use Greenlight\Core\Artifact\StagedAttachment;
@@ -231,12 +232,7 @@ final class StagedAttachments implements Attachments
             throw AttachmentError::invalidName($name);
         }
 
-        if (\preg_match('/[\x00-\x1F\x7F]/', $mediaType) === 1
-            || \preg_match(
-                '~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*[^=\s]+=(?:"[^"]*"|[^;\s]+))*$~',
-                $mediaType,
-            ) !== 1
-        ) {
+        if (!AttachmentMediaType::isValid($mediaType)) {
             throw AttachmentError::invalidMediaType($mediaType);
         }
     }
