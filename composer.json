@@ -25,6 +25,7 @@
         "phpstan/phpstan": "^2.2",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
+        "psr/container": "^2.0",
         "rector/rector": "^2.5",
         "symfony/config": "^6.4 || ^7.0 || ^8.0",
         "symfony/dependency-injection": "^6.4 || ^7.0 || ^8.0",
@@ -37,6 +38,7 @@
         "laravel/framework": "Provides the complete Laravel 13 framework that LaravelPlugin requires",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled 'extension.neon' file",
+        "psr/container": "Connects a PSR-11 application container to Greenlight through 'Psr11Plugin'",
         "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled 'PhpUnitToGreenlightRector' rule",
         "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the 'SymfonyPlugin' bridge"
     },

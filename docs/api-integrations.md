@@ -2,7 +2,7 @@
 
 # Integration API
 
-This reference lists public integration types for Laravel, Rector, and Symfony.
+This reference lists public integration types for Laravel, PSR standards, Rector, and Symfony.
 
 These signatures are the public API.
 
@@ -121,6 +121,128 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L22)
+
+## `Psr11Plugin`
+
+Namespace: `Greenlight\Psr`
+
+Creates a PSR-11 container lazily and resolves its services. By default, the
+plugin discards the container after each test that uses it.
+
+`#[Service]` selects an explicit ID. Tests MUST isolate external resources
+by `GREENLIGHT_CHANNEL`.
+
+```php
+final class Psr11Plugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L23)
+
+### `__construct()`
+
+```php
+public function __construct(
+    private readonly \Closure $factory,
+    private readonly bool $refreshBetweenTests = true,
+    private readonly ?\Closure $reset = null,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure():ContainerInterface $factory A factory that returns the application container.`
+- `@param bool $refreshBetweenTests Set to false only when the reset callback removes all container state, or when services do not keep state.`
+- `@param (\Closure(ContainerInterface): void)|null $reset An optional callback that resets the active container after each test.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L36)
+
+### `services()`
+
+```php
+[\Override]
+public function services(): array
+```
+
+PHPDoc:
+
+- `@return list<ServiceDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L45)
+
+### `resolve()`
+
+```php
+[\Override]
+public function resolve(string $type, array $attributes): ?object
+```
+
+PHPDoc:
+
+- `@param class-string $type`
+- `@param list<object> $attributes`
+- `@throws Psr11BridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L92)
+
+### `beforeTest()`
+
+```php
+[\Override]
+public function beforeTest(TestContext $context): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L134)
+
+### `afterTest()`
+
+```php
+[\Override]
+public function afterTest(TestContext $context, TestResult $result): TestResult
+```
+
+PHPDoc:
+
+- `@throws Psr11BridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L140)
+
+## `Psr\Service`
+
+Namespace: `Greenlight\Psr`
+
+Selects a PSR-11 service ID that differs from the parameter type. The
+resolved service must still have the declared type.
+
+```php
+#[\Attribute(\Attribute::TARGET_PARAMETER)]
+final readonly class Service
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L12)
+
+### `$id`
+
+```php
+public string $id;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L17)
+
+### `__construct()`
+
+```php
+public function __construct(string $id)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L22)
 
 ## `PhpUnitToGreenlightRector`
 

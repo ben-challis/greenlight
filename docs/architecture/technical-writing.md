@@ -155,6 +155,9 @@ and meaning. Use the singular form unless the context requires a plural.
 | poll | Technical verb | To observe a probe until a condition or deadline stops the operation |
 | probe | Technical noun | A callable that supplies values to a temporal expectation |
 | plugin | Technical noun | An extension that adds a Greenlight capability |
+| PSR-11 bridge | Technical noun | The component that connects the Greenlight harness to a PSR-11 container |
+| PSR-11 container | Technical noun | A service container that implements the PSR-11 container interface |
+| PSR-15 request handler | Technical noun | An object that accepts a PSR-7 server request and returns a PSR-7 response |
 | proxy class | Technical noun | A generated class that implements or extends a doubled type |
 | proxy object | Technical noun | An instance of a proxy class that acts as a double |
 | reporter | Technical noun | A component that converts run events to output |

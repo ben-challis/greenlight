@@ -30,7 +30,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Test attachments for values, text, bytes, and files
 * Coverage through pcov or Xdebug
 * Plain PHP test classes and PHP configuration
-* First-party Symfony, Laravel, and PHPStan extensions
+* First-party Symfony, Laravel, PSR-11, and PHPStan extensions
 * Automated PHPUnit test conversion with a bundled Rector rule
 
 ## Example test
@@ -134,6 +134,7 @@ for the complete model.
 * [Static analysis with PHPStan](docs/phpstan.md)
 * [Test Symfony applications](docs/symfony.md)
 * [Test Laravel applications](docs/laravel.md)
+* [Test PSR applications](docs/psr.md)
 * [Move from PHPUnit](docs/migrating-from-phpunit.md)
 * [Benchmarks](docs/benchmarks.md)
 * [Architecture](docs/architecture/README.md)
