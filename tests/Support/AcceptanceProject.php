@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Fixture\TempDirectory;
 
 final readonly class AcceptanceProject
@@ -44,6 +45,22 @@ final readonly class AcceptanceProject
 
     public function path(string $relative): string
     {
+        if ($relative === '' || \str_starts_with($relative, '/') || \str_contains($relative, '\\')) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Acceptance project path "%s" must be a relative path of plain segments.',
+                $relative,
+            ));
+        }
+
+        foreach (\explode('/', $relative) as $segment) {
+            if (\in_array($segment, ['', '.', '..'], true)) {
+                throw new \InvalidArgumentException(\sprintf(
+                    'Acceptance project path "%s" must be a relative path of plain segments.',
+                    $relative,
+                ));
+            }
+        }
+
         return $this->directory . '/' . $relative;
     }
 
@@ -52,11 +69,23 @@ final readonly class AcceptanceProject
         $path = $this->path($relativePath);
         $parent = \dirname($path);
 
-        if (!\is_dir($parent)) {
-            \mkdir($parent, 0o777, true);
+        if (!\is_dir($parent)
+            && !ErrorTrap::run(static fn(): bool => \mkdir($parent, 0o777, true), $warning)
+        ) {
+            throw new \RuntimeException(\sprintf(
+                'Failed to create acceptance project directory "%s"%s.',
+                $parent,
+                $warning === null ? '' : ': ' . $warning,
+            ));
         }
 
-        \file_put_contents($path, $contents);
+        if (ErrorTrap::run(static fn(): int|false => \file_put_contents($path, $contents), $warning) === false) {
+            throw new \RuntimeException(\sprintf(
+                'Failed to write acceptance project file "%s"%s.',
+                $path,
+                $warning === null ? '' : ': ' . $warning,
+            ));
+        }
     }
 
     /**

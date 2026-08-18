@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Support;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
@@ -24,6 +25,73 @@ final readonly class AcceptanceProjectTest
         Expect::that($project->directory)->because('creates a project and writes nested files')->toBe($this->workspace->path() . '/project');
         Expect::that($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt');
         Expect::that(\file_get_contents($project->path('nested/example.txt')))->toBe('contents');
+    }
+
+    #[Test]
+    public function aBlockedParentDirectoryFailsWithTheTargetPath(): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'blocked-parent');
+        $project->writeFile('blocked', 'keep');
+        $parent = $project->path('blocked');
+
+        Expect::that(static fn() => $project->writeFile('blocked/example.txt', 'contents'))
+            ->because('a blocked parent directory MUST fail before the fixture continues')
+            ->toThrow(
+                \RuntimeException::class,
+                matching: \sprintf('/^Failed to create acceptance project directory "%s"/', \preg_quote($parent, '/')),
+            );
+        Expect::that(\file_get_contents($parent))
+            ->because('a failed directory creation MUST preserve the blocking file')
+            ->toBe('keep');
+    }
+
+    #[Test]
+    public function anUnwritableTargetFailsWithTheTargetPath(): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'blocked-target');
+        $project->writeFile('blocked/seed.txt', 'keep');
+        $target = $project->path('blocked');
+
+        Expect::that(static fn() => $project->writeFile('blocked', 'contents'))
+            ->because('an unwritable target MUST fail before the fixture continues')
+            ->toThrow(
+                \RuntimeException::class,
+                matching: \sprintf('/^Failed to write acceptance project file "%s"/', \preg_quote($target, '/')),
+            );
+        Expect::that(\file_get_contents($project->path('blocked/seed.txt')))
+            ->because('a failed file write MUST preserve the target directory contents')
+            ->toBe('keep');
+    }
+
+    #[Test]
+    #[DataSet('invalidProjectPaths')]
+    public function projectFilesRejectNonPlainRelativePaths(string $relativePath): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'invalid-path');
+
+        Expect::that(static fn() => $project->writeFile($relativePath, 'contents'))
+            ->because('acceptance project writes MUST stay in the project directory')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: \sprintf(
+                    'Acceptance project path "%s" must be a relative path of plain segments.',
+                    $relativePath,
+                ),
+            );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidProjectPaths(): iterable
+    {
+        yield 'empty path' => [''];
+        yield 'absolute path' => ['/tmp/fixture.php'];
+        yield 'current-directory segment' => ['./fixture.php'];
+        yield 'parent-directory segment' => ['../fixture.php'];
+        yield 'nested parent-directory segment' => ['tests/../fixture.php'];
+        yield 'empty segment' => ['tests//fixture.php'];
+        yield 'backslash separator' => ['tests\\fixture.php'];
     }
 
     #[Test]
