@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
@@ -58,8 +59,18 @@ final readonly class ArtifactConfiguration implements WireSerializable
     #[\Override]
     public static function fromWire(array $payload): static
     {
+        $directory = Wire::nonEmptyString($payload, 'directory');
+
+        if (\str_contains($directory, "\0")) {
+            throw InvalidWirePayload::wrongType(
+                'directory',
+                'an artifact directory without null bytes',
+                $directory,
+            );
+        }
+
         return new self(
-            Wire::nonEmptyString($payload, 'directory'),
+            $directory,
             \max(1, Wire::int($payload, 'maxAttachmentsPerTest')),
             \max(1, Wire::int($payload, 'maxAttachmentBytes')),
             \max(1, Wire::int($payload, 'maxTestBytes')),
