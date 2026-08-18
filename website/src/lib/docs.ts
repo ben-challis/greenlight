@@ -64,7 +64,12 @@ export const docSections = [
       {
         id: 'psr',
         title: 'PSR applications',
-        description: 'This guide explains PSR-11 container services and PSR-15 request handlers.',
+        description: 'This guide explains how tests receive services from a PSR-11 container.',
+      },
+      {
+        id: 'psr15',
+        title: 'PSR-15 HTTP',
+        description: 'This guide explains how tests send PSR-7 requests directly to PSR-15 applications.',
       },
       {
         id: 'phpstan',

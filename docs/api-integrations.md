@@ -244,6 +244,160 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L22)
 
+## `HttpHarness`
+
+Namespace: `Greenlight\Psr15`
+
+Sends PSR-7 server requests directly to one PSR-15 request handler.
+The optional release callback closes handler state when the harness scope closes.
+
+```php
+final class HttpHarness implements Disposable
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L16)
+
+### `__construct()`
+
+```php
+public function __construct(
+    RequestHandlerInterface|\Closure $handler,
+    private readonly ?\Closure $release = null,
+)
+```
+
+PHPDoc:
+
+- `@param RequestHandlerInterface|\Closure(): mixed $handler`
+- `@param null|\Closure(RequestHandlerInterface): void $release`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L29)
+
+### `send()`
+
+```php
+public function send(ServerRequestInterface $request): ResponseInterface
+```
+
+PHPDoc:
+
+- `@throws Psr15Error`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L41)
+
+### `dispose()`
+
+```php
+[\Override]
+public function dispose(): void
+```
+
+PHPDoc:
+
+- `@throws Psr15Error`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L66)
+
+## `Psr15Error`
+
+Namespace: `Greenlight\Psr15`
+
+Reports a PSR-15 harness failure at its public seam.
+
+```php
+final class Psr15Error extends \RuntimeException
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L8)
+
+### `factoryFailed()`
+
+```php
+public static function factoryFailed(\Throwable $cause): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L10)
+
+### `invalidHandler()`
+
+```php
+public static function invalidHandler(string $type): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L15)
+
+### `requestFailed()`
+
+```php
+public static function requestFailed(
+    string $method,
+    string $path,
+    string $handler,
+    \Throwable $cause,
+): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L23)
+
+### `releaseFailed()`
+
+```php
+public static function releaseFailed(string $handler, \Throwable $cause): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L37)
+
+### `disposed()`
+
+```php
+public static function disposed(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L45)
+
+## `Psr15Plugin`
+
+Namespace: `Greenlight\Psr15`
+
+Supplies one HTTP harness in the configured service scope. A handler factory
+with the per-test scope gives each test a new application handler.
+
+```php
+final readonly class Psr15Plugin implements HarnessProvider
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L16)
+
+### `__construct()`
+
+```php
+public function __construct(
+    RequestHandlerInterface|\Closure $handler,
+    private Scope $scope = Scope::PerTest,
+    private ?\Closure $release = null,
+)
+```
+
+PHPDoc:
+
+- `@param RequestHandlerInterface|\Closure(): mixed $handler A handler or a factory that returns a handler.`
+- `@param null|\Closure(RequestHandlerInterface): void $release A callback that releases the active handler when its scope closes.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L27)
+
+### `services()`
+
+```php
+[\Override]
+public function services(): array
+```
+
+PHPDoc:
+
+- `@return list<ServiceDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L40)
+
 ## `PhpUnitToGreenlightRector`
 
 Namespace: `Greenlight\Rector`
