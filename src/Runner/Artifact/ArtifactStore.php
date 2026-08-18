@@ -540,14 +540,16 @@ final class ArtifactStore
     private function reserve(int $bytes): void
     {
         $this->updateQuota(function (int $count, int $used) use ($bytes): array {
-            if ($count + 1 > $this->configuration->maxRunAttachments) {
+            if ($count >= $this->configuration->maxRunAttachments) {
                 throw AttachmentError::limit(\sprintf(
                     'This run has reached the limit of %d attachments',
                     $this->configuration->maxRunAttachments,
                 ));
             }
 
-            if ($used + $bytes > $this->configuration->maxRunBytes) {
+            if ($bytes > $this->configuration->maxRunBytes
+                || $used > $this->configuration->maxRunBytes - $bytes
+            ) {
                 throw AttachmentError::limit(\sprintf(
                     'Attachments for this run exceed the limit of %d bytes',
                     $this->configuration->maxRunBytes,

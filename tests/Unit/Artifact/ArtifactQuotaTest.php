@@ -91,4 +91,52 @@ final readonly class ArtifactQuotaTest
         yield 'attachment count overflows an integer' => [\str_repeat('9', 30) . ' 0'];
         yield 'byte count overflows an integer' => ['0 ' . \str_repeat('9', 30)];
     }
+
+    #[Test]
+    #[DataSet('maximumQuotaValues')]
+    public function maximumQuotaValuesCannotOverflowAccounting(string $metadata, string $message): void
+    {
+        $root = $this->tempDirectory->subdirectory('maximum-run-quota');
+        $staging = $root . '/staging';
+        \mkdir($staging);
+        $quota = $staging . '/.quota';
+        \file_put_contents($quota, $metadata);
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-1'),
+            new ArtifactConfiguration(
+                $root . '/published',
+                maxRunAttachments: \PHP_INT_MAX,
+                maxRunBytes: \PHP_INT_MAX,
+            ),
+        );
+        $attachments = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'recordsEvidence'),
+            1,
+            new TestArtifactBudget(),
+        );
+
+        Expect::that(static function () use ($attachments): void {
+            $attachments->text('evidence.txt', 'body');
+        })
+            ->because('quota accounting MUST reject additions that exceed an integer limit')
+            ->toThrow(AttachmentError::class, message: $message);
+        Expect::that((string) \file_get_contents($quota))
+            ->because('a rejected quota reservation MUST keep its previous accounting')
+            ->toBe($metadata);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function maximumQuotaValues(): iterable
+    {
+        yield 'attachment count' => [
+            \PHP_INT_MAX . ' 0',
+            \sprintf('This run has reached the limit of %d attachments.', \PHP_INT_MAX),
+        ];
+        yield 'byte count' => [
+            '0 ' . \PHP_INT_MAX,
+            \sprintf('Attachments for this run exceed the limit of %d bytes.', \PHP_INT_MAX),
+        ];
+    }
 }
