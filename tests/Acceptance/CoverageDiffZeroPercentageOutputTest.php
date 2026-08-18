@@ -6,10 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class CoverageDiffZeroPercentageOutputTest
@@ -26,8 +26,8 @@ final readonly class CoverageDiffZeroPercentageOutputTest
         $current = new CoverageMap([
             new FileCoverage('/project/src/Zero.php', [], [1]),
         ]);
-        $this->writeExport($directory . '/baseline.json', $baseline);
-        $this->writeExport($directory . '/current.json', $current);
+        CoverageJson::write($directory . '/baseline.json', $baseline);
+        CoverageJson::write($directory . '/current.json', $current);
 
         $result = GreenlightCli::run(
             $directory,
@@ -47,11 +47,5 @@ final readonly class CoverageDiffZeroPercentageOutputTest
                 'Coverage: baseline 100.00%, current 0.00% (-100.00)',
                 '/project/src/Zero.php: 100.00% -> 0.00% (-100.00), newly uncovered lines: 1',
             ]);
-    }
-
-    private function writeExport(string $path, CoverageMap $map): void
-    {
-        $files = new JsonExporter()->export($map);
-        \file_put_contents($path, $files[JsonExporter::FILE_NAME]);
     }
 }
