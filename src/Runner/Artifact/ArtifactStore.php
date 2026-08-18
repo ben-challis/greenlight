@@ -54,12 +54,14 @@ final class ArtifactStore
             throw AttachmentError::storage('Keep a relative attachment output directory inside the working directory');
         }
 
-        if (\str_starts_with($configured, '/') && ($resolved = \realpath($configured)) !== false) {
+        if (\str_starts_with($configured, '/')
+            && ($resolved = ErrorTrap::run(static fn(): string|false => \realpath($configured))) !== false
+        ) {
             $configured = $resolved;
         }
 
         $public = $configured . '/' . $runId;
-        $resolvedWorkingDirectory = \realpath($workingDirectory);
+        $resolvedWorkingDirectory = ErrorTrap::run(static fn(): string|false => \realpath($workingDirectory));
         $workingDirectory = $resolvedWorkingDirectory === false ? $workingDirectory : $resolvedWorkingDirectory;
         $output = \str_starts_with($configured, '/')
             ? $public
