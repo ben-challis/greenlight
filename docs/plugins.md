@@ -203,6 +203,29 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 `IntegrationResources`. Subscribers may implement `Prioritized`. Lower values
 run first. An exception fails the run before tests begin.
 
+### WorkerRuntimeRunner
+
+Worker-side.
+
+```php
+public function runWorker(\Closure $worker): mixed;
+```
+
+This capability puts all assignments for one physical worker in a runtime
+boundary. Greenlight calls it after worker bootstrap and before it reports that
+the worker is ready.
+
+Call the callback once and return its value. Use `finally` to close the runtime
+when the worker drains, recycles, disconnects, or throws. Run-scope harness
+services close before the callback returns.
+
+Greenlight nests multiple runtime boundaries in priority order. A boundary
+failure stops the worker. Greenlight sends a final worker message only after
+all runtime boundaries close successfully.
+
+The Hyperf bridge uses this capability for its long-running root Swoole
+runtime. See [Hyperf applications](hyperf.md).
+
 ### TestLifecycleSubscriber
 
 Worker-side.
@@ -254,6 +277,27 @@ retention and size limits apply. See [attachments](attachments.md).
 
 The `service()` method is available during `beforeTest()` and the test. The
 per-test scope closes before `afterTest()`, so `service()` throws in that hook.
+
+### TestAttemptRunner
+
+Worker-side.
+
+```php
+public function runTestAttempt(\Closure $attempt): mixed;
+```
+
+This capability puts one complete attempt in a runtime boundary. The callback
+contains constructor injection, hooks, the test, scope disposal, and
+`afterTest()` subscribers.
+
+Call the callback one time and return its value. Use `finally` to leave the
+runtime boundary when the callback throws.
+
+Greenlight converts a boundary failure to an error result. It can then apply
+the normal retry policy.
+
+The Hyperf bridge uses this capability to run each attempt in one Swoole
+coroutine. See [Hyperf applications](hyperf.md).
 
 ### RetryDecider
 
@@ -438,6 +482,8 @@ Priority applies to these capabilities:
 
 * `IntegrationFixtureProvider`
 * `WorkerBootstrapSubscriber`
+* `WorkerRuntimeRunner`
+* `TestAttemptRunner`
 * `TestLifecycleSubscriber`
 * `RetryDecider`
 * `RunLifecycleSubscriber`
@@ -445,6 +491,9 @@ Priority applies to these capabilities:
 * `ServiceResolver`
 
 `ExpectationExtension` uses registration order.
+
+For attempt runners, the lower-priority runner is the outer boundary. Each
+runner must call the next callback one time.
 
 Greenlight reports all plugin failures. A worker-side failure causes an error
 for the affected test and names the plugin. An orchestrator-side failure causes

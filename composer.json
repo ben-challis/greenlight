@@ -38,8 +38,12 @@
         "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
     },
     "suggest": {
+        "ext-pcntl": "Scans Hyperf classes before 'HyperfPlugin' starts a worker",
         "ext-pcov": "Collects line coverage quickly",
+        "ext-swoole": "Runs 'HyperfPlugin' workers and test attempts in Hyperf coroutines",
         "fidry/cpu-core-counter": "Improves the 'auto' worker count across platforms and on systems with cgroup limits",
+        "hyperf/di": "Scans Hyperf classes and generates AOP proxies for the 'HyperfPlugin' bridge",
+        "hyperf/framework": "Provides the Hyperf 3.2 application runtime that 'HyperfPlugin' requires",
         "laravel/framework": "Provides the complete Laravel 13 framework that LaravelPlugin requires",
         "phpstan/extension-installer": "Registers the bundled PHPStan extension automatically",
         "phpstan/phpstan": "Type-checks extension matcher calls and data providers with the bundled 'extension.neon' file",

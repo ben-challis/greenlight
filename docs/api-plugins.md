@@ -226,14 +226,15 @@ Namespace: `Greenlight\Plugin`
 Identifies an object as a Greenlight plugin.
 
 Plugins implement one or more capability interfaces such as
-`TestLifecycleSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`HarnessProvider`, or `ExpectationExtension`.
+`WorkerRuntimeRunner`, `TestAttemptRunner`, `TestLifecycleSubscriber`,
+`RunLifecycleSubscriber`, `RetryDecider`, `HarnessProvider`, or
+`ExpectationExtension`.
 
 ```php
 interface Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L15)
 
 This type does not declare public members.
 
@@ -308,6 +309,32 @@ public function onRunEvent(Event $event): void;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L19)
+
+## `TestAttemptRunner`
+
+Namespace: `Greenlight\Plugin`
+
+Runs each complete test attempt in a plugin-defined runtime boundary.
+
+```php
+interface TestAttemptRunner extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestAttemptRunner.php#L8)
+
+### `runTestAttempt()`
+
+```php
+public function runTestAttempt(\Closure $attempt): mixed;
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param \Closure(): T $attempt`
+- `@return T`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestAttemptRunner.php#L17)
 
 ## `TestContext`
 
@@ -514,3 +541,29 @@ public function onWorkerBootstrap(WorkerBootstrapContext $context): void;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapSubscriber.php#L13)
+
+## `WorkerRuntimeRunner`
+
+Namespace: `Greenlight\Plugin`
+
+Runs one physical worker in a plugin-defined runtime boundary.
+
+```php
+interface WorkerRuntimeRunner extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerRuntimeRunner.php#L8)
+
+### `runWorker()`
+
+```php
+public function runWorker(\Closure $worker): mixed;
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param \Closure(): T $worker`
+- `@return T`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerRuntimeRunner.php#L17)

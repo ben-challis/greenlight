@@ -62,6 +62,11 @@ export const docSections = [
         description: 'This guide explains how tests receive container services from a fresh Laravel application.',
       },
       {
+        id: 'hyperf',
+        title: 'Hyperf',
+        description: 'This guide explains coroutine test attempts, AOP classes, and persistent or isolated containers.',
+      },
+      {
         id: 'psr',
         title: 'PSR applications',
         description: 'This guide explains how tests receive services from a PSR-11 container.',
@@ -149,7 +154,7 @@ export const docSections = [
       {
         id: 'api-integrations',
         title: 'Integration API',
-        description: 'This reference lists public integration types for Laravel, PSR standards, Rector, and Symfony.',
+        description: 'This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, and Symfony.',
       },
     ],
   },

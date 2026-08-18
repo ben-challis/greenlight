@@ -89,6 +89,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Laravel/.*
+    - name: Hyperf
+      collectors:
+        - type: directory
+          value: src/Hyperf/.*
     - name: Psr
       collectors:
         - type: directory
@@ -109,6 +113,18 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^Illuminate\\/
+    - name: HyperfFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Hyperf\\/
+    - name: SwooleFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Swoole\\/
+    - name: ComposerRuntime
+      collectors:
+        - type: classNameRegex
+          value: /^Composer\\InstalledVersions$/
     - name: PsrFramework
       collectors:
         - type: classNameRegex
@@ -152,11 +168,15 @@ deptrac:
     Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
     Laravel: [Core, Harness, Plugin, LaravelFramework]
+    Hyperf: [Core, Harness, Plugin, HyperfFramework, PsrFramework, SwooleFramework, ComposerRuntime]
     Psr: [Core, Harness, Plugin, PsrFramework]
     Psr15: [Harness, Plugin, PsrHttpFramework]
     PhpStanFramework: []
     SymfonyFramework: []
     LaravelFramework: []
+    HyperfFramework: []
+    SwooleFramework: []
+    ComposerRuntime: []
     PsrFramework: []
     PsrHttpFramework: []
     CpuCoreCounter: []

@@ -19,4 +19,4 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 - [Fixtures and harness API](api-fixtures-harness.md) — This reference lists fixtures and harness service contracts.
 - [Plugin API](api-plugins.md) — This reference lists plugin capabilities and lifecycle callback contracts.
 - [Reporter API](api-reporting.md) — This reference lists reporter and output contracts.
-- [Integration API](api-integrations.md) — This reference lists public integration types for Laravel, PSR standards, Rector, and Symfony.
+- [Integration API](api-integrations.md) — This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, and Symfony.

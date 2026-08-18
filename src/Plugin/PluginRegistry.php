@@ -52,6 +52,33 @@ final readonly class PluginRegistry
     }
 
     /**
+     * @return list<TestAttemptRunner>
+     */
+    public function testAttemptRunners(): array
+    {
+        return $this->sorted($this->ofType(TestAttemptRunner::class));
+    }
+
+    /**
+     * @template T
+     *
+     * @param \Closure(): T $worker
+     *
+     * @return T
+     */
+    public function runWorker(\Closure $worker): mixed
+    {
+        $runners = $this->sorted($this->ofType(WorkerRuntimeRunner::class));
+
+        foreach (\array_reverse($runners) as $runner) {
+            $next = $worker;
+            $worker = static fn(): mixed => $runner->runWorker($next);
+        }
+
+        return $worker();
+    }
+
+    /**
      * @return list<RetryDecider>
      */
     public function retryDeciders(): array
