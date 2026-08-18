@@ -38,10 +38,8 @@ final readonly class CpuCoresFallbackTest
             ->because('an unavailable platform CPU count MUST use the conservative default')
             ->toBe(4);
 
-        if (\PHP_OS_FAMILY === 'Linux') {
-            Expect::that($warning)
-                ->because('the restricted procfs path proves the primary platform probe was unavailable')
-                ->toContain('/proc/cpuinfo');
-        }
+        Expect::that($warning)
+            ->because('unavailable platform CPU probes MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 }
