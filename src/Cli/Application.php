@@ -371,12 +371,14 @@ final readonly class Application
         }
 
         $priorityClasses = [];
+        $priorityClassSet = [];
 
         if (!$resolved->randomizeOrder && \is_array($previousFailures)) {
             foreach ($previousFailures as $id) {
                 $class = \strstr($id, '::', true);
 
-                if (\is_string($class) && $class !== '' && !\in_array($class, $priorityClasses, true)) {
+                if (\is_string($class) && $class !== '' && !isset($priorityClassSet[$class])) {
+                    $priorityClassSet[$class] = true;
                     $priorityClasses[] = $class;
                 }
             }
@@ -399,6 +401,7 @@ final readonly class Application
         $bounded = $overrides->repeat !== null;
         $failedIterations = [];
         $failedTests = [];
+        $failedTestSet = [];
         $lastClassSeconds = [];
 
         for ($iteration = 1; $iteration <= $limit; $iteration++) {
@@ -420,7 +423,8 @@ final readonly class Application
             $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
 
             foreach ($failedTap->failedTests() as $id) {
-                if (!\in_array($id, $failedTests, true)) {
+                if (!isset($failedTestSet[$id])) {
+                    $failedTestSet[$id] = true;
                     $failedTests[] = $id;
                 }
             }

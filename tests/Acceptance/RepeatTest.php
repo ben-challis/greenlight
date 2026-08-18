@@ -74,6 +74,26 @@ final readonly class RepeatTest
     }
 
     #[Test]
+    public function failedRerunsFailuresFromDifferentRepeatIterations(): void
+    {
+        $project = $this->writeFailuresAcrossIterationsProject();
+        $state = $project->path('repeat-state');
+        $environment = ['GREENLIGHT_REPEAT_STATE' => $state];
+
+        $result = $this->run($project, $environment, '--repeat=3');
+        Expect::that($result->exitCode)->because('repeat collects failures from different iterations')->toBe(1);
+        Expect::that($result->output())
+            ->because('repeat collects failures from different iterations')
+            ->toContain('Repeat: failed iterations: 1, 2');
+
+        $result = $this->run($project, $environment, '--failed');
+        Expect::that($result->exitCode)->because('failed reruns failures from different repeat iterations')->toBe(0);
+        Expect::that($result->output())
+            ->because('failed reruns failures from different repeat iterations')
+            ->toContain('2 tests, 2 passed');
+    }
+
+    #[Test]
     public function repeatComposesWithFilter(): void
     {
         $project = $this->writeProject(passing: true);
@@ -175,6 +195,58 @@ final readonly class RepeatTest
                     if ($count >= 3) {
                         throw new \RuntimeException('flaked on run ' . $count);
                     }
+                }
+            }
+            PHP);
+    }
+
+    private function writeFailuresAcrossIterationsProject(): AcceptanceProject
+    {
+        return $this->writeProjectWithTestClass(<<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace RepeatProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class RepeatProbeTest
+            {
+                #[Test]
+                public function failsOnTheFirstRun(): void
+                {
+                    if ($this->runNumber(__FUNCTION__) === 1) {
+                        throw new \RuntimeException('failed on the first run');
+                    }
+                }
+
+                #[Test]
+                public function failsOnTheSecondRun(): void
+                {
+                    if ($this->runNumber(__FUNCTION__) === 2) {
+                        throw new \RuntimeException('failed on the second run');
+                    }
+                }
+
+                private function runNumber(string $test): int
+                {
+                    $directory = \getenv('GREENLIGHT_REPEAT_STATE');
+
+                    if (!\is_string($directory) || $directory === '') {
+                        throw new \RuntimeException('GREENLIGHT_REPEAT_STATE is not set');
+                    }
+
+                    if (!\is_dir($directory)) {
+                        \mkdir($directory);
+                    }
+
+                    $path = $directory . '/' . $test;
+                    $count = \is_file($path) ? (int) \file_get_contents($path) : 0;
+                    $count++;
+                    \file_put_contents($path, (string) $count);
+
+                    return $count;
                 }
             }
             PHP);
