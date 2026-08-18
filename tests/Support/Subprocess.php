@@ -93,7 +93,24 @@ final class Subprocess
     {
         $stdin = $this->pipes[0] ?? null;
 
-        if (!\is_resource($stdin) || \fwrite($stdin, $input) === false || !\fflush($stdin)) {
+        if (!\is_resource($stdin)) {
+            throw new \RuntimeException('Could not write to process stdin.');
+        }
+
+        $offset = 0;
+        $length = \strlen($input);
+
+        while ($offset < $length) {
+            $written = ErrorTrap::run(static fn(): int|false => \fwrite($stdin, \substr($input, $offset)));
+
+            if ($written === false || $written === 0) {
+                throw new \RuntimeException('Could not write to process stdin.');
+            }
+
+            $offset += $written;
+        }
+
+        if (!ErrorTrap::run(static fn(): bool => \fflush($stdin))) {
             throw new \RuntimeException('Could not write to process stdin.');
         }
     }
@@ -141,9 +158,9 @@ final class Subprocess
             ));
         }
 
-        $deadline = \microtime(true) + $timeoutSeconds;
+        $deadline = $this->monotonicTime() + $timeoutSeconds;
 
-        while (\microtime(true) < $deadline) {
+        while ($this->monotonicTime() < $deadline) {
             $this->pump();
             $output = \substr($this->stdout, $offset);
 
@@ -202,10 +219,10 @@ final class Subprocess
      */
     public function wait(float $timeoutSeconds): ProcessResult
     {
-        $deadline = \microtime(true) + $timeoutSeconds;
+        $deadline = $this->monotonicTime() + $timeoutSeconds;
 
         try {
-            while (\microtime(true) < $deadline) {
+            while ($this->monotonicTime() < $deadline) {
                 $this->pump();
                 $status = \proc_get_status($this->process);
 
@@ -323,5 +340,10 @@ final class Subprocess
     private function normalize(string $output): string
     {
         return \rtrim(\str_replace("\r\n", "\n", $output), "\n");
+    }
+
+    private function monotonicTime(): float
+    {
+        return \hrtime(true) / 1_000_000_000;
     }
 }
