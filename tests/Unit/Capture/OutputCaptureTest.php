@@ -259,22 +259,28 @@ final class OutputCaptureTest
     {
         $baseline = \ob_get_level();
         $capture = new OutputCapture();
-        $thrown = null;
+        $failure = new \RuntimeException('boom');
+        $captured = null;
 
         $capture->start();
 
-        try {
-            echo 'before the throw';
+        Expect::that(static function () use ($capture, $failure, &$captured): never {
+            try {
+                echo 'before the throw';
 
-            throw new \RuntimeException('boom');
-        } catch (\RuntimeException $exception) {
-            $thrown = $exception;
-        } finally {
-            $captured = $capture->stop();
-        }
+                throw $failure;
+            } finally {
+                $captured = $capture->stop();
+            }
+        })
+            ->because('stop in a finally block restores everything when user code throws')
+            ->toThrow(
+                static function (\RuntimeException $caught) use ($failure): void {
+                    Expect::that($caught)->toBe($failure);
+                },
+            );
 
-        Expect::that($thrown)->because('stop in a finally block restores everything when user code throws')->toBeInstanceOf(\RuntimeException::class);
-        Expect::that($captured->stdout)->toBe('before the throw');
+        Expect::that($captured?->stdout)->toBe('before the throw');
         Expect::that(\ob_get_level())->toBe($baseline);
     }
 
