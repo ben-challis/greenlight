@@ -56,6 +56,9 @@ final readonly class Filter
     /** @var list<non-empty-string> */
     public array $includeExactIds;
 
+    /** @var array<array-key, true> */
+    private array $includeExactIdSet;
+
     /**
      * @param list<string> $includeGroups
      * @param list<string> $excludeGroups
@@ -90,6 +93,7 @@ final readonly class Filter
         $this->excludePaths = $this->validateValues('excludePaths', $excludePaths);
         $this->includeIds = $this->validateValues('includeIds', $includeIds);
         $this->includeExactIds = $this->validateValues('includeExactIds', $includeExactIds);
+        $this->includeExactIdSet = \array_fill_keys($this->includeExactIds, true);
     }
 
     public static function all(): self
@@ -139,7 +143,7 @@ final readonly class Filter
             return true;
         }
 
-        if (\in_array($renderedId, $this->includeExactIds, true)) {
+        if (isset($this->includeExactIdSet[$renderedId])) {
             return true;
         }
 
