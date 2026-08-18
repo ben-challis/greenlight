@@ -13,6 +13,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
+use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final class WorkerHandleTest
 {
@@ -88,7 +89,7 @@ final class WorkerHandleTest
         string $remainder,
         string $expected,
     ): void {
-        [$reader, $writer] = $this->streamPair();
+        [$reader, $writer] = ConnectedStreamPair::open();
         $handle = new WorkerHandle(
             'worker-1',
             1,
@@ -111,7 +112,7 @@ final class WorkerHandleTest
     #[DataSet('malformedUtf8Prefixes')]
     public function malformedTrailingBytesAreScrubbedWithoutWaitingForAnotherPipeRead(string $malformed): void
     {
-        [$reader, $writer] = $this->streamPair();
+        [$reader, $writer] = ConnectedStreamPair::open();
         $handle = new WorkerHandle(
             'worker-1',
             1,
@@ -186,17 +187,4 @@ final class WorkerHandleTest
         return $stream;
     }
 
-    /**
-     * @return array{resource, resource}
-     */
-    private function streamPair(): array
-    {
-        $streams = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
-
-        if (!\is_array($streams) || \count($streams) !== 2) {
-            Fail::because('Expected the connected streams to open.');
-        }
-
-        return [$streams[0], $streams[1]];
-    }
 }
