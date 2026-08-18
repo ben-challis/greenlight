@@ -6,7 +6,11 @@ namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Result\Outcome;
+use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Tests\Support\JsonlEvents;
@@ -55,6 +59,27 @@ final class JsonlEventsTest
     public function emptyStdoutProducesNoEvents(): void
     {
         Expect::that(JsonlEvents::from(new ProcessResult(0, '', 'diagnostic')))->because('empty stdout produces no events')->toBe([]);
+    }
+
+    #[Test]
+    public function finishedTestIdsPreserveEventOrderAndIgnoreOtherEvents(): void
+    {
+        $first = new TestFinished(new TestResult(new TestId('AlphaTest', 'one'), Outcome::Passed, 0.1, 0), 1.0);
+        $spawned = new WorkerSpawned('worker-1', 42, 1.1);
+        $second = new TestFinished(new TestResult(new TestId('BetaTest', 'two', 'row'), Outcome::Passed, 0.2, 0), 1.2);
+        $result = new ProcessResult(
+            0,
+            $this->line('test-finished', $first->toWire())
+                . "\n"
+                . $this->line('worker-spawned', $spawned->toWire())
+                . "\n"
+                . $this->line('test-finished', $second->toWire()),
+            '',
+        );
+
+        Expect::that(JsonlEvents::finishedTestIds($result))
+            ->because('finished test extraction MUST preserve JSONL event order')
+            ->toBe(['AlphaTest::one', 'BetaTest::two[row]']);
     }
 
     #[Test]

@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
-use Greenlight\Tests\Support\ProcessResult;
 
 final readonly class ParallelShardRunTest
 {
@@ -30,9 +28,9 @@ final readonly class ParallelShardRunTest
             $project->directory,
             ['run', '--workers=2', '--reporter=jsonl', '--shard=2/2'],
         );
-        $allIds = $this->finishedTestIds($all);
-        $firstIds = $this->finishedTestIds($first);
-        $secondIds = $this->finishedTestIds($second);
+        $allIds = JsonlEvents::finishedTestIds($all);
+        $firstIds = JsonlEvents::finishedTestIds($first);
+        $secondIds = JsonlEvents::finishedTestIds($second);
         $union = [...$firstIds, ...$secondIds];
 
         \sort($allIds);
@@ -63,19 +61,4 @@ final readonly class ParallelShardRunTest
             ->toBe($allIds);
     }
 
-    /**
-     * @return list<string>
-     */
-    private function finishedTestIds(ProcessResult $result): array
-    {
-        $ids = [];
-
-        foreach (JsonlEvents::from($result) as $event) {
-            if ($event instanceof TestFinished) {
-                $ids[] = (string) $event->result->id;
-            }
-        }
-
-        return $ids;
-    }
 }
