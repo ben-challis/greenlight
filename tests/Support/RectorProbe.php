@@ -33,12 +33,13 @@ final readonly class RectorProbe
         string $name = 'rector-probe',
     ): self {
         $root = \dirname(__DIR__, 2);
-        $directory = $workspace->subdirectory($name);
-        $testsDirectory = $workspace->subdirectory($name . '/tests');
+        $files = ProjectFiles::create($workspace, $name);
+        $directory = $files->directory;
+        $testsDirectory = $directory . '/tests';
         $testFile = $testsDirectory . '/ProbeTest.php';
 
-        \file_put_contents($testFile, $testClassSource);
-        \file_put_contents($directory . '/rector.php', self::rectorConfig($root, $directory, $configuration));
+        $files->write('tests/ProbeTest.php', $testClassSource);
+        $files->write('rector.php', self::rectorConfig($root, $directory, $configuration));
 
         $result = Subprocess::run(
             $root,

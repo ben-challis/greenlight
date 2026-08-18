@@ -20,17 +20,16 @@ final readonly class ProseCheckRuleProbe
         string $invalid,
         string $valid,
     ): void {
-        $root = $tempDirectory->subdirectory('blocking-' . $rule) . '/project';
-        \mkdir($root);
-        $sample = $root . '/sample.md';
+        $files = ProjectFiles::create($tempDirectory, 'blocking-' . $rule . '/project');
+        $root = $files->directory;
 
-        \file_put_contents($sample, "# Sample\n\n" . $invalid . "\n");
+        $files->write('sample.md', "# Sample\n\n" . $invalid . "\n");
 
         $invalidResult = self::run($root);
         Expect::that($invalidResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(1);
         Expect::that($invalidResult->output())->toContain($rule);
 
-        \file_put_contents($sample, "# Sample\n\n" . $valid . "\n");
+        $files->write('sample.md', "# Sample\n\n" . $valid . "\n");
 
         $validResult = self::run($root);
         Expect::that($validResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(0);

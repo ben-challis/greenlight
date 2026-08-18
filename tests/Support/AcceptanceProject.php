@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Fixture\TempDirectory;
 
 final readonly class AcceptanceProject
 {
-    private function __construct(public string $directory) {}
+    private function __construct(
+        private ProjectFiles $files,
+        public string $directory,
+    ) {}
 
     public static function create(TempDirectory $workspace, string $name): self
     {
-        return new self($workspace->subdirectory($name));
+        $files = ProjectFiles::create($workspace, $name, 'acceptance project');
+
+        return new self($files, $files->directory);
     }
 
     /**
@@ -45,47 +49,12 @@ final readonly class AcceptanceProject
 
     public function path(string $relative): string
     {
-        if ($relative === '' || \str_starts_with($relative, '/') || \str_contains($relative, '\\')) {
-            throw new \InvalidArgumentException(\sprintf(
-                'Acceptance project path "%s" must be a relative path of plain segments.',
-                $relative,
-            ));
-        }
-
-        foreach (\explode('/', $relative) as $segment) {
-            if (\in_array($segment, ['', '.', '..'], true)) {
-                throw new \InvalidArgumentException(\sprintf(
-                    'Acceptance project path "%s" must be a relative path of plain segments.',
-                    $relative,
-                ));
-            }
-        }
-
-        return $this->directory . '/' . $relative;
+        return $this->files->path($relative);
     }
 
     public function writeFile(string $relativePath, string $contents): void
     {
-        $path = $this->path($relativePath);
-        $parent = \dirname($path);
-
-        if (!\is_dir($parent)
-            && !ErrorTrap::run(static fn(): bool => \mkdir($parent, 0o777, true), $warning)
-        ) {
-            throw new \RuntimeException(\sprintf(
-                'Failed to create acceptance project directory "%s"%s.',
-                $parent,
-                $warning === null ? '' : ': ' . $warning,
-            ));
-        }
-
-        if (ErrorTrap::run(static fn(): int|false => \file_put_contents($path, $contents), $warning) === false) {
-            throw new \RuntimeException(\sprintf(
-                'Failed to write acceptance project file "%s"%s.',
-                $path,
-                $warning === null ? '' : ': ' . $warning,
-            ));
-        }
+        $this->files->write($relativePath, $contents);
     }
 
     /**
