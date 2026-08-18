@@ -1238,7 +1238,7 @@ final readonly class Application
 
         foreach ($prefixes as $prefix) {
             $absolute = $this->absolutePath($prefix, $workingDirectory);
-            $real = \realpath($absolute);
+            $real = ErrorTrap::run(static fn(): string|false => \realpath($absolute));
 
             if ($real !== false) {
                 $resolved[] = $real;

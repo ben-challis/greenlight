@@ -116,6 +116,30 @@ final readonly class ExcludeSelectionTest
     }
 
     #[Test]
+    public function restrictedExcludePathDoesNotLeakEngineDiagnostics(): void
+    {
+        $project = $this->writeProject();
+        $root = \dirname(__DIR__, 2);
+        $restricted = \dirname($root);
+        $result = GreenlightCli::run(
+            $project->directory,
+            ['list-tests', '--exclude-path=' . $restricted],
+            phpArguments: [
+                '-d',
+                'open_basedir=' . $root . \PATH_SEPARATOR . \sys_get_temp_dir(),
+            ],
+        );
+
+        Expect::that($result->exitCode)
+            ->because('a restricted exclusion prefix MUST not prevent test selection')
+            ->toBe(0);
+        Expect::that($result->output())
+            ->because('a restricted exclusion prefix MUST not leak engine diagnostics')
+            ->not()
+            ->toContain('open_basedir restriction in effect');
+    }
+
+    #[Test]
     public function excludePathWarnsWhenThePrefixMatchesNoTestFile(): void
     {
         $project = $this->writeProject();
