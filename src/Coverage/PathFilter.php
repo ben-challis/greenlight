@@ -14,6 +14,8 @@ namespace Greenlight\Coverage;
  */
 final readonly class PathFilter
 {
+    private bool $windows;
+
     /**
      * @var list<non-empty-string> directory prefixes, each ending in a slash
      */
@@ -22,8 +24,11 @@ final readonly class PathFilter
     /**
      * @param list<string> $includeDirectories
      */
-    public function __construct(array $includeDirectories = [])
-    {
+    public function __construct(
+        array $includeDirectories = [],
+        string $directorySeparator = \DIRECTORY_SEPARATOR,
+    ) {
+        $this->windows = $directorySeparator === '\\';
         $prefixes = [];
 
         foreach ($includeDirectories as $directory) {
@@ -31,7 +36,7 @@ final readonly class PathFilter
                 throw new \InvalidArgumentException('Use nonempty paths for coverage include directories.');
             }
 
-            $trimmed = \rtrim($directory, '/');
+            $trimmed = \rtrim($this->normalize($directory), '/');
             $prefixes[] = $trimmed . '/';
         }
 
@@ -48,6 +53,14 @@ final readonly class PathFilter
         if ($this->prefixes === []) {
             return true;
         }
-        return \array_any($this->prefixes, static fn(string $prefix): bool => \str_starts_with($file, $prefix));
+
+        $normalized = $this->normalize($file);
+
+        return \array_any($this->prefixes, static fn(string $prefix): bool => \str_starts_with($normalized, $prefix));
+    }
+
+    private function normalize(string $path): string
+    {
+        return $this->windows ? \str_replace('\\', '/', $path) : $path;
     }
 }

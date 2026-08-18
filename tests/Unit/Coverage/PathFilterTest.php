@@ -36,6 +36,19 @@ final class PathFilterTest
     }
 
     #[Test]
+    public function windowsSeparatorsMatchByPathSegment(): void
+    {
+        $filter = new PathFilter(['C:\\project\\src'], '\\');
+
+        Expect::that($filter->accepts('C:\\project\\src\\A.php'))
+            ->because('Windows coverage paths MUST match their configured directory')
+            ->toBeTrue();
+        Expect::that($filter->accepts('C:\\project\\source\\B.php'))
+            ->because('Windows coverage paths MUST match by path segment')
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function filesystemRootIsAValidIncludeDirectory(): void
     {
         $filter = new PathFilter(['/']);
