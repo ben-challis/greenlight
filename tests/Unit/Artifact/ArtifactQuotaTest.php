@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
@@ -51,12 +52,13 @@ final readonly class ArtifactQuotaTest
     }
 
     #[Test]
-    public function corruptRunQuotaMetadataFailsBeforeStaging(): void
+    #[DataSet('invalidQuotaMetadata')]
+    public function corruptRunQuotaMetadataFailsBeforeStaging(string $metadata): void
     {
         $root = $this->tempDirectory->subdirectory('corrupt-run-quota');
         $staging = $root . '/staging';
         \mkdir($staging);
-        \file_put_contents($staging . '/.quota', 'not quota metadata');
+        \file_put_contents($staging . '/.quota', $metadata);
         $store = ArtifactStore::fromSession(
             new ArtifactSession($staging, $root . '/published/run-1'),
             new ArtifactConfiguration($root . '/published'),
@@ -78,5 +80,15 @@ final readonly class ArtifactQuotaTest
         Expect::that(\glob($staging . '/*/attempt-*'))
             ->because('a rejected quota reservation MUST NOT leave staging data')
             ->toBe([]);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidQuotaMetadata(): iterable
+    {
+        yield 'invalid syntax' => ['not quota metadata'];
+        yield 'attachment count overflows an integer' => [\str_repeat('9', 30) . ' 0'];
+        yield 'byte count overflows an integer' => ['0 ' . \str_repeat('9', 30)];
     }
 }

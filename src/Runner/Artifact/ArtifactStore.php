@@ -9,6 +9,7 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\StagedAttachment;
+use Greenlight\Core\DecimalInteger;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
@@ -603,7 +604,14 @@ final class ArtifactStore
             }
 
             $parts = \preg_split('/\s+/', $raw === '' ? '0 0' : $raw);
-            [$count, $bytes] = $update((int) ($parts[0] ?? 0), (int) ($parts[1] ?? 0));
+            $count = DecimalInteger::parse($parts[0] ?? '');
+            $bytes = DecimalInteger::parse($parts[1] ?? '');
+
+            if ($count === null || $bytes === null) {
+                throw AttachmentError::storage('Attachment quota metadata is corrupt');
+            }
+
+            [$count, $bytes] = $update($count, $bytes);
             \rewind($stream);
             $encoded = \sprintf('%020d %020d' . "\n", $count, $bytes);
 
