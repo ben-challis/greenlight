@@ -24,33 +24,30 @@ use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessCoverageTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private EnvironmentSandbox $environment,
+    ) {}
 
     #[Test]
     public function openExportsTheRelayVariablesAndDrainRestoresThem(): void
     {
-        $sandbox = new EnvironmentSandbox();
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '/outer/dir');
-        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, '/outer/dir');
+        $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
+        $shared = SharedCoverageDirectory::open(new CoverageSettings(['/project/src', '/project/lib']));
 
-        try {
-            $shared = SharedCoverageDirectory::open(new CoverageSettings(['/project/src', '/project/lib']));
+        $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-            $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
+        Expect::that(\is_string($directory) && $directory !== '/outer/dir')->toBeTrue();
+        Expect::that(\is_string($directory) && \is_dir($directory))->toBeTrue();
+        Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/project/src' . \PATH_SEPARATOR . '/project/lib');
+        Expect::that(SubprocessCoverage::requested())->toBeTrue();
 
-            Expect::that(\is_string($directory) && $directory !== '/outer/dir')->toBeTrue();
-            Expect::that(\is_string($directory) && \is_dir($directory))->toBeTrue();
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/project/src' . \PATH_SEPARATOR . '/project/lib');
-            Expect::that(SubprocessCoverage::requested())->toBeTrue();
+        Expect::that($shared->drain())->toBeNull();
 
-            Expect::that($shared->drain())->toBeNull();
-
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/outer/dir');
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
-            Expect::that(\is_string($directory) && \is_dir($directory))->toBeFalse();
-        } finally {
-            $sandbox->dispose();
-        }
+        Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/outer/dir');
+        Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
+        Expect::that(\is_string($directory) && \is_dir($directory))->toBeFalse();
     }
 
     #[Test]
@@ -117,273 +114,222 @@ final readonly class SubprocessCoverageTest
     #[Test]
     public function drainMergesEveryDumpAndSkipsUnparseableOnes(): void
     {
-        $sandbox = new EnvironmentSandbox();
-        $sandbox->unset(SubprocessCoverage::DIRECTORY_ENV);
-        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+        $this->environment->unset(SubprocessCoverage::DIRECTORY_ENV);
+        $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
+        $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
+        $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        try {
-            $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
-            $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
-
-            if (!\is_string($directory)) {
-                Fail::because(\sprintf(
-                    'Expected %s to contain a relay directory, got %s.',
-                    SubprocessCoverage::DIRECTORY_ENV,
-                    \get_debug_type($directory),
-                ));
-            }
-
-            $this->dump($directory, 'a.json', new CoverageMap([new FileCoverage('/app/a.php', [1, 2], [3])]));
-            $this->dump($directory, 'b.json', new CoverageMap([new FileCoverage('/app/a.php', [3], []), new FileCoverage('/app/b.php', [7], [])]));
-            \file_put_contents($directory . '/truncated.json', '{"v":1,"files":{');
-
-            $merged = $shared->drain();
-
-            if (!$merged instanceof CoverageMap) {
-                Fail::because(\sprintf(
-                    'Expected SharedCoverageDirectory::drain() to return CoverageMap, got %s.',
-                    \get_debug_type($merged),
-                ));
-            }
-
-            $files = $merged->files();
-
-            Expect::that(\array_keys($files))->toBe(['/app/a.php', '/app/b.php']);
-            Expect::that($files['/app/a.php']->coveredLines)->toBe([1, 2, 3]);
-            Expect::that($files['/app/a.php']->uncoveredLines)->toBe([]);
-            Expect::that($files['/app/b.php']->coveredLines)->toBe([7]);
-            Expect::that(\is_dir($directory))->toBeFalse();
-        } finally {
-            $sandbox->dispose();
+        if (!\is_string($directory)) {
+            Fail::because(\sprintf(
+                'Expected %s to contain a relay directory, got %s.',
+                SubprocessCoverage::DIRECTORY_ENV,
+                \get_debug_type($directory),
+            ));
         }
+
+        $this->dump($directory, 'a.json', new CoverageMap([new FileCoverage('/app/a.php', [1, 2], [3])]));
+        $this->dump($directory, 'b.json', new CoverageMap([new FileCoverage('/app/a.php', [3], []), new FileCoverage('/app/b.php', [7], [])]));
+        \file_put_contents($directory . '/truncated.json', '{"v":1,"files":{');
+
+        $merged = $shared->drain();
+
+        if (!$merged instanceof CoverageMap) {
+            Fail::because(\sprintf(
+                'Expected SharedCoverageDirectory::drain() to return CoverageMap, got %s.',
+                \get_debug_type($merged),
+            ));
+        }
+
+        $files = $merged->files();
+
+        Expect::that(\array_keys($files))->toBe(['/app/a.php', '/app/b.php']);
+        Expect::that($files['/app/a.php']->coveredLines)->toBe([1, 2, 3]);
+        Expect::that($files['/app/a.php']->uncoveredLines)->toBe([]);
+        Expect::that($files['/app/b.php']->coveredLines)->toBe([7]);
+        Expect::that(\is_dir($directory))->toBeFalse();
     }
 
     #[Test]
     public function drainSkipsUnreadableDumpsAndCleansTheRelayDirectory(): void
     {
-        $sandbox = new EnvironmentSandbox();
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '/outer/dir');
-        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, '/outer/dir');
+        $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
+        $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
+        $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        try {
-            $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
-            $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
-
-            if (!\is_string($directory)) {
-                Fail::because('Expected the coverage relay directory environment variable to contain a path.');
-            }
-
-            $unreadable = $directory . '/unreadable.json';
-
-            if (!\symlink($directory . '/missing.json', $unreadable)) {
-                Fail::because('Expected to create an unreadable coverage dump symlink.');
-            }
-
-            Expect::that($shared->drain())
-                ->because('drain skips unreadable coverage dumps')
-                ->toBeNull();
-            Expect::that(\is_link($unreadable))
-                ->because('drain removes unreadable coverage dumps')
-                ->toBeFalse();
-            Expect::that(\is_dir($directory))
-                ->because('drain removes the empty relay directory')
-                ->toBeFalse();
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
-                ->because('drain restores the previous relay directory')
-                ->toBe('/outer/dir');
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))
-                ->because('drain restores an unset include-path variable')
-                ->toBeFalse();
-        } finally {
-            $sandbox->dispose();
+        if (!\is_string($directory)) {
+            Fail::because('Expected the coverage relay directory environment variable to contain a path.');
         }
+
+        $unreadable = $directory . '/unreadable.json';
+
+        if (!\symlink($directory . '/missing.json', $unreadable)) {
+            Fail::because('Expected to create an unreadable coverage dump symlink.');
+        }
+
+        Expect::that($shared->drain())
+            ->because('drain skips unreadable coverage dumps')
+            ->toBeNull();
+        Expect::that(\is_link($unreadable))
+            ->because('drain removes unreadable coverage dumps')
+            ->toBeFalse();
+        Expect::that(\is_dir($directory))
+            ->because('drain removes the empty relay directory')
+            ->toBeFalse();
+        Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+            ->because('drain restores the previous relay directory')
+            ->toBe('/outer/dir');
+        Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))
+            ->because('drain restores an unset include-path variable')
+            ->toBeFalse();
     }
 
     #[Test]
     public function beginDoesNothingWithoutTheRelayVariables(): void
     {
-        $sandbox = new EnvironmentSandbox();
-        $sandbox->unset(SubprocessCoverage::DIRECTORY_ENV);
+        $this->environment->unset(SubprocessCoverage::DIRECTORY_ENV);
 
-        try {
-            Expect::that(SubprocessCoverage::requested())->toBeFalse();
-            Expect::that(SubprocessCoverage::begin())->toBeNull();
-        } finally {
-            $sandbox->dispose();
-        }
+        Expect::that(SubprocessCoverage::requested())->toBeFalse();
+        Expect::that(SubprocessCoverage::begin())->toBeNull();
     }
 
     #[Test]
     public function zeroDirectoryStillStartsSubprocessCoverage(): void
     {
-        $sandbox = new EnvironmentSandbox();
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '0');
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, '0');
+        $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        try {
-            $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
-
-            if (!$relay instanceof SubprocessCoverage) {
-                Fail::because('Expected the non-empty falsey directory to start subprocess coverage.');
-            }
-
-            Expect::that(SubprocessCoverage::requested())
-                ->because('a non-empty falsey directory MUST request subprocess coverage')
-                ->toBeTrue();
-            Expect::that(RecordingFakeDriver::started())
-                ->because('a non-empty falsey directory MUST start the selected coverage driver')
-                ->toBeTrue();
-
-            $relay->write();
-        } finally {
-            $sandbox->dispose();
+        if (!$relay instanceof SubprocessCoverage) {
+            Fail::because('Expected the non-empty falsey directory to start subprocess coverage.');
         }
+
+        Expect::that(SubprocessCoverage::requested())
+            ->because('a non-empty falsey directory MUST request subprocess coverage')
+            ->toBeTrue();
+        Expect::that(RecordingFakeDriver::started())
+            ->because('a non-empty falsey directory MUST start the selected coverage driver')
+            ->toBeTrue();
+
+        $relay->write();
     }
 
     #[Test]
     public function beginWritesFilteredCoverageToTheRelayDirectory(): void
     {
-        $sandbox = new EnvironmentSandbox();
         $directory = $this->tempDirectory->subdirectory('filtered-relay');
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
-        $sandbox->set(
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $this->environment->set(
             SubprocessCoverage::INCLUDE_ENV,
             \PATH_SEPARATOR . '/project/src' . \PATH_SEPARATOR,
         );
 
-        try {
-            $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
+        $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-            if (!$relay instanceof SubprocessCoverage) {
-                Fail::because('Expected the available fake driver to start subprocess coverage.');
-            }
-
-            Expect::that(RecordingFakeDriver::started())
-                ->because('subprocess coverage starts the selected driver')
-                ->toBeTrue();
-
-            $relay->write();
-
-            Expect::that(RecordingFakeDriver::started())
-                ->because('writing subprocess coverage stops the selected driver')
-                ->toBeFalse();
-
-            $dumps = \glob($directory . '/*.json');
-
-            if (!\is_array($dumps) || \count($dumps) !== 1) {
-                Fail::because('Expected subprocess coverage to write exactly one JSON dump.');
-            }
-
-            $json = \file_get_contents($dumps[0]);
-
-            if (!\is_string($json)) {
-                Fail::because('Expected to read the subprocess coverage JSON dump.');
-            }
-
-            $files = JsonExporter::import($json)->files();
-
-            Expect::that(\array_keys($files))
-                ->because('empty include segments are ignored and the configured path filters the dump')
-                ->toBe(['/project/src/Included.php']);
-            Expect::that($files['/project/src/Included.php']->coveredLines)
-                ->toBe([10]);
-            Expect::that($files['/project/src/Included.php']->uncoveredLines)
-                ->toBe([11]);
-        } finally {
-            $sandbox->dispose();
+        if (!$relay instanceof SubprocessCoverage) {
+            Fail::because('Expected the available fake driver to start subprocess coverage.');
         }
+
+        Expect::that(RecordingFakeDriver::started())
+            ->because('subprocess coverage starts the selected driver')
+            ->toBeTrue();
+
+        $relay->write();
+
+        Expect::that(RecordingFakeDriver::started())
+            ->because('writing subprocess coverage stops the selected driver')
+            ->toBeFalse();
+
+        $dumps = \glob($directory . '/*.json');
+
+        if (!\is_array($dumps) || \count($dumps) !== 1) {
+            Fail::because('Expected subprocess coverage to write exactly one JSON dump.');
+        }
+
+        $json = \file_get_contents($dumps[0]);
+
+        if (!\is_string($json)) {
+            Fail::because('Expected to read the subprocess coverage JSON dump.');
+        }
+
+        $files = JsonExporter::import($json)->files();
+
+        Expect::that(\array_keys($files))
+            ->because('empty include segments are ignored and the configured path filters the dump')
+            ->toBe(['/project/src/Included.php']);
+        Expect::that($files['/project/src/Included.php']->coveredLines)
+            ->toBe([10]);
+        Expect::that($files['/project/src/Included.php']->uncoveredLines)
+            ->toBe([11]);
     }
 
     #[Test]
     public function anUnavailableRelayDirectoryDoesNotBreakTheSubprocess(): void
     {
-        $sandbox = new EnvironmentSandbox();
         $directory = $this->tempDirectory->path() . '/missing/relay';
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
-        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
+        $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        try {
-            $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
-
-            if (!$relay instanceof SubprocessCoverage) {
-                Fail::because('Expected the available fake driver to start subprocess coverage.');
-            }
-
-            $relay->write();
-
-            Expect::that(RecordingFakeDriver::started())
-                ->because('a failed relay write MUST still stop the coverage driver')
-                ->toBeFalse();
-            Expect::that(\file_exists($directory))
-                ->because('a failed relay write MUST NOT create an incomplete relay directory')
-                ->toBeFalse();
-        } finally {
-            $sandbox->dispose();
+        if (!$relay instanceof SubprocessCoverage) {
+            Fail::because('Expected the available fake driver to start subprocess coverage.');
         }
+
+        $relay->write();
+
+        Expect::that(RecordingFakeDriver::started())
+            ->because('a failed relay write MUST still stop the coverage driver')
+            ->toBeFalse();
+        Expect::that(\file_exists($directory))
+            ->because('a failed relay write MUST NOT create an incomplete relay directory')
+            ->toBeFalse();
     }
 
     #[Test]
     public function emptyCoverageDoesNotWriteARelayFile(): void
     {
-        $sandbox = new EnvironmentSandbox();
         $directory = $this->tempDirectory->subdirectory('empty-relay');
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
-        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
+        $relay = SubprocessCoverage::begin(new DriverSelector([AvailableFakeDriver::class]));
 
-        try {
-            $relay = SubprocessCoverage::begin(new DriverSelector([AvailableFakeDriver::class]));
-
-            if (!$relay instanceof SubprocessCoverage) {
-                Fail::because('Expected the available fake driver to start subprocess coverage.');
-            }
-
-            $relay->write();
-
-            Expect::that(\glob($directory . '/*.json'))
-                ->because('subprocess coverage does not write an empty map')
-                ->toBe([]);
-        } finally {
-            $sandbox->dispose();
+        if (!$relay instanceof SubprocessCoverage) {
+            Fail::because('Expected the available fake driver to start subprocess coverage.');
         }
+
+        $relay->write();
+
+        Expect::that(\glob($directory . '/*.json'))
+            ->because('subprocess coverage does not write an empty map')
+            ->toBe([]);
     }
 
     #[Test]
     public function unavailableCoverageDriverDoesNotStartARelay(): void
     {
-        $sandbox = new EnvironmentSandbox();
         $directory = $this->tempDirectory->subdirectory('unavailable-relay');
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
-        $sandbox->unset(SubprocessCoverage::INCLUDE_ENV);
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
+        $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
 
-        try {
-            Expect::that(SubprocessCoverage::begin(new DriverSelector([UnavailableFakeDriver::class])))
-                ->because('a missing coverage driver does not fail a subprocess run')
-                ->toBeNull();
-            Expect::that(\glob($directory . '/*.json'))
-                ->toBe([]);
-        } finally {
-            $sandbox->dispose();
-        }
+        Expect::that(SubprocessCoverage::begin(new DriverSelector([UnavailableFakeDriver::class])))
+            ->because('a missing coverage driver does not fail a subprocess run')
+            ->toBeNull();
+        Expect::that(\glob($directory . '/*.json'))
+            ->toBe([]);
     }
 
     #[Test]
     public function drainRestoresZeroRelayValuesExactly(): void
     {
-        $sandbox = new EnvironmentSandbox();
-        $sandbox->set(SubprocessCoverage::DIRECTORY_ENV, '0');
-        $sandbox->set(SubprocessCoverage::INCLUDE_ENV, '0');
+        $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, '0');
+        $this->environment->set(SubprocessCoverage::INCLUDE_ENV, '0');
+        $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
+        $shared->drain();
 
-        try {
-            $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
-            $shared->drain();
-
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
-                ->because('drain MUST restore falsey relay values exactly')
-                ->toBe('0');
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))
-                ->toBe('0');
-        } finally {
-            $sandbox->dispose();
-        }
+        Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+            ->because('drain MUST restore falsey relay values exactly')
+            ->toBe('0');
+        Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))
+            ->toBe('0');
     }
 
     private function dump(string $directory, string $name, CoverageMap $map): void
