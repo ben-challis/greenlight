@@ -419,8 +419,11 @@ final class ArtifactStore
             return $result;
         }
 
-        $attempt = (int) \trim((string) @\file_get_contents($directory . '/.attempt'));
-        $result = $result->withAttempts(\max($result->attempts, $attempt));
+        $attempt = DecimalInteger::parse(\trim((string) @\file_get_contents($directory . '/.attempt')));
+
+        if ($attempt !== null && $attempt > 0) {
+            $result = $result->withAttempts(\max($result->attempts, $attempt));
+        }
         /** @var list<StagedAttachment> $attachments */
         $attachments = [];
         $entries = new \RecursiveIteratorIterator(

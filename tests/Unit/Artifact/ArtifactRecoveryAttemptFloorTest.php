@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Result\Outcome;
@@ -11,6 +12,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 
@@ -49,5 +51,44 @@ final readonly class ArtifactRecoveryAttemptFloorTest
         } finally {
             $store->cleanup();
         }
+    }
+
+    #[Test]
+    #[DataSet('invalidAttemptMarkers')]
+    public function anInvalidAttemptMarkerDoesNotInflateTheResultAttempt(string $marker): void
+    {
+        $root = $this->tempDirectory->subdirectory('invalid-recovery-attempt');
+        $staging = $root . '/staging';
+        $id = new TestId('Example\\EvidenceTest', 'crashesAfterReporting');
+        $testDirectory = $staging . '/' . ArtifactStore::testDirectory($id);
+        \mkdir($testDirectory, 0o700, true);
+        \file_put_contents($testDirectory . '/.attempt', $marker);
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-invalid-attempt'),
+            new ArtifactConfiguration($root . '/published'),
+        );
+
+        $recovered = $store->recover(new TestResult(
+            $id,
+            Outcome::Errored,
+            0.0,
+            0,
+            attempts: 3,
+        ));
+
+        Expect::that($recovered->attempts)
+            ->because('corrupt recovery metadata MUST NOT inflate a reported attempt count')
+            ->toBe(3);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidAttemptMarkers(): iterable
+    {
+        yield 'overflowing decimal' => [\str_repeat('9', 30)];
+        yield 'exponent notation' => ['1e6'];
+        yield 'decimal fraction' => ['9.5'];
+        yield 'trailing text' => ['12 attempts'];
     }
 }
