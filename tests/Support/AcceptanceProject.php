@@ -45,6 +45,22 @@ final readonly class AcceptanceProject
 
     public function path(string $relative): string
     {
+        if ($relative === '' || \str_starts_with($relative, '/') || \str_contains($relative, '\\')) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Acceptance project path "%s" must be a relative path of plain segments.',
+                $relative,
+            ));
+        }
+
+        foreach (\explode('/', $relative) as $segment) {
+            if (\in_array($segment, ['', '.', '..'], true)) {
+                throw new \InvalidArgumentException(\sprintf(
+                    'Acceptance project path "%s" must be a relative path of plain segments.',
+                    $relative,
+                ));
+            }
+        }
+
         return $this->directory . '/' . $relative;
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Support;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
@@ -60,6 +61,37 @@ final readonly class AcceptanceProjectTest
         Expect::that(\file_get_contents($project->path('blocked/seed.txt')))
             ->because('a failed file write MUST preserve the target directory contents')
             ->toBe('keep');
+    }
+
+    #[Test]
+    #[DataSet('invalidProjectPaths')]
+    public function projectFilesRejectNonPlainRelativePaths(string $relativePath): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'invalid-path');
+
+        Expect::that(static fn() => $project->writeFile($relativePath, 'contents'))
+            ->because('acceptance project writes MUST stay in the project directory')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: \sprintf(
+                    'Acceptance project path "%s" must be a relative path of plain segments.',
+                    $relativePath,
+                ),
+            );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidProjectPaths(): iterable
+    {
+        yield 'empty path' => [''];
+        yield 'absolute path' => ['/tmp/fixture.php'];
+        yield 'current-directory segment' => ['./fixture.php'];
+        yield 'parent-directory segment' => ['../fixture.php'];
+        yield 'nested parent-directory segment' => ['tests/../fixture.php'];
+        yield 'empty segment' => ['tests//fixture.php'];
+        yield 'backslash separator' => ['tests\\fixture.php'];
     }
 
     #[Test]
