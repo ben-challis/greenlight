@@ -118,7 +118,7 @@ final readonly class WorkerProcessFatalSendFailureTest
 
             $channel->close();
 
-            if (!touch($release)) {
+            if (file_put_contents($release, 'release') === false) {
                 exit(8);
             }
 
