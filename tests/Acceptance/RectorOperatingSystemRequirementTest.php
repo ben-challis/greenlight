@@ -8,7 +8,6 @@ use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
-use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\RectorProbe;
 
 #[RequiresResource('analysis-process')]
@@ -54,22 +53,7 @@ final readonly class RectorOperatingSystemRequirementTest
                     . '\Greenlight\Condition\OperatingSystemFamily::class, \PHP_OS_FAMILY)]',
             );
 
-        \file_put_contents($probe->directory . '/greenlight.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Config\GreenlightConfig;
-
-            require_once __DIR__ . '/tests/ProbeTest.php';
-
-            return GreenlightConfig::create()
-                ->paths([__DIR__ . '/tests'])
-                ->workers(1);
-
-            PHP);
-
-        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+        $run = $probe->runConvertedTests();
 
         Expect::that($run->exitCode)
             ->because('the converted operating-system condition MUST permit the matching family')

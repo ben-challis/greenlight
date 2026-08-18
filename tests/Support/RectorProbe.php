@@ -15,10 +15,10 @@ use Greenlight\Fixture\TempDirectory;
 final readonly class RectorProbe
 {
     private function __construct(
+        private ProjectFiles $files,
         public int $exitCode,
         public string $code,
         public bool $changed,
-        public string $directory,
     ) {}
 
     /**
@@ -69,7 +69,33 @@ final readonly class RectorProbe
             throw new \RuntimeException(\sprintf('Could not read the probe file "%s" back.', $testFile));
         }
 
-        return new self($result->exitCode, $code, $code !== $testClassSource, $directory);
+        return new self($files, $result->exitCode, $code, $code !== $testClassSource);
+    }
+
+    /**
+     * @param list<string> $arguments additional Greenlight run arguments
+     */
+    public function runConvertedTests(array $arguments = []): ProcessResult
+    {
+        $this->files->write('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+
+            require_once __DIR__ . '/tests/ProbeTest.php';
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers(1);
+
+            PHP);
+
+        return GreenlightCli::run(
+            $this->files->directory,
+            ['run', '--no-ansi', ...$arguments],
+        );
     }
 
     /**

@@ -9,7 +9,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Rector\PhpUnitToGreenlightRector;
-use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\RectorProbe;
 
 #[RequiresResource('analysis-process')]
@@ -184,8 +183,7 @@ final readonly class RectorMigrationRunTest
             ->not()->toContain('#[CoversClass')
             ->not()->toContain('expectNotToPerformAssertions');
 
-        $this->writeGreenlightConfig($probe->directory);
-        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+        $run = $probe->runConvertedTests();
 
         Expect::that($run->exitCode)->toBe(0);
         Expect::that($run->stdout)->toContain('7 tests, 6 passed, 1 skipped')
@@ -206,8 +204,7 @@ final readonly class RectorMigrationRunTest
                 "->toThrow(\\RuntimeException::class, matching: '/code=\\d+/');",
             );
 
-        $this->writeGreenlightConfig($probe->directory);
-        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+        $run = $probe->runConvertedTests();
 
         Expect::that($run->exitCode)
             ->because('the converted exception matcher MUST preserve runtime behavior')
@@ -594,8 +591,7 @@ final readonly class RectorMigrationRunTest
         Expect::that($probe->code)->toContain('#[\Greenlight\Attribute\DataRow([1])]')
             ->toContain('#[\Greenlight\Attribute\DataRow([2])]');
 
-        $this->writeGreenlightConfig($probe->directory);
-        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+        $run = $probe->runConvertedTests();
 
         Expect::that($run->exitCode)->toBe(0);
         Expect::that($run->stdout)->toContain('2 tests, 2 passed');
@@ -679,28 +675,10 @@ final readonly class RectorMigrationRunTest
         Expect::that($probe->code)->not()->toContain('->assert')
             ->not()->toContain('::assert');
 
-        $this->writeGreenlightConfig($probe->directory);
-        $run = GreenlightCli::run($probe->directory, ['run', '--no-ansi']);
+        $run = $probe->runConvertedTests();
 
         Expect::that($run->exitCode)->toBe(0);
         Expect::that($run->stdout)->toContain('1 test, 1 passed');
     }
 
-    private function writeGreenlightConfig(string $directory): void
-    {
-        \file_put_contents($directory . '/greenlight.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Config\GreenlightConfig;
-
-            require_once __DIR__ . '/tests/ProbeTest.php';
-
-            return GreenlightConfig::create()
-                ->paths([__DIR__ . '/tests'])
-                ->workers(1);
-
-            PHP);
-    }
 }

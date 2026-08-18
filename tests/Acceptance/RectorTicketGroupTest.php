@@ -8,7 +8,6 @@ use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
-use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\RectorProbe;
 
 #[RequiresResource('analysis-process')]
@@ -56,25 +55,7 @@ final readonly class RectorTicketGroupTest
             ->because('the converted group MUST keep the ticket identifier')
             ->toContain("#[\Greenlight\Attribute\Group('GH-123')]");
 
-        \file_put_contents($probe->directory . '/greenlight.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Config\GreenlightConfig;
-
-            require_once __DIR__ . '/tests/ProbeTest.php';
-
-            return GreenlightConfig::create()
-                ->paths([__DIR__ . '/tests'])
-                ->workers(1);
-
-            PHP);
-
-        $run = GreenlightCli::run(
-            $probe->directory,
-            ['run', '--group=GH-123', '--no-ansi'],
-        );
+        $run = $probe->runConvertedTests(['--group=GH-123']);
 
         Expect::that($run->exitCode)
             ->because('the converted ticket group MUST select its test')
