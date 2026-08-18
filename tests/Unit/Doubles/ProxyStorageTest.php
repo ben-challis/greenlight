@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\AtomicFileError;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Expect\Expect;
@@ -37,6 +39,34 @@ final readonly class ProxyStorageTest
                     . $directory
                     . ': mkdir(): File exists.',
             );
+    }
+
+    #[Test]
+    #[Isolated]
+    public function aRestrictedProxyDirectoryFailsWithoutEngineDiagnostics(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $directory = \dirname($root) . '/proxies';
+        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
+
+        Expect::that($previousOpenBasedir)
+            ->because('the isolated fixture MUST restrict access to the proxy directory')
+            ->not()
+            ->toBeFalse();
+
+        $doubles = new Doubles($directory);
+        Expect::that(
+            static function () use ($doubles, &$warning): void {
+                ErrorTrap::run(
+                    static fn(): object => $doubles->stub(ProxyStorageContract::class),
+                    $warning,
+                );
+            },
+        )->because('a restricted proxy directory causes a typed storage error')
+            ->toThrow(DoublesError::class);
+        Expect::that($warning)
+            ->because('a restricted proxy directory MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 
     #[Test]
