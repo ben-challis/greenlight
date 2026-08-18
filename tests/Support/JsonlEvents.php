@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Support;
 
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\EventTags;
+use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Wire\Wire;
 
 /**
@@ -74,5 +75,21 @@ final class JsonlEvents
         }
 
         return $events;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function finishedTestIds(ProcessResult $result): array
+    {
+        $ids = [];
+
+        foreach (self::from($result) as $event) {
+            if ($event instanceof TestFinished) {
+                $ids[] = (string) $event->result->id;
+            }
+        }
+
+        return $ids;
     }
 }
