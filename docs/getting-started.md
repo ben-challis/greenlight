@@ -150,7 +150,7 @@ vendor/bin/greenlight
 Use these commands for common tasks:
 
 * `vendor/bin/greenlight list-tests` prints each discovered test ID.
-* `vendor/bin/greenlight run --dry-run` prints the execution plan.
+* `vendor/bin/greenlight run --dry-run` prints the resolved run-settings summary.
 * `vendor/bin/greenlight run --workers=1` uses one in-process worker.
 * `vendor/bin/greenlight run --group=slow` selects tests with `#[Group('slow')]`.
 * `vendor/bin/greenlight run --exclude-group=slow` excludes that group.
@@ -217,10 +217,15 @@ Start watch mode:
 vendor/bin/greenlight run --watch
 ```
 
-Watch mode runs affected tests after a file changes in a configured path.
-Classes from the previous failed run have priority.
+Watch mode runs all selected tests at startup and after each file change. It
+watches configured test paths and coverage include paths.
 
-Press Enter to run all tests. Press `q` to stop watch mode.
+Classes that failed in the previous watch iteration run first.
+
+Press Enter to rerun all selected tests. Press `q` to stop watch mode with exit
+code 0, regardless of the last iteration result.
+
+Watch mode does not print coverage totals or write coverage exports.
 
 Watch mode combines rapid save events. The default delay is 200 ms.
 

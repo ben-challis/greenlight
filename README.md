@@ -9,8 +9,8 @@
 **A parallel-first test framework for PHP 8.4 and later.**
 
 Greenlight runs test classes in parallel by default and has zero runtime
-dependencies. Greenlight discovers one suite and sends assignments to a pool of
-worker processes.
+dependencies. Greenlight discovers tests in the configured paths and sends
+class assignments to a pool of worker processes.
 
 [Read the documentation](https://ben-challis.github.io/greenlight/)
 

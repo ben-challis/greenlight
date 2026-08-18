@@ -44,9 +44,11 @@ Every builder method returns `$this`. Thus, you can chain method calls.
 
 Default: `['tests']`.
 
-Sets the directories that Greenlight scans when you do not select a suite.
+Sets the top-level directories that Greenlight scans.
 
 Paths must be non-empty strings. The list itself must not be empty.
+
+Each run also scans every path from `suite()`.
 
 ### `suite(string $name, callable $configurator): self`
 
@@ -55,6 +57,9 @@ Default: no suites.
 Declares a named suite. Greenlight gives a `SuiteBuilder` to the configurator.
 The configurator must add at least one path. Greenlight ignores its return
 value. Thus, you can use an arrow function.
+
+Each run includes every named suite. Suite names and tags are descriptive. The
+`--dry-run` and `--list-suites` options print them.
 
 A second declaration with the same suite name causes an error.
 
@@ -145,8 +150,9 @@ accumulate.
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
   none.
-* `driver(string $driver): self` prefers a specific driver, such as `'pcov'`.
-  Default: auto-detected.
+* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
+  you use that value. Other non-empty values have the default behavior:
+  Greenlight tries pcov, then Xdebug.
 * `export(string $format, string $target): self` adds a coverage export.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
@@ -389,7 +395,11 @@ Requires:
 --current=<path>
 ```
 
-Exits with code 1 when coverage regressed against the baseline.
+Exits with code 1 if total coverage decreases or the current export has a new
+uncovered line. A total coverage gain does not hide a new uncovered line.
+
+See the [coverage JSON schema](architecture/coverage-json.md) for the required
+format and path rules.
 
 ### profile:report
 
@@ -506,8 +516,9 @@ Repeatable. Exclusions take precedence over `--group` and `--filter`.
 
 Excludes classes with names that match the pattern.
 
-By default, Greenlight matches substrings without regard to case. A pattern
-that contains `*` or `?` must match the complete class name.
+Greenlight matches class names with case sensitivity. A pattern without a
+wildcard matches a substring. A pattern that contains `*` or `?` must match the
+complete class name.
 
 Repeatable.
 
@@ -515,8 +526,9 @@ Repeatable.
 
 Excludes methods with names that match the pattern.
 
-By default, Greenlight matches substrings without regard to case. A pattern
-that contains `*` or `?` must match the complete method name.
+Greenlight matches method names with case sensitivity. A pattern without a
+wildcard matches a substring. A pattern that contains `*` or `?` must match the
+complete method name.
 
 Repeatable.
 
@@ -569,7 +581,7 @@ Each shard enforces its own resource limits. If four shards each use
 
 ### `--failed`
 
-Reruns only tests that did not pass in the previous run.
+Reruns only tests that failed or had an error in the previous run.
 
 Greenlight records failure state for each run in the system temporary
 directory.
@@ -631,18 +643,28 @@ Sets the current coverage JSON file for `coverage:diff`.
 
 ### `--watch`
 
-Reruns on file changes.
+Starts with a complete run, then reruns all selected tests after a file change.
+
+Greenlight watches all configured test paths and coverage include paths. After
+a change, classes that failed in the previous watch iteration run first.
+
+Watch mode does not publish coverage totals or coverage exports.
 
 In watch mode:
 
-* Enter reruns everything.
-* `q` quits.
+* Enter reruns all selected tests.
+* `q` quits with exit code 0, regardless of the last iteration result.
+
+Signals use the exit codes in the [interruption](#interruption) section.
 
 ### `--detect-leaks`
 
 Verifies that garbage collection removes each test instance after its test.
 
 A detected leak fails the run.
+
+Xdebug develop mode can retain caught exceptions and report false leaks. Use
+`XDEBUG_MODE=off` to get correct leak results.
 
 ### `--fail-on-deprecation`
 
@@ -689,7 +711,8 @@ Default: `_greenlight_ide_helper.php`.
 
 ### `--dry-run`
 
-Prints the resolved configuration and does not run tests.
+Prints a summary of the resolved run settings without test discovery or
+execution.
 
 ### `--verbose`
 
