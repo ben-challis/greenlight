@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\StagedAttachment;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\SkipTest;
@@ -36,6 +38,47 @@ final readonly class ArtifactOutputSafetyTest
                 AttachmentError::class,
                 message: 'Attachment output directory is invalid.',
             );
+    }
+
+    #[Test]
+    #[Isolated]
+    public function restrictedPathsFallBackWithoutEngineDiagnostics(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $restricted = \dirname($root);
+        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
+
+        Expect::that($previousOpenBasedir)
+            ->because('the isolated fixture MUST restrict access to artifact paths')
+            ->not()
+            ->toBeFalse();
+
+        $absoluteStore = ErrorTrap::run(
+            static fn(): ArtifactStore => ArtifactStore::open(
+                new ArtifactConfiguration($restricted),
+                $root,
+                'run-output',
+            ),
+            $absoluteWarning,
+        );
+        $workingDirectoryStore = ErrorTrap::run(
+            static fn(): ArtifactStore => ArtifactStore::open(
+                new ArtifactConfiguration('artifacts'),
+                $restricted,
+                'run-working-directory',
+            ),
+            $workingDirectoryWarning,
+        );
+
+        Expect::that($absoluteStore->publicDirectory())
+            ->because('a restricted absolute output directory MUST keep its configured path')
+            ->toBe($restricted . '/run-output');
+        Expect::that($workingDirectoryStore->publicDirectory())
+            ->because('a restricted working directory MUST keep its configured path')
+            ->toBe($restricted . '/artifacts/run-working-directory');
+        Expect::that([$absoluteWarning, $workingDirectoryWarning])
+            ->because('restricted artifact paths MUST not leak engine diagnostics')
+            ->toBe([null, null]);
     }
 
     #[Test]
