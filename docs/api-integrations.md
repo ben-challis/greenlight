@@ -18,7 +18,7 @@ resources by `GREENLIGHT_CHANNEL`.
 final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L25)
 
 ### `__construct()`
 
@@ -36,7 +36,7 @@ PHPDoc:
 - `@param non-empty-string $env`
 - `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L47)
 
 ### `services()`
 
@@ -49,7 +49,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L66)
 
 ### `resolve()`
 
@@ -64,7 +64,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws LaravelBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L82)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L83)
 
 ### `beforeTest()`
 
@@ -73,7 +73,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L112)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L113)
 
 ### `afterTest()`
 
@@ -82,7 +82,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L116)
 
 ## `Laravel\Service`
 

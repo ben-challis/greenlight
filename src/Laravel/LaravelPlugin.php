@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Laravel;
 
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -51,7 +52,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
         $this->factory = $application instanceof \Closure
             ? $application
             : static function () use ($application): mixed {
-                if (!\is_file($application)) {
+                if (!ErrorTrap::run(static fn(): bool => \is_file($application))) {
                     throw LaravelBridgeError::bootstrapFileMissing($application);
                 }
 
