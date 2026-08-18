@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
 
@@ -31,6 +32,20 @@ final class ArtifactConfigurationWireTest
         Expect::that($restored)
             ->because('workers MUST receive every configured artifact safety limit')
             ->toEqual($configuration);
+    }
+
+    #[Test]
+    public function nullByteDirectoriesAreRejectedAtTheWireBoundary(): void
+    {
+        $payload = new ArtifactConfiguration()->toWire();
+        $payload['directory'] = "artifacts\0hidden";
+
+        Expect::that(static fn(): ArtifactConfiguration => ArtifactConfiguration::fromWire($payload))
+            ->because('artifact directories MUST remain valid file-system paths across the worker wire')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "directory" must be an artifact directory without null bytes, got string.',
+            );
     }
 
     #[Test]
