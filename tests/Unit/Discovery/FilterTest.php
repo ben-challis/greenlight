@@ -176,6 +176,28 @@ final class FilterTest
     }
 
     #[Test]
+    public function largeExactIdSelectionsRetainExactMembership(): void
+    {
+        $ids = [];
+
+        for ($index = 0; $index < 10_000; ++$index) {
+            $ids[] = \sprintf('Acme\\GeneratedTest%d::runs', $index);
+        }
+
+        $filter = new Filter(includeExactIds: $ids);
+
+        Expect::that($filter->acceptsId('Acme\\GeneratedTest0::runs'))
+            ->because('a large exact-ID selection MUST retain its first member')
+            ->toBeTrue();
+        Expect::that($filter->acceptsId('Acme\\GeneratedTest9999::runs'))
+            ->because('a large exact-ID selection MUST retain its last member')
+            ->toBeTrue();
+        Expect::that($filter->acceptsId('Acme\\GeneratedTest10000::runs'))
+            ->because('a large exact-ID selection MUST reject a nonmember')
+            ->toBeFalse();
+    }
+
+    #[Test]
     public function discovererAppliesIdFilters(): void
     {
         $plan = new TestDiscoverer()->discover([$this->basicDir()], new Filter(includeIds: ['bravotest::alpha']));
