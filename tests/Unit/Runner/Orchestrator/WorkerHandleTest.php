@@ -18,6 +18,22 @@ use Greenlight\Tests\Support\ConnectedStreamPair;
 final class WorkerHandleTest
 {
     #[Test]
+    public function lifecycleTimestampsUseTheMonotonicSystemClock(): void
+    {
+        $before = \hrtime(true) / 1_000_000_000;
+        $handle = $this->handle();
+        $after = \hrtime(true) / 1_000_000_000;
+
+        Expect::that($handle->spawnedAt)
+            ->because('worker lifecycle deadlines MUST use the monotonic system clock')
+            ->toBeGreaterThanOrEqual($before)
+            ->toBeLessThanOrEqual($after);
+        Expect::that($handle->lastProgressAt)
+            ->because('a new worker MUST start its progress deadline at its spawn time')
+            ->toBe($handle->spawnedAt);
+    }
+
+    #[Test]
     public function aClosedProcessHandleIsNotRunning(): void
     {
         $process = $this->stream();

@@ -357,7 +357,7 @@ final class Orchestrator
         });
 
         if (\is_resource($connection)) {
-            $this->awaitingHello[] = [new SocketChannel($connection), \microtime(true)];
+            $this->awaitingHello[] = [new SocketChannel($connection), $this->monotonicTime()];
         }
 
         $this->processHellos($token, $sink);
@@ -386,7 +386,7 @@ final class Orchestrator
 
                 if ($handle !== null && $handle->channel === null) {
                     $handle->channel = $channel;
-                    $handle->lastProgressAt = \microtime(true);
+                    $handle->lastProgressAt = $this->monotonicTime();
                     try {
                         $channel->send(new Bootstrap(
                             $handle->channelNumber,
@@ -401,7 +401,7 @@ final class Orchestrator
                 }
             }
 
-            if ($message instanceof Message || \microtime(true) - $since > self::HELLO_DEADLINE_SECONDS || $channel->isEof()) {
+            if ($message instanceof Message || $this->monotonicTime() - $since > self::HELLO_DEADLINE_SECONDS || $channel->isEof()) {
                 // Close a connection for an incorrect token, unknown worker,
                 // or authentication timeout.
                 $channel->close();
@@ -470,7 +470,7 @@ final class Orchestrator
                 $this->artifactStore?->session(),
                 $this->artifactConfiguration,
             ));
-            $handle->lastProgressAt = \microtime(true);
+            $handle->lastProgressAt = $this->monotonicTime();
         } catch (ProtocolError) {
             // The worker stopped before it received the assignment. Crash
             // containment puts the complete scheduling unit in the queue for
@@ -497,7 +497,7 @@ final class Orchestrator
             $handle->drainPipes();
 
             while (($message = $channel->poll()) !== null) {
-                $handle->lastProgressAt = \microtime(true);
+                $handle->lastProgressAt = $this->monotonicTime();
 
                 if ($message instanceof EventEnvelope) {
                     $this->onEvent($handle, $message->event, $sink);
@@ -620,7 +620,7 @@ final class Orchestrator
 
         if ($event instanceof TestStarted) {
             $handle->inFlight = $event->id;
-            $handle->inFlightSince = \microtime(true);
+            $handle->inFlightSince = $this->monotonicTime();
             $handle->inFlightAttempt = 0;
         }
 
@@ -717,7 +717,7 @@ final class Orchestrator
                 // On a computer without sufficient resources, a replacement
                 // can stop in the same way. Thus, this condition fails the run
                 // and does not use the replacement budget.
-                if (\microtime(true) - $handle->spawnedAt > $this->connectDeadlineSeconds) {
+                if ($this->monotonicTime() - $handle->spawnedAt > $this->connectDeadlineSeconds) {
                     $handle->drainPipes();
                     $handle->terminate();
 
@@ -765,7 +765,7 @@ final class Orchestrator
                 // test timeout. A replacement worker can stop in the same way.
                 // Fail the run instead of use crash containment.
                 if ($handle->channel !== null
-                    && \microtime(true) - $handle->lastProgressAt > $this->progressDeadlineSeconds
+                    && $this->monotonicTime() - $handle->lastProgressAt > $this->progressDeadlineSeconds
                 ) {
                     $handle->drainPipes();
                     $handle->terminate();
@@ -789,7 +789,7 @@ final class Orchestrator
 
             $deadline = $handle->inFlightSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
 
-            if (\microtime(true) > $deadline) {
+            if ($this->monotonicTime() > $deadline) {
                 $handle->terminate();
                 $this->containTimeout($handle, $sink, $budget);
             }
@@ -804,7 +804,7 @@ final class Orchestrator
         $inFlight = $handle->inFlight;
 
         if ($inFlight instanceof TestId) {
-            $duration = \max(0.0, \microtime(true) - $handle->inFlightSince);
+            $duration = \max(0.0, $this->monotonicTime() - $handle->inFlightSince);
             $message = \sprintf(
                 'The test exceeded its %.3f-second time limit. Greenlight stopped worker "%s" after %.3f seconds.',
                 $budget,
@@ -1011,9 +1011,9 @@ final class Orchestrator
 
         if (\is_resource($handle->process)) {
             // Permit the worker to exit, and then collect it.
-            $deadline = \microtime(true) + 2.0;
+            $deadline = $this->monotonicTime() + 2.0;
 
-            while (\microtime(true) < $deadline && $handle->isRunning()) {
+            while ($this->monotonicTime() < $deadline && $handle->isRunning()) {
                 \usleep(10_000);
             }
 
@@ -1025,5 +1025,10 @@ final class Orchestrator
                 \proc_close($handle->process);
             });
         }
+    }
+
+    private function monotonicTime(): float
+    {
+        return \hrtime(true) / 1_000_000_000;
     }
 }

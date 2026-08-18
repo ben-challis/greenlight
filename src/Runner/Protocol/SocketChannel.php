@@ -84,7 +84,7 @@ final class SocketChannel
      */
     public function receive(float $timeoutSeconds): ?Message
     {
-        $deadline = \microtime(true) + $timeoutSeconds;
+        $deadline = $this->monotonicTime() + $timeoutSeconds;
 
         while (true) {
             $message = $this->poll();
@@ -93,7 +93,7 @@ final class SocketChannel
                 return $message;
             }
 
-            $left = $deadline - \microtime(true);
+            $left = $deadline - $this->monotonicTime();
 
             if ($left <= 0 || $this->eof) {
                 return null;
@@ -178,6 +178,11 @@ final class SocketChannel
         }
 
         return MessageRegistry::open($this->codec->decode($body));
+    }
+
+    private function monotonicTime(): float
+    {
+        return \hrtime(true) / 1_000_000_000;
     }
 
     public function isEof(): bool
