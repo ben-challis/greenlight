@@ -20,8 +20,6 @@ Each line is one JSON object with three keys:
 
 ### v
 
-Schema version.
-
 The current version is `2`.
 
 ### event
@@ -76,13 +74,9 @@ guarantees, and incomplete-output behavior.
 evidence from this run. Its value is `null` when an artifact directory is not
 available. The directory can be absent if the run retains no attachments.
 
-The schema reserves the `suite-started` and `suite-finished` event types.
-Greenlight does not emit them now. Suites only group configuration paths into
-one discovery set. Therefore, execution has no suite boundary.
-
-The event list and schema define these types to preserve their meaning. This
-meaning will apply if Greenlight adds suite-scope execution. Consumers
-**MUST NOT** wait for these events.
+The schema reserves `suite-started` and `suite-finished`, but Greenlight does
+not emit them because execution has no suite boundary. Consumers **MUST NOT**
+wait for these events.
 
 `test-started.id` is the test ID. It contains the class, method, and optional
 data-set key.

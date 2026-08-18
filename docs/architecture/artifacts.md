@@ -59,9 +59,8 @@ A locked `.quota` file in private staging coordinates attachment and byte
 totals across workers. Greenlight tracks per-test count and byte limits across
 every attempt for the test.
 
-The worker protocol carries metadata instead of base64 content. Thus,
-attachments stay outside its 8 MiB frame limit. Reporters do not load large
-attachment files.
+Attachment content therefore stays outside the protocol's 8 MiB frame limit.
+Reporters do not load large attachment files.
 
 ## Path safety
 
