@@ -10,11 +10,14 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
 
-final class DiscoveryCacheTest
+final readonly class DiscoveryCacheTest
 {
     private const string STATABLE_FILE_SCHEME = 'greenlight-statable-file';
+
+    public function __construct(private EnvironmentSandbox $environment) {}
 
     #[Test]
     public function hitsServeFromCacheAndAnyChangeInvalidates(): void
@@ -345,7 +348,6 @@ final class DiscoveryCacheTest
     {
         $className = 'MissingDirProbeTest';
         $directory = $this->writeFixture($className);
-        $originalTmpDir = \getenv('TMPDIR');
         $missingDirectory = \sys_get_temp_dir() . '/greenlight-missing-' . \bin2hex(\random_bytes(6));
 
         \spl_autoload_register(static function (string $class) use ($directory, $className): void {
@@ -354,19 +356,13 @@ final class DiscoveryCacheTest
             }
         });
 
-        \putenv('TMPDIR=' . $missingDirectory);
+        $this->environment->set('TMPDIR', $missingDirectory);
 
         try {
             new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
 
             Expect::that(\is_dir($missingDirectory))->toBeFalse();
         } finally {
-            if ($originalTmpDir === false) {
-                \putenv('TMPDIR');
-            } else {
-                \putenv('TMPDIR=' . $originalTmpDir);
-            }
-
             @\unlink($directory . '/' . $className . '.php');
             @\rmdir($directory);
         }
