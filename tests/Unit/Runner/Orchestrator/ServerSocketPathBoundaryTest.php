@@ -48,8 +48,8 @@ final readonly class ServerSocketPathBoundaryTest
 
             Expect::that($socket->address)
                 ->because('a socket path at the portable byte limit MUST use Unix transport')
-                ->toStartWith('unix://')
-                ->and(\strlen(\substr($socket->address, \strlen('unix://'))))
+                ->toStartWith('unix://');
+            Expect::that(\strlen(\substr($socket->address, \strlen('unix://'))))
                 ->because('the fixture MUST exercise the exact portable path limit')
                 ->toBe(self::PORTABLE_PATH_BYTES);
         } finally {

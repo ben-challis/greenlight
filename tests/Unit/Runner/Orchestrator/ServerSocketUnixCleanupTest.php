@@ -50,8 +50,9 @@ final readonly class ServerSocketUnixCleanupTest
             try {
                 Expect::that(\is_resource($client))
                     ->because('the Unix listener MUST accept connections at its published address')
-                    ->toBeTrue()
-                    ->and(\is_dir($directory))
+                    ->toBeTrue();
+                Expect::that(\is_dir($directory))
+                    ->because('the Unix listener MUST create its socket directory')
                     ->toBeTrue();
             } finally {
                 if (\is_resource($client)) {
@@ -64,8 +65,8 @@ final readonly class ServerSocketUnixCleanupTest
 
             Expect::that(\is_dir($directory))
                 ->because('closing the listener MUST remove its generated directory')
-                ->toBeFalse()
-                ->and(\is_dir($root))
+                ->toBeFalse();
+            Expect::that(\is_dir($root))
                 ->because('closing the listener MUST leave its supplied temporary root')
                 ->toBeTrue();
         } finally {
@@ -86,8 +87,8 @@ final readonly class ServerSocketUnixCleanupTest
         try {
             Expect::that($socket->address)
                 ->because('an oversized Unix socket path MUST use the TCP fallback')
-                ->toStartWith('tcp://127.0.0.1:')
-                ->and(\is_dir($longRoot))
+                ->toStartWith('tcp://127.0.0.1:');
+            Expect::that(\is_dir($longRoot))
                 ->because('the rejected Unix socket path MUST NOT create directories')
                 ->toBeFalse();
         } finally {
