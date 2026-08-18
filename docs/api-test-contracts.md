@@ -159,6 +159,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L24)
 
+### `$dataSetKey`
+
+```php
+public ?string $dataSetKey
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L32)
+
 ### `__construct()`
 
 ```php
@@ -287,6 +295,86 @@ PHPDoc:
 - `@var list<non-empty-string>`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L40)
+
+### `$skipReason`
+
+```php
+public ?string $skipReason
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L59)
+
+### `$skipUnlessCondition`
+
+```php
+public ?string $skipUnlessCondition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L60)
+
+### `$retryTimes`
+
+```php
+public ?int $retryTimes
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L61)
+
+### `$retryOnlyOn`
+
+```php
+public ?string $retryOnlyOn
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L62)
+
+### `$timeoutSeconds`
+
+```php
+public ?float $timeoutSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L63)
+
+### `$isolated`
+
+```php
+public bool $isolated
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L64)
+
+### `$dataSetProvider`
+
+```php
+public ?string $dataSetProvider
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L65)
+
+### `$capture`
+
+```php
+public bool $capture
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L66)
+
+### `$noExpectations`
+
+```php
+public bool $noExpectations
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L67)
+
+### `$dataSetProviderClass`
+
+```php
+public ?string $dataSetProviderClass
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L70)
 
 ### `__construct()`
 

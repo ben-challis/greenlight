@@ -33,6 +33,30 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L22)
 
+### `$stdout`
+
+```php
+public string $stdout
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L30)
+
+### `$stdoutTruncated`
+
+```php
+public bool $stdoutTruncated
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L32)
+
+### `$diagnosticsTruncated`
+
+```php
+public bool $diagnosticsTruncated
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L33)
+
 ### `__construct()`
 
 ```php
@@ -94,6 +118,30 @@ PHPDoc:
 - `@var positive-int`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L21)
+
+### `$severity`
+
+```php
+public DiagnosticSeverity $severity
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L27)
+
+### `$message`
+
+```php
+public string $message
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L28)
+
+### `$file`
+
+```php
+public string $file
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L29)
 
 ### `__construct()`
 
@@ -203,6 +251,30 @@ PHPDoc:
 - `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L19)
+
+### `$expected`
+
+```php
+public ?string $expected
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L26)
+
+### `$actual`
+
+```php
+public ?string $actual
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L27)
+
+### `$location`
+
+```php
+public ?SourceLocation $location
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L28)
 
 ### `__construct()`
 
@@ -315,6 +387,22 @@ PHPDoc:
 - `@var non-empty-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L16)
+
+### `$from`
+
+```php
+public Outcome $from
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L23)
+
+### `$to`
+
+```php
+public Outcome $to
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L24)
 
 ### `__construct()`
 
@@ -588,6 +676,94 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L32)
 
+### `$id`
+
+```php
+public TestId $id
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L42)
+
+### `$outcome`
+
+```php
+public Outcome $outcome
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L43)
+
+### `$durationSeconds`
+
+```php
+public float $durationSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L44)
+
+### `$memoryDeltaBytes`
+
+```php
+public int $memoryDeltaBytes
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L45)
+
+### `$failures`
+
+```php
+public array $failures
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L47)
+
+### `$error`
+
+```php
+public ?ThrowableDetail $error
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L48)
+
+### `$skipReason`
+
+```php
+public ?string $skipReason
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L49)
+
+### `$transformations`
+
+```php
+public array $transformations
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L50)
+
+### `$output`
+
+```php
+public ?CapturedOutput $output
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L51)
+
+### `$risky`
+
+```php
+public bool $risky
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L52)
+
+### `$attachments`
+
+```php
+public array $attachments
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L54)
+
 ### `__construct()`
 
 ```php
@@ -694,6 +870,22 @@ PHPDoc:
 - `@var positive-int`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L29)
+
+### `$message`
+
+```php
+public string $message
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L38)
+
+### `$stackFrames`
+
+```php
+public array $stackFrames
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L41)
 
 ### `__construct()`
 

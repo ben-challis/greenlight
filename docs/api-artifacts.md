@@ -18,6 +18,70 @@ readonly class Attachment implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L15)
 
+### `$name`
+
+```php
+public string $name
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L18)
+
+### `$kind`
+
+```php
+public AttachmentKind $kind
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L19)
+
+### `$mediaType`
+
+```php
+public string $mediaType
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L20)
+
+### `$sizeBytes`
+
+```php
+public int $sizeBytes
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L21)
+
+### `$sha256`
+
+```php
+public string $sha256
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L22)
+
+### `$attempt`
+
+```php
+public int $attempt
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L23)
+
+### `$path`
+
+```php
+public string $path
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L24)
+
+### `$retention`
+
+```php
+public AttachmentRetention $retention
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L25)
+
 ### `__construct()`
 
 ```php

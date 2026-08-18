@@ -66,6 +66,14 @@ final class TempDirectory implements Disposable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L15)
 
+### `__construct()`
+
+```php
+public function __construct(private readonly ?string $temporaryRoot = null)
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/TempDirectory.php#L19)
+
 ### `path()`
 
 ```php
@@ -359,6 +367,18 @@ final readonly class IntegrationResources implements WireSerializable
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L18)
 
+### `__construct()`
+
+```php
+public function __construct(private array $fixtures = [])
+```
+
+PHPDoc:
+
+- `@param array<non-empty-string, FixtureResource> $fixtures`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/IntegrationResources.php#L23)
+
 ### `empty()`
 
 ```php
@@ -525,6 +545,22 @@ PHPDoc:
 - `@var class-string`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L16)
+
+### `$scope`
+
+```php
+public Scope $scope
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L28)
+
+### `$factory`
+
+```php
+public \Closure $factory
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L29)
 
 ### `__construct()`
 

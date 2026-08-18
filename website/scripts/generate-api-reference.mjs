@@ -43,7 +43,7 @@ const sections = [
     title: 'Test contracts API',
     description: 'This reference lists test metadata, skip signals, conditions, and wire contracts.',
     prefixes: ['Greenlight\\Core\\Test\\', 'Greenlight\\Core\\Wire\\'],
-    names: ['Greenlight\\Core\\AtomicFileError', 'Greenlight\\Core\\Condition'],
+    names: ['Greenlight\\Core\\Condition'],
   },
   {
     id: 'api-expectations',
@@ -353,6 +353,7 @@ function parseMembers(source, tokens, openIndex, closeIndex, typeKind) {
       const endIndex = matchingBrace(tokens, index);
 
       if (isMethod(significant)) {
+        addPromotedProperties(members, source, significant);
         addMember(members, source, significant, token.start, 'method', typeKind);
       } else if (isPublicProperty(significant)) {
         const propertyTokens = [...significant, ...tokens.slice(index, endIndex + 1)];
@@ -458,10 +459,13 @@ function classifySemicolonMember(tokens) {
 function addMember(members, source, tokens, end, kind, typeKind) {
   const docToken = tokens.find((token) => token.kind === 'doc');
   const significant = tokens.filter((token) => token.kind !== 'doc');
+  const visibilityTokens = kind === 'method'
+    ? significant.slice(0, significant.findIndex((token) => token.value === 'function') + 1)
+    : significant;
 
   if (
     significant.length === 0
-    || !isPublic(significant, typeKind)
+    || !isPublic(visibilityTokens, typeKind)
     || (docToken?.value.includes('@internal') ?? false)
   ) {
     return;
@@ -482,6 +486,68 @@ function addMember(members, source, tokens, end, kind, typeKind) {
     line: lineAt(source, first.start),
     doc: parseDoc(docToken?.value),
     signature,
+  });
+}
+
+function addPromotedProperties(members, source, tokens) {
+  const functionIndex = tokens.findIndex((token) => token.value === 'function');
+  const name = tokens.slice(functionIndex + 1).find((token) => token.kind === 'word');
+
+  if (name?.value !== '__construct') {
+    return;
+  }
+
+  const openIndex = tokens.findIndex((token, index) => index > functionIndex && token.value === '(');
+
+  if (openIndex === -1) {
+    return;
+  }
+
+  let depth = 0;
+  let parameterStart = openIndex + 1;
+
+  for (let index = parameterStart; index < tokens.length; index += 1) {
+    const token = tokens[index];
+
+    if (['(', '[', '{'].includes(token.value)) {
+      depth += 1;
+      continue;
+    }
+
+    if (token.value === ')' && depth === 0) {
+      addPromotedProperty(members, source, tokens.slice(parameterStart, index));
+      return;
+    }
+
+    if ([')', ']', '}'].includes(token.value)) {
+      depth -= 1;
+      continue;
+    }
+
+    if (token.value === ',' && depth === 0) {
+      addPromotedProperty(members, source, tokens.slice(parameterStart, index));
+      parameterStart = index + 1;
+    }
+  }
+}
+
+function addPromotedProperty(members, source, tokens) {
+  const docToken = tokens.find((token) => token.kind === 'doc');
+  const significant = tokens.filter((token) => token.kind !== 'doc');
+  const variable = significant.find((token) => token.kind === 'variable');
+
+  if (variable === undefined || !significant.some((token) => token.value === 'public')) {
+    return;
+  }
+
+  const first = significant[0];
+
+  members.push({
+    name: variable.value,
+    kind: 'property',
+    line: lineAt(source, first.start),
+    doc: parseDoc(docToken?.value),
+    signature: normalizeSignature(source.slice(first.start, variable.end), columnAt(source, first.start)),
   });
 }
 

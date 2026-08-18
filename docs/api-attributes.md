@@ -80,6 +80,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L20)
 
+### `$arguments`
+
+```php
+public array $arguments
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L28)
+
 ### `__construct()`
 
 ```php
@@ -408,6 +416,14 @@ final readonly class Test
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L9)
 
+### `$capture`
+
+```php
+public bool $capture
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L11)
+
 ### `__construct()`
 
 ```php
@@ -429,6 +445,14 @@ final readonly class Timeout
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L12)
+
+### `$seconds`
+
+```php
+public float $seconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L18)
 
 ### `__construct()`
 
@@ -484,6 +508,18 @@ final readonly class EnvironmentVariableEquals implements Condition
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L9)
+
+### `__construct()`
+
+```php
+public function __construct(string $name, private string $value)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L19)
 
 ### `isSatisfied()`
 

@@ -170,6 +170,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L21)
 
+### `$provision`
+
+```php
+public \Closure $provision
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L29)
+
 ### `__construct()`
 
 ```php
@@ -323,6 +331,44 @@ public Attachments $attachments;
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L23)
 
+### `$instance`
+
+```php
+public object $instance
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L26)
+
+### `$id`
+
+```php
+public TestId $id
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
+
+### `$metadata`
+
+```php
+public TestMetadata $metadata
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
+
+### `__construct()`
+
+```php
+public function __construct(
+    public object $instance,
+    public TestId $id,
+    public TestMetadata $metadata,
+    private HarnessScopes $scopes,
+    ?Attachments $attachments = null,
+)
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L25)
+
 ### `service()`
 
 ```php
@@ -407,6 +453,30 @@ final readonly class WorkerBootstrapContext
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L13)
+
+### `$workerId`
+
+```php
+public string $workerId
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L19)
+
+### `$channel`
+
+```php
+public TestChannel $channel
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L20)
+
+### `$resources`
+
+```php
+public IntegrationResources $resources
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L21)
 
 ### `__construct()`
 

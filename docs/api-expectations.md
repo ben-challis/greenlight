@@ -23,7 +23,26 @@ PHPDoc:
 - `@template T`
 - `@extends TemporalExpectation<T>`
 
-This type does not declare public members.
+### `__construct()`
+
+```php
+public function __construct(
+    \Closure $probe,
+    PollingClock $clock,
+    ?float $attemptDeadline,
+    float $intervalSeconds,
+    private readonly float $forSeconds,
+    ValueRenderer $renderer,
+    array $extensions,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(): T $probe`
+- `@param list<ExpectationExtension> $extensions`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ConsistentlyExpectation.php#L23)
 
 ## `EventuallyExpectation`
 
@@ -42,7 +61,28 @@ PHPDoc:
 - `@template T`
 - `@extends TemporalExpectation<T>`
 
-This type does not declare public members.
+### `__construct()`
+
+```php
+public function __construct(
+    \Closure $probe,
+    PollingClock $clock,
+    ?float $attemptDeadline,
+    float $intervalSeconds,
+    private readonly float $withinSeconds,
+    private readonly array $retryOnExceptions,
+    ValueRenderer $renderer,
+    array $extensions,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(): T $probe`
+- `@param list<class-string<\Exception>> $retryOnExceptions`
+- `@param list<ExpectationExtension> $extensions`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/EventuallyExpectation.php#L25)
 
 ## `Expect`
 
@@ -757,6 +797,14 @@ final class ExpectationFailed extends \Exception
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationFailed.php#L17)
 
+### `$details`
+
+```php
+public readonly array $details
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationFailed.php#L24)
+
 ### `fromDetail()`
 
 ```php
@@ -826,6 +874,25 @@ PHPDoc:
 
 - `@template T`
 
+### `__construct()`
+
+```php
+public function __construct(
+    private readonly \Closure $probe,
+    private readonly PollingClock $clock,
+    private readonly ?float $attemptDeadline,
+    private readonly ValueRenderer $renderer,
+    private readonly array $extensions,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(): T $probe`
+- `@param list<ExpectationExtension> $extensions`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L22)
+
 ### `pollEvery()`
 
 ```php
@@ -865,6 +932,25 @@ final class PendingEventually
 PHPDoc:
 
 - `@template T`
+
+### `__construct()`
+
+```php
+public function __construct(
+    private readonly \Closure $probe,
+    private readonly PollingClock $clock,
+    private readonly ?float $attemptDeadline,
+    private readonly ValueRenderer $renderer,
+    private readonly array $extensions,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(): T $probe`
+- `@param list<ExpectationExtension> $extensions`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L27)
 
 ### `pollEvery()`
 
