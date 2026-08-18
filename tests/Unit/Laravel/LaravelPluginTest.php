@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Laravel;
 
 use Greenlight\Attribute\After;
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
@@ -157,6 +159,34 @@ final class LaravelPluginTest
         Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
         Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
         Expect::that($_SERVER['APP_ENV'] ?? null)->toBe('before-laravel');
+    }
+
+    #[Test]
+    #[Isolated]
+    public function aRestrictedBootstrapFileFailsWithoutEngineDiagnostics(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $bootstrap = \dirname($root) . '/bootstrap/app.php';
+        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
+
+        Expect::that($previousOpenBasedir)
+            ->because('the isolated fixture MUST restrict access to the Laravel bootstrap file')
+            ->not()
+            ->toBeFalse();
+
+        $plugin = $this->track(new LaravelPlugin($bootstrap));
+        Expect::that(
+            static function () use ($plugin, &$warning): void {
+                ErrorTrap::run(
+                    static fn(): ?object => $plugin->resolve(Greeter::class, []),
+                    $warning,
+                );
+            },
+        )->because('a restricted Laravel bootstrap file causes a bridge error')
+            ->toThrow(LaravelBridgeError::class, matching: '/does not exist.*bootstrap\/app\.php/s');
+        Expect::that($warning)
+            ->because('a restricted Laravel bootstrap file MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 
     #[Test]
