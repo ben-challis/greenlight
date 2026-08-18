@@ -15,6 +15,7 @@ use Greenlight\Expect\Fail;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
+use Greenlight\Tests\Support\FilesystemRestriction;
 
 final class CoverageMissingIncludePathTest
 {
@@ -59,14 +60,7 @@ final class CoverageMissingIncludePathTest
             Fail::because('The test could not resolve its restricted include path.');
         }
 
-        $previousOpenBasedir = \ini_set(
-            'open_basedir',
-            $root . \PATH_SEPARATOR . \sys_get_temp_dir(),
-        );
-
-        if ($previousOpenBasedir === false) {
-            Fail::because('The test could not restrict file system access.');
-        }
+        FilesystemRestriction::toProject($root);
 
         $configuration = new CoverageConfiguration([$outside], null, []);
         $settings = ErrorTrap::run(

@@ -10,6 +10,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Runner\CpuCores;
+use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class CpuCoresFallbackTest
 {
@@ -21,13 +22,7 @@ final readonly class CpuCoresFallbackTest
     {
         $root = \dirname(__DIR__, 3);
         $this->environment->set('PATH', '');
-        $openBasedir = $root . \PATH_SEPARATOR . \sys_get_temp_dir();
-        $previousOpenBasedir = \ini_set('open_basedir', $openBasedir);
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to platform CPU metadata')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $count = ErrorTrap::run(
             static fn(): int => CpuCores::count(),

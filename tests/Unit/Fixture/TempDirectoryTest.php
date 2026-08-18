@@ -13,6 +13,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Fixture\TempDirectoryError;
+use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\Subprocess;
 
 final class TempDirectoryTest
@@ -113,12 +114,7 @@ final class TempDirectoryTest
     {
         $root = \dirname(__DIR__, 3);
         $restricted = \dirname($root);
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to the temporary root')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $directory = new TempDirectory($restricted);
 
