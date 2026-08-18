@@ -34,8 +34,11 @@ final class ResourceScheduler
      * @param array<non-empty-string, positive-int> $limits
      */
     public function __construct(
+        /** @var array<int, SchedulingUnit> */
         private array $pooled,
+        /** @var array<int, SchedulingUnit> */
         private array $isolated,
+        /** @var array<non-empty-string, positive-int> */
         private array $limits,
     ) {}
 
@@ -96,18 +99,26 @@ final class ResourceScheduler
     }
 
     /**
-     * @param list<SchedulingUnit> $queue
+     * @param array<int, SchedulingUnit> $queue
      */
     private function dispatchFrom(array &$queue): DispatchDecision
     {
-        if ($this->fits($queue[0])) {
-            return DispatchDecision::assign($this->acquire($queue, 0));
+        $firstIndex = \array_key_first($queue);
+
+        if ($firstIndex === null) {
+            return DispatchDecision::drain();
         }
 
-        $reserved = \array_fill_keys($queue[0]->resources, 1);
+        $first = $queue[$firstIndex];
+
+        if ($this->fits($first)) {
+            return DispatchDecision::assign($this->acquire($queue, $firstIndex));
+        }
+
+        $reserved = \array_fill_keys($first->resources, 1);
 
         foreach ($queue as $index => $unit) {
-            if ($index === 0) {
+            if ($index === $firstIndex) {
                 continue;
             }
 
@@ -136,12 +147,12 @@ final class ResourceScheduler
     }
 
     /**
-     * @param list<SchedulingUnit> $queue
+     * @param array<int, SchedulingUnit> $queue
      */
     private function acquire(array &$queue, int $index): ResourceLease
     {
         $unit = $queue[$index];
-        \array_splice($queue, $index, 1);
+        unset($queue[$index]);
 
         foreach ($unit->resources as $resource) {
             $used = ($this->inUse[$resource] ?? 0) + 1;

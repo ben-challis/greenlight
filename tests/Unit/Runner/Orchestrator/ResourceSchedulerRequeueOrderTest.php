@@ -14,15 +14,18 @@ final readonly class ResourceSchedulerRequeueOrderTest
 {
     #[Test]
     #[DataSet('queueKinds')]
-    public function requeuedWorkAppendsBehindPendingWork(bool $isolated, bool $freshWorker): void
+    public function requeuedWorkAppendsBehindSparsePendingWork(bool $isolated, bool $freshWorker): void
     {
+        $active = SchedulingFixture::unit('Acme\\ActiveTest', ['database'], $isolated);
         $pending = SchedulingFixture::unit('Acme\\PendingTest', ['database'], $isolated);
         $requeued = SchedulingFixture::unit('Acme\\RetriedTest', ['database'], $isolated);
         $scheduler = new ResourceScheduler(
-            $isolated ? [] : [$pending],
-            $isolated ? [$pending] : [],
+            $isolated ? [] : [$active, $pending],
+            $isolated ? [$active, $pending] : [],
             [],
         );
+        $activeLease = SchedulingFixture::assignedLease($scheduler, $freshWorker);
+        $scheduler->release($activeLease);
         $scheduler->requeue($requeued);
 
         $first = SchedulingFixture::assignedLease($scheduler, $freshWorker);
