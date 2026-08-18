@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
+use Greenlight\Tests\Support\MemoryStream;
 
 final class WorkerHandleZeroDiagnosticsTest
 {
@@ -17,9 +17,9 @@ final class WorkerHandleZeroDiagnosticsTest
         $handle = new WorkerHandle(
             'worker-1',
             1,
-            $this->stream(),
-            $this->stream('0'),
-            $this->stream(),
+            MemoryStream::open(),
+            MemoryStream::open('0'),
+            MemoryStream::open(),
         );
 
         $handle->drainPipes();
@@ -29,20 +29,4 @@ final class WorkerHandleZeroDiagnosticsTest
             ->toBe('0');
     }
 
-    /**
-     * @return resource
-     */
-    private function stream(string $contents = ''): mixed
-    {
-        $stream = \fopen('php://memory', 'r+');
-
-        if (!\is_resource($stream)) {
-            Fail::because('Expected the in-memory stream to open.');
-        }
-
-        \fwrite($stream, $contents);
-        \rewind($stream);
-
-        return $stream;
-    }
 }

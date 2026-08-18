@@ -11,19 +11,19 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class WorkerHandleAssignmentLifecycleTest
 {
     #[Test]
     public function assignmentLifecycleTransfersResetsAndClearsWorkerState(): void
     {
-        $process = $this->stream();
-        $stdout = $this->stream();
-        $stderr = $this->stream();
+        $process = MemoryStream::open();
+        $stdout = MemoryStream::open();
+        $stderr = MemoryStream::open();
 
         try {
             $handle = new WorkerHandle('worker-1', 1, $process, $stdout, $stderr);
@@ -98,9 +98,7 @@ final readonly class WorkerHandleAssignmentLifecycleTest
                 ->because('assignment finish MUST mark the worker as used')
                 ->toBeFalse();
         } finally {
-            $this->close($process);
-            $this->close($stdout);
-            $this->close($stderr);
+            MemoryStream::close($process, $stdout, $stderr);
         }
     }
 
@@ -114,24 +112,4 @@ final readonly class WorkerHandleAssignmentLifecycleTest
         return new ResourceLease(41, new SchedulingUnit($plan, isolated: true));
     }
 
-    /**
-     * @return resource
-     */
-    private function stream(): mixed
-    {
-        $stream = \fopen('php://memory', 'r+');
-
-        if (!\is_resource($stream)) {
-            Fail::because('Expected the in-memory stream to open.');
-        }
-
-        return $stream;
-    }
-
-    private function close(mixed $stream): void
-    {
-        if (\is_resource($stream)) {
-            \fclose($stream);
-        }
-    }
 }
