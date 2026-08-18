@@ -165,14 +165,21 @@ final readonly class Application
      */
     private function __construct(private \Closure $out, private \Closure $err) {}
 
-    public static function forStreams(): self
+    /**
+     * @param resource|null $stdout
+     * @param resource|null $stderr
+     */
+    public static function forStreams($stdout = null, $stderr = null): self
     {
+        $out = new StreamOutput($stdout ?? \STDOUT);
+        $err = new StreamOutput($stderr ?? \STDERR);
+
         return new self(
-            static function (string $text): void {
-                \fwrite(\STDOUT, $text);
+            static function (string $text) use ($out): void {
+                $out->write($text);
             },
-            static function (string $text): void {
-                \fwrite(\STDERR, $text);
+            static function (string $text) use ($err): void {
+                $err->write($text);
             },
         );
     }
