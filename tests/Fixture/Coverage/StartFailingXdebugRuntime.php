@@ -14,12 +14,14 @@ final class StartFailingXdebugRuntime implements Fake, XdebugRuntime
      */
     public array $calls = [];
 
+    public function __construct(private readonly \RuntimeException $failure) {}
+
     #[\Override]
     public function start(int $flags): void
     {
         $this->calls[] = 'start';
 
-        throw new \RuntimeException('Xdebug start failed.');
+        throw $this->failure;
     }
 
     #[\Override]

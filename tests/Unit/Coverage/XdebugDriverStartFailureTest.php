@@ -14,18 +14,19 @@ final readonly class XdebugDriverStartFailureTest
     #[Test]
     public function aStartFailureLeavesTheCollectionWindowClosed(): void
     {
-        $runtime = new StartFailingXdebugRuntime();
+        $failure = new \RuntimeException('Xdebug start failed.');
+        $runtime = new StartFailingXdebugRuntime($failure);
         $driver = new XdebugDriver($runtime, flags: 3);
 
         Expect::that(static function () use ($driver): void {
             $driver->start();
         })
             ->because('an Xdebug start failure MUST remain the reported failure')
-            ->toThrow(
-                \RuntimeException::class,
-                message: 'Xdebug start failed.',
-            )
-            ->and($runtime->calls)
+            ->toThrow(static function (\RuntimeException $caught) use ($failure): void {
+                Expect::that($caught)->toBe($failure);
+            });
+
+        Expect::that($runtime->calls)
             ->because('a failed Xdebug start MUST NOT collect or stop the runtime')
             ->toBe(['start']);
 
