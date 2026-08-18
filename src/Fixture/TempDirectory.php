@@ -33,7 +33,7 @@ final class TempDirectory implements Disposable
     {
         if ($this->path === null) {
             $systemTemporaryRoot = $this->temporaryRoot ?? \sys_get_temp_dir();
-            $resolvedTemporaryRoot = \realpath($systemTemporaryRoot);
+            $resolvedTemporaryRoot = ErrorTrap::run(static fn(): string|false => \realpath($systemTemporaryRoot));
             $temporaryRoot = $resolvedTemporaryRoot === false ? $systemTemporaryRoot : $resolvedTemporaryRoot;
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
 
