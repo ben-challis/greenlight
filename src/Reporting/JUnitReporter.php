@@ -135,6 +135,9 @@ final class JUnitReporter implements Reporter
         return \htmlspecialchars($this->xml($value), \ENT_XML1 | \ENT_COMPAT, 'UTF-8');
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function renderCase(TestResult $result): string
     {
         if (!$this->xmlWriter->isAvailable()) {

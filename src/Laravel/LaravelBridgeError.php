@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Laravel;
 
+use Greenlight\Harness\ServiceResolutionError;
+
 /**
  * Reports a Laravel bridge configuration or run-time failure.
  *
  * @internal
  */
-final class LaravelBridgeError extends \RuntimeException
+final class LaravelBridgeError extends ServiceResolutionError
 {
     private function __construct(string $message)
     {

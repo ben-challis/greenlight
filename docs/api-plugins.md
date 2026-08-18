@@ -313,7 +313,7 @@ service scope closes before `afterTest()`, so `service()` throws during
 final readonly class TestContext
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L21)
 
 ### `$attachments`
 
@@ -321,7 +321,7 @@ final readonly class TestContext
 public Attachments $attachments;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L23)
 
 ### `service()`
 
@@ -334,10 +334,10 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
-- `@throws \RuntimeException when a service resolver cannot supply a valid service`
+- `@throws ServiceResolutionError when a service resolver cannot supply a valid service`
 - `@throws UnresolvableService`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L45)
 
 ### `skip()`
 
@@ -353,7 +353,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws SkipTest`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
 
 ## `TestLifecycleSubscriber`
 

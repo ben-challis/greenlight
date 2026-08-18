@@ -9,6 +9,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
+use Greenlight\Core\Wire\WireError;
 
 /** @internal */
 final class EventRegistry
@@ -18,6 +19,7 @@ final class EventRegistry
 
     /**
      * @return array<string, mixed>
+     * @throws ProtocolError
      */
     public static function toTagged(Event $event): array
     {
@@ -35,6 +37,7 @@ final class EventRegistry
      *
      * @throws ProtocolError
      * @throws InvalidWirePayload
+     * @throws WireError
      */
     public static function fromTagged(array $tagged): Event
     {

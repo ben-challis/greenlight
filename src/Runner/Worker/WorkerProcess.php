@@ -30,6 +30,7 @@ use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
+use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
@@ -49,6 +50,7 @@ final readonly class WorkerProcess
      * @param non-empty-string $address
      * @param non-empty-string $workerId
      * @param non-empty-string $token
+     * @throws ProtocolError
      */
     public function run(string $address, string $workerId, string $token): int
     {

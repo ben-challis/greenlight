@@ -214,6 +214,9 @@ final class TtyReporter implements Reporter, Ticking
         }
     }
 
+    /**
+     * @throws ReportingError
+     */
     #[\Override]
     public function tick(float $now): void
     {
@@ -282,6 +285,9 @@ final class TtyReporter implements Reporter, Ticking
         }
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function finalizeClass(string $class): void
     {
         $state = $this->live[$class] ?? ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => 0.0];
@@ -342,6 +348,7 @@ final class TtyReporter implements Reporter, Ticking
 
     /**
      * @param list<string> $scrollback permanent lines the frame leaves above the window
+     * @throws ReportingError
      */
     private function redraw(array $scrollback = [], bool $force = false): void
     {
@@ -422,6 +429,9 @@ final class TtyReporter implements Reporter, Ticking
         return $line;
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function eraseLiveRegion(): void
     {
         if (!$this->cursor || $this->drawnLines === 0) {

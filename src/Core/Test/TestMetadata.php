@@ -143,6 +143,10 @@ final readonly class TestMetadata implements WireSerializable
         ];
     }
 
+    /**
+     * @throws \InvalidArgumentException when the decoded metadata violates a domain invariant
+     * @throws InvalidWirePayload when a required field is missing or has the wrong type
+     */
     #[\Override]
     public static function fromWire(array $payload): static
     {

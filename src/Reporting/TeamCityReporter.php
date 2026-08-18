@@ -104,6 +104,9 @@ final class TeamCityReporter implements Reporter
         }
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function onTestFinished(TestResult $result): void
     {
         $name = (string) $result->id;
@@ -143,6 +146,9 @@ final class TeamCityReporter implements Reporter
         ]);
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function writeFailed(TestResult $result, string $name, string $flowId): void
     {
         $failure = $result->failures[0] ?? null;
@@ -192,6 +198,9 @@ final class TeamCityReporter implements Reporter
         $this->message('testFailed', $attributes);
     }
 
+    /**
+     * @throws ReportingError
+     */
     private function writeErrored(TestResult $result, string $name, string $flowId): void
     {
         $error = $result->error;
@@ -262,6 +271,7 @@ final class TeamCityReporter implements Reporter
 
     /**
      * @param array<non-empty-string, string> $attributes
+     * @throws ReportingError
      */
     private function message(string $name, array $attributes): void
     {

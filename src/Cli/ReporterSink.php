@@ -6,6 +6,7 @@ namespace Greenlight\Cli;
 
 use Greenlight\Core\Event\Event;
 use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\ReportingError;
 use Greenlight\Runner\Worker\EventSink;
 
 /** @internal */
@@ -13,6 +14,9 @@ final readonly class ReporterSink implements EventSink
 {
     public function __construct(private Reporter $reporter) {}
 
+    /**
+     * @throws ReportingError
+     */
     #[\Override]
     public function emit(Event $event): void
     {

@@ -24,6 +24,9 @@ final class ServerSocket
         private readonly ?string $unixPath,
     ) {}
 
+    /**
+     * @throws ProtocolError
+     */
     public static function listen(
         ?string $temporaryDirectory = null,
         ?ServerSocketRuntime $runtime = null,

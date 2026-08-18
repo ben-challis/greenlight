@@ -12,7 +12,7 @@ namespace Greenlight\Harness;
  *
  * @internal
  */
-final class UnresolvableService extends \RuntimeException
+final class UnresolvableService extends ServiceResolutionError
 {
     private function __construct(string $message)
     {

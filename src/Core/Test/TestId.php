@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Core\Test;
 
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
@@ -69,6 +70,10 @@ final readonly class TestId implements WireSerializable, \Stringable
         ];
     }
 
+    /**
+     * @throws \InvalidArgumentException when the decoded identity is empty
+     * @throws InvalidWirePayload when a required field is missing or has the wrong type
+     */
     #[\Override]
     public static function fromWire(array $payload): static
     {

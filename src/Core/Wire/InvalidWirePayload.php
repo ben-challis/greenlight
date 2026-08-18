@@ -11,7 +11,7 @@ namespace Greenlight\Core\Wire;
  * The error always names the applicable key. Thus, its message identifies the
  * protocol error.
  */
-final class InvalidWirePayload extends \RuntimeException
+final class InvalidWirePayload extends WireError
 {
     private function __construct(string $message)
     {

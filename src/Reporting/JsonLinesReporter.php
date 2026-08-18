@@ -33,6 +33,9 @@ final readonly class JsonLinesReporter implements Reporter
         return EventTags::all();
     }
 
+    /**
+     * @throws ReportingError
+     */
     #[\Override]
     public function onEvent(Event $event): void
     {

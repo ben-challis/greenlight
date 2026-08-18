@@ -22,6 +22,9 @@ final class ScopeContainer
      */
     private array $services = [];
 
+    /**
+     * @throws UnresolvableService
+     */
     public function get(ServiceDefinition $definition): object
     {
         $existing = $this->services[$definition->type] ?? null;
@@ -69,6 +72,9 @@ final class ScopeContainer
         return $failures;
     }
 
+    /**
+     * @throws UnresolvableService
+     */
     private function instantiate(ServiceDefinition $definition): object
     {
         $reflection = new \ReflectionClass($definition->type);
