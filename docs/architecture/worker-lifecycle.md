@@ -155,9 +155,11 @@ tell either assignment which database, account, or sandbox to use.
 ```mermaid
 stateDiagram-v2
     [*] --> Spawned: proc_open
-    Spawned --> Connected: hello within 30s
-    Spawned --> RunFailed: no hello in 30s
-    Connected --> Bootstrapping: bootstrap
+    Spawned --> Connected: socket connection accepted
+    Spawned --> RunFailed: no authenticated connection in 30s
+    Connected --> Bootstrapping: valid hello, then bootstrap
+    Connected --> Rejected: no valid hello in 10s
+    Rejected --> [*]
     Bootstrapping --> Ready: ready
     Bootstrapping --> RunFailed: fatal / progress timeout
     Ready --> Running: assign
@@ -215,11 +217,15 @@ bare process exit.
 
 ### Run failures
 
-The orchestrator fails the run if a worker does not send `hello` within 30
-seconds. It also fails the run when a connected worker goes silent for 60
-seconds with no test in flight. These failures usually indicate a broken
-bootstrap or blocked socket. The orchestrator does not start another worker
-that is likely to fail in the same way.
+A worker must connect and authenticate within 30 seconds after process
+creation. After the server accepts a socket, that socket has 10 seconds to
+send a valid `hello` message. The server closes a connection that misses this
+authentication deadline.
+
+The orchestrator also fails the run when an authenticated worker has no
+progress for 60 seconds without a test in flight. These failures usually show
+a broken bootstrap or blocked socket. The orchestrator does not start another
+worker that is likely to fail in the same way.
 
 A run-wide spawn budget prevents an endless replacement loop. If the pool
 exceeds that budget, the orchestrator fails the run with a diagnostic.

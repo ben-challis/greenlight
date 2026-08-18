@@ -15,9 +15,12 @@ flowchart LR
     tests["Test files<br/>attributes and data sets"] --> discovery["Discovery<br/>ExecutionPlan"]
     cli --> discovery
     discovery --> runner["Runner"]
-    runner --> inprocess["In-process execution"]
-    runner --> orchestrator["Parallel orchestrator"]
+    runner --> fixtures["Integration fixture graph"]
+    fixtures --> inprocess["In-process execution"]
+    fixtures --> orchestrator["Parallel orchestrator"]
     orchestrator --> workers["Worker processes"]
+    fixtures -. "shared and per-channel resources" .-> workers
+    fixtures -. "shared resources" .-> inprocess
     workers --> events["Typed events and results"]
     inprocess --> events
     events --> reporters["TTY, plain, JSONL, JUnit,<br/>GitHub and TeamCity reporters"]
@@ -30,6 +33,10 @@ The CLI resolves the configuration once. Discovery produces an immutable
 execution plan. The runner selects in-process execution or process-pool
 execution. Both methods emit the same events. Reporters consume the events and
 do not access runner state.
+
+For a nonempty plan, the runner provisions integration fixtures before
+`RunStarted`. The fixture graph supplies resources to both execution methods.
+The runner closes the graph after `RunFinished` or after a run failure.
 
 The orchestrator makes decisions that apply to more than one worker. It
 controls assignments, resource capacity, bail, hard timeouts, crash
@@ -56,7 +63,7 @@ public.
 | `Reporting` | Event consumers and output formats | `Core` |
 | `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
 | `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
-| `PhpStan`, `Symfony` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
+| `PhpStan`, `Rector`, `Symfony`, `Laravel` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
 Dependencies point from modules near the bottom of the table to modules near
 the top. Modules near the top do not depend on the `Runner` or `Cli` modules.
@@ -86,10 +93,11 @@ parallel methods use the same execution behavior.
 
 ### Extensions
 
-Plugins use capability interfaces to add lifecycle subscribers, retry
-decisions, harness providers, and expectation extensions. Each worker runs the
-plugin implementations. Plugins **SHOULD NOT** depend on orchestrator classes
-or protocol implementation classes.
+Plugins use capability interfaces to add lifecycle subscribers, integration
+fixtures, retry decisions, harness providers, and expectation extensions.
+Orchestrator-side capabilities control run-wide work. Each worker loads its
+own plugin instances for worker-side capabilities. Plugins **SHOULD NOT**
+depend on orchestrator classes or protocol implementation classes.
 
 ### Output
 
@@ -114,6 +122,7 @@ read [compatibility](compatibility.md).
 
 - [Compatibility and public interfaces](compatibility.md)
 - [Worker lifecycle and wire protocol](worker-lifecycle.md)
+- [Orchestrator-owned integration fixtures](orchestrator-integration-fixtures.md)
 - [Artifact storage](artifacts.md)
 - [JSONL reporter schema](jsonl.md)
 - [Coverage JSON schema](coverage-json.md)
