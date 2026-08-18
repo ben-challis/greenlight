@@ -26,6 +26,7 @@ use Greenlight\Tests\Fixture\Laravel\FixtureApplication;
 use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
+use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel;
@@ -163,12 +164,7 @@ final class LaravelPluginTest
     {
         $root = \dirname(__DIR__, 3);
         $bootstrap = \dirname($root) . '/bootstrap/app.php';
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to the Laravel bootstrap file')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $plugin = $this->track(new LaravelPlugin($bootstrap));
         Expect::that(

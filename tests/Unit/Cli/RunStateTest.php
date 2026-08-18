@@ -12,6 +12,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class RunStateTest
 {
@@ -134,12 +135,7 @@ final readonly class RunStateTest
     {
         $root = \dirname(__DIR__, 3);
         $file = \dirname($root) . '/run-state.json';
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to the state path')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $failedTests = ErrorTrap::run(
             static fn(): ?array => RunState::forFile($file)->failedTests(),
