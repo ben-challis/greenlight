@@ -5,14 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Symfony;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Harness\HarnessRegistry;
-use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Symfony\Service;
@@ -23,6 +18,7 @@ use Greenlight\Tests\Fixture\Symfony\FixtureKernel;
 use Greenlight\Tests\Fixture\Symfony\Greeter;
 use Greenlight\Tests\Fixture\Symfony\NamedGreeter;
 use Greenlight\Tests\Fixture\Symfony\VisitCounter;
+use Greenlight\Tests\Support\PluginLifecycle;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 final class SymfonyPluginTest
@@ -248,16 +244,11 @@ final class SymfonyPluginTest
 
     private function context(): TestContext
     {
-        return new TestContext(
-            new \stdClass(),
-            new TestId('Fixture', 'probe'),
-            new TestMetadata('Fixture', 'probe'),
-            new HarnessScopes(new HarnessRegistry()),
-        );
+        return PluginLifecycle::context();
     }
 
     private function result(): TestResult
     {
-        return new TestResult(new TestId('Fixture', 'probe'), Outcome::Passed, 0.0, 0);
+        return PluginLifecycle::passedResult();
     }
 }
