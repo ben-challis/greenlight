@@ -421,7 +421,10 @@ final class ArtifactStore
             return $result;
         }
 
-        $attempt = DecimalInteger::parse(\trim((string) @\file_get_contents($directory . '/.attempt')));
+        $attemptRecord = ErrorTrap::run(
+            static fn(): string|false => \file_get_contents($directory . '/.attempt'),
+        );
+        $attempt = DecimalInteger::parse(\trim((string) $attemptRecord));
 
         if ($attempt !== null && $attempt > 0) {
             $result = $result->withAttempts(\max($result->attempts, $attempt));

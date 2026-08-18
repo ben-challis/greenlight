@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
@@ -79,6 +80,38 @@ final readonly class ArtifactRecoveryAttemptFloorTest
         Expect::that($recovered->attempts)
             ->because('corrupt recovery metadata MUST NOT inflate a reported attempt count')
             ->toBe(3);
+    }
+
+    #[Test]
+    public function aMissingAttemptMarkerDoesNotLeakEngineDiagnostics(): void
+    {
+        $root = $this->tempDirectory->subdirectory('missing-recovery-attempt');
+        $staging = $root . '/staging';
+        $id = new TestId('Example\\EvidenceTest', 'crashesBeforeRetry');
+        $testDirectory = $staging . '/' . ArtifactStore::testDirectory($id);
+        \mkdir($testDirectory, 0o700, true);
+        $store = ArtifactStore::fromSession(
+            new ArtifactSession($staging, $root . '/published/run-missing-attempt'),
+            new ArtifactConfiguration($root . '/published'),
+        );
+
+        $recovered = ErrorTrap::run(
+            static fn(): TestResult => $store->recover(new TestResult(
+                $id,
+                Outcome::Errored,
+                0.0,
+                0,
+                attempts: 3,
+            )),
+            $warning,
+        );
+
+        Expect::that($recovered->attempts)
+            ->because('a missing recovery marker MUST preserve the reported attempt count')
+            ->toBe(3);
+        Expect::that($warning)
+            ->because('a missing recovery marker MUST not leak an engine diagnostic')
+            ->toBeNull();
     }
 
     /**
