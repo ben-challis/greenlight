@@ -97,6 +97,25 @@ final class CanonicalizingTest
     }
 
     #[Test]
+    public function toEqualCanonicalizingUsesDateTimeEqualityForOrdering(): void
+    {
+        $first = '2024-01-01T00:00:00Z';
+        $second = '2024-01-02T00:00:00Z';
+
+        Expect::that([new \DateTime($first), new \DateTimeImmutable($second)])
+            ->because('canonical sort keys MUST follow DateTimeInterface equality')
+            ->toEqualCanonicalizing([new \DateTime($second), new \DateTimeImmutable($first)]);
+    }
+
+    #[Test]
+    public function toEqualCanonicalizingUsesOneSortKeyForSignedZero(): void
+    {
+        Expect::that([-0.0, -1.0])
+            ->because('canonical sort keys MUST treat equal signed zero values alike')
+            ->toEqualCanonicalizing([-1.0, 0.0]);
+    }
+
+    #[Test]
     public function toEqualCanonicalizingOrdersIdentityOnlyValues(): void
     {
         $firstClosure = static fn(): string => 'first';

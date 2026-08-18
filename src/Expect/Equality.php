@@ -62,9 +62,10 @@ final class Equality
     }
 
     /**
-     * Converts a canonical value to a stable sort key. Numbers use one
-     * representation, so 1 and 1.0 have the same sort position. Closures and
-     * resources use their identity because they have no comparable state.
+     * Converts a canonical value to a stable sort key. Equal dates use their
+     * timestamp. Equal integers and floats use one numeric representation.
+     * Closures and resources use their identity because they have no
+     * comparable state.
      *
      * @param list<int> $seen Object IDs already in the conversion stack. This
      *   list stops cycles.
@@ -92,7 +93,15 @@ final class Equality
         }
 
         if (\is_float($value)) {
+            if ($value === 0.0) {
+                return 'number:0';
+            }
+
             return 'number:' . $value;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return 'date-time:' . $value->format('U.u');
         }
 
         if ($value instanceof \Closure) {
