@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Capture;
 
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Diagnostic;
 use Greenlight\Core\Result\DiagnosticSeverity;
@@ -103,7 +104,7 @@ final class OutputCapture
      * changes. The method does not remove a handler that user code installs
      * during output capture.
      *
-     * @throws CaptureError when no capture window is active
+     * @throws CaptureError when no capture window is active or a nested buffer cannot be removed
      */
     public function stop(): CapturedOutput
     {
@@ -115,21 +116,21 @@ final class OutputCapture
         $this->bufferLevel = null;
 
         while (\ob_get_level() > $level) {
-            \ob_end_flush();
+            $previousLevel = \ob_get_level();
+            $removed = ErrorTrap::run(static fn(): bool => \ob_end_flush());
+
+            if (!$removed || \ob_get_level() >= $previousLevel) {
+                $this->restoreErrorHandler();
+
+                throw CaptureError::nestedBufferCannotBeRemoved();
+            }
         }
 
         if (!$this->bufferClosed && \ob_get_level() === $level) {
             \ob_end_clean();
         }
 
-        $active = \set_error_handler(null);
-        \restore_error_handler();
-
-        if ($active === $this->errorHandler) {
-            \restore_error_handler();
-        }
-
-        $this->errorHandler = null;
+        $this->restoreErrorHandler();
 
         $scrubbedStdout = Utf8::scrub($this->stdout);
         $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
@@ -183,5 +184,17 @@ final class OutputCapture
         }
 
         $this->diagnostics[] = $diagnostic;
+    }
+
+    private function restoreErrorHandler(): void
+    {
+        $active = \set_error_handler(null);
+        \restore_error_handler();
+
+        if ($active === $this->errorHandler) {
+            \restore_error_handler();
+        }
+
+        $this->errorHandler = null;
     }
 }
