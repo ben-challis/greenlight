@@ -6,22 +6,18 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\DispatchDecision;
 use Greenlight\Runner\Orchestrator\DispatchKind;
 use Greenlight\Runner\Orchestrator\ResourceLease;
-use Greenlight\Runner\Orchestrator\SchedulingUnit;
+use Greenlight\Tests\Support\SchedulingFixture;
 
 final readonly class DispatchDecisionTest
 {
     #[Test]
     public function assignmentCarriesItsExactLease(): void
     {
-        $lease = new ResourceLease(41, $this->unit());
+        $lease = new ResourceLease(41, SchedulingFixture::unit('Acme\\ExampleTest'));
         $decision = DispatchDecision::assign($lease);
 
         Expect::that($decision->kind)
@@ -59,12 +55,4 @@ final readonly class DispatchDecisionTest
         yield 'drain' => ['drain', DispatchKind::Drain];
     }
 
-    private function unit(): SchedulingUnit
-    {
-        $id = new TestId('Acme\\ExampleTest', 'runs');
-
-        return new SchedulingUnit(new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
-        ]), isolated: false);
-    }
 }
