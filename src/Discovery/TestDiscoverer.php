@@ -210,8 +210,17 @@ final readonly class TestDiscoverer
             }
 
             $actualFile = new \ReflectionClass($fqcn)->getFileName();
+            [$resolvedActualFile, $resolvedExpectedFile] = ErrorTrap::run(
+                static fn(): array => [
+                    $actualFile === false ? false : \realpath($actualFile),
+                    \realpath($file),
+                ],
+            );
 
-            if ($actualFile === false || \realpath($actualFile) !== \realpath($file)) {
+            if ($resolvedActualFile === false
+                || $resolvedExpectedFile === false
+                || $resolvedActualFile !== $resolvedExpectedFile
+            ) {
                 throw DiscoveryError::classLoadedFromOtherFile($file, $fqcn, $actualFile === false ? '(no file)' : $actualFile);
             }
 
