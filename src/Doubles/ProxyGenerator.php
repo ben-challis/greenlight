@@ -35,6 +35,7 @@ final readonly class ProxyGenerator
      * @param class-string $type
      *
      * @return class-string
+     * @throws DoublesError
      */
     public function proxyClass(string $type): string
     {
@@ -64,6 +65,7 @@ final readonly class ProxyGenerator
      * @param class-string $type
      *
      * @return \ReflectionClass<object>
+     * @throws DoublesError
      */
     private function reflectDoubleable(string $type): \ReflectionClass
     {
@@ -114,6 +116,7 @@ final readonly class ProxyGenerator
 
     /**
      * @param \ReflectionClass<object> $reflection
+     * @throws DoublesError
      */
     private function renderBody(\ReflectionClass $reflection): string
     {
@@ -169,6 +172,9 @@ final readonly class ProxyGenerator
         ));
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function renderProperty(\ReflectionProperty $property): string
     {
         $visibility = $property->isProtected() ? 'protected' : 'public';
@@ -178,6 +184,9 @@ final readonly class ProxyGenerator
         return \sprintf("    %s %s\$%s;\n", $visibility, $rendered, $property->name);
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function renderMethod(\ReflectionMethod $method): ?string
     {
         $name = \strtolower($method->name);
@@ -207,6 +216,9 @@ final readonly class ProxyGenerator
         return $this->renderInstanceMethod($method);
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function renderInstanceMethod(\ReflectionMethod $method): string
     {
         $returnType = $method->getReturnType() ?? $method->getTentativeReturnType();
@@ -266,6 +278,9 @@ final readonly class ProxyGenerator
         );
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function renderStaticStub(\ReflectionMethod $method): string
     {
         $body = \sprintf(
@@ -281,6 +296,9 @@ final readonly class ProxyGenerator
         );
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function renderSignature(\ReflectionMethod $method, ?\ReflectionType $returnType, bool $static = false): string
     {
         $context = $method->getDeclaringClass();
@@ -303,6 +321,7 @@ final readonly class ProxyGenerator
 
     /**
      * @param \ReflectionClass<object> $context
+     * @throws DoublesError
      */
     private function renderParameter(\ReflectionParameter $parameter, \ReflectionClass $context): string
     {
@@ -328,6 +347,7 @@ final readonly class ProxyGenerator
 
     /**
      * @param \ReflectionClass<object> $context
+     * @throws DoublesError
      */
     private function renderDefault(\ReflectionParameter $parameter, \ReflectionClass $context): string
     {
@@ -368,6 +388,9 @@ final readonly class ProxyGenerator
         return \var_export($value, true);
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function write(string $file, string $source): void
     {
         $directory = $this->directory;

@@ -44,8 +44,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws LaravelBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L81)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L82)
 
 ### `beforeTest()`
 
@@ -54,7 +55,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L111)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L112)
 
 ### `afterTest()`
 
@@ -63,7 +64,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L114)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L115)
 
 ## `Laravel\Service`
 
@@ -252,8 +253,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws SymfonyBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L84)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L85)
 
 ### `beforeTest()`
 
@@ -262,7 +264,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L114)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L115)
 
 ### `afterTest()`
 
@@ -271,4 +273,4 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L117)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L118)

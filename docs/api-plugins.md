@@ -334,9 +334,10 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
+- `@throws \RuntimeException when a service resolver cannot supply a valid service`
 - `@throws UnresolvableService`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L44)
 
 ### `skip()`
 
@@ -352,7 +353,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws SkipTest`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L63)
 
 ## `TestLifecycleSubscriber`
 

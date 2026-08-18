@@ -14,11 +14,17 @@ use Illuminate\Foundation\Application;
  */
 final class LaravelFrameworkRequirement
 {
+    /**
+     * @throws LaravelBridgeError
+     */
     public static function check(): void
     {
         self::checkVersion(self::installedVersion());
     }
 
+    /**
+     * @throws LaravelBridgeError
+     */
     public static function checkVersion(?string $version): void
     {
         if ($version === null) {

@@ -44,6 +44,7 @@ final readonly class PhpStanCheckedExceptionTest
 
             use Greenlight\Core\Result\FailureDetail;
             use Greenlight\Coverage\CoverageError;
+            use Greenlight\Doubles\DoublesError;
             use Greenlight\Expect\ExpectationFailed;
 
             function undocumentedProductionHelper(): void
@@ -55,6 +56,11 @@ final readonly class PhpStanCheckedExceptionTest
             {
                 throw CoverageError::driverUnavailable('probe', 'Expected operational failure.');
             }
+
+            function undocumentedAuthoringError(): void
+            {
+                throw DoublesError::invalidTimes(-1);
+            }
             PHP,
             \dirname(__DIR__, 2) . '/phpstan.dist.neon',
         );
@@ -65,12 +71,15 @@ final readonly class PhpStanCheckedExceptionTest
         Expect::that($probe->goodPassed)
             ->because('PHPStan MUST not require throws tags in test code')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(2);
+        Expect::that($probe->errors)->toHaveCount(3);
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Coverage\\CoverageError but it\'s missing from the PHPDoc @throws tag.',
+        );
+        Expect::that($probe->messages())->toContain(
+            'throws checked exception Greenlight\\Doubles\\DoublesError but it\'s missing from the PHPDoc @throws tag.',
         );
     }
 

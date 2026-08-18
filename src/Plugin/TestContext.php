@@ -38,6 +38,7 @@ final readonly class TestContext
      *
      * @return T
      *
+     * @throws \RuntimeException when a service resolver cannot supply a valid service
      * @throws UnresolvableService
      */
     public function service(string $type): object

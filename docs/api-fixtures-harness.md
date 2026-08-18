@@ -503,5 +503,6 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws \RuntimeException when the resolver cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L24)

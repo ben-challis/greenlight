@@ -68,11 +68,17 @@ final class MethodExpectation
         $this->method = $contract->method;
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function withNoArguments(): self
     {
         return $this->withArguments([], 'withNoArguments');
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function with(mixed $first, mixed ...$rest): self
     {
         return $this->withArguments([$first, ...\array_values($rest)], 'with');
@@ -80,6 +86,7 @@ final class MethodExpectation
 
     /**
      * @param list<mixed> $arguments
+     * @throws DoublesError
      */
     private function withArguments(array $arguments, string $selector): self
     {
@@ -97,6 +104,9 @@ final class MethodExpectation
         return $this;
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function times(int $count): self
     {
         if ($count < 0) {
@@ -109,6 +119,9 @@ final class MethodExpectation
         return $this;
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function atLeast(int $count): self
     {
         if ($count < 1) {
@@ -129,6 +142,9 @@ final class MethodExpectation
         return $this;
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function andReturns(mixed $value): self
     {
         $this->assertNoAnswerConfigured();
@@ -142,6 +158,7 @@ final class MethodExpectation
     /**
      * Each accepted call consumes the next value. A call after the last value
      * causes an error in the test code.
+     * @throws DoublesError
      */
     public function andReturnsSequence(mixed ...$values): self
     {
@@ -161,6 +178,7 @@ final class MethodExpectation
     /**
      * The closure receives the call arguments. The call returns the value
      * from the closure.
+     * @throws DoublesError
      */
     public function andReturnsUsing(\Closure $answer): self
     {
@@ -171,6 +189,9 @@ final class MethodExpectation
         return $this;
     }
 
+    /**
+     * @throws DoublesError
+     */
     public function andThrows(\Throwable $throwable): self
     {
         $this->assertNoAnswerConfigured();
@@ -187,6 +208,7 @@ final class MethodExpectation
      * the doubled method returns a value, configure its result first.
      *
      * @return ArgumentCaptor<mixed>
+     * @throws DoublesError
      */
     public function captureArgument(int $position = 0): ArgumentCaptor
     {
@@ -302,6 +324,7 @@ final class MethodExpectation
 
     /**
      * @internal Only the call handler calls this method.
+     * @throws DoublesError
      */
     public function consumeSequenceValue(): mixed
     {
@@ -394,6 +417,9 @@ final class MethodExpectation
         return $count === 1 ? '1 time' : $count . ' times';
     }
 
+    /**
+     * @throws DoublesError
+     */
     private function assertNoAnswerConfigured(): void
     {
         if ($this->hasReturnValue || $this->sequence !== null || $this->callback instanceof \Closure || $this->throwable instanceof \Throwable) {

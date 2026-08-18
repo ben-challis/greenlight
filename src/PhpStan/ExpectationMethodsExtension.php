@@ -32,6 +32,7 @@ final readonly class ExpectationMethodsExtension implements MethodsClassReflecti
     /**
      * @throws ConfigFileError
      * @throws InvalidConfiguration
+     * @throws MatcherMapError
      */
     #[\Override]
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
@@ -48,6 +49,7 @@ final readonly class ExpectationMethodsExtension implements MethodsClassReflecti
     /**
      * @throws ConfigFileError
      * @throws InvalidConfiguration
+     * @throws MatcherMapError
      */
     #[\Override]
     public function getMethod(ClassReflection $classReflection, string $methodName): MethodReflection

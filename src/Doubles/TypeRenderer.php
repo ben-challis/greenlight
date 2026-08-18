@@ -24,6 +24,7 @@ final class TypeRenderer
 
     /**
      * @param \ReflectionClass<object> $context Class that declares the member.
+     * @throws DoublesError
      */
     public static function render(\ReflectionType $type, \ReflectionClass $context): string
     {
@@ -62,6 +63,7 @@ final class TypeRenderer
 
     /**
      * @param \ReflectionClass<object> $context
+     * @throws DoublesError
      */
     private static function renderIntersection(\ReflectionIntersectionType $type, \ReflectionClass $context): string
     {
@@ -73,6 +75,7 @@ final class TypeRenderer
 
     /**
      * @param \ReflectionClass<object> $context
+     * @throws DoublesError
      */
     private static function renderNamed(\ReflectionNamedType $type, \ReflectionClass $context): string
     {
@@ -99,6 +102,9 @@ final class TypeRenderer
         return '\\' . $name;
     }
 
+    /**
+     * @throws DoublesError
+     */
     private static function expectNamed(\ReflectionType $type): \ReflectionNamedType
     {
         if (!$type instanceof \ReflectionNamedType) {
