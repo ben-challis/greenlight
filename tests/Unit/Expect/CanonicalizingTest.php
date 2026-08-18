@@ -84,6 +84,19 @@ final class CanonicalizingTest
     }
 
     #[Test]
+    public function toEqualCanonicalizingDoesNotCompareCyclicSortKeyTies(): void
+    {
+        $first = new CanonicalNode('same');
+        $first->next = $first;
+        $second = new CanonicalNode('same');
+        $second->next = $second;
+
+        Expect::that([$second, $first])
+            ->because('canonical sort-key ties MUST not recursively compare cyclic values')
+            ->toEqualCanonicalizing([$first, $second]);
+    }
+
+    #[Test]
     public function toEqualCanonicalizingOrdersIdentityOnlyValues(): void
     {
         $firstClosure = static fn(): string => 'first';

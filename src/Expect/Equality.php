@@ -44,7 +44,18 @@ final class Equality
             // Compute each key one time for each element. A comparator
             // serializes both operands again for each comparison.
             $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, []), $canonical);
-            \array_multisort($keys, \SORT_ASC, \SORT_STRING, $canonical);
+            // Original positions give each item a unique scalar tie-breaker.
+            // PHP would otherwise compare cyclic values when sort keys match.
+            $positions = \array_keys($canonical);
+            \array_multisort(
+                $keys,
+                \SORT_ASC,
+                \SORT_STRING,
+                $positions,
+                \SORT_ASC,
+                \SORT_NUMERIC,
+                $canonical,
+            );
         }
 
         return $canonical;
