@@ -10,6 +10,7 @@ use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class StatChangeDetectorTest
 {
@@ -45,12 +46,7 @@ final readonly class StatChangeDetectorTest
     {
         $root = \dirname(__DIR__, 3);
         $directory = \dirname($root);
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to the watch directory')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $detector = new StatChangeDetector([$directory]);
         $changed = ErrorTrap::run(static fn(): array => $detector->poll(), $warning);

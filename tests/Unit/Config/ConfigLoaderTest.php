@@ -11,6 +11,7 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\FilesystemRestriction;
 
 final class ConfigLoaderTest
 {
@@ -62,12 +63,7 @@ final class ConfigLoaderTest
         $root = \dirname(__DIR__, 3);
         $restrictedDirectory = \dirname($root);
         $restrictedFile = $restrictedDirectory . '/greenlight.php';
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to configuration paths')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $loader = new ConfigLoader();
         Expect::that(

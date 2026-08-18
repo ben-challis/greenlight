@@ -12,6 +12,7 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\JsonWire;
 
 final class TestDiscovererTest
@@ -162,12 +163,7 @@ final class TestDiscovererTest
     {
         $root = \dirname(__DIR__, 3);
         $directory = \dirname($root);
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to the discovery directory')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         Expect::that(
             static function () use ($directory, &$warning): void {

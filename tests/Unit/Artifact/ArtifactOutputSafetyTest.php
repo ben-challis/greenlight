@@ -18,6 +18,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class ArtifactOutputSafetyTest
 {
@@ -46,12 +47,7 @@ final readonly class ArtifactOutputSafetyTest
     {
         $root = \dirname(__DIR__, 3);
         $restricted = \dirname($root);
-        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
-
-        Expect::that($previousOpenBasedir)
-            ->because('the isolated fixture MUST restrict access to artifact paths')
-            ->not()
-            ->toBeFalse();
+        FilesystemRestriction::toProject($root);
 
         $absoluteStore = ErrorTrap::run(
             static fn(): ArtifactStore => ArtifactStore::open(
