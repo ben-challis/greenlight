@@ -50,6 +50,16 @@ final readonly class ProcessResult
      */
     private function lines(string $output): array
     {
-        return $output === '' ? [] : \explode("\n", $output);
+        if ($output === '') {
+            return [];
+        }
+
+        $lines = \explode("\n", $output);
+
+        if ($lines[\array_key_last($lines)] === '') {
+            \array_pop($lines);
+        }
+
+        return $lines;
     }
 }

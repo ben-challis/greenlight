@@ -24,14 +24,10 @@ final class JsonlEvents
      */
     public static function from(ProcessResult $result): array
     {
-        if ($result->stdout === '') {
+        $lines = $result->stdoutLines();
+
+        if ($lines === []) {
             return [];
-        }
-
-        $lines = \explode("\n", $result->stdout);
-
-        if ($lines[\array_key_last($lines)] === '') {
-            \array_pop($lines);
         }
 
         $events = [];
