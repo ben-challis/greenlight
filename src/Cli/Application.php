@@ -23,6 +23,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\InvalidWirePayload;
+use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireError;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
@@ -1037,30 +1038,50 @@ final readonly class Application
                 return self::EXIT_FAILURE;
             }
 
-            if (!\is_array($decoded) || !\is_string($decoded['event'] ?? null) || !\is_array($decoded['data'] ?? null)) {
+            if (!\is_array($decoded) || ($decoded !== [] && \array_is_list($decoded))) {
                 ($this->err)("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
 
                 return self::EXIT_FAILURE;
             }
 
-            $class = EventTags::classFor($decoded['event']);
+            $envelope = [];
+
+            foreach ($decoded as $key => $value) {
+                if (!\is_string($key)) {
+                    ($this->err)("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
+
+                    return self::EXIT_FAILURE;
+                }
+
+                $envelope[$key] = $value;
+            }
+
+            try {
+                $version = Wire::int($envelope, 'v');
+                $tag = Wire::nonEmptyString($envelope, 'event');
+                $data = Wire::map($envelope, 'data');
+            } catch (InvalidWirePayload) {
+                ($this->err)("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
+
+                return self::EXIT_FAILURE;
+            }
+
+            if ($version !== 2) {
+                ($this->err)(\sprintf("The input uses unsupported JSONL version %d.\n", $version));
+
+                return self::EXIT_FAILURE;
+            }
+
+            $class = EventTags::classFor($tag);
 
             if ($class === null) {
                 continue;
             }
 
-            $data = [];
-
-            foreach ($decoded['data'] as $key => $value) {
-                if (\is_string($key)) {
-                    $data[$key] = $value;
-                }
-            }
-
             try {
                 $aggregator->onEvent($class::fromWire($data));
             } catch (InvalidWirePayload $error) {
-                $this->printError(\sprintf('Greenlight could not decode a "%s" event: %s', $decoded['event'], $error->getMessage()), $arguments->has('no-ansi'));
+                $this->printError(\sprintf('Greenlight could not decode a "%s" event: %s', $tag, $error->getMessage()), $arguments->has('no-ansi'));
 
                 return self::EXIT_FAILURE;
             }
