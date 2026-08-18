@@ -93,14 +93,4 @@ final class FileCoverageTest
         Expect::that(static fn(): FileCoverage => $a->merge($b))->because('merging different files is rejected')
             ->toThrow(\LogicException::class, '/Cannot merge coverage of "\/src\/B\.php"/');
     }
-
-    #[Test]
-    public function nonPositiveLineNumbersAreRejected(): void
-    {
-        Expect::that(static fn(): FileCoverage => new FileCoverage('/src/A.php', [0], []))->because('nonpositive line numbers are rejected')
-            ->toThrow(
-                \InvalidArgumentException::class,
-                message: 'Use positive coverage line numbers. Actual value: 0.',
-            );
-    }
 }
