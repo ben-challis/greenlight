@@ -69,6 +69,23 @@ final readonly class AcceptanceProjectTest
     }
 
     #[Test]
+    public function escapesTestFilePathsInGeneratedConfiguration(): void
+    {
+        $project = AcceptanceProject::create($this->workspace, 'quoted-path');
+        $project->writeFile("tests/O'Brien.php", <<<'PHP'
+            <?php
+
+            file_put_contents(__DIR__ . '/../loaded.txt', 'loaded');
+            PHP);
+        $project->configureWithTestFiles(["tests/O'Brien.php"]);
+
+        $configuration = require $project->path('greenlight.php');
+
+        Expect::that($configuration)->because('escapes test file paths in generated configuration')->toBeInstanceOf(GreenlightConfig::class);
+        Expect::that(\file_get_contents($project->path('loaded.txt')))->toBe('loaded');
+    }
+
+    #[Test]
     public function projectWithDiscoveryBasicTestsTargetsTheSharedFixture(): void
     {
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->workspace, 'listing');
