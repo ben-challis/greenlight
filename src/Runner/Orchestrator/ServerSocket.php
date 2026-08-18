@@ -97,7 +97,9 @@ final class ServerSocket
     public function close(): void
     {
         ErrorTrap::run(function (): void {
-            \fclose($this->stream);
+            if (\is_resource($this->stream)) {
+                \fclose($this->stream);
+            }
 
             if ($this->unixPath !== null) {
                 \unlink($this->unixPath);
