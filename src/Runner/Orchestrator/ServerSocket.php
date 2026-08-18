@@ -33,21 +33,35 @@ final class ServerSocket
     ): self {
         $temporaryDirectory ??= \sys_get_temp_dir();
         $runtime ??= new NativeServerSocketRuntime();
-        $socketPath = \rtrim($temporaryDirectory, '/')
-            . '/greenlight-' . \bin2hex(\random_bytes(6)) . '/orchestrator.sock';
+        $socketDirectory = \rtrim($temporaryDirectory, '/')
+            . '/gl-' . \bin2hex(\random_bytes(6));
+        $socketPath = $socketDirectory . '/s';
         $errorMessage = null;
 
-        $server = ErrorTrap::run(static function () use ($runtime, $socketPath, &$errorMessage) {
-            \mkdir(\dirname($socketPath), 0o700, true);
+        $server = ErrorTrap::run(static function () use ($runtime, $socketDirectory, $socketPath, &$errorMessage) {
+            \mkdir($socketDirectory, 0o700);
 
             return $runtime->listen('unix://' . $socketPath, $errorMessage);
         });
 
         if (\is_resource($server)) {
-            return new self($server, 'unix://' . $socketPath, $socketPath);
+            $boundPath = $runtime->name($server);
+
+            if ($boundPath === $socketPath) {
+                return new self($server, 'unix://' . $socketPath, $socketPath);
+            }
+
+            ErrorTrap::run(static function () use ($server, $boundPath, $socketPath): void {
+                if (\is_string($boundPath)) {
+                    \unlink($boundPath);
+                }
+
+                \unlink($socketPath);
+                \fclose($server);
+            });
         }
 
-        ErrorTrap::run(static fn(): bool => \rmdir(\dirname($socketPath)));
+        ErrorTrap::run(static fn(): bool => \rmdir($socketDirectory));
 
         $server = ErrorTrap::run(static function () use ($runtime, &$errorMessage) {
             return $runtime->listen('tcp://127.0.0.1:0', $errorMessage);
