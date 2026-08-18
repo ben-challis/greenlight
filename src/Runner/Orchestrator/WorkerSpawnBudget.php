@@ -25,7 +25,10 @@ final class WorkerSpawnBudget
     {
         // Worker replacement and crash containment can start replacement
         // processes. Permit only a small number for each planned test.
-        $this->limit = $plannedTests + $workerCount * 8 + 16;
+        $remaining = \PHP_INT_MAX - $plannedTests;
+        $this->limit = $remaining < 16 || $workerCount > \intdiv($remaining - 16, 8)
+            ? \PHP_INT_MAX
+            : $plannedTests + $workerCount * 8 + 16;
     }
 
     /**

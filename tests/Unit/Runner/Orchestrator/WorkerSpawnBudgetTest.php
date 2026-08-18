@@ -37,4 +37,14 @@ final readonly class WorkerSpawnBudgetTest
                     . 'This count indicates a worker replacement loop.',
             );
     }
+
+    #[Test]
+    public function extremeWorkerCountsKeepTheReplacementBudgetBounded(): void
+    {
+        $budget = new WorkerSpawnBudget(plannedTests: 1, workerCount: \PHP_INT_MAX);
+
+        Expect::that($budget->nextWorkerId())
+            ->because('the replacement budget MUST remain usable for every accepted worker count')
+            ->toBe('w-1');
+    }
 }
