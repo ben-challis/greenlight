@@ -227,7 +227,7 @@ final class Subprocess
                 $status = \proc_get_status($this->process);
 
                 if (!$status['running']) {
-                    $this->drain();
+                    $this->drainAvailable();
                     $closedExitCode = \proc_close($this->process);
                     $this->finished = true;
 
@@ -280,6 +280,29 @@ final class Subprocess
 
             if ($ready === false) {
                 throw new \RuntimeException('Could not read process output.');
+            }
+
+            $this->capture($read);
+        }
+    }
+
+    /** @throws \RuntimeException when output cannot be read */
+    private function drainAvailable(): void
+    {
+        while (($read = $this->outputPipes()) !== []) {
+            $write = null;
+            $except = null;
+            $ready = \stream_select($read, $write, $except, 0, 0);
+
+            if ($ready === false) {
+                throw new \RuntimeException('Could not read process output.');
+            }
+
+            if ($ready === 0) {
+                $this->closePipe(1);
+                $this->closePipe(2);
+
+                return;
             }
 
             $this->capture($read);

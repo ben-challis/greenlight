@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
@@ -159,6 +160,51 @@ final readonly class SubprocessTest
         try {
             Expect::that(static fn(): ProcessResult => $process->wait(0.05))
                 ->toThrow(\RuntimeException::class, '/Timed out after 0.1s/');
+        } finally {
+            $process->terminate();
+        }
+    }
+
+    #[Test]
+    public function waitDoesNotDrainAnInheritedPipePastItsDeadline(): void
+    {
+        if (!\function_exists('pcntl_fork')) {
+            throw new SkipTest('The pcntl extension is not available.');
+        }
+
+        $process = Subprocess::start(
+            $this->workspace->path(),
+            [
+                \PHP_BINARY,
+                '-r',
+                <<<'PHP'
+                $pid = pcntl_fork();
+
+                if ($pid === -1) {
+                    exit(2);
+                }
+
+                if ($pid === 0) {
+                    usleep(2_000_000);
+                    exit(0);
+                }
+
+                fwrite(STDOUT, "parent exited\n");
+                exit(7);
+                PHP,
+            ],
+        );
+
+        try {
+            $started = \hrtime(true);
+            $result = $process->wait(0.5);
+            $elapsedSeconds = (\hrtime(true) - $started) / 1_000_000_000;
+
+            Expect::that($result->exitCode)->toBe(7);
+            Expect::that($result->stdout)->toBe('parent exited');
+            Expect::that($elapsedSeconds)
+                ->because('wait MUST NOT drain a pipe inherited by a descendant past its deadline')
+                ->toBeLessThan(1.0);
         } finally {
             $process->terminate();
         }
