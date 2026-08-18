@@ -69,6 +69,11 @@ final readonly class ServerSocketUnixCleanupTest
             Expect::that(\is_dir($root))
                 ->because('closing the listener MUST leave its supplied temporary root')
                 ->toBeTrue();
+            Expect::that(static function () use ($socket): void {
+                $socket->close();
+            })
+                ->because('listener cleanup MUST tolerate a repeated defensive close')
+                ->not()->toThrow(\Throwable::class);
         } finally {
             if (!$closed) {
                 $socket?->close();
