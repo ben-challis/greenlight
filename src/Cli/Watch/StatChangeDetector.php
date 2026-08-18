@@ -68,7 +68,7 @@ final class StatChangeDetector implements ChangeDetector
         $snapshot = [];
 
         foreach ($this->directories as $directory) {
-            if (!\is_dir($directory)) {
+            if (!ErrorTrap::run(static fn(): bool => \is_dir($directory))) {
                 continue;
             }
 
