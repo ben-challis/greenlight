@@ -10,19 +10,22 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Worker\WorkerProcess;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class WorkerProcessTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(
+        private EnvironmentSandbox $environment,
+        private TempDirectory $tempDirectory,
+    ) {}
 
     #[Test]
     public function connectionFailureNamesTheExactAddress(): void
     {
         $root = \dirname(__DIR__, 4);
-        $address = 'unix://' . \sys_get_temp_dir()
-            . '/greenlight-missing-worker-' . \bin2hex(\random_bytes(6)) . '.sock';
+        $address = 'unix://' . $this->tempDirectory->path() . '/missing-worker.sock';
 
         $result = Subprocess::run($root, [
             \PHP_BINARY,
@@ -52,8 +55,7 @@ final readonly class WorkerProcessTest
     public function assignmentSetupFailuresAreReportedToTheOrchestrator(): void
     {
         $root = \dirname(__DIR__, 4);
-        $missingConfig = \sys_get_temp_dir()
-            . '/greenlight-missing-config-' . \bin2hex(\random_bytes(6)) . '.php';
+        $missingConfig = $this->tempDirectory->path() . '/missing-config.php';
         $server = Subprocess::start($root, [
             \PHP_BINARY,
             '-r',
