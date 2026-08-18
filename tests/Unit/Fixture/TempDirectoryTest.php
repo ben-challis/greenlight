@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Fixture;
 
 use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -103,6 +105,31 @@ final class TempDirectoryTest
         } finally {
             $directory->dispose();
         }
+    }
+
+    #[Test]
+    #[Isolated]
+    public function aRestrictedTempRootFailsWithoutEngineDiagnostics(): void
+    {
+        $root = \dirname(__DIR__, 3);
+        $restricted = \dirname($root);
+        $previousOpenBasedir = \ini_set('open_basedir', $root . \PATH_SEPARATOR . \sys_get_temp_dir());
+
+        Expect::that($previousOpenBasedir)
+            ->because('the isolated fixture MUST restrict access to the temporary root')
+            ->not()
+            ->toBeFalse();
+
+        $directory = new TempDirectory($restricted);
+
+        Expect::that(
+            static function () use ($directory, &$warning): void {
+                ErrorTrap::run(static fn(): string => $directory->path(), $warning);
+            },
+        )->because('a restricted temporary root causes a fixture error')->toThrow(TempDirectoryError::class);
+        Expect::that($warning)
+            ->because('a restricted temporary root MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 
     #[Test]
