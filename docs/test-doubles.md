@@ -41,7 +41,7 @@ Greenlight verifies mocks when the test ends.
 * If the test expects specific calls and responses, use
   `mock(Type::class, $plan)`. An unplanned interaction fails immediately.
 * If the test needs an unused dependency, use `stub(Type::class)`. Each
-  interaction fails immediately.
+  intercepted interaction fails immediately.
 * If the test must examine calls that return void, use `spy(Type::class)`. The
   spy records an unplanned call.
 
@@ -69,6 +69,10 @@ of these methods to change its cardinality:
 A call that does not match an expectation fails immediately. At teardown, an
 unmet expectation fails the test. Greenlight reports all unmet expectations
 together.
+
+Greenlight examines expectations in declaration order. It uses the first
+unsaturated expectation that accepts the call. When that expectation reaches
+its maximum cardinality, Greenlight continues to the next expectation.
 
 Without an argument constraint, an expectation accepts each argument list that
 the method declaration permits. Greenlight rejects arguments that the method
@@ -173,9 +177,16 @@ Expect::that(
 
 ## Supported types and limits
 
-Greenlight can create doubles for interfaces and non-final classes. It does not
-run the class constructor when it creates a double.
+Greenlight can create doubles for interfaces and non-final, non-readonly
+classes. It rejects final classes, readonly classes, enums, and traits.
 
-Greenlight rejects final classes, readonly classes, and enums. It does not
-support partial mocks or static method interception. Prefer a double for an
-interface at the application boundary.
+A class double intercepts overridable public instance methods. A mock plan
+accepts only these methods.
+
+Concrete final and static methods keep their original implementations.
+Concrete protected methods also keep their original implementations. Calls
+through these methods can run application code.
+
+Greenlight does not run the class constructor when it creates a double. It does
+not support static method interception. Prefer an interface at the application
+boundary.

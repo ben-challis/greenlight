@@ -37,6 +37,9 @@ final readonly class CheckoutTest
 media type. `file()` copies a regular file and detects its media type when
 possible.
 
+Greenlight accepts media types in `type/subtype` form. A media type can include
+parameters. Greenlight rejects malformed values and control characters.
+
 Greenlight copies the content before the method returns. You can remove a
 temporary source file after `file()` returns. Later changes to a value or file
 do not change the attachment.

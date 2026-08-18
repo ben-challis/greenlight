@@ -29,6 +29,9 @@ resources. Use integration resources in both runner modes.
 
 ## Capability interfaces
 
+`Greenlight\Reporting\Reporter` is not a plugin capability. You cannot pass a
+reporter to `plugins()`. Use `--reporter` to select a built-in reporter.
+
 ### IntegrationFixtureProvider
 
 Orchestrator-side.
@@ -279,7 +282,7 @@ public function onRunEvent(Event $event): void;
 ```
 
 Run subscribers receive the event stream in the orchestrator process. The
-stream contains run, worker, class, and test events.
+stream contains run, worker, suite, class, and test events.
 
 This side is observation-only. Results cannot be changed across the process
 boundary. Integration fixture provisioning completes before `RunStarted`.
@@ -421,15 +424,6 @@ only one signature for a matcher name.
 When PHPStan first loads the matcher map, it runs plugin constructors in its
 process. Each worker also runs the plugin constructors.
 
-### Reporter
-
-In `Greenlight\Reporting`.
-
-Implement `onEvent(Event $event): void` and `finish(): void`. These methods
-render the event stream in another format.
-
-The built-in Greenlight reporters use the same interface.
-
 ## Plugin order and error policy
 
 Subscribers run in registration order.
@@ -442,6 +436,19 @@ public function priority(): int;
 
 Lower numbers run earlier. The default priority is `0`. The stable sort keeps
 the registration order of plugins that have the same priority.
+
+Priority applies to these capabilities:
+
+* `IntegrationFixtureProvider`
+* `WorkerBootstrapSubscriber`
+* `TestLifecycleSubscriber`
+* `RetryDecider`
+* `RunLifecycleSubscriber`
+* `HarnessProvider`
+* `ServiceResolver`
+
+Priority does not apply to `ExpectationExtension`. Greenlight calls expectation
+extensions in registration order.
 
 Greenlight reports all plugin failures. A worker-side failure causes an error
 for the affected test and names the plugin. An orchestrator-side failure causes
