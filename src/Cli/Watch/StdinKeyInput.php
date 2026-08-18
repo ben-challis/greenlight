@@ -38,6 +38,8 @@ final class StdinKeyInput implements KeyInput
      * @param (\Closure(): bool)|null $isTty
      * @param (\Closure(): (string|false))|null $read
      * @param (\Closure(string): (string|false|null))|null $runShellCommand
+     *
+     * @throws \RuntimeException when standard input cannot become non-blocking
      */
     public function __construct(
         ?\Closure $configureBlocking = null,
@@ -54,7 +56,10 @@ final class StdinKeyInput implements KeyInput
 
         $this->read = $read;
         $this->runShellCommand = $runShellCommand;
-        $configureBlocking(false);
+
+        if ($configureBlocking(false) === false) {
+            throw new \RuntimeException('Greenlight could not make standard input non-blocking.');
+        }
 
         if ($isTty() && $runShellCommand instanceof \Closure) {
             ErrorTrap::run(static fn(): string|false|null => $runShellCommand(self::ENABLE_RAW_MODE_COMMAND));
