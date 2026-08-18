@@ -225,8 +225,35 @@ final readonly class WorkerProcessTest
      */
     public static function cleanControlChannelEndings(): iterable
     {
-        yield 'orchestrator disconnect' => ['eof'];
-        yield 'unexpected message followed by drain' => ['unexpected-then-drain'];
+        yield 'orchestrator disconnect before bootstrap' => ['eof'];
+        yield 'drain before bootstrap' => ['drain-before-bootstrap'];
+        yield 'orchestrator disconnect after bootstrap' => ['bootstrap-then-eof'];
+        yield 'unexpected message before bootstrap' => ['unexpected-before-bootstrap'];
+        yield 'unexpected message after bootstrap' => ['unexpected-then-drain'];
+    }
+
+    #[Test]
+    #[Timeout(5.0)]
+    #[DataSet('workerProtocolViolations')]
+    public function protocolViolationsStopTheWorkerAbnormally(string $scenario): void
+    {
+        [$workerExit, $serverExit] = $this->runScenario($scenario);
+
+        Expect::that($workerExit)
+            ->because('a worker protocol violation MUST stop the worker abnormally')
+            ->toBe(1);
+        Expect::that($serverExit)
+            ->because('the protocol fixture MUST receive the worker fatal message')
+            ->toBe(0);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function workerProtocolViolations(): iterable
+    {
+        yield 'assignment before bootstrap' => ['assignment-before-bootstrap'];
+        yield 'duplicate bootstrap' => ['duplicate-bootstrap'];
     }
 
     /**
@@ -271,6 +298,30 @@ final readonly class WorkerProcessTest
                 exit(0);
             }
 
+            if ($scenario === 'drain-before-bootstrap') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Drain());
+                exit(0);
+            }
+
+            if ($scenario === 'assignment-before-bootstrap') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\ExecutionPlan([]),
+                ));
+                $fatal = $channel->receive(2.0);
+
+                if (!$fatal instanceof Greenlight\Runner\Protocol\Messages\Fatal
+                    || $fatal->detail->message !== 'Worker received an assignment before bootstrap completed.'
+                ) {
+                    exit(5);
+                }
+
+                exit(0);
+            }
+
+            if ($scenario === 'unexpected-before-bootstrap') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Hello('unexpected', 'token', 1));
+            }
+
             $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
                 1,
                 null,
@@ -291,6 +342,28 @@ final readonly class WorkerProcessTest
 
             if (!$bootstrapResponse instanceof Greenlight\Runner\Protocol\Messages\Ready) {
                 exit(5);
+            }
+
+            if ($scenario === 'bootstrap-then-eof') {
+                $channel->close();
+                exit(0);
+            }
+
+            if ($scenario === 'duplicate-bootstrap') {
+                $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
+                    1,
+                    null,
+                    Greenlight\Harness\IntegrationResources::empty(),
+                ));
+                $fatal = $channel->receive(2.0);
+
+                if (!$fatal instanceof Greenlight\Runner\Protocol\Messages\Fatal
+                    || $fatal->detail->message !== 'Worker received bootstrap more than once.'
+                ) {
+                    exit(6);
+                }
+
+                exit(0);
             }
 
             if ($scenario === 'passing-assignment-recycles') {
@@ -390,7 +463,7 @@ final readonly class WorkerProcessTest
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Hello('unexpected', 'token', 1));
             } elseif ($scenario === 'idle-then-drain') {
                 usleep(100_000);
-            } else {
+            } elseif ($scenario !== 'unexpected-before-bootstrap') {
                 exit(9);
             }
 

@@ -2,9 +2,188 @@
 
 # Integration API
 
-This reference lists public integration types for Laravel, PSR standards, Rector, and Symfony.
+This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, and Symfony.
 
 These signatures are the public API.
+
+## `ContainerLifetime`
+
+Namespace: `Greenlight\Hyperf`
+
+Selects the lifetime of the Hyperf application container.
+
+```php
+enum ContainerLifetime
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/ContainerLifetime.php#L8)
+
+### `Worker`
+
+One container belongs to one physical Greenlight worker.
+
+```php
+case Worker;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/ContainerLifetime.php#L11)
+
+### `TestAttempt`
+
+One container belongs to one test attempt.
+
+```php
+case TestAttempt;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/ContainerLifetime.php#L14)
+
+## `HyperfPlugin`
+
+Namespace: `Greenlight\Hyperf`
+
+Initializes the Hyperf class loader once in each worker. It creates a
+coroutine context for each test attempt.
+
+The default worker container lifetime matches a long-running Hyperf worker.
+`#[Service]` selects an explicit container ID. Tests MUST isolate external
+resources by `GREENLIGHT_CHANNEL`.
+
+```php
+final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L38)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string $basePath,
+    private readonly ContainerLifetime $containerLifetime = ContainerLifetime::Worker,
+    private readonly ?\Closure $reset = null,
+    private readonly ?\Closure $dispose = null,
+    private readonly ?int $hookFlags = null,
+)
+```
+
+PHPDoc:
+
+- `@param null|\Closure(ContainerInterface): void $reset Resets project-owned request state after each test attempt. The callback runs inside the test coroutine.`
+- `@param null|\Closure(ContainerInterface): void $dispose Releases project-owned resources when the selected container lifetime ends. The callback runs inside a coroutine.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L61)
+
+### `services()`
+
+```php
+[\Override]
+public function services(): array
+```
+
+PHPDoc:
+
+- `@return list<ServiceDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L73)
+
+### `resolve()`
+
+```php
+[\Override]
+public function resolve(string $type, array $attributes): ?object
+```
+
+PHPDoc:
+
+- `@param class-string $type`
+- `@param list<object> $attributes`
+- `@throws HyperfBridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L86)
+
+### `onWorkerBootstrap()`
+
+```php
+[\Override]
+public function onWorkerBootstrap(WorkerBootstrapContext $context): void
+```
+
+PHPDoc:
+
+- `@throws HyperfBridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L117)
+
+### `runWorker()`
+
+```php
+[\Override]
+public function runWorker(\Closure $worker): mixed
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param \Closure(): T $worker`
+- `@return T`
+- `@throws HyperfBridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L166)
+
+### `runTestAttempt()`
+
+```php
+[\Override]
+public function runTestAttempt(\Closure $attempt): mixed
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param \Closure(): T $attempt`
+- `@return T`
+- `@throws HyperfBridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L210)
+
+## `Hyperf\Service`
+
+Namespace: `Greenlight\Hyperf`
+
+Use this attribute when a parameter type does not select one container ID.
+The service must have the declared type.
+
+```php
+#[\Attribute(\Attribute::TARGET_PARAMETER)]
+final readonly class Service
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/Service.php#L12)
+
+### `$id`
+
+```php
+public string $id;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/Service.php#L15)
+
+### `__construct()`
+
+```php
+public function __construct(string $id)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/Service.php#L18)
 
 ## `LaravelPlugin`
 

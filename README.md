@@ -134,6 +134,7 @@ for the complete model.
 * [Static analysis with PHPStan](docs/phpstan.md)
 * [Test Symfony applications](docs/symfony.md)
 * [Test Laravel applications](docs/laravel.md)
+* [Test Hyperf applications](docs/hyperf.md)
 * [Test PSR applications](docs/psr.md)
 * [Test PSR-15 applications](docs/psr15.md)
 * [Move from PHPUnit](docs/migrating-from-phpunit.md)

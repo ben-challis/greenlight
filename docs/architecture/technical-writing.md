@@ -110,6 +110,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | condition | Technical noun | A rule that determines if Greenlight skips a test |
 | configuration | Technical noun | The settings that control a Greenlight run |
 | configurator | Technical noun | A callable that changes a builder |
+| container lifetime | Technical noun | The period that one application container belongs to a worker or test attempt |
 | consumer | Technical noun | A program or tool that reads Greenlight output |
 | coverage driver | Technical noun | A component that collects raw line coverage |
 | coverage export | Technical noun | A file or directory that contains coverage results |
@@ -138,6 +139,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | harness | Technical noun | The test environment that supplies application services to a worker |
 | harness provider | Technical noun | A plugin that supplies services to the Greenlight harness |
 | harness service | Technical noun | An object that the harness supplies to a test constructor |
+| Hyperf bridge | Technical noun | The component that connects the Greenlight harness to a Hyperf application, container, and coroutine runtime |
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
@@ -178,6 +180,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | run subscriber | Technical noun | An orchestrator plugin that observes run events |
 | run time | Technical noun | The time when a program executes |
 | runtime | Noun modifier | Related to program execution |
+| runtime boundary | Technical noun | A plugin-defined execution context that contains one complete test attempt |
 | service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |

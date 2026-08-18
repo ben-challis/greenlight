@@ -142,7 +142,7 @@ final readonly class InProcessRunner
                 $collectingCoverage = $collector instanceof CoverageCollector;
                 $collector?->start();
 
-                $outcome = new Worker(
+                $outcome = $plugins->runWorker(static fn() => new Worker(
                     DefaultServices::registry($plugins, $resources),
                     $plugins,
                     $detectLeaks ? new LeakDetector() : null,
@@ -155,7 +155,7 @@ final readonly class InProcessRunner
                     $configuration->stopAfterFailures,
                     null,
                     $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
-                );
+                ));
                 $summary = $outcome->summary;
 
                 $collectingCoverage = false;

@@ -112,7 +112,22 @@ final readonly class TestExecutor
                 ($this->attemptStarted)($entry->id, $attempt);
             }
 
-            [$result, $cause, $attachments] = $this->attempt($entry, $attempt, $artifactBudget);
+            try {
+                [$result, $cause, $attachments] = $this->runTestAttempt(
+                    fn(): array => $this->attempt($entry, $attempt, $artifactBudget),
+                );
+            } catch (\Throwable $threw) {
+                $cause = $threw;
+                $attachments = null;
+                $result = new TestResult(
+                    $entry->id,
+                    Outcome::Errored,
+                    0.0,
+                    0,
+                    $attempt,
+                    error: ThrowableDetail::fromThrowable($threw),
+                );
+            }
 
             if ($attachments instanceof StagedAttachments) {
                 $result = $result->withAttachments($attachments->collected());
@@ -147,6 +162,25 @@ final readonly class TestExecutor
 
             $retainedAttachments = [...$retainedAttachments, ...$sealed];
         } while (true);
+    }
+
+    /**
+     * @template T
+     *
+     * @param \Closure(): T $attempt
+     *
+     * @return T
+     */
+    private function runTestAttempt(\Closure $attempt): mixed
+    {
+        $runners = $this->plugins->testAttemptRunners();
+
+        foreach (\array_reverse($runners) as $runner) {
+            $next = $attempt;
+            $attempt = static fn(): mixed => $runner->runTestAttempt($next);
+        }
+
+        return $attempt();
     }
 
     /**

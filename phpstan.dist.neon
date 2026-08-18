@@ -35,6 +35,8 @@ parameters:
         - src
         - tests
         - tools
+    scanFiles:
+        - tools/phpstan-stubs/hyperf.php
     excludePaths:
         analyse:
             - tests/Fixture/DataRowsDuplicateInline

@@ -11,6 +11,7 @@ use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Core\Wire\WireError;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
@@ -77,13 +78,8 @@ final readonly class WorkerProcess
         $channel->send(new Hello($workerId, $token, $pid === false ? 1 : \max(1, $pid)));
 
         // Build plugins during bootstrap and reuse them for later assignments.
-        // Thus, plugin construction occurs one time for each worker. Run-scope
-        // harness services remain available across assignments.
-        $plugins = null;
-        $registry = null;
+        // Thus, plugin construction occurs one time for each worker.
         $scopes = null;
-        $executedTotal = 0;
-        $artifactStore = null;
 
         try {
             while (true) {
@@ -96,121 +92,56 @@ final readonly class WorkerProcess
                         continue;
                     }
 
-                    $scopes?->closeRun();
-
                     return 0;
                 }
 
                 if ($message instanceof Drain) {
-                    $scopes?->closeRun();
-
                     return 0;
                 }
 
-                if ($message instanceof Bootstrap) {
-                    if ($plugins instanceof PluginRegistry) {
-                        throw ProtocolError::duplicateBootstrap();
+                if (!$message instanceof Bootstrap) {
+                    if ($message instanceof Assign) {
+                        throw ProtocolError::assignmentBeforeBootstrap();
                     }
-
-                    if (ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) !== $message->channel) {
-                        throw ProtocolError::bootstrapChannelMismatch();
-                    }
-
-                    $userPlugins = $message->configFile === null
-                        ? []
-                        : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
-                    $plugins = PluginRegistry::forWorker($userPlugins);
-                    $plugins->bootstrapWorker(new WorkerBootstrapContext(
-                        $workerId,
-                        new TestChannel($message->channel),
-                        $message->resources,
-                    ));
-                    $registry = DefaultServices::registry($plugins, $message->resources);
-                    $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
-                    $channel->send(new Ready());
 
                     continue;
                 }
 
-                if (!$message instanceof Assign) {
-                    continue;
+                if (ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) !== $message->channel) {
+                    throw ProtocolError::bootstrapChannelMismatch();
                 }
 
-                if (!$plugins instanceof PluginRegistry || !$registry instanceof HarnessRegistry || !$scopes instanceof HarnessScopes) {
-                    throw ProtocolError::assignmentBeforeBootstrap();
-                }
-
-                $collector = null;
-
-                if ($message->coverageInclude !== null) {
-                    $collector = CoverageCollector::create(
-                        new CoverageSettings($message->coverageInclude, $message->coverageDriver),
-                    );
-                }
-
-                if (!$artifactStore instanceof ArtifactStore
-                    && $message->artifactSession instanceof ArtifactSession
-                    && $message->artifactConfiguration instanceof ArtifactConfiguration
-                ) {
-                    $artifactStore = ArtifactStore::fromSession(
-                        $message->artifactSession,
-                        $message->artifactConfiguration,
-                    );
-                }
-
-                $collector?->start();
-
-                $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
-
-                $outcome = new Worker(
-                    $registry,
-                    $plugins,
-                    $leakDetector,
+                $userPlugins = $message->configFile === null
+                    ? []
+                    : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
+                $plugins = PluginRegistry::forWorker($userPlugins);
+                $plugins->bootstrapWorker(new WorkerBootstrapContext(
                     $workerId,
-                    $message->policy,
-                    $artifactStore,
-                )->run(
-                    $message->slice,
-                    new SocketEventSink($channel),
-                    null,
-                    new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
-                    static fn(): bool => $channel->poll() instanceof Drain,
+                    new TestChannel($message->channel),
+                    $message->resources,
+                ));
+                $registry = DefaultServices::registry($plugins, $message->resources);
+                $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
+
+                $finalMessage = $plugins->runWorker(function () use (
+                    $channel,
+                    $plugins,
+                    $registry,
                     $scopes,
-                    static function (TestId $id, int $attempt) use ($channel): void {
-                        $channel->send(new AttemptStarted($id, $attempt));
-                    },
-                );
+                    $workerId,
+                ): ?Message {
+                    try {
+                        return $this->runAssignments($channel, $plugins, $registry, $scopes, $workerId);
+                    } finally {
+                        $scopes->closeRun();
+                    }
+                });
 
-                $coverage = $collector?->stop();
-
-                if ($outcome->recycleReason instanceof RecycleReason) {
-                    $scopes->closeRun();
-                    $channel->send(new Recycling(
-                        $outcome->recycleReason,
-                        $outcome->remaining,
-                        $outcome->summary,
-                        $coverage,
-                    ));
-
-                    return 0;
+                if ($finalMessage instanceof Message) {
+                    $channel->send($finalMessage);
                 }
 
-                $executedTotal += $outcome->summary->total();
-                $wantsRecycle = null;
-
-                if ($message->recycleAfterTests !== null && $executedTotal >= $message->recycleAfterTests) {
-                    $wantsRecycle = RecycleReason::TestCount;
-                } elseif ($message->recycleAboveMemoryBytes !== null && \memory_get_usage(true) >= $message->recycleAboveMemoryBytes) {
-                    $wantsRecycle = RecycleReason::Memory;
-                }
-
-                $channel->send(new Done($outcome->summary, \memory_get_peak_usage(true), $coverage, $outcome->leaks, $wantsRecycle));
-
-                if ($outcome->drained || $wantsRecycle instanceof RecycleReason) {
-                    $scopes->closeRun();
-
-                    return 0;
-                }
+                return 0;
             }
         } catch (\Throwable $threw) {
             try {
@@ -226,4 +157,127 @@ final readonly class WorkerProcess
             $channel->close();
         }
     }
+
+    /**
+     * Runs assignments after bootstrap. The returned message is sent only
+     * after every worker runtime boundary closes successfully.
+     *
+     * @throws WireError
+     * @throws ProtocolError
+     */
+    private function runAssignments(
+        SocketChannel $channel,
+        PluginRegistry $plugins,
+        HarnessRegistry $registry,
+        HarnessScopes $scopes,
+        string $workerId,
+    ): ?Message {
+        $executedTotal = 0;
+        $artifactStore = null;
+
+        $channel->send(new Ready());
+
+        while (true) {
+            $message = $channel->receive($this->receivePollSeconds);
+
+            if (!$message instanceof Message) {
+                if (!$channel->isEof()) {
+                    continue;
+                }
+
+                return null;
+            }
+
+            if ($message instanceof Drain) {
+                return null;
+            }
+
+            if ($message instanceof Bootstrap) {
+                throw ProtocolError::duplicateBootstrap();
+            }
+
+            if (!$message instanceof Assign) {
+                continue;
+            }
+
+            $collector = null;
+
+            if ($message->coverageInclude !== null) {
+                // A collector cannot observe the code that creates it. The
+                // coverage acceptance tests exercise this bootstrap path.
+                // @codeCoverageIgnoreStart
+                $collector = CoverageCollector::create(
+                    new CoverageSettings($message->coverageInclude, $message->coverageDriver),
+                );
+                // @codeCoverageIgnoreEnd
+            }
+
+            if (!$artifactStore instanceof ArtifactStore
+                && $message->artifactSession instanceof ArtifactSession
+                && $message->artifactConfiguration instanceof ArtifactConfiguration
+            ) {
+                $artifactStore = ArtifactStore::fromSession(
+                    $message->artifactSession,
+                    $message->artifactConfiguration,
+                );
+            }
+
+            $collector?->start();
+
+            $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
+
+            $outcome = new Worker(
+                $registry,
+                $plugins,
+                $leakDetector,
+                $workerId,
+                $message->policy,
+                $artifactStore,
+            )->run(
+                $message->slice,
+                new SocketEventSink($channel),
+                null,
+                new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
+                static fn(): bool => $channel->poll() instanceof Drain,
+                $scopes,
+                static function (TestId $id, int $attempt) use ($channel): void {
+                    $channel->send(new AttemptStarted($id, $attempt));
+                },
+            );
+
+            $coverage = $collector?->stop();
+
+            if ($outcome->recycleReason instanceof RecycleReason) {
+                return new Recycling(
+                    $outcome->recycleReason,
+                    $outcome->remaining,
+                    $outcome->summary,
+                    $coverage,
+                );
+            }
+
+            $executedTotal += $outcome->summary->total();
+            $wantsRecycle = null;
+
+            if ($message->recycleAfterTests !== null && $executedTotal >= $message->recycleAfterTests) {
+                $wantsRecycle = RecycleReason::TestCount;
+            } elseif ($message->recycleAboveMemoryBytes !== null && \memory_get_usage(true) >= $message->recycleAboveMemoryBytes) {
+                $wantsRecycle = RecycleReason::Memory;
+            }
+
+            $done = new Done(
+                $outcome->summary,
+                \memory_get_peak_usage(true),
+                $coverage,
+                $outcome->leaks,
+                $wantsRecycle,
+            );
+
+            if ($outcome->drained || $wantsRecycle instanceof RecycleReason) {
+                return $done;
+            }
+
+            $channel->send($done);
+        }
+    } // @codeCoverageIgnore
 }
