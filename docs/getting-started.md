@@ -12,8 +12,8 @@ Greenlight requires PHP 8.4 or later. It does not require a PHP extension.
 The parallel runner uses core stream sockets and `proc_open`. Coverage requires
 `ext-pcov` or Xdebug in coverage mode.
 
-If the system disables `proc_open`, Greenlight uses an in-process sequential
-run.
+If PHP disables a process or stream function that the parallel runner requires,
+Greenlight uses an in-process sequential run.
 
 Install Greenlight as a development dependency:
 
