@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
+use Greenlight\Condition\FunctionAvailable;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -48,6 +50,29 @@ final readonly class WorkerProcessTest
             ->toBe(1);
         Expect::that($result->stderr)
             ->toContain('The worker did not connect to ' . $address . ':');
+    }
+
+    #[Test]
+    #[SkipUnless(FunctionAvailable::class, 'pcntl_signal_get_handler')]
+    public function runRestoresTheCallingProcessInterruptHandler(): void
+    {
+        $before = \pcntl_signal_get_handler(\SIGINT);
+        $callerHandler = static function (): void {};
+
+        try {
+            \pcntl_signal(\SIGINT, $callerHandler);
+
+            $address = 'unix://' . $this->tempDirectory->path() . '/missing-worker.sock';
+
+            Expect::that(new WorkerProcess()->run($address, 'worker-under-test', 'token'))
+                ->because('a connection failure MUST return control to the calling process')
+                ->toBe(1);
+            Expect::that(\pcntl_signal_get_handler(\SIGINT))
+                ->because('an in-process worker run MUST restore the caller SIGINT handler')
+                ->toBe($callerHandler);
+        } finally {
+            \pcntl_signal(\SIGINT, $before);
+        }
     }
 
     #[Test]

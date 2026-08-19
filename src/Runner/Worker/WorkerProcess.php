@@ -59,10 +59,31 @@ final readonly class WorkerProcess
         // The terminal sends Ctrl+C to the complete process group. Workers
         // ignore SIGINT. Thus, the orchestrator can control an orderly drain.
         // Crash containment does not report active tests as crashes from SIGINT.
+        $interruptHandler = \function_exists('pcntl_signal_get_handler')
+            ? \pcntl_signal_get_handler(\SIGINT)
+            : null;
+
         if (\function_exists('pcntl_signal')) {
             \pcntl_signal(\SIGINT, \SIG_IGN);
         }
 
+        try {
+            return $this->runWhileIgnoringInterrupt($address, $workerId, $token);
+        } finally {
+            if ($interruptHandler !== null && \function_exists('pcntl_signal')) {
+                \pcntl_signal(\SIGINT, $interruptHandler);
+            }
+        }
+    }
+
+    /**
+     * @param non-empty-string $address
+     * @param non-empty-string $workerId
+     * @param non-empty-string $token
+     * @throws ProtocolError
+     */
+    private function runWhileIgnoringInterrupt(string $address, string $workerId, string $token): int
+    {
         $stream = ErrorTrap::run(static function () use ($address, &$errorCode, &$errorMessage) {
             return \stream_socket_client($address, $errorCode, $errorMessage, 10.0);
         });
