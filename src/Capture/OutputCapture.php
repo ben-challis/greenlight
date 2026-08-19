@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Capture;
 
+use Greenlight\Core\ErrorHandlerStack;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Diagnostic;
@@ -188,13 +189,13 @@ final class OutputCapture
 
     private function restoreErrorHandler(): void
     {
-        $active = \set_error_handler(null);
-        \restore_error_handler();
+        $handler = $this->errorHandler;
+        $this->errorHandler = null;
 
-        if ($active === $this->errorHandler) {
-            \restore_error_handler();
+        if (!$handler instanceof \Closure) {
+            return;
         }
 
-        $this->errorHandler = null;
+        ErrorHandlerStack::remove($handler);
     }
 }

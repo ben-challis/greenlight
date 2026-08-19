@@ -149,16 +149,24 @@ final class OutputCaptureTest
     }
 
     #[Test]
-    public function stopPreservesAnErrorHandlerInstalledDuringCapture(): void
+    public function stopPreservesErrorHandlersInstalledDuringCapture(): void
     {
         $baselineHandler = $this->activeErrorHandler();
-        $messages = [];
+        $lowerMessages = [];
+        $upperMessages = [];
         $capture = new OutputCapture();
         $capture->start();
 
         \set_error_handler(
-            static function (int $severity, string $message) use (&$messages): bool {
-                $messages[] = [$severity, $message];
+            static function (int $severity, string $message) use (&$lowerMessages): bool {
+                $lowerMessages[] = [$severity, $message];
+
+                return true;
+            },
+        );
+        \set_error_handler(
+            static function (int $severity, string $message) use (&$upperMessages): bool {
+                $upperMessages[] = [$severity, $message];
 
                 return true;
             },
@@ -166,11 +174,21 @@ final class OutputCaptureTest
 
         try {
             $capture->stop();
-            \trigger_error('after capture', \E_USER_NOTICE);
+            \trigger_error('upper handler', \E_USER_NOTICE);
+            \restore_error_handler();
+            \trigger_error('lower handler', \E_USER_NOTICE);
+            \restore_error_handler();
+            $restored = $this->activeErrorHandler();
 
-            Expect::that($messages)
-                ->because('stop preserves an error handler installed during capture')
-                ->toBe([[\E_USER_NOTICE, 'after capture']]);
+            Expect::that($upperMessages)
+                ->because('stop preserves the newest error handler installed during capture')
+                ->toBe([[\E_USER_NOTICE, 'upper handler']]);
+            Expect::that($lowerMessages)
+                ->because('stop preserves the complete user error-handler stack')
+                ->toBe([[\E_USER_NOTICE, 'lower handler']]);
+            Expect::that($restored)
+                ->because('restoring the user handlers MUST reveal the pre-capture handler')
+                ->toBe($baselineHandler);
         } finally {
             $this->restoreErrorHandler($baselineHandler);
         }
