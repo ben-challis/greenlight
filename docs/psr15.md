@@ -85,7 +85,7 @@ final readonly class StatusTest
     #[Test]
     public function statusIsReady(): void
     {
-        $request = (new Psr17Factory())->createServerRequest(
+        $request = new Psr17Factory()->createServerRequest(
             'GET',
             'https://example.test/status',
         );

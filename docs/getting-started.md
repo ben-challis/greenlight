@@ -342,7 +342,7 @@ final class ExporterTest
     {
         $this->env->set('EXPORT_DIR', $this->tmp->path());
 
-        (new Exporter())->run();
+        new Exporter()->run();
 
         Expect::that(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
     }
