@@ -130,8 +130,6 @@ the same kernel.
 Use Tempest's `Resettable` interface to reset container state after each test.
 Reset state outside the container in an `#[After]` hook.
 
-The bridge does not isolate databases or other external services.
-
 ## Parallel resources
 
 Each worker uses `.tempest/greenlight/<channel>` for Tempest internal storage.
@@ -143,12 +141,3 @@ assign separate databases, cache paths, queues, and other external resources.
 If workers cannot use separate external resources, use `#[RequiresResource]`.
 Configure the safe concurrency limit in `greenlight.php`. See
 [configuration](configuration.md) for concurrency limits.
-
-## Unsupported features
-
-The bridge does not supply:
-
-* `IntegrationTest` or PHPUnit integration
-* HTTP, console, mail, event, storage, or database tester objects
-* database creation, migration, or transaction rollback
-* replacement container bindings for Greenlight doubles
