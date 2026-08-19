@@ -294,6 +294,11 @@ final class GreenlightConfigTest
             [''],
             'Test paths cannot be empty strings.',
         ];
+
+        yield 'directory contains a null byte' => [
+            ["tests/Unit\0hidden"],
+            'Test paths cannot contain a null byte.',
+        ];
     }
 
     /**
