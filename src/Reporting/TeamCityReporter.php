@@ -13,6 +13,7 @@ use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Wire\Utf8;
 use Greenlight\Reporting\Output\Output;
 
 /**
@@ -300,7 +301,7 @@ final class TeamCityReporter implements Reporter
         return \str_replace(
             ['|', "'", "\n", "\r", '[', ']'],
             ['||', "|'", '|n', '|r', '|[', '|]'],
-            $value,
+            Utf8::scrub($value),
         );
     }
 }
