@@ -53,10 +53,18 @@ final readonly class ProxyGenerator
                 $this->write($file, $this->renderFile($reflection, $shortName, $body));
             }
 
-            require $file;
-        }
+            try {
+                ErrorTrap::run(static function () use ($file): void {
+                    require $file;
+                });
+            } catch (\Throwable $failure) {
+                throw DoublesError::proxyFileNotLoaded($file, $failure);
+            }
 
-        \assert(\class_exists($proxyClass, false));
+            if (!\class_exists($proxyClass, false)) {
+                throw DoublesError::proxyFileNotLoaded($file);
+            }
+        }
 
         return $proxyClass;
     }
