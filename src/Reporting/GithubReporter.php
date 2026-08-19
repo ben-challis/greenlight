@@ -10,6 +10,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Wire\Utf8;
 use Greenlight\Reporting\Output\Output;
 
 /**
@@ -152,11 +153,15 @@ final class GithubReporter implements Reporter
 
     private function escapeData(string $value): string
     {
-        return \str_replace(['%', "\r", "\n"], ['%25', '%0D', '%0A'], $value);
+        return \str_replace(['%', "\r", "\n"], ['%25', '%0D', '%0A'], Utf8::scrub($value));
     }
 
     private function escapeProperty(string $value): string
     {
-        return \str_replace(['%', "\r", "\n", ':', ','], ['%25', '%0D', '%0A', '%3A', '%2C'], $value);
+        return \str_replace(
+            ['%', "\r", "\n", ':', ','],
+            ['%25', '%0D', '%0A', '%3A', '%2C'],
+            Utf8::scrub($value),
+        );
     }
 }
