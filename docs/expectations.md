@@ -123,7 +123,8 @@ Numeric matchers accept integer or float subjects:
 * `toBeWithin(float $delta, float $of)`
 
 `toBeWithin()` passes when the absolute difference between the subject and
-`$of` is no greater than `$delta`.
+`$of` is no greater than `$delta`. The tolerance MUST be finite and zero or
+more.
 
 ### JSON
 
