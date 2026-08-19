@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Fixture\Reporting;
 use Greenlight\Doubles\Fake;
 
 /**
- * Accepts at most three bytes from each write, or simulates a stalled stream.
+ * Accepts at most three bytes from each write, or simulates a failed stream.
  */
 final class PartialWriteStream implements Fake
 {
@@ -16,6 +16,8 @@ final class PartialWriteStream implements Fake
     private static string $contents = '';
 
     private bool $stalled = false;
+
+    private bool $warns = false;
 
     public static function contents(): string
     {
@@ -30,12 +32,19 @@ final class PartialWriteStream implements Fake
     ): bool {
         self::$contents = '';
         $this->stalled = \str_ends_with($path, '/stalled');
+        $this->warns = \str_ends_with($path, '/warning');
 
         return $mode === 'wb';
     }
 
     public function stream_write(string $data): int
     {
+        if ($this->warns) {
+            \trigger_error('Simulated stream write failure.', \E_USER_WARNING);
+
+            return 0;
+        }
+
         if ($this->stalled) {
             return 0;
         }
