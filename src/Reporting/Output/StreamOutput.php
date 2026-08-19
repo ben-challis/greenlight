@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting\Output;
 
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Reporting\ReportingError;
 
 /**
@@ -25,7 +26,7 @@ final class StreamOutput implements Output
     public function write(string $text): void
     {
         while ($text !== '') {
-            $written = \fwrite($this->stream, $text);
+            $written = ErrorTrap::run(fn(): int|false => \fwrite($this->stream, $text));
 
             if ($written === false || $written === 0) {
                 throw ReportingError::writeFailed();
