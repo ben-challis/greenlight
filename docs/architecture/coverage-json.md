@@ -46,6 +46,9 @@ An object that uses absolute file paths as keys.
 
 Greenlight sorts entries by path.
 
+Each path **MUST** contain valid UTF-8. `JsonExporter::export()` throws
+`InvalidArgumentException` if JSON cannot keep the exact path.
+
 Absolute keys make a baseline specific to its checkout root. Coverage from two
 sources represents the same file only when the keys match exactly. Sources
 include worktrees, containers, and machines.

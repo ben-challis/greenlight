@@ -50,19 +50,19 @@ final class JsonExporterTest
     }
 
     #[Test]
-    public function exportScrubsInvalidUtf8FilePaths(): void
+    public function exportRejectsFilePathsThatCannotRetainTheirIdentityInJson(): void
     {
         $map = new CoverageMap([
             new FileCoverage("/src/\xB1.php", [1], []),
+            new FileCoverage("/src/\xB2.php", [2], []),
         ]);
 
-        $json = new JsonExporter()->export($map)[JsonExporter::FILE_NAME];
-        $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
-        \assert(\is_array($decoded) && \is_array($decoded['files']));
-
-        Expect::that(\array_keys($decoded['files']))
-            ->because('coverage JSON MUST remain valid for file-system paths with invalid UTF-8')
-            ->toBe(["/src/\u{FFFD}.php"]);
+        Expect::that(static fn(): array => new JsonExporter()->export($map))
+            ->because('distinct coverage paths MUST NOT collapse to the same JSON object key')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Coverage JSON file paths MUST contain valid UTF-8.',
+            );
     }
 
     #[Test]
