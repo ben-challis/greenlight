@@ -83,6 +83,20 @@ final readonly class Application
     private const int EXIT_FAILURE = 1;
     private const int EXIT_USAGE = 64;
 
+    /** @var list<non-empty-string> */
+    private const array WORKER_RUNTIME_FUNCTIONS = [
+        'proc_open',
+        'proc_get_status',
+        'proc_terminate',
+        'proc_close',
+        'stream_socket_server',
+        'stream_socket_get_name',
+        'stream_socket_accept',
+        'stream_socket_client',
+        'stream_select',
+        'stream_set_blocking',
+    ];
+
     private const string HELP = <<<'HELP'
         Greenlight
 
@@ -1251,14 +1265,16 @@ final readonly class Application
     }
 
     /**
-     * Greenlight starts worker processes with proc_open and core stream
-     * sockets. This operation does not require an extension. If
-     * disable_functions contains proc_open, Greenlight uses a sequential
-     * in-process run.
+     * Greenlight starts and controls workers with process and stream functions.
+     * This operation does not require an extension. If PHP disables a required
+     * function, Greenlight uses a sequential in-process run.
      */
     private function canSpawnWorkers(): bool
     {
-        return \function_exists('proc_open') && \function_exists('stream_socket_server');
+        return \array_all(
+            self::WORKER_RUNTIME_FUNCTIONS,
+            static fn(string $function): bool => \function_exists($function),
+        );
     }
 
     /** @return non-empty-string|false */

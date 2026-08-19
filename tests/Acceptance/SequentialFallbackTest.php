@@ -41,6 +41,14 @@ final readonly class SequentialFallbackTest
     public static function unavailableParallelCapabilities(): iterable
     {
         yield 'process creation' => ['proc_open'];
+        yield 'process status' => ['proc_get_status'];
+        yield 'process termination' => ['proc_terminate'];
+        yield 'process close' => ['proc_close'];
         yield 'socket server' => ['stream_socket_server'];
+        yield 'socket name' => ['stream_socket_get_name'];
+        yield 'socket accept' => ['stream_socket_accept'];
+        yield 'socket client' => ['stream_socket_client'];
+        yield 'socket selection' => ['stream_select'];
+        yield 'socket blocking mode' => ['stream_set_blocking'];
     }
 }
