@@ -15,8 +15,8 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final class HttpHarness implements Disposable
 {
-    /** @var \Closure(): mixed */
-    private readonly \Closure $factory;
+    /** @var null|\Closure(): mixed */
+    private readonly ?\Closure $factory;
 
     private ?RequestHandlerInterface $handler = null;
 
@@ -30,9 +30,14 @@ final class HttpHarness implements Disposable
         RequestHandlerInterface|\Closure $handler,
         private readonly ?\Closure $release = null,
     ) {
-        $this->factory = $handler instanceof RequestHandlerInterface
-            ? static fn(): RequestHandlerInterface => $handler
-            : $handler;
+        if ($handler instanceof RequestHandlerInterface) {
+            $this->handler = $handler;
+            $this->factory = null;
+
+            return;
+        }
+
+        $this->factory = $handler;
     }
 
     /**
@@ -94,8 +99,11 @@ final class HttpHarness implements Disposable
             return $this->handler;
         }
 
+        $factory = $this->factory;
+        \assert($factory instanceof \Closure);
+
         try {
-            $handler = ($this->factory)();
+            $handler = $factory();
         } catch (\Throwable $threw) {
             throw Psr15Error::factoryFailed($threw);
         }
