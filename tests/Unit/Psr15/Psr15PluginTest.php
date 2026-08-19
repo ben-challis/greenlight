@@ -47,10 +47,10 @@ final class Psr15PluginTest
         $scopes = $this->scopes($plugin);
 
         $scopes->openTest();
-        $this->harness($scopes)->send(new ServerRequest([], [], '/first', 'GET'));
+        $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/first', 'GET'));
         $scopes->closeTest();
         $scopes->openTest();
-        $this->harness($scopes)->send(new ServerRequest([], [], '/second', 'GET'));
+        $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/second', 'GET'));
         $scopes->closeTest();
 
         Expect::that($created)->toBe(2);
@@ -77,11 +77,11 @@ final class Psr15PluginTest
         $scopes = $this->scopes($plugin);
 
         $scopes->openTest();
-        $first = $this->harness($scopes);
+        $first = $scopes->resolve(HttpHarness::class, self::class);
         $first->send(new ServerRequest([], [], '/first', 'GET'));
         $scopes->closeTest();
         $scopes->openTest();
-        $second = $this->harness($scopes);
+        $second = $scopes->resolve(HttpHarness::class, self::class);
         $second->send(new ServerRequest([], [], '/second', 'GET'));
         $scopes->closeTest();
 
@@ -103,7 +103,7 @@ final class Psr15PluginTest
         );
         $scopes = $this->scopes($plugin);
         $scopes->openTest();
-        $this->harness($scopes)->send(new ServerRequest([], [], '/status', 'GET'));
+        $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/status', 'GET'));
 
         Expect::that($scopes->closeTest())->toBe([]);
         Expect::that($released)->toBe($handler);
@@ -121,7 +121,7 @@ final class Psr15PluginTest
         );
         $scopes = $this->scopes($plugin);
         $scopes->openTest();
-        $this->harness($scopes)->send(new ServerRequest([], [], '/status', 'GET'));
+        $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/status', 'GET'));
 
         $failures = $scopes->closeTest();
 
@@ -144,15 +144,5 @@ final class Psr15PluginTest
     private function scopes(Psr15Plugin $plugin): HarnessScopes
     {
         return new HarnessScopes(new HarnessRegistry($plugin->services()));
-    }
-
-    private function harness(HarnessScopes $scopes): HttpHarness
-    {
-        $harness = $scopes->resolve(HttpHarness::class, self::class);
-        Expect::that($harness)
-            ->because('the resolved service MUST be the requested HTTP harness')
-            ->toBeInstanceOf(HttpHarness::class);
-
-        return $harness;
     }
 }

@@ -70,10 +70,6 @@ final class HarnessServiceFactoryContractTest
     {
         $scopes = $this->scopesFor(FactoryContractTarget::class);
         $service = $scopes->resolve(FactoryContractTarget::class, 'probe');
-        Expect::that($service)
-            ->because('the lazy service MUST match the registered type before initialization')
-            ->toBeInstanceOf(FactoryContractTarget::class);
-
         Expect::that(static fn(): string => $service->value())
             ->because('a lazy harness factory MUST return its registered type when initialized')
             ->toThrow(

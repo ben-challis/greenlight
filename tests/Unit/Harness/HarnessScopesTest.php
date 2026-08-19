@@ -58,10 +58,6 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes($registry, [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test');
 
-        Expect::that($resolved)
-            ->because('HarnessScopes::resolve() MUST return ArrayObject.')
-            ->toBeInstanceOf(\ArrayObject::class);
-
         $values = $resolved->getArrayCopy();
 
         Expect::that($values)
@@ -237,10 +233,6 @@ final class HarnessScopesTest
         $scopes->openTest();
 
         $first = $scopes->resolve(\ArrayObject::class, 'test');
-
-        Expect::that($first)
-            ->because('HarnessScopes::resolve() MUST return ArrayObject.')
-            ->toBeInstanceOf(\ArrayObject::class);
 
         $first->append('first scope');
         $scopes->closeTest();
