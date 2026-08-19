@@ -23,9 +23,7 @@ final readonly class SharedCoverageDirectory
         private string|false $previousInclude,
     ) {}
 
-    /**
-     * @throws CoverageError
-     */
+    /** @throws CoverageError */
     public static function open(CoverageSettings $settings): self
     {
         $directory = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-coverage-' . \bin2hex(\random_bytes(6));
@@ -38,7 +36,7 @@ final readonly class SharedCoverageDirectory
         $previousInclude = \getenv(SubprocessCoverage::INCLUDE_ENV);
 
         \putenv(SubprocessCoverage::DIRECTORY_ENV . '=' . $directory);
-        \putenv(SubprocessCoverage::INCLUDE_ENV . '=' . \implode(\PATH_SEPARATOR, $settings->includePaths));
+        \putenv(SubprocessCoverage::INCLUDE_ENV . '=' . CoverageRelayPaths::encode($settings->includePaths));
 
         return new self($directory, $previousDirectory, $previousInclude);
     }
