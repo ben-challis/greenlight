@@ -8,11 +8,11 @@ handler's PSR-7 response without a web server or emitter.
 The harness does not read PHP globals or use framework request helpers. Build
 each request as a PSR-7 server request.
 
-[Laminas Diactoros](https://docs.laminas.dev/laminas-diactoros/) is one PSR-7
-implementation. Install it with the required interfaces:
+This guide uses [Nyholm PSR-7](https://github.com/Nyholm/psr7). Install it with
+the required interfaces:
 
 ```console
-composer require --dev psr/http-message psr/http-server-handler laminas/laminas-diactoros
+composer require --dev psr/http-message psr/http-server-handler nyholm/psr7
 ```
 
 ## Setup
@@ -76,7 +76,7 @@ application's PSR-7 implementation:
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Psr15\HttpHarness;
-use Laminas\Diactoros\ServerRequest;
+use Nyholm\Psr7\Factory\Psr17Factory;
 
 final readonly class StatusTest
 {
@@ -85,11 +85,9 @@ final readonly class StatusTest
     #[Test]
     public function statusIsReady(): void
     {
-        $request = new ServerRequest(
-            serverParams: [],
-            uploadedFiles: [],
-            uri: 'https://example.test/status',
-            method: 'GET',
+        $request = (new Psr17Factory())->createServerRequest(
+            'GET',
+            'https://example.test/status',
         );
 
         $response = $this->http->send($request);
