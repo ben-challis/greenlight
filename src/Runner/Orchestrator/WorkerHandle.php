@@ -128,7 +128,7 @@ final class WorkerHandle
                 }
 
                 \stream_set_blocking($pipe, false);
-                $bytes = \fread($pipe, 8192);
+                $bytes = \stream_get_contents($pipe);
 
                 if (!\is_string($bytes)) {
                     continue;
