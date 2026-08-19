@@ -14,9 +14,16 @@ use Greenlight\Core\ErrorTrap;
  *
  * @internal
  */
-final readonly class RunState
+final class RunState
 {
-    private function __construct(private string $file) {}
+    private bool $loaded = false;
+
+    /**
+     * @var array<mixed>|null
+     */
+    private ?array $snapshot = null;
+
+    private function __construct(private readonly string $file) {}
 
     public static function forFile(string $file): self
     {
@@ -66,6 +73,11 @@ final readonly class RunState
      */
     private function decoded(): ?array
     {
+        if ($this->loaded) {
+            return $this->snapshot;
+        }
+
+        $this->loaded = true;
         $file = $this->file;
 
         if (!ErrorTrap::run(static fn(): bool => \is_file($file))) {
@@ -84,7 +96,7 @@ final readonly class RunState
             return null;
         }
 
-        return \is_array($decoded) ? $decoded : null;
+        return $this->snapshot = \is_array($decoded) ? $decoded : null;
     }
 
     /**
@@ -143,6 +155,9 @@ final readonly class RunState
         } catch (AtomicFileError) {
             return false;
         }
+
+        $this->loaded = true;
+        $this->snapshot = ['failed' => $failedTests, 'classSeconds' => $classSeconds];
 
         return true;
     }
