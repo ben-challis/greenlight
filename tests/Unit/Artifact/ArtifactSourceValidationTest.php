@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -40,12 +41,21 @@ final readonly class ArtifactSourceValidationTest
         );
 
         try {
-            Expect::that(static fn() => $attachments->file('evidence.txt', $source))
+            $warning = null;
+            Expect::that(static function () use ($attachments, $source, &$warning): void {
+                ErrorTrap::run(
+                    static fn() => $attachments->file('evidence.txt', $source),
+                    $warning,
+                );
+            })
                 ->because('file attachments reject invalid sources')
                 ->toThrow(
                     AttachmentError::class,
                     message: \sprintf('Attachment source "%s" %s.', $source, $reason),
                 );
+            Expect::that($warning)
+                ->because('an invalid attachment source MUST not leak an engine diagnostic')
+                ->toBeNull();
             Expect::that($attachments->collected())
                 ->because('an invalid source does not create an attachment')
                 ->toBe([]);
