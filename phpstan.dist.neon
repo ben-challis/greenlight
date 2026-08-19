@@ -48,6 +48,7 @@ parameters:
     greenlight:
         configFiles:
             - tests/Fixture/PhpStanExtension/greenlight.php
+            - tests/Fixture/PhpStanExtension/even-numbers.php
 
 services:
     exceptionTypeResolver!:
