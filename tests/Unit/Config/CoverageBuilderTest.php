@@ -51,15 +51,14 @@ final class CoverageBuilderTest
     }
 
     #[Test]
-    public function anEmptyDriverNameIsRejected(): void
+    #[DataSet('invalidDrivers')]
+    public function unknownDriverNamesAreRejected(string $driver): void
     {
-        Expect::that(static function (): void {
-            new CoverageBuilder()->driver('');
-        })
-            ->because('a coverage driver needs a selectable name')
+        Expect::that(static fn(): CoverageBuilder => new CoverageBuilder()->driver($driver))
+            ->because('a configured coverage driver MUST select pcov or Xdebug')
             ->toThrow(
                 InvalidConfiguration::class,
-                message: 'Coverage driver cannot be empty.',
+                message: \sprintf('Unknown coverage driver "%s". Use "pcov" or "xdebug".', $driver),
             );
     }
 
@@ -78,20 +77,16 @@ final class CoverageBuilderTest
     }
 
     #[Test]
-    public function preservesZeroStringsAcrossTheBuilderState(): void
+    public function preservesZeroStringsInPathsAndExports(): void
     {
         $configuration = new CoverageBuilder()
             ->include('0')
-            ->driver('0')
             ->export('0', '0')
             ->toConfiguration();
 
         Expect::that($configuration->includePaths)
             ->because('a zero-string coverage include path is not empty')
             ->toBe(['0']);
-        Expect::that($configuration->driver)
-            ->because('a zero-string coverage driver is not empty')
-            ->toBe('0');
         Expect::that($configuration->exports[0]->format)
             ->because('a zero-string coverage export format is not empty')
             ->toBe('0');
@@ -107,5 +102,16 @@ final class CoverageBuilderTest
     {
         yield 'empty format' => ['', 'coverage.json'];
         yield 'empty target' => ['json', ''];
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidDrivers(): iterable
+    {
+        yield 'empty' => [''];
+        yield 'zero string' => ['0'];
+        yield 'misspelled pcov' => ['pcvo'];
+        yield 'uppercase Xdebug' => ['XDEBUG'];
     }
 }

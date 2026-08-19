@@ -51,8 +51,11 @@ final class CoverageBuilder
      */
     public function driver(string $driver): self
     {
-        if ($driver === '') {
-            throw new InvalidConfiguration('Coverage driver cannot be empty.');
+        if (!\in_array($driver, ['pcov', 'xdebug'], true)) {
+            throw new InvalidConfiguration(\sprintf(
+                'Unknown coverage driver "%s". Use "pcov" or "xdebug".',
+                $driver,
+            ));
         }
 
         $this->driver = $driver;
