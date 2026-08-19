@@ -8,10 +8,10 @@ use Greenlight\Attribute\After;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Tempest\TempestBridgeError;
@@ -31,7 +31,10 @@ final class TempestPluginLifecycleTest
 
     private int $projectNumber = 0;
 
-    public function __construct(private readonly TempDirectory $tempDirectory) {}
+    public function __construct(
+        private readonly EnvironmentSandbox $environment,
+        private readonly TempDirectory $tempDirectory,
+    ) {}
 
     /** A failed expectation MUST NOT leave an active Tempest kernel in the worker. */
     #[After]
@@ -120,56 +123,40 @@ final class TempestPluginLifecycleTest
     #[Test]
     public function bootFailuresRestoreTheProcessEnvironment(): void
     {
-        $backup = EnvironmentBackup::capture('ENVIRONMENT');
+        $this->environment->set('ENVIRONMENT', 'before-tempest');
+        $missingRoot = $this->tempDirectory->path() . '/missing';
+        $plugin = new TempestPlugin($missingRoot);
+        $factory = $plugin->services()[0]->factory;
 
-        try {
-            \putenv('ENVIRONMENT=before-tempest');
-            $_ENV['ENVIRONMENT'] = 'before-tempest';
-            $_SERVER['ENVIRONMENT'] = 'before-tempest';
-            $missingRoot = $this->tempDirectory->path() . '/missing';
-            $plugin = new TempestPlugin($missingRoot);
-            $factory = $plugin->services()[0]->factory;
-
-            Expect::that(static fn(): object => $factory())
-                ->toThrow(
-                    TempestBridgeError::class,
-                    matching: '/^TempestPlugin could not boot the application at "'
-                        . \preg_quote($missingRoot, '/')
-                        . '": /',
-                );
-            Expect::that(\getenv('ENVIRONMENT'))->toBe('before-tempest');
-            Expect::that($_ENV['ENVIRONMENT'])->toBe('before-tempest');
-            Expect::that($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
-        } finally {
-            $backup->restore();
-        }
+        Expect::that(static fn(): object => $factory())
+            ->toThrow(
+                TempestBridgeError::class,
+                matching: '/^TempestPlugin could not boot the application at "'
+                    . \preg_quote($missingRoot, '/')
+                    . '": /',
+            );
+        Expect::that(\getenv('ENVIRONMENT'))->toBe('before-tempest');
+        Expect::that($_ENV['ENVIRONMENT'])->toBe('before-tempest');
+        Expect::that($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
     }
 
     #[Test]
     public function shutdownFailuresRestoreTheProcessEnvironment(): void
     {
-        $backup = EnvironmentBackup::capture('ENVIRONMENT');
+        $this->environment->set('ENVIRONMENT', 'before-tempest');
+        $plugin = $this->plugin();
+        $kernel = $this->kernel($plugin);
+        $kernel->container->singleton('Tempest\EventBus\EventBus', new \stdClass());
 
-        try {
-            \putenv('ENVIRONMENT=before-tempest');
-            $_ENV['ENVIRONMENT'] = 'before-tempest';
-            $_SERVER['ENVIRONMENT'] = 'before-tempest';
-            $plugin = $this->plugin();
-            $kernel = $this->kernel($plugin);
-            $kernel->container->singleton('Tempest\EventBus\EventBus', new \stdClass());
-
-            Expect::that(fn(): TestResult => $plugin->afterTest($this->context(), $this->result()))
-                ->toThrow(
-                    TempestBridgeError::class,
-                    matching: '/^TempestPlugin could not shut down the application/',
-                );
-            Expect::that(\getenv('ENVIRONMENT'))->toBe('before-tempest');
-            Expect::that($_ENV['ENVIRONMENT'])->toBe('before-tempest');
-            Expect::that($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
-            Expect::that(GenericContainer::instance())->not()->toBe($kernel->container);
-        } finally {
-            $backup->restore();
-        }
+        Expect::that(fn(): TestResult => $plugin->afterTest($this->context(), $this->result()))
+            ->toThrow(
+                TempestBridgeError::class,
+                matching: '/^TempestPlugin could not shut down the application/',
+            );
+        Expect::that(\getenv('ENVIRONMENT'))->toBe('before-tempest');
+        Expect::that($_ENV['ENVIRONMENT'])->toBe('before-tempest');
+        Expect::that($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
+        Expect::that(GenericContainer::instance())->not()->toBe($kernel->container);
     }
 
     private function plugin(): TempestPlugin
