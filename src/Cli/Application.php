@@ -343,10 +343,10 @@ final readonly class Application
         }
 
         $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
+        $workerBin = $this->workerBinPath($binPath);
 
         try {
-            $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $realBin === false);
+            $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $workerBin === false);
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -357,7 +357,7 @@ final readonly class Application
         SignalHandlers::install($shutdown);
 
         if ($arguments->has('watch')) {
-            return $this->watchCommand($arguments, $workingDirectory, $binPath, $resolved, $configFile, $shutdown);
+            return $this->watchCommand($arguments, $workingDirectory, $workerBin, $resolved, $configFile, $shutdown);
         }
 
         $state = RunState::forWorkingDirectory($workingDirectory);
@@ -401,7 +401,7 @@ final readonly class Application
         if (($overrides->repeat === null || $overrides->repeat === 1) && !$overrides->repeatUntilFailure) {
             $failedTap = new FailedTestsTap(new ReporterSink($reporter));
 
-            return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+            return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
         }
 
         // Without an explicit --repeat, --repeat-until-failure has a limit of
@@ -420,7 +420,7 @@ final readonly class Application
 
             if ($iteration > 1) {
                 try {
-                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $realBin === false);
+                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $workerBin === false);
                 } catch (CliError $error) {
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -429,7 +429,7 @@ final readonly class Application
             }
 
             $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-            $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $binPath, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+            $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
 
             foreach ($failedTap->failedTests() as $id) {
                 if (!isset($failedTestSet[$id])) {
@@ -473,6 +473,7 @@ final readonly class Application
     /**
      * Use a new reporter. This method calls finish() exactly one time.
      *
+     * @param non-empty-string|false $workerBin
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
      * @throws CoverageError
@@ -483,7 +484,7 @@ final readonly class Application
         Configuration $resolved,
         string $configFile,
         string $workingDirectory,
-        ?string $binPath,
+        string|false $workerBin,
         GracefulShutdown $shutdown,
         array $priorityClasses,
         array $classSeconds,
@@ -492,7 +493,6 @@ final readonly class Application
         RunState $state,
     ): int {
         $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
 
@@ -501,16 +501,16 @@ final readonly class Application
         // the inherited process period too early.
         $coverageSession = CoverageSession::open(
             $coverageSettings,
-            $workers !== 1 && $realBin !== false && !SubprocessCoverage::requested(),
+            $workers !== 1 && $workerBin !== false && !SubprocessCoverage::requested(),
         );
 
         try {
             try {
-                if ($workers === 1 || $realBin === false) {
+                if ($workers === 1 || $workerBin === false) {
                     $run = new InProcessRunner($workingDirectory)
                         ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
                 } else {
-                    $run = new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
+                    $run = new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
                         ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                 }
             } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
@@ -654,10 +654,11 @@ final readonly class Application
         return new Style($capabilities->color);
     }
 
+    /** @param non-empty-string|false $workerBin */
     private function watchCommand(
         ParsedArguments $arguments,
         string $workingDirectory,
-        ?string $binPath,
+        string|false $workerBin,
         Configuration $resolved,
         string $configFile,
         GracefulShutdown $shutdown,
@@ -674,20 +675,19 @@ final readonly class Application
         }
 
         $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $realBin = $binPath === null || !$this->canSpawnWorkers() ? false : \realpath($binPath);
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
         $this->warnWhenLeakDetectionIsUnreliable($detectLeaks, $arguments->has('no-ansi'));
 
         $runOnce =
-            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $realBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown): array {
+            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown): array {
                 $priorityClasses = \array_values(\array_filter(
                     $priorityClasses,
                     static fn(mixed $class): bool => \is_string($class) && $class !== '',
                 ));
 
                 try {
-                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $realBin === false);
+                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $workerBin === false);
                 } catch (CliError $error) {
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -699,11 +699,11 @@ final readonly class Application
                 $classSeconds = $resolved->randomizeOrder ? [] : RunState::forWorkingDirectory($workingDirectory)->classSeconds();
 
                 try {
-                    if ($workers === 1 || $realBin === false) {
+                    if ($workers === 1 || $workerBin === false) {
                         new InProcessRunner($workingDirectory)
                             ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
                     } else {
-                        new ParallelRunner([\PHP_BINARY, $realBin], $workingDirectory)
+                        new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
                             ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
                     }
                 } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
@@ -1259,6 +1259,16 @@ final readonly class Application
     private function canSpawnWorkers(): bool
     {
         return \function_exists('proc_open') && \function_exists('stream_socket_server');
+    }
+
+    /** @return non-empty-string|false */
+    private function workerBinPath(?string $binPath): string|false
+    {
+        if ($binPath === null || !$this->canSpawnWorkers()) {
+            return false;
+        }
+
+        return ErrorTrap::run(static fn(): string|false => \realpath($binPath));
     }
 
     /**
