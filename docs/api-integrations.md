@@ -462,7 +462,7 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L46)
 
 ### `dispose()`
 
@@ -475,7 +475,7 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L71)
 
 ## `Psr15Error`
 
