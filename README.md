@@ -36,8 +36,6 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 ## Example test
 
 ```php
-<?php
-
 declare(strict_types=1);
 
 namespace App\Tests;
@@ -85,8 +83,6 @@ composer require --dev greenlight/greenlight
 Create `greenlight.php` in the project root:
 
 ```php
-<?php
-
 declare(strict_types=1);
 
 use Greenlight\Config\GreenlightConfig;

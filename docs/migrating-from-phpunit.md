@@ -21,8 +21,6 @@ blocks, `markTestSkipped()`, and `fail()`.
 Register the rule in a `rector.php` file that selects your test directories:
 
 ```php
-<?php
-
 declare(strict_types=1);
 
 use Greenlight\Rector\PhpUnitToGreenlightRector;
