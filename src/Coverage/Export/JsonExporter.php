@@ -24,12 +24,19 @@ final readonly class JsonExporter implements CoverageExporter
     #[\Override]
     public function export(CoverageMap $map): array
     {
+        $files = [];
 
-        $files = \array_map(fn($file) => [
-            'covered' => $file->coveredLines,
-            'uncovered' => $file->uncoveredLines,
-            'percentage' => \round($file->percentage(), 2),
-        ], $map->files());
+        foreach ($map->files() as $path => $file) {
+            if (\preg_match('//u', $path) !== 1) {
+                throw new \InvalidArgumentException('Coverage JSON file paths MUST contain valid UTF-8.');
+            }
+
+            $files[$path] = [
+                'covered' => $file->coveredLines,
+                'uncovered' => $file->uncoveredLines,
+                'percentage' => \round($file->percentage(), 2),
+            ];
+        }
 
         $document = [
             'v' => self::VERSION,
@@ -44,7 +51,7 @@ final readonly class JsonExporter implements CoverageExporter
 
         return [self::FILE_NAME => \json_encode(
             $document,
-            \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE,
+            \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES,
         ) . "\n"];
     }
 
