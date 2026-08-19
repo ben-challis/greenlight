@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 
-final class BecauseTest
+final readonly class BecauseTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function becauseAddsTheReasonToTheFailureMessage(): void
     {
@@ -104,7 +107,7 @@ final class BecauseTest
     #[Test]
     public function extensionMatchersCarryTheReason(): void
     {
-        Expect::install([
+        $restoreExtensions = Expect::install([
             new class implements ExpectationExtension {
                 #[\Override]
                 public function matchers(): array
@@ -115,14 +118,11 @@ final class BecauseTest
                 }
             },
         ]);
+        $this->cleanup->defer($restoreExtensions);
 
-        try {
-            $detail = FailureProbe::detailOf(
-                static fn() => Expect::that(2)->because('the id must be odd')->__call('toBeOdd', []),
-            );
-        } finally {
-            Expect::install([]);
-        }
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(2)->because('the id must be odd')->__call('toBeOdd', []),
+        );
 
         Expect::that($detail->message)->because('extension matchers carry the reason')
             ->toBe('Expected 2 to satisfy the extension matcher toBeOdd because the id must be odd.');
