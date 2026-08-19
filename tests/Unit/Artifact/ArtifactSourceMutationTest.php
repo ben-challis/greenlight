@@ -9,6 +9,7 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
@@ -21,14 +22,15 @@ final readonly class ArtifactSourceMutationTest
 
     private const string FAILING_READ_SCHEME = 'greenlight-failing-file-read';
 
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private StreamWrapperSandbox $streamWrappers,
+    ) {}
 
     #[Test]
     public function aSourceThatChangesDuringCopyIsRejectedAndReleased(): void
     {
-        if (!\stream_wrapper_register(self::SCHEME, ChangingFileStream::class)) {
-            throw new \RuntimeException('Greenlight did not register the changing-file stream.');
-        }
+        $this->streamWrappers->register(self::SCHEME, ChangingFileStream::class);
 
         $store = null;
 
@@ -65,16 +67,13 @@ final readonly class ArtifactSourceMutationTest
                 ->toBe('replacement.txt');
         } finally {
             $store?->cleanup();
-            \stream_wrapper_unregister(self::SCHEME);
         }
     }
 
     #[Test]
     public function aSourceThatFailsDuringCopyIsRejectedAndReleased(): void
     {
-        if (!\stream_wrapper_register(self::FAILING_READ_SCHEME, FailingFileReadStream::class)) {
-            throw new \RuntimeException('Greenlight did not register the failing-file-read stream.');
-        }
+        $this->streamWrappers->register(self::FAILING_READ_SCHEME, FailingFileReadStream::class);
 
         $store = null;
 
@@ -123,7 +122,6 @@ final readonly class ArtifactSourceMutationTest
                 ->toBe('replacement.txt');
         } finally {
             $store?->cleanup();
-            \stream_wrapper_unregister(self::FAILING_READ_SCHEME);
         }
     }
 }

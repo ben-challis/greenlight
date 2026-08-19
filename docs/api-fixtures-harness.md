@@ -52,6 +52,76 @@ public function dispose(): void
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L50)
 
+## `StreamWrapperError`
+
+Namespace: `Greenlight\Fixture`
+
+A stream-wrapper sandbox cannot register or unregister a wrapper.
+
+```php
+final class StreamWrapperError extends \RuntimeException
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/StreamWrapperError.php#L10)
+
+### `registrationFailed()`
+
+```php
+public static function registrationFailed(string $scheme, ?string $warning): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/StreamWrapperError.php#L17)
+
+### `unregistrationFailed()`
+
+```php
+public static function unregistrationFailed(array $failures): self
+```
+
+PHPDoc:
+
+- `@param non-empty-list<array{non-empty-string, string|null}> $failures`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/StreamWrapperError.php#L29)
+
+## `StreamWrapperSandbox`
+
+Namespace: `Greenlight\Fixture`
+
+Registers stream wrappers and unregisters them when the test scope closes.
+
+```php
+final class StreamWrapperSandbox implements Disposable
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/StreamWrapperSandbox.php#L13)
+
+### `register()`
+
+```php
+public function register(string $scheme, string $wrapper): void
+```
+
+PHPDoc:
+
+- `@param class-string $wrapper`
+- `@throws StreamWrapperError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/StreamWrapperSandbox.php#L23)
+
+### `dispose()`
+
+```php
+[\Override]
+public function dispose(): void
+```
+
+PHPDoc:
+
+- `@throws StreamWrapperError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/StreamWrapperSandbox.php#L40)
+
 ## `TempDirectory`
 
 Namespace: `Greenlight\Fixture`

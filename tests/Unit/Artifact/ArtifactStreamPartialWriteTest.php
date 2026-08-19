@@ -7,24 +7,23 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Artifact\StreamWriter;
 use Greenlight\Tests\Fixture\Artifact\PartialWriteStream;
 
-final class ArtifactStreamPartialWriteTest
+final readonly class ArtifactStreamPartialWriteTest
 {
     private const string SCHEME = 'greenlight-partial-write';
+
+    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
 
     #[Test]
     public function partialWritesContinueUntilEveryByteIsWritten(): void
     {
-        if (!\stream_wrapper_register(self::SCHEME, PartialWriteStream::class)) {
-            Fail::because('The test could not register the partial-write stream.');
-        }
-
+        $this->streamWrappers->register(self::SCHEME, PartialWriteStream::class);
         $stream = \fopen(self::SCHEME . '://attachment', 'wb');
 
         if ($stream === false) {
-            \stream_wrapper_unregister(self::SCHEME);
             Fail::because('The test could not open the partial-write stream.');
         }
 
@@ -39,7 +38,6 @@ final class ArtifactStreamPartialWriteTest
                 ->toBe(4);
         } finally {
             \fclose($stream);
-            \stream_wrapper_unregister(self::SCHEME);
         }
     }
 }

@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\NativeFileCopier;
 use Greenlight\Tests\Fixture\Artifact\UnflushableStream;
@@ -16,38 +17,34 @@ final readonly class ArtifactCopyFlushFailureTest
 {
     private const string SCHEME = 'greenlight-unflushable';
 
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private StreamWrapperSandbox $streamWrappers,
+    ) {}
 
     #[Test]
     public function aFlushFailureRejectsTheCopyAndClosesTheDestination(): void
     {
-        if (!\stream_wrapper_register(self::SCHEME, UnflushableStream::class)) {
-            Fail::because('The test could not register the unflushable stream.');
+        $this->streamWrappers->register(self::SCHEME, UnflushableStream::class);
+        $source = $this->tempDirectory->path() . '/copy-flush-source.txt';
+
+        if (\file_put_contents($source, 'evidence') === false) {
+            Fail::because('The test could not write its attachment source.');
         }
 
-        try {
-            $source = $this->tempDirectory->path() . '/copy-flush-source.txt';
+        UnflushableStream::reset();
 
-            if (\file_put_contents($source, 'evidence') === false) {
-                Fail::because('The test could not write its attachment source.');
-            }
-
-            UnflushableStream::reset();
-
-            Expect::that(static fn() => new NativeFileCopier()->copy(
-                $source,
-                self::SCHEME . '://destination',
-            ))
-                ->because('an unflushed attachment copy MUST fail')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Failed to flush the published attachment.',
-                );
-            Expect::that(UnflushableStream::closedStreams())
-                ->because('a flush failure MUST close the destination stream')
-                ->toBe(1);
-        } finally {
-            \stream_wrapper_unregister(self::SCHEME);
-        }
+        Expect::that(static fn() => new NativeFileCopier()->copy(
+            $source,
+            self::SCHEME . '://destination',
+        ))
+            ->because('an unflushed attachment copy MUST fail')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Failed to flush the published attachment.',
+            );
+        Expect::that(UnflushableStream::closedStreams())
+            ->because('a flush failure MUST close the destination stream')
+            ->toBe(1);
     }
 }

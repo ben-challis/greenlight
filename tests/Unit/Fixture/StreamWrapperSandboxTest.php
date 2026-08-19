@@ -1,0 +1,87 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Fixture;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\StreamWrapperError;
+use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Tests\Fixture\Runner\Protocol\UnselectableStream;
+
+final readonly class StreamWrapperSandboxTest
+{
+    #[Test]
+    public function registrationRejectsAnEmptyScheme(): void
+    {
+        Expect::that(static function (): void {
+            new StreamWrapperSandbox()->register('', UnselectableStream::class);
+        })->toThrow(
+            \InvalidArgumentException::class,
+            message: 'Stream wrapper scheme cannot be empty.',
+        );
+    }
+
+    #[Test]
+    public function disposalUnregistersEveryOwnedWrapper(): void
+    {
+        $sandbox = new StreamWrapperSandbox();
+        $sandbox->register('greenlight-sandbox-one', UnselectableStream::class);
+        $sandbox->register('greenlight-sandbox-two', UnselectableStream::class);
+
+        Expect::that(\stream_get_wrappers())
+            ->toContain('greenlight-sandbox-one')
+            ->toContain('greenlight-sandbox-two');
+
+        $sandbox->dispose();
+
+        Expect::that(\stream_get_wrappers())
+            ->not()->toContain('greenlight-sandbox-one')
+            ->not()->toContain('greenlight-sandbox-two');
+    }
+
+    #[Test]
+    public function aRegistrationFailureKeepsTheEngineDiagnostic(): void
+    {
+        $owner = new StreamWrapperSandbox();
+        $duplicate = new StreamWrapperSandbox();
+        $scheme = 'greenlight-sandbox-duplicate';
+        $owner->register($scheme, UnselectableStream::class);
+
+        try {
+            Expect::that(static function () use ($duplicate, $scheme): void {
+                $duplicate->register($scheme, UnselectableStream::class);
+            })->because('a duplicate wrapper registration MUST identify the scheme and cause')->toThrow(
+                StreamWrapperError::class,
+                '/Failed to register stream wrapper "greenlight-sandbox-duplicate": .+/',
+            );
+        } finally {
+            $owner->dispose();
+        }
+    }
+
+    #[Test]
+    public function disposalContinuesAfterAWrapperWasRemovedExternally(): void
+    {
+        $sandbox = new StreamWrapperSandbox();
+        $first = 'greenlight-sandbox-first';
+        $second = 'greenlight-sandbox-second';
+        $sandbox->register($first, UnselectableStream::class);
+        $sandbox->register($second, UnselectableStream::class);
+
+        Expect::that(\stream_wrapper_unregister($second))
+            ->because('the external cleanup MUST remove the second wrapper')
+            ->toBeTrue();
+
+        Expect::that(static function () use ($sandbox): void {
+            $sandbox->dispose();
+        })->because('one failed cleanup MUST not stop the remaining wrapper cleanup')->toThrow(
+            StreamWrapperError::class,
+            '/Failed to unregister stream wrapper "greenlight-sandbox-second": .+/',
+        );
+        Expect::that(\stream_get_wrappers())
+            ->because('the sandbox MUST unregister wrappers after an earlier cleanup failure')
+            ->not()->toContain($first);
+    }
+}

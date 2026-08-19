@@ -9,6 +9,7 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
@@ -18,14 +19,15 @@ final readonly class ArtifactUnknownSizeTest
 {
     private const string SCHEME = 'greenlight-unknown-size';
 
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private StreamWrapperSandbox $streamWrappers,
+    ) {}
 
     #[Test]
     public function aSourceWithAnUnknownSizeIsRejected(): void
     {
-        if (!\stream_wrapper_register(self::SCHEME, UnknownSizeFileStream::class)) {
-            throw new \RuntimeException('Greenlight did not register the unknown-size stream.');
-        }
+        $this->streamWrappers->register(self::SCHEME, UnknownSizeFileStream::class);
 
         $store = null;
 
@@ -50,7 +52,6 @@ final readonly class ArtifactUnknownSizeTest
                 );
         } finally {
             $store?->cleanup();
-            \stream_wrapper_unregister(self::SCHEME);
         }
     }
 }
