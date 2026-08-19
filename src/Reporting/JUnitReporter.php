@@ -261,6 +261,10 @@ final class JUnitReporter implements Reporter
 
     private function time(float $seconds): string
     {
+        if (!\is_finite($seconds)) {
+            $seconds = \PHP_FLOAT_MAX;
+        }
+
         return \sprintf('%.6f', $seconds);
     }
 }
