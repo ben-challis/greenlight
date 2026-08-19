@@ -151,7 +151,17 @@ final class IntegrationFixtureManager
         }
 
         if (($state[$definition->id] ?? 0) === 1) {
-            $cycle = [...$path, $definition->id];
+            $reversedCycle = [$definition->id];
+
+            foreach (\array_reverse($path) as $ancestor) {
+                $reversedCycle[] = $ancestor;
+
+                if ($ancestor === $definition->id) {
+                    break;
+                }
+            }
+
+            $cycle = \array_reverse($reversedCycle);
 
             throw new IntegrationFixtureError('Integration fixture dependency cycle: ' . \implode(' -> ', $cycle) . '.');
         }
