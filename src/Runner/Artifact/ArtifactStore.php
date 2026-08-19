@@ -214,11 +214,17 @@ final class ArtifactStore
         AttachmentRetention $retention,
         ArtifactConfiguration $configuration,
     ): StagedAttachment {
-        if (\is_link($sourcePath)) {
+        $source = ErrorTrap::run(static function () use ($sourcePath) {
+            if (\is_link($sourcePath)) {
+                return null;
+            }
+
+            return \fopen($sourcePath, 'rb');
+        });
+
+        if ($source === null) {
             throw AttachmentError::source($sourcePath, 'is a symbolic link. Use a source path that is not a symbolic link');
         }
-
-        $source = \fopen($sourcePath, 'rb');
 
         if ($source === false) {
             throw AttachmentError::source($sourcePath, 'is not a readable regular file');
