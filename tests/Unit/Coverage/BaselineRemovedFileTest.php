@@ -24,4 +24,25 @@ final readonly class BaselineRemovedFileTest
             ->because('removing a source file MUST NOT fail the coverage regression gate')
             ->toBeFalse();
     }
+
+    #[Test]
+    public function removedCoveredFileDoesNotTurnUnchangedCoverageIntoARegression(): void
+    {
+        $baseline = new CoverageMap([
+            new FileCoverage('/src/Removed.php', [1], []),
+            new FileCoverage('/src/Unchanged.php', [1], [2]),
+        ]);
+        $current = new CoverageMap([
+            new FileCoverage('/src/Unchanged.php', [1], [2]),
+        ]);
+
+        $report = BaselineDiff::between($baseline, $current);
+
+        Expect::that($report->totalDelta())
+            ->because('displayed totals still describe the complete coverage maps')
+            ->toBeLessThan(0.0);
+        Expect::that($report->hasRegressions())
+            ->because('a removed file MUST NOT make unchanged source coverage fail the regression gate')
+            ->toBeFalse();
+    }
 }

@@ -53,6 +53,8 @@ final readonly class BaselineDiff
             $deltas,
             $baseline->totalPercentage(),
             $current->totalPercentage(),
+            new CoverageMap(\array_values(\array_intersect_key($baselineFiles, $currentFiles)))->totalPercentage(),
+            new CoverageMap(\array_values(\array_intersect_key($currentFiles, $baselineFiles)))->totalPercentage(),
         );
     }
 }
