@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expect;
@@ -17,8 +18,10 @@ use Greenlight\Tests\Fixture\Expect\FakePollingClock;
 use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
 use Greenlight\Tests\Fixture\Expect\TransientProbeFailure;
 
-final class TemporalExpectationTest
+final readonly class TemporalExpectationTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function temporalAndImmediateExpectationsExposeTheSameNativeMatchers(): void
     {
@@ -361,20 +364,17 @@ final class TemporalExpectationTest
     {
         $clock = new FakePollingClock();
         $subjects = [-1, 2];
-        Expect::install([new PositiveNumbersExtension()]);
+        $restoreExtensions = Expect::install([new PositiveNumbersExtension()]);
+        $this->cleanup->defer($restoreExtensions);
 
-        try {
-            ExpectationRuntime::withClock(
-                $clock,
-                static fn() => Expect::eventually(static function () use (&$subjects): int {
-                    return \array_shift($subjects) ?? 2;
-                })
-                    ->within(0.100)
-                    ->__call('toBePositive', []),
-            );
-        } finally {
-            Expect::install([]);
-        }
+        ExpectationRuntime::withClock(
+            $clock,
+            static fn() => Expect::eventually(static function () use (&$subjects): int {
+                return \array_shift($subjects) ?? 2;
+            })
+                ->within(0.100)
+                ->__call('toBePositive', []),
+        );
 
         Expect::that($clock->sleeps)
             ->because('the extension matcher MUST reject the negative probe before it accepts the positive probe')

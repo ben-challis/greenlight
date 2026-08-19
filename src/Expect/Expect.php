@@ -80,9 +80,16 @@ final class Expect
      * @internal
      *
      * @param list<ExpectationExtension> $extensions
+     *
+     * @return \Closure(): void A callback that restores the previous extension list.
      */
-    public static function install(array $extensions): void
+    public static function install(array $extensions): \Closure
     {
+        $previous = self::$extensions;
         self::$extensions = $extensions;
+
+        return static function () use ($previous): void {
+            self::$extensions = $previous;
+        };
     }
 }
