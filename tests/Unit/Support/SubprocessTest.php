@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Support;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
@@ -162,6 +163,47 @@ final readonly class SubprocessTest
                 ->toThrow(\RuntimeException::class, '/Timed out after 0.1s/');
         } finally {
             $process->terminate();
+        }
+    }
+
+    #[Test]
+    #[DataSet('nonFiniteTimeouts')]
+    public function deadlineOperationsRejectNonFiniteTimeouts(string $operation, float $timeoutSeconds): void
+    {
+        $process = Subprocess::start(
+            $this->workspace->path(),
+            [
+                \PHP_BINARY,
+                '-r',
+                $operation === 'wait' ? 'exit(0);' : 'fwrite(STDOUT, "ready");',
+            ],
+        );
+
+        try {
+            $call = $operation === 'wait'
+                ? static fn(): ProcessResult => $process->wait($timeoutSeconds)
+                : static fn(): string => $process->readStdoutUntil('ready', $timeoutSeconds);
+
+            Expect::that($call)
+                ->because('a non-finite timeout MUST NOT create an unbounded subprocess wait')
+                ->toThrow(
+                    \InvalidArgumentException::class,
+                    message: 'Subprocess timeout must be finite.',
+                );
+        } finally {
+            $process->terminate();
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, float}>
+     */
+    public static function nonFiniteTimeouts(): iterable
+    {
+        foreach (['read stdout', 'wait'] as $operation) {
+            yield $operation . ', not a number' => [$operation, \NAN];
+            yield $operation . ', positive infinity' => [$operation, \INF];
+            yield $operation . ', negative infinity' => [$operation, -\INF];
         }
     }
 

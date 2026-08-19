@@ -143,10 +143,12 @@ final class Subprocess
     }
 
     /**
+     * @throws \InvalidArgumentException when the timeout is not finite
      * @throws \RuntimeException when the expected output is not seen before the deadline
      */
     public function readStdoutUntil(string $needle, float $timeoutSeconds): string
     {
+        $deadline = $this->deadline($timeoutSeconds);
         $offset = \strlen($this->stdout);
 
         if ($this->finished) {
@@ -157,8 +159,6 @@ final class Subprocess
                 $this->stderr,
             ));
         }
-
-        $deadline = $this->monotonicTime() + $timeoutSeconds;
 
         while ($this->monotonicTime() < $deadline) {
             $this->pump();
@@ -215,11 +215,12 @@ final class Subprocess
     }
 
     /**
+     * @throws \InvalidArgumentException when the timeout is not finite
      * @throws \RuntimeException when the process does not exit before the deadline
      */
     public function wait(float $timeoutSeconds): ProcessResult
     {
-        $deadline = $this->monotonicTime() + $timeoutSeconds;
+        $deadline = $this->deadline($timeoutSeconds);
 
         try {
             while ($this->monotonicTime() < $deadline) {
@@ -363,6 +364,15 @@ final class Subprocess
     private function normalize(string $output): string
     {
         return \rtrim(\str_replace("\r\n", "\n", $output), "\n");
+    }
+
+    private function deadline(float $timeoutSeconds): float
+    {
+        if (!\is_finite($timeoutSeconds)) {
+            throw new \InvalidArgumentException('Subprocess timeout must be finite.');
+        }
+
+        return $this->monotonicTime() + $timeoutSeconds;
     }
 
     private function monotonicTime(): float
