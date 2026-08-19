@@ -550,7 +550,7 @@ public function isSuccessful(): bool
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L107)
 
 ### `fromWire()`
 
@@ -559,7 +559,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L118)
 
 ## `SourceLocation`
 
