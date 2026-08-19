@@ -113,6 +113,29 @@ final readonly class RunStateTest
     }
 
     #[Test]
+    public function failuresAndDurationsComeFromOneStateSnapshot(): void
+    {
+        $file = $this->stateFile();
+        \file_put_contents($file, \json_encode([
+            'failed' => ['Acme\AlphaTest::one'],
+            'classSeconds' => ['Acme\AlphaTest' => 1.25],
+        ], \JSON_THROW_ON_ERROR));
+
+        $state = RunState::forFile($file);
+
+        Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one']);
+
+        \file_put_contents($file, \json_encode([
+            'failed' => ['Acme\BetaTest::two'],
+            'classSeconds' => ['Acme\BetaTest' => 2.5],
+        ], \JSON_THROW_ON_ERROR));
+
+        Expect::that($state->classSeconds())
+            ->because('one command MUST use failures and durations from the same state snapshot')
+            ->toBe(['Acme\AlphaTest' => 1.25]);
+    }
+
+    #[Test]
     public function unreadableStateReadsAsAbsent(): void
     {
         $file = $this->stateFile();
