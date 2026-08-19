@@ -16,6 +16,59 @@ final readonly class TestDiscovererLoadedClassTest
     public function __construct(private TempDirectory $tempDirectory) {}
 
     #[Test]
+    public function unresolvedClassPathsCannotMasqueradeAsTheSameFile(): void
+    {
+        $root = $this->tempDirectory->path();
+        $expectedDirectory = $root . '/scanned';
+        $actualDirectory = $root . '/autoloaded';
+        \mkdir($expectedDirectory);
+        \mkdir($actualDirectory);
+        $expectedFile = $expectedDirectory . '/VanishedTest.php';
+        $actualFile = $actualDirectory . '/VanishedTest.php';
+        $namespace = 'GreenlightDiscoveryVanished' . \bin2hex(\random_bytes(6));
+        $class = $namespace . '\\VanishedTest';
+        $source = \sprintf(
+            <<<'PHP'
+                <?php
+
+                declare(strict_types=1);
+
+                namespace %s;
+
+                final class VanishedTest {}
+                PHP,
+            $namespace,
+        );
+        \file_put_contents($expectedFile, $source);
+        \file_put_contents($actualFile, $source);
+
+        $loader = static function (string $candidate) use ($class, $actualFile, $expectedFile): void {
+            if ($candidate === $class) {
+                require_once $actualFile;
+                \unlink($actualFile);
+                \unlink($expectedFile);
+            }
+        };
+        \spl_autoload_register($loader);
+
+        try {
+            Expect::that(
+                static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
+            )->because('discovery MUST reject class paths that it cannot resolve')->toThrow(
+                DiscoveryError::class,
+                message: \sprintf(
+                    'The autoloader loaded class "%s" from "%s". It expected the class in "%s". Only one file can declare a class.',
+                    $class,
+                    $actualFile,
+                    $expectedFile,
+                ),
+            );
+        } finally {
+            \spl_autoload_unregister($loader);
+        }
+    }
+
+    #[Test]
     public function aClassLoadedFromAnotherFileFailsWithBothPaths(): void
     {
         $root = $this->tempDirectory->path();
