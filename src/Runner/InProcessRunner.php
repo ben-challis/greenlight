@@ -6,6 +6,7 @@ namespace Greenlight\Runner;
 
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\GracefulShutdown;
@@ -16,7 +17,6 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Fixture\EnvironmentBackup;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\Artifact\ArtifactStore;

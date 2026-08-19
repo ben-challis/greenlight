@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Fixture;
 
+use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Harness\Disposable;
 
 /**
@@ -22,17 +23,7 @@ final class EnvironmentSandbox implements Disposable
      */
     public function set(string $name, string $value): void
     {
-        $this->validateName($name);
-
-        if (\str_contains($value, "\0")) {
-            throw new \InvalidArgumentException('Environment variable values cannot contain a null byte.');
-        }
-
-        $this->record($name);
-
-        \putenv($name . '=' . $value);
-        $_ENV[$name] = $value;
-        $_SERVER[$name] = $value;
+        $this->backup($name)->set($value);
     }
 
     /**
@@ -40,11 +31,7 @@ final class EnvironmentSandbox implements Disposable
      */
     public function unset(string $name): void
     {
-        $this->validateName($name);
-        $this->record($name);
-
-        \putenv($name);
-        unset($_ENV[$name], $_SERVER[$name]);
+        $this->backup($name)->unset();
     }
 
     #[\Override]
@@ -57,17 +44,8 @@ final class EnvironmentSandbox implements Disposable
         $this->originals = [];
     }
 
-    private function record(string $name): void
+    private function backup(string $name): EnvironmentBackup
     {
-        $this->originals[$name] ??= EnvironmentBackup::capture($name);
-    }
-
-    private function validateName(string $name): void
-    {
-        if ($name === '' || \str_contains($name, '=') || \str_contains($name, "\0")) {
-            throw new \InvalidArgumentException(
-                'Environment variable names cannot be empty or contain "=" or a null byte.',
-            );
-        }
+        return $this->originals[$name] ??= EnvironmentBackup::capture($name);
     }
 }
