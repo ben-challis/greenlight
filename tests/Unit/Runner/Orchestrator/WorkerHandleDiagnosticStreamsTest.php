@@ -29,4 +29,23 @@ final readonly class WorkerHandleDiagnosticStreamsTest
             ->toBe("standard output\nstandard error\n");
     }
 
+    #[Test]
+    public function pipeDrainKeepsTheBoundedTailOfAvailableOutput(): void
+    {
+        $tail = \str_repeat('t', 65_536);
+        $handle = new WorkerHandle(
+            'worker-1',
+            1,
+            MemoryStream::open(),
+            MemoryStream::open(\str_repeat('p', 8_192) . $tail),
+            MemoryStream::open(),
+        );
+
+        $handle->drainPipes();
+
+        Expect::that($handle->diagnostics)
+            ->because('one pipe drain MUST retain the bounded tail of all available output')
+            ->toBe($tail);
+    }
+
 }
