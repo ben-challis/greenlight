@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Stores registered harness services by their exact types.
+ * Stores registered harness services by their exact PHP types. Type names do
+ * not use letter case for identity.
  *
  * @internal
  */
 final class HarnessRegistry
 {
     /**
-     * @var array<class-string, ServiceDefinition>
+     * @var array<string, ServiceDefinition>
      */
     private array $definitions = [];
 
@@ -28,14 +29,16 @@ final class HarnessRegistry
 
     public function register(ServiceDefinition $definition): void
     {
-        if (isset($this->definitions[$definition->type])) {
+        $key = $this->typeKey($definition->type);
+
+        if (isset($this->definitions[$key])) {
             throw new \LogicException(\sprintf(
                 'A harness service for %s is already registered.',
                 $definition->type,
             ));
         }
 
-        $this->definitions[$definition->type] = $definition;
+        $this->definitions[$key] = $definition;
     }
 
     /**
@@ -43,6 +46,11 @@ final class HarnessRegistry
      */
     public function find(string $type): ?ServiceDefinition
     {
-        return $this->definitions[$type] ?? null;
+        return $this->definitions[$this->typeKey($type)] ?? null;
+    }
+
+    private function typeKey(string $type): string
+    {
+        return \strtolower($type);
     }
 }
