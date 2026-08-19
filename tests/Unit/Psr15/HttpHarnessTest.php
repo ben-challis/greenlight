@@ -126,7 +126,7 @@ final class HttpHarnessTest
     }
 
     #[Test]
-    public function releasesTheActiveHandlerOnlyOnce(): void
+    public function releasesTheSuppliedHandlerOnlyOnce(): void
     {
         $handler = $this->textHandler();
         $released = [];
@@ -136,8 +136,6 @@ final class HttpHarnessTest
                 $released[] = $active;
             },
         );
-        $harness->send(new ServerRequest([], [], '/status', 'GET'));
-
         $harness->dispose();
         $harness->dispose();
 
