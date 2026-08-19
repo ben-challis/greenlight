@@ -154,14 +154,14 @@ final class SocketChannel
         [$bytes, $reachedEof] = ErrorTrap::run(function (): array {
             $bytes = \fread($this->stream, 65536);
 
-            return [$bytes, $bytes === '' && \feof($this->stream)];
+            return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
         }, $warning);
 
-        if ($bytes === false) {
+        if ($bytes === false && !$reachedEof) {
             throw ProtocolError::malformedFrame('peer connection failed during a read', $warning);
         }
 
-        if ($bytes !== '') {
+        if (\is_string($bytes) && $bytes !== '') {
             $this->buffer->feed($bytes);
         }
 
