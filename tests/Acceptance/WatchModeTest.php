@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -12,7 +13,10 @@ use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class WatchModeTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function reRunsOnFileChangesAndQuitsOnQ(): void
@@ -26,30 +30,27 @@ final readonly class WatchModeTest
         }
 
         $process = GreenlightCli::start($project->directory, ['run', '--watch', '--reporter=plain']);
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
-            Expect::that($output)->toContain('1 test, 1 passed');
+        $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+        Expect::that($output)->toContain('1 test, 1 passed');
 
-            // Append a comment to make a synthetic change. The size changes, but
-            // the modification time can remain equal.
-            $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
+        // Append a comment to make a synthetic change. The size changes, but
+        // the modification time can remain equal.
+        $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
 
-            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
-            Expect::that($output)->toContain('Detected changes')
-                ->toContain('1 test, 1 passed');
+        $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+        Expect::that($output)->toContain('Detected changes')
+            ->toContain('1 test, 1 passed');
 
-            $process->write('q');
-            $result = $process->wait(10.0);
-            $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
-            $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
+        $process->write('q');
+        $result = $process->wait(10.0);
+        $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
+        $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
 
-            Expect::that($result->exitCode)->toBe(0);
-            Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
-            Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
+        Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
     }
 
     #[Test]
@@ -61,23 +62,20 @@ final readonly class WatchModeTest
             ['run', '--watch', '--reporter=plain'],
             phpArguments: ['-d', 'disable_functions=shell_exec'],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+        $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-            Expect::that($output)
-                ->because('watch mode starts when PHP disables shell_exec')
-                ->toContain('1 test, 1 passed');
+        Expect::that($output)
+            ->because('watch mode starts when PHP disables shell_exec')
+            ->toContain('1 test, 1 passed');
 
-            $process->write('q');
-            $result = $process->wait(10.0);
+        $process->write('q');
+        $result = $process->wait(10.0);
 
-            Expect::that($result->exitCode)
-                ->because('watch mode exits cleanly when PHP disables shell_exec')
-                ->toBe(0);
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)
+            ->because('watch mode exits cleanly when PHP disables shell_exec')
+            ->toBe(0);
     }
 
     #[Test]
@@ -88,26 +86,23 @@ final readonly class WatchModeTest
             $project->directory,
             ['run', '--watch', '--reporter=plain'],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $process->readStdoutUntil('Waiting for changes', 20.0);
+        $process->readStdoutUntil('Waiting for changes', 20.0);
 
-            $process->write('q');
-            $result = $process->wait(10.0);
+        $process->write('q');
+        $result = $process->wait(10.0);
 
-            Expect::that($result->exitCode)
-                ->because('watch mode MUST remain interactive after a fixture cleanup failure')
-                ->toBe(0);
-            Expect::that($result->output())
-                ->because('watch mode MUST report integration fixture cleanup failures')
-                ->toContain('Integration fixture teardown failed.')
-                ->toContain('intentional fixture cleanup failure');
-            Expect::that($this->matches($project->path('markers/resource-*')))
-                ->because('watch mode MUST remove orchestrator-owned resources after cleanup failures')
-                ->toBe([]);
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)
+            ->because('watch mode MUST remain interactive after a fixture cleanup failure')
+            ->toBe(0);
+        Expect::that($result->output())
+            ->because('watch mode MUST report integration fixture cleanup failures')
+            ->toContain('Integration fixture teardown failed.')
+            ->toContain('intentional fixture cleanup failure');
+        Expect::that($this->matches($project->path('markers/resource-*')))
+            ->because('watch mode MUST remove orchestrator-owned resources after cleanup failures')
+            ->toBe([]);
     }
 
     #[Test]
@@ -119,31 +114,28 @@ final readonly class WatchModeTest
             $project->directory,
             ['run', '--watch', '--reporter=plain'],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+        $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-            Expect::that($output)
-                ->because('watch mode MUST complete its initial coverage run')
-                ->toContain('1 test, 1 passed');
+        Expect::that($output)
+            ->because('watch mode MUST complete its initial coverage run')
+            ->toContain('1 test, 1 passed');
 
-            $project->writeFile('source/Observed.php', "<?php\n// changed\n");
-            $output = $process->readStdoutUntil('Waiting for changes', 20.0);
+        $project->writeFile('source/Observed.php', "<?php\n// changed\n");
+        $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-            Expect::that($output)
-                ->because('watch mode MUST observe configured coverage include paths')
-                ->toContain('Detected changes')
-                ->toContain('1 test, 1 passed');
+        Expect::that($output)
+            ->because('watch mode MUST observe configured coverage include paths')
+            ->toContain('Detected changes')
+            ->toContain('1 test, 1 passed');
 
-            $process->write('q');
-            $result = $process->wait(10.0);
+        $process->write('q');
+        $result = $process->wait(10.0);
 
-            Expect::that($result->exitCode)
-                ->because('watch mode exits cleanly after a coverage source change')
-                ->toBe(0);
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)
+            ->because('watch mode exits cleanly after a coverage source change')
+            ->toBe(0);
     }
 
     private function writeProject(
