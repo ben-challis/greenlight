@@ -92,6 +92,7 @@
         "code-style:fix": "php-cs-fixer fix --diff --ansi",
         "coverage-gate": "@php tools/coverage-gate.php",
         "deptrac": "deptrac analyse --no-progress --report-uncovered --fail-on-uncovered",
+        "docs:php:check": "@php tools/docs-php.php check",
         "lint": [
             "parallel-lint src tests tools bin"
         ],
@@ -107,6 +108,7 @@
             "@composer normalize --dry-run",
             "@lint",
             "@prose:check",
+            "@docs:php:check",
             "@workflow-shell:check",
             "@code-style:check",
             "@phpstan",
