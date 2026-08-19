@@ -16,6 +16,7 @@ use Greenlight\Tests\Fixture\DataRowsControlLabel\ControlLabelRowTest;
 use Greenlight\Tests\Fixture\DataRowsDuplicateInline\DuplicateInlineRowKeyTest;
 use Greenlight\Tests\Fixture\DataRowsInvalid\EmptyDataRowLabelTest;
 use Greenlight\Tests\Fixture\DataRowsZeroLabel\ZeroLabelRowTest;
+use Greenlight\Tests\Support\FixturePath;
 
 final class DataRowTest
 {
@@ -33,7 +34,7 @@ final class DataRowTest
     public function aZeroStringInlineLabelRemainsThePlanDataSetKey(): void
     {
         $plan = new TestDiscoverer()->discover(
-            [\dirname(__DIR__, 2) . '/Fixture/DataRowsZeroLabel'],
+            [FixturePath::get('DataRowsZeroLabel')],
             Filter::all(),
         );
         $ids = \array_map(static fn($entry): string => (string) $entry->id, $plan->entries);
@@ -124,7 +125,7 @@ final class DataRowTest
     public function discovererExpandsInlineRowsIntoThePlan(): void
     {
         $plan = new TestDiscoverer()->discover(
-            [\dirname(__DIR__, 2) . '/Fixture/DataRows'],
+            [FixturePath::get('DataRows')],
             new Filter(includeMethods: ['addsUp']),
         );
 

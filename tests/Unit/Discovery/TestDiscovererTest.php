@@ -13,18 +13,11 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\FilesystemRestriction;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\JsonWire;
 
 final class TestDiscovererTest
 {
-    /**
-     * @return non-empty-string
-     */
-    private function fixtureDir(string $name): string
-    {
-        return \dirname(__DIR__, 2) . '/Fixture/' . $name;
-    }
-
     /**
      * @return list<string>
      */
@@ -66,7 +59,7 @@ final class TestDiscovererTest
     #[Test]
     public function discoversBasicSuiteInFileOrderWithoutSeed(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')]);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')]);
 
         Expect::that($this->ids($plan))->because('discovers basic suite in file order without seed')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
@@ -85,7 +78,7 @@ final class TestDiscovererTest
     #[Test]
     public function abstractClassesAndClassesWithoutTestsAreSkipped(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')]);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')]);
 
         foreach ($plan->classes() as $class) {
             Expect::that($class)
@@ -98,8 +91,8 @@ final class TestDiscovererTest
     public function sameSeedProducesByteIdenticalPlans(): void
     {
         $discoverer = new TestDiscoverer();
-        $first = $discoverer->discover([$this->fixtureDir('DiscoveryBasic')], null, 1234);
-        $second = $discoverer->discover([$this->fixtureDir('DiscoveryBasic')], null, 1234);
+        $first = $discoverer->discover([FixturePath::get('DiscoveryBasic')], null, 1234);
+        $second = $discoverer->discover([FixturePath::get('DiscoveryBasic')], null, 1234);
 
         Expect::that(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))->because('same seed produces byte identical plans')
             ->toBe(\json_encode($first->toWire(), \JSON_THROW_ON_ERROR));
@@ -113,7 +106,7 @@ final class TestDiscovererTest
         $orders = [];
 
         foreach ([1, 2, 3, 4, 5] as $seed) {
-            $orders[] = \implode(',', $discoverer->discover([$this->fixtureDir('DiscoveryBasic')], null, $seed)->classes());
+            $orders[] = \implode(',', $discoverer->discover([FixturePath::get('DiscoveryBasic')], null, $seed)->classes());
         }
 
         Expect::that(\count(\array_unique($orders)))->because('different seeds produce different class order')->toBeGreaterThan(1);
@@ -122,7 +115,7 @@ final class TestDiscovererTest
     #[Test]
     public function seededPlanKeepsMethodDeclarationOrderWithinClass(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')], null, 42);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], null, 42);
         $bravoMethods = [];
 
         foreach ($plan->entries as $entry) {
@@ -137,7 +130,7 @@ final class TestDiscovererTest
     #[Test]
     public function seededPlanSurvivesTheWire(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryBasic')], null, 99);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], null, 99);
         $restored = ExecutionPlan::fromWire(JsonWire::roundTrip($plan->toWire()));
 
         Expect::that(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('seeded plan survives the wire')
@@ -147,7 +140,7 @@ final class TestDiscovererTest
     #[Test]
     public function unknownDirectoryFailsLoudly(): void
     {
-        $directory = $this->fixtureDir('DoesNotExist');
+        $directory = FixturePath::get('DoesNotExist');
 
         Expect::that(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
@@ -185,7 +178,7 @@ final class TestDiscovererTest
     #[Test]
     public function overlappingDirectoriesDoNotDuplicateEntries(): void
     {
-        $dir = $this->fixtureDir('DiscoveryBasic');
+        $dir = FixturePath::get('DiscoveryBasic');
         $plan = new TestDiscoverer()->discover([$dir, $dir]);
 
         Expect::that($plan->count())->because('overlapping directories do not duplicate entries')->toBe(7);
