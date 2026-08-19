@@ -68,7 +68,7 @@ export const docSections = [
       },
       {
         id: 'psr',
-        title: 'PSR applications',
+        title: 'PSR-11 containers',
         description: 'This guide explains how tests receive services from a PSR-11 container.',
       },
       {
