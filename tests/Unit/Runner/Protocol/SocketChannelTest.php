@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -18,32 +19,32 @@ final readonly class SocketChannelTest
 {
     private const string UNSELECTABLE_SCHEME = 'greenlight-unselectable';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(
+        private StreamWrapperSandbox $streamWrappers,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function receiveTimeoutLeavesTheChannelOpenForLaterMessages(): void
     {
         [$stream, $peer] = ConnectedStreamPair::open();
         $receiver = new SocketChannel($stream);
+        $this->cleanup->defer($receiver->close(...));
         $sender = new SocketChannel($peer);
+        $this->cleanup->defer($sender->close(...));
 
-        try {
-            Expect::that($receiver->receive(0.0))
-                ->because('an empty receive can reach its deadline')
-                ->toBeNull();
-            Expect::that($receiver->isEof())
-                ->because('a receive deadline MUST NOT mark an open channel as EOF')
-                ->toBeFalse();
+        Expect::that($receiver->receive(0.0))
+            ->because('an empty receive can reach its deadline')
+            ->toBeNull();
+        Expect::that($receiver->isEof())
+            ->because('a receive deadline MUST NOT mark an open channel as EOF')
+            ->toBeFalse();
 
-            $sender->send(new Drain());
+        $sender->send(new Drain());
 
-            Expect::that($receiver->receive(0.0))
-                ->because('a channel remains usable after a receive deadline')
-                ->toBeInstanceOf(Drain::class);
-        } finally {
-            $sender->close();
-            $receiver->close();
-        }
+        Expect::that($receiver->receive(0.0))
+            ->because('a channel remains usable after a receive deadline')
+            ->toBeInstanceOf(Drain::class);
     }
 
     #[Test]
@@ -51,24 +52,21 @@ final readonly class SocketChannelTest
     {
         [$stream, $peer] = ConnectedStreamPair::open();
         $receiver = new SocketChannel($stream);
+        $this->cleanup->defer($receiver->close(...));
         $sender = new SocketChannel($peer);
+        $this->cleanup->defer($sender->close(...));
 
-        try {
-            $sender->send(new Drain());
-            $sender->close();
+        $sender->send(new Drain());
+        $sender->close();
 
-            Expect::that($receiver->poll())
-                ->because('a complete final frame MUST be delivered before peer EOF')
-                ->toBeInstanceOf(Drain::class);
-            Expect::that($receiver->poll())
-                ->because('the channel reaches clean EOF after the final frame')
-                ->toBeNull();
-            Expect::that($receiver->isEof())
-                ->toBeTrue();
-        } finally {
-            $sender->close();
-            $receiver->close();
-        }
+        Expect::that($receiver->poll())
+            ->because('a complete final frame MUST be delivered before peer EOF')
+            ->toBeInstanceOf(Drain::class);
+        Expect::that($receiver->poll())
+            ->because('the channel reaches clean EOF after the final frame')
+            ->toBeNull();
+        Expect::that($receiver->isEof())
+            ->toBeTrue();
     }
 
     #[Test]
@@ -147,17 +145,14 @@ final readonly class SocketChannelTest
         }
 
         $channel = new SocketChannel($stream);
+        $this->cleanup->defer($channel->close(...));
 
-        try {
-            Expect::that($channel->receive(1.0))
-                ->because('a stream-select failure MUST end the receive wait')
-                ->toBeNull();
-            Expect::that($channel->isEof())
-                ->because('a stream-select failure MUST NOT mark the channel as EOF')
-                ->toBeFalse();
-        } finally {
-            $channel->close();
-        }
+        Expect::that($channel->receive(1.0))
+            ->because('a stream-select failure MUST end the receive wait')
+            ->toBeNull();
+        Expect::that($channel->isEof())
+            ->because('a stream-select failure MUST NOT mark the channel as EOF')
+            ->toBeFalse();
     }
 
 }
