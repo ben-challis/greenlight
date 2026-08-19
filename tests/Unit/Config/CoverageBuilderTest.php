@@ -83,7 +83,7 @@ final class CoverageBuilderTest
         $configuration = new CoverageBuilder()
             ->include('0')
             ->driver('0')
-            ->export('0', '0')
+            ->export('json', '0')
             ->toConfiguration();
 
         Expect::that($configuration->includePaths)
@@ -93,8 +93,7 @@ final class CoverageBuilderTest
             ->because('a zero-string coverage driver is not empty')
             ->toBe('0');
         Expect::that($configuration->exports[0]->format)
-            ->because('a zero-string coverage export format is not empty')
-            ->toBe('0');
+            ->toBe('json');
         Expect::that($configuration->exports[0]->target)
             ->because('a zero-string coverage export target is not empty')
             ->toBe('0');

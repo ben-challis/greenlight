@@ -7,6 +7,8 @@ namespace Greenlight\Config;
 /** @internal */
 final readonly class CoverageExport
 {
+    private const array FORMATS = ['json', 'lcov', 'clover', 'cobertura', 'html'];
+
     /**
      * @var non-empty-string
      */
@@ -24,6 +26,13 @@ final readonly class CoverageExport
     {
         if ($format === '' || $target === '') {
             throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
+        }
+
+        if (!\in_array($format, self::FORMATS, true)) {
+            throw new InvalidConfiguration(\sprintf(
+                'Unknown coverage export format "%s". Use "json", "lcov", "clover", "cobertura", or "html".',
+                $format,
+            ));
         }
 
         if (\str_contains($target, "\0")) {
