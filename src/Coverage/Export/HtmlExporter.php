@@ -200,11 +200,13 @@ final readonly class HtmlExporter implements CoverageExporter
      */
     private function highlightedLines(string $path): ?array
     {
-        if (!ErrorTrap::run(static fn(): bool => \is_file($path) && \is_readable($path))) {
-            return null;
-        }
+        $content = ErrorTrap::run(static function () use ($path): string|false {
+            if (!\is_file($path) || !\is_readable($path)) {
+                return false;
+            }
 
-        $content = ErrorTrap::run(static fn(): string|false => \file_get_contents($path));
+            return \file_get_contents($path);
+        });
 
         if ($content === false) {
             return null;
