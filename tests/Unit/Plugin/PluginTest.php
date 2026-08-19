@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
@@ -36,8 +37,10 @@ use Greenlight\Tests\Fixture\Plugins\ProbeProvider;
 use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Support\CollectingEventSink;
 
-final class PluginTest
+final readonly class PluginTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function aPluginCannotReplaceADefaultHarnessService(): void
     {
@@ -423,21 +426,18 @@ final class PluginTest
     #[Test]
     public function expectationExtensionsDispatchThroughTheChain(): void
     {
-        Expect::install([new EvenNumbersExtension()]);
+        $restoreExtensions = Expect::install([new EvenNumbersExtension()]);
+        $this->cleanup->defer($restoreExtensions);
 
-        try {
-            Expect::that(4)->toBeEven();
-            Expect::that(3)->not()->toBeEven();
+        Expect::that(4)->toBeEven();
+        Expect::that(3)->not()->toBeEven();
 
-            Expect::that(static function (): void {
-                Expect::that(3)->toBeEven();
-            })->toThrow(ExpectationFailed::class, matching: '/extension matcher toBeEven/');
+        Expect::that(static function (): void {
+            Expect::that(3)->toBeEven();
+        })->toThrow(ExpectationFailed::class, matching: '/extension matcher toBeEven/');
 
-            Expect::that(static fn(): Expectation => Expect::that(3)->__call('toBeSomethingUnknown', []))
-                ->toThrow(\BadMethodCallException::class, matching: '/toBeSomethingUnknown/');
-        } finally {
-            Expect::install([]);
-        }
+        Expect::that(static fn(): Expectation => Expect::that(3)->__call('toBeSomethingUnknown', []))
+            ->toThrow(\BadMethodCallException::class, matching: '/toBeSomethingUnknown/');
     }
 
     /**
