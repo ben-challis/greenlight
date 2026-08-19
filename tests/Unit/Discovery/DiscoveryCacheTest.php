@@ -12,6 +12,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
+use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCacheTest
 {
@@ -36,7 +37,7 @@ final readonly class DiscoveryCacheTest
 
             // Add an entry to the cached payload without a file change. The entry
             // shows that the second discovery reads the discovery cache.
-            $cacheFile = $this->cacheFile($directory);
+            $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
             $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
             \assert(\is_array($decoded) && \is_array($decoded['files']));
             $path = (string) \array_key_first($decoded['files']);
@@ -69,7 +70,7 @@ final readonly class DiscoveryCacheTest
             $recovered = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             Expect::that($recovered->count())->toBe(2);
         } finally {
-            @\unlink($this->cacheFile($directory));
+            @\unlink(DiscoveryCachePath::forDirectories([$directory]));
             @\unlink($directory . '/CachedProbeTest.php');
             @\rmdir($directory);
         }
@@ -81,7 +82,7 @@ final readonly class DiscoveryCacheTest
     {
         $className = 'ShapeProbe' . \bin2hex(\random_bytes(6)) . 'Test';
         $directory = $this->writeFixture($className);
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         $loader = static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
                 require_once $directory . '/' . $className . '.php';
@@ -134,7 +135,7 @@ final readonly class DiscoveryCacheTest
             Fail::because('Expected the discovery fixture to have a canonical path.');
         }
 
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         $loader = static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
                 require_once $directory . '/' . $className . '.php';
@@ -242,7 +243,7 @@ final readonly class DiscoveryCacheTest
             $cold = new TestDiscoverer()->discover([$directory], cache: $cache);
             Expect::that($cold->count())->toBe(1);
 
-            $cacheFile = $this->cacheFile($directory);
+            $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
             $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
             \assert(\is_array($decoded) && \is_array($decoded['files']));
             $cachedPath = \array_find(
@@ -275,7 +276,7 @@ final readonly class DiscoveryCacheTest
             );
             Expect::that($reparsed->count())->toBe(1);
         } finally {
-            @\unlink($this->cacheFile($directory));
+            @\unlink(DiscoveryCachePath::forDirectories([$directory]));
             @\unlink($testFile);
             @\unlink($providerFile);
             @\rmdir($directory);
@@ -290,7 +291,7 @@ final readonly class DiscoveryCacheTest
         // loaded from a different fixture directory.
         $className = 'PersistProbeTest';
         $directory = $this->writeFixture($className);
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
 
         \spl_autoload_register(static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
@@ -315,7 +316,7 @@ final readonly class DiscoveryCacheTest
     {
         $className = 'RenameFailProbeTest';
         $directory = $this->writeFixture($className);
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
 
         \spl_autoload_register(static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
@@ -372,7 +373,7 @@ final readonly class DiscoveryCacheTest
     public function aSourceThatVanishedBeforeCachingIsIgnored(): void
     {
         $directory = \sys_get_temp_dir() . '/greenlight-vanished-' . \bin2hex(\random_bytes(6));
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         $cache = DiscoveryCache::forDirectories([$directory]);
 
         try {
@@ -394,7 +395,7 @@ final readonly class DiscoveryCacheTest
     {
         $directory = \sys_get_temp_dir() . '/greenlight-binary-path-' . \bin2hex(\random_bytes(6));
         $source = self::STATABLE_FILE_SCHEME . "://Invalid-\xFF-Test.php";
-        $cacheFile = $this->cacheFile($directory);
+        $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         if (!\stream_wrapper_register(self::STATABLE_FILE_SCHEME, StatableFileStream::class)) {
             Fail::because('Expected to register the statable-file stream.');
         }
@@ -414,18 +415,6 @@ final readonly class DiscoveryCacheTest
             \stream_wrapper_unregister(self::STATABLE_FILE_SCHEME);
             @\unlink($cacheFile);
         }
-    }
-
-    /**
-     * @param non-empty-string $directory
-     */
-    private function cacheFile(string $directory): string
-    {
-        return \sprintf(
-            '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($directory), 0, 12),
-        );
     }
 
     /**
