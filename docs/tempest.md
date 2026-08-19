@@ -1,30 +1,23 @@
 # Tempest applications
 
-The Tempest bridge supplies Tempest container services and built-in Greenlight
-harness services to test constructors.
+The Tempest bridge supplies Tempest container services to test constructors.
 
-The bridge boots one long-running Tempest kernel for each worker. The kernel
-owns application discovery, configuration, deferred tasks, reset, and shutdown
-events.
+The bridge boots a Tempest kernel when a test first requests a Tempest service.
+The kernel stays active for the worker lifetime. Tempest controls discovery,
+configuration, deferred tasks, container reset, and shutdown events.
 
 ## Compatibility
 
 Greenlight requires PHP 8.4 or later. Greenlight has no Tempest runtime
-dependency.
+dependency. The bridge supports Tempest 3.18 and later releases in major
+version 3.
 
-Tempest 3.18 requires PHP 8.5. Install Tempest only in an application that uses
-PHP 8.5 or later:
+Tempest 3.18 requires PHP 8.5 or later. Use PHP 8.5 or later with the bridge.
+Install Tempest in the application:
 
 ```console
 composer require tempest/framework:^3.18
 ```
-
-Greenlight tests its normal package and dependency matrix on PHP 8.4 and later.
-A separate PHP 8.5 CI job installs Tempest 3.18 and runs the bridge acceptance
-test. This arrangement preserves the Greenlight PHP 8.4 package contract.
-
-The bridge requires Tempest 3.18 or later in major version 3. This version has
-the verified long-running kernel lifecycle that the bridge uses.
 
 ## Setup
 
@@ -39,20 +32,19 @@ return GreenlightConfig::create()
     ->plugins(new TempestPlugin(__DIR__));
 ```
 
-The root directory must contain the application `composer.json` file and
-`vendor` directory. Tempest uses this Composer metadata for discovery.
+The root directory MUST contain the application `composer.json` file and the
+`vendor` directory. Tempest reads the Composer metadata during discovery.
 
-The bridge sets `ENVIRONMENT` to `testing` while a test uses Tempest. Tempest
-then loads `.test.config.php` and `.testing.config.php` files. Pass
-`environment:` to select a different environment.
+The bridge sets `ENVIRONMENT` to `testing` while Tempest is active for a test.
+Tempest then loads `.test.config.php` and `.testing.config.php` files. Pass
+`environment:` to select a different value.
 
-The bridge restores the prior environment and global Tempest container after
-each test.
+The bridge restores the previous `ENVIRONMENT` value and global Tempest
+container after each test.
 
-The bridge also registers a new `GET /` Tempest request for each test. Tempest
-uses this baseline request in its integration tests. The request lets framework
-reset hooks resolve session services after a non-HTTP test. Application code can
-replace the request binding during the test.
+The bridge adds a new Tempest `GET /` request to the container for each test.
+This request lets Tempest reset hooks resolve session services after a non-HTTP
+test. A test can replace this request in the container.
 
 ### Additional discovery locations
 
@@ -70,8 +62,7 @@ new TempestPlugin(
 );
 ```
 
-The kernel adds these locations to normal Tempest discovery. Greenlight does
-not replace or reproduce discovery.
+Tempest adds these locations during discovery.
 
 ## Container services
 
@@ -88,16 +79,16 @@ final class RegistrationTest
 ```
 
 Greenlight first resolves constructor parameters from its harness. It then asks
-the Tempest container to resolve the type. Thus, `Doubles`, `TestChannel`, and
-provider services take precedence over Tempest services.
+the Tempest container to resolve the type. Greenlight harness services take
+precedence over Tempest services.
 
-Tempest can use discovered initializers and automatic constructor injection.
-If resolution fails, the test reports a `TempestBridgeError` with the Tempest
-container error as its cause.
+Tempest can use discovered initializers and automatic constructor injection. If
+Tempest cannot resolve the type, the test reports a `TempestBridgeError`. The
+error contains the Tempest container error as its cause.
 
 ### Tagged services
 
-Use the native Tempest `#[Tag]` attribute for a tagged binding:
+Use the Tempest `#[Tag]` attribute to select a tagged service:
 
 ```php
 use Tempest\Container\Tag;
@@ -107,13 +98,13 @@ public function __construct(
 ) {}
 ```
 
-The bridge gives the tag to the Tempest container. The resolved service must
+The bridge passes the tag to the Tempest container. The resolved service MUST
 have the declared parameter type.
 
 ### Kernel and container services
 
 Greenlight supplies `Tempest\Core\Kernel` and
-`Tempest\Container\Container` as per-run harness services:
+`Tempest\Container\Container` as harness services for each run:
 
 ```php
 public function __construct(
@@ -122,13 +113,10 @@ public function __construct(
 ) {}
 ```
 
-These services expose the same kernel and container that resolve application
-dependencies.
-
 ## State between tests
 
-After each test, the bridge calls the Tempest long-running kernel shutdown
-operation. Tempest performs these operations:
+After each test, the bridge calls `Kernel::shutdown()`. Tempest performs these
+operations:
 
 1. Dispatch `KernelEvent::SHUTTING_DOWN`.
 2. Complete deferred tasks.
@@ -136,29 +124,29 @@ operation. Tempest performs these operations:
 4. Reset the container and each discovered `Resettable` implementation.
 5. Dispatch `KernelEvent::RESET` and `KernelEvent::SHUTDOWN`.
 
-The long-running mode prevents the shutdown operation from ending the worker.
-The next test uses the reset container from the same kernel.
+The call does not end the worker. The next test uses the reset container from
+the same kernel.
 
-Use Tempest's `Resettable` interface for state that must not reach the next
-test. State outside the container remains the test suite's responsibility.
+Use Tempest's `Resettable` interface to reset container state after each test.
+Reset state outside the container in an `#[After]` hook.
 
 The bridge does not isolate databases or other external services.
 
 ## Parallel resources
 
 Each worker uses `.tempest/greenlight/<channel>` for Tempest internal storage.
-This path prevents workers from writing to the same discovery and configuration
-cache directory.
+This path gives each worker a separate discovery and configuration cache.
 
-Greenlight also sets `GREENLIGHT_CHANNEL` in each worker process. Use this value
-to separate databases, cache paths, queues, and other external resources.
+Greenlight sets `GREENLIGHT_CHANNEL` in each worker process. Use this value to
+assign separate databases, cache paths, queues, and other external resources.
 
-If a service cannot use separate resources, mark the test class with
-`#[RequiresResource]`. Configure the safe concurrency limit in `greenlight.php`.
+If workers cannot use separate external resources, use `#[RequiresResource]`.
+Configure the safe concurrency limit in `greenlight.php`. See
+[configuration](configuration.md) for concurrency limits.
 
-## Non-goals
+## Unsupported features
 
-The current bridge does not supply these Tempest testing utilities:
+The bridge does not supply:
 
 * `IntegrationTest` or PHPUnit integration
 * HTTP, console, mail, event, storage, or database tester objects
