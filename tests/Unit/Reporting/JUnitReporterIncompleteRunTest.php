@@ -47,4 +47,52 @@ final class JUnitReporterIncompleteRunTest
                 . 'skipped="0" time="0.750000">',
             );
     }
+
+    #[Test]
+    public function summedDurationsSaturateBeforeTheyOverflow(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+
+        foreach (['first', 'second'] as $method) {
+            $reporter->onEvent(new TestFinished(
+                new TestResult(
+                    new TestId('Acme\LongRunningTest', $method),
+                    Outcome::Passed,
+                    \PHP_FLOAT_MAX,
+                    1,
+                ),
+                1.0,
+            ));
+        }
+
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('overflow protection MUST preserve a valid JUnit document')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        if (!$document instanceof \SimpleXMLElement) {
+            return;
+        }
+
+        $suites = $document->xpath('//testsuite');
+        $maximum = \sprintf('%.6f', \PHP_FLOAT_MAX);
+
+        Expect::that((string) $document['time'])
+            ->because('the fallback run duration MUST remain a finite decimal')
+            ->toBe($maximum);
+        Expect::that($suites)
+            ->because('the report contains the overflowing class suite')
+            ->toHaveCount(1);
+
+        if (!\is_array($suites) || $suites === []) {
+            return;
+        }
+
+        Expect::that((string) $suites[0]['time'])
+            ->because('the class duration MUST remain a finite decimal')
+            ->toBe($maximum);
+    }
 }
