@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\EnvironmentVariableSet;
 use Greenlight\Core\Condition;
 use Greenlight\Expect\Expect;
 
@@ -38,5 +39,29 @@ final class SkipUnlessTest
         yield 'unknown class' => ['Example\MissingCondition'];
 
         yield 'condition interface' => [Condition::class];
+    }
+
+    #[Test]
+    #[DataSet('nonFiniteFloats')]
+    public function nonFiniteFloatArgumentsAreRejected(float $argument): void
+    {
+        Expect::that(
+            static fn(): SkipUnless => new SkipUnless(EnvironmentVariableSet::class, $argument),
+        )
+            ->because('skip condition arguments MUST be safe for the JSON worker protocol')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'SkipUnless arguments MUST use finite floats.',
+            );
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function nonFiniteFloats(): iterable
+    {
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 }

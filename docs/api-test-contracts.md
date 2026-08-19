@@ -420,7 +420,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L124)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L128)
 
 ### `fromWire()`
 
@@ -434,7 +434,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the decoded metadata violates a domain invariant`
 - `@throws InvalidWirePayload when a required field is missing or has the wrong type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L154)
 
 ## `InvalidWirePayload`
 

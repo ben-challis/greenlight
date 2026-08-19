@@ -51,6 +51,17 @@ final readonly class PhpStanAttributeArgumentRuleTest
             use Greenlight\Attribute\SkipUnless;
             use Greenlight\Attribute\Timeout;
             use Greenlight\Condition\EnvironmentVariableSet;
+            use Greenlight\Core\Condition;
+
+            final readonly class FloatCondition implements Condition
+            {
+                public function __construct(private float $value) {}
+
+                public function isSatisfied(): bool
+                {
+                    return is_finite($this->value);
+                }
+            }
 
             #[RequiresResource('Postgres primary')]
             #[Retry(0)]
@@ -65,15 +76,19 @@ final readonly class PhpStanAttributeArgumentRuleTest
             #[Retry(times: 0)]
             #[Timeout(seconds: 0.0)]
             final class BadNamedDomainAttributeArgumentProbe {}
+
+            #[SkipUnless(FloatCondition::class, 1.0e1000)]
+            final class BadNonFiniteSkipUnlessArgumentProbe {}
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(8);
+        Expect::that(\count($probe->errors))->toBe(9);
         Expect::that($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
             ->toContain('#[Retry] times must be at least 1')
             ->toContain('#[SkipUnless] argument 1 must be a scalar or null')
+            ->toContain('#[SkipUnless] argument 1 must be a finite float')
             ->not()->toContain('#[SkipUnless] argument 0')
             ->toContain('#[Timeout] seconds must be finite and greater than zero');
     }

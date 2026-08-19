@@ -125,7 +125,23 @@ final class AttributeArgumentRule implements Rule
             ++$conditionArgumentNumber;
             $type = $scope->getType($argument->value);
 
-            if ($type->isNull()->yes() || $type->isScalar()->yes()) {
+            if ($type->isNull()->yes()) {
+                continue;
+            }
+
+            if ($type->isScalar()->yes()) {
+                $values = $type->getConstantScalarValues();
+
+                if (!\array_any($values, static fn(mixed $value): bool => \is_float($value) && !\is_finite($value))) {
+                    continue;
+                }
+
+                $errors[] = $this->error(
+                    \sprintf('#[SkipUnless] argument %d must be a finite float.', $conditionArgumentNumber),
+                    'skipUnless',
+                    $argument->getStartLine(),
+                );
+
                 continue;
             }
 

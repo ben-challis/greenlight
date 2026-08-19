@@ -355,14 +355,15 @@ PHPDoc:
 Namespace: `Greenlight\Attribute`
 
 A worker evaluates the condition. Because the worker protocol transfers the
-constructor arguments, use only scalar values or null.
+constructor arguments, use only scalar values or null. Float values must be
+finite.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class SkipUnless
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L15)
 
 ### `$condition`
 
@@ -374,7 +375,7 @@ PHPDoc:
 
 - `@var class-string<Condition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L20)
 
 ### `$arguments`
 
@@ -386,7 +387,7 @@ PHPDoc:
 
 - `@var list<mixed>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L25)
 
 ### `__construct()`
 
@@ -401,7 +402,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L30)
 
 ## `Test`
 
