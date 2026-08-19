@@ -10,13 +10,13 @@ use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\SystemWatchClock;
-use Greenlight\Cli\Watch\WatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Fixture\Cli\FakeWatchClock;
 
 final readonly class WatchTest
 {
@@ -140,19 +140,7 @@ final readonly class WatchTest
                 return null;
             }
         };
-        $clock = new class implements WatchClock, Fake {
-            #[\Override]
-            public function now(): float
-            {
-                return 1.0;
-            }
-
-            #[\Override]
-            public function sleep(float $seconds): void
-            {
-                Fail::because('A zero quiet period MUST run without sleeping.');
-            }
-        };
+        $clock = new FakeWatchClock();
         $output = '';
 
         new WatchLoop(
@@ -170,6 +158,9 @@ final readonly class WatchTest
         Expect::that($output)
             ->because('a multi-file watch batch MUST use the plural notification')
             ->toBe($ready . "Detected changes in 2 files.\n" . $ready);
+        Expect::that($clock->sleeps)
+            ->because('a zero quiet period MUST run without sleeping')
+            ->toBe([]);
     }
 
     #[Test]
@@ -275,21 +266,7 @@ final readonly class WatchTest
     public function loopDebouncesBurstsForcesOnEnterAndQuitsOnQ(): void
     {
         // Each scripted tick increases virtual time by 0.1 seconds.
-        $clock = new class implements WatchClock, Fake {
-            public float $time = 0.0;
-
-            #[\Override]
-            public function now(): float
-            {
-                return $this->time;
-            }
-
-            #[\Override]
-            public function sleep(float $seconds): void
-            {
-                $this->time += $seconds;
-            }
-        };
+        $clock = new FakeWatchClock();
 
         // Make two rapid changes, then no changes.
         $detector = new class implements ChangeDetector {
