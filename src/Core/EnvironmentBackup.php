@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Core;
 
 /**
- * Restores the original states of getenv(), $_ENV, and $_SERVER independently.
+ * Captures and restores one environment variable across each PHP environment channel.
  *
  * @internal
  */
@@ -22,6 +22,8 @@ final readonly class EnvironmentBackup
 
     public static function capture(string $name): self
     {
+        self::validateName($name);
+
         return new self(
             $name,
             \getenv($name),
@@ -30,6 +32,23 @@ final readonly class EnvironmentBackup
             \array_key_exists($name, $_SERVER),
             $_SERVER[$name] ?? null,
         );
+    }
+
+    public function set(string $value): void
+    {
+        if (\str_contains($value, "\0")) {
+            throw new \InvalidArgumentException('Environment variable values cannot contain a null byte.');
+        }
+
+        \putenv($this->name . '=' . $value);
+        $_ENV[$this->name] = $value;
+        $_SERVER[$this->name] = $value;
+    }
+
+    public function unset(): void
+    {
+        \putenv($this->name);
+        unset($_ENV[$this->name], $_SERVER[$this->name]);
     }
 
     public function restore(): void
@@ -50,6 +69,15 @@ final readonly class EnvironmentBackup
             $_SERVER[$this->name] = $this->serverValue;
         } else {
             unset($_SERVER[$this->name]);
+        }
+    }
+
+    private static function validateName(string $name): void
+    {
+        if ($name === '' || \str_contains($name, '=') || \str_contains($name, "\0")) {
+            throw new \InvalidArgumentException(
+                'Environment variable names cannot be empty or contain "=" or a null byte.',
+            );
         }
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tempest;
 
+use Greenlight\Core\EnvironmentBackup;
 use Tempest\Container\GenericContainer;
 
 /**
@@ -16,11 +17,7 @@ final readonly class TempestProcessState
 {
     private function __construct(// @codeCoverageIgnore
         private ?GenericContainer $container,
-        private string|false $processEnvironment,
-        private bool $environmentWasSet,
-        private mixed $environment,
-        private bool $serverEnvironmentWasSet,
-        private mixed $serverEnvironment,
+        private EnvironmentBackup $environment,
     ) {}
 
     /**
@@ -32,18 +29,13 @@ final readonly class TempestProcessState
             throw new \InvalidArgumentException('Tempest environment MUST NOT contain a null byte.');
         }
 
+        $backup = EnvironmentBackup::capture('ENVIRONMENT');
         $state = new self(
             GenericContainer::instance(),
-            \getenv('ENVIRONMENT'),
-            \array_key_exists('ENVIRONMENT', $_ENV),
-            $_ENV['ENVIRONMENT'] ?? null,
-            \array_key_exists('ENVIRONMENT', $_SERVER),
-            $_SERVER['ENVIRONMENT'] ?? null,
+            $backup,
         );
 
-        \putenv('ENVIRONMENT=' . $environment);
-        $_ENV['ENVIRONMENT'] = $environment;
-        $_SERVER['ENVIRONMENT'] = $environment;
+        $backup->set($environment);
 
         if ($container instanceof GenericContainer) {
             GenericContainer::setInstance($container);
@@ -56,22 +48,6 @@ final readonly class TempestProcessState
     {
         GenericContainer::setInstance($this->container);
 
-        if ($this->processEnvironment === false) {
-            \putenv('ENVIRONMENT');
-        } else {
-            \putenv('ENVIRONMENT=' . $this->processEnvironment);
-        }
-
-        if ($this->environmentWasSet) {
-            $_ENV['ENVIRONMENT'] = $this->environment;
-        } else {
-            unset($_ENV['ENVIRONMENT']);
-        }
-
-        if ($this->serverEnvironmentWasSet) {
-            $_SERVER['ENVIRONMENT'] = $this->serverEnvironment;
-        } else {
-            unset($_SERVER['ENVIRONMENT']);
-        }
+        $this->environment->restore();
     }
 }

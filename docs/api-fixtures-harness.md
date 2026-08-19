@@ -17,7 +17,7 @@ value one time and restores the value during disposal.
 final class EnvironmentSandbox implements Disposable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L14)
 
 ### `set()`
 
@@ -29,7 +29,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException If $name is invalid or $value contains a null byte.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L24)
 
 ### `unset()`
 
@@ -41,7 +41,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException If $name is empty or contains "=" or a null byte.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L32)
 
 ### `dispose()`
 
@@ -50,7 +50,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/EnvironmentSandbox.php#L37)
 
 ## `StreamWrapperError`
 
