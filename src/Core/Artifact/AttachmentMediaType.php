@@ -11,7 +11,10 @@ namespace Greenlight\Core\Artifact;
  */
 final readonly class AttachmentMediaType
 {
-    private const string PATTERN = '~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*[^=\s]+=(?:"[^"]*"|[^;\s]+))*$~';
+    private const string PARAMETER_TOKEN = '[a-zA-Z0-9!#$%&\'*+.^_|\x60\~-]+';
+
+    private const string PATTERN = '~^[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*/[a-zA-Z0-9][a-zA-Z0-9!#$&^_.+-]*(?:\s*;\s*'
+        . self::PARAMETER_TOKEN . '=(?:"[^"]*"|' . self::PARAMETER_TOKEN . '))*$~';
 
     /** @codeCoverageIgnore */
     private function __construct() {}
