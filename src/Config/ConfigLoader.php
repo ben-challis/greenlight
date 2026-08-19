@@ -35,7 +35,7 @@ final class ConfigLoader
         }
 
         try {
-            $returned = (static fn(): mixed => require $file)();
+            $returned = ErrorTrap::run(static fn(): mixed => require $file);
         } catch (\Throwable $cause) {
             throw ConfigFileError::threw($file, $cause);
         }
