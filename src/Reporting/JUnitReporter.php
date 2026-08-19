@@ -34,7 +34,14 @@ final class JUnitReporter implements Reporter
     private array $casesByClass = [];
 
     /**
-     * @var array<string, array{tests: int, failures: int, errors: int, skipped: int, assertions: int, time: float}>
+     * @var array<string, array{
+     *     tests: non-negative-int,
+     *     failures: non-negative-int,
+     *     errors: non-negative-int,
+     *     skipped: non-negative-int,
+     *     assertions: non-negative-int,
+     *     time: float,
+     * }>
      */
     private array $countsByClass = [];
 
@@ -59,7 +66,7 @@ final class JUnitReporter implements Reporter
             $this->casesByClass[$class][] = $this->renderCase($result);
             $counts = $this->countsByClass[$class] ?? ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'assertions' => 0, 'time' => 0.0];
             ++$counts['tests'];
-            $counts['assertions'] += $result->expectations;
+            $counts['assertions'] = SaturatingCount::add($counts['assertions'], $result->expectations);
             $counts['time'] += $result->durationSeconds;
 
             match ($result->outcome) {
