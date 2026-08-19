@@ -48,10 +48,8 @@ final class ExpectTest
         Expect::install([new EvenNumbersExtension()]);
 
         try {
-            // Dispatch directly through __call. Static analysis knows only the
-            // matchers in configured greenlight.php files.
-            Expect::that(4)->__call('toBeEven', []);
-            Expect::that(3)->not()->__call('toBeEven', []);
+            Expect::that(4)->toBeEven();
+            Expect::that(3)->not()->toBeEven();
         } finally {
             Expect::install([]);
         }
@@ -64,9 +62,9 @@ final class ExpectTest
         $chain = Expect::that(4);
         Expect::install([]);
 
-        $chain->__call('toBeEven', []);
+        $chain->toBeEven();
 
-        Expect::that(static fn() => Expect::that(4)->__call('toBeEven', []))->because('chains created before an install keep their extensions')
+        Expect::that(static fn() => Expect::that(4)->toBeEven())->because('chains created before an install keep their extensions')
             ->toThrow(\BadMethodCallException::class);
     }
 
@@ -80,8 +78,8 @@ final class ExpectTest
         $chain = Expect::that(4);
         $restoreEmpty();
 
-        $chain->__call('toBeEven', []);
-        Expect::that(static fn() => Expect::that(4)->__call('toBeEven', []))
+        $chain->toBeEven();
+        Expect::that(static fn() => Expect::that(4)->toBeEven())
             ->because('install cleanup restores the exact previous extension list')
             ->toThrow(\BadMethodCallException::class);
     }
