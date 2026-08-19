@@ -34,25 +34,39 @@ final class CoverageExportTest
     }
 
     #[Test]
-    #[DataSet('zeroStringValues')]
-    public function preservesNonemptyZeroStrings(string $format, string $target): void
+    #[DataSet('unknownFormats')]
+    public function rejectsAnUnknownFormat(string $format): void
     {
-        $export = new CoverageExport($format, $target);
+        Expect::that(static fn(): CoverageExport => new CoverageExport($format, 'coverage.out'))
+            ->because('coverage exports MUST use a format that Greenlight can write')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: \sprintf(
+                    'Unknown coverage export format "%s". Use "json", "lcov", "clover", "cobertura", or "html".',
+                    $format,
+                ),
+            );
+    }
+
+    #[Test]
+    public function preservesANonemptyZeroStringTarget(): void
+    {
+        $export = new CoverageExport('json', '0');
 
         Expect::that($export->format)
-            ->because('a zero-string coverage export format is not empty')
-            ->toBe($format);
+            ->toBe('json');
         Expect::that($export->target)
             ->because('a zero-string coverage export target is not empty')
-            ->toBe($target);
+            ->toBe('0');
     }
 
     /**
-     * @return iterable<string, array{string, string}>
+     * @return iterable<string, array{string}>
      */
-    public static function zeroStringValues(): iterable
+    public static function unknownFormats(): iterable
     {
-        yield 'format' => ['0', 'coverage.json'];
-        yield 'target' => ['json', '0'];
+        yield 'zero string' => ['0'];
+        yield 'misspelled JSON' => ['jsno'];
+        yield 'uppercase HTML' => ['HTML'];
     }
 }
