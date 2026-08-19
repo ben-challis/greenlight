@@ -38,16 +38,18 @@ final class ErrorTrap
     public static function run(\Closure $operation, ?string &$warning = null): mixed
     {
         $warning = null;
-        \set_error_handler(static function (int $severity, string $message) use (&$warning): bool {
+        $handler = static function (int $severity, string $message) use (&$warning): bool {
             $warning = $message;
 
             return true;
-        });
+        };
+
+        \set_error_handler($handler);
 
         try {
             return $operation();
         } finally {
-            \restore_error_handler();
+            ErrorHandlerStack::remove($handler);
         }
     }
 }

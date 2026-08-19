@@ -114,4 +114,79 @@ final class ErrorTrapTest
             \restore_error_handler();
         }
     }
+
+    #[Test]
+    public function preservesHandlersInstalledByTheOperation(): void
+    {
+        $baseline = static fn(): bool => true;
+        $first = static fn(): bool => true;
+        $second = static fn(): bool => true;
+
+        \set_error_handler($baseline);
+
+        try {
+            ErrorTrap::run(static function () use ($first, $second): void {
+                \set_error_handler($first);
+                \set_error_handler($second);
+            });
+
+            Expect::that($this->activeErrorHandler())
+                ->because('the trap MUST preserve the last handler installed by the operation')
+                ->toBe($second);
+
+            \restore_error_handler();
+
+            Expect::that($this->activeErrorHandler())
+                ->because('the trap MUST preserve installed handlers in their original order')
+                ->toBe($first);
+
+            \restore_error_handler();
+
+            Expect::that($this->activeErrorHandler())
+                ->because('restoring the installed handlers MUST reveal the pre-trap handler')
+                ->toBe($baseline);
+        } finally {
+            $this->restoreErrorHandlersThrough($baseline);
+        }
+    }
+
+    #[Test]
+    public function doesNotPopThePreviousHandlerWhenTheOperationRemovesTheTrap(): void
+    {
+        $baseline = static fn(): bool => true;
+
+        \set_error_handler($baseline);
+
+        try {
+            ErrorTrap::run(static function (): void {
+                \restore_error_handler();
+            });
+
+            Expect::that($this->activeErrorHandler())
+                ->because('trap cleanup MUST preserve the handler stack left by the operation')
+                ->toBe($baseline);
+        } finally {
+            $this->restoreErrorHandlersThrough($baseline);
+        }
+    }
+
+    private function activeErrorHandler(): ?callable
+    {
+        $probe = static fn(): bool => true;
+        $active = \set_error_handler($probe);
+        \restore_error_handler();
+
+        return $active;
+    }
+
+    private function restoreErrorHandlersThrough(callable $last): void
+    {
+        while (($active = $this->activeErrorHandler()) !== null) {
+            \restore_error_handler();
+
+            if ($active === $last) {
+                return;
+            }
+        }
+    }
 }
