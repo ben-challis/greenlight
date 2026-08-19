@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Reporting\Output\StreamOutput;
@@ -15,7 +16,10 @@ final readonly class StreamOutputTest
 {
     private const string PARTIAL_WRITE_SCHEME = 'greenlight-partial-write';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(
+        private StreamWrapperSandbox $streamWrappers,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function writesAccumulateOnTheStream(): void
@@ -25,6 +29,9 @@ final readonly class StreamOutputTest
         if ($stream === false) {
             throw new \RuntimeException('Could not open an in-memory stream.');
         }
+        $this->cleanup->defer(static function () use ($stream): void {
+            \fclose($stream);
+        });
 
         $output = new StreamOutput($stream);
         $output->write('first ');
@@ -33,8 +40,6 @@ final readonly class StreamOutputTest
         \rewind($stream);
 
         Expect::that(\stream_get_contents($stream))->because('writes accumulate on the stream')->toBe('first second');
-
-        \fclose($stream);
     }
 
     #[Test]
@@ -45,21 +50,20 @@ final readonly class StreamOutputTest
         if ($stream === false) {
             throw new \RuntimeException('Could not open a read-only in-memory stream.');
         }
-
-        try {
-            $output = new StreamOutput($stream);
-
-            Expect::that(static function () use ($output): void {
-                $output->write('cannot be written');
-            })
-                ->because('a stream write failure becomes a reporting error')
-                ->toThrow(
-                    ReportingError::class,
-                    message: 'Greenlight did not write reporter output to the stream.',
-                );
-        } finally {
+        $this->cleanup->defer(static function () use ($stream): void {
             \fclose($stream);
-        }
+        });
+
+        $output = new StreamOutput($stream);
+
+        Expect::that(static function () use ($output): void {
+            $output->write('cannot be written');
+        })
+            ->because('a stream write failure becomes a reporting error')
+            ->toThrow(
+                ReportingError::class,
+                message: 'Greenlight did not write reporter output to the stream.',
+            );
     }
 
     #[Test]
@@ -67,15 +71,11 @@ final readonly class StreamOutputTest
     {
         $stream = $this->openPartialWriteStream('partial');
 
-        try {
-            new StreamOutput($stream)->write('complete reporter output');
+        new StreamOutput($stream)->write('complete reporter output');
 
-            Expect::that(PartialWriteStream::contents())
-                ->because('a short stream write MUST NOT truncate reporter output')
-                ->toBe('complete reporter output');
-        } finally {
-            \fclose($stream);
-        }
+        Expect::that(PartialWriteStream::contents())
+            ->because('a short stream write MUST NOT truncate reporter output')
+            ->toBe('complete reporter output');
     }
 
     #[Test]
@@ -83,18 +83,14 @@ final readonly class StreamOutputTest
     {
         $stream = $this->openPartialWriteStream('stalled');
 
-        try {
-            $output = new StreamOutput($stream);
+        $output = new StreamOutput($stream);
 
-            Expect::that(static fn() => $output->write('cannot make progress'))
-                ->because('a zero-byte write MUST stop instead of retrying without a limit')
-                ->toThrow(
-                    ReportingError::class,
-                    message: 'Greenlight did not write reporter output to the stream.',
-                );
-        } finally {
-            \fclose($stream);
-        }
+        Expect::that(static fn() => $output->write('cannot make progress'))
+            ->because('a zero-byte write MUST stop instead of retrying without a limit')
+            ->toThrow(
+                ReportingError::class,
+                message: 'Greenlight did not write reporter output to the stream.',
+            );
     }
 
     /**
@@ -109,6 +105,9 @@ final readonly class StreamOutputTest
         if ($stream === false) {
             throw new \RuntimeException('Greenlight did not open the partial-write stream.');
         }
+        $this->cleanup->defer(static function () use ($stream): void {
+            \fclose($stream);
+        });
 
         return $stream;
     }
