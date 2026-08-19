@@ -15,6 +15,7 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
@@ -38,6 +39,7 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
  * - `Before` hooks
  * - The test method
  * - `After` hooks
+ * - Deferred cleanup callbacks
  * - Test-scope teardown
  * - Timeout enforcement
  * - `afterTest()` subscribers
@@ -204,6 +206,7 @@ final readonly class TestExecutor
         $capture = $metadata->capture ? new OutputCapture() : null;
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
+        $cleanup = new Cleanup();
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $capture?->start();
@@ -214,7 +217,7 @@ final readonly class TestExecutor
         );
 
         try {
-            $instance = $this->instantiate($metadata->class, $attachments);
+            $instance = $this->instantiate($metadata->class, $attachments, $cleanup);
             $context = new TestContext($instance, $entry->id, $metadata, $this->scopes, $attachments);
             $instance = null;
 
@@ -277,7 +280,34 @@ final readonly class TestExecutor
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
             $captured = $capture?->stop();
+            $cleanupFailures = $cleanup->close();
             $disposalFailures = $this->scopes->closeTest();
+
+            foreach ($cleanupFailures as $cleanupFailure) {
+                if (!$cause instanceof \Throwable) {
+                    $cause = $cleanupFailure;
+                    $skipReason = null;
+
+                    if ($cleanupFailure instanceof ExpectationFailed) {
+                        $failures = $cleanupFailure->details;
+                    } else {
+                        $error = ThrowableDetail::fromThrowable($cleanupFailure);
+                    }
+
+                    continue;
+                }
+
+                if ($cleanupFailure instanceof ExpectationFailed) {
+                    $failures = [...$failures, ...$cleanupFailure->details];
+
+                    continue;
+                }
+
+                $failures[] = new FailureDetail(\sprintf(
+                    'Cleanup callback caused an error: %s',
+                    $cleanupFailure->getMessage(),
+                ));
+            }
 
             if ($disposalFailures !== [] && !$cause instanceof \Throwable && $skipReason === null) {
                 $cause = $disposalFailures[0];
@@ -418,7 +448,7 @@ final readonly class TestExecutor
      * @throws UnresolvableService
      * @throws ServiceResolutionError
      */
-    private function instantiate(string $class, Attachments $attachments): object
+    private function instantiate(string $class, Attachments $attachments, Cleanup $cleanup): object
     {
         $constructor = $this->context->reflection->getConstructor();
         $arguments = [];
@@ -441,6 +471,12 @@ final readonly class TestExecutor
 
             if ($serviceType === Attachments::class) {
                 $arguments[] = $attachments;
+
+                continue;
+            }
+
+            if ($serviceType === Cleanup::class) {
+                $arguments[] = $cleanup;
 
                 continue;
             }

@@ -352,6 +352,37 @@ final class ExporterTest
 Each test receives separate instances. Each `TempDirectory` instance has a
 unique directory.
 
+## Defer test cleanup
+
+Ask for `Greenlight\Core\Test\Cleanup` through constructor injection. Call
+`defer()` immediately after the test acquires a resource.
+
+```php
+use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
+
+final readonly class ServerTest
+{
+    public function __construct(private Cleanup $cleanup) {}
+
+    #[Test]
+    public function acceptsAConnection(): void
+    {
+        $server = TestServer::start();
+        $this->cleanup->defer(static fn() => $server->stop());
+
+        // Test the server.
+    }
+}
+```
+
+Greenlight runs cleanup callbacks once in reverse registration order. It runs
+them after `After` hooks and before per-test fixture disposal.
+
+A callback failure does not prevent the remaining callbacks. A cleanup failure
+errors a passed or skipped test. An earlier test failure or error remains
+primary.
+
 ## Exit codes
 
 Greenlight uses three exit codes:

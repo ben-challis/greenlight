@@ -30,6 +30,39 @@ public function isSatisfied(): bool;
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Condition.php#L16)
 
+## `Cleanup`
+
+Namespace: `Greenlight\Core\Test`
+
+Stores cleanup callbacks for one test attempt. Greenlight runs the callbacks
+in reverse registration order after the `After` hooks. Per-test service
+disposal starts after the callbacks finish.
+
+Greenlight runs all callbacks if one fails. A cleanup failure errors a passed
+or skipped test. It does not replace an earlier test failure or error.
+
+```php
+final class Cleanup
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/Cleanup.php#L15)
+
+### `defer()`
+
+Register cleanup immediately after the test acquires a resource. This
+makes cleanup available if a later operation fails.
+
+```php
+public function defer(\Closure $cleanup): void
+```
+
+PHPDoc:
+
+- `@param \Closure(): void $cleanup`
+- `@throws \LogicException If test cleanup has started.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/Cleanup.php#L32)
+
 ## `SkipTest`
 
 Namespace: `Greenlight\Core\Test`
