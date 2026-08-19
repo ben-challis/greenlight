@@ -24,6 +24,8 @@ use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Tests\Fixture\LeakSuite\LeakyTest;
+use Greenlight\Tests\Fixture\Lifecycle\CleanupCallbacks\CleanupOrderProbe;
+use Greenlight\Tests\Fixture\Lifecycle\CleanupRetries\CleanupRetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Injection\InjectedProbe;
 use Greenlight\Tests\Fixture\Lifecycle\PerTestDisposeFails\FailingPerTestDisposal;
@@ -84,6 +86,86 @@ final class WorkerTest
         Expect::that($results[0]->error?->message)
             ->because('the first teardown error MUST remain primary')
             ->toBe('after broke');
+    }
+
+    #[Test]
+    public function deferredCleanupRunsAfterHooksAndBeforeFixtureDisposal(): void
+    {
+        TraceLog::drain();
+        $registry = $this->registry();
+        $registry->register(new ServiceDefinition(
+            CleanupOrderProbe::class,
+            Scope::PerTest,
+            static fn(): CleanupOrderProbe => new CleanupOrderProbe(),
+        ));
+
+        [, $results] = $this->runFixture('CleanupCallbacks', $registry);
+
+        Expect::that(TraceLog::drain())
+            ->because('deferred cleanup runs after hooks and before fixture disposal')
+            ->toBe(['test', 'after', 'second cleanup', 'first cleanup', 'fixture disposal']);
+        Expect::that($results[0]->outcome)->toBe(Outcome::Passed);
+    }
+
+    #[Test]
+    public function cleanupFailuresPreserveEarlierErrorsAndOverrideSkips(): void
+    {
+        TraceLog::drain();
+        [, $results] = $this->runFixture('CleanupFailures');
+        $byMethod = [];
+
+        foreach ($results as $result) {
+            $byMethod[$result->id->method] = $result;
+        }
+
+        Expect::that($byMethod['passesBeforeCleanupFails']->outcome)
+            ->because('a cleanup failure errors a passing test')
+            ->toBe(Outcome::Errored);
+        Expect::that($byMethod['passesBeforeCleanupFails']->error?->message)
+            ->toBe('cleanup broke after pass');
+        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->outcome)
+            ->because('an expectation failure during cleanup fails the test')
+            ->toBe(Outcome::Failed);
+        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->error)
+            ->toBeNull();
+        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->failures[0]->expected)
+            ->toBe("'expected'");
+        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->failures[0]->actual)
+            ->toBe("'actual'");
+        Expect::that($byMethod['errorsBeforeCleanupFails']->outcome)
+            ->because('the test error remains primary when cleanup also fails')
+            ->toBe(Outcome::Errored);
+        Expect::that($byMethod['errorsBeforeCleanupFails']->error?->message)
+            ->toBe('test broke');
+        Expect::that($byMethod['errorsBeforeCleanupFails']->failures[0]->message)
+            ->toBe('Cleanup callback caused an error: cleanup broke after error');
+        Expect::that($byMethod['skipsBeforeCleanupFails']->outcome)
+            ->because('a cleanup failure overrides a skip')
+            ->toBe(Outcome::Errored);
+        Expect::that($byMethod['skipsBeforeCleanupFails']->skipReason)
+            ->toBeNull();
+        Expect::that($byMethod['skipsBeforeCleanupFails']->error?->message)
+            ->toBe('cleanup broke after skip');
+        Expect::that(TraceLog::drain())
+            ->because('a cleanup failure MUST NOT prevent later callbacks')
+            ->toBe(['first cleanup', 'failing cleanup', 'last cleanup']);
+    }
+
+    #[Test]
+    public function eachRetryReceivesAFreshCleanupStack(): void
+    {
+        CleanupRetriesTest::$attempts = 0;
+        TraceLog::drain();
+
+        [, $results] = $this->runFixture('CleanupRetries');
+
+        Expect::that($results[0]->outcome)
+            ->because('each retry receives a fresh cleanup stack')
+            ->toBe(Outcome::Passed);
+        Expect::that($results[0]->attempts)
+            ->toBe(2);
+        Expect::that(TraceLog::drain())
+            ->toBe(['test 1', 'cleanup 1', 'test 2', 'cleanup 2']);
     }
 
     #[Test]
