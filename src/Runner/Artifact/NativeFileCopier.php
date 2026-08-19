@@ -19,38 +19,38 @@ final readonly class NativeFileCopier implements FileCopier
     public function copy(string $sourcePath, string $destinationPath): void
     {
         $source = ErrorTrap::run(static fn() => \fopen($sourcePath, 'rb'));
-        $destination = ErrorTrap::run(static fn() => \fopen($destinationPath, 'xb'));
 
-        if ($source === false || $destination === false) {
-            if (\is_resource($source)) {
-                \fclose($source);
-            }
-
-            if (\is_resource($destination)) {
-                \fclose($destination);
-            }
-
+        if ($source === false) {
             throw AttachmentError::storage('Failed to copy attachment into its output directory');
         }
 
         try {
-            while (!\feof($source)) {
-                $chunk = \fread($source, self::COPY_CHUNK_BYTES);
+            $destination = ErrorTrap::run(static fn() => \fopen($destinationPath, 'xb'));
 
-                if ($chunk === false) {
-                    throw AttachmentError::storage('Failed to read attachment staging content');
-                }
-
-                if ($chunk !== '') {
-                    StreamWriter::writeFully($destination, $chunk);
-                }
+            if ($destination === false) {
+                throw AttachmentError::storage('Failed to copy attachment into its output directory');
             }
 
-            if (!\fflush($destination)) {
-                throw AttachmentError::storage('Failed to flush the published attachment');
+            try {
+                while (!\feof($source)) {
+                    $chunk = \fread($source, self::COPY_CHUNK_BYTES);
+
+                    if ($chunk === false) {
+                        throw AttachmentError::storage('Failed to read attachment staging content');
+                    }
+
+                    if ($chunk !== '') {
+                        StreamWriter::writeFully($destination, $chunk);
+                    }
+                }
+
+                if (!\fflush($destination)) {
+                    throw AttachmentError::storage('Failed to flush the published attachment');
+                }
+            } finally {
+                \fclose($destination);
             }
         } finally {
-            \fclose($destination);
             \fclose($source);
         }
     }
