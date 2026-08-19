@@ -38,18 +38,7 @@ final readonly class DiscoveryCacheTest
             // Add an entry to the cached payload without a file change. The entry
             // shows that the second discovery reads the discovery cache.
             $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
-            $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
-            \assert(\is_array($decoded) && \is_array($decoded['files']));
-            $path = (string) \array_key_first($decoded['files']);
-            $cachedFile = $decoded['files'][$path];
-            \assert(\is_array($cachedFile) && \is_array($cachedFile['entries']));
-            $planted = $cachedFile['entries'][0];
-            \assert(\is_array($planted) && \is_array($planted['id']) && \is_array($planted['metadata']));
-            $planted['id']['method'] = 'plantedFromCache';
-            $planted['metadata']['method'] = 'plantedFromCache';
-            $cachedFile['entries'][] = $planted;
-            $decoded['files'][$path] = $cachedFile;
-            \file_put_contents($cacheFile, \json_encode($decoded));
+            $this->plantCachedTest($cacheFile, 'CachedProbeTest.php');
 
             $warm = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             Expect::that($warm->count())->toBe(3);
@@ -244,23 +233,7 @@ final readonly class DiscoveryCacheTest
             Expect::that($cold->count())->toBe(1);
 
             $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
-            $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
-            \assert(\is_array($decoded) && \is_array($decoded['files']));
-            $cachedPath = \array_find(
-                \array_keys($decoded['files']),
-                static fn($path): bool => \is_string($path) && \basename($path) === 'ExternalCachedProbeTest.php',
-            );
-
-            \assert($cachedPath !== null);
-            $cachedFile = $decoded['files'][$cachedPath];
-            \assert(\is_array($cachedFile) && \is_array($cachedFile['entries']));
-            $planted = $cachedFile['entries'][0];
-            \assert(\is_array($planted) && \is_array($planted['id']) && \is_array($planted['metadata']));
-            $planted['id']['method'] = 'plantedFromCache';
-            $planted['metadata']['method'] = 'plantedFromCache';
-            $cachedFile['entries'][] = $planted;
-            $decoded['files'][$cachedPath] = $cachedFile;
-            \file_put_contents($cacheFile, \json_encode($decoded));
+            $this->plantCachedTest($cacheFile, 'ExternalCachedProbeTest.php');
 
             $warm = new TestDiscoverer()->discover(
                 [$directory],
@@ -445,5 +418,44 @@ final readonly class DiscoveryCacheTest
             PHP);
 
         return $directory;
+    }
+
+    private function plantCachedTest(string $cacheFile, string $sourceBasename): void
+    {
+        $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
+
+        if (!\is_array($decoded) || !\is_array($decoded['files'] ?? null)) {
+            Fail::because('Expected the discovery cache fixture to contain a file map.');
+        }
+
+        $cachedPath = \array_find(
+            \array_keys($decoded['files']),
+            static fn(mixed $path): bool => \is_string($path) && \basename($path) === $sourceBasename,
+        );
+        $cachedFile = $cachedPath === null ? null : $decoded['files'][$cachedPath];
+        $planted = \is_array($cachedFile) && \is_array($cachedFile['entries'] ?? null)
+            ? ($cachedFile['entries'][0] ?? null)
+            : null;
+
+        if (!\is_string($cachedPath)
+            || !\is_array($cachedFile)
+            || !\is_array($planted)
+            || !\is_array($planted['id'] ?? null)
+            || !\is_array($planted['metadata'] ?? null)
+        ) {
+            Fail::because(\sprintf(
+                'Expected the discovery cache fixture to contain an entry for "%s".',
+                $sourceBasename,
+            ));
+        }
+
+        $planted['id']['method'] = 'plantedFromCache';
+        $planted['metadata']['method'] = 'plantedFromCache';
+        $cachedFile['entries'][] = $planted;
+        $decoded['files'][$cachedPath] = $cachedFile;
+
+        if (\file_put_contents($cacheFile, \json_encode($decoded, \JSON_THROW_ON_ERROR)) === false) {
+            Fail::because('Expected to update the discovery cache fixture.');
+        }
     }
 }
