@@ -167,6 +167,13 @@ final class JUnitReporter implements Reporter
         $writer->writeAttribute('time', $this->time($result->durationSeconds));
 
         if ($result->outcome === Outcome::Failed) {
+            if ($result->failures === []) {
+                $writer->startElement('failure');
+                $writer->writeAttribute('type', 'failure');
+                $writer->writeAttribute('message', 'failed');
+                $writer->endElement();
+            }
+
             foreach ($result->failures as $failure) {
                 $writer->startElement('failure');
                 $writer->writeAttribute('type', 'failure');
