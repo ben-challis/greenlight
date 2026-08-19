@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
@@ -17,14 +18,15 @@ final readonly class ArtifactIntermittentReadTest
 {
     private const string SCHEME = 'greenlight-intermittent-file-read';
 
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private StreamWrapperSandbox $streamWrappers,
+    ) {}
 
     #[Test]
     public function anEmptyReadBeforeContentDoesNotTruncateTheAttachment(): void
     {
-        if (!\stream_wrapper_register(self::SCHEME, IntermittentFileReadStream::class)) {
-            throw new \RuntimeException('Greenlight did not register the intermittent-file-read stream.');
-        }
+        $this->streamWrappers->register(self::SCHEME, IntermittentFileReadStream::class);
 
         $store = null;
 
@@ -60,7 +62,6 @@ final readonly class ArtifactIntermittentReadTest
                 ->toBe(\hash('sha256', 'evidence'));
         } finally {
             $store?->cleanup();
-            \stream_wrapper_unregister(self::SCHEME);
         }
     }
 }

@@ -8,24 +8,23 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Artifact\StreamWriter;
 use Greenlight\Tests\Fixture\Artifact\ZeroWriteStream;
 
-final class ArtifactStreamWriteFailureTest
+final readonly class ArtifactStreamWriteFailureTest
 {
     private const string SCHEME = 'greenlight-zero-write';
+
+    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
 
     #[Test]
     public function aZeroByteWriteFailsInsteadOfLooping(): void
     {
-        if (!\stream_wrapper_register(self::SCHEME, ZeroWriteStream::class)) {
-            Fail::because('The test could not register the zero-write stream.');
-        }
-
+        $this->streamWrappers->register(self::SCHEME, ZeroWriteStream::class);
         $stream = \fopen(self::SCHEME . '://attachment', 'wb');
 
         if ($stream === false) {
-            \stream_wrapper_unregister(self::SCHEME);
             Fail::because('The test could not open the zero-write stream.');
         }
 
@@ -38,7 +37,6 @@ final class ArtifactStreamWriteFailureTest
                 );
         } finally {
             \fclose($stream);
-            \stream_wrapper_unregister(self::SCHEME);
         }
     }
 }

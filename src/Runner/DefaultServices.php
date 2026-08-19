@@ -10,6 +10,7 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\IntegrationResources;
@@ -38,6 +39,7 @@ final class DefaultServices
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
             new ServiceDefinition(TempDirectory::class, Scope::PerTest, static fn(): TempDirectory => new TempDirectory()),
             new ServiceDefinition(EnvironmentSandbox::class, Scope::PerTest, static fn(): EnvironmentSandbox => new EnvironmentSandbox()),
+            new ServiceDefinition(StreamWrapperSandbox::class, Scope::PerTest, static fn(): StreamWrapperSandbox => new StreamWrapperSandbox()),
             new ServiceDefinition(IntegrationResources::class, Scope::PerRun, static fn(): IntegrationResources => $integrationResources),
             new ServiceDefinition(
                 TestChannel::class,
