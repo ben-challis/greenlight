@@ -6,13 +6,16 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\ReportingError;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 
-final class StreamOutputTest
+final readonly class StreamOutputTest
 {
     private const string PARTIAL_WRITE_SCHEME = 'greenlight-partial-write';
+
+    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
 
     #[Test]
     public function writesAccumulateOnTheStream(): void
@@ -72,7 +75,6 @@ final class StreamOutputTest
                 ->toBe('complete reporter output');
         } finally {
             \fclose($stream);
-            \stream_wrapper_unregister(self::PARTIAL_WRITE_SCHEME);
         }
     }
 
@@ -92,7 +94,6 @@ final class StreamOutputTest
                 );
         } finally {
             \fclose($stream);
-            \stream_wrapper_unregister(self::PARTIAL_WRITE_SCHEME);
         }
     }
 
@@ -101,15 +102,11 @@ final class StreamOutputTest
      */
     private function openPartialWriteStream(string $path)
     {
-        if (!\stream_wrapper_register(self::PARTIAL_WRITE_SCHEME, PartialWriteStream::class)) {
-            throw new \RuntimeException('Greenlight did not register the partial-write stream.');
-        }
+        $this->streamWrappers->register(self::PARTIAL_WRITE_SCHEME, PartialWriteStream::class);
 
         $stream = \fopen(self::PARTIAL_WRITE_SCHEME . '://' . $path, 'wb');
 
         if ($stream === false) {
-            \stream_wrapper_unregister(self::PARTIAL_WRITE_SCHEME);
-
             throw new \RuntimeException('Greenlight did not open the partial-write stream.');
         }
 
