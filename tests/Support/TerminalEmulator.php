@@ -116,7 +116,7 @@ final class TerminalEmulator
 
     private function cursorUp(int $rows): void
     {
-        $this->cursorRow = \max(0, $this->cursorRow - $rows);
+        $this->cursorRow = \max(0, $this->cursorRow - \max(1, $rows));
     }
 
     private function clearLine(): void

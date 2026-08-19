@@ -38,6 +38,17 @@ final class TerminalEmulatorTest
     }
 
     #[Test]
+    public function zeroCursorUpDistanceUsesTheDefaultOneRow(): void
+    {
+        $terminal = new TerminalEmulator();
+        $terminal->write("top\nbottom\x1b[0A\rreplaced");
+
+        Expect::that($terminal->visibleLines())
+            ->because('a zero cursor-up distance MUST have the same effect as the default distance')
+            ->toBe(['replaced', 'bottom']);
+    }
+
+    #[Test]
     public function clearLineErasesOnlyTheCurrentRow(): void
     {
         $terminal = new TerminalEmulator();
