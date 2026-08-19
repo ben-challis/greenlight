@@ -11,6 +11,7 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 
@@ -18,7 +19,10 @@ final readonly class DiscoveryCacheTest
 {
     private const string STATABLE_FILE_SCHEME = 'greenlight-statable-file';
 
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(
+        private EnvironmentSandbox $environment,
+        private StreamWrapperSandbox $streamWrappers,
+    ) {}
 
     #[Test]
     public function hitsServeFromCacheAndAnyChangeInvalidates(): void
@@ -396,9 +400,7 @@ final readonly class DiscoveryCacheTest
         $directory = \sys_get_temp_dir() . '/greenlight-binary-path-' . \bin2hex(\random_bytes(6));
         $source = self::STATABLE_FILE_SCHEME . "://Invalid-\xFF-Test.php";
         $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
-        if (!\stream_wrapper_register(self::STATABLE_FILE_SCHEME, StatableFileStream::class)) {
-            Fail::because('Expected to register the statable-file stream.');
-        }
+        $this->streamWrappers->register(self::STATABLE_FILE_SCHEME, StatableFileStream::class);
 
         $cache = DiscoveryCache::forDirectories([$directory]);
 
@@ -412,7 +414,6 @@ final readonly class DiscoveryCacheTest
                 ->because('failed cache encoding MUST not leave a cache document')
                 ->toBeFalse();
         } finally {
-            \stream_wrapper_unregister(self::STATABLE_FILE_SCHEME);
             @\unlink($cacheFile);
         }
     }

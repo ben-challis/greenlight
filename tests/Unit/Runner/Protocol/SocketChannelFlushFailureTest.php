@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
@@ -16,17 +17,16 @@ final readonly class SocketChannelFlushFailureTest
 {
     private const string STREAM_SCHEME = 'greenlight-flush-failure';
 
+    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+
     #[Test]
     public function aFailedFlushRejectsTheSend(): void
     {
-        if (!\stream_wrapper_register(self::STREAM_SCHEME, FlushFailureStream::class)) {
-            Fail::because('The test could not register the flush-failure stream.');
-        }
+        $this->streamWrappers->register(self::STREAM_SCHEME, FlushFailureStream::class);
 
         $stream = \fopen(self::STREAM_SCHEME . '://channel', 'w+');
 
         if ($stream === false) {
-            \stream_wrapper_unregister(self::STREAM_SCHEME);
             Fail::because('The test could not open the flush-failure stream.');
         }
 
@@ -43,7 +43,6 @@ final readonly class SocketChannelFlushFailureTest
                 );
         } finally {
             $channel->close();
-            \stream_wrapper_unregister(self::STREAM_SCHEME);
         }
     }
 }

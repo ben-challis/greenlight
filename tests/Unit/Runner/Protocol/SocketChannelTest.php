@@ -7,15 +7,18 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Tests\Fixture\Runner\Protocol\UnselectableStream;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 
-final class SocketChannelTest
+final readonly class SocketChannelTest
 {
     private const string UNSELECTABLE_SCHEME = 'greenlight-unselectable';
+
+    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
 
     #[Test]
     public function receiveTimeoutLeavesTheChannelOpenForLaterMessages(): void
@@ -135,14 +138,11 @@ final class SocketChannelTest
     #[Test]
     public function aSelectFailureEndsTheReceiveWithoutClosingTheChannel(): void
     {
-        if (!\stream_wrapper_register(self::UNSELECTABLE_SCHEME, UnselectableStream::class)) {
-            Fail::because('The test could not register the unselectable stream.');
-        }
+        $this->streamWrappers->register(self::UNSELECTABLE_SCHEME, UnselectableStream::class);
 
         $stream = \fopen(self::UNSELECTABLE_SCHEME . '://channel', 'r+');
 
         if ($stream === false) {
-            \stream_wrapper_unregister(self::UNSELECTABLE_SCHEME);
             Fail::because('The test could not open the unselectable stream.');
         }
 
@@ -157,7 +157,6 @@ final class SocketChannelTest
                 ->toBeFalse();
         } finally {
             $channel->close();
-            \stream_wrapper_unregister(self::UNSELECTABLE_SCHEME);
         }
     }
 
