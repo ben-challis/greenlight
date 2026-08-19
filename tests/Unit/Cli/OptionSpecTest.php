@@ -44,6 +44,26 @@ final readonly class OptionSpecTest
             null,
             'Option names cannot be empty.',
         ];
+        yield 'long name with leading hyphen' => [
+            '-workers',
+            null,
+            'Option name "-workers" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+        ];
+        yield 'long name with value delimiter' => [
+            'workers=fast',
+            null,
+            'Option name "workers=fast" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+        ];
+        yield 'long name with whitespace' => [
+            'worker count',
+            null,
+            'Option name "worker count" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+        ];
+        yield 'long name with non-ASCII letter' => [
+            'wörkers',
+            null,
+            'Option name "wörkers" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+        ];
         yield 'empty short alias' => [
             'help',
             '',
