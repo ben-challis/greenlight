@@ -275,7 +275,7 @@ jobs:
         id: "analysis_cache"
         if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
         env:
-          CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'rector.php') }}"
+          CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'phpstan.docs.neon', 'rector.php', 'rector.docs.php', 'tools/docs-php.php', 'tools/rector-config.php') }}"
         run: 'echo "content_hash=${CONTENT_HASH}" >> "${GITHUB_OUTPUT}"'
 
       - name: "Restore static analysis cache"
@@ -286,7 +286,9 @@ jobs:
             .deptrac.cache
             .php-cs-fixer.cache
             build/cache/phpstan
+            build/cache/phpstan-docs
             build/cache/rector
+            build/cache/rector-docs
           key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
           restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-"
 
@@ -302,7 +304,9 @@ jobs:
             .deptrac.cache
             .php-cs-fixer.cache
             build/cache/phpstan
+            build/cache/phpstan-docs
             build/cache/rector
+            build/cache/rector-docs
           key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
 
       # PHPStan does not run in the "lowest" jobs. The oldest permitted PHPStan
