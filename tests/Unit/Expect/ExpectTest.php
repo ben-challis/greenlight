@@ -69,4 +69,20 @@ final class ExpectTest
         Expect::that(static fn() => Expect::that(4)->__call('toBeEven', []))->because('chains created before an install keep their extensions')
             ->toThrow(\BadMethodCallException::class);
     }
+
+    #[Test]
+    public function installReturnsCleanupThatRestoresThePreviousExtensions(): void
+    {
+        $restoreEmpty = Expect::install([new EvenNumbersExtension()]);
+        $restoreEvenNumbers = Expect::install([]);
+
+        $restoreEvenNumbers();
+        $chain = Expect::that(4);
+        $restoreEmpty();
+
+        $chain->__call('toBeEven', []);
+        Expect::that(static fn() => Expect::that(4)->__call('toBeEven', []))
+            ->because('install cleanup restores the exact previous extension list')
+            ->toThrow(\BadMethodCallException::class);
+    }
 }
