@@ -14,6 +14,7 @@ use Greenlight\Coverage\PathFilter;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Coverage\Adder;
 use Greenlight\Tests\Fixture\Coverage\FakeXdebugRuntime;
+use Greenlight\Tests\Support\ClassFile;
 
 final class XdebugDriverTest
 {
@@ -135,7 +136,7 @@ final class XdebugDriverTest
             throw new SkipTest('xdebug with coverage mode is not available');
         }
 
-        $fixtureFile = (string) new \ReflectionClass(Adder::class)->getFileName();
+        $fixtureFile = ClassFile::of(Adder::class);
         $fixtureDir = \dirname($fixtureFile);
 
         $driver = new XdebugDriver();
