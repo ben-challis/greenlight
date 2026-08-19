@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Coverage;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Coverage\Ignore\IgnoreScanner;
+use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
+
+final readonly class IgnoreScannerSameCommentRangeTest
+{
+    public function __construct(private TempDirectory $tempDirectory) {}
+
+    #[Test]
+    public function pairedMarkerNamesInOneCommentDoNotIgnoreTheRemainingFile(): void
+    {
+        $path = $this->tempDirectory->path() . '/subject.php';
+        \file_put_contents($path, <<<'PHP'
+            <?php
+            /*
+             * A pair of "@codeCoverageIgnoreStart" and "@codeCoverageIgnoreEnd"
+             * identifies a bounded range.
+             */
+            $kept = 1;
+            PHP);
+
+        Expect::that(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+            ->because('range markers in one comment MUST close before later source lines')
+            ->toBe([2, 3, 4, 5]);
+    }
+}
