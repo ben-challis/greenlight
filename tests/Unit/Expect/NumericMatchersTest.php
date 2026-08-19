@@ -207,6 +207,19 @@ final class NumericMatchersTest
             ->toBe('toBeWithin() requires an int or float subject. The subject type is string.');
     }
 
+    #[Test]
+    #[DataSet('invalidTolerances')]
+    public function toBeWithinRejectsAnInvalidTolerance(float $tolerance): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => Expect::that(1.0)->toBeWithin($tolerance, 1.0),
+        );
+
+        Expect::that($detail->message)
+            ->because('toBeWithin() MUST reject a tolerance that cannot define a numeric range')
+            ->toBe('toBeWithin() requires a finite tolerance of zero or more.');
+    }
+
     /**
      * @return iterable<string, array{float}>
      */
@@ -214,5 +227,16 @@ final class NumericMatchersTest
     {
         yield 'lower boundary' => [0.9];
         yield 'upper boundary' => [1.1];
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function invalidTolerances(): iterable
+    {
+        yield 'negative' => [-0.1];
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 }

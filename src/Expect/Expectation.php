@@ -630,7 +630,8 @@ final class Expectation
 
     /**
      * Passes when the absolute difference between the numeric subject and
-     * `$of` is not more than `$delta`.
+     * `$of` is not more than `$delta`. The tolerance MUST be finite and zero
+     * or more.
      *
      * @return self<T>
      *
@@ -639,6 +640,10 @@ final class Expectation
     public function toBeWithin(float $delta, float $of): self
     {
         $subject = $this->numericSubject('toBeWithin');
+
+        if (!\is_finite($delta) || $delta < 0.0) {
+            $this->usageFailure('toBeWithin() requires a finite tolerance of zero or more.');
+        }
 
         $bounds = \sprintf(
             'within %s of %s',
