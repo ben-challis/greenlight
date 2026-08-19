@@ -119,6 +119,10 @@ final class GreenlightConfig
                 throw new InvalidConfiguration('Test paths cannot be empty strings.');
             }
 
+            if (\str_contains($path, "\0")) {
+                throw new InvalidConfiguration('Test paths cannot contain a null byte.');
+            }
+
             $validated[] = $path;
         }
 
