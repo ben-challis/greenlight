@@ -22,7 +22,7 @@ final readonly class EnvironmentBackup
 
     public static function capture(string $name): self
     {
-        self::validateName($name);
+        EnvironmentVariableName::assertValid($name);
 
         return new self(
             $name,
@@ -72,12 +72,4 @@ final readonly class EnvironmentBackup
         }
     }
 
-    private static function validateName(string $name): void
-    {
-        if ($name === '' || \str_contains($name, '=') || \str_contains($name, "\0")) {
-            throw new \InvalidArgumentException(
-                'Environment variable names cannot be empty or contain "=" or a null byte.',
-            );
-        }
-    }
 }
