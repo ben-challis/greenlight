@@ -10,6 +10,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Tests\Support\MemoryStream;
 
 final class JsonFrameCodecTest
 {
@@ -51,11 +52,7 @@ final class JsonFrameCodecTest
     #[Test]
     public function unsupportedPayloadValuesProduceAProtocolError(): void
     {
-        $stream = \fopen('php://memory', 'r');
-
-        if ($stream === false) {
-            Fail::because('Expected PHP to open the in-memory stream.');
-        }
+        $stream = MemoryStream::open();
 
         try {
             Expect::that(static fn(): string => new JsonFrameCodec()->encode(['stream' => $stream]))
@@ -65,7 +62,7 @@ final class JsonFrameCodecTest
                     matching: '/Malformed frame: Greenlight cannot encode the payload as JSON:/',
                 );
         } finally {
-            \fclose($stream);
+            MemoryStream::close($stream);
         }
     }
 

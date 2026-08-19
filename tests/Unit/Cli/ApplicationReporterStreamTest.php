@@ -7,10 +7,10 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class ApplicationReporterStreamTest
 {
@@ -27,12 +27,8 @@ final readonly class ApplicationReporterStreamTest
             $this->tempDirectory,
             'application-reporter-stream',
         );
-        $stdout = \fopen('php://memory', 'w+');
-        $stderr = \fopen('php://memory', 'w+');
-
-        if ($stdout === false || $stderr === false) {
-            Fail::because('Greenlight did not open the CLI test streams.');
-        }
+        $stdout = MemoryStream::open();
+        $stderr = MemoryStream::open();
 
         try {
             $exit = Application::forStreams($stdout, $stderr)->run(
@@ -44,8 +40,7 @@ final readonly class ApplicationReporterStreamTest
             $output = \stream_get_contents($stdout);
             $errors = \stream_get_contents($stderr);
         } finally {
-            \fclose($stdout);
-            \fclose($stderr);
+            MemoryStream::close($stdout, $stderr);
         }
 
         Expect::that($exit)

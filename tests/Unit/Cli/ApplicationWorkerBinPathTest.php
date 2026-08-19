@@ -9,11 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FilesystemRestriction;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class ApplicationWorkerBinPathTest
 {
@@ -31,12 +31,8 @@ final readonly class ApplicationWorkerBinPathTest
             $this->tempDirectory,
             'application-worker-bin-path',
         );
-        $stdout = \fopen('php://memory', 'w+');
-        $stderr = \fopen('php://memory', 'w+');
-
-        if ($stdout === false || $stderr === false) {
-            Fail::because('Greenlight did not open the CLI test streams.');
-        }
+        $stdout = MemoryStream::open();
+        $stderr = MemoryStream::open();
 
         $root = \dirname(__DIR__, 3);
         $restrictedBin = \dirname($root);
@@ -54,8 +50,7 @@ final readonly class ApplicationWorkerBinPathTest
             \rewind($stderr);
             $errors = \stream_get_contents($stderr);
         } finally {
-            \fclose($stdout);
-            \fclose($stderr);
+            MemoryStream::close($stdout, $stderr);
         }
 
         Expect::that($exit)
