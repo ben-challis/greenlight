@@ -6,6 +6,8 @@ namespace Greenlight\Documentation\PhpExample;
 
 /**
  * Provides the command-line interface for documentation PHP checks.
+ *
+ * @internal
  */
 final readonly class Command
 {

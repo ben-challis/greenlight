@@ -122,6 +122,35 @@ final readonly class DocsPhpCheckTest
     }
 
     #[Test]
+    public function rendersGithubAnnotationsWhenRequested(): void
+    {
+        $project = $this->project('github-annotations');
+        $project->write(
+            'docs/example.md',
+            <<<'MARKDOWN'
+            <!-- php-example {"example":"example","file":"example.php","mode":"file","tools":["phpstan"]} -->
+            ```php
+            $value = unknown();
+            ```
+
+            MARKDOWN,
+        );
+        $this->writePhpStanFinding($project, 2);
+
+        $result = $this->runWithEnvironment(
+            $project,
+            ['GITHUB_ACTIONS' => 'true'],
+            'check',
+            '--phpstan-bin=' . $project->path('phpstan.php'),
+        );
+
+        Expect::that($result->exitCode)->because('reports the workflow annotation')->toBe(1);
+        Expect::that($result->stdout)->toContain(
+            '::error file=docs/example.md,line=3::PHPStan [function.notFound]%3A Function unknown not found.',
+        );
+    }
+
+    #[Test]
     public function rejectsDuplicateGeneratedFiles(): void
     {
         $project = $this->project('duplicate-file');
@@ -265,6 +294,23 @@ final readonly class DocsPhpCheckTest
 
     private function run(ProjectFiles $project, string $command, string ...$arguments): ProcessResult
     {
+        return $this->runWithEnvironment(
+            $project,
+            ['GITHUB_ACTIONS' => 'false'],
+            $command,
+            ...$arguments,
+        );
+    }
+
+    /**
+     * @param array<string, string> $environment
+     */
+    private function runWithEnvironment(
+        ProjectFiles $project,
+        array $environment,
+        string $command,
+        string ...$arguments,
+    ): ProcessResult {
         $processCommand = [
             \PHP_BINARY,
             \dirname(__DIR__, 2) . '/tools/docs-php.php',
@@ -276,6 +322,6 @@ final readonly class DocsPhpCheckTest
             $processCommand[] = $argument;
         }
 
-        return Subprocess::run($project->directory, $processCommand);
+        return Subprocess::run($project->directory, $processCommand, $environment);
     }
 }
