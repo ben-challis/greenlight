@@ -36,9 +36,7 @@ final readonly class CoverageJsonTest
     {
         $path = $this->workspace->path() . '/missing/coverage.json';
 
-        Expect::that(static function () use ($path): void {
-            CoverageJson::read($path);
-        })
+        Expect::that(static fn(): CoverageMap => CoverageJson::read($path))
             ->because('a coverage JSON read failure MUST identify its source')
             ->toThrow(
                 ExpectationFailed::class,
