@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
@@ -19,6 +20,7 @@ final readonly class ApplicationCoverageCleanupTest
     public function __construct(
         private TempDirectory $tempDirectory,
         private EnvironmentSandbox $environment,
+        private Cleanup $cleanup,
     ) {}
 
     #[Test]
@@ -58,18 +60,16 @@ final readonly class ApplicationCoverageCleanupTest
             \var_export($fixtureDirectory, true),
         ));
         $stdout = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stdout));
         $stderr = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stderr));
 
-        try {
-            Expect::that(fn() => Application::forStreams($stdout, $stderr)->run(
-                ['run', '--reporter=plain', '--no-ansi'],
-                $project->directory,
-            ))
-                ->because('a run event failure MUST propagate after coverage cleanup')
-                ->toThrow(ReportingError::class);
-        } finally {
-            MemoryStream::close($stdout, $stderr);
-        }
+        Expect::that(fn() => Application::forStreams($stdout, $stderr)->run(
+            ['run', '--reporter=plain', '--no-ansi'],
+            $project->directory,
+        ))
+            ->because('a run event failure MUST propagate after coverage cleanup')
+            ->toThrow(ReportingError::class);
 
         Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
             ->because('a failed run MUST restore an absent coverage relay directory')
