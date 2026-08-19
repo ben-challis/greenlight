@@ -6,14 +6,12 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 use Greenlight\Tests\Support\MemoryStream;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class WorkerHandleTest
 {
@@ -60,9 +58,9 @@ final class WorkerHandleTest
             ->because('a worker without an assignment has no unfinished tests')
             ->toBe([]);
 
-        $finished = $this->entry('finished');
-        $inFlight = $this->entry('inFlight');
-        $remaining = $this->entry('remaining');
+        $finished = PlanEntryFixture::create('Example\WorkerTest', 'finished');
+        $inFlight = PlanEntryFixture::create('Example\WorkerTest', 'inFlight');
+        $remaining = PlanEntryFixture::create('Example\WorkerTest', 'remaining');
         $handle->assigned = new ExecutionPlan([$finished, $inFlight, $remaining]);
         $handle->finished[(string) $finished->id] = true;
         $handle->inFlight = $inFlight->id;
@@ -166,16 +164,6 @@ final class WorkerHandleTest
         yield 'surrogate prefix' => ["\xED\xA0"];
         yield 'overlong four-byte prefix' => ["\xF0\x80"];
         yield 'out-of-range prefix' => ["\xF4\x90"];
-    }
-
-    /**
-     * @param non-empty-string $method
-     */
-    private function entry(string $method): PlanEntry
-    {
-        $id = new TestId('Example\WorkerTest', $method);
-
-        return new PlanEntry($id, new TestMetadata($id->class, $id->method));
     }
 
     private function handle(): WorkerHandle

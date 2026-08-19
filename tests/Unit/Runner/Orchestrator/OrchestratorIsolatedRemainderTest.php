@@ -8,15 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\RecycleBeforeIsolatedWorker;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class OrchestratorIsolatedRemainderTest
 {
@@ -35,9 +33,8 @@ final class OrchestratorIsolatedRemainderTest
             workingDirectory: $root,
         );
         $sink = new CollectingEventSink();
-        $id = new TestId(CleanTest::class, 'passesAndIsCollectable');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method, isolated: true)),
+            PlanEntryFixture::create(CleanTest::class, 'passesAndIsCollectable', isolated: true),
         ]);
 
         $summary = $orchestrator->run($plan, $sink, 1);

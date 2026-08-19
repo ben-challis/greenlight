@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\PlanOrder;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class PlanOrderDurationTieTest
 {
@@ -18,9 +16,9 @@ final readonly class PlanOrderDurationTieTest
     public function equalDurationsPreserveDiscoveryOrder(): void
     {
         $plan = new ExecutionPlan([
-            $this->entry('Acme\\GammaTest'),
-            $this->entry('Acme\\AlphaTest'),
-            $this->entry('Acme\\BetaTest'),
+            PlanEntryFixture::create('Acme\\GammaTest'),
+            PlanEntryFixture::create('Acme\\AlphaTest'),
+            PlanEntryFixture::create('Acme\\BetaTest'),
         ]);
 
         $ordered = PlanOrder::schedule($plan, [], [
@@ -36,16 +34,5 @@ final readonly class PlanOrderDurationTieTest
                 'Acme\\AlphaTest',
                 'Acme\\BetaTest',
             ]);
-    }
-
-    /**
-     * @param non-empty-string $class
-     */
-    private function entry(string $class): PlanEntry
-    {
-        return new PlanEntry(
-            new TestId($class, 'runs'),
-            new TestMetadata($class, 'runs'),
-        );
     }
 }

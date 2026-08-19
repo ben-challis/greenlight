@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\PlanOrder;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class PlanOrderClassIntegrityTest
 {
@@ -18,10 +17,10 @@ final class PlanOrderClassIntegrityTest
     public function classPriorityPreservesMethodOrderAndThePlanSeed(): void
     {
         $plan = new ExecutionPlan([
-            $this->entry('Acme\\AlphaTest', 'first'),
-            $this->entry('Acme\\AlphaTest', 'second'),
-            $this->entry('Acme\\BetaTest', 'first'),
-            $this->entry('Acme\\BetaTest', 'second'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'first'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'second'),
+            PlanEntryFixture::create('Acme\\BetaTest', 'first'),
+            PlanEntryFixture::create('Acme\\BetaTest', 'second'),
         ], seed: 4242);
 
         $ordered = PlanOrder::schedule($plan, ['Acme\\BetaTest'], []);
@@ -41,17 +40,5 @@ final class PlanOrderClassIntegrityTest
         Expect::that($ordered->seed)
             ->because('class priority MUST preserve the reproducible plan seed')
             ->toBe(4242);
-    }
-
-    /**
-     * @param non-empty-string $class
-     * @param non-empty-string $method
-     */
-    private function entry(string $class, string $method): PlanEntry
-    {
-        return new PlanEntry(
-            new TestId($class, $method),
-            new TestMetadata($class, $method),
-        );
     }
 }

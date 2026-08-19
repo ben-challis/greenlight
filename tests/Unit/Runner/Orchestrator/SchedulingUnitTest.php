@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class SchedulingUnitTest
 {
@@ -25,26 +23,12 @@ final class SchedulingUnitTest
     public function resourcesAreUniqueAcrossEveryEntryInTheClass(): void
     {
         $unit = new SchedulingUnit(new ExecutionPlan([
-            $this->entry('first', ['database', 'cache']),
-            $this->entry('second', ['database']),
+            PlanEntryFixture::create('ExampleTest', 'first', resources: ['database', 'cache']),
+            PlanEntryFixture::create('ExampleTest', 'second', resources: ['database']),
         ]), false);
 
         Expect::that($unit->resources)
             ->because('one class MUST acquire each required resource once')
             ->toBe(['database', 'cache']);
-    }
-
-    /**
-     * @param non-empty-string $method
-     * @param list<non-empty-string> $resources
-     */
-    private function entry(string $method, array $resources): PlanEntry
-    {
-        $class = 'ExampleTest';
-
-        return new PlanEntry(
-            new TestId($class, $method),
-            new TestMetadata($class, $method, resources: $resources),
-        );
     }
 }

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class DistributorPartitionTest
 {
@@ -19,11 +18,11 @@ final readonly class DistributorPartitionTest
     public function mixedEntriesRemainCompleteAndOrdered(): void
     {
         $plan = new ExecutionPlan([
-            $this->entry('Acme\\AlphaTest', 'first'),
-            $this->entry('Acme\\AlphaTest', 'isolated', isolated: true),
-            $this->entry('Acme\\AlphaTest', 'third'),
-            $this->entry('Acme\\BetaTest', 'isolated', isolated: true),
-            $this->entry('Acme\\BetaTest', 'second'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'first'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'isolated', isolated: true),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'third'),
+            PlanEntryFixture::create('Acme\\BetaTest', 'isolated', isolated: true),
+            PlanEntryFixture::create('Acme\\BetaTest', 'second'),
         ], seed: 4242);
 
         [$pooled, $isolated] = new Distributor()->units($plan);
@@ -71,17 +70,5 @@ final readonly class DistributorPartitionTest
             'seed' => $unit->plan->seed,
             'isolated' => $unit->isolated,
         ];
-    }
-
-    /**
-     * @param non-empty-string $class
-     * @param non-empty-string $method
-     */
-    private function entry(string $class, string $method, bool $isolated = false): PlanEntry
-    {
-        return new PlanEntry(
-            new TestId($class, $method),
-            new TestMetadata($class, $method, isolated: $isolated),
-        );
     }
 }
