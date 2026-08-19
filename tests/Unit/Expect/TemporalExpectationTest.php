@@ -438,7 +438,7 @@ final class TemporalExpectationTest
         Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->within(0.0))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Set Eventually duration to a finite value of at least 0.000 seconds.',
+                message: 'Set Eventually duration to a finite value greater than 0.000 seconds.',
             );
         Expect::that(static fn() => Expect::eventually(static fn(): int => 1)->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(

@@ -37,7 +37,7 @@ final class PendingEventually
      */
     public function pollEvery(float $seconds): self
     {
-        $this->requireDuration($seconds, 'Polling interval', minimum: 0.001);
+        $this->requireDuration($seconds, 'Polling interval', minimum: 0.001, inclusive: true);
         $this->intervalSeconds = $seconds;
 
         return $this;
@@ -79,13 +79,21 @@ final class PendingEventually
         );
     }
 
-    private function requireDuration(float $seconds, string $label, float $minimum = 0.0): void
-    {
-        if (!\is_finite($seconds) || $seconds <= 0.0 || $seconds < $minimum) {
+    private function requireDuration(
+        float $seconds,
+        string $label,
+        float $minimum = 0.0,
+        bool $inclusive = false,
+    ): void {
+        if (!\is_finite($seconds) || ($inclusive ? $seconds < $minimum : $seconds <= $minimum)) {
+            $constraint = $inclusive
+                ? \sprintf('of at least %.3f seconds', $minimum)
+                : \sprintf('greater than %.3f seconds', $minimum);
+
             throw new \InvalidArgumentException(\sprintf(
-                'Set %s to a finite value of at least %.3f seconds.',
+                'Set %s to a finite value %s.',
                 $label,
-                $minimum,
+                $constraint,
             ));
         }
     }
