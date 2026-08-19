@@ -1,10 +1,11 @@
-# PSR applications
+# PSR-11 containers
 
-The PSR-11 bridge supplies container services to test constructors. It works
-with each container that implements `Psr\Container\ContainerInterface`.
+The PSR-11 bridge supplies services from a
+[PSR-11 container](https://www.php-fig.org/psr/psr-11/) to test constructors. A
+PSR-11 container implements `Psr\Container\ContainerInterface`.
 
-The bridge uses the packages that the application provides. Greenlight does
-not declare a runtime dependency on a container implementation.
+Greenlight uses the container packages from the application. It does not
+install a container implementation.
 
 ## Setup
 
@@ -25,9 +26,13 @@ return GreenlightConfig::create()
 The factory runs when a test first requests a container service. A worker does
 not create the container when its tests do not use it.
 
-The standard Mezzio configuration file, `config/container.php`, returns a
-PSR-11 container. The same setup works with Laminas ServiceManager, PHP-DI,
-and other PSR-11 implementations.
+[Mezzio](https://docs.mezzio.dev/mezzio/) is a framework for PSR-15 middleware
+applications. Its standard `config/container.php` file returns a PSR-11
+container.
+
+The plugin also works with
+[Laminas ServiceManager](https://docs.laminas.dev/laminas-servicemanager/),
+[PHP-DI](https://php-di.org/), and other PSR-11 implementations.
 
 ## Container services
 
@@ -44,14 +49,14 @@ final class RegistrationTest
 ```
 
 Greenlight first resolves constructor parameters from its harness. It then
-uses the PSR-11 container. Thus, built-in and plugin harness services have
-precedence over container services.
+uses the PSR-11 container. Harness services have precedence over container
+services.
 
-The container must report the requested type from `has()`. The value from
-`get()` must have that type. Greenlight reports a type mismatch before the test
-runs.
+For an available service ID, the container MUST return `true` from `has()`.
+The value from `get()` MUST have the declared parameter type. Greenlight
+reports a type mismatch before the test runs.
 
-### Services with another ID
+### Services with a different ID
 
 Use `#[Service]` when the container ID differs from the parameter type:
 
@@ -75,15 +80,15 @@ Greenlight supplies `Psr\Container\ContainerInterface` as a harness service:
 public function __construct(private readonly ContainerInterface $container) {}
 ```
 
-Use typed constructor dependencies for normal tests. Direct container access
-is useful when a test verifies container configuration.
+Use typed constructor dependencies for application services. Use direct
+container access only to verify container configuration.
 
 ## State between tests
 
 By default, the bridge discards the active container after each test attempt.
 The next test creates a new container from the factory.
 
-The bridge can run a reset callback before it discards the container:
+Use `reset:` to reset container state before the bridge discards the container:
 
 ```php
 new Psr11Plugin(
@@ -94,11 +99,11 @@ new Psr11Plugin(
 );
 ```
 
-The callback runs only after a test creates the container. The bridge discards
-the container even when the callback fails.
+The callback runs only if a test creates the container. The bridge discards the
+container even if the callback throws.
 
-For a container that can reset all service state, keep one container for each
-worker:
+If services keep no test state or `reset:` removes all state, set
+`refreshBetweenTests` to `false`. The worker then keeps one container:
 
 ```php
 new Psr11Plugin(
@@ -110,12 +115,10 @@ new Psr11Plugin(
 );
 ```
 
-Do not disable refreshes when shared services can keep state. Tests on the same
-worker will receive the same service instances.
+Tests on the same worker receive the same service instances.
 
-The bridge controls only container state. Isolation for databases, caches,
-queues, files, and other external resources remains the test suite's
-responsibility.
+The bridge controls only container state. It does not isolate databases,
+caches, queues, files, or other external resources.
 
 ## Parallel resources
 
@@ -123,17 +126,16 @@ Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. Use the channel
 in application configuration to select worker-specific databases and similar
 resources.
 
-If a resource cannot use channels, protect its test classes with
-`#[RequiresResource]`. See [configuration](configuration.md) for the complete
-resource rules.
+If workers cannot use separate external resources, use `#[RequiresResource]`.
+See [configuration](configuration.md) for concurrency limits.
 
-## Non-goals
+## Unsupported features
 
-The bridge does not provide these features:
+The bridge does not provide:
 
 * Container auto-discovery
-* Container service replacement
-* HTTP request construction
+* Replacement of container services with doubles
+* HTTP request execution. Use the [PSR-15 harness](psr15.md) for HTTP requests.
 * Browser or network requests
 * Database creation, migration, or transaction control
 * Framework-specific helpers or fakes
