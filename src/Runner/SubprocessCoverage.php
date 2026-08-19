@@ -46,15 +46,7 @@ final readonly class SubprocessCoverage
         }
 
         $include = \getenv(self::INCLUDE_ENV);
-        $paths = [];
-
-        if (\is_string($include)) {
-            foreach (\explode(\PATH_SEPARATOR, $include) as $path) {
-                if ($path !== '') {
-                    $paths[] = $path;
-                }
-            }
-        }
+        $paths = \is_string($include) ? CoverageRelayPaths::decode($include) : [];
 
         $collector = CoverageCollector::create(new CoverageSettings($paths), selector: $selector);
 
