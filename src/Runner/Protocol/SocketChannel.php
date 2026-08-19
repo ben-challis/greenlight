@@ -151,17 +151,19 @@ final class SocketChannel
 
         \stream_set_blocking($this->stream, false);
 
-        $reachedEof = ErrorTrap::run(function (): bool {
+        [$bytes, $reachedEof] = ErrorTrap::run(function (): array {
             $bytes = \fread($this->stream, 65536);
 
-            if (\is_string($bytes) && $bytes !== '') {
-                $this->buffer->feed($bytes);
+            return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
+        }, $warning);
 
-                return false;
-            }
+        if ($bytes === false && !$reachedEof) {
+            throw ProtocolError::malformedFrame('peer connection failed during a read', $warning);
+        }
 
-            return \feof($this->stream);
-        });
+        if (\is_string($bytes) && $bytes !== '') {
+            $this->buffer->feed($bytes);
+        }
 
         if ($reachedEof) {
             $this->eof = true;
