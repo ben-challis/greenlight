@@ -99,14 +99,7 @@ final class ValueRenderer
             }
 
             $character = $matches[0];
-            $escaped = \strtr($character, [
-                '\\' => '\\\\',
-                "'" => "\\'",
-                "\n" => '\n',
-                "\r" => '\r',
-                "\t" => '\t',
-                "\0" => '\0',
-            ]);
+            $escaped = $this->escapeCharacter($character);
             $escapedCharacters = $this->codePointLength($escaped);
 
             if ($printableCharacters + $escapedCharacters > self::MAX_STRING_CHARS) {
@@ -134,6 +127,28 @@ final class ValueRenderer
         $length = \preg_match_all('/./us', $value);
 
         return $length === false ? \strlen($value) : $length;
+    }
+
+    private function escapeCharacter(string $character): string
+    {
+        $escaped = \strtr($character, [
+            '\\' => '\\\\',
+            "'" => "\\'",
+            "\n" => '\n',
+            "\r" => '\r',
+            "\t" => '\t',
+            "\0" => '\0',
+        ]);
+
+        if ($escaped !== $character || \preg_match('/^\p{Cc}$/u', $character) !== 1) {
+            return $escaped;
+        }
+
+        $codePoint = \strlen($character) === 1
+            ? \ord($character)
+            : ((\ord($character[0]) & 0x1f) << 6) | (\ord($character[1]) & 0x3f);
+
+        return \sprintf('\\u{%04X}', $codePoint);
     }
 
     /**

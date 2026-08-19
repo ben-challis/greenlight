@@ -43,6 +43,16 @@ final class ValueRendererTest
     }
 
     #[Test]
+    public function escapesRemainingUnicodeControlCharactersInStrings(): void
+    {
+        $rendered = new ValueRenderer()->render("\u{0001}\u{001B}\u{007F}\u{0085}");
+
+        Expect::that($rendered)
+            ->because('diagnostic strings MUST NOT preserve terminal or line control characters')
+            ->toBe("'\\u{0001}\\u{001B}\\u{007F}\\u{0085}'");
+    }
+
+    #[Test]
     public function escapesTheStringDelimiter(): void
     {
         Expect::that(new ValueRenderer()->render("can't"))
