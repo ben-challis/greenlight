@@ -57,6 +57,13 @@ final class WildcardTest
             true,
         ];
 
+        yield 'plain pattern can ignore Unicode case' => [
+            'Acme\ÄpfelTest::works',
+            'äpfel',
+            true,
+            true,
+        ];
+
         yield 'plain case-insensitive pattern matches at the subject start' => [
             'InvoiceTotalsTest',
             'invoice',
@@ -172,6 +179,13 @@ final class WildcardTest
         yield 'wildcard pattern can ignore case' => [
             'Acme\BravoTest::alpha',
             '*BRAVOTEST::ALPHA',
+            true,
+            true,
+        ];
+
+        yield 'wildcard pattern can ignore Unicode case' => [
+            'Acme\ÄpfelTest::works',
+            '*äpfel*',
             true,
             true,
         ];
