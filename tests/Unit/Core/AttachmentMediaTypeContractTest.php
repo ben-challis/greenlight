@@ -53,6 +53,10 @@ final class AttachmentMediaTypeContractTest
     public static function invalidMediaTypes(): iterable
     {
         yield 'missing subtype' => ['text'];
+        yield 'parameter without a value' => ['text/plain; first;second=value'];
+        yield 'separator in parameter name' => ['text/plain; name/path=value'];
+        yield 'separator in unquoted value' => ['text/plain; name=left/right'];
+        yield 'second equals in unquoted value' => ['text/plain; name=left=right'];
         yield 'null byte' => ["text/plain; note=\"before\0after\""];
         yield 'tab' => ["text/plain; note=\"before\tafter\""];
         yield 'line feed' => ["text/plain; note=\"before\nafter\""];
