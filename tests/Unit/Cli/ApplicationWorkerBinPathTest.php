@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Cli;
+
+use Greenlight\Attribute\Isolated;
+use Greenlight\Attribute\Test;
+use Greenlight\Cli\Application;
+use Greenlight\Core\ErrorTrap;
+use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
+use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Fixture\TempDirectory;
+use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FilesystemRestriction;
+
+final readonly class ApplicationWorkerBinPathTest
+{
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private EnvironmentSandbox $environment,
+    ) {}
+
+    #[Test]
+    #[Isolated]
+    public function inaccessibleWorkerBinaryFallsBackWithoutEngineDiagnostics(): void
+    {
+        $this->environment->unset('GREENLIGHT_CHANNEL');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests(
+            $this->tempDirectory,
+            'application-worker-bin-path',
+        );
+        $stdout = \fopen('php://memory', 'w+');
+        $stderr = \fopen('php://memory', 'w+');
+
+        if ($stdout === false || $stderr === false) {
+            Fail::because('Greenlight did not open the CLI test streams.');
+        }
+
+        $root = \dirname(__DIR__, 3);
+        $restrictedBin = \dirname($root);
+        FilesystemRestriction::toProject($root);
+
+        try {
+            $exit = ErrorTrap::run(
+                static fn(): int => Application::forStreams($stdout, $stderr)->run(
+                    ['run', '--workers=2', '--reporter=plain', '--no-ansi'],
+                    $project->directory,
+                    $restrictedBin,
+                ),
+                $warning,
+            );
+            \rewind($stderr);
+            $errors = \stream_get_contents($stderr);
+        } finally {
+            \fclose($stdout);
+            \fclose($stderr);
+        }
+
+        Expect::that($exit)
+            ->because('an inaccessible worker binary MUST use the in-process fallback')
+            ->toBe(0);
+        Expect::that($warning)
+            ->because('an inaccessible worker binary MUST not leak an engine diagnostic')
+            ->toBeNull();
+        Expect::that($errors)->toBe('');
+    }
+}
