@@ -6,16 +6,20 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\FailedTestsTap;
+use Greenlight\Cli\RunState;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\CollectingEventSink;
 
-final class FailedTestsTapTest
+final readonly class FailedTestsTapTest
 {
+    public function __construct(private TempDirectory $tempDirectory) {}
+
     #[Test]
     public function forwardsLifecycleEventsWithoutRecordingRunState(): void
     {
@@ -66,6 +70,29 @@ final class FailedTestsTapTest
         Expect::that($inner->events)
             ->because('the tap MUST forward every event unchanged')
             ->toBe($events);
+    }
+
+    #[Test]
+    public function accumulatedDurationsRemainPersistableAtTheFloatLimit(): void
+    {
+        $tap = new FailedTestsTap(new CollectingEventSink());
+        $tap->emit($this->finished('App\ExtremeTest', 'first', Outcome::Failed, \PHP_FLOAT_MAX));
+        $tap->emit($this->finished('App\ExtremeTest', 'second', Outcome::Failed, \PHP_FLOAT_MAX));
+
+        Expect::that($tap->classSeconds())
+            ->because('accepted durations MUST remain finite when their sum exceeds the float range')
+            ->toBe(['App\ExtremeTest' => \PHP_FLOAT_MAX]);
+
+        $state = RunState::forFile($this->tempDirectory->path() . '/overflow-state.json');
+
+        Expect::that($state->record($tap->failedTests(), $tap->classSeconds()))
+            ->because('scheduling history and failed IDs MUST remain persistable after duration saturation')
+            ->toBeTrue();
+        Expect::that($state->failedTests())
+            ->toBe([
+                'App\ExtremeTest::first',
+                'App\ExtremeTest::second',
+            ]);
     }
 
     /**

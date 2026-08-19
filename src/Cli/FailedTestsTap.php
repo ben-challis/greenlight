@@ -38,7 +38,11 @@ final class FailedTestsTap implements EventSink
     {
         if ($event instanceof TestFinished) {
             $class = $event->result->id->class;
-            $this->classSeconds[$class] = ($this->classSeconds[$class] ?? 0.0) + $event->result->durationSeconds;
+            $recorded = $this->classSeconds[$class] ?? 0.0;
+            $duration = $event->result->durationSeconds;
+            $this->classSeconds[$class] = $recorded > \PHP_FLOAT_MAX - $duration
+                ? \PHP_FLOAT_MAX
+                : $recorded + $duration;
 
             if (!$event->result->outcome->isSuccessful()) {
                 $id = (string) $event->result->id;
