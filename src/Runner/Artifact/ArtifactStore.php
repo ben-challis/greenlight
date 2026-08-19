@@ -278,7 +278,7 @@ final class ArtifactStore
                     || $after['size'] !== $before['size']
                     || $after['mtime'] !== $before['mtime']
                 ) {
-                    @\unlink($part);
+                    ErrorTrap::run(static fn(): bool => \unlink($part));
 
                     throw AttachmentError::source($sourcePath, 'changed while it was being copied');
                 }
@@ -395,13 +395,13 @@ final class ArtifactStore
                     throw AttachmentError::storage('Failed to publish attachment');
                 }
             } catch (\Throwable $error) {
-                @\unlink($part);
+                ErrorTrap::run(static fn(): bool => \unlink($part));
 
                 throw $error;
             }
 
-            @\unlink($source);
-            @\unlink($this->metadataPath($storageKey));
+            ErrorTrap::run(static fn(): bool => \unlink($source));
+            ErrorTrap::run(fn(): bool => \unlink($this->metadataPath($storageKey)));
             $published[] = $attachment->published();
         }
 
@@ -498,10 +498,15 @@ final class ArtifactStore
             }
 
             $path = $entry->getPathname();
-            !$entry->isLink() && $entry->isDir() ? @\rmdir($path) : @\unlink($path);
+
+            if (!$entry->isLink() && $entry->isDir()) {
+                ErrorTrap::run(static fn(): bool => \rmdir($path));
+            } else {
+                ErrorTrap::run(static fn(): bool => \unlink($path));
+            }
         }
 
-        @\rmdir($directory);
+        ErrorTrap::run(static fn(): bool => \rmdir($directory));
     }
 
     /**
@@ -674,7 +679,7 @@ final class ArtifactStore
         );
 
         if (\file_put_contents($part, $encoded . "\n", \LOCK_EX) === false) {
-            @\unlink($part);
+            ErrorTrap::run(static fn(): bool => \unlink($part));
 
             throw AttachmentError::storage('Greenlight did not write attachment recovery metadata');
         }
@@ -682,7 +687,7 @@ final class ArtifactStore
         \chmod($part, 0o600);
 
         if (!\rename($part, $path)) {
-            @\unlink($part);
+            ErrorTrap::run(static fn(): bool => \unlink($part));
 
             throw AttachmentError::storage('Failed to finalize attachment recovery metadata');
         }
@@ -707,7 +712,7 @@ final class ArtifactStore
         $part = $path . '.part-' . \bin2hex(\random_bytes(4));
 
         if (\file_put_contents($part, $attempt . "\n", \LOCK_EX) === false) {
-            @\unlink($part);
+            ErrorTrap::run(static fn(): bool => \unlink($part));
 
             throw AttachmentError::storage('Failed to record the current test attempt');
         }
@@ -715,7 +720,7 @@ final class ArtifactStore
         \chmod($part, 0o600);
 
         if (!\rename($part, $path)) {
-            @\unlink($part);
+            ErrorTrap::run(static fn(): bool => \unlink($part));
 
             throw AttachmentError::storage('Greenlight did not finalize the current test attempt record');
         }
