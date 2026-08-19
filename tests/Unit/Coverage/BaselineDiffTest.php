@@ -102,4 +102,24 @@ final class BaselineDiffTest
             ->because('an overall gain MUST NOT hide a newly uncovered line')
             ->toBeTrue();
     }
+
+    #[Test]
+    public function retainedFilePercentageDecreaseRemainsARegression(): void
+    {
+        $baseline = new CoverageMap([
+            new FileCoverage('/src/A.php', [1, 2], [3]),
+        ]);
+        $current = new CoverageMap([
+            new FileCoverage('/src/A.php', [1], [3]),
+        ]);
+
+        $report = BaselineDiff::between($baseline, $current);
+
+        Expect::that($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
+            ->because('the retained file has no newly uncovered line')
+            ->toBe([]);
+        Expect::that($report->hasRegressions())
+            ->because('a total coverage decrease in retained files MUST remain a regression')
+            ->toBeTrue();
+    }
 }
