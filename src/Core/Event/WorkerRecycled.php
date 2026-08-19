@@ -25,6 +25,10 @@ final readonly class WorkerRecycled implements Event
             throw new \InvalidArgumentException('Worker ID MUST NOT be empty.');
         }
 
+        if (!\is_finite($occurredAt)) {
+            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+        }
+
         $this->workerId = $workerId;
     }
 

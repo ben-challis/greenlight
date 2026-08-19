@@ -35,6 +35,10 @@ final readonly class RunFinished implements Event
             throw new \InvalidArgumentException('RunFinished duration cannot be negative.');
         }
 
+        if (!\is_finite($occurredAt)) {
+            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+        }
+
         $this->runId = $runId;
     }
 

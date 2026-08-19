@@ -28,6 +28,10 @@ final readonly class TestClassStarted implements Event
             throw new \InvalidArgumentException('Test class name MUST NOT be empty.');
         }
 
+        if (!\is_finite($occurredAt)) {
+            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+        }
+
         $this->class = $class;
     }
 
