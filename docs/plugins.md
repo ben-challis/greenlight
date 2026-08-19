@@ -385,9 +385,9 @@ an object of a different type, the test has an error and names the resolver.
 The resolver owns each object that it returns. Harness scopes do not track or
 call disposal methods on these objects.
 
-The Symfony bridge uses this interface to inject container services. You can
-bridge other dependency containers in the same way. See
-[Symfony applications](symfony.md).
+The framework bridges use this interface to inject container services. See
+[Symfony applications](symfony.md), [Laravel applications](laravel.md), and
+[Tempest applications](tempest.md).
 
 ### ExpectationExtension
 

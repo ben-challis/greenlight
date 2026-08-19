@@ -101,6 +101,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Psr15/.*
+    - name: Tempest
+      collectors:
+        - type: directory
+          value: src/Tempest/.*
     - name: PhpStanFramework
       collectors:
         - type: classNameRegex
@@ -133,6 +137,10 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^Psr\\Http\\(Message|Server)\\/
+    - name: TempestFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Tempest\\/
     - name: CpuCoreCounter
       collectors:
         - type: classNameRegex
@@ -171,6 +179,7 @@ deptrac:
     Hyperf: [Core, Harness, Plugin, HyperfFramework, PsrFramework, SwooleFramework, ComposerRuntime]
     Psr: [Core, Harness, Plugin, PsrFramework]
     Psr15: [Harness, Plugin, PsrHttpFramework]
+    Tempest: [Core, Harness, Plugin, TempestFramework]
     PhpStanFramework: []
     SymfonyFramework: []
     LaravelFramework: []
@@ -179,6 +188,7 @@ deptrac:
     ComposerRuntime: []
     PsrFramework: []
     PsrHttpFramework: []
+    TempestFramework: []
     CpuCoreCounter: []
     PhpParserFramework: []
     RectorFramework: []

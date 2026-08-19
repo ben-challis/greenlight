@@ -376,6 +376,55 @@ jobs:
             --filter=TerminalTest \
             --filter=WorkerProcessRunTest
 
+  tempest:
+    name: "Tempest 3.18 bridge (PHP 8.5)"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 20
+    permissions:
+      contents: "read"
+      id-token: "write"
+    env:
+      XDEBUG_MODE: "off"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
+        with:
+          php-version: "8.5"
+          extensions: "pcntl, sockets"
+          coverage: "xdebug"
+          ini-values: "memory_limit=-1"
+
+      - name: "Install Tempest and test dependencies"
+        shell: "bash"
+        run: |
+          composer config platform.php 8.5.0
+          composer require --dev --no-interaction --no-progress --with-all-dependencies "tempest/framework:^3.18"
+
+      - name: "Run Tempest bridge tests with coverage"
+        shell: "bash"
+        run: |
+          XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.tempest-coverage.php \
+            --filter='*Tempest*Test::*'
+
+      - name: "Upload Tempest coverage to Codecov"
+        continue-on-error: true
+        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        with:
+          disable_search: true
+          fail_ci_if_error: false
+          files: "build/coverage/cobertura.xml"
+          use_oidc: true
+
+      - name: "Run the Tempest coverage gate"
+        if: "always()"
+        run: "composer coverage-gate"
+
   php-next:
     name: "PHP 8.6 pre-release compatibility"
     runs-on: "ubuntu-latest"
@@ -581,6 +630,7 @@ jobs:
       - "installed-package"
       - "ci"
       - "macos-portability"
+      - "tempest"
       - "memory"
       - "coverage"
       - "pcov"
@@ -601,6 +651,7 @@ jobs:
           MEMORY_RESULT: "${{ needs.memory.result }}"
           PCOV_RESULT: "${{ needs.pcov.result }}"
           RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
+          TEMPEST_RESULT: "${{ needs.tempest.result }}"
           ZIZMOR_RESULT: "${{ needs.zizmor.result }}"
         shell: "bash"
         run: |
@@ -611,6 +662,7 @@ jobs:
           test "${INSTALLED_PACKAGE_RESULT}" = "success"
           test "${CI_RESULT}" = "success"
           test "${MACOS_PORTABILITY_RESULT}" = "success"
+          test "${TEMPEST_RESULT}" = "success"
           test "${MEMORY_RESULT}" = "success"
           test "${COVERAGE_RESULT}" = "success"
           test "${PCOV_RESULT}" = "success"

@@ -2,7 +2,7 @@
 
 # Integration API
 
-This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, and Symfony.
+This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.
 
 These signatures are the public API.
 
@@ -766,3 +766,98 @@ public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L118)
+
+## `TempestPlugin`
+
+Namespace: `Greenlight\Tempest`
+
+Boots one Tempest long-running kernel for each worker. Tempest discovery,
+configuration, container reset, deferred tasks, and shutdown events stay
+under kernel control.
+
+The bridge uses the `testing` environment by default. Native `#[Tag]`
+attributes select tagged Tempest bindings. Tests MUST isolate external
+resources by `GREENLIGHT_CHANNEL`.
+
+```php
+final class TempestPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber, WorkerBootstrapSubscriber
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L35)
+
+### `__construct()`
+
+```php
+public function __construct(
+    private readonly string $root,
+    private readonly string $environment = 'testing',
+    private readonly array $discoveryLocations = [],
+)
+```
+
+PHPDoc:
+
+- `@param string $root The directory that contains the Tempest composer.json file.`
+- `@param list<DiscoveryLocation> $discoveryLocations Additional locations for Tempest discovery.`
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L48)
+
+### `onWorkerBootstrap()`
+
+```php
+[\Override]
+public function onWorkerBootstrap(WorkerBootstrapContext $context): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L62)
+
+### `services()`
+
+```php
+[\Override]
+public function services(): array
+```
+
+PHPDoc:
+
+- `@return list<ServiceDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L71)
+
+### `resolve()`
+
+```php
+[\Override]
+public function resolve(string $type, array $attributes): object
+```
+
+PHPDoc:
+
+- `@param class-string $type`
+- `@param list<object> $attributes`
+- `@throws TempestBridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L85)
+
+### `beforeTest()`
+
+```php
+[\Override]
+public function beforeTest(TestContext $context): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L111)
+
+### `afterTest()`
+
+```php
+[\Override]
+public function afterTest(TestContext $context, TestResult $result): TestResult
+```
+
+PHPDoc:
+
+- `@throws TempestBridgeError`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L124)
