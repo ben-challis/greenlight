@@ -1,18 +1,18 @@
 # PSR-15 HTTP applications
 
-The PSR-15 harness sends PSR-7 server requests directly to an application
-request handler. It returns PSR-7 responses without a web server or emitter.
+The PSR-15 harness sends a
+[PSR-7 server request](https://www.php-fig.org/psr/psr-7/) directly to a
+[PSR-15 request handler](https://www.php-fig.org/psr/psr-15/). It returns the
+handler's PSR-7 response without a web server or emitter.
 
-The harness does not read PHP globals. It does not use framework-specific
-request helpers. Thus, each request is a normal immutable object in the test.
+The harness does not read PHP globals or use framework request helpers. Build
+each request as a PSR-7 server request.
 
-Greenlight has no runtime dependencies. Your test project must provide the
-PSR interfaces and one PSR-7 implementation.
-
-For example, install the interfaces and Laminas Diactoros:
+This guide uses [Nyholm PSR-7](https://github.com/Nyholm/psr7). Install it with
+the required interfaces:
 
 ```console
-composer require --dev psr/http-message psr/http-server-handler laminas/laminas-diactoros
+composer require --dev psr/http-message psr/http-server-handler nyholm/psr7
 ```
 
 ## Setup
@@ -39,8 +39,9 @@ handler from the factory.
 
 ### Mezzio
 
-A Mezzio `Application` implements `RequestHandlerInterface`. Return the
-application from the factory:
+[Mezzio](https://docs.mezzio.dev/mezzio/) is a framework for PSR-15 middleware
+applications. A Mezzio `Application` implements `RequestHandlerInterface`.
+Return the application from the factory:
 
 ```php
 use Mezzio\Application;
@@ -60,23 +61,22 @@ static function (): RequestHandlerInterface {
 }
 ```
 
-This container access constructs the Mezzio handler only. `Psr15Plugin` does
-not resolve container services for test constructors.
+This factory uses the PSR-11 container to get the Mezzio request handler.
+`Psr15Plugin` does not supply container services to test constructors.
 
-Use a separate container bridge when tests also need application services.
-This dependency direction keeps HTTP execution separate from service
-resolution.
+If tests need application services, also register the
+[PSR-11 bridge](psr.md).
 
 ## Send requests
 
-Declare `HttpHarness` in the test constructor. Build requests with the PSR-7
-implementation from the application:
+Declare `HttpHarness` in the test constructor. Build requests with the
+application's PSR-7 implementation:
 
 ```php
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Psr15\HttpHarness;
-use Laminas\Diactoros\ServerRequest;
+use Nyholm\Psr7\Factory\Psr17Factory;
 
 final readonly class StatusTest
 {
@@ -85,11 +85,9 @@ final readonly class StatusTest
     #[Test]
     public function statusIsReady(): void
     {
-        $request = new ServerRequest(
-            serverParams: [],
-            uploadedFiles: [],
-            uri: 'https://example.test/status',
-            method: 'GET',
+        $request = (new Psr17Factory())->createServerRequest(
+            'GET',
+            'https://example.test/status',
         );
 
         $response = $this->http->send($request);
@@ -100,19 +98,18 @@ final readonly class StatusTest
 }
 ```
 
-`send()` gives the exact request object to the handler. It returns the exact
-response object from the handler.
+`send()` passes the request object to the handler and returns its response.
 
-The harness does not change headers, cookies, uploads, attributes, or the
-request body. Configure these values on the PSR-7 request.
+Build the PSR-7 request with the required headers, cookies, uploads,
+attributes, and body.
 
-## Handler lifecycle
+## Handler lifetime
 
-The default per-test scope isolates in-memory application state. Use a factory
-when each test needs a new handler.
+The default scope gives each test a new harness. Pass a factory to give each
+test a new handler.
 
-A concrete handler keeps its identity when Greenlight creates a new harness.
-Use this option only when the handler has no test state.
+If the handler keeps no test state, pass it directly. Each harness then uses
+the same handler object.
 
 Use a release callback when the handler owns resources:
 
@@ -124,19 +121,18 @@ new Psr15Plugin(
             $handler->close();
         }
     },
-)
+);
 ```
 
-Greenlight calls the callback only when a request constructed the handler. It
+Greenlight calls the callback only if the harness has an active handler. It
 calls the callback when the configured service scope closes.
 
-The callback runs once. A callback failure becomes a test error and keeps the
-original throwable as its cause.
+The callback runs once for each active handler. If the callback throws,
+Greenlight reports a test error and keeps the throwable as its cause.
 
-### Worker-lifetime handlers
+### Worker lifetime
 
-Use `Scope::PerRun` only when the handler safely keeps state for the worker
-lifetime:
+If handler state can remain between tests, use `Scope::PerRun`:
 
 ```php
 use Greenlight\Harness\Scope;
@@ -144,7 +140,7 @@ use Greenlight\Harness\Scope;
 new Psr15Plugin(
     handler: static fn(): RequestHandlerInterface => createApplication(),
     scope: Scope::PerRun,
-)
+);
 ```
 
 The run scope closes after the worker finishes its assignments. Isolate each
@@ -152,7 +148,7 @@ external resource with `GREENLIGHT_CHANNEL` in both service scopes.
 
 ## Diagnostics
 
-The PSR-15 harness reports these failures at its public seam:
+The PSR-15 harness reports:
 
 * The handler factory throws.
 * The factory returns a value that is not a PSR-15 request handler.
@@ -160,8 +156,8 @@ The PSR-15 harness reports these failures at its public seam:
 * The release callback throws.
 * A caller uses a closed harness.
 
-A request failure names the handler, HTTP method, and URI path. It excludes the
-query to reduce accidental disclosure of sensitive values.
+A request failure identifies the handler, HTTP method, and URI path. The
+diagnostic omits the query because it can contain sensitive values.
 
-Each wrapped failure keeps the original throwable as its cause. Greenlight
-then reports the application stack with the harness diagnostic.
+Each harness error keeps the original throwable as its cause. Greenlight also
+reports the application stack trace.
