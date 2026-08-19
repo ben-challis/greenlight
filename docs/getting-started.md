@@ -30,6 +30,8 @@ Create this minimum configuration:
 
 <!-- php-example {"example":"getting-started","file":"greenlight.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
+<?php
+
 declare(strict_types=1);
 
 use Greenlight\Config\GreenlightConfig;
@@ -65,6 +67,8 @@ Create this small class:
 
 <!-- php-example {"example":"getting-started","file":"src/Greeter.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
+<?php
+
 declare(strict_types=1);
 
 namespace App;
@@ -90,6 +94,8 @@ Create a test for both results of the public method:
 
 <!-- php-example {"example":"getting-started","file":"tests/GreeterTest.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
+<?php
+
 declare(strict_types=1);
 
 namespace App\Tests;
