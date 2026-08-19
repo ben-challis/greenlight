@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Support;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Event\TestFinished;
+use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Wire\Wire;
 
 /**
@@ -87,6 +88,24 @@ final class JsonlEvents
         foreach (self::from($result) as $event) {
             if ($event instanceof TestFinished) {
                 $ids[] = (string) $event->result->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @param list<Event> $events
+     *
+     * @return list<string>
+     */
+    public static function spawnedWorkerIds(array $events): array
+    {
+        $ids = [];
+
+        foreach ($events as $event) {
+            if ($event instanceof WorkerSpawned) {
+                $ids[] = $event->workerId;
             }
         }
 

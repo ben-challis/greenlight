@@ -83,6 +83,20 @@ final class JsonlEventsTest
     }
 
     #[Test]
+    public function spawnedWorkerIdsPreserveEventOrderAndIgnoreOtherEvents(): void
+    {
+        $events = [
+            new WorkerSpawned('worker-2', 42, 1.0),
+            new TestClassStarted('ExampleTest', 1.1, 'worker-2'),
+            new WorkerSpawned('worker-1', 43, 1.2),
+        ];
+
+        Expect::that(JsonlEvents::spawnedWorkerIds($events))
+            ->because('spawned worker extraction MUST preserve event order')
+            ->toBe(['worker-2', 'worker-1']);
+    }
+
+    #[Test]
     public function malformedJsonNamesItsStdoutLine(): void
     {
         $valid = $this->line('worker-spawned', new WorkerSpawned('worker-1', 1, 1.0)->toWire());

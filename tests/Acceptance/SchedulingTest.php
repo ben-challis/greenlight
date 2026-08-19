@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\RunState;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -32,7 +31,7 @@ final readonly class SchedulingTest
         $result = $this->run($project);
         $events = JsonlEvents::from($result);
         $firstStarts = $this->firstClassStartedByWorker($events);
-        $spawnedWorkers = $this->spawnedWorkers($events);
+        $spawnedWorkers = JsonlEvents::spawnedWorkerIds($events);
         $startedClasses = $this->startedClasses($events);
         \sort($startedClasses);
 
@@ -88,24 +87,6 @@ final readonly class SchedulingTest
         }
 
         return $classes;
-    }
-
-    /**
-     * @param list<Event> $events
-     *
-     * @return list<string>
-     */
-    private function spawnedWorkers(array $events): array
-    {
-        $workers = [];
-
-        foreach ($events as $event) {
-            if ($event instanceof WorkerSpawned) {
-                $workers[] = $event->workerId;
-            }
-        }
-
-        return $workers;
     }
 
     private function writeProject(): AcceptanceProject

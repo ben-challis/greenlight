@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -52,7 +51,7 @@ final readonly class ChannelTest
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
         Expect::that($result->exitCode)->because('recycled workers reuse freed channels')->toBe(0);
-        Expect::that(\count($this->spawnedWorkers($events)))->toBeGreaterThan(2);
+        Expect::that(\count(JsonlEvents::spawnedWorkerIds($events)))->toBeGreaterThan(2);
         Expect::that(\count($channels))->toBe(4);
         Expect::that(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
@@ -81,24 +80,6 @@ final readonly class ChannelTest
         \sort($channels);
 
         return $channels;
-    }
-
-    /**
-     * @param list<Event> $events
-     *
-     * @return list<string>
-     */
-    private function spawnedWorkers(array $events): array
-    {
-        $workers = [];
-
-        foreach ($events as $event) {
-            if ($event instanceof WorkerSpawned) {
-                $workers[] = $event->workerId;
-            }
-        }
-
-        return $workers;
     }
 
     private function writeProject(?int $recycleAfterTests = null, int $expectedChannels = 2): AcceptanceProject
