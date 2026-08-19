@@ -710,7 +710,7 @@ final readonly class ProseCheckBehaviorTest
         Expect::that($first->output())->toMatch('/^a-first\.md:\d+: contraction:/m');
         Expect::that($firstPosition)->not()->toBeFalse();
         Expect::that($lastPosition)->not()->toBeFalse();
-        Expect::that((int) $firstPosition)->toBeLessThan((int) $lastPosition);
+        Expect::that($firstPosition)->toBeLessThan($lastPosition);
     }
 
     #[Test]

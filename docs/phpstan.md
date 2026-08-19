@@ -211,6 +211,32 @@ To give an IDE the same signatures, generate the helper file:
 vendor/bin/greenlight ide-helper
 ```
 
+## Expectation subject types
+
+PHPStan narrows the original subject after a synchronous type expectation
+passes:
+
+```php
+/** @var FileCoverage|null $file */
+Expect::that($file)->not()->toBeNull();
+
+$file->coveredLines; // PHPStan knows that this value is FileCoverage.
+```
+
+PHPStan applies this refinement to these native matchers:
+
+* `toBeInstanceOf()`
+* `toBeTrue()` and `toBeFalse()`
+* `toBeNull()`
+* `toBeArray()`, `toBeString()`, `toBeInt()`, `toBeFloat()`, and `toBeBool()`
+* `toBeCallable()` and `toBeIterable()`
+
+The call must contain `Expect::that()` and the matcher in the same expression.
+PHPStan also follows `because()` and `not()` in that expression.
+
+A stored expectation does not narrow the original subject. A temporal
+expectation does not narrow a value outside its probe.
+
 ## Constant expectation argument checks
 
 The extension reports constant expectation arguments that Greenlight cannot

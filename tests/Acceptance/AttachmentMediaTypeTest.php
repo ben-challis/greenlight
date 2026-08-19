@@ -87,9 +87,9 @@ final readonly class AttachmentMediaTypeTest
         Expect::that($finished)
             ->not()
             ->toBeNull();
-        Expect::that($finished?->attachments)
+        Expect::that($finished->attachments)
             ->toHaveCount(1);
-        Expect::that($finished?->attachments[0]->mediaType)
+        Expect::that($finished->attachments[0]->mediaType)
             ->toBe('application/octet-stream');
     }
 }

@@ -43,6 +43,10 @@ services:
             matcherMap: @greenlight.matcherMapProvider
         tags:
             - phpstan.broker.methodsClassReflectionExtension
+    greenlight.expectationTypeSpecifyingExtension:
+        class: Greenlight\PhpStan\ExpectationTypeSpecifyingExtension
+        tags:
+            - phpstan.typeSpecifier.methodTypeSpecifyingExtension
     greenlight.extensionMatcherSubjectRule:
         class: Greenlight\PhpStan\ExtensionMatcherSubjectRule
         arguments:

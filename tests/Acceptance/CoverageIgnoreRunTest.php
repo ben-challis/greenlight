@@ -49,8 +49,8 @@ final readonly class CoverageIgnoreRunTest
         }
 
         Expect::that($gadget)->because('ignored lines are excluded from totals and exports')->not()->toBeNull();
-        Expect::that($gadget['uncovered'] ?? null)->toBe([]);
-        Expect::that($gadget['covered'] ?? [])->not()->toHaveCount(0);
+        Expect::that($gadget['uncovered'])->toBe([]);
+        Expect::that($gadget['covered'])->not()->toHaveCount(0);
     }
 
     private function writeProject(): AcceptanceProject

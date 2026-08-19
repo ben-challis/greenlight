@@ -209,7 +209,7 @@ final class DataSetExpansionTest
                 Expect::that($error->getMessage())->toContain('provider exploded');
                 Expect::that($error->getMessage())->toContain('boom');
                 Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
-                Expect::that($error->getPrevious()?->getMessage())->toBe('provider exploded');
+                Expect::that($error->getPrevious()->getMessage())->toBe('provider exploded');
             });
     }
 
@@ -222,7 +222,7 @@ final class DataSetExpansionTest
                 Expect::that($error->getMessage())->toContain('iteration exploded');
                 Expect::that($error->getMessage())->toContain('rows');
                 Expect::that($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
-                Expect::that($error->getPrevious()?->getMessage())->toBe('iteration exploded');
+                Expect::that($error->getPrevious()->getMessage())->toBe('iteration exploded');
             });
     }
 

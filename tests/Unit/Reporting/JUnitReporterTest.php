@@ -62,10 +62,6 @@ final class JUnitReporterTest
 
         Expect::that($document)->because('XML parses and counts match the stream')->toBeInstanceOf(\SimpleXMLElement::class);
 
-        if ($document === false) {
-            return;
-        }
-
         Expect::that((string) $document['tests'])->because('XML parses and counts match the stream')->toBe('6');
         Expect::that((string) $document['failures'])->toBe('1');
         Expect::that((string) $document['errors'])->toBe('1');
@@ -100,10 +96,6 @@ final class JUnitReporterTest
         Expect::that($document)
             ->because('multiple failure details produce valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
-
-        if ($document === false) {
-            return;
-        }
 
         $failures = $document->xpath('//failure');
 
@@ -144,10 +136,6 @@ final class JUnitReporterTest
             ->because('JUnit output without RunFinished MUST remain valid')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        if ($document === false) {
-            return;
-        }
-
         Expect::that((string) $document['time'])
             ->because('test durations provide the total when RunFinished is absent')
             ->toBe('0.527000');
@@ -177,10 +165,6 @@ final class JUnitReporterTest
         Expect::that($document)
             ->because('JUnit output with an explicit zero run duration MUST remain valid')
             ->toBeInstanceOf(\SimpleXMLElement::class);
-
-        if ($document === false) {
-            return;
-        }
 
         Expect::that((string) $document['time'])
             ->because('an explicit zero run duration MUST override the test duration total')
@@ -214,10 +198,6 @@ final class JUnitReporterTest
         Expect::that($document)
             ->because('JUnit output MUST remain valid XML when diagnostics contain forbidden characters')
             ->toBeInstanceOf(\SimpleXMLElement::class);
-
-        if ($document === false) {
-            return;
-        }
 
         $case = $document->testsuite->testcase;
         $failure = $case->failure;

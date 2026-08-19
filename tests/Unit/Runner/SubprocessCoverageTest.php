@@ -38,8 +38,9 @@ final readonly class SubprocessCoverageTest
 
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        Expect::that(\is_string($directory) && $directory !== '/outer/dir')->toBeTrue();
-        Expect::that(\is_string($directory) && \is_dir($directory))->toBeTrue();
+        Expect::that($directory)->toBeString();
+        Expect::that($directory !== '/outer/dir')->toBeTrue();
+        Expect::that(\is_dir($directory))->toBeTrue();
         Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/project/src' . \PATH_SEPARATOR . '/project/lib');
         Expect::that(SubprocessCoverage::requested())->toBeTrue();
 
@@ -47,7 +48,7 @@ final readonly class SubprocessCoverageTest
 
         Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/outer/dir');
         Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
-        Expect::that(\is_string($directory) && \is_dir($directory))->toBeFalse();
+        Expect::that(\is_dir($directory))->toBeFalse();
     }
 
     #[Test]

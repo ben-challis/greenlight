@@ -154,7 +154,6 @@ final class XdebugDriverTest
             ->because('collects real line coverage over the fixture')
             ->not()
             ->toBeNull();
-        \assert($file !== null);
 
         Expect::that($file->coveredLines)
             ->because('collects real line coverage over the fixture')

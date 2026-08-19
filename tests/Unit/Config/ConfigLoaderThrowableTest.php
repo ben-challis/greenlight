@@ -28,7 +28,7 @@ final readonly class ConfigLoaderThrowableTest
                     Expect::that($error->getPrevious())
                         ->because('the wrapped configuration error MUST remain available as the cause')
                         ->toBeInstanceOf(\TypeError::class);
-                    Expect::that($error->getPrevious()?->getMessage())->toBe('config type exploded');
+                    Expect::that($error->getPrevious()->getMessage())->toBe('config type exploded');
                 },
             );
     }

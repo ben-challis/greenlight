@@ -209,8 +209,7 @@ final class FilterTest
     public function discovererAppliesPathPrefixFilters(): void
     {
         $real = \realpath($this->basicDir());
-        Expect::that(\is_string($real))->because('discoverer applies path prefix filters')->toBeTrue();
-        \assert(\is_string($real));
+        Expect::that($real)->because('discoverer applies path prefix filters')->toBeString();
 
         $plan = new TestDiscoverer()->discover([$this->basicDir()], new Filter(includePaths: [$real . '/Alpha']));
 

@@ -92,20 +92,24 @@ final class TestResultTest
                 ['quarantine-plugin', Outcome::Passed, Outcome::Skipped],
                 ['result-policy', Outcome::Skipped, Outcome::Failed],
             ]);
-        Expect::that($restored->output?->stdout)
+        Expect::that($restored->output)
+            ->because('captured output and truncation state survive the wire')
+            ->not()
+            ->toBeNull();
+        Expect::that($restored->output->stdout)
             ->because('captured output and truncation state survive the wire')
             ->toBe("first line\nsecond line");
-        Expect::that($restored->output?->diagnostics[0]->severity)
+        Expect::that($restored->output->diagnostics[0]->severity)
             ->toBe(DiagnosticSeverity::Warning);
-        Expect::that($restored->output?->diagnostics[0]->message)
+        Expect::that($restored->output->diagnostics[0]->message)
             ->toBe('deprecated call');
-        Expect::that($restored->output?->diagnostics[0]->file)
+        Expect::that($restored->output->diagnostics[0]->file)
             ->toBe('/app/src/Foo.php');
-        Expect::that($restored->output?->diagnostics[0]->line)
+        Expect::that($restored->output->diagnostics[0]->line)
             ->toBe(21);
-        Expect::that($restored->output?->stdoutTruncated)
+        Expect::that($restored->output->stdoutTruncated)
             ->toBeTrue();
-        Expect::that($restored->output?->diagnosticsTruncated)
+        Expect::that($restored->output->diagnosticsTruncated)
             ->toBeTrue();
         Expect::that($restored->risky)->because('survives the wire with full payload')->toBeTrue();
         Expect::that($restored->expectations)->because('survives the wire with full payload')->toBe(7);

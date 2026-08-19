@@ -48,7 +48,7 @@ final readonly class FixtureLifecycleTest
 
         Expect::that($outcome->summary->passed)->toBe(1);
         Expect::that($tempPath)->not()->toBeNull();
-        Expect::that(\file_exists((string) $tempPath))->toBeFalse();
+        Expect::that(\file_exists($tempPath))->toBeFalse();
         Expect::that(\getenv('GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue ?? false);
         Expect::that($this->superglobalValue($_ENV, 'GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue);
         Expect::that($this->superglobalValue($_SERVER, 'GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue);
