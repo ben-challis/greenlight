@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Artifact;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Artifact\ArtifactSession;
 
@@ -54,14 +55,19 @@ final readonly class ArtifactSessionTest
     public function artifactSessionsRejectNullByteDirectories(
         string $field,
         string $value,
-        string $message,
     ): void {
         Expect::that(static fn(): ArtifactSession => new ArtifactSession(
             $field === 'stagingDirectory' ? $value : '/project/.greenlight/staging/run-1',
             $field === 'publicDirectory' ? $value : '/project/build/artifacts/run-1',
         ))
             ->because('artifact session directories MUST be valid file-system paths')
-            ->toThrow(\InvalidArgumentException::class, message: $message);
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: \sprintf(
+                    'Artifact %s directory must not contain a null byte.',
+                    $field === 'stagingDirectory' ? 'staging' : 'public',
+                ),
+            );
     }
 
     #[Test]
@@ -69,7 +75,6 @@ final readonly class ArtifactSessionTest
     public function artifactSessionWireRejectsNullByteDirectories(
         string $field,
         string $value,
-        string $message,
     ): void {
         $payload = new ArtifactSession('/project/.greenlight/staging/run-1', '/project/build/artifacts/run-1')
             ->toWire();
@@ -77,7 +82,13 @@ final readonly class ArtifactSessionTest
 
         Expect::that(static fn(): ArtifactSession => ArtifactSession::fromWire($payload))
             ->because('artifact session directories MUST remain valid file-system paths across the worker wire')
-            ->toThrow(\InvalidArgumentException::class, message: $message);
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: \sprintf(
+                    'Wire payload key "%s" must be a directory without null bytes, got string.',
+                    $field,
+                ),
+            );
     }
 
     /**
@@ -98,19 +109,17 @@ final readonly class ArtifactSessionTest
     }
 
     /**
-     * @return iterable<string, array{non-empty-string, non-empty-string, non-empty-string}>
+     * @return iterable<string, array{non-empty-string, non-empty-string}>
      */
     public static function nullByteDirectories(): iterable
     {
         yield 'staging directory' => [
             'stagingDirectory',
             "/project/.greenlight/staging\0hidden",
-            'Artifact staging directory must not contain a null byte.',
         ];
         yield 'public directory' => [
             'publicDirectory',
             "/project/build/artifacts\0hidden",
-            'Artifact public directory must not contain a null byte.',
         ];
     }
 
