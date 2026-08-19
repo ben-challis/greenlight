@@ -12,6 +12,7 @@ use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\Coverage\Adder;
+use Greenlight\Tests\Support\ClassFile;
 
 final readonly class HtmlExporterTest
 {
@@ -148,8 +149,7 @@ final readonly class HtmlExporterTest
     #[Test]
     public function filePageColorsSourceLinesByCoverageStatus(): void
     {
-        $fixture = (string) new \ReflectionClass(Adder::class)->getFileName();
-        \assert($fixture !== '');
+        $fixture = ClassFile::of(Adder::class);
         $map = new CoverageMap([
             new FileCoverage($fixture, [Adder::ADD_RETURN_LINE], [Adder::NEVER_RETURN_LINE]),
         ]);
@@ -165,8 +165,7 @@ final readonly class HtmlExporterTest
     #[Test]
     public function filePageSyntaxHighlightsPhpSource(): void
     {
-        $fixture = (string) new \ReflectionClass(Adder::class)->getFileName();
-        \assert($fixture !== '');
+        $fixture = ClassFile::of(Adder::class);
         $map = new CoverageMap([
             new FileCoverage($fixture, [Adder::ADD_RETURN_LINE], []),
         ]);
