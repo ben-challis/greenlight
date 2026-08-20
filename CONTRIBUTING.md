@@ -37,6 +37,10 @@ make docs-check
 
 CI runs the same checks. All three MUST pass locally.
 
+The Composer CI commands use one shared local slot by default. The slot applies
+across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to a positive
+integer to permit more concurrent commands. Hosted CI does not use this limit.
+
 ## Commits and pull requests
 
 Submit changes in pull requests to `main`.
