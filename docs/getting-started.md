@@ -328,6 +328,10 @@ leak to other tests or workers.
   the directory after the test.
 * `EnvironmentSandbox` changes environment variables in `getenv`, `$_ENV`, and
   `$_SERVER`. It restores the original values after the test.
+* `AutoloaderSandbox` registers PHP autoloaders. It unregisters them in reverse
+  registration order after the test.
+* `StreamWrapperSandbox` registers PHP stream wrappers. It unregisters them in
+  reverse registration order after the test.
 
 ```php
 use Greenlight\Fixture\EnvironmentSandbox;

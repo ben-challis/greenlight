@@ -9,6 +9,7 @@ use Greenlight\Core\Test\TestChannel;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
+use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Fixture\TempDirectory;
@@ -38,6 +39,7 @@ final class DefaultServices
         $registry = new HarnessRegistry([
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
             new ServiceDefinition(TempDirectory::class, Scope::PerTest, static fn(): TempDirectory => new TempDirectory()),
+            new ServiceDefinition(AutoloaderSandbox::class, Scope::PerTest, static fn(): AutoloaderSandbox => new AutoloaderSandbox()),
             new ServiceDefinition(EnvironmentSandbox::class, Scope::PerTest, static fn(): EnvironmentSandbox => new EnvironmentSandbox()),
             new ServiceDefinition(StreamWrapperSandbox::class, Scope::PerTest, static fn(): StreamWrapperSandbox => new StreamWrapperSandbox()),
             new ServiceDefinition(IntegrationResources::class, Scope::PerRun, static fn(): IntegrationResources => $integrationResources),
