@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\StreamWrapperSandbox;
