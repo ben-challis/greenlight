@@ -42,5 +42,7 @@ final readonly class AttachmentValidMediaTypeTest
     {
         yield 'vendor type with a structured suffix' => ['application/vnd.api+json'];
         yield 'quoted parameter containing a semicolon' => ['text/plain; note="left;right"'];
+        yield 'quoted parameter containing an escaped quote' => ['text/plain; note="left\"right"'];
+        yield 'quoted parameter containing an escaped backslash' => ['text/plain; note="left\\\\right"'];
     }
 }
