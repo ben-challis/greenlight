@@ -12,7 +12,6 @@ use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
@@ -32,22 +31,16 @@ final class HarnessIntegrationTest
 
         $definition = $registry->find(Doubles::class);
 
-        if (!$definition instanceof ServiceDefinition) {
-            Fail::because(\sprintf(
-                'Expected HarnessRegistry::find() to return the Doubles ServiceDefinition, got %s.',
-                \get_debug_type($definition),
-            ));
-        }
+        Expect::that($definition)
+            ->because('HarnessRegistry::find() MUST return the Doubles ServiceDefinition.')
+            ->toBeInstanceOf(ServiceDefinition::class);
 
         $container = new ScopeContainer();
         $doubles = $container->get($definition);
 
-        if (!$doubles instanceof Doubles) {
-            Fail::because(\sprintf(
-                'Expected ScopeContainer::get() to return Doubles, got %s.',
-                \get_debug_type($doubles),
-            ));
-        }
+        Expect::that($doubles)
+            ->because('ScopeContainer::get() MUST return Doubles.')
+            ->toBeInstanceOf(Doubles::class);
 
         $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->once();

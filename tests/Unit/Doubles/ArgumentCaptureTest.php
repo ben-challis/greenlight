@@ -9,7 +9,6 @@ use Greenlight\Doubles\ArgumentCaptor;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Wide;
 
 final readonly class ArgumentCaptureTest
@@ -31,9 +30,12 @@ final readonly class ArgumentCaptureTest
             ->toBe('defaults');
         Expect::that($wide->variadic('head'))->toBe([]);
 
-        if (!$optionalCaptor instanceof ArgumentCaptor || !$variadicCaptor instanceof ArgumentCaptor) {
-            Fail::because('Expected both captureArgument() calls to return ArgumentCaptor.');
-        }
+        Expect::that($optionalCaptor)
+            ->because('The optional captureArgument() call MUST return ArgumentCaptor.')
+            ->toBeInstanceOf(ArgumentCaptor::class);
+        Expect::that($variadicCaptor)
+            ->because('The variadic captureArgument() call MUST return ArgumentCaptor.')
+            ->toBeInstanceOf(ArgumentCaptor::class);
 
         Expect::that($optionalCaptor->values())->toBe([]);
         Expect::that($variadicCaptor->values())->toBe([]);

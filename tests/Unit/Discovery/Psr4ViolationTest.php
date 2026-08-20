@@ -10,7 +10,6 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\SomewhereElse\MismatchTest;
 use Greenlight\Tests\Support\FixturePath;
@@ -85,9 +84,9 @@ final readonly class Psr4ViolationTest
         \file_put_contents($file, "<?php\n\nclass");
         $resolvedFile = \realpath($file);
 
-        if (!\is_string($resolvedFile)) {
-            Fail::because('Expected the incomplete class fixture to have a canonical path.');
-        }
+        Expect::that($resolvedFile)
+            ->because('The incomplete class fixture MUST have a canonical path.')
+            ->toBeString();
 
         Expect::that(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),

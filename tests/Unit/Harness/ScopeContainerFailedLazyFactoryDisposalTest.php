@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
@@ -31,12 +30,9 @@ final class ScopeContainerFailedLazyFactoryDisposalTest
             },
         ));
 
-        if (!$service instanceof LazyDisposableFactoryProbe) {
-            Fail::because(\sprintf(
-                'Expected ScopeContainer::get() to return LazyDisposableFactoryProbe, got %s.',
-                \get_debug_type($service),
-            ));
-        }
+        Expect::that($service)
+            ->because('ScopeContainer::get() MUST return LazyDisposableFactoryProbe.')
+            ->toBeInstanceOf(LazyDisposableFactoryProbe::class);
 
         Expect::that(static fn(): string => $service->value())
             ->because('the lazy factory failure MUST propagate from service use')

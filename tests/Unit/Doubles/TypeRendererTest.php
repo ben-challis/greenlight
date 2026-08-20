@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\TypeRenderer;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingChild;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingLeft;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingParent;
@@ -25,9 +24,9 @@ final class TypeRendererTest
             ? $reflection->getReturnType()
             : $reflection->getParameters()[$parameter]->getType();
 
-        if (!$type instanceof \ReflectionType) {
-            Fail::because(\sprintf('Expected %s() to have the requested reflected type.', $method));
-        }
+        Expect::that($type)
+            ->because(\sprintf('%s() MUST have the requested reflected type.', $method))
+            ->toBeInstanceOf(\ReflectionType::class);
 
         Expect::that(TypeRenderer::render($type, $reflection->getDeclaringClass()))
             ->because('the reflected type renders as valid PHP source')
@@ -45,12 +44,15 @@ final class TypeRendererTest
         $mixed = $nullableClassAndMixed->getReturnType();
         $null = $returnsNull->getReturnType();
 
-        if (!$nullableClass instanceof \ReflectionType
-            || !$mixed instanceof \ReflectionType
-            || !$null instanceof \ReflectionType
-        ) {
-            Fail::because('Expected each closure to expose its declared type.');
-        }
+        Expect::that($nullableClass)
+            ->because('The nullable-class closure MUST expose its declared type.')
+            ->toBeInstanceOf(\ReflectionType::class);
+        Expect::that($mixed)
+            ->because('The mixed closure MUST expose its declared type.')
+            ->toBeInstanceOf(\ReflectionType::class);
+        Expect::that($null)
+            ->because('The null closure MUST expose its declared type.')
+            ->toBeInstanceOf(\ReflectionType::class);
 
         $context = new \ReflectionMethod(TypeRenderingChild::class, 'nullable')->getDeclaringClass();
 

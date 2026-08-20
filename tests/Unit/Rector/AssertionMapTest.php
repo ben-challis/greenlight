@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Rector;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Rector\AssertionConversion;
 use Greenlight\Rector\AssertionMap;
 
@@ -34,9 +33,9 @@ final class AssertionMapTest
             return;
         }
 
-        if (!$conversion instanceof AssertionConversion) {
-            Fail::because(\sprintf('Expected a conversion for PHPUnit assertion "%s".', $method));
-        }
+        Expect::that($conversion)
+            ->because(\sprintf('Expected a conversion for PHPUnit assertion "%s".', $method))
+            ->toBeInstanceOf(AssertionConversion::class);
 
         Expect::that($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher']);
         Expect::that($conversion->subject)->toBe($expected['subject']);

@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
@@ -113,23 +112,22 @@ final readonly class AcceptanceProjectTest
 
         $builder = require $project->path('greenlight.php');
 
-        if (!$builder instanceof GreenlightConfig) {
-            Fail::because(\sprintf(
-                'Expected generated configuration "%s" to return GreenlightConfig, got %s.',
+        Expect::that($builder)
+            ->because(\sprintf(
+                'The generated configuration "%s" MUST return GreenlightConfig.',
                 $project->path('greenlight.php'),
-                \get_debug_type($builder),
-            ));
-        }
+            ))
+            ->toBeInstanceOf(GreenlightConfig::class);
 
         $configuration = $builder->build();
         $testsDirectory = \realpath($project->path('tests'));
 
-        if ($testsDirectory === false) {
-            Fail::because(\sprintf(
-                'Expected generated tests directory at "%s".',
+        Expect::that($testsDirectory)
+            ->because(\sprintf(
+                'The generated tests directory at "%s" MUST exist.',
                 $project->path('tests'),
-            ));
-        }
+            ))
+            ->toBeString();
 
         Expect::that(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond');
         Expect::that($configuration->paths)->toBe([$testsDirectory]);
@@ -160,13 +158,12 @@ final readonly class AcceptanceProjectTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->workspace, 'listing');
         $builder = require $project->path('greenlight.php');
 
-        if (!$builder instanceof GreenlightConfig) {
-            Fail::because(\sprintf(
-                'Expected generated configuration "%s" to return GreenlightConfig, got %s.',
+        Expect::that($builder)
+            ->because(\sprintf(
+                'The generated configuration "%s" MUST return GreenlightConfig.',
                 $project->path('greenlight.php'),
-                \get_debug_type($builder),
-            ));
-        }
+            ))
+            ->toBeInstanceOf(GreenlightConfig::class);
 
         Expect::that($builder->build()->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
             \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic',

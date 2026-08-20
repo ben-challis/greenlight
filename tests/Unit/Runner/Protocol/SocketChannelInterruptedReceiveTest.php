@@ -32,9 +32,9 @@ final readonly class SocketChannelInterruptedReceiveTest
         \pcntl_signal(\SIGUSR1, static function (): void {}, false);
         $parentPid = \getmypid();
 
-        if ($parentPid === false) {
-            Fail::because('Expected the test worker to have a process ID.');
-        }
+        Expect::that($parentPid)
+            ->because('The test worker MUST have a process ID.')
+            ->toBeInt();
 
         $childPid = \pcntl_fork();
 
@@ -64,9 +64,9 @@ final readonly class SocketChannelInterruptedReceiveTest
             \fclose($pair[1]);
         }
 
-        if (!\is_int($status)) {
-            Fail::because('Expected the signal helper to provide a process status.');
-        }
+        Expect::that($status)
+            ->because('The signal helper MUST provide a process status.')
+            ->toBeInt();
 
         Expect::that($received)
             ->because('a signal-interrupted select MUST end the receive attempt')

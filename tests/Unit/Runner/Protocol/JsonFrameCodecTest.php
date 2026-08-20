@@ -32,9 +32,9 @@ final readonly class JsonFrameCodecTest
         $decoded = $codec->decode($body);
         $message = $decoded['message'] ?? null;
 
-        if (!\is_string($message)) {
-            Fail::because('Expected the decoded frame to contain a string message.');
-        }
+        Expect::that($message)
+            ->because('The decoded frame MUST contain a string message.')
+            ->toBeString();
 
         Expect::that($length)
             ->because('the frame prefix MUST contain the substituted JSON body length')

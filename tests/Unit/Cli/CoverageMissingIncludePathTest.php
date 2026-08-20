@@ -11,7 +11,6 @@ use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\Driver\DriverSelector;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
@@ -25,9 +24,9 @@ final class CoverageMissingIncludePathTest
         $configuration = new CoverageConfiguration(['future/src'], null, []);
         $settings = CoverageSettingsResolver::resolve($configuration, '/project');
 
-        if (!$settings instanceof CoverageSettings) {
-            Fail::because('Expected coverage configuration to create coverage settings.');
-        }
+        Expect::that($settings)
+            ->because('The coverage configuration MUST create coverage settings.')
+            ->toBeInstanceOf(CoverageSettings::class);
 
         Expect::that($settings->includePaths)
             ->because('an unresolved non-empty include path MUST remain absolute')
@@ -38,9 +37,9 @@ final class CoverageMissingIncludePathTest
             selector: new DriverSelector([RecordingFakeDriver::class]),
         );
 
-        if (!$collector instanceof CoverageCollector) {
-            Fail::because('Expected the available driver to create a coverage collector.');
-        }
+        Expect::that($collector)
+            ->because('The available driver MUST create a coverage collector.')
+            ->toBeInstanceOf(CoverageCollector::class);
 
         $collector->start();
 
@@ -56,9 +55,9 @@ final class CoverageMissingIncludePathTest
         $root = \dirname(__DIR__, 3);
         $outside = \realpath(\dirname($root));
 
-        if (!\is_string($outside)) {
-            Fail::because('The test could not resolve its restricted include path.');
-        }
+        Expect::that($outside)
+            ->because('The test MUST resolve its restricted include path.')
+            ->toBeString();
 
         FilesystemRestriction::toProject($root);
 
@@ -68,9 +67,9 @@ final class CoverageMissingIncludePathTest
             $warning,
         );
 
-        if (!$settings instanceof CoverageSettings) {
-            Fail::because('Expected coverage configuration to create coverage settings.');
-        }
+        Expect::that($settings)
+            ->because('The coverage configuration MUST create coverage settings.')
+            ->toBeInstanceOf(CoverageSettings::class);
 
         Expect::that($settings->includePaths)
             ->because('a restricted include path MUST remain restrictive')

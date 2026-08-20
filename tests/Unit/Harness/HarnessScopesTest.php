@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
@@ -59,12 +58,9 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes($registry, [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test');
 
-        if (!$resolved instanceof \ArrayObject) {
-            Fail::because(\sprintf(
-                'Expected HarnessScopes::resolve() to return ArrayObject, got %s.',
-                \get_debug_type($resolved),
-            ));
-        }
+        Expect::that($resolved)
+            ->because('HarnessScopes::resolve() MUST return ArrayObject.')
+            ->toBeInstanceOf(\ArrayObject::class);
 
         $values = $resolved->getArrayCopy();
 
@@ -242,12 +238,9 @@ final class HarnessScopesTest
 
         $first = $scopes->resolve(\ArrayObject::class, 'test');
 
-        if (!$first instanceof \ArrayObject) {
-            Fail::because(\sprintf(
-                'Expected HarnessScopes::resolve() to return ArrayObject, got %s.',
-                \get_debug_type($first),
-            ));
-        }
+        Expect::that($first)
+            ->because('HarnessScopes::resolve() MUST return ArrayObject.')
+            ->toBeInstanceOf(\ArrayObject::class);
 
         $first->append('first scope');
         $scopes->closeTest();

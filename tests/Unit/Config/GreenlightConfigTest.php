@@ -15,7 +15,6 @@ use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
 use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 
 final class GreenlightConfigTest
@@ -91,12 +90,9 @@ final class GreenlightConfigTest
         Expect::that($configuration->recycleAboveMemoryBytes)->because('builds a fully configured run')->toBe(1073741824);
         $coverage = $configuration->coverage;
 
-        if (!$coverage instanceof CoverageConfiguration) {
-            Fail::because(\sprintf(
-                'Expected GreenlightConfig::build() to return a CoverageConfiguration, got %s.',
-                \get_debug_type($coverage),
-            ));
-        }
+        Expect::that($coverage)
+            ->because('GreenlightConfig::build() MUST return a CoverageConfiguration')
+            ->toBeInstanceOf(CoverageConfiguration::class);
 
         Expect::that($coverage->includePaths)->because('builds a fully configured run')->toBe(['src']);
         Expect::that($coverage->driver)->because('builds a fully configured run')->toBe('pcov');

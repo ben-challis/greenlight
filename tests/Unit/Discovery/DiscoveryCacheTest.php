@@ -9,7 +9,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -136,9 +135,9 @@ final readonly class DiscoveryCacheTest
         $directory = $this->writeFixture($className);
         $source = \realpath($directory . '/' . $className . '.php');
 
-        if (!\is_string($source)) {
-            Fail::because('Expected the discovery fixture to have a canonical path.');
-        }
+        Expect::that($source)
+            ->because('The discovery fixture MUST have a canonical path.')
+            ->toBeString();
 
         $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         $loader = static function (string $class) use ($directory, $className): void {
@@ -152,9 +151,12 @@ final readonly class DiscoveryCacheTest
             $mtime = \filemtime($source);
             $size = \filesize($source);
 
-            if (!\is_int($mtime) || !\is_int($size)) {
-                Fail::because('Expected the discovery fixture to have file metadata.');
-            }
+            Expect::that($mtime)
+                ->because('The discovery fixture MUST have a modification time.')
+                ->toBeInt();
+            Expect::that($size)
+                ->because('The discovery fixture MUST have a file size.')
+                ->toBeInt();
 
             \file_put_contents($cacheFile, \json_encode([
                 'version' => 3,

@@ -70,9 +70,9 @@ final readonly class WorkerFailureContainmentTest
             static fn($event): bool => $event instanceof TestFinished,
         );
 
-        if (!$finished instanceof TestFinished) {
-            Fail::because('The crashed retry did not emit TestFinished.');
-        }
+        Expect::that($finished)
+            ->because('The crashed retry did not emit TestFinished.')
+            ->toBeInstanceOf(TestFinished::class);
 
         Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
         Expect::that($finished->result->outcome)->toBe(Outcome::Errored);
@@ -88,9 +88,9 @@ final readonly class WorkerFailureContainmentTest
         $events = JsonlEvents::from($result);
         $finished = \array_find($events, static fn($event): bool => $event instanceof TestFinished);
 
-        if (!$finished instanceof TestFinished) {
-            Fail::because('The hard timeout did not emit TestFinished.');
-        }
+        Expect::that($finished)
+            ->because('The hard timeout did not emit TestFinished.')
+            ->toBeInstanceOf(TestFinished::class);
 
         Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1);
         Expect::that($result->output())->toContain('time limit');
@@ -134,15 +134,15 @@ final readonly class WorkerFailureContainmentTest
             static fn($event): bool => $event instanceof TestFinished,
         );
 
-        if (!$finished instanceof TestFinished) {
-            Fail::because('The diagnostic hard timeout did not emit TestFinished.');
-        }
+        Expect::that($finished)
+            ->because('The diagnostic hard timeout did not emit TestFinished.')
+            ->toBeInstanceOf(TestFinished::class);
 
         $failure = $finished->result->failures[0] ?? null;
 
-        if (!$failure instanceof FailureDetail) {
-            Fail::because('The diagnostic hard timeout did not report a failure.');
-        }
+        Expect::that($failure)
+            ->because('The diagnostic hard timeout did not report a failure.')
+            ->toBeInstanceOf(FailureDetail::class);
 
         Expect::that($result->exitCode)
             ->because('a hard timeout MUST fail the run')

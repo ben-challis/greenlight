@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
@@ -67,9 +66,12 @@ final class ScopeContainerTest
         $probe = $container->get($probeDefinition);
         $secondary = $container->get($secondaryDefinition);
 
-        if (!$probe instanceof ServiceProbe || !$secondary instanceof SecondaryServiceProbe) {
-            Fail::because('Expected ScopeContainer::get() to return both disposable service probes.');
-        }
+        Expect::that($probe)
+            ->because('ScopeContainer::get() MUST return ServiceProbe.')
+            ->toBeInstanceOf(ServiceProbe::class);
+        Expect::that($secondary)
+            ->because('ScopeContainer::get() MUST return SecondaryServiceProbe.')
+            ->toBeInstanceOf(SecondaryServiceProbe::class);
 
         $probe->touch();
         $secondary->touch();
@@ -106,12 +108,9 @@ final class ScopeContainerTest
 
         $probe = $container->get($definition);
 
-        if (!$probe instanceof FailingDisposalProbe) {
-            Fail::because(\sprintf(
-                'Expected ScopeContainer::get() to return FailingDisposalProbe, got %s.',
-                \get_debug_type($probe),
-            ));
-        }
+        Expect::that($probe)
+            ->because('ScopeContainer::get() MUST return FailingDisposalProbe.')
+            ->toBeInstanceOf(FailingDisposalProbe::class);
 
         $probe->touch();
         $failures = $container->dispose();
@@ -133,12 +132,9 @@ final class ScopeContainerTest
         );
         $service = $container->get($definition);
 
-        if (!$service instanceof FailingDisposable) {
-            Fail::because(\sprintf(
-                'Expected ScopeContainer::get() to return FailingDisposable, got %s.',
-                \get_debug_type($service),
-            ));
-        }
+        Expect::that($service)
+            ->because('ScopeContainer::get() MUST return FailingDisposable.')
+            ->toBeInstanceOf(FailingDisposable::class);
 
         $service->initialize();
         $first = $container->dispose();

@@ -204,12 +204,9 @@ final class TempestPluginLifecycleTest
         $factory = $plugin->services()[0]->factory;
         $kernel = $factory();
 
-        if (!$kernel instanceof FrameworkKernel) {
-            Fail::because(\sprintf(
-                'Expected the Tempest kernel factory to return FrameworkKernel, got %s.',
-                \get_debug_type($kernel),
-            ));
-        }
+        Expect::that($kernel)
+            ->because('the Tempest kernel factory MUST return FrameworkKernel')
+            ->toBeInstanceOf(FrameworkKernel::class);
 
         return $kernel;
     }

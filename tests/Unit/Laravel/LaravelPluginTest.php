@@ -66,12 +66,9 @@ final class LaravelPluginTest
     {
         $greeter = $this->plugin()->resolve(Greeter::class, []);
 
-        if (!$greeter instanceof Greeter) {
-            Fail::because(\sprintf(
-                'Expected LaravelPlugin::resolve() to return Greeter, got %s.',
-                \get_debug_type($greeter),
-            ));
-        }
+        Expect::that($greeter)
+            ->because('LaravelPlugin::resolve() MUST return Greeter.')
+            ->toBeInstanceOf(Greeter::class);
 
         Expect::that($greeter->greet('Ada'))->toBe('Hello, Ada!');
     }
@@ -274,12 +271,9 @@ final class LaravelPluginTest
 
         $first = ($definition->factory)();
 
-        if (!$first instanceof Application) {
-            Fail::because(\sprintf(
-                'Expected the Laravel harness factory to return the application, got %s.',
-                \get_debug_type($first),
-            ));
-        }
+        Expect::that($first)
+            ->because('The Laravel harness factory MUST return the application.')
+            ->toBeInstanceOf(Application::class);
 
         Expect::that($definitions)->toHaveCount(1);
         Expect::that($definition->type)->toBe(Application::class);
@@ -313,12 +307,9 @@ final class LaravelPluginTest
     {
         $app = $this->plugin()->resolve(Application::class, []);
 
-        if (!$app instanceof Application) {
-            Fail::because(\sprintf(
-                'Expected LaravelPlugin::resolve() to return the application, got %s.',
-                \get_debug_type($app),
-            ));
-        }
+        Expect::that($app)
+            ->because('LaravelPlugin::resolve() MUST return the application.')
+            ->toBeInstanceOf(Application::class);
 
         Expect::that($app->environment())->toBe('testing');
     }
@@ -338,24 +329,18 @@ final class LaravelPluginTest
         $plugin = $this->plugin();
         $counter = $plugin->resolve(VisitCounter::class, []);
 
-        if (!$counter instanceof VisitCounter) {
-            Fail::because(\sprintf(
-                'Expected LaravelPlugin::resolve() to return VisitCounter, got %s.',
-                \get_debug_type($counter),
-            ));
-        }
+        Expect::that($counter)
+            ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
+            ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
         $second = $plugin->resolve(VisitCounter::class, []);
 
-        if (!$second instanceof VisitCounter) {
-            Fail::because(\sprintf(
-                'Expected LaravelPlugin::resolve() to return VisitCounter, got %s.',
-                \get_debug_type($second),
-            ));
-        }
+        Expect::that($second)
+            ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
+            ->toBeInstanceOf(VisitCounter::class);
 
         Expect::that($returned)->toBe($result);
         Expect::that($second->count())->toBe(0);
@@ -372,12 +357,9 @@ final class LaravelPluginTest
         ));
         $counter = $plugin->resolve(VisitCounter::class, []);
 
-        if (!$counter instanceof VisitCounter) {
-            Fail::because(\sprintf(
-                'Expected LaravelPlugin::resolve() to return VisitCounter, got %s.',
-                \get_debug_type($counter),
-            ));
-        }
+        Expect::that($counter)
+            ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
+            ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
         $plugin->afterTest($this->context(), $this->result());

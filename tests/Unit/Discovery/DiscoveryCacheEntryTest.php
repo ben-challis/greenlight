@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCacheEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 
 final class DiscoveryCacheEntryTest
 {
@@ -31,9 +30,9 @@ final class DiscoveryCacheEntryTest
 
         $entry = DiscoveryCacheEntry::fromDecoded($decoded);
 
-        if (!$entry instanceof DiscoveryCacheEntry) {
-            Fail::because('Expected a valid decoded discovery cache entry.');
-        }
+        Expect::that($entry)
+            ->because('The decoded discovery cache entry MUST be valid.')
+            ->toBeInstanceOf(DiscoveryCacheEntry::class);
 
         Expect::that($entry->jsonSerialize())
             ->because('a valid decoded entry serializes to the same shape')
@@ -49,9 +48,9 @@ final class DiscoveryCacheEntryTest
             'entries' => [['class' => 'Example\Test']],
         ]);
 
-        if (!$entry instanceof DiscoveryCacheEntry) {
-            Fail::because('Expected a legacy discovery cache entry.');
-        }
+        Expect::that($entry)
+            ->because('The legacy discovery cache entry MUST be valid.')
+            ->toBeInstanceOf(DiscoveryCacheEntry::class);
 
         Expect::that($entry->dependencies)
             ->because('a legacy entry without dependencies MUST use an empty dependency map')

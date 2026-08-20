@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 
 final readonly class DoublesWorkingDirectoryTest
@@ -20,9 +19,9 @@ final readonly class DoublesWorkingDirectoryTest
     {
         $original = \getcwd();
 
-        if (!\is_string($original)) {
-            Fail::because('Expected the test process to start in a working directory.');
-        }
+        Expect::that($original)
+            ->because('The test process MUST start in a working directory.')
+            ->toBeString();
 
         $deleted = $this->tempDirectory->subdirectory('deleted-working-directory');
 

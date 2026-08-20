@@ -28,12 +28,9 @@ final class SymfonyPluginTest
     {
         $greeter = $this->plugin()->resolve(Greeter::class, []);
 
-        if (!$greeter instanceof Greeter) {
-            Fail::because(\sprintf(
-                'Expected SymfonyPlugin::resolve() to return Greeter, got %s.',
-                \get_debug_type($greeter),
-            ));
-        }
+        Expect::that($greeter)
+            ->because('SymfonyPlugin::resolve() MUST return Greeter.')
+            ->toBeInstanceOf(Greeter::class);
 
         Expect::that($greeter->greet('Ada'))->because('resolves container services by type')->toBe('Hello, Ada!');
     }
@@ -127,12 +124,9 @@ final class SymfonyPluginTest
         $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'test', debug: true, resetBetweenTests: false);
         $counter = $plugin->resolve(VisitCounter::class, []);
 
-        if (!$counter instanceof VisitCounter) {
-            Fail::because(\sprintf(
-                'Expected SymfonyPlugin::resolve() to return VisitCounter, got %s.',
-                \get_debug_type($counter),
-            ));
-        }
+        Expect::that($counter)
+            ->because('SymfonyPlugin::resolve() MUST return VisitCounter.')
+            ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
         $plugin->afterTest($this->context(), $this->result());
@@ -149,12 +143,9 @@ final class SymfonyPluginTest
 
         $first = ($definition->factory)();
 
-        if (!$first instanceof KernelInterface) {
-            Fail::because(\sprintf(
-                'Expected the Symfony harness factory to return KernelInterface, got %s.',
-                \get_debug_type($first),
-            ));
-        }
+        Expect::that($first)
+            ->because('The Symfony harness factory MUST return KernelInterface.')
+            ->toBeInstanceOf(KernelInterface::class);
 
         Expect::that($definitions)->because('the kernel is a per run harness service and boots once')->toHaveCount(1);
         Expect::that($definition->type)->toBe(KernelInterface::class);
@@ -187,12 +178,9 @@ final class SymfonyPluginTest
         $plugin = $this->plugin();
         $counter = $plugin->resolve(VisitCounter::class, []);
 
-        if (!$counter instanceof VisitCounter) {
-            Fail::because(\sprintf(
-                'Expected SymfonyPlugin::resolve() to return VisitCounter, got %s.',
-                \get_debug_type($counter),
-            ));
-        }
+        Expect::that($counter)
+            ->because('SymfonyPlugin::resolve() MUST return VisitCounter.')
+            ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
         $counter->record();

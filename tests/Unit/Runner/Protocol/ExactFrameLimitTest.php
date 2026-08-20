@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\FrameBuffer;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
 
@@ -32,9 +31,10 @@ final class ExactFrameLimitTest
             ->because('the framed body MUST be exactly the configured limit')
             ->toBe(self::LIMIT + 4);
 
-        if ($body === null) {
-            Fail::because('A frame body at the configured limit MUST be accepted.');
-        }
+        Expect::that($body)
+            ->because('A frame body at the configured limit MUST be accepted.')
+            ->not()
+            ->toBeNull();
 
         Expect::that($codec->decode($body))
             ->because('the exact-limit frame MUST survive the protocol round trip')
@@ -61,9 +61,10 @@ final class ExactFrameLimitTest
         $buffer->feed(\pack('N', \strlen($body)) . $body);
         $decodedBody = $buffer->next();
 
-        if ($decodedBody === null) {
-            Fail::because('A Unicode frame body at the configured byte limit MUST be complete.');
-        }
+        Expect::that($decodedBody)
+            ->because('A Unicode frame body at the configured byte limit MUST be complete.')
+            ->not()
+            ->toBeNull();
 
         Expect::that(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
             ->because('frame lengths MUST count Unicode bytes, not characters')
