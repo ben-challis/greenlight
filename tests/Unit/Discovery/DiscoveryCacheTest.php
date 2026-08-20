@@ -10,6 +10,7 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
@@ -20,6 +21,7 @@ final readonly class DiscoveryCacheTest
     private const string STATABLE_FILE_SCHEME = 'greenlight-statable-file';
 
     public function __construct(
+        private AutoloaderSandbox $autoloaders,
         private EnvironmentSandbox $environment,
         private StreamWrapperSandbox $streamWrappers,
     ) {}
@@ -29,7 +31,7 @@ final readonly class DiscoveryCacheTest
     {
         $directory = $this->writeFixture();
 
-        \spl_autoload_register(static function (string $class) use ($directory): void {
+        $this->autoloaders->register(static function (string $class) use ($directory): void {
             if ($class === 'GreenlightDiscoCache\\CachedProbeTest') {
                 require_once $directory . '/CachedProbeTest.php';
             }
@@ -92,7 +94,7 @@ final readonly class DiscoveryCacheTest
                 require_once $directory . '/' . $className . '.php';
             }
         };
-        \spl_autoload_register($loader);
+        $this->autoloaders->register($loader);
         \file_put_contents($cacheFile, $document);
 
         try {
@@ -109,7 +111,6 @@ final readonly class DiscoveryCacheTest
                 ->toContain('"version":3')
                 ->toContain($className . '.php');
         } finally {
-            \spl_autoload_unregister($loader);
             @\unlink($cacheFile);
             @\unlink($directory . '/' . $className . '.php');
             @\rmdir($directory);
@@ -145,7 +146,7 @@ final readonly class DiscoveryCacheTest
                 require_once $directory . '/' . $className . '.php';
             }
         };
-        \spl_autoload_register($loader);
+        $this->autoloaders->register($loader);
 
         try {
             $mtime = \filemtime($source);
@@ -181,7 +182,6 @@ final readonly class DiscoveryCacheTest
                 ->not()
                 ->toContain('"entries":[[]]');
         } finally {
-            \spl_autoload_unregister($loader);
             @\unlink($cacheFile);
             @\unlink($source);
             @\rmdir($directory);
@@ -230,7 +230,7 @@ final readonly class DiscoveryCacheTest
             }
             PHP);
 
-        \spl_autoload_register(static function (string $class) use ($directory): void {
+        $this->autoloaders->register(static function (string $class) use ($directory): void {
             $file = match ($class) {
                 'GreenlightExternalDiscoCache\ExternalCachedProbeTest' => 'ExternalCachedProbeTest.php',
                 'GreenlightExternalDiscoCache\ExternalRows' => 'ExternalRows.php',
@@ -297,7 +297,7 @@ final readonly class DiscoveryCacheTest
         $directory = $this->writeFixture($className);
         $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
 
-        \spl_autoload_register(static function (string $class) use ($directory, $className): void {
+        $this->autoloaders->register(static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
                 require_once $directory . '/' . $className . '.php';
             }
@@ -322,7 +322,7 @@ final readonly class DiscoveryCacheTest
         $directory = $this->writeFixture($className);
         $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
 
-        \spl_autoload_register(static function (string $class) use ($directory, $className): void {
+        $this->autoloaders->register(static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
                 require_once $directory . '/' . $className . '.php';
             }
@@ -355,7 +355,7 @@ final readonly class DiscoveryCacheTest
         $directory = $this->writeFixture($className);
         $missingDirectory = \sys_get_temp_dir() . '/greenlight-missing-' . \bin2hex(\random_bytes(6));
 
-        \spl_autoload_register(static function (string $class) use ($directory, $className): void {
+        $this->autoloaders->register(static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
                 require_once $directory . '/' . $className . '.php';
             }
