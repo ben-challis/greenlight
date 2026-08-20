@@ -120,5 +120,27 @@
         "tests:coverage": "@php tools/local-ci-lock.php -- @composer tests:coverage:unlocked",
         "tests:coverage:unlocked": "XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.coverage.php",
         "workflow-shell:check": "@php tools/workflow-shell-check.php"
+    },
+    "scripts-descriptions": {
+        "check": "Runs static analysis, tests, and the memory gate.",
+        "code-style:check": "Checks code style without changes to files.",
+        "code-style:fix": "Corrects code-style violations.",
+        "coverage-gate": "Checks the test coverage requirements.",
+        "deptrac": "Checks the dependency boundaries.",
+        "docs:php:check": "Checks the PHP API documentation.",
+        "lint": "Checks the PHP syntax.",
+        "memory-gate": "Checks for memory growth during a long test run.",
+        "phpstan": "Analyzes PHP types with PHPStan.",
+        "phpstan:stubs": "Generates PHPStan API stubs.",
+        "prose:check": "Checks technical prose for mechanical errors.",
+        "prose:review": "Reports possible technical prose problems for manual review.",
+        "rector:check": "Checks if Rector can change the PHP code.",
+        "rector:fix": "Applies Rector changes to the PHP code.",
+        "static-analysis": "Runs all static analysis checks with the local CI lock.",
+        "static-analysis:unlocked": "Runs all static analysis checks without the local CI lock.",
+        "tests": "Runs the complete test suite with the local CI lock.",
+        "tests:coverage": "Runs the complete test suite with coverage and the local CI lock.",
+        "tests:coverage:unlocked": "Runs the complete test suite with coverage without the local CI lock.",
+        "workflow-shell:check": "Checks shell commands in GitHub Actions workflows."
     }
 }
