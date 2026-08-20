@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\AtomicFileError;
@@ -98,6 +99,51 @@ final readonly class ProxyStorageTest
                         ->toBeInstanceOf(AtomicFileError::class);
                 },
             );
+    }
+
+    /**
+     * @param class-string<\Throwable>|null $previousType
+     */
+    #[Test]
+    #[DataSet('corruptCachedProxyFiles')]
+    public function aCorruptCachedProxyFileFailsWithTypedGuidance(string $source, ?string $previousType): void
+    {
+        $suffix = \substr(\sha1($source), 0, 8);
+        $sourceDirectory = $this->tempDirectory->subdirectory('corrupt-proxy-discovery-' . $suffix);
+        $cacheDirectory = $this->tempDirectory->subdirectory('corrupt-proxy-cache-' . $suffix);
+        $file = $cacheDirectory . '/' . $this->generatedProxyFileName($sourceDirectory);
+
+        if (\file_put_contents($file, $source) === false) {
+            Fail::because('Expected to create a corrupt cached proxy file.');
+        }
+
+        $doubles = new Doubles($cacheDirectory);
+
+        Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
+            ->because('a corrupt cached proxy file MUST produce a typed storage error')
+            ->toThrow(
+                static function (DoublesError $error) use ($file, $previousType): void {
+                    Expect::that($error->getMessage())
+                        ->toBe('Doubles could not load the proxy file ' . $file . '. Delete the file and retry.');
+
+                    if ($previousType === null) {
+                        Expect::that($error->getPrevious())->toBeNull();
+
+                        return;
+                    }
+
+                    Expect::that($error->getPrevious())->toBeInstanceOf($previousType);
+                },
+            );
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string, class-string<\Throwable>|null}>
+     */
+    public static function corruptCachedProxyFiles(): iterable
+    {
+        yield 'missing generated class' => ["<?php\n", null];
+        yield 'invalid PHP syntax' => ['<?php class', \ParseError::class];
     }
 
     /**

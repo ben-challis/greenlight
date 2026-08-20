@@ -171,6 +171,11 @@ final class DoublesError extends \LogicException
         return new self(\sprintf('Doubles could not write the proxy file %s.', $file), $cause);
     }
 
+    public static function proxyFileNotLoaded(string $file, ?\Throwable $cause = null): self
+    {
+        return new self(\sprintf('Doubles could not load the proxy file %s. Delete the file and retry.', $file), $cause);
+    }
+
     public static function workingDirectoryUnresolved(): self
     {
         return new self('Doubles could not resolve the working directory. Pass a proxy directory explicitly.');
