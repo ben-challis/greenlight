@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 
@@ -35,16 +35,18 @@ final readonly class ApplicationStreamOutputTest
     ): void {
         $this->streamWrappers->register(self::SCHEME, PartialWriteStream::class);
 
-        $partial = \fopen(self::SCHEME . '://partial', 'wb');
-        if ($partial === false) {
-            Fail::because('Greenlight did not open the CLI test streams.');
-        }
+        $partial = ErrorTrap::run(static fn() => \fopen(self::SCHEME . '://partial', 'wb'));
+        Expect::that($partial)
+            ->because('Greenlight MUST open the partial-write CLI test stream.')
+            ->not()
+            ->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($partial));
 
-        $other = \fopen('php://memory', 'wb');
-        if ($other === false) {
-            Fail::because('Greenlight did not open the CLI test streams.');
-        }
+        $other = ErrorTrap::run(static fn() => \fopen('php://memory', 'wb'));
+        Expect::that($other)
+            ->because('Greenlight MUST open the comparison CLI test stream.')
+            ->not()
+            ->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($other));
 
         $application = $useStderr
