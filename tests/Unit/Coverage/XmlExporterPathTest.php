@@ -11,6 +11,7 @@ use Greenlight\Coverage\Export\CloverExporter;
 use Greenlight\Coverage\Export\CoberturaExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\SimpleXml;
 
 final readonly class XmlExporterPathTest
 {
@@ -83,19 +84,17 @@ final readonly class XmlExporterPathTest
 
         $cloverDocument = new CloverExporter()->export($map)[CloverExporter::FILE_NAME];
         $clover = new \SimpleXMLElement($cloverDocument);
-        $cloverFiles = $clover->xpath('/coverage/project/file');
+        $cloverFiles = SimpleXml::xpath($clover, '/coverage/project/file');
         Expect::that($cloverFiles)
             ->because('the Clover document MUST contain exactly one file')
             ->toHaveCount(1);
-        \assert(\is_array($cloverFiles) && isset($cloverFiles[0]));
 
         $coberturaDocument = new CoberturaExporter()->export($map)[CoberturaExporter::FILE_NAME];
         $cobertura = new \SimpleXMLElement($coberturaDocument);
-        $coberturaClasses = $cobertura->xpath('/coverage/packages/package/classes/class');
+        $coberturaClasses = SimpleXml::xpath($cobertura, '/coverage/packages/package/classes/class');
         Expect::that($coberturaClasses)
             ->because('the Cobertura document MUST contain exactly one class')
             ->toHaveCount(1);
-        \assert(\is_array($coberturaClasses) && isset($coberturaClasses[0]));
 
         return [
             'cloverDocument' => $cloverDocument,
