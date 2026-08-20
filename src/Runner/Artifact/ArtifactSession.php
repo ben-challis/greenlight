@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
+use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireSerializable;
 
@@ -48,9 +49,27 @@ final readonly class ArtifactSession implements WireSerializable
     public static function fromWire(array $payload): static
     {
         return new self(
-            Wire::nonEmptyString($payload, 'stagingDirectory'),
-            Wire::nonEmptyString($payload, 'publicDirectory'),
+            self::directoryFromWire($payload, 'stagingDirectory'),
+            self::directoryFromWire($payload, 'publicDirectory'),
         );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param 'publicDirectory'|'stagingDirectory' $key
+     *
+     * @return non-empty-string
+     * @throws InvalidWirePayload
+     */
+    private static function directoryFromWire(array $payload, string $key): string
+    {
+        $directory = Wire::nonEmptyString($payload, $key);
+
+        if (\str_contains($directory, "\0")) {
+            throw InvalidWirePayload::wrongType($key, 'a directory without null bytes', $directory);
+        }
+
+        return $directory;
     }
 
     /**
