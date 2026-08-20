@@ -46,6 +46,8 @@ final class WorkerProfileTest
         Expect::that($profile->utilizationPercent())
             ->because('utilization is rounded from accumulated busy time')
             ->toBe(52);
+        Expect::that($profile->isolated)
+            ->toBeFalse();
     }
 
     #[Test]
@@ -120,5 +122,16 @@ final class WorkerProfileTest
             ->toBe(0.0);
         Expect::that($profile->utilizationPercent())
             ->toBeNull();
+    }
+
+    #[Test]
+    public function isolatedClassMarksTheWorker(): void
+    {
+        $profile = new WorkerProfile();
+        $profile->classStarted(10.0, isolated: true);
+
+        Expect::that($profile->isolated)
+            ->because('an isolated class MUST mark its worker')
+            ->toBeTrue();
     }
 }

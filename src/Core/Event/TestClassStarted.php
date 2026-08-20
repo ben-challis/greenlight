@@ -23,6 +23,7 @@ final readonly class TestClassStarted implements Event
         string $class,
         public float $occurredAt,
         public string $workerId = '',
+        public bool $isolated = false,
     ) {
         if ($class === '') {
             throw new \InvalidArgumentException('Test class name MUST NOT be empty.');
@@ -42,6 +43,7 @@ final readonly class TestClassStarted implements Event
             'class' => $this->class,
             'occurredAt' => $this->occurredAt,
             'workerId' => $this->workerId,
+            ...($this->isolated ? ['isolated' => true] : []),
         ];
     }
 
@@ -52,6 +54,7 @@ final readonly class TestClassStarted implements Event
             Wire::nonEmptyString($payload, 'class'),
             Wire::float($payload, 'occurredAt'),
             \array_key_exists('workerId', $payload) ? Wire::string($payload, 'workerId') : '',
+            \array_key_exists('isolated', $payload) ? Wire::bool($payload, 'isolated') : false,
         );
     }
 }

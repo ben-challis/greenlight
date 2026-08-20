@@ -21,12 +21,10 @@ use Greenlight\Core\Event\WorkerSpawned;
  * clocks. These clocks use host wall time. Thus, boot latency can
  * include a scheduler delay.
  *
- * Worker busy time is the sum of its test-class periods. The worker period
- * starts at process start or the first test class, if process start is
- * unknown. It ends at the last completed test class. Utilization is busy time
- * divided by the worker period. Boot latency is the time from process
- * start to the first test class. It includes the hello exchange and the wait
- * for the first assignment.
+ * Worker busy time is the sum of its test-class periods. Utilization is busy
+ * time divided by the worker period for a non-isolated worker. Boot latency is
+ * the time from process start to the first test class. It includes the hello
+ * exchange and the wait for the first assignment.
  *
  * @internal
  */
@@ -69,7 +67,7 @@ final class ProfileAggregator
         }
 
         if ($event instanceof TestClassStarted && $event->workerId !== '') {
-            $this->worker($event->workerId)->classStarted($event->occurredAt);
+            $this->worker($event->workerId)->classStarted($event->occurredAt, $event->isolated);
 
             return;
         }
@@ -103,14 +101,20 @@ final class ProfileAggregator
 
         $lines = ["\nProfile:"];
         $spawned = \count(\array_filter($this->workers, static fn(WorkerProfile $worker): bool => $worker->spawnedAt !== null));
+        $isolated = \count(\array_filter($this->workers, static fn(WorkerProfile $worker): bool => $worker->isolated));
         $recycled = \array_sum(\array_column($this->workers, 'recycled'));
 
-        $lines[] = \sprintf(
-            '  Workers: %d requested, %d spawned, %d recycled',
+        $workerSummary = \sprintf(
+            '  Workers: %d requested, %d spawned',
             $this->runStarted instanceof RunStarted ? $this->runStarted->workers : 0,
             $spawned,
-            $recycled,
         );
+
+        if ($isolated > 0) {
+            $workerSummary .= \sprintf(', %d isolated', $isolated);
+        }
+
+        $lines[] = $workerSummary . \sprintf(', %d recycled', $recycled);
 
         $bootLatencies = [];
         $finishTimes = [];
@@ -142,13 +146,19 @@ final class ProfileAggregator
                 continue;
             }
 
-            $rows[] = [$id, (string) $worker->classes, \sprintf('%.3fs', $worker->busy), $worker->utilizationPercent()];
+            $rows[] = [
+                $id,
+                (string) $worker->classes,
+                \sprintf('%.3fs', $worker->busy),
+                $worker->isolated ? null : $worker->utilizationPercent(),
+                $worker->isolated,
+            ];
         }
 
         if ($rows !== []) {
             $lines[] = '';
 
-            foreach ($this->workerTable($style, $rows) as $line) {
+            foreach ($this->workerTable($style, $rows, $isolated > 0) as $line) {
                 $lines[] = $line;
             }
         }
@@ -185,11 +195,11 @@ final class ProfileAggregator
      * Worker IDs align left, and numeric columns align right. The data determines
      * the column widths.
      *
-     * @param list<array{string, string, string, ?int}> $rows
+     * @param list<array{string, string, string, ?int, bool}> $rows
      *
      * @return list<string>
      */
-    private function workerTable(Style $style, array $rows): array
+    private function workerTable(Style $style, array $rows, bool $showIsolation): array
     {
         $workerWidth = \max(\strlen('Worker'), ...\array_map(static fn(array $row): int => \strlen($row[0]), $rows));
         $classesWidth = \max(\strlen('Classes'), ...\array_map(static fn(array $row): int => \strlen($row[1]), $rows));
@@ -197,26 +207,28 @@ final class ProfileAggregator
         $utilWidth = \max(\strlen('Util'), ...\array_map(static fn(array $row): int => \strlen($row[3] . '%'), $rows));
 
         $lines = [\rtrim(\sprintf(
-            '  %s  %s  %s  %s',
+            '  %s  %s  %s  %s%s',
             \str_pad('Worker', $workerWidth),
             \str_pad('Classes', $classesWidth, ' ', \STR_PAD_LEFT),
             \str_pad('Busy', $busyWidth, ' ', \STR_PAD_LEFT),
             \str_pad('Util', $utilWidth, ' ', \STR_PAD_LEFT),
+            $showIsolation ? '  Isolated' : '',
         ))];
 
-        foreach ($rows as [$id, $classes, $busy, $percent]) {
+        foreach ($rows as [$id, $classes, $busy, $percent, $isolated]) {
             // Add space outside the color codes. Thus, escape sequences cannot
             // change the alignment.
             $util = $percent === null
-                ? ''
+                ? \str_repeat(' ', $utilWidth)
                 : \str_repeat(' ', $utilWidth - \strlen($percent . '%')) . $this->utilization($style, $percent);
 
             $lines[] = \rtrim(\sprintf(
-                '  %s  %s  %s  %s',
+                '  %s  %s  %s  %s%s',
                 \str_pad($id, $workerWidth),
                 \str_pad($classes, $classesWidth, ' ', \STR_PAD_LEFT),
                 \str_pad($busy, $busyWidth, ' ', \STR_PAD_LEFT),
                 $util,
+                $showIsolation ? '  ' . ($isolated ? 'yes' : '') : '',
             ));
         }
 

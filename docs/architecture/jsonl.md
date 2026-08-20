@@ -61,7 +61,7 @@ guarantees, and incomplete-output behavior.
 | `run-finished`    | Run ends                             | `runId`, `summary`, `durationSeconds`, `occurredAt`                    |
 | `suite-started`   | Suite begins                         | `suite`, `occurredAt`                                                  |
 | `suite-finished`  | Suite ends                           | `suite`, `occurredAt`                                                  |
-| `class-started`   | Test class begins                    | `class`, `occurredAt`, `workerId`                                      |
+| `class-started`   | Test class begins                    | `class`, `occurredAt`, `workerId`, `isolated`                          |
 | `class-finished`  | Test class ends                      | `class`, `occurredAt`, `workerId`                                      |
 | `test-started`    | Test begins                          | `id`, `occurredAt`                                                     |
 | `test-finished`   | Test ends                            | `result`, `occurredAt`                                                 |
@@ -83,6 +83,8 @@ data-set key.
 
 `class-started.workerId` and `class-finished.workerId` name the worker that
 ran the class.
+
+`class-started.isolated` is true when the worker runs an isolated test.
 
 `worker-recycled.reason` has one of these values:
 
