@@ -49,5 +49,9 @@ final readonly class ResultSummaryTotalTest
             new ResultSummary(passed: 2, failed: 3, errored: 4, skipped: 5),
             14,
         ];
+        yield 'overflowing outcomes' => [
+            new ResultSummary(passed: \PHP_INT_MAX, failed: 1),
+            \PHP_INT_MAX,
+        ];
     }
 }
