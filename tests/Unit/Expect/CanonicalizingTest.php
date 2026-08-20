@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Expect\CanonicalNode;
 
-final class CanonicalizingTest
+final readonly class CanonicalizingTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function toEqualCanonicalizingIgnoresListOrder(): void
     {
@@ -89,22 +92,25 @@ final class CanonicalizingTest
         $firstClosure = static fn(): string => 'first';
         $secondClosure = static fn(): string => 'second';
         $firstStream = \fopen('php://memory', 'r');
-        $secondStream = \fopen('php://memory', 'r');
 
-        if ($firstStream === false || $secondStream === false) {
+        if ($firstStream === false) {
             throw new \RuntimeException('Could not open in-memory streams.');
         }
 
-        try {
-            Expect::that([$secondClosure, $firstClosure])
-                ->because('canonical closure ordering uses object identity')
-                ->toEqualCanonicalizing([$firstClosure, $secondClosure]);
-            Expect::that([$secondStream, $firstStream])
-                ->because('canonical resource ordering uses resource identity')
-                ->toEqualCanonicalizing([$firstStream, $secondStream]);
-        } finally {
-            \fclose($firstStream);
-            \fclose($secondStream);
+        $this->cleanup->defer(static fn(): bool => \fclose($firstStream));
+        $secondStream = \fopen('php://memory', 'r');
+
+        if ($secondStream === false) {
+            throw new \RuntimeException('Could not open in-memory streams.');
         }
+
+        $this->cleanup->defer(static fn(): bool => \fclose($secondStream));
+
+        Expect::that([$secondClosure, $firstClosure])
+            ->because('canonical closure ordering uses object identity')
+            ->toEqualCanonicalizing([$firstClosure, $secondClosure]);
+        Expect::that([$secondStream, $firstStream])
+            ->because('canonical resource ordering uses resource identity')
+            ->toEqualCanonicalizing([$firstStream, $secondStream]);
     }
 }
