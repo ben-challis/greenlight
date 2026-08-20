@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -24,11 +25,12 @@ final readonly class StreamOutputTest
     #[Test]
     public function writesAccumulateOnTheStream(): void
     {
-        $stream = \fopen('php://memory', 'r+');
+        $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r+'));
 
-        if ($stream === false) {
-            throw new \RuntimeException('Could not open an in-memory stream.');
-        }
+        Expect::that($stream)
+            ->because('Greenlight MUST open the in-memory stream.')
+            ->not()
+            ->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         $output = new StreamOutput($stream);
@@ -43,11 +45,12 @@ final readonly class StreamOutputTest
     #[Test]
     public function aStreamWriteFailureBecomesAReportingError(): void
     {
-        $stream = \fopen('php://memory', 'r');
+        $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r'));
 
-        if ($stream === false) {
-            throw new \RuntimeException('Could not open a read-only in-memory stream.');
-        }
+        Expect::that($stream)
+            ->because('Greenlight MUST open the read-only in-memory stream.')
+            ->not()
+            ->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         $output = new StreamOutput($stream);
@@ -96,11 +99,12 @@ final readonly class StreamOutputTest
     {
         $this->streamWrappers->register(self::PARTIAL_WRITE_SCHEME, PartialWriteStream::class);
 
-        $stream = \fopen(self::PARTIAL_WRITE_SCHEME . '://' . $path, 'wb');
+        $stream = ErrorTrap::run(static fn() => \fopen(self::PARTIAL_WRITE_SCHEME . '://' . $path, 'wb'));
 
-        if ($stream === false) {
-            throw new \RuntimeException('Greenlight did not open the partial-write stream.');
-        }
+        Expect::that($stream)
+            ->because('Greenlight MUST open the partial-write stream.')
+            ->not()
+            ->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         return $stream;
