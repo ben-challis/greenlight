@@ -54,7 +54,7 @@ final readonly class TestClassStarted implements Event
             Wire::nonEmptyString($payload, 'class'),
             Wire::float($payload, 'occurredAt'),
             \array_key_exists('workerId', $payload) ? Wire::string($payload, 'workerId') : '',
-            \array_key_exists('isolated', $payload) ? Wire::bool($payload, 'isolated') : false,
+            \array_key_exists('isolated', $payload) && Wire::bool($payload, 'isolated'),
         );
     }
 }
