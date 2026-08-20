@@ -157,6 +157,49 @@ final readonly class DocsPhpCheckTest
     }
 
     #[Test]
+    public function phpStanAnalysesTheProjectExtensionSources(): void
+    {
+        $project = $this->project('phpstan-extension-sources');
+        $project->write(
+            'docs/example.md',
+            <<<'MARKDOWN'
+            <!-- php-example {"example":"example","file":"example.php","mode":"file","tools":["phpstan"]} -->
+            ```php
+            return true;
+            ```
+
+            MARKDOWN,
+        );
+        $project->write(
+            'phpstan.php',
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            file_put_contents(__DIR__ . '/phpstan-arguments.txt', implode("\n", array_slice($argv, 1)));
+            echo json_encode([
+                'totals' => ['errors' => 0, 'file_errors' => 0],
+                'files' => [],
+                'errors' => [],
+            ], JSON_THROW_ON_ERROR);
+
+            PHP,
+        );
+
+        $result = $this->run(
+            $project,
+            'check',
+            '--phpstan-bin=' . $project->path('phpstan.php'),
+        );
+
+        Expect::that($result->exitCode)->because('checks the selected PHP fence')->toBe(0);
+        Expect::that($this->read($project, 'phpstan-arguments.txt'))->toContain(
+            $project->path('src/PhpStan') . "\n" . $project->path('build/docs-php/example'),
+        );
+    }
+
+    #[Test]
     public function rendersGithubAnnotationsWhenRequested(): void
     {
         $project = $this->project('github-annotations');

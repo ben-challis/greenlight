@@ -68,6 +68,7 @@ final readonly class ToolAnalyser
             '--error-format=json',
             '--no-progress',
             '--memory-limit=-1',
+            $root . '/src/PhpStan',
             $root . '/build/docs-php/' . $group[0]->source->example,
         ];
         $result = $this->processRunner->run($root, $command);
