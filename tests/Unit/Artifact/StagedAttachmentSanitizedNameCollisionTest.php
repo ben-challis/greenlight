@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\StagedAttachment;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -16,7 +17,10 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 final readonly class StagedAttachmentSanitizedNameCollisionTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     /**
      * @param list<string> $expected
@@ -30,29 +34,26 @@ final readonly class StagedAttachmentSanitizedNameCollisionTest
     ): void {
         $root = $this->tempDirectory->subdirectory('sanitized-name-collision');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-1');
+        $this->cleanup->defer($store->cleanup(...));
 
-        try {
-            $attachments = $store->forAttempt(
-                new TestId('Example\EvidenceTest', 'captures'),
-                1,
-                new TestArtifactBudget(),
-            );
-            $attachments->text($first, 'first');
-            $attachments->text($second, 'second');
-            $names = \array_map(
-                static fn(StagedAttachment $attachment): string => \basename($attachment->storageKey),
-                $attachments->seal(),
-            );
+        $attachments = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'captures'),
+            1,
+            new TestArtifactBudget(),
+        );
+        $attachments->text($first, 'first');
+        $attachments->text($second, 'second');
+        $names = \array_map(
+            static fn(StagedAttachment $attachment): string => \basename($attachment->storageKey),
+            $attachments->seal(),
+        );
 
-            Expect::that($names)
-                ->because(
-                    'distinct attachment names that sanitize to the same storage name '
-                    . 'MUST remain distinct',
-                )
-                ->toBe($expected);
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that($names)
+            ->because(
+                'distinct attachment names that sanitize to the same storage name '
+                . 'MUST remain distinct',
+            )
+            ->toBe($expected);
     }
 
     /**
