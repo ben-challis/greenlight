@@ -55,18 +55,18 @@ guarantees, and incomplete-output behavior.
 
 ## Event tags
 
-| Tag               | Event                      | Payload keys                                        |
-| ----------------- | -------------------------- | --------------------------------------------------- |
-| `run-started`     | Run begins                 | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
-| `run-finished`    | Run ends                   | `runId`, `summary`, `durationSeconds`, `occurredAt` |
-| `suite-started`   | Suite begins               | `suite`, `occurredAt`                               |
-| `suite-finished`  | Suite ends                 | `suite`, `occurredAt`                               |
-| `class-started`   | Test class begins          | `class`, `occurredAt`, `workerId`                   |
-| `class-finished`  | Test class ends            | `class`, `occurredAt`, `workerId`                   |
-| `test-started`    | Test begins                | `id`, `occurredAt`                                  |
-| `test-finished`   | Test ends                  | `result`, `occurredAt`                              |
-| `worker-spawned`  | Worker process starts      | `workerId`, `pid`, `occurredAt`                     |
-| `worker-recycled` | Greenlight replaces a worker process | `workerId`, `reason`, `occurredAt`                  |
+| Tag               | Event                                | Payload keys                                                           |
+| ----------------- | ------------------------------------ | ---------------------------------------------------------------------- |
+| `run-started`     | Run begins                           | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
+| `run-finished`    | Run ends                             | `runId`, `summary`, `durationSeconds`, `occurredAt`                    |
+| `suite-started`   | Suite begins                         | `suite`, `occurredAt`                                                  |
+| `suite-finished`  | Suite ends                           | `suite`, `occurredAt`                                                  |
+| `class-started`   | Test class begins                    | `class`, `occurredAt`, `workerId`                                      |
+| `class-finished`  | Test class ends                      | `class`, `occurredAt`, `workerId`                                      |
+| `test-started`    | Test begins                          | `id`, `occurredAt`                                                     |
+| `test-finished`   | Test ends                            | `result`, `occurredAt`                                                 |
+| `worker-spawned`  | Worker process starts                | `workerId`, `pid`, `occurredAt`                                        |
+| `worker-recycled` | Greenlight replaces a worker process | `workerId`, `reason`, `occurredAt`                                     |
 
 `run-finished.summary` contains the passed, failed, errored, and skipped totals.
 

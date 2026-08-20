@@ -102,6 +102,25 @@ jobs:
         with:
           args: "-color -shellcheck=shellcheck"
 
+  markdownlint:
+    name: "Markdown style"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+    permissions:
+      contents: "read"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      - name: "Run markdownlint"
+        uses: "DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff" # v24.2.0
+        with:
+          config: ".markdownlint-cli2.jsonc"
+          globs: "**/*.md"
+
   installed-package:
     name: "Installed package"
     runs-on: "ubuntu-latest"
@@ -627,6 +646,7 @@ jobs:
       - "renovate-config"
       - "zizmor"
       - "actionlint"
+      - "markdownlint"
       - "installed-package"
       - "ci"
       - "macos-portability"
@@ -648,6 +668,7 @@ jobs:
           DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
           INSTALLED_PACKAGE_RESULT: "${{ needs.installed-package.result }}"
           MACOS_PORTABILITY_RESULT: "${{ needs.macos-portability.result }}"
+          MARKDOWNLINT_RESULT: "${{ needs.markdownlint.result }}"
           MEMORY_RESULT: "${{ needs.memory.result }}"
           PCOV_RESULT: "${{ needs.pcov.result }}"
           RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
@@ -659,6 +680,7 @@ jobs:
           test "${RENOVATE_CONFIG_RESULT}" = "success"
           test "${ZIZMOR_RESULT}" = "success"
           test "${ACTIONLINT_RESULT}" = "success"
+          test "${MARKDOWNLINT_RESULT}" = "success"
           test "${INSTALLED_PACKAGE_RESULT}" = "success"
           test "${CI_RESULT}" = "success"
           test "${MACOS_PORTABILITY_RESULT}" = "success"
