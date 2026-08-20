@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 use Greenlight\Attribute\DataRow;
+use Greenlight\Core\ErrorTrap;
 
 /**
  * Invokes a #[DataSet] provider when Greenlight makes the execution plan.
@@ -69,11 +70,13 @@ final readonly class DataSetExpander
         $position = 0;
 
         foreach ($class->getMethod($testMethod)->getAttributes(DataRow::class) as $attribute) {
-            try {
-                $row = $attribute->newInstance();
-            } catch (\Throwable $e) {
-                throw DiscoveryError::invalidAttribute($className . '::' . $testMethod . '()', $e);
-            }
+            $row = ErrorTrap::run(
+                static fn() => $attribute->newInstance(),
+                wrap: static fn(\Throwable $error): DiscoveryError => DiscoveryError::invalidAttribute(
+                    $className . '::' . $testMethod . '()',
+                    $error,
+                ),
+            );
 
             $key = $row->label === null
                 ? \sprintf('#%d', $position)

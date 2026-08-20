@@ -54,7 +54,7 @@ final readonly class ProxyGenerator
             }
 
             ErrorTrap::run(
-                operation: static function () use ($file) {
+                static function () use ($file) {
                     require $file;
                 },
                 wrap: static fn(\Throwable $failure): DoublesError =>

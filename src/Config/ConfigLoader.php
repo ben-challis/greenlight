@@ -34,11 +34,10 @@ final class ConfigLoader
             throw ConfigFileError::notFound($file);
         }
 
-        try {
-            $returned = ErrorTrap::run(static fn() => require $file);
-        } catch (\Throwable $cause) {
-            throw ConfigFileError::threw($file, $cause);
-        }
+        $returned = ErrorTrap::run(
+            static fn() => require $file,
+            wrap: static fn(\Throwable $cause): ConfigFileError => ConfigFileError::threw($file, $cause),
+        );
 
         if (!$returned instanceof GreenlightConfig) {
             throw ConfigFileError::didNotReturnBuilder($file, $returned);
