@@ -224,6 +224,29 @@ final class IntegrationFixtureManagerTest
     }
 
     #[Test]
+    public function cycleDiagnosticsExcludeAcyclicDependencyPrefixes(): void
+    {
+        $provider = $this->provider([
+            new IntegrationFixtureDefinition('entry', static function (): void {}, ['alpha']),
+            new IntegrationFixtureDefinition('alpha', static function (): void {}, ['bravo']),
+            new IntegrationFixtureDefinition('bravo', static function (): void {}, ['alpha']),
+        ]);
+
+        Expect::that(fn() => IntegrationFixtureManager::provision(
+            PluginRegistry::orchestratorSide([$provider]),
+            'run-cycle-prefix',
+            1,
+            1,
+            null,
+        ))
+            ->because('a dependency-cycle diagnostic MUST identify only the cyclic path')
+            ->toThrow(
+                IntegrationFixtureError::class,
+                message: 'Integration fixture dependency cycle: alpha -> bravo -> alpha.',
+            );
+    }
+
+    #[Test]
     public function invalidChannelDataFailsProvisioningAndStillCleansUp(): void
     {
         $cleaned = false;
