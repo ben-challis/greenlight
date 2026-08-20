@@ -18,6 +18,7 @@ Greenlight.
 
 Register the plugin in `greenlight.php`:
 
+<!-- php-example {"example":"hyperf-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Hyperf\HyperfPlugin;
@@ -40,6 +41,7 @@ The default `ContainerLifetime::Worker` mode uses one application container for
 each worker. Greenlight reuses the container for all test attempts in that
 worker.
 
+<!-- php-example {"example":"hyperf-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
@@ -56,6 +58,7 @@ worker service, global variable, or static property can also reach later tests.
 Use `ContainerLifetime::TestAttempt` to create an application container for
 each test attempt:
 
+<!-- php-example {"example":"hyperf-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new HyperfPlugin(
     dirname(__DIR__),
@@ -128,6 +131,7 @@ plugins. Swoole destroys the coroutine context when the attempt ends.
 
 Declare a service dependency by type:
 
+<!-- php-example {"example":"hyperf-example-04","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final readonly class RegistrationTest
 {
@@ -140,6 +144,7 @@ container.
 
 Use `#[Service]` when the parameter type does not select the necessary ID:
 
+<!-- php-example {"example":"hyperf-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 use Greenlight\Hyperf\Service;
 
@@ -164,6 +169,7 @@ after each attempt. See Hyperf's
 Use `reset:` to reset project state after each attempt. Use
 `dispose:` for resources that belong to the selected container lifetime:
 
+<!-- php-example {"example":"hyperf-example-06","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Psr\Container\ContainerInterface;
 

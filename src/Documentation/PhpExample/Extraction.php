@@ -17,7 +17,6 @@ final readonly class Extraction
     public function __construct(
         public array $snippets,
         public int $phpFences,
-        public int $unclassifiedFences,
         public int $displayFences,
         public int $generatedDocuments,
     ) {}

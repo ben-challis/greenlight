@@ -34,11 +34,12 @@ final readonly class Command
             $result = $checker->check($options['root'], $options['phpstan'], $options['rector']);
             self::renderDiagnostics($result->diagnostics);
             echo \sprintf(
-                'Documentation PHP: %d fence(s), %d checked file(s), %d display-only fence(s), %d unclassified fence(s), %d generated document(s).',
+                'Documentation PHP: %d fence(s), %d checked file(s), %d PHPStan file(s), %d Rector file(s), %d display-only fence(s), %d generated document(s).',
                 $result->extraction->phpFences,
                 \count($result->materialized),
+                self::toolFileCount($result->materialized, 'phpstan'),
+                self::toolFileCount($result->materialized, 'rector'),
                 $result->extraction->displayFences,
-                $result->extraction->unclassifiedFences,
                 $result->extraction->generatedDocuments,
             ), "\n";
 
@@ -48,6 +49,17 @@ final readonly class Command
 
             return 1;
         }
+    }
+
+    /**
+     * @param list<MaterializedSnippet> $snippets
+     */
+    private static function toolFileCount(array $snippets, string $tool): int
+    {
+        return \count(\array_filter(
+            $snippets,
+            static fn(MaterializedSnippet $snippet): bool => \in_array($tool, $snippet->source->tools, true),
+        ));
     }
 
     /**

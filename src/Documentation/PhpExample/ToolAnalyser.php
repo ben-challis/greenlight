@@ -141,27 +141,43 @@ final readonly class ToolAnalyser
     }
 
     /**
-     * @param list<MaterializedSnippet> $group
+     * @param list<MaterializedSnippet> $snippets
      *
      * @return list<Diagnostic>
      */
-    public function rector(string $root, string $binary, array $group): array
+    public function rector(string $root, string $binary, array $snippets): array
     {
-        if (!\in_array('rector', $group[0]->source->tools, true)) {
+        $selected = \array_values(\array_filter(
+            $snippets,
+            static fn(MaterializedSnippet $snippet): bool => \in_array(
+                'rector',
+                $snippet->source->tools,
+                true,
+            ),
+        ));
+
+        if ($selected === []) {
             return [];
         }
 
+        $directories = [];
+
+        foreach ($selected as $snippet) {
+            $directories[$snippet->source->example] = $root . '/build/docs-php/' . $snippet->source->example;
+        }
+
+        \ksort($directories, \SORT_STRING);
         $command = [
             ...$this->binaryCommand($binary),
             'process',
-            $root . '/build/docs-php/' . $group[0]->source->example,
+            ...\array_values($directories),
             '--config=' . $root . '/rector.docs.php',
             '--dry-run',
             '--output-format=json',
             '--no-progress-bar',
         ];
         $result = $this->processRunner->run($root, $command);
-        $payload = $this->jsonOutput('Rector', $result, $group[0]);
+        $payload = $this->jsonOutput('Rector', $result, $selected[0]);
         $diagnostics = [];
         $fatalErrors = $payload['fatal_errors'] ?? [];
 
@@ -175,8 +191,8 @@ final readonly class ToolAnalyser
             }
 
             $diagnostics[] = new Diagnostic(
-                sourcePath: $group[0]->source->sourcePath,
-                line: $group[0]->source->fenceLine,
+                sourcePath: $selected[0]->source->sourcePath,
+                line: $selected[0]->source->fenceLine,
                 tool: 'Rector',
                 message: $fatalError,
             );
@@ -193,7 +209,7 @@ final readonly class ToolAnalyser
                 throw new DocumentationExampleError('Rector JSON file diff is invalid.');
             }
 
-            $snippet = $this->generatedSnippet($root, $fileDiff['file'], $group);
+            $snippet = $this->generatedSnippet($root, $fileDiff['file'], $selected);
             $rectors = $fileDiff['applied_rectors'] ?? [];
             $names = [];
 
@@ -225,8 +241,8 @@ final readonly class ToolAnalyser
 
         if (\is_array($totals) && \is_int($totals['errors'] ?? null) && $totals['errors'] > 0) {
             $diagnostics[] = new Diagnostic(
-                sourcePath: $group[0]->source->sourcePath,
-                line: $group[0]->source->fenceLine,
+                sourcePath: $selected[0]->source->sourcePath,
+                line: $selected[0]->source->fenceLine,
                 tool: 'Rector',
                 message: \sprintf('Rector reported %d processing error(s).', $totals['errors']),
             );

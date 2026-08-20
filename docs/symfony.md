@@ -12,6 +12,7 @@ Symfony.
 
 Register the plugin in `greenlight.php` with your kernel class:
 
+<!-- php-example {"example":"symfony-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Symfony\SymfonyPlugin;
@@ -23,6 +24,7 @@ return GreenlightConfig::create()
 
 Use a closure when the kernel needs custom construction:
 
+<!-- php-example {"example":"symfony-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new SymfonyPlugin(static fn(): KernelInterface => new App\Kernel('test', false));
 ```
@@ -44,6 +46,7 @@ error with a correction. It does not use weaker isolation.
 
 Declare the dependency by type:
 
+<!-- php-example {"example":"symfony-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class RegistrationTest
 {
@@ -71,6 +74,7 @@ Type alone cannot select some services. Examples include string-ID-only
 services, interfaces with multiple implementations, and decorated services.
 Use `#[Service]` to name the service explicitly:
 
+<!-- php-example {"example":"symfony-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 use Greenlight\Symfony\Service;
 
@@ -87,6 +91,7 @@ instance of the declared type, the test fails and does not receive the object.
 Greenlight supplies `KernelInterface` as a per-run harness service. Tests can
 use it to inspect boot parameters or the container directly:
 
+<!-- php-example {"example":"symfony-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 public function __construct(private readonly KernelInterface $kernel) {}
 ```
@@ -142,11 +147,13 @@ remain for the complete test run.
 If you cannot split a service per channel, mark the classes that use it with
 `#[RequiresResource]`. Configure its safe concurrency:
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[RequiresResource('payments-sandbox')]
 final class PaymentGatewayTest { ... }
 ```
 
+<!-- php-example {"example":"symfony-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);

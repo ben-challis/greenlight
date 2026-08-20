@@ -8,6 +8,7 @@ text, bytes, or files that already exist.
 
 Ask for `Greenlight\Core\Artifact\Attachments` through constructor injection:
 
+<!-- php-example {"example":"attachments-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentRetention;
@@ -49,6 +50,7 @@ rule includes a successful attempt that a result policy changes to another
 outcome. To retain an attachment from a successful attempt, set its retention to
 `AttachmentRetention::Always`:
 
+<!-- php-example {"example":"attachments-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $attachments->text(
     'timing.txt',
@@ -68,6 +70,7 @@ By default, Greenlight writes retained attachments to a unique run directory
 below `build/greenlight-artifacts`. A run with no retained attachments does not
 create an empty directory. Change the parent directory in `greenlight.php`:
 
+<!-- php-example {"example":"attachments-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\ArtifactBuilder;
 

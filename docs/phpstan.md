@@ -33,6 +33,7 @@ matcher rules work without it.
 The extension checks a constant method name in `Doubles::callsTo()` against the
 doubled type:
 
+<!-- php-example {"example":"phpstan-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $events = $doubles->spy(EventPublisher::class);
 
@@ -48,6 +49,7 @@ Method errors use the `greenlight.doubles.callsToMethod` identifier.
 For a constant method name, the extension also supplies the declared argument
 types for each recorded call:
 
+<!-- php-example {"example":"phpstan-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $calls = $doubles->callsTo($events, 'publish');
 $event = $calls[0][0]; // the declared type of EventPublisher::publish() argument 1
@@ -84,6 +86,7 @@ parameter.
 regular expression. A Throwable instance requires the exact object. A typed
 callback can specify and check the throwable:
 
+<!-- php-example {"example":"phpstan-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($callback)->toThrow(DomainException::class, message: 'Exact message');
 Expect::that($callback)->toThrow(DomainException::class, matching: '/message/i');
@@ -112,6 +115,7 @@ at run time.
 The subject for `toThrow()` must be callable. The extension reports a known
 incompatible subject before the test runs:
 
+<!-- php-example {"example":"phpstan-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that(42)->toThrow(DomainException::class);
 ```
@@ -161,6 +165,7 @@ the real signature.
 
 For example, use a plugin with these matchers:
 
+<!-- php-example {"example":"phpstan-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class DigestMatchers implements ExpectationExtension
 {
@@ -178,6 +183,7 @@ final class DigestMatchers implements ExpectationExtension
 
 The extension checks calls against those closure signatures:
 
+<!-- php-example {"example":"phpstan-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($id)->toBeValidUuid();     // checked: name, arguments, types
 Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
@@ -193,6 +199,7 @@ receive the same subject type.
 
 The same checks apply to temporal expectations:
 
+<!-- php-example {"example":"phpstan-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::eventually(fn(): string => $hash)
     ->within(1.0)
@@ -216,6 +223,7 @@ vendor/bin/greenlight ide-helper
 PHPStan narrows the original subject after a synchronous type expectation
 passes:
 
+<!-- php-example {"example":"phpstan-subject-refinement","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 /** @var FileCoverage|null $file */
 Expect::that($file)->not()->toBeNull();
@@ -315,6 +323,7 @@ first, PHPStan reports a broken provider before a test can report the error:
 * Constant inline row labels must be unique. An explicit label must not
   duplicate a generated positional label such as `#0`.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 #[DataSet('sums')]
@@ -330,6 +339,7 @@ public static function sums(): iterable
 
 Providers shared by multiple test classes receive the same checks:
 
+<!-- php-example {"example":"phpstan-example-09","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 #[DataSet(ArithmeticDataSets::class, 'sums')]
 ```
@@ -352,6 +362,7 @@ Errors have identifiers under `greenlight.dataProvider.*` (`provider`,
 `parameters`, `returnType`, `keyType`, `empty`, `duplicateKey`, `arity`,
 `argument`). Thus, you can suppress a deliberate exception inline:
 
+<!-- php-example {"example":"phpstan-example-10","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 #[DataSet('doesNotExist')] // @phpstan-ignore greenlight.dataProvider.provider (proves the runtime error path)
 ```

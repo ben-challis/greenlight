@@ -8,6 +8,7 @@ interface.
 Plugin capabilities run either in the orchestrator or in workers. Each
 capability section below names its side.
 
+<!-- php-example {"example":"plugins-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create()
     ->paths(['tests'])
@@ -39,6 +40,7 @@ Orchestrator-side.
 Integration fixtures own external infrastructure that must outlive a worker
 process, such as a database server, broker, container, or remote test tenant.
 
+<!-- php-example {"example":"plugins-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Harness\FixtureResource;
 use Greenlight\Plugin\IntegrationFixtureContext;
@@ -82,6 +84,7 @@ Greenlight provisions after discovery, selection, and sharding, but before
 
 Definitions can depend on other fixtures:
 
+<!-- php-example {"example":"plugins-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new IntegrationFixtureDefinition(
     'schema',
@@ -118,6 +121,7 @@ each worker's complete resource payload to 1 MiB.
 
 Tests can inject `IntegrationResources` directly:
 
+<!-- php-example {"example":"plugins-example-04","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class PublishesMessageTest
 {
@@ -170,6 +174,7 @@ This hook runs once per physical worker after resources arrive and before
 Greenlight uses `HarnessProvider::services()` or `ServiceResolver`. It can turn
 serializable resource data into worker-local services:
 
+<!-- php-example {"example":"plugins-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 {
@@ -207,6 +212,7 @@ run first. An exception fails the run before tests begin.
 
 Worker-side.
 
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
 public function runWorker(\Closure $worker): mixed;
 ```
@@ -230,6 +236,7 @@ runtime. See [Hyperf applications](hyperf.md).
 
 Worker-side.
 
+<!-- php-example {"example":"plugins-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\TestLifecycleSubscriber;
@@ -282,6 +289,7 @@ per-test scope closes before `afterTest()`, so `service()` throws in that hook.
 
 Worker-side.
 
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
 public function runTestAttempt(\Closure $attempt): mixed;
 ```
@@ -303,6 +311,7 @@ coroutine. See [Hyperf applications](hyperf.md).
 
 Worker-side.
 
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
 public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
@@ -321,6 +330,7 @@ The built-in `#[Retry]` attribute uses this interface.
 
 Orchestrator-side.
 
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
 public function onRunEvent(Event $event): void;
 ```
@@ -335,6 +345,7 @@ throws, the run fails and fixtures are still torn down.
 
 ### HarnessProvider
 
+<!-- php-example {"example":"plugins-example-11","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -368,6 +379,7 @@ doubles use this mechanism.
 
 In `Greenlight\Harness`.
 
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
 public function resolve(string $type, array $attributes): ?object;
 ```
@@ -393,6 +405,7 @@ The framework bridges use this interface to inject container services. See
 
 In `Greenlight\Expect`.
 
+<!-- php-example {"example":"plugins-example-13","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class UuidMatchers implements ExpectationExtension
 {
@@ -408,6 +421,7 @@ final class UuidMatchers implements ExpectationExtension
 
 Call extension matchers through the expectation chain:
 
+<!-- php-example {"example":"plugins-example-14","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($id)->toBeValidUuid();
 ```
@@ -471,6 +485,7 @@ process. Each worker also runs the plugin constructors.
 
 A plugin can also implement `Greenlight\Plugin\Prioritized`:
 
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
 public function priority(): int;
 ```

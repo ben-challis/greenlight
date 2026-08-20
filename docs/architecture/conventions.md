@@ -68,6 +68,7 @@ from another throwable, preserve that text and its punctuation.
 
 An error message **MUST** enclose an interpolated identifier in double quotes:
 
+<!-- php-example {"mode":"display","reason":"Shows an error-message template rather than an executable statement."} -->
 ```php
 'Configuration file "%s" does not exist.'
 ```
@@ -114,6 +115,7 @@ or phase numbers. They **MUST** state the applicable constraint directly.
 Test method names **MUST** use sentence-style camelCase. Each name **MUST**
 describe the behavior:
 
+<!-- php-example {"mode":"display","reason":"Shows a test ID rather than an executable statement."} -->
 ```php
 bailStopsTheRunAfterTheThreshold
 ```

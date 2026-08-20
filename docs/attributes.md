@@ -12,6 +12,7 @@ Target: method.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 bool $capture = true
 ```
@@ -33,6 +34,7 @@ Set `capture: false` only when a test needs to control PHP's output buffer or
 error handler itself. With capture disabled, Greenlight does not record output
 or diagnostics for that test.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 public function totalsAreRounded(): void { ... }
@@ -76,6 +78,7 @@ Target: method.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 string $provider
 ?string $method = null
@@ -87,12 +90,14 @@ argument is its public static method:
 
 Provider class and method names MUST NOT be empty.
 
+<!-- php-example {"example":"attributes-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 #[DataSet('currencies')]
 ```
 
 or:
 
+<!-- php-example {"example":"attributes-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 #[DataSet(CurrencyDataSets::class, 'currencies')]
 ```
@@ -105,6 +110,7 @@ state in a provider.
 Each provider key names a data set and appears in test IDs and reports. Each
 provider value is the argument list for one test invocation.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 #[DataSet('currencies')]
@@ -120,6 +126,7 @@ public static function currencies(): iterable
 
 Use the two-argument form to share a provider between test classes:
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 final class CurrencyDataSets
 {
@@ -150,6 +157,7 @@ Repeatable.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 array $arguments
 ?string $label = null
@@ -170,6 +178,7 @@ calculated rows, ranges, or objects.
 You can use `#[DataRow]` and `#[DataSet]` on the same method. They use one
 data-set key space. Thus, duplicate keys cause a discovery error.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 #[DataRow([1, 2, 3], label: 'small')]
@@ -198,6 +207,7 @@ Repeatable.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 string $name
 ```
@@ -207,6 +217,7 @@ Tags a test method, or every test in a class, with a group name.
 Select groups at run time with `--group=<name>`. The flag is
 repeatable. `list-tests` applies the same filter.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Group('slow')]
 #[Group('io')]
@@ -219,6 +230,7 @@ Target: method or class.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 string $reason
 ```
@@ -235,6 +247,7 @@ Target: method or class.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 string $condition
 mixed ...$arguments
@@ -251,6 +264,7 @@ parallel workers. Another argument type causes a discovery error. The
 constructor MUST only store the arguments. The `isSatisfied()` method MUST
 evaluate the condition without side effects:
 
+<!-- php-example {"example":"attributes-example-14","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 interface Condition
 {
@@ -264,6 +278,7 @@ services.
 
 If the condition throws, the test has an error. Greenlight does not skip it.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 #[SkipUnless(RedisIsRunning::class)]
@@ -302,6 +317,7 @@ Target: method or class.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 int $times
 ?string $onlyOn = null
@@ -322,6 +338,7 @@ Each retry also starts `eventually()` and `consistently()` with a new deadline
 and an empty observation log. `retryOnException()` retries a probe within the
 same test attempt, while `#[Retry]` starts the whole test again.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 #[Retry(times: 2, onlyOn: NetworkException::class)]
@@ -334,6 +351,7 @@ Target: method or class.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 float $seconds
 ```
@@ -353,6 +371,7 @@ timeout. If the test timeout occurs first, the failure gives the requested
 duration. A blocked probe remains subject to the orchestrator hard-kill grace
 period.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]
 #[Timeout(seconds: 5.0)]
@@ -365,6 +384,7 @@ Target: method or class. Repeatable.
 
 Parameters:
 
+<!-- php-example {"mode":"display","reason":"Shows attribute parameters without the surrounding declaration."} -->
 ```php
 string $name
 ```
@@ -373,6 +393,7 @@ Marks a test that requires one slot of a named resource. A name must start with
 a lowercase letter or digit. After the first character, the name accepts dots,
 underscores, and hyphens.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[RequiresResource('postgres')]
 #[RequiresResource('payments-sandbox')]
@@ -421,6 +442,7 @@ Excludes the declaration from coverage. Greenlight removes ignored lines from
 the covered and executable totals. Thus, they do not change a percentage,
 export, or baseline diff.
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 final class Config
 {
@@ -429,6 +451,7 @@ final class Config
 }
 ```
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[CoverageIgnore]
 function dumpDebugState(): void { ... }

@@ -37,16 +37,19 @@ Use `file` when the fence represents a PHP file. The extractor adds `<?php` if
 the fence omits it.
 
 Use `statements` for statements that need a function body. The extractor puts
-the statements in a synthetic static closure.
+the statements in a synthetic static closure. It supplies a synthetic receiver
+for a fluent chain that starts with `->`, and it adds a final semicolon when the
+fragment omits one.
 
 Use `class-members` for properties or methods that need a class body. The
-extractor puts the members in a synthetic final class.
+extractor puts the members in a synthetic final class. Imports can precede the
+members. The extractor keeps the imports outside the class.
 
 Use `display` only when analysis would make the example less useful. A display
-example MUST give a nonempty `reason` and does not use the other fields. An
-unclassified PHP fence is also not checked, but the command reports the number
-of unclassified fences. This count supports gradual adoption without silently
-claiming full coverage.
+example MUST give a nonempty `reason` and does not use the other fields. Every
+PHP fence in a manually maintained document MUST have metadata. The command
+fails when metadata is absent. Generated reference documents are excluded from
+the inventory because their source generator owns their PHP examples.
 
 Undefined names in an otherwise complete example SHOULD be supplied in another
 file in the same virtual project. A short analysis-only support file MAY be in a
@@ -95,6 +98,13 @@ examples. Their caches are separate from normal source analysis. The Rector
 configuration shares only the rule policy with the repository configuration.
 The PHPStan configuration does not inherit repository-only checked-exception
 rules that do not apply to consumer examples.
+
+The documentation Rector configuration skips transformations that need the
+complete class or file. These transformations include strict-type declarations,
+closure simplification, readonly inference, unused promoted properties and
+variables, and dynamic property completion. Documentation fragments omit
+opening boilerplate and can show only the members that explain one feature.
+Other repository Rector rules still apply.
 
 `composer static-analysis` runs the documentation check before normal PHPStan,
 Rector, and dependency analysis. CI caches the documentation tool caches, but

@@ -122,6 +122,41 @@ final readonly class DocsPhpCheckTest
     }
 
     #[Test]
+    public function wrapsLeadingFluentChainsAndImportedClassMembers(): void
+    {
+        $project = $this->project('fragment-wrappers');
+        $project->write(
+            'docs/example.md',
+            <<<'MARKDOWN'
+            <!-- php-example {"example":"chain","file":"chain.php","mode":"statements","tools":[]} -->
+            ```php
+            ->first()
+                ->second()
+            ```
+
+            <!-- php-example {"example":"member","file":"member.php","mode":"class-members","tools":[]} -->
+            ```php
+            use Example\Dependency;
+
+            public function __construct(private Dependency $dependency) {}
+            ```
+
+            MARKDOWN,
+        );
+
+        $result = $this->run($project, 'extract');
+        Expect::that($result->exitCode)->because('wraps common documentation fragments')->toBe(0);
+        Expect::that($this->read($project, 'build/docs-php/chain/chain.php'))->toBe(
+            "<?php\n\n(static function () {\n    \$value\n    ->first()\n        ->second();\n})();\n",
+        );
+        Expect::that($this->read($project, 'build/docs-php/member/member.php'))->toContain(
+            "use Example\\Dependency;\nfinal class DocsExample_",
+        )->toContain(
+            "    public function __construct(private Dependency \$dependency) {}\n}\n",
+        );
+    }
+
+    #[Test]
     public function rendersGithubAnnotationsWhenRequested(): void
     {
         $project = $this->project('github-annotations');
@@ -178,7 +213,7 @@ final readonly class DocsPhpCheckTest
     }
 
     #[Test]
-    public function excludesGeneratedDocumentsAndReportsUnclassifiedFences(): void
+    public function excludesGeneratedDocumentsAndRejectsUnclassifiedFences(): void
     {
         $project = $this->project('inventory');
         $project->write(
@@ -203,9 +238,9 @@ final readonly class DocsPhpCheckTest
         );
 
         $result = $this->run($project, 'check');
-        Expect::that($result->exitCode)->because('skips PHP fences without analysis metadata')->toBe(0);
-        Expect::that($result->stdout)->toContain(
-            'Documentation PHP: 1 fence(s), 0 checked file(s), 0 display-only fence(s), 1 unclassified fence(s), 1 generated document(s).',
+        Expect::that($result->exitCode)->because('requires a decision for each manual PHP fence')->toBe(1);
+        Expect::that($result->stderr)->toContain(
+            'docs/manual.md:1: PHP fence requires php-example metadata.',
         );
     }
 

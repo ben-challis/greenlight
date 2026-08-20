@@ -46,6 +46,7 @@ return GreenlightConfig::create()
 
 These values are defaults. Thus, this configuration has the same result:
 
+<!-- php-example {"example":"getting-started-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create();
 ```
@@ -263,6 +264,7 @@ typed connection data through `Greenlight\Harness\IntegrationResources`.
 That keeps setup and teardown alive even when a worker crashes or is recycled.
 See [Writing plugins](plugins.md#integrationfixtureprovider).
 
+<!-- php-example {"example":"getting-started-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class OrderRepositoryTest
 {
@@ -285,11 +287,13 @@ and `app_test_2` do not conflict.
 Use `#[RequiresResource]` when several workers use one dependency with limited
 capacity:
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[RequiresResource('payments-sandbox')]
 final class PaymentGatewayTest { ... }
 ```
 
+<!-- php-example {"example":"getting-started-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create()
     ->workers(8)
@@ -333,6 +337,7 @@ leak to other tests or workers.
 * `StreamWrapperSandbox` registers PHP stream wrappers. It unregisters them in
   reverse registration order after the test.
 
+<!-- php-example {"example":"getting-started-example-08","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
@@ -364,6 +369,7 @@ unique directory.
 Ask for `Greenlight\Core\Test\Cleanup` through constructor injection. Call
 `defer()` immediately after the test acquires a resource.
 
+<!-- php-example {"example":"getting-started-example-09","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\Cleanup;

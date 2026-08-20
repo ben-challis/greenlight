@@ -91,17 +91,22 @@ final readonly class Workspace
             );
         }
 
-        $indented = $this->indent($snippet->body);
-
         if ($snippet->mode === 'statements') {
-            $prefix = "<?php\n\n(static function (): void {\n";
-            $generatedStartLine = 4;
+            $body = $this->completeStatement($snippet->body);
+            $leadingChain = \str_starts_with(\ltrim($body), '->');
+            $prefix = "<?php\n\n(static function () {\n";
+
+            if ($leadingChain) {
+                $prefix .= "    \$value\n";
+            }
+
+            $generatedStartLine = $leadingChain ? 5 : 4;
             $generatedEndLine = $generatedStartLine + $sourceLines - 1;
 
             return new MaterializedSnippet(
                 source: $snippet,
                 generatedPath: $generatedPath,
-                contents: $prefix . $indented . "})();\n",
+                contents: $prefix . $this->indent($body) . "})();\n",
                 generatedStartLine: $generatedStartLine,
                 generatedEndLine: $generatedEndLine,
                 syntheticRanges: [
@@ -112,20 +117,86 @@ final readonly class Workspace
         }
 
         $class = 'DocsExample_' . \substr(\sha1($snippet->example . '/' . $snippet->virtualFile), 0, 12);
+        $importedMembers = \preg_match(
+            '/\A((?:use [^;\n]+;\n)+)\n(?=(?:#\[|public |protected |private |static |readonly |var ))/',
+            $snippet->body,
+            $imports,
+        ) === 1;
+
+        if ($importedMembers) {
+            $importLines = \substr_count($imports[1], "\n");
+            $classLine = 2 + $importLines;
+            $members = \substr($snippet->body, \strlen($imports[0]));
+            $generatedStartLine = 2;
+            $generatedEndLine = $generatedStartLine + $sourceLines - 1;
+
+            return new MaterializedSnippet(
+                source: $snippet,
+                generatedPath: $generatedPath,
+                contents: "<?php\n" . $imports[1] . "final class {$class} {\n" . $this->indent($members) . "}\n",
+                generatedStartLine: $generatedStartLine,
+                generatedEndLine: $generatedEndLine,
+                syntheticRanges: [
+                    ['startLine' => 1, 'endLine' => 1],
+                    ['startLine' => $classLine, 'endLine' => $classLine],
+                    ['startLine' => $generatedEndLine + 1, 'endLine' => $generatedEndLine + 1],
+                ],
+            );
+        }
+
         $prefix = "<?php\n\nfinal class {$class}\n{\n";
         $generatedStartLine = 5;
         $generatedEndLine = $generatedStartLine + $sourceLines - 1;
+        $suffix = "}";
+        $syntheticEndLine = $generatedEndLine + 1;
+
+        if ($this->containsOnlyAttributes($snippet->body)) {
+            $suffix = "    public function example(): void {}\n}";
+            $syntheticEndLine = $generatedEndLine + 2;
+        }
 
         return new MaterializedSnippet(
             source: $snippet,
             generatedPath: $generatedPath,
-            contents: $prefix . $indented . "}\n",
+            contents: $prefix . $this->indent($snippet->body) . $suffix . "\n",
             generatedStartLine: $generatedStartLine,
             generatedEndLine: $generatedEndLine,
             syntheticRanges: [
                 ['startLine' => 1, 'endLine' => 4],
-                ['startLine' => $generatedEndLine + 1, 'endLine' => $generatedEndLine + 1],
+                ['startLine' => $generatedEndLine + 1, 'endLine' => $syntheticEndLine],
             ],
+        );
+    }
+
+    private function completeStatement(string $body): string
+    {
+        $trimmed = \trim($body);
+
+        if ($trimmed === '') {
+            return $body;
+        }
+
+        $last = $trimmed[\strlen($trimmed) - 1];
+        $needsSemicolon = !\in_array($last, [';', '}', ':'], true)
+            || (\str_starts_with($trimmed, 'static function') && $last === '}');
+
+        if (!$needsSemicolon) {
+            return $body;
+        }
+
+        return \rtrim($body, "\n") . ";\n";
+    }
+
+    private function containsOnlyAttributes(string $body): bool
+    {
+        $lines = \array_filter(
+            \array_map(\trim(...), \explode("\n", $body)),
+            static fn(string $line): bool => $line !== '',
+        );
+
+        return $lines !== [] && \array_all(
+            $lines,
+            static fn(string $line): bool => \str_starts_with($line, '#['),
         );
     }
 
@@ -139,7 +210,7 @@ final readonly class Workspace
                 continue;
             }
 
-            $indented .= '    ' . $line . "\n";
+            $indented .= $line === '' ? "\n" : '    ' . $line . "\n";
         }
 
         return $indented;

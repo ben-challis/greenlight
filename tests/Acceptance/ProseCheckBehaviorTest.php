@@ -728,7 +728,7 @@ final readonly class ProseCheckBehaviorTest
     }
 
     #[Test]
-    public function excludesGeneratedToolCaches(): void
+    public function excludesGeneratedAnalysisFiles(): void
     {
         $root = $this->workspace('tool-cache-exclusion');
         $this->write(
@@ -736,9 +736,14 @@ final readonly class ProseCheckBehaviorTest
             'build/cache/phpstan/cache.php',
             "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
         );
+        $this->write(
+            $root,
+            'build/docs-php/example/snippet.php',
+            "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
+        );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes generated tool caches')->toBe(0);
+        Expect::that($result->exitCode)->because('excludes generated analysis files')->toBe(0);
     }
 
     #[Test]

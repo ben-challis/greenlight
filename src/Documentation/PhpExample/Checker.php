@@ -36,9 +36,13 @@ final readonly class Checker
                 $diagnostics = [
                     ...$diagnostics,
                     ...$this->toolAnalyser->phpStan($root, $phpstan, $group),
-                    ...$this->toolAnalyser->rector($root, $rector, $group),
                 ];
             }
+
+            $diagnostics = [
+                ...$diagnostics,
+                ...$this->toolAnalyser->rector($root, $rector, $materialized),
+            ];
         }
 
         return new CheckResult($extraction, $materialized, $diagnostics);
