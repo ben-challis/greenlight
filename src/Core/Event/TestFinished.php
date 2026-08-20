@@ -9,7 +9,12 @@ use Greenlight\Core\Wire\Wire;
 
 final readonly class TestFinished implements Event
 {
-    public function __construct(public TestResult $result, public float $occurredAt) {}
+    public function __construct(public TestResult $result, public float $occurredAt)
+    {
+        if (!\is_finite($occurredAt)) {
+            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+        }
+    }
 
     #[\Override]
     public function toWire(): array
