@@ -13,6 +13,24 @@ final class CoverageJson
 {
     private function __construct() {}
 
+    public static function read(string $path): CoverageMap
+    {
+        $json = ErrorTrap::run(
+            static fn(): string|false => \file_get_contents($path),
+            $warning,
+        );
+
+        if (!\is_string($json)) {
+            Fail::because(\sprintf(
+                'Expected to read coverage JSON document "%s"%s.',
+                $path,
+                $warning === null ? '' : ': ' . $warning,
+            ));
+        }
+
+        return JsonExporter::import($json);
+    }
+
     public static function write(string $path, CoverageMap $map): void
     {
         $documents = new JsonExporter()->export($map);

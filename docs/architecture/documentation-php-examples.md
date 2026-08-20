@@ -1,0 +1,102 @@
+# Documentation PHP examples
+
+Greenlight checks selected PHP code fences with the PHP parser, PHPStan, and
+Rector. The check uses generated files because both tools operate most reliably
+on PHP files and projects. It does not change the documentation or extend the
+tools.
+
+The generated workspace is disposable. It is in `build/docs-php`, and its
+contents MUST NOT be committed. `composer docs:php:check` replaces this
+directory on each run.
+
+## Select an example
+
+Put one metadata comment immediately before a PHP fence. The comment is JSON so
+that invalid and unknown fields cause an error.
+
+```html
+<!-- php-example {"example":"getting-started","file":"src/Greeter.php","mode":"file","tools":["phpstan","rector"]} -->
+```
+
+`example` identifies a virtual project. Multiple fences MAY supply different
+files to the same project. This method lets one example define a class in one
+fence and use it in another fence. File paths MUST be unique within the project,
+and all files in one project MUST select the same tools.
+
+`file` is a stable path within the virtual project. It MUST end in `.php` and
+MUST NOT contain an absolute or parent path. Do not derive this value from the
+position of the fence. Stable names keep diagnostics and tool caches useful
+when prose moves.
+
+`tools` can contain `phpstan`, `rector`, both tools, or no tools. Every selected
+example is checked for PHP syntax before these tools run.
+
+## Choose a mode
+
+Use `file` when the fence represents a PHP file. The extractor adds `<?php` if
+the fence omits it.
+
+Use `statements` for statements that need a function body. The extractor puts
+the statements in a synthetic static closure.
+
+Use `class-members` for properties or methods that need a class body. The
+extractor puts the members in a synthetic final class.
+
+Use `display` only when analysis would make the example less useful. A display
+example MUST give a nonempty `reason` and does not use the other fields. An
+unclassified PHP fence is also not checked, but the command reports the number
+of unclassified fences. This count supports gradual adoption without silently
+claiming full coverage.
+
+Undefined names in an otherwise complete example SHOULD be supplied in another
+file in the same virtual project. A short analysis-only support file MAY be in a
+separate documentation fence. Use a PHPStan inline ignore only when the
+undefined name is the behavior that the documentation must show. Use `display`
+for pseudocode, deliberately invalid syntax, or fragments that no small wrapper
+can represent honestly.
+
+## Source mapping
+
+The extractor writes `build/docs-php/manifest.json`. Each entry records the
+documentation path, fence and body line range, source hash, generated path,
+selected tools, line mapping, and synthetic wrapper ranges. Entries and files
+have deterministic ordering and names.
+
+For a mapped generated line, the source line is:
+
+```text
+sourceStartLine + generatedLine - generatedStartLine
+```
+
+An error in an added opening tag or wrapper maps to the opening fence. PHPStan
+provides a generated file and line in its JSON output. Rector provides a file
+diff. The check uses the first old-file line in its first diff hunk. If Rector
+does not provide a usable hunk, the finding maps to the opening fence.
+
+The command prints `path:line` diagnostics locally and GitHub workflow error
+annotations in CI. It sorts diagnostics by source location so that parallel
+tool behavior cannot change the output order.
+
+## Rector policy
+
+Rector runs in dry-run mode. A finding means that an example does not follow
+the repository's current Rector policy. The check does not copy a generated
+edit into Markdown. Wrappers and indentation make automatic reverse patches
+hard to review, and a change can cross more than one virtual file.
+
+To apply a finding, edit the reported documentation fence and run
+`composer docs:php:check` again. The generated diff MAY be used as a reference,
+but `build/docs-php` is not a source directory.
+
+## Configuration and CI
+
+`phpstan.docs.neon` and `rector.docs.php` contain policy for documentation
+examples. Their caches are separate from normal source analysis. The Rector
+configuration shares only the rule policy with the repository configuration.
+The PHPStan configuration does not inherit repository-only checked-exception
+rules that do not apply to consumer examples.
+
+`composer static-analysis` runs the documentation check before normal PHPStan,
+Rector, and dependency analysis. CI caches the documentation tool caches, but
+it does not cache or publish the generated workspace. A clean extraction on
+each run removes stale virtual files.

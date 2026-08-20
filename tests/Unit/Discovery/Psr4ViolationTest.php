@@ -13,6 +13,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Fixture\SomewhereElse\MismatchTest;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class Psr4ViolationTest
 {
@@ -23,7 +24,7 @@ final readonly class Psr4ViolationTest
      */
     private function discoverFixture(string $fixture): \Closure
     {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/' . $fixture;
+        $directory = FixturePath::get($fixture);
 
         return static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]);
     }
@@ -65,7 +66,7 @@ final readonly class Psr4ViolationTest
     #[Test]
     public function unreadableClassFileProducesATypedErrorNamingTheFile(): void
     {
-        $missing = \dirname(__DIR__, 2) . '/Fixture/MissingTest.php';
+        $missing = FixturePath::get('MissingTest.php');
 
         Expect::that(static fn(): array => ClassFileParser::declarationsIn($missing))
             ->because('an unreadable class file produces a typed error naming the file')

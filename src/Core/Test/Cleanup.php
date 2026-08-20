@@ -14,9 +14,7 @@ namespace Greenlight\Core\Test;
  */
 final class Cleanup
 {
-    /**
-     * @var list<\Closure(): void>
-     */
+    /** @var list<\Closure> */
     private array $callbacks = [];
 
     private bool $closed = false;
@@ -24,8 +22,11 @@ final class Cleanup
     /**
      * Register cleanup immediately after the test acquires a resource. This
      * makes cleanup available if a later operation fails.
+     * Greenlight ignores the callback return value.
      *
-     * @param \Closure(): void $cleanup
+     * @template TReturn
+     *
+     * @param \Closure(): TReturn $cleanup
      *
      * @throws \LogicException If test cleanup has started.
      */

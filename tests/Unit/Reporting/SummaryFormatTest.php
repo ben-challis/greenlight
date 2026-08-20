@@ -51,8 +51,8 @@ final class SummaryFormatTest
     public function aSingleTestPerReasonStaysInline(): void
     {
         $block = SummaryFormat::skipped([
-            $this->skip('App\AlphaTest::one', 'needs redis'),
-            $this->skip('App\BetaTest::two', null),
+            $this->skip('App\AlphaTest', 'one', 'needs redis'),
+            $this->skip('App\BetaTest', 'two', null),
         ], new Style(ansi: false));
 
         Expect::that($block)->because('a single test per reason stays inline')->toBe(
@@ -66,7 +66,7 @@ final class SummaryFormatTest
     public function zeroStringSkipReasonsRemainDistinctFromNoReason(): void
     {
         $block = SummaryFormat::skipped([
-            $this->skip('App\AlphaTest::one', '0'),
+            $this->skip('App\AlphaTest', 'one', '0'),
         ], new Style(ansi: false));
 
         Expect::that($block)
@@ -83,7 +83,7 @@ final class SummaryFormatTest
         $results = [];
 
         for ($i = 1; $i <= 7; ++$i) {
-            $results[] = $this->skip(\sprintf('App\GammaTest::case%d', $i), 'xdebug not loaded');
+            $results[] = $this->skip('App\GammaTest', \sprintf('case%d', $i), 'xdebug not loaded');
         }
 
         $block = SummaryFormat::skipped($results, new Style(ansi: false));
@@ -100,7 +100,7 @@ final class SummaryFormatTest
         $five = [];
 
         for ($i = 1; $i <= 5; ++$i) {
-            $five[] = $this->skip(\sprintf('App\DeltaTest::case%d', $i), 'shared reason');
+            $five[] = $this->skip('App\DeltaTest', \sprintf('case%d', $i), 'shared reason');
         }
 
         Expect::that(SummaryFormat::skipped($five, new Style(ansi: false)))->because('exactly five lists all without overflow')->toBe(
@@ -120,7 +120,7 @@ final class SummaryFormatTest
         $six = [];
 
         for ($i = 1; $i <= 6; ++$i) {
-            $six[] = $this->skip(\sprintf('App\DeltaTest::case%d', $i), 'shared reason');
+            $six[] = $this->skip('App\DeltaTest', \sprintf('case%d', $i), 'shared reason');
         }
 
         Expect::that(SummaryFormat::skipped($six, new Style(ansi: false)))->because('six lists five and reports one overflow')->toBe(
@@ -192,13 +192,11 @@ final class SummaryFormatTest
     }
 
     /**
-     * @param non-empty-string $id
+     * @param non-empty-string $class
+     * @param non-empty-string $method
      */
-    private function skip(string $id, ?string $reason): TestResult
+    private function skip(string $class, string $method, ?string $reason): TestResult
     {
-        [$class, $method] = \explode('::', $id);
-        \assert($class !== '' && $method !== '');
-
         return new TestResult(new TestId($class, $method), Outcome::Skipped, 0.0, 0, skipReason: $reason);
     }
 }

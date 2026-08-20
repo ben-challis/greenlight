@@ -8,6 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -21,7 +22,10 @@ final readonly class InterruptionTest
 {
     private const float DEADLINE_SECONDS = 30.0;
 
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     /**
      * @param list<string> $expectedDiagnostics
@@ -48,69 +52,66 @@ final readonly class InterruptionTest
             ['run', '--workers=2', '--reporter=jsonl'],
             ['TMPDIR' => $tmp],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $deadline = \microtime(true) + self::DEADLINE_SECONDS;
+        $deadline = \microtime(true) + self::DEADLINE_SECONDS;
 
-            // A marker makes standard output available before the buffer is
-            // full. A test-finished line can delay SIGINT until after the run
-            // ends.
-            while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
-                $process->pump();
-                \usleep(5_000);
-            }
-
-            if (\glob($markerDir . '/*.started') === []) {
-                Fail::because(\sprintf(
-                    'Timed out after %.1fs waiting for a fixture test to start.',
-                    self::DEADLINE_SECONDS,
-                ));
-            }
-
-            $process->signal(\SIGINT);
-            $result = $process->wait(self::DEADLINE_SECONDS);
-
-            Expect::that($result->stdout)
-                ->because('The interrupted run MUST report a finished test.')
-                ->toContain('"test-finished"');
-            Expect::that($result->exitCode)
-                ->because('SIGINT MUST produce exit code 130.')
-                ->toBe(130);
-
-            foreach ($expectedDiagnostics as $diagnostic) {
-                Expect::that($result->stderr)
-                    ->because('SIGINT MUST report each interruption diagnostic.')
-                    ->toContain($diagnostic);
-            }
-
-            $workerPids = $this->spawnedWorkerPids(JsonlEvents::from($result));
-            Expect::that($workerPids)
-                ->because('The interrupted run MUST start at least one worker.')
-                ->not()
-                ->toBeEmpty();
-
-            foreach ($workerPids as $pid) {
-                $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
-                Expect::that(\trim($alive->stdout))
-                    ->because(\sprintf('Worker process %d MUST NOT exist after the run exits.', $pid))
-                    ->toBe('');
-            }
-
-            $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
-            Expect::that(\is_array($sockets) ? $sockets : [])
-                ->because('The interrupted run MUST remove its orchestrator socket.')
-                ->toBe([]);
-            $cleaned = \file($markerDir . '/cleaned.log', \FILE_IGNORE_NEW_LINES);
-            Expect::that(\is_array($cleaned) ? $cleaned : [])
-                ->because('The interrupted run MUST clean its integration fixtures.')
-                ->toBe(['cleaned']);
-            $resources = \glob($markerDir . '/resource-*');
-            Expect::that(\is_array($resources) ? $resources : [])
-                ->because('The interrupted run MUST remove its integration fixture resources.')
-                ->toBe([]);
-        } finally {
-            $process->terminate();
+        // A marker makes standard output available before the buffer is
+        // full. A test-finished line can delay SIGINT until after the run
+        // ends.
+        while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
+            $process->pump();
+            \usleep(5_000);
         }
+
+        if (\glob($markerDir . '/*.started') === []) {
+            Fail::because(\sprintf(
+                'Timed out after %.1fs waiting for a fixture test to start.',
+                self::DEADLINE_SECONDS,
+            ));
+        }
+
+        $process->signal(\SIGINT);
+        $result = $process->wait(self::DEADLINE_SECONDS);
+
+        Expect::that($result->stdout)
+            ->because('The interrupted run MUST report a finished test.')
+            ->toContain('"test-finished"');
+        Expect::that($result->exitCode)
+            ->because('SIGINT MUST produce exit code 130.')
+            ->toBe(130);
+
+        foreach ($expectedDiagnostics as $diagnostic) {
+            Expect::that($result->stderr)
+                ->because('SIGINT MUST report each interruption diagnostic.')
+                ->toContain($diagnostic);
+        }
+
+        $workerPids = $this->spawnedWorkerPids(JsonlEvents::from($result));
+        Expect::that($workerPids)
+            ->because('The interrupted run MUST start at least one worker.')
+            ->not()
+            ->toBeEmpty();
+
+        foreach ($workerPids as $pid) {
+            $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
+            Expect::that(\trim($alive->stdout))
+                ->because(\sprintf('Worker process %d MUST NOT exist after the run exits.', $pid))
+                ->toBe('');
+        }
+
+        $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
+        Expect::that(\is_array($sockets) ? $sockets : [])
+            ->because('The interrupted run MUST remove its orchestrator socket.')
+            ->toBe([]);
+        $cleaned = \file($markerDir . '/cleaned.log', \FILE_IGNORE_NEW_LINES);
+        Expect::that(\is_array($cleaned) ? $cleaned : [])
+            ->because('The interrupted run MUST clean its integration fixtures.')
+            ->toBe(['cleaned']);
+        $resources = \glob($markerDir . '/resource-*');
+        Expect::that(\is_array($resources) ? $resources : [])
+            ->because('The interrupted run MUST remove its integration fixture resources.')
+            ->toBe([]);
     }
 
     /**

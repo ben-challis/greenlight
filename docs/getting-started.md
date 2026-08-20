@@ -28,6 +28,7 @@ typed builder.
 
 Create this minimum configuration:
 
+<!-- php-example {"example":"getting-started","file":"greenlight.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
 <?php
 
@@ -64,6 +65,7 @@ them.
 
 Create this small class:
 
+<!-- php-example {"example":"getting-started","file":"src/Greeter.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
 <?php
 
@@ -90,6 +92,7 @@ Save the file as `src/Greeter.php`.
 
 Create a test for both results of the public method:
 
+<!-- php-example {"example":"getting-started","file":"tests/GreeterTest.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
 <?php
 
@@ -325,6 +328,10 @@ leak to other tests or workers.
   the directory after the test.
 * `EnvironmentSandbox` changes environment variables in `getenv`, `$_ENV`, and
   `$_SERVER`. It restores the original values after the test.
+* `AutoloaderSandbox` registers PHP autoloaders. It unregisters them in reverse
+  registration order after the test.
+* `StreamWrapperSandbox` registers PHP stream wrappers. It unregisters them in
+  reverse registration order after the test.
 
 ```php
 use Greenlight\Fixture\EnvironmentSandbox;

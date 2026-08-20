@@ -426,13 +426,11 @@ final class PluginTest
         Expect::install([new EvenNumbersExtension()]);
 
         try {
-            // Dispatch uses __call because static analysis cannot resolve dynamic
-            // matchers.
-            Expect::that(4)->__call('toBeEven', []);
-            Expect::that(3)->not()->__call('toBeEven', []);
+            Expect::that(4)->toBeEven();
+            Expect::that(3)->not()->toBeEven();
 
             Expect::that(static function (): void {
-                Expect::that(3)->__call('toBeEven', []);
+                Expect::that(3)->toBeEven();
             })->toThrow(ExpectationFailed::class, matching: '/extension matcher toBeEven/');
 
             Expect::that(static fn(): Expectation => Expect::that(3)->__call('toBeSomethingUnknown', []))

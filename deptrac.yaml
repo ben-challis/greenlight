@@ -81,6 +81,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Rector/.*
+    - name: Documentation
+      collectors:
+        - type: directory
+          value: src/Documentation/.*
     - name: Symfony
       collectors:
         - type: directory
@@ -174,6 +178,7 @@ deptrac:
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Core, Attribute, Config, Doubles, Expect, PhpStanFramework, PhpParserFramework]
     Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]
+    Documentation: []
     Symfony: [Core, Harness, Plugin, SymfonyFramework]
     Laravel: [Core, Harness, Plugin, LaravelFramework]
     Hyperf: [Core, Harness, Plugin, HyperfFramework, PsrFramework, SwooleFramework, ComposerRuntime]

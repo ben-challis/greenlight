@@ -22,6 +22,10 @@ final readonly class SuiteFinished implements Event
             throw new \InvalidArgumentException('Suite name MUST NOT be empty.');
         }
 
+        if (!\is_finite($occurredAt)) {
+            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+        }
+
         $this->suite = $suite;
     }
 

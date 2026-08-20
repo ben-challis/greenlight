@@ -132,7 +132,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L45)
 
 ### `fromWire()`
 
@@ -141,7 +141,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L56)
 
 ## `RunStarted`
 
@@ -230,7 +230,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L63)
 
 ### `fromWire()`
 
@@ -239,7 +239,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L75)
 
 ## `SuiteFinished`
 
@@ -290,7 +290,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L32)
 
 ### `fromWire()`
 
@@ -299,7 +299,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L41)
 
 ## `SuiteStarted`
 
@@ -350,7 +350,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L32)
 
 ### `fromWire()`
 
@@ -359,7 +359,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L41)
 
 ## `TestClassFinished`
 
@@ -423,7 +423,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L38)
 
 ### `fromWire()`
 
@@ -432,7 +432,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L48)
 
 ## `TestClassStarted`
 
@@ -496,7 +496,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L38)
 
 ### `fromWire()`
 
@@ -505,7 +505,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L48)
 
 ## `TestFinished`
 
@@ -548,7 +548,7 @@ public function __construct(public TestResult $result, public float $occurredAt)
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L19)
 
 ### `fromWire()`
 
@@ -557,7 +557,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L28)
 
 ## `TestStarted`
 
@@ -600,7 +600,7 @@ public function __construct(public TestId $id, public float $occurredAt)
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L19)
 
 ### `fromWire()`
 
@@ -609,7 +609,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L28)
 
 ## `WorkerRecycled`
 
@@ -672,7 +672,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L35)
 
 ### `fromWire()`
 
@@ -681,7 +681,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L45)
 
 ## `WorkerSpawned`
 
@@ -748,7 +748,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L45)
 
 ### `fromWire()`
 
@@ -757,4 +757,4 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L55)

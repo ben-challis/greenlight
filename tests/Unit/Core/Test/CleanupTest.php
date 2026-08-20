@@ -59,6 +59,26 @@ final readonly class CleanupTest
     }
 
     #[Test]
+    public function closeIgnoresCallbackReturnValues(): void
+    {
+        $cleanup = new Cleanup();
+        $trace = [];
+        $cleanup->defer(static function () use (&$trace): void {
+            $trace[] = 'void';
+        });
+        $cleanup->defer(static function () use (&$trace): string {
+            $trace[] = 'value';
+
+            return 'ignored';
+        });
+
+        $failures = $cleanup->close();
+
+        Expect::that($trace)->toBe(['value', 'void']);
+        Expect::that($failures)->toBe([]);
+    }
+
+    #[Test]
     public function deferRejectsRegistrationAfterCleanupStarts(): void
     {
         $cleanup = new Cleanup();

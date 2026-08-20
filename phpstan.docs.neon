@@ -1,0 +1,12 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - extension.neon
+
+parameters:
+    level: max
+    tmpDir: build/cache/phpstan-docs
+    scanFiles:
+        - stubs/tempest.stub.php
+        - tools/phpstan-stubs/hyperf.php

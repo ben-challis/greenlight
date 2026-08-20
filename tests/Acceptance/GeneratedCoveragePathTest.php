@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class GeneratedCoveragePathTest
@@ -35,27 +35,14 @@ final readonly class GeneratedCoveragePathTest
             ->because('coverage MUST collect source generated during the run')
             ->toBe(0);
 
-        $json = \file_get_contents($project->path('coverage.json'));
-
-        if ($json === false) {
-            Fail::because('Expected a readable coverage JSON export.');
-        }
-
-        /** @var array{files: array<string, array{covered: list<int>}>} $decoded */
-        $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
-        $generatedFile = null;
-
-        foreach ($decoded['files'] as $file => $lines) {
-            if ($file === $generatedDirectory . '/RuntimeSource.php') {
-                $generatedFile = $lines;
-            }
-        }
+        $generatedFile = CoverageJson::read($project->path('coverage.json'))
+            ->files()[$generatedDirectory . '/RuntimeSource.php'] ?? null;
 
         Expect::that($generatedFile)
-            ->because('the export MUST contain the generated source')
+            ->because('The coverage export MUST contain generated/RuntimeSource.php.')
             ->not()
             ->toBeNull();
-        Expect::that($generatedFile['covered'])
+        Expect::that($generatedFile->coveredLines)
             ->because('the generated source MUST contain covered lines')
             ->not()
             ->toHaveCount(0);

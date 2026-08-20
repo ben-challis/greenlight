@@ -6,14 +6,17 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Tests\Support\MemoryStream;
 
-final class JsonFrameCodecTest
+final readonly class JsonFrameCodecTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function encodingSubstitutesInvalidUtf8AtTheProtocolBoundary(): void
     {
@@ -53,17 +56,14 @@ final class JsonFrameCodecTest
     public function unsupportedPayloadValuesProduceAProtocolError(): void
     {
         $stream = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
-        try {
-            Expect::that(static fn(): string => new JsonFrameCodec()->encode(['stream' => $stream]))
-                ->because('unsupported JSON values produce a protocol error')
-                ->toThrow(
-                    ProtocolError::class,
-                    matching: '/Malformed frame: Greenlight cannot encode the payload as JSON:/',
-                );
-        } finally {
-            MemoryStream::close($stream);
-        }
+        Expect::that(static fn(): string => new JsonFrameCodec()->encode(['stream' => $stream]))
+            ->because('unsupported JSON values produce a protocol error')
+            ->toThrow(
+                ProtocolError::class,
+                matching: '/Malformed frame: Greenlight cannot encode the payload as JSON:/',
+            );
     }
 
     #[Test]

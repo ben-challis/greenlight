@@ -6,6 +6,39 @@ This reference lists fixtures and harness service contracts.
 
 These signatures are the public API.
 
+## `AutoloaderSandbox`
+
+Namespace: `Greenlight\Fixture`
+
+Registers autoloaders and unregisters them when the test scope closes.
+
+```php
+final class AutoloaderSandbox implements Disposable
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/AutoloaderSandbox.php#L12)
+
+### `register()`
+
+```php
+public function register(callable $autoloader): void
+```
+
+PHPDoc:
+
+- `@param callable(string): void $autoloader`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/AutoloaderSandbox.php#L18)
+
+### `dispose()`
+
+```php
+[\Override]
+public function dispose(): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Fixture/AutoloaderSandbox.php#L24)
+
 ## `EnvironmentSandbox`
 
 Namespace: `Greenlight\Fixture`

@@ -188,8 +188,6 @@ each attempt. It always runs inside a coroutine.
 The bridge does not reset application static properties or global variables.
 Reset these values in an `#[After]` hook or the `reset:` callback.
 
-The bridge does not isolate databases, queues, caches, or remote services.
-
 ## Parallel resources
 
 Workers run tests at the same time. Use `GREENLIGHT_CHANNEL` in Hyperf
@@ -218,7 +216,4 @@ The bridge does not provide:
 
 * A live Swoole HTTP server or server worker events
 * Concurrent test attempts inside one Greenlight worker
-* Hyperf `co-phpunit` or PHPUnit helper traits
 * Swow coroutine execution
-* Database transactions or schema creation
-* Automatic cleanup of application static state or external resources

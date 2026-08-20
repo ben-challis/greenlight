@@ -9,11 +9,15 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Fixture\TempDirectory;
 
 final readonly class TestDiscovererLoadedClassTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private AutoloaderSandbox $autoloaders,
+    ) {}
 
     #[Test]
     public function unresolvedClassPathsCannotMasqueradeAsTheSameFile(): void
@@ -49,23 +53,19 @@ final readonly class TestDiscovererLoadedClassTest
                 \unlink($expectedFile);
             }
         };
-        \spl_autoload_register($loader);
+        $this->autoloaders->register($loader);
 
-        try {
-            Expect::that(
-                static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
-            )->because('discovery MUST reject class paths that it cannot resolve')->toThrow(
-                DiscoveryError::class,
-                message: \sprintf(
-                    'The autoloader loaded class "%s" from "%s". It expected the class in "%s". Only one file can declare a class.',
-                    $class,
-                    $actualFile,
-                    $expectedFile,
-                ),
-            );
-        } finally {
-            \spl_autoload_unregister($loader);
-        }
+        Expect::that(
+            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
+        )->because('discovery MUST reject class paths that it cannot resolve')->toThrow(
+            DiscoveryError::class,
+            message: \sprintf(
+                'The autoloader loaded class "%s" from "%s". It expected the class in "%s". Only one file can declare a class.',
+                $class,
+                $actualFile,
+                $expectedFile,
+            ),
+        );
     }
 
     #[Test]
@@ -96,22 +96,18 @@ final readonly class TestDiscovererLoadedClassTest
                 require_once $actualFile;
             }
         };
-        \spl_autoload_register($loader);
+        $this->autoloaders->register($loader);
 
-        try {
-            Expect::that(
-                static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
-            )->because('discovery MUST reject a class that the autoloader loaded from another file')->toThrow(
-                DiscoveryError::class,
-                message: \sprintf(
-                    'The autoloader loaded class "%s" from "%s". It expected the class in "%s". Only one file can declare a class.',
-                    $class,
-                    $actualFile,
-                    $expectedFile,
-                ),
-            );
-        } finally {
-            \spl_autoload_unregister($loader);
-        }
+        Expect::that(
+            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
+        )->because('discovery MUST reject a class that the autoloader loaded from another file')->toThrow(
+            DiscoveryError::class,
+            message: \sprintf(
+                'The autoloader loaded class "%s" from "%s". It expected the class in "%s". Only one file can declare a class.',
+                $class,
+                $actualFile,
+                $expectedFile,
+            ),
+        );
     }
 }
