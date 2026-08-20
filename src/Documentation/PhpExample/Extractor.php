@@ -15,7 +15,6 @@ final readonly class Extractor
     {
         $snippets = [];
         $phpFences = 0;
-        $unclassifiedFences = 0;
         $displayFences = 0;
         $generatedDocuments = 0;
         $virtualFiles = [];
@@ -76,10 +75,11 @@ final readonly class Extractor
                 $metadata = $this->metadata($metadataLine, $relativePath, $index);
 
                 if ($metadata === null) {
-                    ++$unclassifiedFences;
-                    $index = $closingIndex;
-
-                    continue;
+                    throw new DocumentationExampleError(\sprintf(
+                        '%s:%d: PHP fence requires php-example metadata.',
+                        $relativePath,
+                        $index + 1,
+                    ));
                 }
 
                 $mode = $this->stringField($metadata, 'mode', $relativePath, $index);
@@ -171,7 +171,6 @@ final readonly class Extractor
         return new Extraction(
             snippets: $snippets,
             phpFences: $phpFences,
-            unclassifiedFences: $unclassifiedFences,
             displayFences: $displayFences,
             generatedDocuments: $generatedDocuments,
         );

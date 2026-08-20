@@ -11,6 +11,7 @@ install a container implementation.
 
 Register `Psr11Plugin` with a factory that returns the application container:
 
+<!-- php-example {"example":"psr-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Psr\Psr11Plugin;
@@ -38,6 +39,7 @@ The plugin also works with
 
 Declare the dependency by type:
 
+<!-- php-example {"example":"psr-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class RegistrationTest
 {
@@ -60,6 +62,7 @@ reports a type mismatch before the test runs.
 
 Use `#[Service]` when the container ID differs from the parameter type:
 
+<!-- php-example {"example":"psr-example-03","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 use Greenlight\Psr\Service;
 
@@ -76,6 +79,7 @@ type-based ID lets the next service resolver try to supply the parameter.
 
 Greenlight supplies `Psr\Container\ContainerInterface` as a harness service:
 
+<!-- php-example {"example":"psr-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 public function __construct(private readonly ContainerInterface $container) {}
 ```
@@ -90,6 +94,7 @@ The next test creates a new container from the factory.
 
 Use `reset:` to reset container state before the bridge discards the container:
 
+<!-- php-example {"example":"psr-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new Psr11Plugin(
     static fn(): ContainerInterface => require __DIR__ . '/config/container.php',
@@ -105,6 +110,7 @@ container even if the callback throws.
 If services keep no test state or `reset:` removes all state, set
 `refreshBetweenTests` to `false`. The worker then keeps one container:
 
+<!-- php-example {"example":"psr-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new Psr11Plugin(
     static fn(): ContainerInterface => require __DIR__ . '/config/container.php',

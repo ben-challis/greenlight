@@ -20,6 +20,7 @@ blocks, `markTestSkipped()`, and `fail()`.
 
 Register the rule in a `rector.php` file that selects your test directories:
 
+<!-- php-example {"example":"migrating-from-phpunit-example-01","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
 <?php
 
@@ -56,6 +57,7 @@ A custom failure message on an assertion has no Greenlight equivalent. By
 default, a message prevents the conversion of the class. Use this
 configuration to remove the messages:
 
+<!-- php-example {"example":"migrating-from-phpunit-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
     ->withConfiguredRule(PhpUnitToGreenlightRector::class, [
         PhpUnitToGreenlightRector::DROP_ASSERTION_MESSAGES => true,
@@ -121,6 +123,7 @@ enable parallel workers.
 Expectations start with `Expect::that()`. They do not use methods on the test
 class.
 
+<!-- php-example {"mode":"display","reason":"Compares partial PHPUnit and Greenlight expressions side by side."} -->
 ```php
 // PHPUnit                                                // Greenlight
 $this->assertSame('a', $value);                           Expect::that($value)->toBe('a');
@@ -176,6 +179,7 @@ previous throwable, and other throwable state.
 
 Replace this pattern:
 
+<!-- php-example {"example":"migrating-from-phpunit-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 try {
     $fixtureManager->start();
@@ -190,6 +194,7 @@ try {
 
 Use this expectation:
 
+<!-- php-example {"example":"migrating-from-phpunit-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that(fn() => $fixtureManager->start())
     ->toThrow(
@@ -204,6 +209,7 @@ The callback runs only after the throwable type matches.
 
 Replace manual `sleep()` calls or retry loops with `eventually()`:
 
+<!-- php-example {"example":"migrating-from-phpunit-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::eventually(fn() => $repository->find($id))
     ->within(2.0)
@@ -236,6 +242,7 @@ callback receives the call arguments.
 
 Replace argument constraints with `Greenlight\Doubles\Argument`:
 
+<!-- php-example {"mode":"display","reason":"Compares partial PHPUnit and Greenlight expressions side by side."} -->
 ```php
 // PHPUnit                                          // Greenlight
 $mock->method('save')->with($this->anything());     $plan->expects('save')->with(Argument::any());
@@ -246,6 +253,7 @@ $this->equalTo($expected)                           Argument::equals($expected)
 
 Use a captured argument instead of callback inspection:
 
+<!-- php-example {"example":"migrating-from-phpunit-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $captor = $plan->expects('save')->once()->andReturns(true)->captureArgument(0);
 // ... exercise the subject ...
@@ -263,6 +271,7 @@ does not create a return value.
 Read records with `$this->doubles->callsTo($spy, 'method')`. Check the records
 with `Expect`.
 
+<!-- php-example {"example":"migrating-from-phpunit-example-09","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $gateway = $this->doubles->mock(PaymentGateway::class, function (MockPlan $plan) use ($amount, $ok) {
     $plan->expects('charge')->with($amount)->once()->andReturns($ok);

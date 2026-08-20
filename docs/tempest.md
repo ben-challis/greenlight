@@ -23,6 +23,7 @@ composer require tempest/framework:^3.18
 
 Register the plugin in `greenlight.php` with the application root:
 
+<!-- php-example {"example":"tempest-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Tempest\TempestPlugin;
@@ -51,6 +52,7 @@ test. A test can replace this request in the container.
 Tempest discovers application and package namespaces from Composer metadata.
 Pass additional locations when test fixtures are outside these namespaces:
 
+<!-- php-example {"example":"tempest-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Tempest\Discovery\DiscoveryLocation;
 
@@ -68,6 +70,7 @@ Tempest adds these locations during discovery.
 
 Declare application dependencies by type:
 
+<!-- php-example {"example":"tempest-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class RegistrationTest
 {
@@ -90,6 +93,7 @@ error contains the Tempest container error as its cause.
 
 Use the Tempest `#[Tag]` attribute to select a tagged service:
 
+<!-- php-example {"example":"tempest-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 use Tempest\Container\Tag;
 
@@ -106,6 +110,7 @@ have the declared parameter type.
 Greenlight supplies `Tempest\Core\Kernel` and
 `Tempest\Container\Container` as harness services for each run:
 
+<!-- php-example {"example":"tempest-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 public function __construct(
     private readonly Kernel $kernel,

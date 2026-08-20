@@ -12,6 +12,7 @@ Laravel.
 
 Register the plugin in `greenlight.php` with your application bootstrap file:
 
+<!-- php-example {"example":"laravel-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Laravel\LaravelPlugin;
@@ -25,6 +26,7 @@ The bootstrap file is the standard Laravel entry point. It returns the result
 of `Application::configure(...)->create()`. Use a closure when the application
 needs custom construction:
 
+<!-- php-example {"example":"laravel-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new LaravelPlugin(static fn(): Application => Application::configure(basePath: __DIR__)
     ->withProviders([App\Providers\AppServiceProvider::class])
@@ -50,6 +52,7 @@ individual `illuminate/*` components.
 
 Declare the dependency by type:
 
+<!-- php-example {"example":"laravel-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 final class RegistrationTest
 {
@@ -76,6 +79,7 @@ Type alone cannot select some services. Examples include string-id-only
 services, interfaces with multiple implementations, and aliased services. Use
 `#[Service]` to name the service explicitly:
 
+<!-- php-example {"example":"laravel-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 use Greenlight\Laravel\Service;
 
@@ -94,6 +98,7 @@ service. The service scope is per-test, or per-run when `refreshBetweenTests`
 is false. Tests can use it to inspect the environment or the container
 directly:
 
+<!-- php-example {"example":"laravel-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
 public function __construct(private readonly Application $app) {}
 ```
@@ -137,6 +142,7 @@ Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. It is a stable
 number from 1 through the worker count, and no two concurrent tests use the same
 channel. Use it in normal Laravel configuration to key shared resources:
 
+<!-- php-example {"mode":"display","reason":"Shows one entry from a larger PHP configuration array."} -->
 ```php
 // config/database.php
 'database' => env('DB_DATABASE', 'app') . '_test_' . env('GREENLIGHT_CHANNEL', '1'),
@@ -153,11 +159,13 @@ remain for the complete test run.
 If a service cannot be split per channel, mark the classes that use it with
 `#[RequiresResource]`. Configure its safe concurrency:
 
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[RequiresResource('payments-sandbox')]
 final class PaymentGatewayTest { ... }
 ```
 
+<!-- php-example {"example":"laravel-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);

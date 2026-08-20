@@ -3,6 +3,7 @@
 A Greenlight expectation starts with a subject value. It applies one or more
 typed matchers to that value:
 
+<!-- php-example {"example":"expectations-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Expect\Expect;
 
@@ -17,6 +18,7 @@ them.
 
 Matchers in a chain use the same subject:
 
+<!-- php-example {"example":"expectations-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($response->body())
     ->toBeString()
@@ -27,6 +29,7 @@ Start a separate expectation for each subject.
 
 `not()` negates the next matcher only:
 
+<!-- php-example {"example":"expectations-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($errors)
     ->not()->toBeEmpty()
@@ -35,6 +38,7 @@ Expect::that($errors)
 
 `because()` adds a reason to the next matcher only:
 
+<!-- php-example {"example":"expectations-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($order->isOpen())
     ->because('a refund requires an open order')
@@ -137,6 +141,7 @@ structures with `toEqual()` semantics. JSON object key order does not matter.
 
 `toThrow()` invokes a callable subject and checks the throwable type:
 
+<!-- php-example {"example":"expectations-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that(fn() => $service->load('missing'))
     ->toThrow(NotFound::class);
@@ -144,6 +149,7 @@ Expect::that(fn() => $service->load('missing'))
 
 Pass a Throwable instance to require the callable to throw that exact object:
 
+<!-- php-example {"example":"expectations-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $failure = new DomainException('Order is closed.');
 
@@ -153,6 +159,7 @@ Expect::that(fn() => throw $failure)
 
 Constrain the message by exact value or regular expression:
 
+<!-- php-example {"example":"expectations-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that($callback)->toThrow(
     DomainException::class,
@@ -172,6 +179,7 @@ object.
 A typed callback can specify the throwable type and check the caught
 throwable. Greenlight runs it only after the throwable type matches:
 
+<!-- php-example {"example":"expectations-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::that(fn() => $fixtureManager->start())
     ->toThrow(
@@ -202,6 +210,7 @@ instance. It passes when the callable throws the specified object.
 `Expect::eventually()` calls a probe immediately. It then polls until its
 matcher passes or `within()` expires:
 
+<!-- php-example {"example":"expectations-example-09","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::eventually(fn() => $repository->find($id))
     ->pollEvery(0.100)
@@ -212,6 +221,7 @@ Expect::eventually(fn() => $repository->find($id))
 The default poll interval is 25 ms. A probe exception stops the polls unless
 `retryOnException()` lists its type:
 
+<!-- php-example {"example":"expectations-example-10","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::eventually(fn() => $client->fetch($id))
     ->retryOnException(NotFoundYet::class)
@@ -224,6 +234,7 @@ Expect::eventually(fn() => $client->fetch($id))
 `Expect::consistently()` requires the first probe result to match, then checks
 for the full duration:
 
+<!-- php-example {"example":"expectations-example-11","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 Expect::consistently(fn() => $outbox->messagesFor($id))
     ->pollEvery(0.050)
@@ -242,6 +253,7 @@ duration. The worker timeout remains the hard limit for a blocked probe.
 If a test reaches an invalid state that does not fit a matcher, use
 `Fail::because()`:
 
+<!-- php-example {"example":"expectations-example-12","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Expect\Fail;
 

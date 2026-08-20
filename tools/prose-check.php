@@ -7,6 +7,7 @@ const PROSE_EXCLUDED_DIRECTORIES = [
     '.git',
     '.phpstan-api-stubs',
     'build/cache',
+    'build/docs-php',
     'tests/Fixture',
     'website/.astro',
     'website/dist',

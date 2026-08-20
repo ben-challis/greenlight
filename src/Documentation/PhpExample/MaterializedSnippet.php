@@ -25,6 +25,12 @@ final readonly class MaterializedSnippet
 
     public function sourceLine(int $generatedLine): ?int
     {
+        foreach ($this->syntheticRanges as $range) {
+            if ($generatedLine >= $range['startLine'] && $generatedLine <= $range['endLine']) {
+                return null;
+            }
+        }
+
         if ($generatedLine < $this->generatedStartLine || $generatedLine > $this->generatedEndLine) {
             return null;
         }

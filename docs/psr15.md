@@ -19,6 +19,7 @@ composer require --dev psr/http-message psr/http-server-handler nyholm/psr7
 
 Register `Psr15Plugin` with a request-handler factory:
 
+<!-- php-example {"example":"psr15-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Psr15\Psr15Plugin;
@@ -43,12 +44,13 @@ handler from the factory.
 applications. A Mezzio `Application` implements `RequestHandlerInterface`.
 Return the application from the factory:
 
+<!-- php-example {"example":"psr15-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Mezzio\Application;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-static function (): RequestHandlerInterface {
+return static function (): RequestHandlerInterface {
     /** @var ContainerInterface $container */
     $container = require __DIR__ . '/config/container.php';
     $application = $container->get(Application::class);
@@ -58,7 +60,7 @@ static function (): RequestHandlerInterface {
     }
 
     return $application;
-}
+};
 ```
 
 This factory uses the PSR-11 container to get the Mezzio request handler.
@@ -72,6 +74,7 @@ If tests need application services, also register the
 Declare `HttpHarness` in the test constructor. Build requests with the
 application's PSR-7 implementation:
 
+<!-- php-example {"example":"psr15-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
@@ -113,6 +116,7 @@ the same handler object.
 
 Use a release callback when the handler owns resources:
 
+<!-- php-example {"example":"psr15-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new Psr15Plugin(
     handler: static fn(): RequestHandlerInterface => createApplication(),
@@ -134,6 +138,7 @@ Greenlight reports a test error and keeps the throwable as its cause.
 
 If handler state can remain between tests, use `Scope::PerRun`:
 
+<!-- php-example {"example":"psr15-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Harness\Scope;
 

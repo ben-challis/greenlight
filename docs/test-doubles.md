@@ -4,6 +4,7 @@ Greenlight provides strict mocks, inert stubs, and spies that record calls. The
 per-test `Doubles` service supplies these doubles. Request this service through
 constructor injection:
 
+<!-- php-example {"example":"test-doubles-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
@@ -51,6 +52,7 @@ A call to a spy method that returns a value fails the test.
 
 The plan passed to `mock()` declares expectations with `expects()`:
 
+<!-- php-example {"example":"test-doubles-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('reserve')
     ->with($sku, 2)
@@ -81,6 +83,7 @@ does not declare.
 
 Each mock method that returns a value needs an explicit response:
 
+<!-- php-example {"example":"test-doubles-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('nextId')->andReturns('id-1');
 
@@ -102,12 +105,14 @@ reports an error if a call occurs after the sequence is empty.
 
 Bare values passed to `with()` use the same deep equality as `toEqual()`:
 
+<!-- php-example {"example":"test-doubles-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('save')->with($expectedOrder);
 ```
 
 Use `withNoArguments()` to require a call that supplies no arguments:
 
+<!-- php-example {"example":"test-doubles-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('loadDefaults')->withNoArguments();
 ```
@@ -117,6 +122,7 @@ This constraint is useful when a method has optional or variadic parameters.
 
 Use `Argument` matchers for broader constraints:
 
+<!-- php-example {"example":"test-doubles-example-06","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Doubles\Argument;
 
@@ -142,6 +148,7 @@ Available matchers are:
 
 Capture one argument from every matched call:
 
+<!-- php-example {"example":"test-doubles-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $captor = $plan->expects('save')
     ->times(2)
@@ -164,6 +171,7 @@ If a plan must capture more than one argument, put an explicit
 
 `callsTo()` returns argument lists in call order:
 
+<!-- php-example {"example":"test-doubles-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $events = $this->doubles->spy(EventPublisher::class);
 

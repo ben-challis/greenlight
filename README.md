@@ -35,6 +35,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 
 ## Example test
 
+<!-- php-example {"example":"readme-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 <?php
 
@@ -84,6 +85,7 @@ composer require --dev greenlight/greenlight
 
 Create `greenlight.php` in the project root:
 
+<!-- php-example {"example":"readme-example-02","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
 <?php
 

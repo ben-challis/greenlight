@@ -18,6 +18,7 @@ Later layers override earlier ones.
 
 For example, use this configuration:
 
+<!-- php-example {"example":"configuration-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->workers('auto')
 ```
@@ -34,6 +35,7 @@ runs with one worker.
 
 Create the builder with:
 
+<!-- php-example {"example":"configuration-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 GreenlightConfig::create()
 ```
@@ -63,6 +65,7 @@ Each run includes every named suite. Suite names and tags are descriptive. The
 
 A second declaration with the same suite name causes an error.
 
+<!-- php-example {"example":"configuration-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->suite('unit', fn ($s) => $s->in('tests/Unit'))
 ->suite('integration', fn ($s) => $s->in('tests/Integration')->tag('io'))
@@ -115,6 +118,7 @@ Default: `1` for a resource used by `#[RequiresResource]`.
 Limits how many assignments in one Greenlight run can use the named resource at
 once.
 
+<!-- php-example {"example":"configuration-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 return GreenlightConfig::create()
     ->resourceLimit('postgres', 3)
@@ -158,6 +162,7 @@ accumulate.
   `$target` is a file path, or a directory for multi-file formats such as
   `html`. Repeatable.
 
+<!-- php-example {"example":"configuration-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->coverage(fn ($c) => $c
     ->include('src')
@@ -199,6 +204,7 @@ The configurator receives a `WatchBuilder`.
 A rerun starts after the configured period has no file changes. Thus, a group
 of save operations starts only one run.
 
+<!-- php-example {"example":"configuration-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->watch(fn ($w) => $w->debounceMilliseconds(500))
 ```
@@ -276,6 +282,7 @@ Default: output below `build/greenlight-artifacts`, with failure-only retention.
 Greenlight gives an `ArtifactBuilder` to the configurator. Repeated calls use
 the same builder.
 
+<!-- php-example {"example":"configuration-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->artifacts(fn ($artifacts) => $artifacts
     ->directory('build/test-evidence')
