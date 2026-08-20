@@ -59,10 +59,7 @@ final class HarnessIntegrationTest
         Expect::that($failures[0])->toBeInstanceOf(ExpectationFailed::class);
 
         $failure = $failures[0];
-
-        if ($failure instanceof ExpectationFailed) {
-            Expect::that($failure->detail()->message)->toContain('add');
-        }
+        Expect::that($failure->detail()->message)->toContain('add');
     }
 
     #[Test]

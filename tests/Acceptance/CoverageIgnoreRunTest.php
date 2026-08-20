@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\CoverageJson;
@@ -38,10 +37,10 @@ final readonly class CoverageIgnoreRunTest
             }
         }
 
-        if ($gadget === null) {
-            Fail::because('Expected the coverage export to contain CoverageIgnoreLib/Gadget.php.');
-        }
-
+        Expect::that($gadget)
+            ->because('The coverage export MUST contain CoverageIgnoreLib/Gadget.php.')
+            ->not()
+            ->toBeNull();
         Expect::that($gadget->uncoveredLines)->toBe([]);
         Expect::that($gadget->coveredLines)->not()->toHaveCount(0);
     }

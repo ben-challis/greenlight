@@ -73,10 +73,6 @@ final class JUnitReporterIncompleteRunTest
             ->because('overflow protection MUST preserve a valid JUnit document')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        if (!$document instanceof \SimpleXMLElement) {
-            return;
-        }
-
         $suites = $document->xpath('//testsuite');
         $maximum = \sprintf('%.6f', \PHP_FLOAT_MAX);
 

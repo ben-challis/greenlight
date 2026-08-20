@@ -49,8 +49,8 @@ final readonly class CoverageRunTest
         }
 
         Expect::that($mathFile)->because('collects and exports coverage through the process pool')->not()->toBeNull();
-        Expect::that($mathFile['covered'] ?? [])->not()->toHaveCount(0);
-        Expect::that($mathFile['uncovered'] ?? [])->not()->toHaveCount(0);
+        Expect::that($mathFile['covered'])->not()->toHaveCount(0);
+        Expect::that($mathFile['uncovered'])->not()->toHaveCount(0);
 
         $lcov = \file_get_contents($outDir . '/lcov.info');
 
@@ -180,7 +180,7 @@ final readonly class CoverageRunTest
         // Only the orchestrator process loads Orchestrator.php. Thus, covered
         // lines in that file show orchestrator coverage collection.
         Expect::that($orchestratorFile)->because('orchestrator process coverage is merged into the export')->not()->toBeNull();
-        Expect::that($orchestratorFile['covered'] ?? [])->not()->toHaveCount(0);
+        Expect::that($orchestratorFile['covered'])->not()->toHaveCount(0);
     }
 
     #[Test]
