@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -15,7 +16,10 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 final readonly class ArtifactTestQuotaRollbackTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function aTestQuotaRejectionReleasesTheRunQuota(): void
@@ -30,35 +34,32 @@ final readonly class ArtifactTestQuotaRollbackTest
             maxRunBytes: 6,
         );
         $store = ArtifactStore::open($configuration, $root, 'run-1');
+        $this->cleanup->defer($store->cleanup(...));
 
-        try {
-            $first = $store->forAttempt(
-                new TestId('Example\EvidenceTest', 'first'),
-                1,
-                new TestArtifactBudget(),
+        $first = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'first'),
+            1,
+            new TestArtifactBudget(),
+        );
+        $first->text('accepted.txt', '1234');
+
+        Expect::that(static fn() => $first->text('rejected.txt', '12'))
+            ->because('the per-test byte limit MUST reject excess evidence')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachments for this test exceed the limit of 4 bytes.',
             );
-            $first->text('accepted.txt', '1234');
 
-            Expect::that(static fn() => $first->text('rejected.txt', '12'))
-                ->because('the per-test byte limit MUST reject excess evidence')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Attachments for this test exceed the limit of 4 bytes.',
-                );
+        $second = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'second'),
+            1,
+            new TestArtifactBudget(),
+        );
+        $second->text('accepted.txt', '12');
 
-            $second = $store->forAttempt(
-                new TestId('Example\EvidenceTest', 'second'),
-                1,
-                new TestArtifactBudget(),
-            );
-            $second->text('accepted.txt', '12');
-
-            Expect::that($second->collected())
-                ->because('a test quota rejection MUST release its run quota')
-                ->toHaveCount(1);
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that($second->collected())
+            ->because('a test quota rejection MUST release its run quota')
+            ->toHaveCount(1);
     }
 
     #[Test]
