@@ -60,4 +60,55 @@ final readonly class ArtifactTestQuotaRollbackTest
             $store->cleanup();
         }
     }
+
+    #[Test]
+    public function aMachineMaximumTestBudgetRejectsWithoutOverflowAndReleasesTheRunQuota(): void
+    {
+        $root = $this->tempDirectory->subdirectory('test-quota-overflow');
+        $configuration = new ArtifactConfiguration(
+            $root,
+            maxAttachmentsPerTest: 2,
+            maxAttachmentBytes: 1,
+            maxTestBytes: \PHP_INT_MAX,
+            maxRunAttachments: 2,
+            maxRunBytes: 1,
+        );
+        $store = ArtifactStore::open($configuration, $root, 'run-1');
+        $budget = new TestArtifactBudget();
+        $budget->bytes = \PHP_INT_MAX;
+
+        try {
+            $first = $store->forAttempt(
+                new TestId('Example\EvidenceTest', 'first'),
+                1,
+                $budget,
+            );
+
+            Expect::that(static fn() => $first->text('rejected.txt', 'x'))
+                ->because('per-test quota arithmetic MUST NOT overflow')
+                ->toThrow(
+                    AttachmentError::class,
+                    message: \sprintf(
+                        'Attachments for this test exceed the limit of %d bytes.',
+                        \PHP_INT_MAX,
+                    ),
+                );
+            Expect::that($budget->bytes)
+                ->because('a rejected attachment MUST NOT change the test budget')
+                ->toBe(\PHP_INT_MAX);
+
+            $second = $store->forAttempt(
+                new TestId('Example\EvidenceTest', 'second'),
+                1,
+                new TestArtifactBudget(),
+            );
+            $second->text('accepted.txt', 'x');
+
+            Expect::that($second->collected())
+                ->because('an overflow-safe test quota rejection MUST release its run quota')
+                ->toHaveCount(1);
+        } finally {
+            $store->cleanup();
+        }
+    }
 }
