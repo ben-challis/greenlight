@@ -96,14 +96,15 @@
         "lint": [
             "parallel-lint src tests tools bin"
         ],
-        "memory-gate": "php tools/memory-gate.php",
+        "memory-gate": "@php tools/local-ci-lock.php -- @php tools/memory-gate.php",
         "phpstan": "phpstan analyse --ansi --no-progress --memory-limit=-1",
         "phpstan:stubs": "@php tools/extract-phpstan-api.php",
         "prose:check": "@php tools/prose-check.php check",
         "prose:review": "@php tools/prose-check.php review",
         "rector:check": "rector --dry-run --ansi --no-progress-bar",
         "rector:fix": "rector --ansi --no-progress-bar",
-        "static-analysis": [
+        "static-analysis": "@php tools/local-ci-lock.php -- @composer static-analysis:unlocked",
+        "static-analysis:unlocked": [
             "@composer validate --strict",
             "@composer normalize --dry-run",
             "@lint",
@@ -115,8 +116,9 @@
             "@rector:check",
             "@deptrac"
         ],
-        "tests": "@php bin/greenlight run",
-        "tests:coverage": "XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.coverage.php",
+        "tests": "@php tools/local-ci-lock.php -- @php bin/greenlight run",
+        "tests:coverage": "@php tools/local-ci-lock.php -- @composer tests:coverage:unlocked",
+        "tests:coverage:unlocked": "XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.coverage.php",
         "workflow-shell:check": "@php tools/workflow-shell-check.php"
     }
 }
