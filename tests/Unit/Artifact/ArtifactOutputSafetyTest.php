@@ -12,6 +12,7 @@ use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
@@ -22,7 +23,10 @@ use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class ArtifactOutputSafetyTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function outputDirectoriesRejectNullBytesBeforeFilesystemUse(): void
@@ -84,32 +88,29 @@ final readonly class ArtifactOutputSafetyTest
         $outside = $this->tempDirectory->subdirectory('outside-output');
         \mkdir($root . '/published');
         [$store, $id, $staged] = $this->stageEvidence($root, $root . '/published');
+        $this->cleanup->defer($store->cleanup(...));
         $firstSegment = \explode('/', $staged->storageKey)[0];
         \mkdir($store->publicDirectory(), 0o777, true);
         \symlink($outside, $store->publicDirectory() . '/' . $firstSegment);
 
-        try {
-            Expect::that(static fn(): TestResult => $store->publish(new TestResult(
-                $id,
-                Outcome::Failed,
-                0.1,
-                0,
-                attachments: [$staged],
-            )))
-                ->because('artifact publication MUST NOT follow output directory symbolic links')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Attachment output directory contains a symbolic link.',
-                );
-            Expect::that(\glob($outside . '/*'))
-                ->because('a rejected publication MUST NOT write outside its output directory')
-                ->toBe([]);
-            Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
-                ->because('rejected evidence remains available for recovery')
-                ->toBeTrue();
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: [$staged],
+        )))
+            ->because('artifact publication MUST NOT follow output directory symbolic links')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment output directory contains a symbolic link.',
+            );
+        Expect::that(\glob($outside . '/*'))
+            ->because('a rejected publication MUST NOT write outside its output directory')
+            ->toBe([]);
+        Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+            ->because('rejected evidence remains available for recovery')
+            ->toBeTrue();
     }
 
     #[Test]
@@ -118,33 +119,30 @@ final readonly class ArtifactOutputSafetyTest
         $root = $this->tempDirectory->subdirectory('output-entry');
         \mkdir($root . '/published');
         [$store, $id, $staged] = $this->stageEvidence($root, $root . '/published');
+        $this->cleanup->defer($store->cleanup(...));
         $firstSegment = \explode('/', $staged->storageKey)[0];
         \mkdir($store->publicDirectory(), 0o777, true);
         $blocker = $store->publicDirectory() . '/' . $firstSegment;
         \file_put_contents($blocker, 'keep');
 
-        try {
-            Expect::that(static fn(): TestResult => $store->publish(new TestResult(
-                $id,
-                Outcome::Failed,
-                0.1,
-                0,
-                attachments: [$staged],
-            )))
-                ->because('artifact publication requires directory-only output path segments')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Attachment output path contains a non-directory entry.',
-                );
-            Expect::that((string) \file_get_contents($blocker))
-                ->because('a rejected publication MUST NOT replace the blocking entry')
-                ->toBe('keep');
-            Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
-                ->because('rejected evidence remains available for recovery')
-                ->toBeTrue();
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: [$staged],
+        )))
+            ->because('artifact publication requires directory-only output path segments')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment output path contains a non-directory entry.',
+            );
+        Expect::that((string) \file_get_contents($blocker))
+            ->because('a rejected publication MUST NOT replace the blocking entry')
+            ->toBe('keep');
+        Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+            ->because('rejected evidence remains available for recovery')
+            ->toBeTrue();
     }
 
     #[Test]
@@ -162,27 +160,24 @@ final readonly class ArtifactOutputSafetyTest
         }
 
         [$store, $id, $staged] = $this->stageEvidence($root, $readOnly . '/artifacts');
+        $this->cleanup->defer($store->cleanup(...));
+        $this->cleanup->defer(static fn(): bool => \chmod($readOnly, 0o700));
 
-        try {
-            Expect::that(static fn(): TestResult => $store->publish(new TestResult(
-                $id,
-                Outcome::Failed,
-                0.1,
-                0,
-                attachments: [$staged],
-            )))
-                ->because('an unwritable output parent MUST reject attachment publication')
-                ->toThrow(
-                    AttachmentError::class,
-                    matching: '/^Failed to create attachment output directory/',
-                );
-            Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
-                ->because('rejected evidence MUST remain available for recovery')
-                ->toBeTrue();
-        } finally {
-            \chmod($readOnly, 0o700);
-            $store->cleanup();
-        }
+        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: [$staged],
+        )))
+            ->because('an unwritable output parent MUST reject attachment publication')
+            ->toThrow(
+                AttachmentError::class,
+                matching: '/^Failed to create attachment output directory/',
+            );
+        Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+            ->because('rejected evidence MUST remain available for recovery')
+            ->toBeTrue();
     }
 
     /**

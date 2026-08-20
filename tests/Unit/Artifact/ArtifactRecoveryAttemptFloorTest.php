@@ -10,6 +10,7 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -19,39 +20,39 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 final readonly class ArtifactRecoveryAttemptFloorTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function aStaleAttemptMarkerDoesNotReduceTheResultAttempt(): void
     {
         $root = $this->tempDirectory->subdirectory('recovery-attempt-floor');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-attempt-floor');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\\EvidenceTest', 'crashesAfterReporting');
 
-        try {
-            $attachments = $store->forAttempt($id, 2, new TestArtifactBudget());
-            $attachments->text('evidence.txt', 'completed evidence');
+        $attachments = $store->forAttempt($id, 2, new TestArtifactBudget());
+        $attachments->text('evidence.txt', 'completed evidence');
 
-            $recovered = $store->recover(new TestResult(
-                $id,
-                Outcome::Errored,
-                0.0,
-                0,
-                attempts: 10,
-            ));
+        $recovered = $store->recover(new TestResult(
+            $id,
+            Outcome::Errored,
+            0.0,
+            0,
+            attempts: 10,
+        ));
 
-            Expect::that($recovered->attempts)
-                ->because('stale recovery metadata MUST NOT reduce a reported attempt count')
-                ->toBe(10);
-            Expect::that($recovered->attachments)
-                ->toHaveCount(1);
-            Expect::that($recovered->attachments[0]->name)
-                ->toBe('evidence.txt');
-            Expect::that((string) \file_get_contents($recovered->attachments[0]->path))
-                ->toBe('completed evidence');
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that($recovered->attempts)
+            ->because('stale recovery metadata MUST NOT reduce a reported attempt count')
+            ->toBe(10);
+        Expect::that($recovered->attachments)
+            ->toHaveCount(1);
+        Expect::that($recovered->attachments[0]->name)
+            ->toBe('evidence.txt');
+        Expect::that((string) \file_get_contents($recovered->attachments[0]->path))
+            ->toBe('completed evidence');
     }
 
     #[Test]

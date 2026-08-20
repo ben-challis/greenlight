@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class LocalCiLockTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function serializesLocalCommandsAcrossOneSharedSlot(): void
@@ -32,34 +36,30 @@ final readonly class LocalCiLockTest
             ]),
             $environment,
         );
-        $second = null;
+        $this->cleanup->defer($first->terminate(...));
 
-        try {
-            $first->readStdoutUntil('ready', 2.0);
-            $second = Subprocess::start(
-                $this->tempDirectory->path(),
-                $this->lockCommand([
-                    \PHP_BINARY,
-                    '-r',
-                    'file_put_contents($argv[1], "started");',
-                    $startedMarker,
-                ]),
-                $environment,
-            );
+        $first->readStdoutUntil('ready', 2.0);
+        $second = Subprocess::start(
+            $this->tempDirectory->path(),
+            $this->lockCommand([
+                \PHP_BINARY,
+                '-r',
+                'file_put_contents($argv[1], "started");',
+                $startedMarker,
+            ]),
+            $environment,
+        );
+        $this->cleanup->defer($second->terminate(...));
 
-            \usleep(250_000);
-            Expect::that(\file_exists($startedMarker))
-                ->because('the second command MUST wait while the only slot is in use')
-                ->toBeFalse();
+        \usleep(250_000);
+        Expect::that(\file_exists($startedMarker))
+            ->because('the second command MUST wait while the only slot is in use')
+            ->toBeFalse();
 
-            $first->write("continue\n");
-            Expect::that($first->wait(2.0)->exitCode)->toBe(0);
-            Expect::that($second->wait(2.0)->exitCode)->toBe(0);
-            Expect::that(\file_get_contents($startedMarker))->toBe('started');
-        } finally {
-            $first->terminate();
-            $second?->terminate();
-        }
+        $first->write("continue\n");
+        Expect::that($first->wait(2.0)->exitCode)->toBe(0);
+        Expect::that($second->wait(2.0)->exitCode)->toBe(0);
+        Expect::that(\file_get_contents($startedMarker))->toBe('started');
     }
 
     #[Test]
@@ -96,23 +96,20 @@ final readonly class LocalCiLockTest
             ]),
             $environment,
         );
+        $this->cleanup->defer($first->terminate(...));
 
-        try {
-            $first->readStdoutUntil('ready', 2.0);
-            $second = Subprocess::run(
-                $this->tempDirectory->path(),
-                $this->lockCommand([\PHP_BINARY, '-r', 'exit(9);']),
-                $environment,
-            );
+        $first->readStdoutUntil('ready', 2.0);
+        $second = Subprocess::run(
+            $this->tempDirectory->path(),
+            $this->lockCommand([\PHP_BINARY, '-r', 'exit(9);']),
+            $environment,
+        );
 
-            Expect::that($second->exitCode)
-                ->because('the second command can use the configured second slot')
-                ->toBe(9);
-            $first->write("continue\n");
-            Expect::that($first->wait(2.0)->exitCode)->toBe(0);
-        } finally {
-            $first->terminate();
-        }
+        Expect::that($second->exitCode)
+            ->because('the second command can use the configured second slot')
+            ->toBe(9);
+        $first->write("continue\n");
+        Expect::that($first->wait(2.0)->exitCode)->toBe(0);
     }
 
     /**

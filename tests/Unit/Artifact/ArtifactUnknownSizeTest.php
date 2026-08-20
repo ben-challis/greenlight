@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -22,6 +23,7 @@ final readonly class ArtifactUnknownSizeTest
     public function __construct(
         private TempDirectory $tempDirectory,
         private StreamWrapperSandbox $streamWrappers,
+        private Cleanup $cleanup,
     ) {}
 
     #[Test]
@@ -29,29 +31,24 @@ final readonly class ArtifactUnknownSizeTest
     {
         $this->streamWrappers->register(self::SCHEME, UnknownSizeFileStream::class);
 
-        $store = null;
+        $root = $this->tempDirectory->subdirectory('unknown-size');
+        $configuration = new ArtifactConfiguration($root);
+        $store = ArtifactStore::open($configuration, $root, 'run-unknown-size');
+        $this->cleanup->defer($store->cleanup(...));
+        $attachments = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'rejectsUnknownSize'),
+            1,
+            new TestArtifactBudget(),
+        );
 
-        try {
-            $root = $this->tempDirectory->subdirectory('unknown-size');
-            $configuration = new ArtifactConfiguration($root);
-            $store = ArtifactStore::open($configuration, $root, 'run-unknown-size');
-            $attachments = $store->forAttempt(
-                new TestId('Example\EvidenceTest', 'rejectsUnknownSize'),
-                1,
-                new TestArtifactBudget(),
+        Expect::that(static fn() => $attachments->file(
+            'evidence.txt',
+            self::SCHEME . '://evidence',
+        ))
+            ->because('an attachment source MUST report a nonnegative size')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment size could not be determined.',
             );
-
-            Expect::that(static fn() => $attachments->file(
-                'evidence.txt',
-                self::SCHEME . '://evidence',
-            ))
-                ->because('an attachment source MUST report a nonnegative size')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Attachment size could not be determined.',
-                );
-        } finally {
-            $store?->cleanup();
-        }
     }
 }

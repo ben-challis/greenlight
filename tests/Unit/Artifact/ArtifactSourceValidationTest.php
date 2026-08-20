@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\ErrorTrap;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -17,7 +18,10 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 final readonly class ArtifactSourceValidationTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     #[DataSet('invalidSources')]
@@ -34,34 +38,31 @@ final readonly class ArtifactSourceValidationTest
         }
 
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-source-validation');
+        $this->cleanup->defer($store->cleanup(...));
         $attachments = $store->forAttempt(
             new TestId('Example\AttachmentTest', 'rejectsInvalidSource'),
             1,
             new TestArtifactBudget(),
         );
 
-        try {
-            $warning = null;
-            Expect::that(static function () use ($attachments, $source, &$warning): void {
-                ErrorTrap::run(
-                    static fn() => $attachments->file('evidence.txt', $source),
-                    $warning,
-                );
-            })
-                ->because('file attachments reject invalid sources')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: \sprintf('Attachment source "%s" %s.', $source, $reason),
-                );
-            Expect::that($warning)
-                ->because('an invalid attachment source MUST not leak an engine diagnostic')
-                ->toBeNull();
-            Expect::that($attachments->collected())
-                ->because('an invalid source does not create an attachment')
-                ->toBe([]);
-        } finally {
-            $store->cleanup();
-        }
+        $warning = null;
+        Expect::that(static function () use ($attachments, $source, &$warning): void {
+            ErrorTrap::run(
+                static fn() => $attachments->file('evidence.txt', $source),
+                $warning,
+            );
+        })
+            ->because('file attachments reject invalid sources')
+            ->toThrow(
+                AttachmentError::class,
+                message: \sprintf('Attachment source "%s" %s.', $source, $reason),
+            );
+        Expect::that($warning)
+            ->because('an invalid attachment source MUST not leak an engine diagnostic')
+            ->toBeNull();
+        Expect::that($attachments->collected())
+            ->because('an invalid source does not create an attachment')
+            ->toBe([]);
     }
 
     /**

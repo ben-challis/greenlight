@@ -75,41 +75,38 @@ final readonly class ArtifactTestQuotaRollbackTest
             maxRunBytes: 1,
         );
         $store = ArtifactStore::open($configuration, $root, 'run-1');
+        $this->cleanup->defer($store->cleanup(...));
         $budget = new TestArtifactBudget();
         $budget->bytes = \PHP_INT_MAX;
 
-        try {
-            $first = $store->forAttempt(
-                new TestId('Example\EvidenceTest', 'first'),
-                1,
-                $budget,
+        $first = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'first'),
+            1,
+            $budget,
+        );
+
+        Expect::that(static fn() => $first->text('rejected.txt', 'x'))
+            ->because('per-test quota arithmetic MUST NOT overflow')
+            ->toThrow(
+                AttachmentError::class,
+                message: \sprintf(
+                    'Attachments for this test exceed the limit of %d bytes.',
+                    \PHP_INT_MAX,
+                ),
             );
+        Expect::that($budget->bytes)
+            ->because('a rejected attachment MUST NOT change the test budget')
+            ->toBe(\PHP_INT_MAX);
 
-            Expect::that(static fn() => $first->text('rejected.txt', 'x'))
-                ->because('per-test quota arithmetic MUST NOT overflow')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: \sprintf(
-                        'Attachments for this test exceed the limit of %d bytes.',
-                        \PHP_INT_MAX,
-                    ),
-                );
-            Expect::that($budget->bytes)
-                ->because('a rejected attachment MUST NOT change the test budget')
-                ->toBe(\PHP_INT_MAX);
+        $second = $store->forAttempt(
+            new TestId('Example\EvidenceTest', 'second'),
+            1,
+            new TestArtifactBudget(),
+        );
+        $second->text('accepted.txt', 'x');
 
-            $second = $store->forAttempt(
-                new TestId('Example\EvidenceTest', 'second'),
-                1,
-                new TestArtifactBudget(),
-            );
-            $second->text('accepted.txt', 'x');
-
-            Expect::that($second->collected())
-                ->because('an overflow-safe test quota rejection MUST release its run quota')
-                ->toHaveCount(1);
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that($second->collected())
+            ->because('an overflow-safe test quota rejection MUST release its run quota')
+            ->toHaveCount(1);
     }
 }

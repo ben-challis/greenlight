@@ -10,6 +10,7 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -19,7 +20,10 @@ use Greenlight\Tests\Fixture\Artifact\DirectoryCreatingFileCopier;
 
 final readonly class ArtifactBestEffortCleanupDiagnosticTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function aFailedPublicationCleanupDoesNotLeakEngineDiagnostics(): void
@@ -32,39 +36,37 @@ final readonly class ArtifactBestEffortCleanupDiagnosticTest
             'run-cleanup-diagnostic',
             $copier,
         );
+        $this->cleanup->defer($store->cleanup(...));
+        $this->cleanup->defer(static function () use ($copier): void {
+            if ($copier->destination !== null) {
+                \rmdir($copier->destination);
+            }
+        });
         $id = new TestId('Example\EvidenceTest', 'fails');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attachments->text('evidence.txt', 'evidence');
         $staged = $attachments->seal()[0];
 
-        try {
-            Expect::that(static function () use ($store, $id, $staged, &$warning): TestResult {
-                return ErrorTrap::run(
-                    static fn() => $store->publish(new TestResult(
-                        $id,
-                        Outcome::Failed,
-                        0.1,
-                        0,
-                        attachments: [$staged],
-                    )),
-                    $warning,
-                );
-            })
-                ->because('publication MUST preserve the copier failure')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'The fake copier stopped after it created a directory.',
-                );
+        Expect::that(static function () use ($store, $id, $staged, &$warning): TestResult {
+            return ErrorTrap::run(
+                static fn() => $store->publish(new TestResult(
+                    $id,
+                    Outcome::Failed,
+                    0.1,
+                    0,
+                    attachments: [$staged],
+                )),
+                $warning,
+            );
+        })
+            ->because('publication MUST preserve the copier failure')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'The fake copier stopped after it created a directory.',
+            );
 
-            Expect::that($warning)
-                ->because('best-effort publication cleanup MUST not leak an engine diagnostic')
-                ->toBeNull();
-        } finally {
-            if ($copier->destination !== null) {
-                \rmdir($copier->destination);
-            }
-
-            $store->cleanup();
-        }
+        Expect::that($warning)
+            ->because('best-effort publication cleanup MUST not leak an engine diagnostic')
+            ->toBeNull();
     }
 }

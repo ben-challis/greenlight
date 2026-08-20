@@ -13,6 +13,7 @@ use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -23,7 +24,10 @@ use Greenlight\Runner\Artifact\TestArtifactBudget;
 
 final readonly class AttachmentsTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function stagesPublishesAndHashesEveryAttachmentKind(): void
@@ -31,6 +35,7 @@ final readonly class AttachmentsTest
         $root = $this->tempDirectory->subdirectory('published');
         $configuration = new ArtifactConfiguration($root);
         $store = ArtifactStore::open($configuration, $root, 'run-1');
+        $this->cleanup->defer($store->cleanup(...));
         $attachments = $store->forAttempt(new TestId('Example\EvidenceTest', 'fails'), 1, new TestArtifactBudget());
         $source = $this->tempDirectory->path() . '/source.bin';
         \file_put_contents($source, "\x00file");
@@ -71,7 +76,6 @@ final readonly class AttachmentsTest
         Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[4]->path)))->because('stages publishes and hashes every attachment kind')
             ->toBe("\x00file");
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -79,6 +83,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('retention');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-2');
+        $this->cleanup->defer($store->cleanup(...));
         $attachments = $store->forAttempt(new TestId('Example\EvidenceTest', 'passes'), 1, new TestArtifactBudget());
         $attachments->text('discarded.txt', 'discard me');
         $attachments->text('kept.txt', 'keep me', retention: AttachmentRetention::Always);
@@ -94,7 +99,6 @@ final readonly class AttachmentsTest
         Expect::that($published->attachments)->because('passing attempts discard on failure attachments but keep always')->toHaveCount(1);
         Expect::that($published->attachments[0]->name)->because('passing attempts discard on failure attachments but keep always')->toBe('kept.txt');
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -102,6 +106,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('lazy-output');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-lazy');
+        $this->cleanup->defer($store->cleanup(...));
         $output = $store->publicDirectory();
 
         Expect::that(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
@@ -123,7 +128,6 @@ final readonly class AttachmentsTest
         Expect::that($published->attachments)->because('output directory is created only when evidence is published')->toBe([]);
         Expect::that(\file_exists($output))->toBeFalse();
 
-        $store->cleanup();
     }
 
     /**
@@ -135,19 +139,16 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('invalid-writes');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-invalid');
+        $this->cleanup->defer($store->cleanup(...));
         $attachments = $store->forAttempt(
             new TestId('Example\EvidenceTest', 'invalid'),
             1,
             new TestArtifactBudget(),
         );
 
-        try {
-            Expect::that(static fn() => $write($attachments))
-                ->because('an invalid attachment write gives exact guidance')
-                ->toThrow(AttachmentError::class, message: $message);
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that(static fn() => $write($attachments))
+            ->because('an invalid attachment write gives exact guidance')
+            ->toThrow(AttachmentError::class, message: $message);
     }
 
     /**
@@ -207,6 +208,7 @@ final readonly class AttachmentsTest
             maxRunBytes: 4,
         );
         $store = ArtifactStore::open($configuration, $root, 'run-3');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'limits');
         $budget = new TestArtifactBudget();
         $attachments = $store->forAttempt($id, 1, $budget);
@@ -254,7 +256,6 @@ final readonly class AttachmentsTest
                 ),
             );
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -270,6 +271,7 @@ final readonly class AttachmentsTest
             maxRunBytes: 10,
         );
         $testStore = ArtifactStore::open($testConfiguration, $testRoot, 'run-test-limit');
+        $this->cleanup->defer($testStore->cleanup(...));
         $testAttachments = $testStore->forAttempt(
             new TestId('Example\EvidenceTest', 'testByteLimit'),
             1,
@@ -295,6 +297,7 @@ final readonly class AttachmentsTest
             maxRunBytes: 4,
         );
         $runStore = ArtifactStore::open($runConfiguration, $runRoot, 'run-run-limit');
+        $this->cleanup->defer($runStore->cleanup(...));
         $runStore->forAttempt(
             new TestId('Example\EvidenceTest', 'first'),
             1,
@@ -455,6 +458,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('existing-output');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-output');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'fails');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attachments->text('evidence.txt', 'evidence');
@@ -474,7 +478,6 @@ final readonly class AttachmentsTest
             message: 'An attachment output path already exists.',
         );
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -482,6 +485,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('tampered-staging');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-tampered');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'fails');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attachments->text('evidence.txt', 'original');
@@ -502,7 +506,6 @@ final readonly class AttachmentsTest
             message: 'Attachment staging content does not match its metadata.',
         );
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -510,6 +513,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('recovery');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-4');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'crashes');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attachments->text('last-response.txt', 'completed before crash');
@@ -520,7 +524,6 @@ final readonly class AttachmentsTest
         Expect::that($recovered->attachments[0]->name)->toBe('last-response.txt');
         Expect::that(\is_file($recovered->attachments[0]->path))->toBeTrue();
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -528,6 +531,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('corrupt-recovery');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-corrupt');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'crashes');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attachments->text('completed.txt', 'complete before crash');
@@ -544,7 +548,6 @@ final readonly class AttachmentsTest
         Expect::that(\is_file($recovered->attachments[0]->path))
             ->toBeTrue();
 
-        $store->cleanup();
     }
 
     #[Test]
@@ -552,6 +555,7 @@ final readonly class AttachmentsTest
     {
         $root = $this->tempDirectory->subdirectory('attempt-recovery');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-5');
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'crashesOnRetry');
         $budget = new TestArtifactBudget();
         $first = $store->forAttempt($id, 1, $budget);
@@ -565,7 +569,6 @@ final readonly class AttachmentsTest
         Expect::that($recovered->attachments)->toHaveCount(1);
         Expect::that($recovered->attachments[0]->attempt)->toBe(1);
 
-        $store->cleanup();
     }
 
     private function absolute(string $workingDirectory, string $publishedPath): string

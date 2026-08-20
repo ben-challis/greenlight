@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -18,6 +19,7 @@ final readonly class WorkerArtifactSessionTest
     public function __construct(
         private EnvironmentSandbox $environment,
         private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
     ) {}
 
     #[Test]
@@ -124,20 +126,17 @@ final readonly class WorkerArtifactSessionTest
             $root . '/vendor/autoload.php',
             $artifactRoot,
         ]);
+        $this->cleanup->defer($server->terminate(...));
 
-        try {
-            $address = \trim($server->readStdoutUntil("\n", 2.0));
+        $address = \trim($server->readStdoutUntil("\n", 2.0));
 
-            if ($address === '') {
-                Fail::because('Worker protocol server did not publish its address.');
-            }
-
-            $this->environment->set('GREENLIGHT_CHANNEL', '1');
-            $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
-            $serverExit = $server->wait(2.0)->exitCode;
-        } finally {
-            $server->terminate();
+        if ($address === '') {
+            Fail::because('Worker protocol server did not publish its address.');
         }
+
+        $this->environment->set('GREENLIGHT_CHANNEL', '1');
+        $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
+        $serverExit = $server->wait(2.0)->exitCode;
 
         Expect::that($workerExit)
             ->because('a worker with artifact settings MUST complete its assignment')

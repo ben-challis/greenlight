@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -14,7 +15,10 @@ use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessTest
 {
-    public function __construct(private TempDirectory $workspace) {}
+    public function __construct(
+        private TempDirectory $workspace,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function runCapturesTheResultAndHonorsItsExecutionContext(): void
@@ -83,19 +87,16 @@ final readonly class SubprocessTest
                 PHP,
             ],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $ready = $process->readStdoutUntil('ready', 2.0);
-            $process->write("payload\n");
-            $result = $process->wait(2.0);
+        $ready = $process->readStdoutUntil('ready', 2.0);
+        $process->write("payload\n");
+        $result = $process->wait(2.0);
 
-            Expect::that($ready)->toBe("ready\n");
-            Expect::that($result->exitCode)->toBe(3);
-            Expect::that($result->stdout)->toBe("ready\nreceived:payload");
-            Expect::that($result->stderr)->toBe('note');
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($ready)->toBe("ready\n");
+        Expect::that($result->exitCode)->toBe(3);
+        Expect::that($result->stdout)->toBe("ready\nreceived:payload");
+        Expect::that($result->stderr)->toBe('note');
     }
 
     #[Test]
@@ -113,19 +114,16 @@ final readonly class SubprocessTest
                 PHP,
             ],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $process->write($input);
-            $result = $process->complete();
+        $process->write($input);
+        $result = $process->complete();
 
-            Expect::that($result->exitCode)
-                ->because('a subprocess MUST receive the complete input before stdin closes')
-                ->toBe(0);
-            Expect::that($result->stdout)
-                ->toBe(\hash('sha256', $input));
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)
+            ->because('a subprocess MUST receive the complete input before stdin closes')
+            ->toBe(0);
+        Expect::that($result->stdout)
+            ->toBe(\hash('sha256', $input));
     }
 
     #[Test]
@@ -135,18 +133,15 @@ final readonly class SubprocessTest
             $this->workspace->path(),
             [\PHP_BINARY, '-r', 'fwrite(STDERR, "failed\n"); exit(9);'],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $result = $process->complete();
+        $result = $process->complete();
 
-            Expect::that($result->exitCode)->toBe(9);
-            Expect::that($result->stderr)->toBe('failed');
+        Expect::that($result->exitCode)->toBe(9);
+        Expect::that($result->stderr)->toBe('failed');
 
-            Expect::that(static fn(): string => $process->readStdoutUntil('ready', 2.0))
-                ->toThrow(\RuntimeException::class, '/Process exited before stdout contained/');
-        } finally {
-            $process->terminate();
-        }
+        Expect::that(static fn(): string => $process->readStdoutUntil('ready', 2.0))
+            ->toThrow(\RuntimeException::class, '/Process exited before stdout contained/');
     }
 
     #[Test]
@@ -156,13 +151,10 @@ final readonly class SubprocessTest
             $this->workspace->path(),
             [\PHP_BINARY, '-r', 'usleep(2_000_000);'],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            Expect::that(static fn(): ProcessResult => $process->wait(0.05))
-                ->toThrow(\RuntimeException::class, '/Timed out after 0.1s/');
-        } finally {
-            $process->terminate();
-        }
+        Expect::that(static fn(): ProcessResult => $process->wait(0.05))
+            ->toThrow(\RuntimeException::class, '/Timed out after 0.1s/');
     }
 
     #[Test]
@@ -177,21 +169,18 @@ final readonly class SubprocessTest
                 $operation === 'wait' ? 'exit(0);' : 'fwrite(STDOUT, "ready");',
             ],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $call = $operation === 'wait'
-                ? static fn(): ProcessResult => $process->wait($timeoutSeconds)
-                : static fn(): string => $process->readStdoutUntil('ready', $timeoutSeconds);
+        $call = $operation === 'wait'
+            ? static fn(): ProcessResult => $process->wait($timeoutSeconds)
+            : static fn(): string => $process->readStdoutUntil('ready', $timeoutSeconds);
 
-            Expect::that($call)
-                ->because('a non-finite timeout MUST NOT create an unbounded subprocess wait')
-                ->toThrow(
-                    \InvalidArgumentException::class,
-                    message: 'Subprocess timeout must be finite.',
-                );
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($call)
+            ->because('a non-finite timeout MUST NOT create an unbounded subprocess wait')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Subprocess timeout must be finite.',
+            );
     }
 
     /**
@@ -235,20 +224,17 @@ final readonly class SubprocessTest
                 PHP,
             ],
         );
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $process->readStdoutUntil('parent exited', 5.0);
-            $started = \hrtime(true);
-            $result = $process->wait(0.5);
-            $elapsedSeconds = (\hrtime(true) - $started) / 1_000_000_000;
+        $process->readStdoutUntil('parent exited', 5.0);
+        $started = \hrtime(true);
+        $result = $process->wait(0.5);
+        $elapsedSeconds = (\hrtime(true) - $started) / 1_000_000_000;
 
-            Expect::that($result->exitCode)->toBe(7);
-            Expect::that($result->stdout)->toBe('parent exited');
-            Expect::that($elapsedSeconds)
-                ->because('wait MUST NOT drain a pipe inherited by a descendant past its deadline')
-                ->toBeLessThan(1.0);
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)->toBe(7);
+        Expect::that($result->stdout)->toBe('parent exited');
+        Expect::that($elapsedSeconds)
+            ->because('wait MUST NOT drain a pipe inherited by a descendant past its deadline')
+            ->toBeLessThan(1.0);
     }
 }

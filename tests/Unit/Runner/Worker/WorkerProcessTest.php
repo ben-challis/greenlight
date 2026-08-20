@@ -9,6 +9,7 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Condition\FunctionAvailable;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -21,6 +22,7 @@ final readonly class WorkerProcessTest
     public function __construct(
         private EnvironmentSandbox $environment,
         private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
     ) {}
 
     #[Test]
@@ -127,30 +129,27 @@ final readonly class WorkerProcessTest
             $root . '/vendor/autoload.php',
             $missingConfig,
         ]);
+        $this->cleanup->defer($server->terminate(...));
 
-        try {
-            $address = \trim($server->readStdoutUntil("\n", 2.0));
+        $address = \trim($server->readStdoutUntil("\n", 2.0));
 
-            if ($address === '') {
-                Fail::because('Worker protocol server did not publish its address.');
-            }
-
-            $this->environment->set('GREENLIGHT_CHANNEL', '1');
-            $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
-            $serverResult = $server->wait(2.0);
-
-            Expect::that($workerExit)
-                ->because('an assignment setup failure MUST stop the worker abnormally')
-                ->toBe(1);
-            Expect::that($serverResult->exitCode)
-                ->because('the orchestrator fixture MUST receive the worker fatal message')
-                ->toBe(0);
-            Expect::that($serverResult->stdout)
-                ->toContain("Greenlight\\Config\\ConfigFileError\n")
-                ->toContain('Configuration file "' . $missingConfig . '" does not exist.');
-        } finally {
-            $server->terminate();
+        if ($address === '') {
+            Fail::because('Worker protocol server did not publish its address.');
         }
+
+        $this->environment->set('GREENLIGHT_CHANNEL', '1');
+        $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+        $serverResult = $server->wait(2.0);
+
+        Expect::that($workerExit)
+            ->because('an assignment setup failure MUST stop the worker abnormally')
+            ->toBe(1);
+        Expect::that($serverResult->exitCode)
+            ->because('the orchestrator fixture MUST receive the worker fatal message')
+            ->toBe(0);
+        Expect::that($serverResult->stdout)
+            ->toContain("Greenlight\\Config\\ConfigFileError\n")
+            ->toContain('Configuration file "' . $missingConfig . '" does not exist.');
     }
 
     #[Test]
@@ -499,21 +498,18 @@ final readonly class WorkerProcessTest
             $root . '/vendor/autoload.php',
             $scenario,
         ]);
+        $this->cleanup->defer($server->terminate(...));
 
-        try {
-            $address = \trim($server->readStdoutUntil("\n", 2.0));
+        $address = \trim($server->readStdoutUntil("\n", 2.0));
 
-            if ($address === '') {
-                Fail::because('Worker protocol server did not publish its address.');
-            }
-
-            $this->environment->set('GREENLIGHT_CHANNEL', $environmentChannel);
-            $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
-            $serverResult = $server->wait(2.0);
-
-            return [$workerExit, $serverResult->exitCode];
-        } finally {
-            $server->terminate();
+        if ($address === '') {
+            Fail::because('Worker protocol server did not publish its address.');
         }
+
+        $this->environment->set('GREENLIGHT_CHANNEL', $environmentChannel);
+        $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
+        $serverResult = $server->wait(2.0);
+
+        return [$workerExit, $serverResult->exitCode];
     }
 }
