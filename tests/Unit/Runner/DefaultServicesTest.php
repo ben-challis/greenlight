@@ -31,10 +31,6 @@ final readonly class DefaultServicesTest
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
-            Expect::that($channel)
-                ->because('The default service MUST resolve TestChannel.')
-                ->toBeInstanceOf(TestChannel::class);
-
             Expect::that($channel->number)
                 ->because('the default channel service MUST always use a positive number')
                 ->toBe($expected);

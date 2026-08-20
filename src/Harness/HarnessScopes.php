@@ -35,9 +35,13 @@ final class HarnessScopes
     }
 
     /**
-     * @param class-string $type
+     * @template T of object
+     *
+     * @param class-string<T> $type
      * @param non-empty-string $consumer
      * @param list<object> $attributes
+     *
+     * @return T
      *
      * @throws ServiceResolutionError when a service resolver cannot supply a valid service
      * @throws UnresolvableService
@@ -47,7 +51,13 @@ final class HarnessScopes
         $definition = $this->registry->find($type);
 
         if ($definition instanceof ServiceDefinition) {
-            return $this->containerFor($definition->scope)->get($definition);
+            $service = $this->containerFor($definition->scope)->get($definition);
+
+            if (!$service instanceof $type) {
+                throw UnresolvableService::factoryTypeMismatch($type, $service::class);
+            }
+
+            return $service;
         }
 
         foreach ($this->resolvers as $resolver) {
