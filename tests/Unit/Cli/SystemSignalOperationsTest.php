@@ -7,11 +7,14 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\SystemSignalOperations;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\Subprocess;
 
-final class SystemSignalOperationsTest
+final readonly class SystemSignalOperationsTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function availableOperationsUpdateTheNativePcntlState(): void
     {
@@ -29,21 +32,18 @@ final class SystemSignalOperationsTest
         $asyncBefore = \pcntl_async_signals();
         $handlerBefore = \pcntl_signal_get_handler(\SIGUSR1);
         $handler = static function (): void {};
+        $this->cleanup->defer(static fn(): bool => \pcntl_async_signals($asyncBefore));
+        $this->cleanup->defer(static fn(): bool => \pcntl_signal(\SIGUSR1, $handlerBefore));
 
-        try {
-            $operations->enableAsync();
-            $operations->register(\SIGUSR1, $handler);
+        $operations->enableAsync();
+        $operations->register(\SIGUSR1, $handler);
 
-            Expect::that(\pcntl_async_signals())
-                ->because('native signal operations MUST enable asynchronous delivery')
-                ->toBeTrue();
-            Expect::that(\pcntl_signal_get_handler(\SIGUSR1))
-                ->because('native signal operations MUST register the exact handler')
-                ->toBe($handler);
-        } finally {
-            \pcntl_signal(\SIGUSR1, $handlerBefore);
-            \pcntl_async_signals($asyncBefore);
-        }
+        Expect::that(\pcntl_async_signals())
+            ->because('native signal operations MUST enable asynchronous delivery')
+            ->toBeTrue();
+        Expect::that(\pcntl_signal_get_handler(\SIGUSR1))
+            ->because('native signal operations MUST register the exact handler')
+            ->toBe($handler);
     }
 
     #[Test]
