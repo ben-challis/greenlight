@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Artifact;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
@@ -13,7 +14,10 @@ use Greenlight\Runner\Artifact\ArtifactStore;
 
 final readonly class ArtifactCleanupSymlinkTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function cleanupRemovesDirectoryLinksWithoutChangingTheirTargets(): void
@@ -25,6 +29,7 @@ final readonly class ArtifactCleanupSymlinkTest
             $root,
             'run-cleanup-symlink',
         );
+        $this->cleanup->defer($store->cleanup(...));
         $staging = $store->session()->stagingDirectory;
         $link = $staging . '/external';
         $sentinel = $target . '/sentinel.txt';

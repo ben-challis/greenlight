@@ -9,6 +9,7 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -18,7 +19,10 @@ use Greenlight\Tests\Fixture\Artifact\CorruptingFileCopier;
 
 final readonly class ArtifactPostCopyIntegrityTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function postCopyCorruptionRejectsPublicationAndRemovesThePartialFile(): void
@@ -30,6 +34,7 @@ final readonly class ArtifactPostCopyIntegrityTest
             'run-post-copy-integrity',
             new CorruptingFileCopier(),
         );
+        $this->cleanup->defer($store->cleanup(...));
         $id = new TestId('Example\EvidenceTest', 'fails');
         $attempt = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attempt->text('evidence.txt', 'evidence');
@@ -42,21 +47,17 @@ final readonly class ArtifactPostCopyIntegrityTest
             attachments: [$staged],
         );
 
-        try {
-            Expect::that(static fn(): TestResult => $store->publish($result))
-                ->because('post-copy corruption MUST reject attachment publication')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Published attachment content does not match its metadata.',
-                );
-            Expect::that(\is_file($staged->path))
-                ->because('a rejected publication MUST NOT leave the final attachment')
-                ->toBeFalse();
-            Expect::that(\glob($staged->path . '.part-*'))
-                ->because('a rejected publication MUST remove its partial attachment')
-                ->toBe([]);
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that(static fn(): TestResult => $store->publish($result))
+            ->because('post-copy corruption MUST reject attachment publication')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Published attachment content does not match its metadata.',
+            );
+        Expect::that(\is_file($staged->path))
+            ->because('a rejected publication MUST NOT leave the final attachment')
+            ->toBeFalse();
+        Expect::that(\glob($staged->path . '.part-*'))
+            ->because('a rejected publication MUST remove its partial attachment')
+            ->toBe([]);
     }
 }

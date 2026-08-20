@@ -13,6 +13,7 @@ use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -20,7 +21,10 @@ use Greenlight\Runner\Artifact\ArtifactStore;
 
 final readonly class ArtifactStorageKeyTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     #[DataSet('unsafeStorageKeys')]
@@ -28,6 +32,7 @@ final readonly class ArtifactStorageKeyTest
     {
         $root = $this->tempDirectory->subdirectory('storage-key-' . $case);
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-storage-key');
+        $this->cleanup->defer($store->cleanup(...));
         $attachment = new StagedAttachment(
             'evidence.txt',
             AttachmentKind::Text,
@@ -47,19 +52,15 @@ final readonly class ArtifactStorageKeyTest
             attachments: [$attachment],
         );
 
-        try {
-            Expect::that(static fn(): TestResult => $store->publish($result))
-                ->because('publication rejects an unsafe storage key')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Attachment metadata contains an unsafe storage key.',
-                );
-            Expect::that(\file_exists($store->publicDirectory()))
-                ->because('an unsafe storage key cannot create an output path')
-                ->toBeFalse();
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that(static fn(): TestResult => $store->publish($result))
+            ->because('publication rejects an unsafe storage key')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment metadata contains an unsafe storage key.',
+            );
+        Expect::that(\file_exists($store->publicDirectory()))
+            ->because('an unsafe storage key cannot create an output path')
+            ->toBeFalse();
     }
 
     #[Test]
@@ -71,10 +72,12 @@ final readonly class ArtifactStorageKeyTest
             $root,
             'run-unsafe-discard',
         );
+        $this->cleanup->defer($store->cleanup(...));
         $staging = $store->session()->stagingDirectory;
         $sentinelName = \basename($staging) . '-sentinel';
         $sentinel = \dirname($staging) . '/' . $sentinelName;
         $storageKey = '../' . $sentinelName;
+        $this->cleanup->defer(static fn(): bool => @\unlink($sentinel));
         $attachment = new StagedAttachment(
             'evidence.txt',
             AttachmentKind::Text,
@@ -94,23 +97,18 @@ final readonly class ArtifactStorageKeyTest
             attachments: [$attachment],
         );
 
-        try {
-            Expect::that(\file_put_contents($sentinel, 'preserve'))
-                ->because('the sentinel file MUST exist before publication')
-                ->toBe(8);
-            Expect::that(static fn(): TestResult => $store->publish($result))
-                ->because('discard MUST validate a staging coordinate before removing files')
-                ->toThrow(
-                    AttachmentError::class,
-                    message: 'Attachment metadata contains an unsafe storage key.',
-                );
-            Expect::that(\file_get_contents($sentinel))
-                ->because('unsafe metadata MUST NOT remove files outside staging')
-                ->toBe('preserve');
-        } finally {
-            @\unlink($sentinel);
-            $store->cleanup();
-        }
+        Expect::that(\file_put_contents($sentinel, 'preserve'))
+            ->because('the sentinel file MUST exist before publication')
+            ->toBe(8);
+        Expect::that(static fn(): TestResult => $store->publish($result))
+            ->because('discard MUST validate a staging coordinate before removing files')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Attachment metadata contains an unsafe storage key.',
+            );
+        Expect::that(\file_get_contents($sentinel))
+            ->because('unsafe metadata MUST NOT remove files outside staging')
+            ->toBe('preserve');
     }
 
     /**

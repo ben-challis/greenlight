@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
@@ -23,13 +24,17 @@ use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class RetryDeciderAttachmentTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(
+        private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function retryDecidersReceiveAttemptAttachmentMetadata(): void
     {
         $root = $this->tempDirectory->subdirectory('retry-decider-attachments');
         $store = ArtifactStore::open(new ArtifactConfiguration($root), $root, 'run-1');
+        $this->cleanup->defer($store->cleanup(...));
         $decider = new class implements RetryDecider, Fake {
             /** @var list<TestResult> */
             public array $results = [];
@@ -50,25 +55,21 @@ final readonly class RetryDeciderAttachmentTest
         ]);
         $sink = new CollectingEventSink();
 
-        try {
-            new Worker(
-                new HarnessRegistry([]),
-                PluginRegistry::forWorker([$decider]),
-                artifactStore: $store,
-            )->run($plan, $sink);
+        new Worker(
+            new HarnessRegistry([]),
+            PluginRegistry::forWorker([$decider]),
+            artifactStore: $store,
+        )->run($plan, $sink);
 
-            Expect::that($decider->results)
-                ->because('a retry decider MUST receive the unsuccessful attempt result')
-                ->toHaveCount(1);
-            Expect::that($decider->results[0]->attachments)
-                ->because('a retry decider MUST receive attachment metadata before it decides')
-                ->toHaveCount(1);
-            Expect::that($decider->results[0]->attachments[0]->name)
-                ->toBe('failure.txt');
-            Expect::that($decider->results[0]->attachments[0]->sizeBytes)
-                ->toBe(14);
-        } finally {
-            $store->cleanup();
-        }
+        Expect::that($decider->results)
+            ->because('a retry decider MUST receive the unsuccessful attempt result')
+            ->toHaveCount(1);
+        Expect::that($decider->results[0]->attachments)
+            ->because('a retry decider MUST receive attachment metadata before it decides')
+            ->toHaveCount(1);
+        Expect::that($decider->results[0]->attachments[0]->name)
+            ->toBe('failure.txt');
+        Expect::that($decider->results[0]->attachments[0]->sizeBytes)
+            ->toBe(14);
     }
 }

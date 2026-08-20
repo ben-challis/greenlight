@@ -9,11 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
 use Greenlight\Core\Result\DiagnosticSeverity;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\Subprocess;
 
-final class OutputCaptureTest
+final readonly class OutputCaptureTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function echoInsideTheWindowIsCapturedAndDoesNotReachTheOuterStream(): void
     {
@@ -384,18 +387,15 @@ final class OutputCaptureTest
             PHP_WRAP,
             $root . '/vendor/autoload.php',
         ]);
+        $this->cleanup->defer($process->terminate(...));
 
-        try {
-            $result = $process->wait(2.0);
+        $result = $process->wait(2.0);
 
-            Expect::that($result->exitCode)
-                ->because('a blocked nested output buffer MUST fail without hanging the worker')
-                ->toBe(23);
-            Expect::that($result->stderr)
-                ->toBe('Output capture cannot stop because a nested output buffer cannot be removed.');
-        } finally {
-            $process->terminate();
-        }
+        Expect::that($result->exitCode)
+            ->because('a blocked nested output buffer MUST fail without hanging the worker')
+            ->toBe(23);
+        Expect::that($result->stderr)
+            ->toBe('Output capture cannot stop because a nested output buffer cannot be removed.');
     }
 
     #[Test]

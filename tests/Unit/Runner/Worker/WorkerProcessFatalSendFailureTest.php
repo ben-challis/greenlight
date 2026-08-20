@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
@@ -18,6 +19,7 @@ final readonly class WorkerProcessFatalSendFailureTest
     public function __construct(
         private EnvironmentSandbox $environment,
         private TempDirectory $tempDirectory,
+        private Cleanup $cleanup,
     ) {}
 
     #[Test]
@@ -147,26 +149,23 @@ final readonly class WorkerProcessFatalSendFailureTest
             $ready,
             $release,
         ]);
+        $this->cleanup->defer($server->terminate(...));
 
-        try {
-            $address = \trim($server->readStdoutUntil("\n", 2.0));
+        $address = \trim($server->readStdoutUntil("\n", 2.0));
 
-            if ($address === '') {
-                Fail::because('Worker protocol server did not publish its address.');
-            }
-
-            $this->environment->set('GREENLIGHT_CHANNEL', '1');
-            $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
-            $serverResult = $server->wait(3.0);
-
-            Expect::that($workerExit)
-                ->because('a failed final report MUST not escape the worker process')
-                ->toBe(1);
-            Expect::that($serverResult->exitCode)
-                ->because('the protocol fixture MUST reset the channel before it releases the assignment failure')
-                ->toBe(0);
-        } finally {
-            $server->terminate();
+        if ($address === '') {
+            Fail::because('Worker protocol server did not publish its address.');
         }
+
+        $this->environment->set('GREENLIGHT_CHANNEL', '1');
+        $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+        $serverResult = $server->wait(3.0);
+
+        Expect::that($workerExit)
+            ->because('a failed final report MUST not escape the worker process')
+            ->toBe(1);
+        Expect::that($serverResult->exitCode)
+            ->because('the protocol fixture MUST reset the channel before it releases the assignment failure')
+            ->toBe(0);
     }
 }
