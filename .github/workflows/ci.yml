@@ -184,6 +184,10 @@ jobs:
         working-directory: ".github/fixtures/hyperf-bridge"
         run: "composer update --no-interaction --no-progress --prefer-dist"
 
+      - name: "Verify restricted Hyperf path diagnostics"
+        working-directory: ".github/fixtures/hyperf-bridge"
+        run: "php verify-path-diagnostics.php"
+
       - name: "Run Hyperf worker-container acceptance tests"
         working-directory: ".github/fixtures/hyperf-bridge"
         env:

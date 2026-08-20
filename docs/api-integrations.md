@@ -129,7 +129,7 @@ PHPDoc:
 - `@return T`
 - `@throws HyperfBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L166)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L174)
 
 ### `runTestAttempt()`
 
@@ -145,7 +145,7 @@ PHPDoc:
 - `@return T`
 - `@throws HyperfBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L210)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L218)
 
 ## `Hyperf\Service`
 

@@ -118,13 +118,21 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     public function onWorkerBootstrap(WorkerBootstrapContext $context): void
     {
         HyperfFrameworkRequirement::check();
-        $basePath = \realpath($this->basePath);
+        [$basePath, $containerFileExists] = ErrorTrap::run(function (): array {
+            $basePath = \realpath($this->basePath);
 
-        if ($basePath === false || !\is_dir($basePath)) {
+            if ($basePath === false || !\is_dir($basePath)) {
+                return [false, false];
+            }
+
+            return [$basePath, \is_file($this->containerFile)];
+        });
+
+        if ($basePath === false) {
             throw HyperfBridgeError::basePathMissing($this->basePath);
         }
 
-        if (!\is_file($this->containerFile)) {
+        if (!$containerFileExists) {
             throw HyperfBridgeError::containerFileMissing($this->containerFile);
         }
 
@@ -135,7 +143,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
                 throw HyperfBridgeError::basePathConflict($basePath, \get_debug_type($defined));
             }
 
-            $definedPath = \realpath($defined);
+            $definedPath = ErrorTrap::run(static fn(): string|false => \realpath($defined));
 
             if ($definedPath === false || $definedPath !== $basePath) {
                 throw HyperfBridgeError::basePathConflict($basePath, $defined);
