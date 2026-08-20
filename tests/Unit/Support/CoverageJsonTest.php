@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
@@ -18,7 +17,7 @@ final readonly class CoverageJsonTest
     public function __construct(private TempDirectory $workspace) {}
 
     #[Test]
-    public function writeCreatesAnImportableCoverageFixture(): void
+    public function writeAndReadPreserveTheCoverageMap(): void
     {
         $path = $this->workspace->path() . '/coverage.json';
         $map = new CoverageMap([
@@ -27,9 +26,24 @@ final readonly class CoverageJsonTest
 
         CoverageJson::write($path, $map);
 
-        Expect::that(JsonExporter::import((string) \file_get_contents($path))->toWire())
-            ->because('the shared fixture writer MUST preserve the coverage map')
+        Expect::that(CoverageJson::read($path)->toWire())
+            ->because('the shared coverage JSON fixture MUST preserve the coverage map')
             ->toBe($map->toWire());
+    }
+
+    #[Test]
+    public function readFailsExplicitlyWhenTheSourceIsUnavailable(): void
+    {
+        $path = $this->workspace->path() . '/missing/coverage.json';
+
+        Expect::that(static fn(): CoverageMap => CoverageJson::read($path))
+            ->because('a coverage JSON read failure MUST identify its source')
+            ->toThrow(
+                ExpectationFailed::class,
+                matching: '/Expected to read coverage JSON document "'
+                    . \preg_quote($path, '/')
+                    . '"/',
+            );
     }
 
     #[Test]
