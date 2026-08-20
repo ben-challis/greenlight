@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Expect\Fail;
+use Greenlight\Expect\Expect;
 
 final readonly class ConnectedStreamPair
 {
@@ -15,9 +15,15 @@ final readonly class ConnectedStreamPair
     {
         $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
 
-        if ($pair === false || \count($pair) !== 2 || !isset($pair[0], $pair[1])) {
-            Fail::because('Expected stream_socket_pair() to create a connected stream pair.');
-        }
+        Expect::that($pair)
+            ->because('stream_socket_pair() MUST create an array.')
+            ->toBeArray();
+        Expect::that($pair)
+            ->because('stream_socket_pair() MUST create a pair.')
+            ->toHaveCount(2);
+        Expect::that(isset($pair[0], $pair[1]))
+            ->because('The connected stream pair MUST contain both streams.')
+            ->toBeTrue();
 
         return [$pair[0], $pair[1]];
     }

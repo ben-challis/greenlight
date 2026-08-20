@@ -12,7 +12,6 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\PublishingEventSink;
@@ -55,9 +54,9 @@ final readonly class PublishingEventSinkTest
 
             $finished = $inner->events[1];
 
-            if (!$finished instanceof TestFinished) {
-                Fail::because('Expected the second event to be TestFinished.');
-            }
+            Expect::that($finished)
+                ->because('The second event MUST be TestFinished.')
+                ->toBeInstanceOf(TestFinished::class);
 
             $publishedPath = $finished->result->attachments[0]->path;
 

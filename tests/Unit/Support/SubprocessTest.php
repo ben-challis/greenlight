@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\Subprocess;
@@ -35,12 +34,12 @@ final readonly class SubprocessTest
         );
         $workingDirectory = \realpath($this->workspace->path());
 
-        if ($workingDirectory === false) {
-            Fail::because(\sprintf(
-                'Expected subprocess working directory at "%s".',
+        Expect::that($workingDirectory)
+            ->because(\sprintf(
+                'The subprocess working directory at "%s" MUST exist.',
                 $this->workspace->path(),
-            ));
-        }
+            ))
+            ->toBeString();
 
         Expect::that($result->exitCode)->because('run captures the result and honors its execution context')->toBe(7);
         Expect::that($result->stdout)->toBe($workingDirectory . "\nenvironment");

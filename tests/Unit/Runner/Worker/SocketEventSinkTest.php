@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\SuiteStarted;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\SocketEventSink;
@@ -28,12 +27,9 @@ final class SocketEventSinkTest
             $sink->emit($event);
             $message = $receiver->poll();
 
-            if (!$message instanceof EventEnvelope) {
-                Fail::because(\sprintf(
-                    'Expected SocketEventSink to send EventEnvelope, got %s.',
-                    \get_debug_type($message),
-                ));
-            }
+            Expect::that($message)
+                ->because('SocketEventSink MUST send EventEnvelope.')
+                ->toBeInstanceOf(EventEnvelope::class);
 
             Expect::that($message->event)
                 ->because('the worker event sink MUST transport the emitted event')

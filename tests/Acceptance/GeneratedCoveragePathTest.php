@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
@@ -37,9 +36,9 @@ final readonly class GeneratedCoveragePathTest
 
         $json = \file_get_contents($project->path('coverage.json'));
 
-        if ($json === false) {
-            Fail::because('Expected a readable coverage JSON export.');
-        }
+        Expect::that($json)
+            ->because('The coverage JSON export MUST be readable.')
+            ->toBeString();
 
         /** @var array{files: array<string, array{covered: list<int>}>} $decoded */
         $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);

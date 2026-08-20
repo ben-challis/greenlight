@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Psr;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Psr\Psr11BridgeError;
@@ -176,9 +175,9 @@ final readonly class Psr11PluginTest
             $error = $caught;
         }
 
-        if (!$error instanceof Psr11BridgeError) {
-            Fail::because('The reset callback did not fail.');
-        }
+        Expect::that($error)
+            ->because('The reset callback MUST fail.')
+            ->toBeInstanceOf(Psr11BridgeError::class);
 
         Expect::that($error->getPrevious())->toBe($failure);
         $this->containerFrom($plugin);
@@ -229,9 +228,9 @@ final readonly class Psr11PluginTest
             $error = $caught;
         }
 
-        if (!$error instanceof Psr11BridgeError) {
-            Fail::because('The container factory did not fail.');
-        }
+        Expect::that($error)
+            ->because('The container factory MUST fail.')
+            ->toBeInstanceOf(Psr11BridgeError::class);
 
         Expect::that($error->getPrevious())->toBe($failure);
     }
@@ -344,12 +343,9 @@ final readonly class Psr11PluginTest
     {
         $container = ($plugin->services()[0]->factory)();
 
-        if (!$container instanceof ContainerInterface) {
-            Fail::because(\sprintf(
-                'Expected the PSR-11 harness factory to return ContainerInterface, got %s.',
-                \get_debug_type($container),
-            ));
-        }
+        Expect::that($container)
+            ->because('The PSR-11 harness factory MUST return ContainerInterface.')
+            ->toBeInstanceOf(ContainerInterface::class);
 
         return $container;
     }

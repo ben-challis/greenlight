@@ -18,7 +18,6 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\FixtureResource;
 use Greenlight\Harness\IntegrationResources;
 use Greenlight\Runner\Artifact\ArtifactSession;
@@ -228,9 +227,10 @@ final class ProtocolTest
         $buffer->feed($codec->encode(['message' => "bad \xB1\x31 bytes"]));
         $body = $buffer->next();
 
-        if ($body === null) {
-            Fail::because('Expected FrameBuffer::next() to return the complete encoded frame.');
-        }
+        Expect::that($body)
+            ->because('FrameBuffer::next() MUST return the complete encoded frame.')
+            ->not()
+            ->toBeNull();
 
         Expect::that($codec->decode($body)['message'])->because('binary bytes in messages survive encoding')->toContain('bad');
     }

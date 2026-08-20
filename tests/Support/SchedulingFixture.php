@@ -9,7 +9,6 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\DispatchKind;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
@@ -45,9 +44,9 @@ final class SchedulingFixture
             ->because('the scheduling fixture requires an assignment')
             ->toBe(DispatchKind::Assign);
 
-        if (!$decision->lease instanceof ResourceLease) {
-            Fail::because(\sprintf('Expected an assignment, got %s.', $decision->kind->name));
-        }
+        Expect::that($decision->lease)
+            ->because(\sprintf('Expected an assignment, got %s.', $decision->kind->name))
+            ->toBeInstanceOf(ResourceLease::class);
 
         return $decision->lease;
     }

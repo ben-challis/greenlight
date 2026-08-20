@@ -9,7 +9,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\SignalHandlers;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Cli\RecordingSignalOperations;
 
 final class SignalHandlersTest
@@ -25,9 +24,9 @@ final class SignalHandlersTest
 
         $handler = $operations->registrations[$index]['handler'] ?? null;
 
-        if (!\is_callable($handler)) {
-            Fail::because('Expected each supported signal to get a callable first handler.');
-        }
+        Expect::that($handler)
+            ->because('Each supported signal MUST get a callable first handler.')
+            ->toBeCallable();
 
         $handler($signal);
 
@@ -72,9 +71,9 @@ final class SignalHandlersTest
 
         $handler = $operations->registrations[0]['handler'] ?? null;
 
-        if (!\is_callable($handler)) {
-            Fail::because('Expected SignalHandlers to register a callable for SIGINT.');
-        }
+        Expect::that($handler)
+            ->because('SignalHandlers MUST register a callable for SIGINT.')
+            ->toBeCallable();
 
         $handler(\SIGTERM);
 

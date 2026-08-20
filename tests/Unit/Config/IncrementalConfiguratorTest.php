@@ -11,7 +11,6 @@ use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\CoverageExport;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 
 final class IncrementalConfiguratorTest
 {
@@ -29,9 +28,9 @@ final class IncrementalConfiguratorTest
             ->build();
         $coverage = $configuration->coverage;
 
-        if (!$coverage instanceof CoverageConfiguration) {
-            Fail::because('Expected repeated coverage blocks to enable coverage.');
-        }
+        Expect::that($coverage)
+            ->because('Repeated coverage blocks MUST enable coverage.')
+            ->toBeInstanceOf(CoverageConfiguration::class);
 
         Expect::that($coverage->includePaths)
             ->because('repeated coverage blocks MUST retain earlier settings')

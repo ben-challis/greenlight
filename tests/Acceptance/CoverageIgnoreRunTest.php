@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
@@ -31,12 +30,12 @@ final readonly class CoverageIgnoreRunTest
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
-        if ($json === false) {
-            Fail::because(\sprintf(
-                'Expected a readable coverage JSON export at "%s".',
+        Expect::that($json)
+            ->because(\sprintf(
+                'The coverage JSON export at "%s" MUST be readable.',
                 $outDir . '/coverage.json',
-            ));
-        }
+            ))
+            ->toBeString();
 
         /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
         $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);

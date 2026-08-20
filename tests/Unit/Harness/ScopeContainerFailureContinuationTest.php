@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
@@ -32,9 +31,12 @@ final class ScopeContainerFailureContinuationTest
             static fn(): FailingDisposable => new FailingDisposable(),
         ));
 
-        if (!$recording instanceof RecordingDisposable || !$failing instanceof FailingDisposable) {
-            Fail::because('Expected ScopeContainer to resolve both disposable fixture types.');
-        }
+        Expect::that($recording)
+            ->because('ScopeContainer MUST resolve RecordingDisposable.')
+            ->toBeInstanceOf(RecordingDisposable::class);
+        Expect::that($failing)
+            ->because('ScopeContainer MUST resolve FailingDisposable.')
+            ->toBeInstanceOf(FailingDisposable::class);
 
         $recording->initialize();
         $failing->initialize();

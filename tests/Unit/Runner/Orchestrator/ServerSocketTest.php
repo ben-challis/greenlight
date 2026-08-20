@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Runner\Orchestrator\ServerSocket;
 
 final class ServerSocketTest
@@ -19,9 +18,9 @@ final class ServerSocketTest
         $socket = null;
 
         try {
-            if (!\is_string($blocked)) {
-                Fail::because('Could not create the blocked socket directory fixture.');
-            }
+            Expect::that($blocked)
+                ->because('The test MUST create the blocked socket directory fixture.')
+                ->toBeString();
 
             $socket = ServerSocket::listen($blocked);
 

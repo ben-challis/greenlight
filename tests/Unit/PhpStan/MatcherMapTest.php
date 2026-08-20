@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\PhpStan;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
 use Greenlight\Tests\Fixture\PhpStan\MatcherTypeShapes;
@@ -50,9 +49,12 @@ final class MatcherMapTest
     {
         $workingDirectory = \getcwd();
 
-        if (!\is_string($workingDirectory) || !\str_starts_with(self::CONFIG, $workingDirectory . '/')) {
-            Fail::because('Expected the matcher configuration fixture below the current working directory.');
-        }
+        Expect::that($workingDirectory)
+            ->because('The matcher configuration fixture MUST have a working directory.')
+            ->toBeString();
+        Expect::that(\str_starts_with(self::CONFIG, $workingDirectory . '/'))
+            ->because('The matcher configuration fixture MUST be below the current working directory.')
+            ->toBeTrue();
 
         $relativeConfig = \substr(self::CONFIG, \strlen($workingDirectory) + 1);
         $map = MatcherMap::fromConfigFiles([$relativeConfig]);

@@ -120,13 +120,9 @@ final readonly class SubprocessCoverageTest
         $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        if (!\is_string($directory)) {
-            Fail::because(\sprintf(
-                'Expected %s to contain a relay directory, got %s.',
-                SubprocessCoverage::DIRECTORY_ENV,
-                \get_debug_type($directory),
-            ));
-        }
+        Expect::that($directory)
+            ->because(\sprintf('%s MUST contain a relay directory.', SubprocessCoverage::DIRECTORY_ENV))
+            ->toBeString();
 
         $this->dump($directory, 'a.json', new CoverageMap([new FileCoverage('/app/a.php', [1, 2], [3])]));
         $this->dump($directory, 'b.json', new CoverageMap([new FileCoverage('/app/a.php', [3], []), new FileCoverage('/app/b.php', [7], [])]));
@@ -134,12 +130,9 @@ final readonly class SubprocessCoverageTest
 
         $merged = $shared->drain();
 
-        if (!$merged instanceof CoverageMap) {
-            Fail::because(\sprintf(
-                'Expected SharedCoverageDirectory::drain() to return CoverageMap, got %s.',
-                \get_debug_type($merged),
-            ));
-        }
+        Expect::that($merged)
+            ->because('SharedCoverageDirectory::drain() MUST return CoverageMap.')
+            ->toBeInstanceOf(CoverageMap::class);
 
         $files = $merged->files();
 
@@ -158,9 +151,9 @@ final readonly class SubprocessCoverageTest
         $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        if (!\is_string($directory)) {
-            Fail::because('Expected the coverage relay directory environment variable to contain a path.');
-        }
+        Expect::that($directory)
+            ->because('The coverage relay directory environment variable MUST contain a path.')
+            ->toBeString();
 
         $unreadable = $directory . '/unreadable.json';
 
@@ -200,9 +193,9 @@ final readonly class SubprocessCoverageTest
         $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, '0');
         $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        if (!$relay instanceof SubprocessCoverage) {
-            Fail::because('Expected the non-empty falsey directory to start subprocess coverage.');
-        }
+        Expect::that($relay)
+            ->because('The non-empty falsey directory MUST start subprocess coverage.')
+            ->toBeInstanceOf(SubprocessCoverage::class);
 
         Expect::that(SubprocessCoverage::requested())
             ->because('a non-empty falsey directory MUST request subprocess coverage')
@@ -226,9 +219,9 @@ final readonly class SubprocessCoverageTest
 
         $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        if (!$relay instanceof SubprocessCoverage) {
-            Fail::because('Expected the available fake driver to start subprocess coverage.');
-        }
+        Expect::that($relay)
+            ->because('The available fake driver MUST start subprocess coverage.')
+            ->toBeInstanceOf(SubprocessCoverage::class);
 
         Expect::that(RecordingFakeDriver::started())
             ->because('subprocess coverage starts the selected driver')
@@ -242,15 +235,18 @@ final readonly class SubprocessCoverageTest
 
         $dumps = \glob($directory . '/*.json');
 
-        if (!\is_array($dumps) || \count($dumps) !== 1) {
-            Fail::because('Expected subprocess coverage to write exactly one JSON dump.');
-        }
+        Expect::that($dumps)
+            ->because('Subprocess coverage MUST write a list of JSON dumps.')
+            ->toBeArray();
+        Expect::that($dumps)
+            ->because('Subprocess coverage MUST write exactly one JSON dump.')
+            ->toHaveCount(1);
 
         $json = \file_get_contents($dumps[0]);
 
-        if (!\is_string($json)) {
-            Fail::because('Expected to read the subprocess coverage JSON dump.');
-        }
+        Expect::that($json)
+            ->because('The test MUST read the subprocess coverage JSON dump.')
+            ->toBeString();
 
         $files = JsonExporter::import($json)->files();
 
@@ -271,9 +267,9 @@ final readonly class SubprocessCoverageTest
         $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
         $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        if (!$relay instanceof SubprocessCoverage) {
-            Fail::because('Expected the available fake driver to start subprocess coverage.');
-        }
+        Expect::that($relay)
+            ->because('The available fake driver MUST start subprocess coverage.')
+            ->toBeInstanceOf(SubprocessCoverage::class);
 
         $relay->write();
 
@@ -293,9 +289,9 @@ final readonly class SubprocessCoverageTest
         $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
         $relay = SubprocessCoverage::begin(new DriverSelector([AvailableFakeDriver::class]));
 
-        if (!$relay instanceof SubprocessCoverage) {
-            Fail::because('Expected the available fake driver to start subprocess coverage.');
-        }
+        Expect::that($relay)
+            ->because('The available fake driver MUST start subprocess coverage.')
+            ->toBeInstanceOf(SubprocessCoverage::class);
 
         $relay->write();
 

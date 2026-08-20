@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -31,12 +30,12 @@ final readonly class CoverageRunTest
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
-        if ($json === false) {
-            Fail::because(\sprintf(
-                'Expected a readable coverage JSON export at "%s".',
+        Expect::that($json)
+            ->because(\sprintf(
+                'The coverage JSON export at "%s" MUST be readable.',
                 $outDir . '/coverage.json',
-            ));
-        }
+            ))
+            ->toBeString();
 
         /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
         $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
@@ -101,9 +100,9 @@ final readonly class CoverageRunTest
 
         $document = \file_get_contents($project->path('coverage-out/coverage.unknown'));
 
-        if ($document === false) {
-            Fail::because(\sprintf('Expected a readable %s coverage export.', $format));
-        }
+        Expect::that($document)
+            ->because(\sprintf('The %s coverage export MUST be readable.', $format))
+            ->toBeString();
 
         $xml = new \SimpleXMLElement($document);
         $children = $xml->xpath('/coverage/' . $expectedChild);
@@ -160,12 +159,12 @@ final readonly class CoverageRunTest
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
-        if ($json === false) {
-            Fail::because(\sprintf(
-                'Expected a readable coverage JSON export at "%s".',
+        Expect::that($json)
+            ->because(\sprintf(
+                'The coverage JSON export at "%s" MUST be readable.',
                 $outDir . '/coverage.json',
-            ));
-        }
+            ))
+            ->toBeString();
 
         /** @var array{files: array<string, array{covered: list<int>}>} $decoded */
         $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
@@ -245,12 +244,12 @@ final readonly class CoverageRunTest
 
         $json = \file_get_contents($baseline);
 
-        if ($json === false) {
-            Fail::because(\sprintf(
-                'Expected a readable baseline coverage export at "%s".',
+        Expect::that($json)
+            ->because(\sprintf(
+                'The baseline coverage export at "%s" MUST be readable.',
                 $baseline,
-            ));
-        }
+            ))
+            ->toBeString();
 
         /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
         $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
@@ -262,9 +261,10 @@ final readonly class CoverageRunTest
             }
         }
 
-        if ($mathFile === null) {
-            Fail::because('Baseline export has no entry for CoverageLib/Math.php.');
-        }
+        Expect::that($mathFile)
+            ->because('Baseline export has no entry for CoverageLib/Math.php.')
+            ->not()
+            ->toBeNull();
 
         $before = $decoded['files'][$mathFile];
 

@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Runner\DefaultServices;
@@ -32,12 +31,9 @@ final readonly class DefaultServicesTest
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
-            if (!$channel instanceof TestChannel) {
-                Fail::because(\sprintf(
-                    'Expected the default service to resolve TestChannel, got %s.',
-                    \get_debug_type($channel),
-                ));
-            }
+            Expect::that($channel)
+                ->because('The default service MUST resolve TestChannel.')
+                ->toBeInstanceOf(TestChannel::class);
 
             Expect::that($channel->number)
                 ->because('the default channel service MUST always use a positive number')

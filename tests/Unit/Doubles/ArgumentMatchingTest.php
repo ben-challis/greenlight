@@ -14,7 +14,6 @@ use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Recorder;
 use Greenlight\Tests\Fixture\Doubles\Wide;
@@ -225,12 +224,9 @@ final readonly class ArgumentMatchingTest
         $calculator->add(1, 9);
         $calculator->add(2, 8);
 
-        if (!$captor instanceof ArgumentCaptor) {
-            Fail::because(\sprintf(
-                'Expected captureArgument() to return ArgumentCaptor, got %s.',
-                \get_debug_type($captor),
-            ));
-        }
+        Expect::that($captor)
+            ->because('captureArgument() MUST return ArgumentCaptor.')
+            ->toBeInstanceOf(ArgumentCaptor::class);
 
         Expect::that($captor->values())->because('capture argument records every matched call')->toEqual([9, 8]);
     }
@@ -245,12 +241,9 @@ final readonly class ArgumentMatchingTest
 
         $calculator->add(42, 7);
 
-        if (!$captor instanceof ArgumentCaptor) {
-            Fail::because(\sprintf(
-                'Expected captureArgument() to return ArgumentCaptor, got %s.',
-                \get_debug_type($captor),
-            ));
-        }
+        Expect::that($captor)
+            ->because('captureArgument() MUST return ArgumentCaptor.')
+            ->toBeInstanceOf(ArgumentCaptor::class);
 
         Expect::that($captor->value())->because('capture argument works alongside with constraints')->toBe(42);
     }
