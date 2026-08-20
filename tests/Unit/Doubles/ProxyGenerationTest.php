@@ -20,6 +20,7 @@ use Greenlight\Tests\Fixture\Doubles\ProxyFileProbe;
 use Greenlight\Tests\Fixture\Doubles\SelfConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+use Greenlight\Tests\Support\Subprocess;
 
 final readonly class ProxyGenerationTest
 {
@@ -49,33 +50,38 @@ final readonly class ProxyGenerationTest
     #[Test]
     public function theDefaultCacheLivesInTheSystemTempDirKeyedByWorkingDirectory(): void
     {
-        $workingDirectory = \getcwd();
-        \assert($workingDirectory !== false);
+        $root = \dirname(__DIR__, 3);
+        $temporaryRoot = $this->tempDirectory->subdirectory('default-proxy-cache');
+        $result = Subprocess::run($root, [
+            \PHP_BINARY,
+            '-d',
+            'sys_temp_dir=' . $temporaryRoot,
+            '-r',
+            <<<'PHP'
+            require $argv[1];
 
+            $doubles = new Greenlight\Doubles\Doubles();
+            $doubles->spy(Greenlight\Tests\Fixture\Doubles\Calculator::class);
+            $doubles->dispose();
+            PHP,
+            $root . '/vendor/autoload.php',
+        ]);
         $directory = \sprintf(
             '%s/greenlight-proxies-%s',
-            \rtrim(\sys_get_temp_dir(), '/'),
-            \substr(\sha1($workingDirectory), 0, 12),
+            $temporaryRoot,
+            \substr(\sha1($root), 0, 12),
         );
+        $files = \glob($directory . '/*.php');
 
-        // The proxy class name contains a hash of Calculator signatures. Thus,
-        // its generated file has a deterministic name. Other tests can leave
-        // this file in the cache, so start with an empty cache.
-        $expectedFile = null;
-
-        try {
-            $proxyClass = $this->doubles->spy(Calculator::class)::class;
-            $separator = \strrpos($proxyClass, '\\');
-            \assert($separator !== false);
-            $shortName = \substr($proxyClass, $separator + 1);
-            $expectedFile = $directory . '/' . $shortName . '.php';
-
-            Expect::that(\is_file($expectedFile))->toBeTrue();
-        } finally {
-            if ($expectedFile !== null) {
-                @\unlink($expectedFile);
-            }
-        }
+        Expect::that($result->exitCode)
+            ->because('default proxy generation MUST succeed in the private process')
+            ->toBe(0);
+        Expect::that($result->stderr)
+            ->because('default proxy generation MUST not emit diagnostics')
+            ->toBe('');
+        Expect::that($files === false ? [] : $files)
+            ->because('the default cache MUST use system temp and the working-directory key')
+            ->toHaveCount(1);
     }
 
     #[Test]
