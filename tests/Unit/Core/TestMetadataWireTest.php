@@ -84,6 +84,34 @@ final class TestMetadataWireTest
             );
     }
 
+    #[Test]
+    #[DataSet('nonFiniteSkipUnlessArguments')]
+    public function nonFiniteSkipUnlessArgumentsAreRejectedOnBothSides(float $argument): void
+    {
+        Expect::that(
+            static fn(): TestMetadata => new TestMetadata(
+                'App\ExampleTest',
+                'checksValue',
+                skipUnlessArguments: [$argument],
+            ),
+        )
+            ->because('direct metadata MUST reject skip arguments that JSON cannot encode')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Skip-unless arguments MUST use finite floats.',
+            );
+
+        $payload = new TestMetadata('App\ExampleTest', 'checksValue')->toWire();
+        $payload['skipUnlessArguments'] = [$argument];
+
+        Expect::that(static fn(): TestMetadata => TestMetadata::fromWire($payload))
+            ->because('wire metadata MUST reject non-finite skip arguments')
+            ->toThrow(
+                InvalidWirePayload::class,
+                message: 'Wire payload key "skipUnlessArguments" must be a list of scalars or nulls with finite floats, got float.',
+            );
+    }
+
     /**
      * @return iterable<string, array{non-empty-string, mixed}>
      */
@@ -120,5 +148,15 @@ final class TestMetadataWireTest
         yield 'negative' => [-0.5, $positive];
         yield 'positive infinity' => [\INF, $finite];
         yield 'not a number' => [\NAN, $finite];
+    }
+
+    /**
+     * @return iterable<string, array{float}>
+     */
+    public static function nonFiniteSkipUnlessArguments(): iterable
+    {
+        yield 'positive infinity' => [\INF];
+        yield 'negative infinity' => [-\INF];
+        yield 'not a number' => [\NAN];
     }
 }
