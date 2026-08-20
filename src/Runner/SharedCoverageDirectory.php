@@ -28,7 +28,7 @@ final readonly class SharedCoverageDirectory
     {
         $directory = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-coverage-' . \bin2hex(\random_bytes(6));
 
-        if (!ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700, true), $warning)) {
+        if (!ErrorTrap::run(static fn() => \mkdir($directory, 0o700, true), $warning)) {
             throw CoverageError::sharedDirectoryCreationFailed($directory, $warning);
         }
 
@@ -48,7 +48,7 @@ final readonly class SharedCoverageDirectory
 
         $dumps = \glob($this->directory . '/*.json');
 
-        $map = ErrorTrap::run(static function () use ($dumps): ?CoverageMap {
+        $map = ErrorTrap::run(static function () use ($dumps) {
             $map = null;
 
             foreach ($dumps === false ? [] : $dumps as $file) {
@@ -71,7 +71,7 @@ final readonly class SharedCoverageDirectory
             return $map;
         });
 
-        ErrorTrap::run(fn(): bool => \rmdir($this->directory));
+        ErrorTrap::run(fn() => \rmdir($this->directory));
 
         return $map;
     }

@@ -55,7 +55,7 @@ final readonly class ProxyStorageTest
         Expect::that(
             static function () use ($doubles, &$warning): void {
                 ErrorTrap::run(
-                    static fn(): object => $doubles->stub(ProxyStorageContract::class),
+                    static fn() => $doubles->stub(ProxyStorageContract::class),
                     $warning,
                 );
             },

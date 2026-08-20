@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
-use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -28,7 +27,7 @@ final readonly class ConfigLoaderOpenFailureTest
         Expect::that(
             static function () use ($file, &$warning): void {
                 ErrorTrap::run(
-                    static fn(): GreenlightConfig => new ConfigLoader()->loadFile($file),
+                    static fn() => new ConfigLoader()->loadFile($file),
                     $warning,
                 );
             },

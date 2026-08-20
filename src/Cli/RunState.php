@@ -80,11 +80,11 @@ final class RunState
         $this->loaded = true;
         $file = $this->file;
 
-        if (!ErrorTrap::run(static fn(): bool => \is_file($file))) {
+        if (!ErrorTrap::run(static fn() => \is_file($file))) {
             return null;
         }
 
-        $raw = ErrorTrap::run(static fn(): string|false => \file_get_contents($file));
+        $raw = ErrorTrap::run(static fn() => \file_get_contents($file));
 
         if (!\is_string($raw)) {
             return null;

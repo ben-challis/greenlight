@@ -48,7 +48,7 @@ final readonly class ProjectFiles
         $parent = \dirname($path);
 
         if (!\is_dir($parent)
-            && !ErrorTrap::run(static fn(): bool => \mkdir($parent, 0o777, true), $warning)
+            && !ErrorTrap::run(static fn() => \mkdir($parent, 0o777, true), $warning)
             && !\is_dir($parent)
         ) {
             throw new \RuntimeException(\sprintf(
@@ -60,7 +60,7 @@ final readonly class ProjectFiles
         }
 
         $written = ErrorTrap::run(
-            static fn(): int|false => \file_put_contents($path, $contents),
+            static fn() => \file_put_contents($path, $contents),
             $warning,
         );
 

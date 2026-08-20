@@ -36,14 +36,14 @@ final class AtomicFile
 
         $temp = \sprintf('%s.tmp-%s-%s', $path, (int) \getmypid(), $suffix);
 
-        if (ErrorTrap::run(static fn(): int|false => \file_put_contents($temp, $contents), $warning) === false) {
-            ErrorTrap::run(static fn(): bool => \unlink($temp));
+        if (ErrorTrap::run(static fn() => \file_put_contents($temp, $contents), $warning) === false) {
+            ErrorTrap::run(static fn() => \unlink($temp));
 
             throw AtomicFileError::cannotWriteTemporary($temp, $warning);
         }
 
-        if (ErrorTrap::run(static fn(): bool => \rename($temp, $path), $warning) === false) {
-            ErrorTrap::run(static fn(): bool => \unlink($temp));
+        if (ErrorTrap::run(static fn() => \rename($temp, $path), $warning) === false) {
+            ErrorTrap::run(static fn() => \unlink($temp));
 
             throw AtomicFileError::cannotRename($temp, $path, $warning);
         }

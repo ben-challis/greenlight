@@ -50,7 +50,7 @@ final readonly class ArtifactOutputSafetyTest
         FilesystemRestriction::toProject($root);
 
         $absoluteStore = ErrorTrap::run(
-            static fn(): ArtifactStore => ArtifactStore::open(
+            static fn() => ArtifactStore::open(
                 new ArtifactConfiguration($restricted),
                 $root,
                 'run-output',
@@ -58,7 +58,7 @@ final readonly class ArtifactOutputSafetyTest
             $absoluteWarning,
         );
         $workingDirectoryStore = ErrorTrap::run(
-            static fn(): ArtifactStore => ArtifactStore::open(
+            static fn() => ArtifactStore::open(
                 new ArtifactConfiguration('artifacts'),
                 $restricted,
                 'run-working-directory',

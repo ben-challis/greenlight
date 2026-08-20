@@ -101,7 +101,7 @@ final class Subprocess
         $length = \strlen($input);
 
         while ($offset < $length) {
-            $written = ErrorTrap::run(static fn(): int|false => \fwrite($stdin, \substr($input, $offset)));
+            $written = ErrorTrap::run(static fn() => \fwrite($stdin, \substr($input, $offset)));
 
             if ($written === false || $written === 0) {
                 throw new \RuntimeException('Could not write to process stdin.');
@@ -110,7 +110,7 @@ final class Subprocess
             $offset += $written;
         }
 
-        if (!ErrorTrap::run(static fn(): bool => \fflush($stdin))) {
+        if (!ErrorTrap::run(static fn() => \fflush($stdin))) {
             throw new \RuntimeException('Could not write to process stdin.');
         }
     }
@@ -262,10 +262,10 @@ final class Subprocess
         $status = \proc_get_status($this->process);
 
         if ($status['running']) {
-            ErrorTrap::run(fn(): bool => \proc_terminate($this->process, 9));
+            ErrorTrap::run(fn() => \proc_terminate($this->process, 9));
         }
 
-        ErrorTrap::run(fn(): int => \proc_close($this->process));
+        ErrorTrap::run(fn() => \proc_close($this->process));
         $this->finished = true;
     }
 
@@ -346,7 +346,7 @@ final class Subprocess
         $pipe = $this->pipes[$index] ?? null;
 
         if (\is_resource($pipe)) {
-            ErrorTrap::run(static fn(): bool => \fclose($pipe));
+            ErrorTrap::run(static fn() => \fclose($pipe));
         }
 
         unset($this->pipes[$index]);

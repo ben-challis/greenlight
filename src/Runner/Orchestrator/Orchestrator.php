@@ -1017,7 +1017,7 @@ final class Orchestrator
                 \usleep(10_000);
             }
 
-            ErrorTrap::run(static function () use ($handle): void {
+            ErrorTrap::run(static function () use ($handle) {
                 if ($handle->isRunning()) {
                     \proc_terminate($handle->process, 9);
                 }

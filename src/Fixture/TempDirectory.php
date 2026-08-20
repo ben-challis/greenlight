@@ -33,11 +33,11 @@ final class TempDirectory implements Disposable
     {
         if ($this->path === null) {
             $systemTemporaryRoot = $this->temporaryRoot ?? \sys_get_temp_dir();
-            $resolvedTemporaryRoot = ErrorTrap::run(static fn(): string|false => \realpath($systemTemporaryRoot));
+            $resolvedTemporaryRoot = ErrorTrap::run(static fn() => \realpath($systemTemporaryRoot));
             $temporaryRoot = $resolvedTemporaryRoot === false ? $systemTemporaryRoot : $resolvedTemporaryRoot;
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
 
-            if (!ErrorTrap::run(static fn(): bool => \mkdir($path, 0700), $warning)) {
+            if (!ErrorTrap::run(static fn() => \mkdir($path, 0700), $warning)) {
                 throw TempDirectoryError::rootCreationFailed($path, $warning);
             }
 
@@ -87,7 +87,7 @@ final class TempDirectory implements Disposable
 
         $path = $root . '/' . $name;
 
-        if (!\is_dir($path) && !ErrorTrap::run(static fn(): bool => \mkdir($path, 0700, true), $warning)) {
+        if (!\is_dir($path) && !ErrorTrap::run(static fn() => \mkdir($path, 0700, true), $warning)) {
             throw TempDirectoryError::subdirectoryCreationFailed($path, $warning);
         }
 
@@ -111,14 +111,14 @@ final class TempDirectory implements Disposable
         }
 
         $path = $this->path;
-        $isLink = ErrorTrap::run(static fn(): bool => \is_link($path), $warning);
+        $isLink = ErrorTrap::run(static fn() => \is_link($path), $warning);
 
         if ($warning !== null) {
             throw TempDirectoryError::rootRemovalFailed($path, $warning);
         }
 
         if ($isLink) {
-            if (!ErrorTrap::run(static fn(): bool => \unlink($path), $warning)) {
+            if (!ErrorTrap::run(static fn() => \unlink($path), $warning)) {
                 throw TempDirectoryError::rootLinkRemovalFailed($path, $warning);
             }
 
@@ -127,7 +127,7 @@ final class TempDirectory implements Disposable
             return;
         }
 
-        $isDirectory = ErrorTrap::run(static fn(): bool => \is_dir($path), $warning);
+        $isDirectory = ErrorTrap::run(static fn() => \is_dir($path), $warning);
 
         if ($warning !== null) {
             throw TempDirectoryError::rootRemovalFailed($path, $warning);
@@ -145,7 +145,7 @@ final class TempDirectory implements Disposable
                 \RecursiveIteratorIterator::CHILD_FIRST,
             );
 
-            ErrorTrap::run(static function () use ($entries, $path): void {
+            ErrorTrap::run(static function () use ($entries, $path) {
                 /** @var \SplFileInfo $entry */
                 foreach ($entries as $entry) {
                     $pathname = $entry->getPathname();
@@ -160,7 +160,7 @@ final class TempDirectory implements Disposable
             throw TempDirectoryError::rootRemovalFailed($path, $error->getMessage());
         }
 
-        if (!ErrorTrap::run(static fn(): bool => \rmdir($path), $warning)) {
+        if (!ErrorTrap::run(static fn() => \rmdir($path), $warning)) {
             throw TempDirectoryError::rootRemovalFailed($path, $warning);
         }
 

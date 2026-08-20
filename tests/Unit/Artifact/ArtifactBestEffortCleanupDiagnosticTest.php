@@ -40,7 +40,7 @@ final readonly class ArtifactBestEffortCleanupDiagnosticTest
         try {
             Expect::that(static function () use ($store, $id, $staged, &$warning): TestResult {
                 return ErrorTrap::run(
-                    static fn(): TestResult => $store->publish(new TestResult(
+                    static fn() => $store->publish(new TestResult(
                         $id,
                         Outcome::Failed,
                         0.1,

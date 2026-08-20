@@ -69,7 +69,7 @@ final class ConfigLoaderTest
         Expect::that(
             static function () use ($loader, $restrictedDirectory, &$directoryWarning): void {
                 ErrorTrap::run(
-                    static fn(): GreenlightConfig => $loader->loadFromDirectory($restrictedDirectory),
+                    static fn() => $loader->loadFromDirectory($restrictedDirectory),
                     $directoryWarning,
                 );
             },
@@ -78,7 +78,7 @@ final class ConfigLoaderTest
         Expect::that(
             static function () use ($loader, $restrictedFile, &$fileWarning): void {
                 ErrorTrap::run(
-                    static fn(): GreenlightConfig => $loader->loadFile($restrictedFile),
+                    static fn() => $loader->loadFile($restrictedFile),
                     $fileWarning,
                 );
             },

@@ -118,7 +118,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     public function onWorkerBootstrap(WorkerBootstrapContext $context): void
     {
         HyperfFrameworkRequirement::check();
-        [$basePath, $containerFileExists] = ErrorTrap::run(function (): array {
+        [$basePath, $containerFileExists] = ErrorTrap::run(function () {
             $basePath = \realpath($this->basePath);
 
             if ($basePath === false || !\is_dir($basePath)) {
@@ -143,7 +143,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
                 throw HyperfBridgeError::basePathConflict($basePath, \get_debug_type($defined));
             }
 
-            $definedPath = ErrorTrap::run(static fn(): string|false => \realpath($defined));
+            $definedPath = ErrorTrap::run(static fn() => \realpath($defined));
 
             if ($definedPath === false || $definedPath !== $basePath) {
                 throw HyperfBridgeError::basePathConflict($basePath, $defined);
@@ -235,7 +235,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         $runtimeDirectory = $basePath . '/runtime/container';
 
         if (!\is_dir($runtimeDirectory)
-            && !ErrorTrap::run(static fn(): bool => \mkdir($runtimeDirectory, 0o755, true), $warning)
+            && !ErrorTrap::run(static fn() => \mkdir($runtimeDirectory, 0o755, true), $warning)
         ) {
             throw HyperfBridgeError::scanLockUnavailable($runtimeDirectory . '/greenlight.scan.lock');
         }
@@ -248,13 +248,13 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         }
 
         try {
-            if (!ErrorTrap::run(static fn(): bool => \flock($lock, \LOCK_EX), $warning)) {
+            if (!ErrorTrap::run(static fn() => \flock($lock, \LOCK_EX), $warning)) {
                 throw HyperfBridgeError::scanLockFailed($lockPath);
             }
 
             ClassLoader::init();
         } finally {
-            ErrorTrap::run(static fn(): bool => \flock($lock, \LOCK_UN), $warning);
+            ErrorTrap::run(static fn() => \flock($lock, \LOCK_UN), $warning);
             \fclose($lock);
         }
     }

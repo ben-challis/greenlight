@@ -62,7 +62,7 @@ final class StdinKeyInput implements KeyInput
         }
 
         if ($isTty() && $runShellCommand instanceof \Closure) {
-            ErrorTrap::run(static fn(): string|false|null => $runShellCommand(self::ENABLE_RAW_MODE_COMMAND));
+            ErrorTrap::run(static fn() => $runShellCommand(self::ENABLE_RAW_MODE_COMMAND));
             $this->rawMode = true;
         }
     }
@@ -79,7 +79,7 @@ final class StdinKeyInput implements KeyInput
     {
         if ($this->rawMode && $this->runShellCommand instanceof \Closure) {
             ErrorTrap::run(
-                fn(): string|false|null => ($this->runShellCommand)(self::RESTORE_CANONICAL_MODE_COMMAND),
+                fn() => ($this->runShellCommand)(self::RESTORE_CANONICAL_MODE_COMMAND),
             );
             $this->rawMode = false;
         }

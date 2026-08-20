@@ -25,7 +25,7 @@ final class StreamWriter
         $length = \strlen($bytes);
 
         while ($offset < $length) {
-            $written = ErrorTrap::run(static fn(): int|false => \fwrite($stream, \substr($bytes, $offset)));
+            $written = ErrorTrap::run(static fn() => \fwrite($stream, \substr($bytes, $offset)));
 
             if ($written === false || $written === 0) {
                 throw AttachmentError::storage('Failed to write the complete attachment');

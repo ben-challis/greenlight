@@ -32,7 +32,7 @@ final readonly class TempDirectoryRestrictedDisposalTest
 
                 try {
                     Greenlight\Core\ErrorTrap::run(
-                        static function () use ($directory): void {
+                        static function () use ($directory) {
                             $directory->dispose();
                         },
                         $warning,

@@ -55,13 +55,13 @@ final class ArtifactStore
         }
 
         if (\str_starts_with($configured, '/')
-            && ($resolved = ErrorTrap::run(static fn(): string|false => \realpath($configured))) !== false
+            && ($resolved = ErrorTrap::run(static fn() => \realpath($configured))) !== false
         ) {
             $configured = $resolved;
         }
 
         $public = $configured . '/' . $runId;
-        $resolvedWorkingDirectory = ErrorTrap::run(static fn(): string|false => \realpath($workingDirectory));
+        $resolvedWorkingDirectory = ErrorTrap::run(static fn() => \realpath($workingDirectory));
         $workingDirectory = $resolvedWorkingDirectory === false ? $workingDirectory : $resolvedWorkingDirectory;
         $output = \str_starts_with($configured, '/')
             ? $public
@@ -284,7 +284,7 @@ final class ArtifactStore
                     || $after['size'] !== $before['size']
                     || $after['mtime'] !== $before['mtime']
                 ) {
-                    ErrorTrap::run(static fn(): bool => \unlink($part));
+                    ErrorTrap::run(static fn() => \unlink($part));
 
                     throw AttachmentError::source($sourcePath, 'changed while it was being copied');
                 }
@@ -401,13 +401,13 @@ final class ArtifactStore
                     throw AttachmentError::storage('Failed to publish attachment');
                 }
             } catch (\Throwable $error) {
-                ErrorTrap::run(static fn(): bool => \unlink($part));
+                ErrorTrap::run(static fn() => \unlink($part));
 
                 throw $error;
             }
 
-            ErrorTrap::run(static fn(): bool => \unlink($source));
-            ErrorTrap::run(fn(): bool => \unlink($this->metadataPath($storageKey)));
+            ErrorTrap::run(static fn() => \unlink($source));
+            ErrorTrap::run(fn() => \unlink($this->metadataPath($storageKey)));
             $published[] = $attachment->published();
         }
 
@@ -428,7 +428,7 @@ final class ArtifactStore
         }
 
         $attemptRecord = ErrorTrap::run(
-            static fn(): string|false => \file_get_contents($directory . '/.attempt'),
+            static fn() => \file_get_contents($directory . '/.attempt'),
         );
         $attempt = DecimalInteger::parse(\trim((string) $attemptRecord));
 
@@ -506,13 +506,13 @@ final class ArtifactStore
             $path = $entry->getPathname();
 
             if (!$entry->isLink() && $entry->isDir()) {
-                ErrorTrap::run(static fn(): bool => \rmdir($path));
+                ErrorTrap::run(static fn() => \rmdir($path));
             } else {
-                ErrorTrap::run(static fn(): bool => \unlink($path));
+                ErrorTrap::run(static fn() => \unlink($path));
             }
         }
 
-        ErrorTrap::run(static fn(): bool => \rmdir($directory));
+        ErrorTrap::run(static fn() => \rmdir($directory));
     }
 
     /**
@@ -542,7 +542,7 @@ final class ArtifactStore
         $path = $this->session->stagingDirectory . '/' . $storageKey;
         $parent = \dirname($path);
 
-        if (!\is_dir($parent) && !ErrorTrap::run(static fn(): bool => \mkdir($parent, 0o700, true), $warning)) {
+        if (!\is_dir($parent) && !ErrorTrap::run(static fn() => \mkdir($parent, 0o700, true), $warning)) {
             throw AttachmentError::storage('Failed to create attachment staging subdirectory' . ($warning === null ? '' : ': ' . $warning));
         }
 
@@ -685,7 +685,7 @@ final class ArtifactStore
         );
 
         if (\file_put_contents($part, $encoded . "\n", \LOCK_EX) === false) {
-            ErrorTrap::run(static fn(): bool => \unlink($part));
+            ErrorTrap::run(static fn() => \unlink($part));
 
             throw AttachmentError::storage('Greenlight did not write attachment recovery metadata');
         }
@@ -693,7 +693,7 @@ final class ArtifactStore
         \chmod($part, 0o600);
 
         if (!\rename($part, $path)) {
-            ErrorTrap::run(static fn(): bool => \unlink($part));
+            ErrorTrap::run(static fn() => \unlink($part));
 
             throw AttachmentError::storage('Failed to finalize attachment recovery metadata');
         }
@@ -708,7 +708,7 @@ final class ArtifactStore
         $directory = $this->session->stagingDirectory . '/' . self::testDirectory($id);
 
         if (!\is_dir($directory)
-            && !ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700, true), $warning)
+            && !ErrorTrap::run(static fn() => \mkdir($directory, 0o700, true), $warning)
             && !\is_dir($directory)
         ) {
             throw AttachmentError::storage('Failed to create attachment staging subdirectory' . ($warning === null ? '' : ': ' . $warning));
@@ -718,7 +718,7 @@ final class ArtifactStore
         $part = $path . '.part-' . \bin2hex(\random_bytes(4));
 
         if (\file_put_contents($part, $attempt . "\n", \LOCK_EX) === false) {
-            ErrorTrap::run(static fn(): bool => \unlink($part));
+            ErrorTrap::run(static fn() => \unlink($part));
 
             throw AttachmentError::storage('Failed to record the current test attempt');
         }
@@ -726,7 +726,7 @@ final class ArtifactStore
         \chmod($part, 0o600);
 
         if (!\rename($part, $path)) {
-            ErrorTrap::run(static fn(): bool => \unlink($part));
+            ErrorTrap::run(static fn() => \unlink($part));
 
             throw AttachmentError::storage('Greenlight did not finalize the current test attempt record');
         }
@@ -744,7 +744,7 @@ final class ArtifactStore
         }
 
         if (!\is_dir($directory)
-            && !ErrorTrap::run(static fn(): bool => \mkdir($directory, 0o700), $warning)
+            && !ErrorTrap::run(static fn() => \mkdir($directory, 0o700), $warning)
             && !\is_dir($directory)
         ) {
             throw AttachmentError::storage('Failed to create attachment staging directory' . ($warning === null ? '' : ': ' . $warning));
@@ -833,7 +833,7 @@ final class ArtifactStore
                 throw AttachmentError::storage('Attachment output path contains a non-directory entry');
             }
 
-            if (!ErrorTrap::run(static fn(): bool => \mkdir($current, 0o700), $warning)) {
+            if (!ErrorTrap::run(static fn() => \mkdir($current, 0o700), $warning)) {
                 throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));
             }
         }

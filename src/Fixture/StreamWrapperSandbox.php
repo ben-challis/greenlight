@@ -27,7 +27,7 @@ final class StreamWrapperSandbox implements Disposable
         }
 
         if (!ErrorTrap::run(
-            static fn(): bool => \stream_wrapper_register($scheme, $wrapper),
+            static fn() => \stream_wrapper_register($scheme, $wrapper),
             $warning,
         )) {
             throw StreamWrapperError::registrationFailed($scheme, $warning);
@@ -43,7 +43,7 @@ final class StreamWrapperSandbox implements Disposable
         $failures = [];
 
         foreach (\array_reverse($this->schemes) as $scheme) {
-            if (!ErrorTrap::run(static fn(): bool => \stream_wrapper_unregister($scheme), $warning)) {
+            if (!ErrorTrap::run(static fn() => \stream_wrapper_unregister($scheme), $warning)) {
                 $failures[] = [$scheme, $warning];
             }
         }

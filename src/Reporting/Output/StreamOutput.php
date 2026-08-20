@@ -26,7 +26,7 @@ final class StreamOutput implements Output
     public function write(string $text): void
     {
         while ($text !== '') {
-            $written = ErrorTrap::run(fn(): int|false => \fwrite($this->stream, $text));
+            $written = ErrorTrap::run(fn() => \fwrite($this->stream, $text));
 
             if ($written === false || $written === 0) {
                 throw ReportingError::writeFailed();

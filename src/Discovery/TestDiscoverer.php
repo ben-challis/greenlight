@@ -211,7 +211,7 @@ final readonly class TestDiscoverer
 
             $actualFile = new \ReflectionClass($fqcn)->getFileName();
             [$resolvedActualFile, $resolvedExpectedFile] = ErrorTrap::run(
-                static fn(): array => [
+                static fn() => [
                     $actualFile === false ? false : \realpath($actualFile),
                     \realpath($file),
                 ],
@@ -250,7 +250,7 @@ final readonly class TestDiscoverer
         $files = [];
 
         foreach ($directories as $directory) {
-            $real = ErrorTrap::run(static fn(): string|false => \realpath($directory));
+            $real = ErrorTrap::run(static fn() => \realpath($directory));
 
             if ($real === false || !\is_dir($real)) {
                 throw DiscoveryError::directoryNotFound($directory);

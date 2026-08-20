@@ -49,7 +49,7 @@ final readonly class StatChangeDetectorTest
         FilesystemRestriction::toProject($root);
 
         $detector = new StatChangeDetector([$directory]);
-        $changed = ErrorTrap::run(static fn(): array => $detector->poll(), $warning);
+        $changed = ErrorTrap::run(static fn() => $detector->poll(), $warning);
 
         Expect::that($changed)
             ->because('a restricted watch directory MUST behave as a missing directory')

@@ -161,7 +161,7 @@ final class TestDiscovererTest
         Expect::that(
             static function () use ($directory, &$warning): void {
                 ErrorTrap::run(
-                    static fn(): array => new TestDiscoverer()->testFiles([$directory]),
+                    static fn() => new TestDiscoverer()->testFiles([$directory]),
                     $warning,
                 );
             },

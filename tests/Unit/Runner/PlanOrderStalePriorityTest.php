@@ -23,7 +23,7 @@ final class PlanOrderStalePriorityTest
         ], seed: 4242);
 
         $ordered = ErrorTrap::run(
-            static fn(): ExecutionPlan => PlanOrder::schedule($plan, ['Acme\\RemovedTest'], []),
+            static fn() => PlanOrder::schedule($plan, ['Acme\\RemovedTest'], []),
             $warning,
         );
         $ids = \array_map(

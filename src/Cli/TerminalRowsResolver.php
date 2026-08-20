@@ -26,7 +26,7 @@ final class TerminalRowsResolver
         }
 
         $probed = \function_exists('exec')
-            ? ErrorTrap::run(static fn(): string|false => \exec('tput lines 2>/dev/null'))
+            ? ErrorTrap::run(static fn() => \exec('tput lines 2>/dev/null'))
             : false;
 
         return self::positiveRows($probed) ?? 24;

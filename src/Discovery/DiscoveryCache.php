@@ -172,7 +172,7 @@ final class DiscoveryCache
     {
         \clearstatcache(true, $file);
 
-        return ErrorTrap::run(static function () use ($file): ?array {
+        return ErrorTrap::run(static function () use ($file) {
             $mtime = \filemtime($file);
             $size = \filesize($file);
             $contentHash = \sha1_file($file);
@@ -226,7 +226,7 @@ final class DiscoveryCache
 
         $this->loaded = true;
         $file = $this->file;
-        $raw = ErrorTrap::run(static fn(): string|false => \file_get_contents($file));
+        $raw = ErrorTrap::run(static fn() => \file_get_contents($file));
 
         if (!\is_string($raw)) {
             return;

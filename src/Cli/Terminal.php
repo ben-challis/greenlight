@@ -22,6 +22,6 @@ final class Terminal
      */
     public static function isTty($stream): bool
     {
-        return ErrorTrap::run(static fn(): bool => \stream_isatty($stream));
+        return ErrorTrap::run(static fn() => \stream_isatty($stream));
     }
 }

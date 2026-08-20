@@ -69,7 +69,7 @@ final class StatChangeDetector implements ChangeDetector
 
         foreach ($this->directories as $directory) {
             try {
-                $files = ErrorTrap::run(fn(): array => $this->scanDirectory($directory));
+                $files = ErrorTrap::run(fn() => $this->scanDirectory($directory));
             } catch (\UnexpectedValueException) {
                 continue;
             }
@@ -114,7 +114,7 @@ final class StatChangeDetector implements ChangeDetector
     {
         \clearstatcache(true, $path);
 
-        return ErrorTrap::run(static function () use ($path): ?string {
+        return ErrorTrap::run(static function () use ($path) {
             $mtime = \filemtime($path);
             $size = \filesize($path);
             $contentHash = \sha1_file($path);

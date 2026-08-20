@@ -51,7 +51,7 @@ final class SocketChannel
 
         $bytes = $this->codec->encode(MessageRegistry::envelope($message));
 
-        $completed = ErrorTrap::run(function () use ($bytes): bool {
+        $completed = ErrorTrap::run(function () use ($bytes) {
             $remaining = \strlen($bytes);
 
             while ($remaining > 0) {
@@ -106,7 +106,7 @@ final class SocketChannel
 
             try {
                 $ready = ErrorTrap::run(
-                    static fn(): int|false => \stream_select($read, $write, $except, 0, \max(1, $microseconds)),
+                    static fn() => \stream_select($read, $write, $except, 0, \max(1, $microseconds)),
                 );
             } catch (\ValueError) {
                 return null;
@@ -151,7 +151,7 @@ final class SocketChannel
 
         \stream_set_blocking($this->stream, false);
 
-        [$bytes, $reachedEof] = ErrorTrap::run(function (): array {
+        [$bytes, $reachedEof] = ErrorTrap::run(function () {
             $bytes = \fread($this->stream, 65536);
 
             return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
@@ -205,7 +205,7 @@ final class SocketChannel
         $this->eof = true;
 
         if (\is_resource($this->stream)) {
-            ErrorTrap::run(fn(): bool => \fclose($this->stream));
+            ErrorTrap::run(fn() => \fclose($this->stream));
         }
     }
 }

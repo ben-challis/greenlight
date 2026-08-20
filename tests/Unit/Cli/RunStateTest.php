@@ -161,7 +161,7 @@ final readonly class RunStateTest
         FilesystemRestriction::toProject($root);
 
         $failedTests = ErrorTrap::run(
-            static fn(): ?array => RunState::forFile($file)->failedTests(),
+            static fn() => RunState::forFile($file)->failedTests(),
             $warning,
         );
 
