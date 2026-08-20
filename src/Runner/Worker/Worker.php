@@ -81,7 +81,8 @@ final readonly class Worker
                 continue;
             }
 
-            $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId));
+            $isolated = \count($entries) === 1 && $entries[0]->metadata->isolated;
+            $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId, $isolated));
             $scopes->openClass();
             $lastIndex = \count($entries) - 1;
 

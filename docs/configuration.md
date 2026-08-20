@@ -695,7 +695,8 @@ The profile includes:
 * workers spawned
 * workers recycled
 * average boot latency, measured from spawn to first class
-* per-worker busy time and utilization
+* per-worker class count, busy time, and utilization for non-isolated workers
+* workers that run isolated tests
 * makespan spread between the first and last worker to finish
 * the ten slowest classes
 

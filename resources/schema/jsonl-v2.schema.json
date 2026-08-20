@@ -129,7 +129,8 @@
             "properties": {
                 "class": {"type": "string", "minLength": 1},
                 "occurredAt": {"$ref": "#/definitions/occurredAt"},
-                "workerId": {"type": "string"}
+                "workerId": {"type": "string"},
+                "isolated": {"type": "boolean"}
             }
         },
         "testStarted": {

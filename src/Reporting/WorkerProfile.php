@@ -21,15 +21,18 @@ final class WorkerProfile
 
     public int $recycled = 0;
 
+    public bool $isolated = false;
+
     public function spawned(float $at): void
     {
         $this->spawnedAt ??= $at;
     }
 
-    public function classStarted(float $at): void
+    public function classStarted(float $at, bool $isolated = false): void
     {
         $this->openAt = $at;
         $this->firstClassAt ??= $at;
+        $this->isolated = $this->isolated || $isolated;
     }
 
     public function classFinished(float $at): ?float
@@ -94,4 +97,5 @@ final class WorkerProfile
 
         return (int) \round(100 * \min(1.0, $this->busy / $window));
     }
+
 }

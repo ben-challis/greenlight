@@ -40,7 +40,7 @@ final class EventsTest
             new RunFinished('run-1', $summary, 12.5, $at),
             new SuiteStarted('unit', $at),
             new SuiteFinished('unit', $at),
-            new TestClassStarted('App\FooTest', $at),
+            new TestClassStarted('App\FooTest', $at, isolated: true),
             new TestClassFinished('App\FooTest', $at),
             new TestStarted($id, $at),
             new TestFinished($result, $at),
@@ -156,6 +156,9 @@ final class EventsTest
         Expect::that($started->workerId)
             ->because('legacy class-started events have no worker attribution')
             ->toBe('');
+        Expect::that($started->isolated)
+            ->because('legacy class-started events have no isolation marker')
+            ->toBeFalse();
         Expect::that($finished->workerId)
             ->because('legacy class-finished events have no worker attribution')
             ->toBe('');

@@ -22,7 +22,7 @@ use Greenlight\Reporting\Style;
 final class ProfileAggregatorTest
 {
     #[Test]
-    public function derivesUtilizationBootLatencyAndSpreadFromACannedStream(): void
+    public function derivesWorkerStatisticsBootLatencyAndSpreadFromACannedStream(): void
     {
         $aggregator = new ProfileAggregator();
 
@@ -48,7 +48,7 @@ final class ProfileAggregatorTest
 
             TEXT;
 
-        Expect::that($aggregator->render(new Style(ansi: false)))->because('derives utilization boot latency and spread from a canned stream')->toBe($expected);
+        Expect::that($aggregator->render(new Style(ansi: false)))->because('derives worker statistics, boot latency, and spread from a canned stream')->toBe($expected);
     }
 
     #[Test]
@@ -87,13 +87,38 @@ final class ProfileAggregatorTest
 
         $rendered = $aggregator->render(new Style(ansi: true));
 
-        // A value of 78% is in the middle band (yellow), and 50% is in the low
-        // band (red). The 2.5-second class exceeds the slow limit (yellow).
-        // Spaces outside color codes keep column alignment unchanged when the
-        // output contains escape sequences.
-        Expect::that($rendered)->because('utilization bands and slow durations color with ANSI')->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
+        Expect::that($rendered)->because('utilization bands and slow durations color with ANSI')
+            ->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
             ->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
             ->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
+    }
+
+    #[Test]
+    public function isolatedWorkersAreMarkedInTheSummaryAndTable(): void
+    {
+        $aggregator = new ProfileAggregator();
+
+        $events = [
+            new RunStarted('run-1', 2, 2, 100.0),
+            new WorkerSpawned('w-1', 11, 100.0),
+            new WorkerSpawned('w-2', 12, 100.0),
+            new TestClassStarted('Acme\AlphaTest', 100.0, 'w-1'),
+            new TestClassStarted('Acme\BetaTest', 100.0, 'w-2', isolated: true),
+            new TestClassFinished('Acme\AlphaTest', 100.5, 'w-1'),
+            new TestClassFinished('Acme\BetaTest', 100.5, 'w-2'),
+            new RunFinished('run-1', new ResultSummary(passed: 2), 0.5, 100.5),
+        ];
+
+        foreach ($events as $event) {
+            $aggregator->onEvent($event);
+        }
+
+        Expect::that($aggregator->render(new Style(ansi: false)))
+            ->because('isolated workers MUST be distinct from worker pool processes')
+            ->toContain("Workers: 2 requested, 2 spawned, 1 isolated, 0 recycled\n")
+            ->toContain("  Worker  Classes    Busy  Util  Isolated\n")
+            ->toContain("  w-1           1  0.500s  100%\n")
+            ->toContain("  w-2           1  0.500s        yes\n");
     }
 
     #[Test]
@@ -195,7 +220,7 @@ final class ProfileAggregatorTest
         }
 
         Expect::that($aggregator->render(new Style(ansi: false)))
-            ->because('a missing worker period must not invent a utilization percentage')
+            ->because('a missing worker period MUST NOT invent a utilization percentage')
             ->toContain("\n  Worker  Classes    Busy  Util\n")
             ->toContain($expectedRow . "\n")
             ->not()
@@ -228,10 +253,8 @@ final class ProfileAggregatorTest
     }
 
     /**
-     * Worker w-1 starts in 0.5 seconds and runs two classes with a gap. It is
-     * active for 3.5 seconds of a 4.5-second period. Worker w-2 starts in 1.0
-     * second and is active for 1 second of a 2-second period. It finishes 2
-     * seconds before w-1.
+     * Worker w-1 starts in 0.5 seconds and runs two classes. Worker w-2 starts
+     * in 1 second and runs one class. It finishes 2.5 seconds before w-1.
      *
      * @return list<Event>
      */

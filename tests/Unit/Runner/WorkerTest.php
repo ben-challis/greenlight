@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\RecycleReason;
+use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
@@ -41,6 +42,29 @@ use Greenlight\Tests\Support\CollectingEventSink;
 
 final class WorkerTest
 {
+    #[Test]
+    public function isolatedPlanEntryMarksTheClassEvent(): void
+    {
+        $id = new TestId(OptionalConstructorProbe::class, 'usesDeclaredDefault');
+        $plan = new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method, isolated: true)),
+        ]);
+        $sink = new CollectingEventSink();
+
+        new Worker($this->registry())->run($plan, $sink);
+
+        $classEvents = \array_values(\array_filter(
+            $sink->events,
+            static fn(object $event): bool => $event instanceof TestClassStarted,
+        ));
+
+        Expect::that($classEvents)
+            ->because('an isolated plan entry MUST mark its class event')
+            ->toHaveCount(1);
+        Expect::that($classEvents[0]->isolated)
+            ->toBeTrue();
+    }
+
     #[Test]
     public function lifecycleRunsInTheFrozenOrder(): void
     {

@@ -472,6 +472,14 @@ public string $workerId
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L25)
 
+### `$isolated`
+
+```php
+public bool $isolated
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L26)
+
 ### `__construct()`
 
 ```php
@@ -479,6 +487,7 @@ public function __construct(
     string $class,
     public float $occurredAt,
     public string $workerId = '',
+    public bool $isolated = false,
 )
 ```
 
@@ -496,7 +505,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L39)
 
 ### `fromWire()`
 
@@ -505,7 +514,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L50)
 
 ## `TestFinished`
 
