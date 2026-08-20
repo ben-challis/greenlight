@@ -22,7 +22,7 @@ final class Wildcard
     {
         if (!\str_contains($pattern, '*') && !\str_contains($pattern, '?')) {
             return $caseInsensitive
-                ? \stripos($subject, $pattern) !== false
+                ? \preg_match('/' . \preg_quote($pattern, '/') . '/isu', $subject) === 1
                 : \str_contains($subject, $pattern);
         }
 
