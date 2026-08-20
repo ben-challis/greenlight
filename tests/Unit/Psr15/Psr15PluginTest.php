@@ -149,7 +149,9 @@ final class Psr15PluginTest
     private function harness(HarnessScopes $scopes): HttpHarness
     {
         $harness = $scopes->resolve(HttpHarness::class, self::class);
-        \assert($harness instanceof HttpHarness);
+        Expect::that($harness)
+            ->because('the resolved service MUST be the requested HTTP harness')
+            ->toBeInstanceOf(HttpHarness::class);
 
         return $harness;
     }
