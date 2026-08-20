@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Condition;
 
 use Greenlight\Core\Condition;
+use Greenlight\Core\EnvironmentVariableName;
 
 final readonly class EnvironmentVariableEquals implements Condition
 {
@@ -18,9 +19,7 @@ final readonly class EnvironmentVariableEquals implements Condition
      */
     public function __construct(string $name, private string $value)
     {
-        if ($name === '') {
-            throw new \InvalidArgumentException('Environment variable name MUST NOT be empty.');
-        }
+        EnvironmentVariableName::assertValid($name);
 
         $this->name = $name;
     }
