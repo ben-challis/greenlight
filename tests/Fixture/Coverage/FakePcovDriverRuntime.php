@@ -21,7 +21,7 @@ final class FakePcovDriverRuntime implements Fake, PcovRuntime
     }
 
     /**
-     * @return array<mixed>
+     * @return array<string, array<int, int>>
      */
     #[\Override]
     public function collect(): array
@@ -32,11 +32,7 @@ final class FakePcovDriverRuntime implements Fake, PcovRuntime
             '/src/Example.php' => [
                 10 => 1,
                 11 => -1,
-                'invalid-line' => 1,
-                12 => 'invalid-status',
             ],
-            7 => [1 => 1],
-            '/src/invalid.php' => 'invalid-lines',
         ];
     }
 

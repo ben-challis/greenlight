@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Coverage;
 
 /**
- * Contains a map of line numbers to driver status values for each file.
+ * Contains a normalized map of line numbers to driver status values for each file.
  * A positive value means that the line executed. Minus one means uncovered.
  * Minus two means dead code.
  *
@@ -16,9 +16,35 @@ namespace Greenlight\Coverage;
 final readonly class RawCoverage
 {
     /**
-     * @param array<string, array<int, int>> $lines file path => line number => status flag
+     * @var array<string, array<int, int>>
      */
-    public function __construct(public array $lines) {}
+    public array $lines;
+
+    /**
+     * @param array<mixed> $lines Raw extension output.
+     */
+    public function __construct(array $lines)
+    {
+        $normalized = [];
+
+        foreach ($lines as $path => $fileLines) {
+            if (!\is_string($path) || !\is_array($fileLines)) {
+                continue;
+            }
+
+            $statuses = [];
+
+            foreach ($fileLines as $line => $status) {
+                if (\is_int($line) && \is_int($status)) {
+                    $statuses[$line] = $status;
+                }
+            }
+
+            $normalized[$path] = $statuses;
+        }
+
+        $this->lines = $normalized;
+    }
 
     public static function none(): self
     {

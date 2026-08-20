@@ -70,7 +70,7 @@ final class XdebugDriver implements CoverageDriver
             }
         }
 
-        return new RawCoverage($this->normalize($collected));
+        return new RawCoverage($collected);
     }
 
     /**
@@ -103,25 +103,4 @@ final class XdebugDriver implements CoverageDriver
         return \array_map(\trim(...), \explode(',', $ini));
     }
 
-    /**
-     * @param array<mixed> $collected
-     *
-     * @return array<string, array<int, int>>
-     */
-    private function normalize(array $collected): array
-    {
-        $lines = [];
-
-        foreach ($collected as $path => $fileLines) {
-            if (!\is_string($path) || !\is_array($fileLines)) {
-                continue;
-            }
-
-            $statuses = \array_filter($fileLines, fn($status, $line) => \is_int($line) && \is_int($status), \ARRAY_FILTER_USE_BOTH);
-
-            $lines[$path] = $statuses;
-        }
-
-        return $lines;
-    }
 }
