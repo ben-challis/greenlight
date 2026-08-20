@@ -12,6 +12,7 @@ use Greenlight\Coverage\FileCoverage;
 use Greenlight\Coverage\PathFilter;
 use Greenlight\Coverage\RawCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\JsonWire;
 
 final class CoverageMapTest
 {
@@ -157,10 +158,7 @@ final class CoverageMapTest
     {
         $map = $this->sampleA()->merge($this->sampleB());
 
-        $decoded = \json_decode(\json_encode($map->toWire(), \JSON_THROW_ON_ERROR), true, 512, \JSON_THROW_ON_ERROR);
-        \assert(\is_array($decoded));
-        /** @var array<string, mixed> $decoded */
-        $restored = CoverageMap::fromWire($decoded);
+        $restored = CoverageMap::fromWire(JsonWire::roundTrip($map->toWire()));
 
         Expect::that($restored->toWire())->because('wire payload survives a JSON round trip')->toBe($map->toWire());
     }
@@ -168,10 +166,7 @@ final class CoverageMapTest
     #[Test]
     public function emptyMapSurvivesAJsonRoundTrip(): void
     {
-        $decoded = \json_decode(\json_encode(CoverageMap::empty()->toWire(), \JSON_THROW_ON_ERROR), true, 512, \JSON_THROW_ON_ERROR);
-        \assert(\is_array($decoded));
-        /** @var array<string, mixed> $decoded */
-        $restored = CoverageMap::fromWire($decoded);
+        $restored = CoverageMap::fromWire(JsonWire::roundTrip(CoverageMap::empty()->toWire()));
 
         Expect::that($restored->isEmpty())->because('empty map survives a JSON round trip')->toBeTrue();
     }
