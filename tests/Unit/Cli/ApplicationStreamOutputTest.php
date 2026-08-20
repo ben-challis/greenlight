@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -16,7 +17,10 @@ final readonly class ApplicationStreamOutputTest
 {
     private const string SCHEME = 'greenlight-application-partial-write';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(
+        private StreamWrapperSandbox $streamWrappers,
+        private Cleanup $cleanup,
+    ) {}
 
     /**
      * @param list<string> $arguments
@@ -32,31 +36,31 @@ final readonly class ApplicationStreamOutputTest
         $this->streamWrappers->register(self::SCHEME, PartialWriteStream::class);
 
         $partial = \fopen(self::SCHEME . '://partial', 'wb');
-        $other = \fopen('php://memory', 'wb');
-
-        if ($partial === false || $other === false) {
-            if (\is_resource($partial)) {
-                \fclose($partial);
-            }
-
+        if ($partial === false) {
             Fail::because('Greenlight did not open the CLI test streams.');
         }
-
-        try {
-            $application = $useStderr
-                ? Application::forStreams($other, $partial)
-                : Application::forStreams($partial, $other);
-
-            Expect::that($application->run($arguments, __DIR__))
-                ->because('a CLI write through a partial stream MUST preserve the exit code')
-                ->toBe($expectedExit);
-            Expect::that(PartialWriteStream::contents())
-                ->because('a short CLI stream write MUST NOT truncate output')
-                ->toBe($expectedOutput);
-        } finally {
+        $this->cleanup->defer(static function () use ($partial): void {
             \fclose($partial);
-            \fclose($other);
+        });
+
+        $other = \fopen('php://memory', 'wb');
+        if ($other === false) {
+            Fail::because('Greenlight did not open the CLI test streams.');
         }
+        $this->cleanup->defer(static function () use ($other): void {
+            \fclose($other);
+        });
+
+        $application = $useStderr
+            ? Application::forStreams($other, $partial)
+            : Application::forStreams($partial, $other);
+
+        Expect::that($application->run($arguments, __DIR__))
+            ->because('a CLI write through a partial stream MUST preserve the exit code')
+            ->toBe($expectedExit);
+        Expect::that(PartialWriteStream::contents())
+            ->because('a short CLI stream write MUST NOT truncate output')
+            ->toBe($expectedOutput);
     }
 
     /**
