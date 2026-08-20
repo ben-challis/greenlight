@@ -93,7 +93,7 @@ final class PlainReporter implements Reporter
         if ($event instanceof TestFinished) {
             $this->slowTests->record($event);
             $result = $event->result;
-            $this->expectations += $result->expectations;
+            $this->expectations = SaturatingCount::add($this->expectations, $result->expectations);
             $attempts = $result->attempts > 1 ? \sprintf(' (attempts: %d)', $result->attempts) : '';
 
             $this->output->write(\sprintf(

@@ -146,7 +146,7 @@ final class TtyReporter implements Reporter, Ticking
         if ($event instanceof TestFinished) {
             $this->slowTests->record($event);
             $result = $event->result;
-            $this->expectations += $result->expectations;
+            $this->expectations = SaturatingCount::add($this->expectations, $result->expectations);
             $class = $result->id->class;
             $this->lastEventAt = $event->occurredAt;
             ++$this->finishedTests;
