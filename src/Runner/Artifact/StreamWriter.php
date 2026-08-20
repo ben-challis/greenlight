@@ -6,6 +6,7 @@ namespace Greenlight\Runner\Artifact;
 
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Core\ErrorTrap;
 
 /**
  * Writes complete byte strings to streams.
@@ -24,7 +25,7 @@ final class StreamWriter
         $length = \strlen($bytes);
 
         while ($offset < $length) {
-            $written = \fwrite($stream, \substr($bytes, $offset));
+            $written = ErrorTrap::run(static fn(): int|false => \fwrite($stream, \substr($bytes, $offset)));
 
             if ($written === false || $written === 0) {
                 throw AttachmentError::storage('Failed to write the complete attachment');

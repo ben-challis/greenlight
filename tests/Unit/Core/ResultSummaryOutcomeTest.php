@@ -56,4 +56,14 @@ final class ResultSummaryOutcomeTest
             ['passed' => 1, 'failed' => 2, 'errored' => 3, 'skipped' => 5],
         ];
     }
+
+    #[Test]
+    public function addSaturatesTheSelectedOutcomeAtTheMachineMaximum(): void
+    {
+        $summary = new ResultSummary(passed: \PHP_INT_MAX);
+
+        Expect::that($summary->add(Outcome::Passed)->passed)
+            ->because('adding an outcome MUST NOT overflow its summary count')
+            ->toBe(\PHP_INT_MAX);
+    }
 }

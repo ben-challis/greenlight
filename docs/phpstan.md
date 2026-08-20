@@ -336,7 +336,7 @@ Providers shared by multiple test classes receive the same checks:
 
 Typical messages:
 
-```
+```text
 Data provider sums() for adds() does not exist on PriceTest.
 Data provider PriceTest::sums() must be public and static.
 Data provider PriceTest::sums() must return an iterable of argument arrays, returns string.

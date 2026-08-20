@@ -106,6 +106,10 @@ final readonly class TestMetadata implements WireSerializable
                 ));
             }
 
+            if (\is_float($argument) && !\is_finite($argument)) {
+                throw new \InvalidArgumentException('Skip-unless arguments MUST use finite floats.');
+            }
+
             $validatedArguments[] = $argument;
         }
 
@@ -233,6 +237,14 @@ final readonly class TestMetadata implements WireSerializable
         foreach ($value as $argument) {
             if ($argument !== null && !\is_scalar($argument)) {
                 throw InvalidWirePayload::wrongType('skipUnlessArguments', 'a list of scalars or nulls', $argument);
+            }
+
+            if (\is_float($argument) && !\is_finite($argument)) {
+                throw InvalidWirePayload::wrongType(
+                    'skipUnlessArguments',
+                    'a list of scalars or nulls with finite floats',
+                    $argument,
+                );
             }
 
             $arguments[] = $argument;
