@@ -14,6 +14,7 @@ use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
+use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\TestMetadata;
 
 /**
@@ -139,11 +140,11 @@ final class MetadataFactory
         $names = [];
 
         foreach ($reflector->getAttributes(Group::class) as $attribute) {
-            try {
-                $names[] = $attribute->newInstance()->name;
-            } catch (\Throwable $e) {
-                throw DiscoveryError::invalidAttribute($where, $e);
-            }
+            $names[] = ErrorTrap::run(
+                static fn() => $attribute->newInstance(),
+                wrap: static fn(\Throwable $error): DiscoveryError =>
+                    DiscoveryError::invalidAttribute($where, $error),
+            )->name;
         }
 
         return $names;
@@ -160,11 +161,11 @@ final class MetadataFactory
         $names = [];
 
         foreach ($reflector->getAttributes(RequiresResource::class) as $attribute) {
-            try {
-                $names[] = $attribute->newInstance()->name;
-            } catch (\Throwable $e) {
-                throw DiscoveryError::invalidAttribute($where, $e);
-            }
+            $names[] = ErrorTrap::run(
+                static fn() => $attribute->newInstance(),
+                wrap: static fn(\Throwable $error): DiscoveryError =>
+                    DiscoveryError::invalidAttribute($where, $error),
+            )->name;
         }
 
         return $names;
@@ -187,10 +188,10 @@ final class MetadataFactory
             return null;
         }
 
-        try {
-            return $attributes[0]->newInstance();
-        } catch (\Throwable $e) {
-            throw DiscoveryError::invalidAttribute($where, $e);
-        }
+        return ErrorTrap::run(
+            static fn() => $attributes[0]->newInstance(),
+            wrap: static fn(\Throwable $error): DiscoveryError =>
+                DiscoveryError::invalidAttribute($where, $error),
+        );
     }
 }
