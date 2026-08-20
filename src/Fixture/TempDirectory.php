@@ -139,13 +139,13 @@ final class TempDirectory implements Disposable
             return;
         }
 
-        try {
-            $entries = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::CHILD_FIRST,
-            );
+        ErrorTrap::run(
+            static function () use ($path) {
+                $entries = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
+                    \RecursiveIteratorIterator::CHILD_FIRST,
+                );
 
-            ErrorTrap::run(static function () use ($entries, $path) {
                 /** @var \SplFileInfo $entry */
                 foreach ($entries as $entry) {
                     $pathname = $entry->getPathname();
@@ -155,10 +155,11 @@ final class TempDirectory implements Disposable
                         throw TempDirectoryError::entryRemovalFailed($pathname, $path);
                     }
                 }
-            });
-        } catch (\UnexpectedValueException $error) {
-            throw TempDirectoryError::rootRemovalFailed($path, $error->getMessage());
-        }
+            },
+            wrap: static fn(\Throwable $error): \Throwable => $error instanceof \UnexpectedValueException
+                ? TempDirectoryError::rootRemovalFailed($path, $error->getMessage())
+                : $error,
+        );
 
         if (!ErrorTrap::run(static fn() => \rmdir($path), $warning)) {
             throw TempDirectoryError::rootRemovalFailed($path, $warning);
