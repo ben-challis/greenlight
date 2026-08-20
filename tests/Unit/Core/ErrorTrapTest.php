@@ -116,6 +116,45 @@ final class ErrorTrapTest
     }
 
     #[Test]
+    public function wrapsAnOperationThrowableAfterItRestoresThePreviousHandler(): void
+    {
+        $handled = null;
+        $failure = new \RuntimeException('operation failed');
+
+        \set_error_handler(static function (int $severity, string $message) use (&$handled): bool {
+            $handled = [$severity, $message];
+
+            return true;
+        });
+
+        try {
+            Expect::that(static fn(): mixed => ErrorTrap::run(
+                operation: static fn(): never => throw $failure,
+                wrap: static function (\Throwable $cause): \Throwable {
+                    \trigger_error('wrap warning', \E_USER_WARNING);
+
+                    return new \LogicException('wrapped operation failure', previous: $cause);
+                },
+            ))
+                ->because('the trap MUST replace an operation error after it restores the previous handler')
+                ->toThrow(
+                    static function (\LogicException $error) use ($failure): void {
+                        Expect::that($error->getMessage())->toBe('wrapped operation failure');
+                        Expect::that($error->getPrevious())
+                            ->because('the replacement error MUST preserve the operation error')
+                            ->toBe($failure);
+                    },
+                );
+
+            Expect::that($handled)
+                ->because('the wrap callback MUST run after the trap restores the previous handler')
+                ->toBe([\E_USER_WARNING, 'wrap warning']);
+        } finally {
+            \restore_error_handler();
+        }
+    }
+
+    #[Test]
     public function preservesHandlersInstalledByTheOperation(): void
     {
         $baseline = static fn(): bool => true;
