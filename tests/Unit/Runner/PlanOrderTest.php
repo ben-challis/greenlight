@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\PlanOrder;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class PlanOrderTest
 {
@@ -68,7 +66,7 @@ final class PlanOrderTest
         $entries = [];
 
         foreach ($classes as $class) {
-            $entries[] = new PlanEntry(new TestId($class, 'probe'), new TestMetadata($class, 'probe'));
+            $entries[] = PlanEntryFixture::create($class, 'probe');
         }
 
         return new ExecutionPlan($entries);

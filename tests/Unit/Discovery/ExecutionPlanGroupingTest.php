@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class ExecutionPlanGroupingTest
 {
@@ -17,9 +16,9 @@ final readonly class ExecutionPlanGroupingTest
     public function groupingPreservesClassAndTestOrder(): void
     {
         $plan = new ExecutionPlan([
-            $this->entry('Acme\\AlphaTest', 'first'),
-            $this->entry('Acme\\AlphaTest', 'second', 'row two'),
-            $this->entry('Acme\\BetaTest', 'third'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'first'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'second', 'row two'),
+            PlanEntryFixture::create('Acme\\BetaTest', 'third'),
         ]);
 
         $idsByClass = \array_map(
@@ -41,17 +40,5 @@ final readonly class ExecutionPlanGroupingTest
                     'Acme\\BetaTest::third',
                 ],
             ]);
-    }
-
-    /**
-     * @param non-empty-string $class
-     * @param non-empty-string $method
-     */
-    private function entry(string $class, string $method, ?string $dataSetKey = null): PlanEntry
-    {
-        return new PlanEntry(
-            new TestId($class, $method, $dataSetKey),
-            new TestMetadata($class, $method),
-        );
     }
 }

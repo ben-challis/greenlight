@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\DispatchKind;
 use Greenlight\Runner\Orchestrator\ResourceLease;
@@ -29,10 +26,8 @@ final class SchedulingFixture
      */
     public static function unit(string $class, array $resources = [], bool $isolated = false): SchedulingUnit
     {
-        $id = new TestId($class, 'runs');
-
         return new SchedulingUnit(new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($class, 'runs', resources: $resources)),
+            PlanEntryFixture::create($class, resources: $resources),
         ]), $isolated);
     }
 

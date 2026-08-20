@@ -6,12 +6,11 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\PlanOrder;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class PlanOrderStalePriorityTest
 {
@@ -19,8 +18,8 @@ final class PlanOrderStalePriorityTest
     public function aStalePriorityClassIsIgnored(): void
     {
         $plan = new ExecutionPlan([
-            $this->entry('Acme\\AlphaTest'),
-            $this->entry('Acme\\BetaTest'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'probe'),
+            PlanEntryFixture::create('Acme\\BetaTest', 'probe'),
         ], seed: 4242);
 
         $ordered = ErrorTrap::run(
@@ -41,16 +40,5 @@ final class PlanOrderStalePriorityTest
         Expect::that($warning)
             ->because('stale priority data MUST NOT cause a warning')
             ->toBeNull();
-    }
-
-    /**
-     * @param non-empty-string $class
-     */
-    private function entry(string $class): PlanEntry
-    {
-        return new PlanEntry(
-            new TestId($class, 'probe'),
-            new TestMetadata($class, 'probe'),
-        );
     }
 }

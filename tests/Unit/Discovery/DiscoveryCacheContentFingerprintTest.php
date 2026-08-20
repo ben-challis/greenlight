@@ -13,6 +13,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class DiscoveryCacheContentFingerprintTest
 {
@@ -34,8 +35,7 @@ final readonly class DiscoveryCacheContentFingerprintTest
         }
 
         \clearstatcache(true, $source);
-        $id = new TestId('Example\\ContentProbeTest', 'runs');
-        $entry = new PlanEntry($id, new TestMetadata($id->class, $id->method));
+        $entry = PlanEntryFixture::create('Example\\ContentProbeTest');
         $cache = DiscoveryCache::forDirectories([$directory]);
         $cache->store($source, [$entry]);
 

@@ -7,12 +7,11 @@ namespace Greenlight\Tests\Unit\Runner;
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\PlanShard;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class PlanShardTest
 {
@@ -126,7 +125,7 @@ final class PlanShardTest
             $class = \sprintf('Acme\Gen%03dTest', $i);
 
             foreach (['one', 'two'] as $method) {
-                $entries[] = new PlanEntry(new TestId($class, $method), new TestMetadata($class, $method));
+                $entries[] = PlanEntryFixture::create($class, $method);
             }
         }
 

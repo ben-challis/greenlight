@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\PlanOrder;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class PlanOrderPrioritySequenceTest
 {
@@ -18,10 +16,10 @@ final class PlanOrderPrioritySequenceTest
     public function distinctPriorityClassesRetainTheCallerSequence(): void
     {
         $plan = new ExecutionPlan([
-            $this->entry('Acme\\AlphaTest'),
-            $this->entry('Acme\\BetaTest'),
-            $this->entry('Acme\\GammaTest'),
-            $this->entry('Acme\\DeltaTest'),
+            PlanEntryFixture::create('Acme\\AlphaTest', 'probe'),
+            PlanEntryFixture::create('Acme\\BetaTest', 'probe'),
+            PlanEntryFixture::create('Acme\\GammaTest', 'probe'),
+            PlanEntryFixture::create('Acme\\DeltaTest', 'probe'),
         ], seed: 4242);
 
         $ordered = PlanOrder::schedule(
@@ -44,16 +42,5 @@ final class PlanOrderPrioritySequenceTest
         Expect::that($ordered->seed)
             ->because('priority ordering MUST preserve the plan seed')
             ->toBe(4242);
-    }
-
-    /**
-     * @param non-empty-string $class
-     */
-    private function entry(string $class): PlanEntry
-    {
-        return new PlanEntry(
-            new TestId($class, 'probe'),
-            new TestMetadata($class, 'probe'),
-        );
     }
 }

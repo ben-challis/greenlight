@@ -8,14 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
 use Greenlight\Tests\Support\MemoryStream;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class WorkerHandleAssignmentLifecycleTest
 {
@@ -104,12 +103,10 @@ final readonly class WorkerHandleAssignmentLifecycleTest
 
     private function lease(): ResourceLease
     {
-        $id = new TestId('Acme\\ExampleTest', 'runs');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            PlanEntryFixture::create('Acme\\ExampleTest'),
         ]);
 
         return new ResourceLease(41, new SchedulingUnit($plan, isolated: true));
     }
-
 }

@@ -7,10 +7,8 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
@@ -21,6 +19,7 @@ use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Fixture\Runner\Worker\RetryAttachmentTest;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class RetryDeciderAttachmentTest
 {
@@ -46,9 +45,8 @@ final readonly class RetryDeciderAttachmentTest
                 return false;
             }
         };
-        $id = new TestId(RetryAttachmentTest::class, 'failsWithEvidence');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            PlanEntryFixture::create(RetryAttachmentTest::class, 'failsWithEvidence'),
         ]);
         $sink = new CollectingEventSink();
 

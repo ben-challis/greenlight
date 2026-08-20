@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class DiscoveryCacheDirectoryOrderTest
 {
@@ -25,11 +23,7 @@ final readonly class DiscoveryCacheDirectoryOrderTest
         $source = $first . '/OrderProbeTest.php';
         \file_put_contents($source, '<?php');
 
-        $id = new TestId('Fixture\OrderProbeTest', 'probe');
-        $entry = new PlanEntry(
-            $id,
-            new TestMetadata($id->class, $id->method),
-        );
+        $entry = PlanEntryFixture::create('Fixture\OrderProbeTest', 'probe');
         $directories = [$first, $second];
         $cacheFile = DiscoveryCachePath::forDirectories($directories);
 
