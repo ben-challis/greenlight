@@ -8,10 +8,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\ChangeDetector;
 use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\KeyInput;
-use Greenlight\Cli\Watch\WatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Fixture\Cli\FakeWatchClock;
 
 final class WatchLoopIdleTest
 {
@@ -34,24 +34,7 @@ final class WatchLoopIdleTest
                 return ++$this->polls === 2 ? 'q' : null;
             }
         };
-        $clock = new class implements WatchClock, Fake {
-            /**
-             * @var list<float>
-             */
-            public array $sleeps = [];
-
-            #[\Override]
-            public function now(): float
-            {
-                return 0.0;
-            }
-
-            #[\Override]
-            public function sleep(float $seconds): void
-            {
-                $this->sleeps[] = $seconds;
-            }
-        };
+        $clock = new FakeWatchClock();
         $runs = 0;
 
         new WatchLoop(

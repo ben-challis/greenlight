@@ -68,25 +68,42 @@ final class StatChangeDetector implements ChangeDetector
         $snapshot = [];
 
         foreach ($this->directories as $directory) {
-            if (!ErrorTrap::run(static fn(): bool => \is_dir($directory))) {
+            try {
+                $files = ErrorTrap::run(fn(): array => $this->scanDirectory($directory));
+            } catch (\UnexpectedValueException) {
                 continue;
             }
 
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-            );
+            $snapshot = [...$snapshot, ...$files];
+        }
 
-            foreach ($iterator as $file) {
-                if (!$file instanceof \SplFileInfo || $file->getExtension() !== 'php') {
-                    continue;
-                }
+        return $snapshot;
+    }
 
-                $path = $file->getPathname();
-                $fingerprint = $this->fingerprint($path);
+    /**
+     * @return array<string, string>
+     */
+    private function scanDirectory(string $directory): array
+    {
+        if (!\is_dir($directory)) {
+            return [];
+        }
 
-                if ($fingerprint !== null) {
-                    $snapshot[$path] = $fingerprint;
-                }
+        $snapshot = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $path = $file->getPathname();
+            $fingerprint = $this->fingerprint($path);
+
+            if ($fingerprint !== null) {
+                $snapshot[$path] = $fingerprint;
             }
         }
 

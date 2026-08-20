@@ -15,6 +15,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Tests\Support\SimpleXml;
 
 final class JUnitReporterTest
 {
@@ -66,11 +67,11 @@ final class JUnitReporterTest
         Expect::that((string) $document['failures'])->toBe('1');
         Expect::that((string) $document['errors'])->toBe('1');
         Expect::that((string) $document['skipped'])->toBe('1');
-        Expect::that($document->xpath('//testcase'))->toHaveCount(6);
-        Expect::that($document->xpath('//testsuite'))->toHaveCount(2);
-        Expect::that($document->xpath('//failure'))->toHaveCount(1);
-        Expect::that($document->xpath('//error'))->toHaveCount(1);
-        Expect::that($document->xpath('//skipped'))->toHaveCount(1);
+        Expect::that(SimpleXml::xpath($document, '//testcase'))->toHaveCount(6);
+        Expect::that(SimpleXml::xpath($document, '//testsuite'))->toHaveCount(2);
+        Expect::that(SimpleXml::xpath($document, '//failure'))->toHaveCount(1);
+        Expect::that(SimpleXml::xpath($document, '//error'))->toHaveCount(1);
+        Expect::that(SimpleXml::xpath($document, '//skipped'))->toHaveCount(1);
     }
 
     #[Test]
@@ -97,7 +98,7 @@ final class JUnitReporterTest
             ->because('multiple failure details produce valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        $failures = $document->xpath('//failure');
+        $failures = SimpleXml::xpath($document, '//failure');
 
         Expect::that((string) $document['failures'])
             ->because('one failed test contributes one suite failure')
@@ -105,10 +106,6 @@ final class JUnitReporterTest
         Expect::that($failures)
             ->because('each failure detail remains visible to JUnit consumers')
             ->toHaveCount(2);
-
-        if (!\is_array($failures) || \count($failures) !== 2) {
-            return;
-        }
 
         Expect::that((string) $failures[0]['message'])
             ->because('failure details retain their encounter order')

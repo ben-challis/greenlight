@@ -192,7 +192,9 @@ final class StagedAttachments implements Attachments
      */
     private function record(StagedAttachment $attachment): void
     {
-        if ($this->budget->bytes + $attachment->sizeBytes > $this->configuration->maxTestBytes) {
+        if ($attachment->sizeBytes > $this->configuration->maxTestBytes
+            || $this->budget->bytes > $this->configuration->maxTestBytes - $attachment->sizeBytes
+        ) {
             $this->store->discard($attachment);
 
             throw AttachmentError::limit(\sprintf(

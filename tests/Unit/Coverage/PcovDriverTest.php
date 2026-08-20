@@ -58,7 +58,7 @@ final class PcovDriverTest
     }
 
     #[Test]
-    public function collectionLifecycleNormalizesExtensionPayloadsAndClearsState(): void
+    public function collectionLifecycleReturnsExtensionPayloadAndClearsState(): void
     {
         $runtime = new FakePcovDriverRuntime();
         $driver = new PcovDriver($runtime);
@@ -67,7 +67,7 @@ final class PcovDriverTest
         $coverage = $driver->stop();
 
         Expect::that($coverage->lines)
-            ->because('PCOV collection keeps only integer line statuses from valid file entries')
+            ->because('PCOV collection returns the extension line statuses')
             ->toBe([
                 '/src/Example.php' => [
                     10 => 1,

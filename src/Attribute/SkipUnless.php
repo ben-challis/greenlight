@@ -8,7 +8,8 @@ use Greenlight\Core\Condition;
 
 /**
  * A worker evaluates the condition. Because the worker protocol transfers the
- * constructor arguments, use only scalar values or null.
+ * constructor arguments, use only scalar values or null. Float values must be
+ * finite.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class SkipUnless
@@ -42,6 +43,12 @@ final readonly class SkipUnless
             throw new \InvalidArgumentException(
                 'SkipUnless condition MUST name an instantiable Condition class.',
             );
+        }
+
+        foreach ($arguments as $argument) {
+            if (\is_float($argument) && !\is_finite($argument)) {
+                throw new \InvalidArgumentException('SkipUnless arguments MUST use finite floats.');
+            }
         }
 
         $this->condition = $condition;
