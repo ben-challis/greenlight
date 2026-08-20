@@ -36,12 +36,7 @@ final readonly class LocalCiLockTest
             ]),
             $environment,
         );
-        $processes = [$first];
-        $this->cleanup->defer(static function () use (&$processes): void {
-            foreach ($processes as $process) {
-                $process->terminate();
-            }
-        });
+        $this->cleanup->defer($first->terminate(...));
 
         $first->readStdoutUntil('ready', 2.0);
         $second = Subprocess::start(
@@ -54,7 +49,7 @@ final readonly class LocalCiLockTest
             ]),
             $environment,
         );
-        $processes[] = $second;
+        $this->cleanup->defer($second->terminate(...));
 
         \usleep(250_000);
         Expect::that(\file_exists($startedMarker))
