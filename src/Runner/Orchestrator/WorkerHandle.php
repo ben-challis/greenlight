@@ -121,7 +121,7 @@ final class WorkerHandle
      */
     public function drainPipes(): void
     {
-        ErrorTrap::run(function (): void {
+        ErrorTrap::run(function () {
             foreach ([$this->stdout, $this->stderr] as $index => $pipe) {
                 if (!\is_resource($pipe)) {
                     continue;
@@ -219,7 +219,7 @@ final class WorkerHandle
         $this->channel?->close();
 
         if (\is_resource($this->process)) {
-            ErrorTrap::run(function (): void {
+            ErrorTrap::run(function () {
                 \proc_terminate($this->process, 9);
                 \proc_close($this->process);
             });

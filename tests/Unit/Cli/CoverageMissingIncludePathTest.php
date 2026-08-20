@@ -63,7 +63,7 @@ final class CoverageMissingIncludePathTest
 
         $configuration = new CoverageConfiguration([$outside], null, []);
         $settings = ErrorTrap::run(
-            static fn(): ?CoverageSettings => CoverageSettingsResolver::resolve($configuration, $root),
+            static fn() => CoverageSettingsResolver::resolve($configuration, $root),
             $warning,
         );
 

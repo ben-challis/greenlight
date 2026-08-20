@@ -25,7 +25,7 @@ final readonly class CpuCoresFallbackTest
         FilesystemRestriction::toProject($root);
 
         $count = ErrorTrap::run(
-            static fn(): int => CpuCores::count(),
+            static fn() => CpuCores::count(),
             $warning,
         );
 

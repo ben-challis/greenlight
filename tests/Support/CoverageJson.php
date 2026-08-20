@@ -16,7 +16,7 @@ final class CoverageJson
     public static function read(string $path): CoverageMap
     {
         $json = ErrorTrap::run(
-            static fn(): string|false => \file_get_contents($path),
+            static fn() => \file_get_contents($path),
             $warning,
         );
 
@@ -36,7 +36,7 @@ final class CoverageJson
         $documents = new JsonExporter()->export($map);
         $json = $documents[JsonExporter::FILE_NAME];
         $written = ErrorTrap::run(
-            static fn(): int|false => \file_put_contents($path, $json),
+            static fn() => \file_put_contents($path, $json),
             $warning,
         );
 

@@ -96,7 +96,7 @@ final readonly class ArtifactRecoveryAttemptFloorTest
         );
 
         $recovered = ErrorTrap::run(
-            static fn(): TestResult => $store->recover(new TestResult(
+            static fn() => $store->recover(new TestResult(
                 $id,
                 Outcome::Errored,
                 0.0,

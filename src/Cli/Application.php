@@ -773,7 +773,7 @@ final readonly class Application
             $target = $this->absolutePath($export->target, $workingDirectory);
 
             if (\count($files) === 1) {
-                ErrorTrap::run(static fn(): bool => \mkdir(\dirname($target), 0o777, true));
+                ErrorTrap::run(static fn() => \mkdir(\dirname($target), 0o777, true));
 
                 try {
                     AtomicFile::write($target, \reset($files));
@@ -783,7 +783,7 @@ final readonly class Application
                     return false;
                 }
             } else {
-                ErrorTrap::run(static fn(): bool => \mkdir($target, 0o777, true));
+                ErrorTrap::run(static fn() => \mkdir($target, 0o777, true));
 
                 foreach ($files as $name => $content) {
                     try {
@@ -829,7 +829,7 @@ final readonly class Application
 
         foreach (['baseline' => $baselinePath, 'current' => $currentPath] as $label => $path) {
             $absolute = $this->absolutePath($path, $workingDirectory);
-            $json = ErrorTrap::run(static fn(): string|false => \file_get_contents($absolute), $warning);
+            $json = ErrorTrap::run(static fn() => \file_get_contents($absolute), $warning);
 
             if ($json === false) {
                 $this->printError(\sprintf('Greenlight could not read the %s coverage export at "%s"%s.', $label, $path, $warning === null ? '' : ': ' . $warning), $arguments->has('no-ansi'));
@@ -1016,7 +1016,7 @@ final readonly class Application
         }
 
         $path = $this->absolutePath($input, $workingDirectory);
-        $raw = ErrorTrap::run(static fn(): string|false => \file_get_contents($path), $warning);
+        $raw = ErrorTrap::run(static fn() => \file_get_contents($path), $warning);
 
         if (!\is_string($raw)) {
             ($this->err)(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
@@ -1252,7 +1252,7 @@ final readonly class Application
 
         foreach ($prefixes as $prefix) {
             $absolute = $this->absolutePath($prefix, $workingDirectory);
-            $real = ErrorTrap::run(static fn(): string|false => \realpath($absolute));
+            $real = ErrorTrap::run(static fn() => \realpath($absolute));
 
             if ($real !== false) {
                 $resolved[] = $real;
@@ -1284,7 +1284,7 @@ final readonly class Application
             return false;
         }
 
-        return ErrorTrap::run(static fn(): string|false => \realpath($binPath));
+        return ErrorTrap::run(static fn() => \realpath($binPath));
     }
 
     /**

@@ -26,7 +26,7 @@ final class ClassFileParser
      */
     public static function declarationsIn(string $file): array
     {
-        $code = ErrorTrap::run(static fn(): string|false => \file_get_contents($file), $warning);
+        $code = ErrorTrap::run(static fn() => \file_get_contents($file), $warning);
 
         if ($code === false) {
             throw DiscoveryError::unreadableFile($file, $warning);

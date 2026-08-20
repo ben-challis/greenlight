@@ -52,7 +52,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
         $this->factory = $application instanceof \Closure
             ? $application
             : static function () use ($application): mixed {
-                if (!ErrorTrap::run(static fn(): bool => \is_file($application))) {
+                if (!ErrorTrap::run(static fn() => \is_file($application))) {
                     throw LaravelBridgeError::bootstrapFileMissing($application);
                 }
 

@@ -118,7 +118,7 @@ final class OutputCapture
 
         while (\ob_get_level() > $level) {
             $previousLevel = \ob_get_level();
-            $removed = ErrorTrap::run(static fn(): bool => \ob_end_flush());
+            $removed = ErrorTrap::run(static fn() => \ob_end_flush());
 
             if (!$removed || \ob_get_level() >= $previousLevel) {
                 $this->restoreErrorHandler();

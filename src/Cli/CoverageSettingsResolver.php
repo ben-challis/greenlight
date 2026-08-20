@@ -29,7 +29,7 @@ final class CoverageSettingsResolver
             $absolute = \str_starts_with($path, '/')
                 ? $path
                 : \rtrim($workingDirectory, '/') . '/' . $path;
-            $real = ErrorTrap::run(static fn(): string|false => \realpath($absolute));
+            $real = ErrorTrap::run(static fn() => \realpath($absolute));
 
             if ($real !== false) {
                 $include[] = $real;

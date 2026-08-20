@@ -75,13 +75,13 @@ final readonly class WorkerHandleTerminationTest
 
             foreach ($resources as $resource) {
                 if (\is_resource($resource)) {
-                    ErrorTrap::run(static fn(): bool => \fclose($resource));
+                    ErrorTrap::run(static fn() => \fclose($resource));
                 }
             }
 
             if (\is_resource($process)) {
-                ErrorTrap::run(static fn(): bool => \proc_terminate($process, 9));
-                ErrorTrap::run(static fn(): int => \proc_close($process));
+                ErrorTrap::run(static fn() => \proc_terminate($process, 9));
+                ErrorTrap::run(static fn() => \proc_close($process));
             }
         }
     }

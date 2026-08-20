@@ -51,7 +51,7 @@ final class ServerSocket
                 return new self($server, 'unix://' . $socketPath, $socketPath);
             }
 
-            ErrorTrap::run(static function () use ($server, $boundPath, $socketPath): void {
+            ErrorTrap::run(static function () use ($server, $boundPath, $socketPath) {
                 if (\is_string($boundPath)) {
                     \unlink($boundPath);
                 }
@@ -61,7 +61,7 @@ final class ServerSocket
             });
         }
 
-        ErrorTrap::run(static fn(): bool => \rmdir($socketDirectory));
+        ErrorTrap::run(static fn() => \rmdir($socketDirectory));
 
         $server = ErrorTrap::run(static function () use ($runtime, &$errorMessage) {
             return $runtime->listen('tcp://127.0.0.1:0', $errorMessage);
@@ -76,7 +76,7 @@ final class ServerSocket
         $name = $runtime->name($server);
 
         if ($name === false || $name === '') {
-            ErrorTrap::run(static fn(): bool => \fclose($server));
+            ErrorTrap::run(static fn() => \fclose($server));
 
             throw ProtocolError::malformedFrame(
                 'Greenlight did not resolve the orchestrator socket address',
@@ -96,7 +96,7 @@ final class ServerSocket
 
     public function close(): void
     {
-        ErrorTrap::run(function (): void {
+        ErrorTrap::run(function () {
             if (\is_resource($this->stream)) {
                 \fclose($this->stream);
             }

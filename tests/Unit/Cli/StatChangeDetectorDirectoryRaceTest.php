@@ -23,7 +23,7 @@ final readonly class StatChangeDetectorDirectoryRaceTest
         $this->streamWrappers->register(self::SCHEME, VanishingDirectoryStream::class);
         $detector = new StatChangeDetector([self::SCHEME . '://root']);
 
-        $changed = ErrorTrap::run(static fn(): array => $detector->poll(), $warning);
+        $changed = ErrorTrap::run(static fn() => $detector->poll(), $warning);
 
         Expect::that($changed)
             ->because('a directory that vanishes during a scan MUST behave as a missing directory')

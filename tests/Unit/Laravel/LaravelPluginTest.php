@@ -167,7 +167,7 @@ final class LaravelPluginTest
         Expect::that(
             static function () use ($plugin, &$warning): void {
                 ErrorTrap::run(
-                    static fn(): ?object => $plugin->resolve(Greeter::class, []),
+                    static fn() => $plugin->resolve(Greeter::class, []),
                     $warning,
                 );
             },

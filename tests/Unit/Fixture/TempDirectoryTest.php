@@ -120,7 +120,7 @@ final class TempDirectoryTest
 
         Expect::that(
             static function () use ($directory, &$warning): void {
-                ErrorTrap::run(static fn(): string => $directory->path(), $warning);
+                ErrorTrap::run(static fn() => $directory->path(), $warning);
             },
         )->because('a restricted temporary root causes a fixture error')->toThrow(TempDirectoryError::class);
         Expect::that($warning)

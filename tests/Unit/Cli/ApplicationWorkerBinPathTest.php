@@ -40,7 +40,7 @@ final readonly class ApplicationWorkerBinPathTest
 
         try {
             $exit = ErrorTrap::run(
-                static fn(): int => Application::forStreams($stdout, $stderr)->run(
+                static fn() => Application::forStreams($stdout, $stderr)->run(
                     ['run', '--workers=2', '--reporter=plain', '--no-ansi'],
                     $project->directory,
                     $restrictedBin,

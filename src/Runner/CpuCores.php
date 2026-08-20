@@ -35,7 +35,7 @@ final class CpuCores
     {
         if (\class_exists(CpuCoreCounter::class)) {
             try {
-                return ErrorTrap::run(static fn(): int => new CpuCoreCounter()->getCount());
+                return ErrorTrap::run(static fn() => new CpuCoreCounter()->getCount());
             } catch (NumberOfCpuCoreNotFound) {
             }
         }
@@ -48,8 +48,8 @@ final class CpuCores
      */
     private static function probe(): int
     {
-        if (ErrorTrap::run(static fn(): bool => \is_file('/proc/cpuinfo'))) {
-            $cpuinfo = ErrorTrap::run(static fn(): string|false => \file_get_contents('/proc/cpuinfo'));
+        if (ErrorTrap::run(static fn() => \is_file('/proc/cpuinfo'))) {
+            $cpuinfo = ErrorTrap::run(static fn() => \file_get_contents('/proc/cpuinfo'));
 
             if (\is_string($cpuinfo)) {
                 $count = LinuxCpuInfo::processorCount($cpuinfo);
@@ -61,7 +61,7 @@ final class CpuCores
         }
 
         if (\PHP_OS_FAMILY === 'Darwin' && \function_exists('shell_exec')) {
-            $output = ErrorTrap::run(static fn(): string|false|null => \shell_exec('sysctl -n hw.logicalcpu 2>/dev/null'));
+            $output = ErrorTrap::run(static fn() => \shell_exec('sysctl -n hw.logicalcpu 2>/dev/null'));
 
             if (\is_string($output)) {
                 $count = DecimalInteger::parse(\trim($output));

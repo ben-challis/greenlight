@@ -33,7 +33,7 @@ final readonly class HtmlExporterSourceFailureTest
             new FileCoverage($path, [2], [4]),
         ]);
         $pages = ErrorTrap::run(
-            static fn(): array => new HtmlExporter()->export($map),
+            static fn() => new HtmlExporter()->export($map),
             $warning,
         );
 
@@ -61,7 +61,7 @@ final readonly class HtmlExporterSourceFailureTest
             ->toBeTrue();
 
         $pages = ErrorTrap::run(
-            static fn(): array => new HtmlExporter()->export($map),
+            static fn() => new HtmlExporter()->export($map),
             $warning,
         );
         $page = $pages[HtmlExporter::pageName($path)];

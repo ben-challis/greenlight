@@ -41,7 +41,7 @@ final readonly class IgnoreScanner
             return [];
         }
 
-        $source = ErrorTrap::run(static fn(): string|false => \file_get_contents($path), $warning);
+        $source = ErrorTrap::run(static fn() => \file_get_contents($path), $warning);
 
         if (!\is_string($source)) {
             return [];

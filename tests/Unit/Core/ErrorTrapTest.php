@@ -15,7 +15,7 @@ final class ErrorTrapTest
     {
         $warning = 'stale';
 
-        $value = ErrorTrap::run(static fn(): string => 'result', $warning);
+        $value = ErrorTrap::run(static fn() => 'result', $warning);
 
         Expect::that($value)
             ->because('the trapped operation return value MUST be preserved')
@@ -28,7 +28,7 @@ final class ErrorTrapTest
     #[Test]
     public function capturesTheLastWarning(): void
     {
-        ErrorTrap::run(static function (): void {
+        ErrorTrap::run(static function () {
             \trigger_error('first warning', \E_USER_WARNING);
             \trigger_error('last warning', \E_USER_WARNING);
         }, $warning);
@@ -50,7 +50,7 @@ final class ErrorTrapTest
         });
 
         try {
-            ErrorTrap::run(static function (): void {
+            ErrorTrap::run(static function () {
                 \trigger_error('trapped warning', \E_USER_WARNING);
             }, $warning);
 
@@ -68,10 +68,10 @@ final class ErrorTrapTest
     #[Test]
     public function nestedTrapsKeepTheirWarningsSeparateAndRestoreTheOuterTrap(): void
     {
-        ErrorTrap::run(static function () use (&$innerWarning): void {
+        ErrorTrap::run(static function () use (&$innerWarning) {
             \trigger_error('outer before inner', \E_USER_WARNING);
 
-            ErrorTrap::run(static function (): void {
+            ErrorTrap::run(static function () {
                 \trigger_error('inner warning', \E_USER_WARNING);
             }, $innerWarning);
 
@@ -100,7 +100,7 @@ final class ErrorTrapTest
 
         try {
             Expect::that(static fn(): mixed => ErrorTrap::run(
-                static fn(): never => throw $failure,
+                static fn() => throw $failure,
             ))
                 ->because('the trap MUST propagate an operation error')
                 ->toThrow($failure);
@@ -129,7 +129,7 @@ final class ErrorTrapTest
 
         try {
             Expect::that(static fn(): mixed => ErrorTrap::run(
-                operation: static fn(): never => throw $failure,
+                operation: static fn() => throw $failure,
                 wrap: static function (\Throwable $cause): \Throwable {
                     \trigger_error('wrap warning', \E_USER_WARNING);
 
@@ -164,7 +164,7 @@ final class ErrorTrapTest
         \set_error_handler($baseline);
 
         try {
-            ErrorTrap::run(static function () use ($first, $second): void {
+            ErrorTrap::run(static function () use ($first, $second) {
                 \set_error_handler($first);
                 \set_error_handler($second);
             });
@@ -197,7 +197,7 @@ final class ErrorTrapTest
         \set_error_handler($baseline);
 
         try {
-            ErrorTrap::run(static function (): void {
+            ErrorTrap::run(static function () {
                 \restore_error_handler();
             });
 
