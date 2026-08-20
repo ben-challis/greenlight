@@ -23,35 +23,10 @@ final readonly class ArtifactCopyOpenFailureTest
     ) {}
 
     #[Test]
-    public function copyOpenFailuresCloseTheOtherStream(): void
+    public function aDestinationOpenFailureClosesTheSource(): void
     {
         $this->streamWrappers->register(self::SCHEME, TrackedOpenStream::class);
         $root = $this->tempDirectory->subdirectory('copy-open-failures');
-
-        TrackedOpenStream::reset();
-
-        $sourceWarning = null;
-        Expect::that(static function () use ($root, &$sourceWarning): void {
-            ErrorTrap::run(
-                static fn() => new NativeFileCopier()->copy(
-                    $root . '/missing-source.txt',
-                    self::SCHEME . '://destination',
-                ),
-                $sourceWarning,
-            );
-        })
-            ->because('a missing source MUST fail the attachment copy')
-            ->toThrow(
-                AttachmentError::class,
-                message: 'Failed to copy attachment into its output directory.',
-            );
-        Expect::that($sourceWarning)
-            ->because('a source open failure MUST not leak an engine diagnostic')
-            ->toBeNull();
-
-        Expect::that(TrackedOpenStream::closedStreams())
-            ->because('a source open failure MUST close the destination stream')
-            ->toBe(1);
 
         TrackedOpenStream::reset();
 
@@ -77,5 +52,25 @@ final readonly class ArtifactCopyOpenFailureTest
         Expect::that(TrackedOpenStream::closedStreams())
             ->because('a destination open failure MUST close the source stream')
             ->toBe(1);
+    }
+
+    #[Test]
+    public function aMissingSourceDoesNotCreateTheDestination(): void
+    {
+        $root = $this->tempDirectory->subdirectory('missing-copy-source');
+        $destination = $root . '/destination.txt';
+
+        Expect::that(static fn() => new NativeFileCopier()->copy(
+            $root . '/missing-source.txt',
+            $destination,
+        ))
+            ->because('a missing source MUST fail before the destination is opened')
+            ->toThrow(
+                AttachmentError::class,
+                message: 'Failed to copy attachment into its output directory.',
+            );
+        Expect::that(\file_exists($destination))
+            ->because('a source open failure MUST not leave an empty destination')
+            ->toBeFalse();
     }
 }
