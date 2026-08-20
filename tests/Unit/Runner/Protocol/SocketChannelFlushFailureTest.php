@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Fixture\StreamWrapperSandbox;
@@ -17,7 +18,10 @@ final readonly class SocketChannelFlushFailureTest
 {
     private const string STREAM_SCHEME = 'greenlight-flush-failure';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(
+        private StreamWrapperSandbox $streamWrappers,
+        private Cleanup $cleanup,
+    ) {}
 
     #[Test]
     public function aFailedFlushRejectsTheSend(): void
@@ -31,18 +35,15 @@ final readonly class SocketChannelFlushFailureTest
         }
 
         $channel = new SocketChannel($stream);
+        $this->cleanup->defer($channel->close(...));
 
-        try {
-            Expect::that(static function () use ($channel): void {
-                $channel->send(new Drain());
-            })
-                ->because('a failed flush MUST reject an incomplete send')
-                ->toThrow(
-                    ProtocolError::class,
-                    message: 'Malformed frame: peer closed the connection during a write.',
-                );
-        } finally {
-            $channel->close();
-        }
+        Expect::that(static function () use ($channel): void {
+            $channel->send(new Drain());
+        })
+            ->because('a failed flush MUST reject an incomplete send')
+            ->toThrow(
+                ProtocolError::class,
+                message: 'Malformed frame: peer closed the connection during a write.',
+            );
     }
 }
