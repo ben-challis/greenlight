@@ -35,11 +35,6 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
     private ?LaravelProcessState $processState = null;
 
     /**
-     * @var non-empty-string
-     */
-    private readonly string $env;
-
-    /**
      * @param string|\Closure(): Application $application
      *   A path to the file that returns the application, usually
      *   bootstrap/app.php, or a closure returning the application when
@@ -50,14 +45,13 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
      */
     public function __construct(
         string|\Closure $application,
-        string $env = 'testing',
+        private readonly string $env = 'testing',
         private readonly bool $refreshBetweenTests = true,
     ) {
         if (\trim($env) === '') {
             throw new \InvalidArgumentException('Framework environment MUST NOT be empty.');
         }
 
-        $this->env = $env;
         $this->factory = $application instanceof \Closure
             ? $application
             : static function () use ($application): mixed {

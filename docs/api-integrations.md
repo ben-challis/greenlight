@@ -204,7 +204,7 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
 ```php
 public function __construct(
     string|\Closure $application,
-    string $env = 'testing',
+    private readonly string $env = 'testing',
     private readonly bool $refreshBetweenTests = true,
 )
 ```
@@ -214,7 +214,7 @@ PHPDoc:
 - `@param string|\Closure(): Application $application A path to the file that returns the application, usually bootstrap/app.php, or a closure returning the application when exotic construction is needed.`
 - `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L46)
 
 ### `services()`
 
@@ -227,7 +227,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L69)
 
 ### `resolve()`
 
@@ -242,7 +242,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws LaravelBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L86)
 
 ### `beforeTest()`
 
@@ -251,7 +251,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L122)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L116)
 
 ### `afterTest()`
 
@@ -260,7 +260,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L119)
 
 ## `Laravel\Service`
 
