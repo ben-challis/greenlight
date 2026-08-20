@@ -39,17 +39,13 @@ final readonly class ApplicationStreamOutputTest
         if ($partial === false) {
             Fail::because('Greenlight did not open the CLI test streams.');
         }
-        $this->cleanup->defer(static function () use ($partial): void {
-            \fclose($partial);
-        });
+        $this->cleanup->defer(static fn(): bool => \fclose($partial));
 
         $other = \fopen('php://memory', 'wb');
         if ($other === false) {
             Fail::because('Greenlight did not open the CLI test streams.');
         }
-        $this->cleanup->defer(static function () use ($other): void {
-            \fclose($other);
-        });
+        $this->cleanup->defer(static fn(): bool => \fclose($other));
 
         $application = $useStderr
             ? Application::forStreams($other, $partial)

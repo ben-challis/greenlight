@@ -29,9 +29,7 @@ final readonly class StreamOutputTest
         if ($stream === false) {
             throw new \RuntimeException('Could not open an in-memory stream.');
         }
-        $this->cleanup->defer(static function () use ($stream): void {
-            \fclose($stream);
-        });
+        $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         $output = new StreamOutput($stream);
         $output->write('first ');
@@ -50,9 +48,7 @@ final readonly class StreamOutputTest
         if ($stream === false) {
             throw new \RuntimeException('Could not open a read-only in-memory stream.');
         }
-        $this->cleanup->defer(static function () use ($stream): void {
-            \fclose($stream);
-        });
+        $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         $output = new StreamOutput($stream);
 
@@ -105,9 +101,7 @@ final readonly class StreamOutputTest
         if ($stream === false) {
             throw new \RuntimeException('Greenlight did not open the partial-write stream.');
         }
-        $this->cleanup->defer(static function () use ($stream): void {
-            \fclose($stream);
-        });
+        $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         return $stream;
     }
