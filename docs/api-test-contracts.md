@@ -51,6 +51,7 @@ final class Cleanup
 
 Register cleanup immediately after the test acquires a resource. This
 makes cleanup available if a later operation fails.
+Greenlight ignores the callback return value.
 
 ```php
 public function defer(\Closure $cleanup): void
@@ -58,10 +59,11 @@ public function defer(\Closure $cleanup): void
 
 PHPDoc:
 
-- `@param \Closure(): void $cleanup`
+- `@template TReturn`
+- `@param \Closure(): TReturn $cleanup`
 - `@throws \LogicException If test cleanup has started.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/Cleanup.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/Cleanup.php#L33)
 
 ## `SkipTest`
 

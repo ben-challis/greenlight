@@ -9,10 +9,13 @@ use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Reporting\TeamCityReporter;
 
 final readonly class TeamCityReporterAutoloadCacheTest
 {
+    public function __construct(private AutoloaderSandbox $autoloaders) {}
+
     #[Test]
     public function aFailedClassLookupIsCachedAcrossEvents(): void
     {
@@ -27,14 +30,10 @@ final readonly class TeamCityReporterAutoloadCacheTest
                 throw new \RuntimeException('autoload failed');
             }
         };
-        \spl_autoload_register($autoload);
+        $this->autoloaders->register($autoload);
 
-        try {
-            $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
-            $reporter->onEvent(new TestStarted(new TestId($class, 'runs'), 1.1));
-        } finally {
-            \spl_autoload_unregister($autoload);
-        }
+        $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
+        $reporter->onEvent(new TestStarted(new TestId($class, 'runs'), 1.1));
 
         Expect::that($autoloadCalls)
             ->because('a failed optional location lookup MUST not rerun the autoloader for each event')

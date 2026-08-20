@@ -78,7 +78,10 @@ final class ProfileAggregator
             $span = $this->worker($event->workerId)->classFinished($event->occurredAt);
 
             if ($span !== null) {
-                $this->classDurations[$event->class] = ($this->classDurations[$event->class] ?? 0.0) + $span;
+                $this->classDurations[$event->class] = ProfileDuration::add(
+                    $this->classDurations[$event->class] ?? 0.0,
+                    $span,
+                );
             }
 
             return;
@@ -127,7 +130,7 @@ final class ProfileAggregator
         if ($bootLatencies !== []) {
             $lines[] = \sprintf(
                 '  Boot latency: %.3fs average (spawn to first class, %s)',
-                \array_sum($bootLatencies) / \count($bootLatencies),
+                ProfileDuration::average($bootLatencies),
                 Plural::count(\count($bootLatencies), 'worker'),
             );
         }
@@ -153,7 +156,7 @@ final class ProfileAggregator
         if (\count($finishTimes) > 1) {
             $lines[] = \sprintf(
                 '  Makespan spread: %.3fs between first and last worker finish',
-                \max($finishTimes) - \min($finishTimes),
+                ProfileDuration::between(\min($finishTimes), \max($finishTimes)),
             );
         }
 

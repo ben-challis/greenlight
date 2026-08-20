@@ -15,17 +15,10 @@ use Greenlight\Tests\Fixture\Discovery\FakeMonotonicClock;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\InvalidKeyProvider;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest;
 use Greenlight\Tests\Fixture\DiscoveryProviderDuplicate\DuplicateKeysTest;
+use Greenlight\Tests\Support\FixturePath;
 
 final class DataSetExpansionTest
 {
-    /**
-     * @return non-empty-string
-     */
-    private function fixtureDir(string $name): string
-    {
-        return \dirname(__DIR__, 2) . '/Fixture/' . $name;
-    }
-
     /**
      * @return list<string|null>
      */
@@ -47,7 +40,7 @@ final class DataSetExpansionTest
      */
     private function discoverFixture(string $fixture, float $budgetSeconds = 5.0): \Closure
     {
-        $directory = $this->fixtureDir($fixture);
+        $directory = FixturePath::get($fixture);
 
         return static fn(): ExecutionPlan => new TestDiscoverer($budgetSeconds)->discover([$directory]);
     }
@@ -55,7 +48,7 @@ final class DataSetExpansionTest
     #[Test]
     public function printableStringKeysAreUsedAsIs(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
 
         Expect::that($this->keysFor($plan, 'withStringKeys'))->because('printable string keys are used as is')->toBe(['first case', 'second case']);
     }
@@ -63,7 +56,7 @@ final class DataSetExpansionTest
     #[Test]
     public function integerKeysBecomeOrdinalStrings(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
 
         Expect::that($this->keysFor($plan, 'withIntegerKeys'))->because('integer keys become ordinal strings')->toBe(['#0', '#1', '#2']);
     }
@@ -71,7 +64,7 @@ final class DataSetExpansionTest
     #[Test]
     public function nonPrintableAndEmptyKeysBecomeStableHashPrefixes(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
 
         $expected = [
             \substr(\hash('sha256', "tab\tseparated"), 0, 8),
@@ -128,7 +121,7 @@ final class DataSetExpansionTest
     #[Test]
     public function expandedIdsRenderWithTheirKeys(): void
     {
-        $plan = new TestDiscoverer()->discover([$this->fixtureDir('DiscoveryDataSets')]);
+        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
         $rendered = \array_map(static fn(PlanEntry $entry): string => (string) $entry->id, $plan->entries);
 
         Expect::that($rendered)->because('expanded IDs render with their keys')->toContain(
@@ -261,7 +254,7 @@ final class DataSetExpansionTest
     #[Test]
     public function slowProviderPassesUnderAGenerousBudget(): void
     {
-        $plan = new TestDiscoverer(5.0)->discover([$this->fixtureDir('DiscoveryProviderSlow')]);
+        $plan = new TestDiscoverer(5.0)->discover([FixturePath::get('DiscoveryProviderSlow')]);
 
         Expect::that($plan->count())->because('slow provider passes under a generous budget')->toBe(3);
     }
@@ -281,7 +274,7 @@ final class DataSetExpansionTest
     {
         Expect::that(
             fn(): ExecutionPlan => new TestDiscoverer()->discover([
-                $this->fixtureDir('DiscoveryProviderDuplicate'),
+                FixturePath::get('DiscoveryProviderDuplicate'),
             ]),
         )
             ->because('a data-set provider MUST NOT yield the same key more than once')

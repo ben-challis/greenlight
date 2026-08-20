@@ -19,7 +19,7 @@ final class SlowTestsTest
     public function fastRunsRenderNothing(): void
     {
         $slow = new SlowTests();
-        $slow->record($this->finished('Acme\FastTest::quick', 0.4));
+        $slow->record($this->finished('Acme\FastTest', 'quick', 0.4));
 
         Expect::that($slow->render(new Style(ansi: false)))->because('fast runs render nothing')->toBe('');
     }
@@ -30,7 +30,7 @@ final class SlowTestsTest
         $slow = new SlowTests();
 
         for ($i = 1; $i <= 8; ++$i) {
-            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+            $slow->record($this->finished('Acme\SlowTest', \sprintf('case%02d', $i), 0.5 + $i / 100));
         }
 
         $rendered = $slow->render(new Style(ansi: false));
@@ -52,7 +52,7 @@ final class SlowTestsTest
         $slow = new SlowTests(extended: true);
 
         for ($i = 1; $i <= 8; ++$i) {
-            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+            $slow->record($this->finished('Acme\SlowTest', \sprintf('case%02d', $i), 0.5 + $i / 100));
         }
 
         Expect::that($slow->render(new Style(ansi: false)))->because('extended mode keeps more entries')->toContain('case01');
@@ -64,7 +64,7 @@ final class SlowTestsTest
         $slow = new SlowTests(extended: true);
 
         for ($i = 1; $i <= 26; ++$i) {
-            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+            $slow->record($this->finished('Acme\SlowTest', \sprintf('case%02d', $i), 0.5 + $i / 100));
         }
 
         $rendered = $slow->render(new Style(ansi: false));
@@ -88,11 +88,11 @@ final class SlowTestsTest
         $slow = new SlowTests();
 
         for ($i = 1; $i <= 21; ++$i) {
-            $slow->record($this->finished(\sprintf('Acme\SlowTest::case%02d', $i), 0.5 + $i / 100));
+            $slow->record($this->finished('Acme\SlowTest', \sprintf('case%02d', $i), 0.5 + $i / 100));
         }
 
-        $slow->record($this->finished('Acme\SlowTest::lateSlowest', 0.95));
-        $slow->record($this->finished('Acme\SlowTest::lateButFaster', 0.51));
+        $slow->record($this->finished('Acme\SlowTest', 'lateSlowest', 0.95));
+        $slow->record($this->finished('Acme\SlowTest', 'lateButFaster', 0.51));
         $rendered = $slow->render(new Style(ansi: false));
 
         Expect::that($rendered)
@@ -110,19 +110,17 @@ final class SlowTestsTest
     public function durationsAreColoredThroughTheStyle(): void
     {
         $slow = new SlowTests();
-        $slow->record($this->finished('Acme\SlowTest::crawls', 1.5));
+        $slow->record($this->finished('Acme\SlowTest', 'crawls', 1.5));
 
         Expect::that($slow->render(new Style(ansi: true)))->because('durations are colored through the style')->toContain("\x1b[33m1.500s\x1b[0m");
     }
 
     /**
-     * @param non-empty-string $id
+     * @param non-empty-string $class
+     * @param non-empty-string $method
      */
-    private function finished(string $id, float $duration): TestFinished
+    private function finished(string $class, string $method, float $duration): TestFinished
     {
-        [$class, $method] = \explode('::', $id);
-        \assert($class !== '' && $method !== '');
-
         return new TestFinished(new TestResult(new TestId($class, $method), Outcome::Passed, $duration, 0), 1.0);
     }
 }

@@ -14,11 +14,14 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 
-final class TeamCityReporterTest
+final readonly class TeamCityReporterTest
 {
+    public function __construct(private AutoloaderSandbox $autoloaders) {}
+
     #[Test]
     public function cannedStreamRendersTheGoldenServiceMessages(): void
     {
@@ -202,13 +205,9 @@ final class TeamCityReporterTest
                 throw new \RuntimeException('autoload failed');
             }
         };
-        \spl_autoload_register($autoload);
+        $this->autoloaders->register($autoload);
 
-        try {
-            $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
-        } finally {
-            \spl_autoload_unregister($autoload);
-        }
+        $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
 
         Expect::that($output->buffer())
             ->because('an autoloader error omits the optional navigation hint')

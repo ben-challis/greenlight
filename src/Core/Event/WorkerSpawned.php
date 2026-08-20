@@ -34,6 +34,10 @@ final readonly class WorkerSpawned implements Event
             throw new \InvalidArgumentException('Worker PID MUST be greater than zero.');
         }
 
+        if (!\is_finite($occurredAt)) {
+            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+        }
+
         $this->workerId = $workerId;
         $this->pid = $pid;
     }

@@ -18,6 +18,7 @@ use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\MergedTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\PlainTest;
 use Greenlight\Tests\Fixture\DiscoveryGroupInvalid\EmptyGroupTest;
+use Greenlight\Tests\Support\FixturePath;
 
 final class AttributeMergeTest
 {
@@ -26,7 +27,7 @@ final class AttributeMergeTest
      */
     private function metadataByTest(): array
     {
-        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryAttributes';
+        $dir = FixturePath::get('DiscoveryAttributes');
         $map = [];
 
         foreach (new TestDiscoverer()->discover([$dir])->entries as $entry) {
@@ -85,7 +86,7 @@ final class AttributeMergeTest
     #[Test]
     public function skipUnlessArgumentsInheritFromTheClassAndAreOverriddenTogether(): void
     {
-        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryAttributeArguments';
+        $dir = FixturePath::get('DiscoveryAttributeArguments');
         $map = [];
 
         foreach (new TestDiscoverer()->discover([$dir])->entries as $entry) {
@@ -105,7 +106,7 @@ final class AttributeMergeTest
     #[Test]
     public function nonScalarSkipUnlessArgumentsAreRejectedAtDiscovery(): void
     {
-        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryAttributeArgumentsInvalid';
+        $dir = FixturePath::get('DiscoveryAttributeArgumentsInvalid');
 
         Expect::that(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
             ->toThrow(static function (DiscoveryError $error): void {
@@ -120,7 +121,7 @@ final class AttributeMergeTest
     #[Test]
     public function invalidResourceNamesAreRejectedAtDiscoveryWithTheirLocation(): void
     {
-        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryResourceInvalid';
+        $dir = FixturePath::get('DiscoveryResourceInvalid');
 
         Expect::that(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
             ->toThrow(static function (DiscoveryError $error): void {
@@ -135,7 +136,7 @@ final class AttributeMergeTest
     #[Test]
     public function anEmptyGroupNameIsReportedAsAnInvalidAttribute(): void
     {
-        $dir = \dirname(__DIR__, 2) . '/Fixture/DiscoveryGroupInvalid';
+        $dir = FixturePath::get('DiscoveryGroupInvalid');
 
         Expect::that(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]),

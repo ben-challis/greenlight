@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class CoverageIgnoreRunTest
@@ -28,28 +29,20 @@ final readonly class CoverageIgnoreRunTest
         Expect::that($result->exitCode)->because('ignored lines are excluded from totals and exports')->toBe(0);
         Expect::that($result->output())->toContain('Coverage: 100.00%');
 
-        $json = \file_get_contents($outDir . '/coverage.json');
-
-        Expect::that($json)
-            ->because(\sprintf(
-                'The coverage JSON export at "%s" MUST be readable.',
-                $outDir . '/coverage.json',
-            ))
-            ->toBeString();
-
-        /** @var array{files: array<string, array{covered: list<int>, uncovered: list<int>}>} $decoded */
-        $decoded = \json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
         $gadget = null;
 
-        foreach ($decoded['files'] as $file => $lines) {
+        foreach (CoverageJson::read($outDir . '/coverage.json')->files() as $file => $coverage) {
             if (\str_ends_with($file, 'CoverageIgnoreLib/Gadget.php')) {
-                $gadget = $lines;
+                $gadget = $coverage;
             }
         }
 
-        Expect::that($gadget)->because('ignored lines are excluded from totals and exports')->not()->toBeNull();
-        Expect::that($gadget['uncovered'])->toBe([]);
-        Expect::that($gadget['covered'])->not()->toHaveCount(0);
+        Expect::that($gadget)
+            ->because('The coverage export MUST contain CoverageIgnoreLib/Gadget.php.')
+            ->not()
+            ->toBeNull();
+        Expect::that($gadget->uncoveredLines)->toBe([]);
+        Expect::that($gadget->coveredLines)->not()->toHaveCount(0);
     }
 
     private function writeProject(): AcceptanceProject

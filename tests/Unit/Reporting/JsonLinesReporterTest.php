@@ -9,6 +9,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\ReportingError;
+use Greenlight\Tests\Support\JsonWire;
 
 final class JsonLinesReporterTest
 {
@@ -41,11 +42,7 @@ final class JsonLinesReporterTest
                 continue;
             }
 
-            $expectedData = \json_decode(
-                \json_encode($event->toWire(), \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES),
-                true,
-                flags: \JSON_THROW_ON_ERROR,
-            );
+            $expectedData = JsonWire::roundTrip($event->toWire());
 
             Expect::that($decoded['v'])->toBe(2);
             Expect::that($decoded['event'])->toBe(\array_search($event::class, $tags, true));

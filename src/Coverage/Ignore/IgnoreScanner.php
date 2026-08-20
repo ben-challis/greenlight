@@ -56,14 +56,18 @@ final readonly class IgnoreScanner
             $token = $tokens[$i];
 
             if ($token->is([\T_COMMENT, \T_DOC_COMMENT])) {
-                if (\str_contains($token->text, self::START)) {
-                    $rangeStart ??= $token->line;
-                } elseif (\str_contains($token->text, self::END)) {
-                    if ($rangeStart !== null) {
+                $rangeMarkers = $this->rangeMarkers($token->text);
+
+                foreach ($rangeMarkers as $rangeMarker) {
+                    if ($rangeMarker === self::START) {
+                        $rangeStart ??= $token->line;
+                    } elseif ($rangeStart !== null) {
                         $this->addRange($ignored, $rangeStart, $this->lastLine($token));
                         $rangeStart = null;
                     }
-                } elseif (\str_contains($token->text, self::IGNORE)) {
+                }
+
+                if ($rangeMarkers === [] && \str_contains($token->text, self::IGNORE)) {
                     $declaration = $this->declarationRange($tokens, $i + 1);
 
                     if ($declaration === null) {
@@ -96,6 +100,27 @@ final readonly class IgnoreScanner
         }
 
         return $ignored;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function rangeMarkers(string $comment): array
+    {
+        $markers = [];
+
+        foreach ([self::START, self::END] as $marker) {
+            $offset = 0;
+
+            while (($position = \strpos($comment, $marker, $offset)) !== false) {
+                $markers[$position] = $marker;
+                $offset = $position + \strlen($marker);
+            }
+        }
+
+        \ksort($markers, \SORT_NUMERIC);
+
+        return \array_values($markers);
     }
 
     /**

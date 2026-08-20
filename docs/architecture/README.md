@@ -63,6 +63,7 @@ public.
 | `Reporting` | Event consumers and output formats | `Core` |
 | `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
 | `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
+| `Documentation` | Build-time validation of documentation examples | Nothing |
 | `PhpStan`, `Rector`, `Symfony`, `Laravel` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
 Dependencies point from modules near the bottom of the table to modules near
@@ -129,6 +130,7 @@ read [compatibility](compatibility.md).
 - [Temporal expectations](temporal-expectations.md)
 - [Infection support decision](mutation-testing.md)
 - [Code conventions](conventions.md)
+- [Documentation PHP examples](documentation-php-examples.md)
 
 If a decision changes an invariant or compatibility promise, update the
 applicable page in the same change. This page describes the current

@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Fixture\TempDirectory;
@@ -17,6 +18,7 @@ final readonly class ApplicationReporterStreamTest
     public function __construct(
         private TempDirectory $tempDirectory,
         private EnvironmentSandbox $environment,
+        private Cleanup $cleanup,
     ) {}
 
     #[Test]
@@ -28,20 +30,18 @@ final readonly class ApplicationReporterStreamTest
             'application-reporter-stream',
         );
         $stdout = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stdout));
         $stderr = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stderr));
 
-        try {
-            $exit = Application::forStreams($stdout, $stderr)->run(
-                ['run', '--workers=1', '--reporter=plain', '--no-ansi'],
-                $project->directory,
-            );
-            \rewind($stdout);
-            \rewind($stderr);
-            $output = \stream_get_contents($stdout);
-            $errors = \stream_get_contents($stderr);
-        } finally {
-            MemoryStream::close($stdout, $stderr);
-        }
+        $exit = Application::forStreams($stdout, $stderr)->run(
+            ['run', '--workers=1', '--reporter=plain', '--no-ansi'],
+            $project->directory,
+        );
+        \rewind($stdout);
+        \rewind($stderr);
+        $output = \stream_get_contents($stdout);
+        $errors = \stream_get_contents($stderr);
 
         Expect::that($exit)
             ->because('a run through configured streams MUST preserve the reporter exit code')

@@ -37,8 +37,8 @@ final class WorkerProfile
         $span = null;
 
         if ($this->openAt !== null) {
-            $span = \max(0.0, $at - $this->openAt);
-            $this->busy += $span;
+            $span = ProfileDuration::between($this->openAt, $at);
+            $this->busy = ProfileDuration::add($this->busy, $span);
             $this->openAt = null;
         }
 
@@ -60,7 +60,7 @@ final class WorkerProfile
             return null;
         }
 
-        return \max(0.0, $this->firstClassAt - $this->spawnedAt);
+        return ProfileDuration::between($this->spawnedAt, $this->firstClassAt);
     }
 
     /**
@@ -76,7 +76,7 @@ final class WorkerProfile
             return 0.0;
         }
 
-        return \max(0.0, $this->lastFinishAt - $start);
+        return ProfileDuration::between($start, $this->lastFinishAt);
     }
 
     /**
