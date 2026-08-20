@@ -139,22 +139,26 @@ final class TempDirectory implements Disposable
             return;
         }
 
-        $entries = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
+        try {
+            $entries = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST,
+            );
 
-        ErrorTrap::run(static function () use ($entries, $path): void {
-            /** @var \SplFileInfo $entry */
-            foreach ($entries as $entry) {
-                $pathname = $entry->getPathname();
-                $removed = !$entry->isLink() && $entry->isDir() ? \rmdir($pathname) : \unlink($pathname);
+            ErrorTrap::run(static function () use ($entries, $path): void {
+                /** @var \SplFileInfo $entry */
+                foreach ($entries as $entry) {
+                    $pathname = $entry->getPathname();
+                    $removed = !$entry->isLink() && $entry->isDir() ? \rmdir($pathname) : \unlink($pathname);
 
-                if (!$removed) {
-                    throw TempDirectoryError::entryRemovalFailed($pathname, $path);
+                    if (!$removed) {
+                        throw TempDirectoryError::entryRemovalFailed($pathname, $path);
+                    }
                 }
-            }
-        });
+            });
+        } catch (\UnexpectedValueException $error) {
+            throw TempDirectoryError::rootRemovalFailed($path, $error->getMessage());
+        }
 
         if (!ErrorTrap::run(static fn(): bool => \rmdir($path), $warning)) {
             throw TempDirectoryError::rootRemovalFailed($path, $warning);
