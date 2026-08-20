@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension;
 
-final class ExpectTest
+final readonly class ExpectTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function notAppliesOnlyToTheNextMatcher(): void
     {
@@ -45,14 +48,11 @@ final class ExpectTest
     #[Test]
     public function installedExtensionsAreDispatchedByChains(): void
     {
-        Expect::install([new EvenNumbersExtension()]);
+        $restoreExtensions = Expect::install([new EvenNumbersExtension()]);
+        $this->cleanup->defer($restoreExtensions);
 
-        try {
-            Expect::that(4)->toBeEven();
-            Expect::that(3)->not()->toBeEven();
-        } finally {
-            Expect::install([]);
-        }
+        Expect::that(4)->toBeEven();
+        Expect::that(3)->not()->toBeEven();
     }
 
     #[Test]
