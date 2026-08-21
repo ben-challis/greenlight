@@ -196,8 +196,8 @@ final class JUnitReporterTest
             ->because('JUnit output MUST remain valid XML when diagnostics contain forbidden characters')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        $case = $document->testsuite->testcase;
-        $failure = $case->failure;
+        $case = SimpleXml::xpath($document, '/testsuites/testsuite/testcase')[0];
+        $failure = SimpleXml::xpath($case, 'failure')[0];
 
         Expect::that((string) $case['name'])
             ->because('forbidden characters in test names are replaced')

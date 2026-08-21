@@ -24,17 +24,17 @@ use Greenlight\Core\ErrorTrap;
 final readonly class DataSetExpander
 {
     /**
-     * @var \Closure(): int
+     * @var \Closure(): (int|float)
      */
     private \Closure $monotonicTime;
 
     /**
-     * @param (callable(): int)|null $monotonicTime
+     * @param (callable(): (int|float))|null $monotonicTime
      */
     public function __construct(?callable $monotonicTime = null)
     {
         $this->monotonicTime = $monotonicTime === null
-            ? static fn(): int => \hrtime(true)
+            ? static fn(): int|float => \hrtime(true)
             : $monotonicTime(...);
     }
 
@@ -106,7 +106,7 @@ final readonly class DataSetExpander
 
         foreach ($this->expand($class, $providerReflection, $testMethod, $provider, $budgetSeconds) as $key => $value) {
             if (\array_key_exists($key, $rows)) {
-                throw DiscoveryError::duplicateDataSetKey($className, $testMethod, $key);
+                throw DiscoveryError::duplicateDataSetKey($className, $testMethod, (string) $key);
             }
 
             $rows[$key] = $value;

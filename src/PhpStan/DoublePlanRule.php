@@ -169,7 +169,7 @@ final readonly class DoublePlanRule implements Rule
         $errors = [];
         $matcher = new ObjectType(ArgumentMatcher::class);
 
-        foreach ($arguments as $index => $argument) {
+        foreach (\array_values($arguments) as $index => $argument) {
             $parameter = $parameters[\min($index, \count($parameters) - 1)];
             $argumentType = $scope->getType($argument->value);
 
@@ -298,7 +298,7 @@ final readonly class DoublePlanRule implements Rule
 
         $errors = [];
 
-        foreach ($arguments as $index => $argument) {
+        foreach (\array_values($arguments) as $index => $argument) {
             if ($argument->unpack) {
                 continue;
             }
