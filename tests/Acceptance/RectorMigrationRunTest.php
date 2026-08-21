@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
@@ -11,6 +12,7 @@ use Greenlight\Rector\PhpUnitToGreenlightRector;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
 
+#[AllowParallel]
 #[RequiresResource('analysis-process')]
 final readonly class RectorMigrationRunTest
 {
