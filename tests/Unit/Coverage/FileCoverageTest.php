@@ -57,6 +57,22 @@ final class FileCoverageTest
     }
 
     #[Test]
+    public function lineHitsAreOrderedWithCoveredLinesSetToOne(): void
+    {
+        $file = new FileCoverage('/src/A.php', [9, 3, 5], [12, 3, 7]);
+
+        Expect::that($file->lineHits())
+            ->because('line hits are canonical and covered wins')
+            ->toBe([
+                3 => 1,
+                5 => 1,
+                7 => 0,
+                9 => 1,
+                12 => 0,
+            ]);
+    }
+
+    #[Test]
     public function percentageIsCoveredOverExecutable(): void
     {
         $file = new FileCoverage('/src/A.php', [1, 2, 3], [4]);
