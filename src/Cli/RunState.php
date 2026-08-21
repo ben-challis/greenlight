@@ -79,8 +79,9 @@ final class RunState
 
         $this->loaded = true;
         $file = $this->file;
+        $exists = ErrorTrap::run(static fn() => \is_file($file));
 
-        if (!ErrorTrap::run(static fn() => \is_file($file))) {
+        if (!$exists) {
             return null;
         }
 

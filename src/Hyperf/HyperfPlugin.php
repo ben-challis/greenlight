@@ -248,7 +248,9 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         }
 
         try {
-            if (!ErrorTrap::run(static fn() => \flock($lock, \LOCK_EX), $warning)) {
+            $locked = ErrorTrap::run(static fn() => \flock($lock, \LOCK_EX), $warning);
+
+            if (!$locked) {
                 throw HyperfBridgeError::scanLockFailed($lockPath);
             }
 

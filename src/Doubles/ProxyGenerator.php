@@ -48,8 +48,9 @@ final readonly class ProxyGenerator
 
         if (!\class_exists($proxyClass, false)) {
             $file = $this->directory . '/' . $shortName . '.php';
+            $fileExists = ErrorTrap::run(static fn() => \is_file($file));
 
-            if (!ErrorTrap::run(static fn() => \is_file($file))) {
+            if (!$fileExists) {
                 $this->write($file, $this->renderFile($reflection, $shortName, $body));
             }
 

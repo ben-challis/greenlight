@@ -147,7 +147,9 @@ final class ExpectationArgumentRule implements Rule
         }
 
         foreach ($scope->getType($argument->value)->getConstantStrings() as $pattern) {
-            if (ErrorTrap::run(static fn() => \preg_match($pattern->getValue(), ''), $warning) !== false) {
+            $matched = ErrorTrap::run(static fn() => \preg_match($pattern->getValue(), ''), $warning);
+
+            if ($matched !== false) {
                 continue;
             }
 

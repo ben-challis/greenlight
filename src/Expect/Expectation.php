@@ -1099,7 +1099,9 @@ final class Expectation
      */
     private function requireValidPattern(string $pattern, string $matcher): void
     {
-        if (ErrorTrap::run(static fn() => \preg_match($pattern, ''), $warning) === false) {
+        $matched = ErrorTrap::run(static fn() => \preg_match($pattern, ''), $warning);
+
+        if ($matched === false) {
             throw new \InvalidArgumentException(\sprintf(
                 'The pattern for %s() is an invalid regular expression: %s%s',
                 $matcher,

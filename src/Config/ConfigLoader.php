@@ -17,8 +17,9 @@ final class ConfigLoader
     public function loadFromDirectory(string $directory): GreenlightConfig
     {
         $file = \rtrim($directory, '/') . '/' . self::FILE_NAME;
+        $exists = ErrorTrap::run(static fn() => \is_file($file));
 
-        if (!ErrorTrap::run(static fn() => \is_file($file))) {
+        if (!$exists) {
             throw ConfigFileError::noneInDirectory($directory);
         }
 
@@ -30,7 +31,9 @@ final class ConfigLoader
      */
     public function loadFile(string $file): GreenlightConfig
     {
-        if (!ErrorTrap::run(static fn() => \is_file($file))) {
+        $exists = ErrorTrap::run(static fn() => \is_file($file));
+
+        if (!$exists) {
             throw ConfigFileError::notFound($file);
         }
 
