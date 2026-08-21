@@ -2,7 +2,9 @@
 import type { MarkdownHeading } from 'astro';
 
 import BaseLayout from './BaseLayout.astro';
-import { adjacentDocs, docPath, docSections, type DocDefinition } from '../lib/docs';
+import DocumentationMenu from '../components/DocumentationMenu.astro';
+import { adjacentDocs, docPath, type DocDefinition } from '../lib/docs';
+import { githubUrl, sitePath } from '../lib/paths';
 
 interface Props {
   doc: DocDefinition;
@@ -16,46 +18,104 @@ const { previous, next } = adjacentDocs(doc.id);
 
 <BaseLayout title={`${doc.title} · Greenlight`} description={doc.description}>
   <main id="main-content" class="docs-shell">
-    <details class="mobile-doc-nav" data-pagefind-ignore="all">
-      <summary>Browse documentation</summary>
-      <nav aria-label="Documentation">
-        {
-          docSections.map((section) => (
-            <div>
-              <h2>{section.title}</h2>
-              <ul>
-                {section.items.map((item) => (
-                  <li>
-                    <a href={docPath(item.id)} aria-current={item.id === doc.id ? 'page' : undefined}>
-                      {item.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
+    <div class="mobile-doc-toolbar" data-pagefind-ignore="all">
+      <button
+        class="mobile-doc-trigger"
+        type="button"
+        popovertarget="mobile-documentation-menu"
+        aria-label={`Browse documentation. Current page: ${doc.title}.`}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <span>
+          <small>Menu</small>
+          <strong>{doc.title}</strong>
+        </span>
+      </button>
+
+      {
+        onThisPage.length > 0 && (
+          <button class="mobile-index-trigger" type="button" popovertarget="mobile-page-index">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"></path>
+            </svg>
+            <span>On this page</span>
+          </button>
+        )
+      }
+    </div>
+
+    <div
+      id="mobile-documentation-menu"
+      class="mobile-nav-popover"
+      popover
+      role="dialog"
+      aria-labelledby="mobile-documentation-title"
+      data-pagefind-ignore="all"
+    >
+      <header class="mobile-popover-header">
+        <div>
+          <span>Greenlight</span>
+          <h2 id="mobile-documentation-title">Documentation</h2>
+        </div>
+        <button type="button" popovertarget="mobile-documentation-menu" popovertargetaction="hide">
+          <span>Close</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m6 6 12 12M18 6 6 18"></path>
+          </svg>
+        </button>
+      </header>
+
+      <nav class="mobile-nav-content" aria-label="Documentation">
+        <DocumentationMenu currentId={doc.id} />
       </nav>
-    </details>
+
+      <nav class="mobile-nav-utilities" aria-label="Website">
+        <a href={sitePath()}>Home</a>
+        <a href={githubUrl}>GitHub</a>
+      </nav>
+    </div>
+
+    {
+      onThisPage.length > 0 && (
+        <div
+          id="mobile-page-index"
+          class="mobile-index-popover"
+          popover
+          role="dialog"
+          aria-labelledby="mobile-page-index-title"
+          data-pagefind-ignore="all"
+        >
+          <header class="mobile-popover-header">
+            <div>
+              <span>{doc.section}</span>
+              <h2 id="mobile-page-index-title">On this page</h2>
+            </div>
+            <button type="button" popovertarget="mobile-page-index" popovertargetaction="hide">
+              <span>Close</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18"></path>
+              </svg>
+            </button>
+          </header>
+
+          <nav aria-label="On this page">
+            <ol>
+              {onThisPage.map((heading) => (
+                <li class:list={{ nested: heading.depth === 3 }}>
+                  <a href={`#${heading.slug}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        </div>
+      )
+    }
 
     <aside class="docs-sidebar" data-pagefind-ignore="all">
       <nav aria-label="Documentation">
-        {
-          docSections.map((section) => (
-            <div class="docs-nav-section">
-              <h2>{section.title}</h2>
-              <ul>
-                {section.items.map((item) => (
-                  <li>
-                    <a href={docPath(item.id)} aria-current={item.id === doc.id ? 'page' : undefined}>
-                      {item.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
+        <DocumentationMenu currentId={doc.id} />
       </nav>
     </aside>
 
@@ -101,4 +161,14 @@ const { previous, next } = adjacentDocs(doc.id);
       )
     }
   </main>
+
+  <script>
+    const pageIndex = document.querySelector('#mobile-page-index');
+
+    pageIndex?.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('a') && pageIndex instanceof HTMLElement) {
+        pageIndex.hidePopover();
+      }
+    });
+  </script>
 </BaseLayout>

@@ -1,0 +1,26 @@
+---
+import { docPath, docSections, type DocId } from '../lib/docs';
+
+interface Props {
+  currentId: DocId;
+}
+
+const { currentId } = Astro.props;
+---
+
+{
+  docSections.map((section) => (
+    <div class="docs-nav-section">
+      <h2>{section.title}</h2>
+      <ul>
+        {section.items.map((item) => (
+          <li>
+            <a href={docPath(item.id)} aria-current={item.id === currentId ? 'page' : undefined}>
+              {item.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))
+}

@@ -1121,8 +1121,7 @@ code {
 }
 
 .docs-nav-section h2,
-.page-index h2,
-.mobile-doc-nav h2 {
+.page-index h2 {
   margin-bottom: 0.55rem;
   color: var(--muted);
   font-family: var(--font-body);
@@ -1133,7 +1132,6 @@ code {
 }
 
 .docs-sidebar ul,
-.mobile-doc-nav ul,
 .page-index ol {
   margin: 0;
   padding: 0;
@@ -1145,7 +1143,6 @@ code {
 }
 
 .docs-sidebar a,
-.mobile-doc-nav a,
 .page-index a {
   display: block;
   color: var(--muted);
@@ -1160,7 +1157,6 @@ code {
 }
 
 .docs-sidebar a:hover,
-.mobile-doc-nav a:hover,
 .page-index a:hover {
   color: var(--action);
 }
@@ -1414,7 +1410,7 @@ code {
   font-size: 0.92rem;
 }
 
-.mobile-doc-nav {
+.mobile-doc-toolbar {
   display: none;
 }
 
@@ -1467,6 +1463,10 @@ code {
 }
 
 @media (max-width: 52rem) {
+  html {
+    scroll-padding-top: 9.5rem;
+  }
+
   body {
     font-size: 1rem;
   }
@@ -1571,36 +1571,291 @@ code {
     display: none;
   }
 
-  .mobile-doc-nav {
-    display: block;
-    margin-bottom: 2.5rem;
+  .docs-article h2,
+  .docs-article h3 {
+    scroll-margin-top: 0;
+  }
+
+  .mobile-doc-toolbar {
+    position: sticky;
+    z-index: 40;
+    top: 4.75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin: -1.5rem calc(var(--page-padding) * -1) 2.5rem;
+    padding: 0.55rem var(--page-padding);
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in oklch, var(--canvas) 96%, transparent);
+    backdrop-filter: blur(12px);
+    gap: 0.5rem;
+  }
+
+  .mobile-doc-trigger,
+  .mobile-index-trigger,
+  .mobile-popover-header button {
+    min-height: 2.9rem;
     border: 1px solid var(--rule-strong);
     border-radius: 0.4rem;
     background: var(--surface);
-  }
-
-  .mobile-doc-nav > summary {
-    padding: 0.8rem 1rem;
-    font-family: var(--font-display);
-    font-weight: 650;
+    color: var(--ink);
+    font: inherit;
     cursor: pointer;
   }
 
-  .mobile-doc-nav nav {
+  .mobile-doc-trigger:hover,
+  .mobile-index-trigger:hover,
+  .mobile-popover-header button:hover {
+    border-color: var(--action);
+    color: var(--action-dark);
+  }
+
+  .mobile-doc-trigger {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0.5rem 1rem 1.2rem;
-    border-top: 1px solid var(--rule);
-    gap: 1.25rem;
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    align-items: center;
+    min-width: 0;
+    padding: 0.38rem 0.7rem;
+    text-align: left;
+    gap: 0.65rem;
   }
 
-  .mobile-doc-nav a {
-    padding-block: 0.2rem;
+  .mobile-doc-trigger svg,
+  .mobile-index-trigger svg,
+  .mobile-popover-header svg {
+    width: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
   }
 
-  .mobile-doc-nav a[aria-current='page'] {
-    color: var(--action);
+  .mobile-doc-trigger > span {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .mobile-doc-trigger small {
+    color: var(--muted);
+    font-size: 0.7rem;
     font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .mobile-doc-trigger strong {
+    overflow: hidden;
+    margin-top: 0.18rem;
+    font-family: var(--font-display);
+    font-size: 0.86rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-index-trigger {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 650;
+    gap: 0.45rem;
+  }
+
+  .mobile-nav-popover,
+  .mobile-index-popover {
+    position: fixed;
+    padding: 0;
+    border: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    opacity: 0;
+    transform: translateY(1rem);
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 180ms var(--ease-out),
+      overlay 180ms allow-discrete,
+      display 180ms allow-discrete;
+  }
+
+  .mobile-nav-popover:popover-open,
+  .mobile-index-popover:popover-open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @starting-style {
+    .mobile-nav-popover:popover-open,
+    .mobile-index-popover:popover-open {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+  }
+
+  .mobile-nav-popover::backdrop,
+  .mobile-index-popover::backdrop {
+    background: color-mix(in oklch, var(--ink) 28%, transparent);
+  }
+
+  body:has(.mobile-nav-popover:popover-open),
+  body:has(.mobile-index-popover:popover-open) {
+    overflow: hidden;
+  }
+
+  .mobile-nav-popover {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mobile-popover-header {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 5rem;
+    padding: 0.7rem var(--page-padding);
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in oklch, var(--canvas) 96%, transparent);
+    backdrop-filter: blur(12px);
+    gap: 1rem;
+  }
+
+  .mobile-popover-header > div {
+    min-width: 0;
+  }
+
+  .mobile-popover-header span,
+  .mobile-popover-header h2 {
+    display: block;
+  }
+
+  .mobile-popover-header > div > span {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .mobile-popover-header h2 {
+    margin-top: 0.1rem;
+    font-size: 1.35rem;
+    letter-spacing: -0.025em;
+  }
+
+  .mobile-popover-header button {
+    display: flex;
+    align-items: center;
+    padding: 0.45rem 0.65rem 0.45rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 650;
+    gap: 0.45rem;
+  }
+
+  .mobile-nav-content {
+    padding: 1rem var(--page-padding) 2rem;
+  }
+
+  .mobile-nav-content .docs-nav-section {
+    display: grid;
+    grid-template-columns: minmax(6rem, 0.36fr) minmax(0, 1fr);
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--rule);
+    gap: 1rem;
+  }
+
+  .mobile-nav-content .docs-nav-section + .docs-nav-section {
+    margin-top: 0;
+  }
+
+  .mobile-nav-content .docs-nav-section h2 {
+    margin: 0.62rem 0 0;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .mobile-nav-content ul,
+  .mobile-index-popover ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-nav-content li + li {
+    margin-top: 0.12rem;
+  }
+
+  .mobile-nav-content a,
+  .mobile-index-popover a {
+    display: block;
+    padding: 0.52rem 0.6rem;
+    border-radius: 0.32rem;
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  .mobile-nav-content a:hover,
+  .mobile-index-popover a:hover {
+    color: var(--action);
+  }
+
+  .mobile-nav-content a[aria-current='page'] {
+    background: var(--signal-soft);
+    color: var(--action-dark);
+    font-weight: 650;
+  }
+
+  .mobile-nav-utilities {
+    display: flex;
+    padding: 0 var(--page-padding) 2.5rem;
+    gap: 1.5rem;
+  }
+
+  .mobile-nav-utilities a {
+    color: var(--ink);
+    font-size: 0.88rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .mobile-index-popover {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: min(72dvh, 38rem);
+    margin: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--rule-strong);
+    border-radius: 0.7rem 0.7rem 0 0;
+  }
+
+  .mobile-index-popover nav {
+    padding: 0.75rem var(--page-padding) 2rem;
+  }
+
+  .mobile-index-popover li + li {
+    border-top: 1px solid var(--rule);
+  }
+
+  .mobile-index-popover li.nested a {
+    padding-left: 1.5rem;
+    font-size: 0.88rem;
   }
 }
 
@@ -1628,10 +1883,6 @@ code {
     display: none;
   }
 
-  .mobile-doc-nav nav {
-    grid-template-columns: 1fr;
-  }
-
   .doc-pagination {
     grid-template-columns: 1fr;
   }
@@ -1643,6 +1894,19 @@ code {
   .footer-inner nav {
     flex-direction: column;
     gap: 0.5rem;
+  }
+}
+
+@media (max-width: 24rem) {
+  .mobile-index-trigger span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 }
 
