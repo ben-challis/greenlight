@@ -97,7 +97,7 @@ final readonly class TestExecutor
 
             if (!$satisfied) {
                 return $this->skipped($entry, \sprintf(
-                    'Condition %s is not satisfied.',
+                    'Condition %s is not satisfied',
                     $this->describeCondition($metadata->skipUnlessCondition, $metadata->skipUnlessArguments),
                 ));
             }

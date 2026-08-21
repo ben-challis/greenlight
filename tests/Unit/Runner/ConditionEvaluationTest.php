@@ -47,7 +47,7 @@ final readonly class ConditionEvaluationTest
         Expect::that($summary->passed)->toBe(1);
         Expect::that($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped);
         Expect::that($byMethod['skipsWhenTheVariableDiffers']->skipReason)
-            ->toBe('Condition EnvironmentVariableEquals("GREENLIGHT_STDLIB_NOPE", "yes") is not satisfied.');
+            ->toBe('Condition EnvironmentVariableEquals("GREENLIGHT_STDLIB_NOPE", "yes") is not satisfied');
         Expect::that($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
     }
 
