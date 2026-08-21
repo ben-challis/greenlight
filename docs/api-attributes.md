@@ -86,7 +86,7 @@ PHPDoc:
 public array $arguments
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L29)
 
 ### `__construct()`
 
@@ -100,9 +100,10 @@ public function __construct(
 PHPDoc:
 
 - `@param array<mixed> $arguments`
+- `@param non-empty-string|null $label`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataRow.php#L28)
 
 ## `DataSet`
 
@@ -189,9 +190,10 @@ public function __construct(string $name)
 
 PHPDoc:
 
+- `@param non-empty-string $name`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L20)
 
 ## `Isolated`
 
@@ -311,9 +313,10 @@ public function __construct(
 
 PHPDoc:
 
+- `@param class-string<\Throwable>|null $onlyOn`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Retry.php#L30)
 
 ## `Skip`
 
@@ -346,9 +349,10 @@ public function __construct(string $reason)
 
 PHPDoc:
 
+- `@param non-empty-string $reason`
 - `@throws \InvalidArgumentException If $reason is empty.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L20)
 
 ## `SkipUnless`
 
@@ -400,9 +404,10 @@ public function __construct(
 
 PHPDoc:
 
+- `@param class-string<Condition> $condition`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L32)
 
 ## `Test`
 
