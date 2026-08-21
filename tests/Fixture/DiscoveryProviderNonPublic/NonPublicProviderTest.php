@@ -10,9 +10,7 @@ use Greenlight\Attribute\Test;
 final class NonPublicProviderTest
 {
     #[Test]
-    // Deliberately broken to drive the runtime discovery-error path.
-    // @phpstan-ignore-next-line greenlight.dataProvider.provider
-    #[DataSet('privateProvider')]
+    #[DataSet('privateProvider')] // @phpstan-ignore greenlight.dataProvider.provider (deliberately broken: drives the runtime discovery-error path)
     public function needsData(int $value): void
     {
         self::privateProvider();

@@ -238,8 +238,7 @@ final readonly class Psr11PluginTest
     #[Test]
     public function aFactoryMustReturnAPsr11Container(): void
     {
-        // @phpstan-ignore-next-line argument.type (This test deliberately supplies an invalid factory result.)
-        $plugin = new Psr11Plugin($this->invalidContainerFactory());
+        $plugin = new Psr11Plugin($this->invalidContainerFactory()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
 
         Expect::that(static fn(): ?object => $plugin->resolve(Greeter::class, []))->toThrow(
             Psr11BridgeError::class,

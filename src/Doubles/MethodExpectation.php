@@ -47,8 +47,7 @@ final class MethodExpectation
 
     private int $sequenceIndex = 0;
 
-    // @phpstan-ignore-next-line missingType.callable (The doubled method determines the callback signature.)
-    private ?\Closure $callback = null;
+    private ?\Closure $callback = null; // @phpstan-ignore missingType.callable (The doubled method determines the callback signature.)
 
     private ?\Throwable $throwable = null;
 
@@ -181,8 +180,7 @@ final class MethodExpectation
      * from the closure.
      * @throws DoublesError
      */
-    // @phpstan-ignore-next-line missingType.callable (The doubled method determines the answer signature.)
-    public function andReturnsUsing(\Closure $answer): self
+    public function andReturnsUsing(\Closure $answer): self // @phpstan-ignore missingType.callable (The doubled method determines the answer signature.)
     {
         $this->assertNoAnswerConfigured();
 
@@ -340,8 +338,7 @@ final class MethodExpectation
     /**
      * @internal Only the call handler calls this method.
      */
-    // @phpstan-ignore-next-line missingType.callable (The doubled method determines the callback signature.)
-    public function configuredCallback(): ?\Closure
+    public function configuredCallback(): ?\Closure // @phpstan-ignore missingType.callable (The doubled method determines the callback signature.)
     {
         return $this->callback;
     }
