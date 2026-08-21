@@ -239,10 +239,12 @@ jobs:
             dependencies: "lowest"
             symfony-version: "6.4.*"
             analysis: "phpstan"
+            phpstan-configuration: "phpstan.no-laravel.neon"
           - php-version: "8.5"
             dependencies: "lowest"
             symfony-version: "6.4.*"
             analysis: "phpstan"
+            phpstan-configuration: "phpstan.no-laravel.neon"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "6.4.*"
@@ -314,7 +316,7 @@ jobs:
         id: "analysis_cache"
         if: "matrix.analysis"
         env:
-          CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'phpstan.docs.neon', 'rector.php', 'rector.docs.php', 'tools/docs-php.php', 'tools/rector-config.php') }}"
+          CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'phpstan.docs.neon', 'phpstan.no-laravel.neon', 'rector.php', 'rector.docs.php', 'tools/docs-php.php', 'tools/rector-config.php') }}"
         run: 'echo "content_hash=${CONTENT_HASH}" >> "${GITHUB_OUTPUT}"'
 
       - name: "Restore static analysis cache"
@@ -337,7 +339,9 @@ jobs:
 
       - name: "PHPStan"
         if: "matrix.analysis == 'phpstan'"
-        run: "composer phpstan"
+        env:
+          PHPSTAN_CONFIGURATION: "${{ matrix.phpstan-configuration || 'phpstan.dist.neon' }}"
+        run: 'vendor/bin/phpstan analyse --ansi --no-progress --memory-limit=-1 --configuration="${PHPSTAN_CONFIGURATION}"'
 
       - name: "Save static analysis cache"
         if: "${{ !cancelled() && matrix.analysis }}"

@@ -1,0 +1,13 @@
+includes:
+    - phpstan.dist.neon
+
+parameters:
+    # Laravel 13 requires Symfony 7.4 or later. Lowest-dependency jobs use
+    # Symfony 6.4 and cannot install the Laravel bridge dependency.
+    excludePaths:
+        analyse:
+            - src/Laravel
+            - tests/Acceptance/LaravelRunTest.php
+            - tests/Fixture/Laravel
+            - tests/Unit/Doubles/FakeFixtureTest.php
+            - tests/Unit/Laravel
