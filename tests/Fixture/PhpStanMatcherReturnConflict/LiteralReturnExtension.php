@@ -9,6 +9,7 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class LiteralReturnExtension implements ExpectationExtension, Fake
 {
+    /** @return array{toBeAvailable: \Closure(string): true} */
     #[\Override]
     public function matchers(): array
     {
