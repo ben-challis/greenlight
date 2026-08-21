@@ -232,14 +232,14 @@ final readonly class RuntimeMessageTest
                 '--scale=1',
                 '--workers=1',
                 '--runs=1',
-                '--with-phpunit',
+                '--with-comparisons',
             ],
             ['PATH' => $fakeBin . \PATH_SEPARATOR . (\is_string($path) ? $path : '')],
         );
 
         Expect::that($composerFailure->exitCode)->toBe(1);
         Expect::that($composerFailure->stderr)->toContain(
-            "Composer did not install PHPUnit and ParaTest:\nfixture composer failure",
+            "Composer did not install the comparison tools:\nfixture composer failure",
         );
     }
 
