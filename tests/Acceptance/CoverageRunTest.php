@@ -7,15 +7,15 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
 final readonly class CoverageRunTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function collectsAndExportsCoverageThroughTheProcessPool(): void

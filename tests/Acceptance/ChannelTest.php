@@ -8,14 +8,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 
 final readonly class ChannelTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function twoWorkersOccupyChannelsOneAndTwo(): void

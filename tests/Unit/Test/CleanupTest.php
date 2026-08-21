@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Core\Test;
+namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\Cleanup;
 
 final readonly class CleanupTest
 {

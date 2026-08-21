@@ -25,6 +25,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Condition/.*
+    - name: Test
+      collectors:
+        - type: directory
+          value: src/Test/.*
     - name: Config
       collectors:
         - type: directory
@@ -49,10 +53,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Doubles/.*
-    - name: Fixture
+    - name: Sandbox
       collectors:
         - type: directory
-          value: src/Fixture/.*
+          value: src/Sandbox/.*
     - name: Coverage
       collectors:
         - type: directory
@@ -164,17 +168,18 @@ deptrac:
     Core: []
     Attribute: [Core]
     Condition: [Core]
+    Test: []
     Config: [Core, Plugin]
     Discovery: [Core, Attribute]
     Expect: [Core, Plugin]
     Capture: [Core]
     Harness: [Core]
     Doubles: [Core, Expect, Harness]
-    Fixture: [Core, Harness]
+    Sandbox: [Core, Harness]
     Coverage: [Core]
     Plugin: [Core, Harness]
     Reporting: [Core]
-    Runner: [Core, Attribute, Config, Discovery, Expect, Capture, Harness, Doubles, Fixture, Coverage, Plugin, Reporting, CpuCoreCounter]
+    Runner: [Core, Attribute, Test, Config, Discovery, Expect, Capture, Harness, Doubles, Sandbox, Coverage, Plugin, Reporting, CpuCoreCounter]
     Cli: [Core, Config, Coverage, Discovery, Reporting, Runner, PhpStan]
     PhpStan: [Core, Attribute, Config, Doubles, Expect, PhpStanFramework, PhpParserFramework]
     Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]

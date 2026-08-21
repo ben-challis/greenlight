@@ -15,13 +15,13 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\Scope;
 use Greenlight\Laravel\LaravelBridgeError;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
 use Greenlight\Laravel\LaravelPlugin;
 use Greenlight\Laravel\Service;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Laravel\FixtureApplication;
 use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
@@ -43,7 +43,7 @@ final class LaravelPluginTest
     private array $plugins = [];
 
     public function __construct(
-        private readonly EnvironmentSandbox $environment,
+        private readonly EnvironmentVariables $environment,
         private readonly Doubles $doubles,
     ) {}
 

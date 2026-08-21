@@ -11,11 +11,11 @@ use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\SharedCoverageDirectory;
 use Greenlight\Runner\SubprocessCoverage;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
@@ -25,8 +25,8 @@ use Greenlight\Tests\Support\Subprocess;
 final readonly class SubprocessCoverageTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private EnvironmentSandbox $environment,
+        private TemporaryDirectory $tempDirectory,
+        private EnvironmentVariables $environment,
     ) {}
 
     #[Test]
@@ -52,7 +52,7 @@ final readonly class SubprocessCoverageTest
     }
 
     #[Test]
-    public function openRejectsABlockedSystemTempDirectory(): void
+    public function openRejectsABlockedSystemTemporaryDirectory(): void
     {
         $blocker = $this->tempDirectory->path() . '/not-a-directory';
 

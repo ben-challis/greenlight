@@ -11,9 +11,9 @@ use Greenlight\Condition\ClassAvailable;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tempest\TempestBridgeError;
 use Greenlight\Tempest\TempestPlugin;
 use Greenlight\Tests\Support\PluginLifecycle;
@@ -32,8 +32,8 @@ final class TempestPluginLifecycleTest
     private int $projectNumber = 0;
 
     public function __construct(
-        private readonly EnvironmentSandbox $environment,
-        private readonly TempDirectory $tempDirectory,
+        private readonly EnvironmentVariables $environment,
+        private readonly TemporaryDirectory $tempDirectory,
     ) {}
 
     /** A failed expectation MUST NOT leave an active Tempest kernel in the worker. */

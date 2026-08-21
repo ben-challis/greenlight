@@ -42,7 +42,7 @@ const sections = [
     id: 'api-test-contracts',
     title: 'Test contracts API',
     description: 'This reference lists test metadata, skip signals, conditions, and wire contracts.',
-    prefixes: ['Greenlight\\Core\\Test\\', 'Greenlight\\Core\\Wire\\'],
+    prefixes: ['Greenlight\\Core\\Test\\', 'Greenlight\\Core\\Wire\\', 'Greenlight\\Test\\'],
     names: ['Greenlight\\Core\\Condition'],
   },
   {
@@ -58,10 +58,16 @@ const sections = [
     prefixes: ['Greenlight\\Doubles\\'],
   },
   {
-    id: 'api-fixtures-harness',
-    title: 'Fixtures and harness API',
-    description: 'This reference lists fixtures and harness service contracts.',
-    prefixes: ['Greenlight\\Fixture\\', 'Greenlight\\Harness\\'],
+    id: 'api-sandboxes',
+    title: 'Sandbox API',
+    description: 'This reference lists the sandboxes that isolate temporary test state.',
+    prefixes: ['Greenlight\\Sandbox\\'],
+  },
+  {
+    id: 'api-harness',
+    title: 'Harness API',
+    description: 'This reference lists harness service and integration-resource contracts.',
+    prefixes: ['Greenlight\\Harness\\'],
   },
   {
     id: 'api-plugins',

@@ -7,13 +7,13 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class DiscoveryCacheDirectoryOrderTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function directoryOrderDoesNotChangeTheCacheIdentity(): void

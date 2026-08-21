@@ -10,13 +10,13 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class ArtifactMetadataCollisionTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function metadataCollisionPreservesTheBlockerAndReleasesQuota(): void

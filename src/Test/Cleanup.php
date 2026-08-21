@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Core\Test;
+namespace Greenlight\Test;
 
 /**
  * Stores cleanup callbacks for one test attempt. Greenlight runs the callbacks

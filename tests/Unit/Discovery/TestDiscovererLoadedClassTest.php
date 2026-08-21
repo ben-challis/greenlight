@@ -9,14 +9,14 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\AutoloaderSandbox;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\Autoloaders;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class TestDiscovererLoadedClassTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private AutoloaderSandbox $autoloaders,
+        private TemporaryDirectory $tempDirectory,
+        private Autoloaders $autoloaders,
     ) {}
 
     #[Test]

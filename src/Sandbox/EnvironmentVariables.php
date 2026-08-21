@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Sandbox;
 
 use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Harness\Disposable;
@@ -11,7 +11,7 @@ use Greenlight\Harness\Disposable;
  * Updates `getenv()`, `$_ENV`, and `$_SERVER` together. It records each original
  * value one time and restores the value during disposal.
  */
-final class EnvironmentSandbox implements Disposable
+final class EnvironmentVariables implements Disposable
 {
     /**
      * @var array<string, EnvironmentBackup>

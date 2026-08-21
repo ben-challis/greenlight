@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class AcceptanceProject
 {
@@ -13,7 +13,7 @@ final readonly class AcceptanceProject
         public string $directory,
     ) {}
 
-    public static function create(TempDirectory $workspace, string $name): self
+    public static function create(TemporaryDirectory $workspace, string $name): self
     {
         $files = ProjectFiles::create($workspace, $name, 'acceptance project');
 
@@ -24,7 +24,7 @@ final readonly class AcceptanceProject
      * Uses the shared DiscoveryBasic directory. Do not copy its PSR-4 classes
      * because the autoloader loads copies from the original path.
      */
-    public static function createWithDiscoveryBasicTests(TempDirectory $workspace, string $name): self
+    public static function createWithDiscoveryBasicTests(TemporaryDirectory $workspace, string $name): self
     {
         $project = self::create($workspace, $name);
         $discoveryBasic = \dirname(__DIR__) . '/Fixture/DiscoveryBasic';

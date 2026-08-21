@@ -9,15 +9,15 @@ use Greenlight\Core\Test\TestChannel;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
-use Greenlight\Fixture\AutoloaderSandbox;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\StreamWrapperSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\IntegrationResources;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Sandbox\Autoloaders;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 /**
  * GREENLIGHT_CHANNEL supplies the TestChannel value. Duplicate service types
@@ -38,10 +38,10 @@ final class DefaultServices
 
         $registry = new HarnessRegistry([
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
-            new ServiceDefinition(TempDirectory::class, Scope::PerTest, static fn(): TempDirectory => new TempDirectory()),
-            new ServiceDefinition(AutoloaderSandbox::class, Scope::PerTest, static fn(): AutoloaderSandbox => new AutoloaderSandbox()),
-            new ServiceDefinition(EnvironmentSandbox::class, Scope::PerTest, static fn(): EnvironmentSandbox => new EnvironmentSandbox()),
-            new ServiceDefinition(StreamWrapperSandbox::class, Scope::PerTest, static fn(): StreamWrapperSandbox => new StreamWrapperSandbox()),
+            new ServiceDefinition(TemporaryDirectory::class, Scope::PerTest, static fn(): TemporaryDirectory => new TemporaryDirectory()),
+            new ServiceDefinition(Autoloaders::class, Scope::PerTest, static fn(): Autoloaders => new Autoloaders()),
+            new ServiceDefinition(EnvironmentVariables::class, Scope::PerTest, static fn(): EnvironmentVariables => new EnvironmentVariables()),
+            new ServiceDefinition(StreamWrappers::class, Scope::PerTest, static fn(): StreamWrappers => new StreamWrappers()),
             new ServiceDefinition(IntegrationResources::class, Scope::PerRun, static fn(): IntegrationResources => $integrationResources),
             new ServiceDefinition(
                 TestChannel::class,

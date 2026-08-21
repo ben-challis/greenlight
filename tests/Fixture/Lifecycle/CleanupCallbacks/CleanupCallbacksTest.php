@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Fixture\Lifecycle\CleanupCallbacks;
 
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 
 final readonly class CleanupCallbacksTest

@@ -7,16 +7,16 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\ReportingError;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 
 final readonly class StreamOutputDiagnosticTest
 {
     private const string SCHEME = 'greenlight-stream-output-warning';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function aStreamWriteDiagnosticIsContainedByTheReportingError(): void

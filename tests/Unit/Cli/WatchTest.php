@@ -15,12 +15,12 @@ use Greenlight\Core\GracefulShutdown;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Cli\FakeWatchClock;
 
 final readonly class WatchTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function rejectsANegativeQuietPeriodWithExactGuidance(): void

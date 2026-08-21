@@ -7,11 +7,11 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class StatChangeDetectorEmptySnapshotTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function firstPhpFileAfterAnEmptySnapshotIsReported(): void

@@ -10,9 +10,9 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\AutoloaderSandbox;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Sandbox\Autoloaders;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 
@@ -21,9 +21,9 @@ final readonly class DiscoveryCacheTest
     private const string STATABLE_FILE_SCHEME = 'greenlight-statable-file';
 
     public function __construct(
-        private AutoloaderSandbox $autoloaders,
-        private EnvironmentSandbox $environment,
-        private StreamWrapperSandbox $streamWrappers,
+        private Autoloaders $autoloaders,
+        private EnvironmentVariables $environment,
+        private StreamWrappers $streamWrappers,
     ) {}
 
     #[Test]

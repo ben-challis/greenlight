@@ -10,14 +10,14 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class ArtifactQuotaPermissionTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function anUnreadableQuotaFileRejectsStagingUntilAccessReturns(): void

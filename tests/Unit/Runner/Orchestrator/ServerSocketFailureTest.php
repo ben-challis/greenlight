@@ -6,15 +6,15 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Orchestrator\ServerSocket;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\ControlledServerSocketRuntime;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\TruncatingServerSocketRuntime;
 
 final readonly class ServerSocketFailureTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function failureOfBothTransportsReportsTheTcpDiagnostic(): void

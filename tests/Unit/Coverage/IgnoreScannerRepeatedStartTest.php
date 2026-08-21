@@ -7,11 +7,11 @@ namespace Greenlight\Tests\Unit\Coverage;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Ignore\IgnoreScanner;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class IgnoreScannerRepeatedStartTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function anAdditionalStartDoesNotNarrowTheActiveRange(): void

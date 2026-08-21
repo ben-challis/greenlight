@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
+use Greenlight\Test\Cleanup;
 
 final readonly class BecauseTest
 {

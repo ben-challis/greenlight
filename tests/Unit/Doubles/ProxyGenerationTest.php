@@ -9,7 +9,7 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\CacheAlpha;
 use Greenlight\Tests\Fixture\Doubles\CacheBeta;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
@@ -26,7 +26,7 @@ final readonly class ProxyGenerationTest
 {
     public function __construct(
         private Doubles $doubles,
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
     ) {}
 
     #[Test]

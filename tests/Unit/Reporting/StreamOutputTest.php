@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\ReportingError;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 
 final readonly class StreamOutputTest
@@ -18,7 +18,7 @@ final readonly class StreamOutputTest
     private const string PARTIAL_WRITE_SCHEME = 'greenlight-partial-write';
 
     public function __construct(
-        private StreamWrapperSandbox $streamWrappers,
+        private StreamWrappers $streamWrappers,
         private Cleanup $cleanup,
     ) {}
 

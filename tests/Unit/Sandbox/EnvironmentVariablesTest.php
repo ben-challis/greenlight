@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Sandbox\EnvironmentVariables;
 
-final class EnvironmentSandboxTest
+final class EnvironmentVariablesTest
 {
     #[Test]
     public function setMakesTheVariableVisibleEverywhere(): void
     {
         $name = 'GREENLIGHT_SANDBOX_TEST_SET';
-        $sandbox = new EnvironmentSandbox();
+        $sandbox = new EnvironmentVariables();
 
         $sandbox->set($name, 'value');
 
@@ -39,7 +39,7 @@ final class EnvironmentSandboxTest
         $_SERVER[$name] = 'original';
 
         try {
-            $sandbox = new EnvironmentSandbox();
+            $sandbox = new EnvironmentVariables();
             $sandbox->set($name, 'changed');
             $sandbox->dispose();
 
@@ -61,7 +61,7 @@ final class EnvironmentSandboxTest
         $_SERVER[$name] = false;
 
         try {
-            $sandbox = new EnvironmentSandbox();
+            $sandbox = new EnvironmentVariables();
             $sandbox->set($name, 'changed');
             $sandbox->dispose();
 
@@ -88,7 +88,7 @@ final class EnvironmentSandboxTest
         $suffix = \strtoupper(\bin2hex(\random_bytes(6)));
         $processAndServer = 'GREENLIGHT_SANDBOX_TEST_PROCESS_SERVER_' . $suffix;
         $envOnly = 'GREENLIGHT_SANDBOX_TEST_ENV_ONLY_' . $suffix;
-        $sandbox = new EnvironmentSandbox();
+        $sandbox = new EnvironmentVariables();
 
         try {
             \putenv($processAndServer . '=process-original');
@@ -138,7 +138,7 @@ final class EnvironmentSandboxTest
         $_SERVER[$name] = 'present';
 
         try {
-            $sandbox = new EnvironmentSandbox();
+            $sandbox = new EnvironmentVariables();
             $sandbox->unset($name);
 
             Expect::that(\getenv($name))->toBeFalse();
@@ -165,7 +165,7 @@ final class EnvironmentSandboxTest
         $_SERVER[$name] = 'first';
 
         try {
-            $sandbox = new EnvironmentSandbox();
+            $sandbox = new EnvironmentVariables();
             $sandbox->set($name, 'second');
             $sandbox->set($name, 'third');
             $sandbox->unset($name);
@@ -187,7 +187,7 @@ final class EnvironmentSandboxTest
         $processBefore = \getenv();
         $envBefore = $_ENV;
         $serverBefore = $_SERVER;
-        $sandbox = new EnvironmentSandbox();
+        $sandbox = new EnvironmentVariables();
 
         Expect::that(static fn() => $sandbox->set($name, 'value'))
             ->because('set rejects invalid names before it changes the environment')
@@ -212,7 +212,7 @@ final class EnvironmentSandboxTest
         $processBefore = \getenv();
         $envBefore = $_ENV;
         $serverBefore = $_SERVER;
-        $sandbox = new EnvironmentSandbox();
+        $sandbox = new EnvironmentVariables();
 
         Expect::that(static fn() => $sandbox->unset($name))
             ->because('unset rejects invalid names before it changes the environment')

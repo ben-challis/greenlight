@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
-use Greenlight\Fixture\TempDirectoryError;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Sandbox\TemporaryDirectoryError;
 
-final class TempDirectorySubdirectoryLinkTest
+final class TemporaryDirectorySubdirectoryLinkTest
 {
     #[Test]
     #[DataSet('linkedPaths')]
     public function subdirectoryRejectsPathsThroughSymbolicLinks(?string $linkName, string $name): void
     {
-        $directory = new TempDirectory();
-        $target = new TempDirectory();
+        $directory = new TemporaryDirectory();
+        $target = new TemporaryDirectory();
         $root = $directory->path();
         $targetPath = $target->path();
         $sentinel = $targetPath . '/sentinel.txt';
@@ -40,7 +40,7 @@ final class TempDirectorySubdirectoryLinkTest
             Expect::that(static fn(): string => $directory->subdirectory($name))
                 ->because('a subdirectory MUST remain inside its temp directory')
                 ->toThrow(
-                    TempDirectoryError::class,
+                    TemporaryDirectoryError::class,
                     message: \sprintf(
                         'Subdirectory path "%s" contains a symbolic link.',
                         $link,

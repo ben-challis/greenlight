@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 /**
  * Checks one invalid prose sample and its valid equivalent.
@@ -15,7 +15,7 @@ use Greenlight\Fixture\TempDirectory;
 final readonly class ProseCheckRuleProbe
 {
     public static function assertBlocks(
-        TempDirectory $tempDirectory,
+        TemporaryDirectory $tempDirectory,
         string $rule,
         string $invalid,
         string $valid,

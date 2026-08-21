@@ -8,13 +8,13 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Runner\DefaultServices;
+use Greenlight\Sandbox\EnvironmentVariables;
 
 final readonly class DefaultServicesTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     #[DataSet('channelEnvironmentValues')]

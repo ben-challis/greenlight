@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Sandbox;
 
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Disposable;
@@ -12,7 +12,7 @@ use Greenlight\Harness\Disposable;
  * root.
  * Disposal removes a symbolic link and leaves its target unchanged.
  */
-final class TempDirectory implements Disposable
+final class TemporaryDirectory implements Disposable
 {
     private ?string $path = null;
 
@@ -28,7 +28,7 @@ final class TempDirectory implements Disposable
         $this->temporaryRoot = $temporaryRoot;
     }
 
-    /** @throws TempDirectoryError */
+    /** @throws TemporaryDirectoryError */
     public function path(): string
     {
         if ($this->path === null) {
@@ -38,7 +38,7 @@ final class TempDirectory implements Disposable
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
 
             if (!ErrorTrap::run(static fn() => \mkdir($path, 0700), $warning)) {
-                throw TempDirectoryError::rootCreationFailed($path, $warning);
+                throw TemporaryDirectoryError::rootCreationFailed($path, $warning);
             }
 
             $this->path = $path;
@@ -54,7 +54,7 @@ final class TempDirectory implements Disposable
      * @return non-empty-string
      *
      * @throws \InvalidArgumentException
-     * @throws TempDirectoryError
+     * @throws TemporaryDirectoryError
      */
     public function subdirectory(string $name): string
     {
@@ -67,7 +67,7 @@ final class TempDirectory implements Disposable
         }
 
         foreach (\explode('/', $name) as $segment) {
-            if (in_array($segment, ['', '.', '..'], true)) {
+            if (\in_array($segment, ['', '.', '..'], true)) {
                 throw new \InvalidArgumentException(\sprintf('Subdirectory name "%s" must not contain empty or traversal segments.', $name));
             }
         }
@@ -88,21 +88,21 @@ final class TempDirectory implements Disposable
         $path = $root . '/' . $name;
 
         if (!\is_dir($path) && !ErrorTrap::run(static fn() => \mkdir($path, 0700, true), $warning)) {
-            throw TempDirectoryError::subdirectoryCreationFailed($path, $warning);
+            throw TemporaryDirectoryError::subdirectoryCreationFailed($path, $warning);
         }
 
         return $path;
     }
 
-    /** @throws TempDirectoryError */
+    /** @throws TemporaryDirectoryError */
     private function assertNotSymbolicLink(string $path): void
     {
         if (\is_link($path)) {
-            throw TempDirectoryError::symbolicLink($path);
+            throw TemporaryDirectoryError::symbolicLink($path);
         }
     }
 
-    /** @throws TempDirectoryError */
+    /** @throws TemporaryDirectoryError */
     #[\Override]
     public function dispose(): void
     {
@@ -114,12 +114,12 @@ final class TempDirectory implements Disposable
         $isLink = ErrorTrap::run(static fn() => \is_link($path), $warning);
 
         if ($warning !== null) {
-            throw TempDirectoryError::rootRemovalFailed($path, $warning);
+            throw TemporaryDirectoryError::rootRemovalFailed($path, $warning);
         }
 
         if ($isLink) {
             if (!ErrorTrap::run(static fn() => \unlink($path), $warning)) {
-                throw TempDirectoryError::rootLinkRemovalFailed($path, $warning);
+                throw TemporaryDirectoryError::rootLinkRemovalFailed($path, $warning);
             }
 
             $this->path = null;
@@ -130,7 +130,7 @@ final class TempDirectory implements Disposable
         $isDirectory = ErrorTrap::run(static fn() => \is_dir($path), $warning);
 
         if ($warning !== null) {
-            throw TempDirectoryError::rootRemovalFailed($path, $warning);
+            throw TemporaryDirectoryError::rootRemovalFailed($path, $warning);
         }
 
         if (!$isDirectory) {
@@ -152,17 +152,17 @@ final class TempDirectory implements Disposable
                     $removed = !$entry->isLink() && $entry->isDir() ? \rmdir($pathname) : \unlink($pathname);
 
                     if (!$removed) {
-                        throw TempDirectoryError::entryRemovalFailed($pathname, $path);
+                        throw TemporaryDirectoryError::entryRemovalFailed($pathname, $path);
                     }
                 }
             },
             wrap: static fn(\Throwable $error): \Throwable => $error instanceof \UnexpectedValueException
-                ? TempDirectoryError::rootRemovalFailed($path, $error->getMessage())
+                ? TemporaryDirectoryError::rootRemovalFailed($path, $error->getMessage())
                 : $error,
         );
 
         if (!ErrorTrap::run(static fn() => \rmdir($path), $warning)) {
-            throw TempDirectoryError::rootRemovalFailed($path, $warning);
+            throw TemporaryDirectoryError::rootRemovalFailed($path, $warning);
         }
 
         $this->path = null;

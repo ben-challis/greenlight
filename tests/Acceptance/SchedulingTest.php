@@ -9,7 +9,7 @@ use Greenlight\Cli\RunState;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
@@ -17,7 +17,7 @@ use Greenlight\Tests\Support\ProcessResult;
 
 final readonly class SchedulingTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function workersAreReusedAndTheCachedSlowClassLeads(): void

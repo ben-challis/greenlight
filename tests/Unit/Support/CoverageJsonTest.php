@@ -9,12 +9,12 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
 
 final readonly class CoverageJsonTest
 {
-    public function __construct(private TempDirectory $workspace) {}
+    public function __construct(private TemporaryDirectory $workspace) {}
 
     #[Test]
     public function writeAndReadPreserveTheCoverageMap(): void

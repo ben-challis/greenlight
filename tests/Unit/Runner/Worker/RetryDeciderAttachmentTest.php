@@ -7,17 +7,17 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Runner\Worker\RetryAttachmentTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\PlanEntryFixture;
@@ -25,7 +25,7 @@ use Greenlight\Tests\Support\PlanEntryFixture;
 final readonly class RetryDeciderAttachmentTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

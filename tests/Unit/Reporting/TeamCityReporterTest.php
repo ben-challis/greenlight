@@ -14,13 +14,13 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 
 final readonly class TeamCityReporterTest
 {
-    public function __construct(private AutoloaderSandbox $autoloaders) {}
+    public function __construct(private Autoloaders $autoloaders) {}
 
     #[Test]
     public function cannedStreamRendersTheGoldenServiceMessages(): void

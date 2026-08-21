@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Terminal;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Test\Cleanup;
 
 final readonly class TerminalTest
 {

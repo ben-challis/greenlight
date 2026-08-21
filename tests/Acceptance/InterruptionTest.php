@@ -8,11 +8,11 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
@@ -23,7 +23,7 @@ final readonly class InterruptionTest
     private const float DEADLINE_SECONDS = 30.0;
 
     public function __construct(
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

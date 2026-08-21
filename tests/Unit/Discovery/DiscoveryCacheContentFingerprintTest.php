@@ -11,13 +11,13 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class DiscoveryCacheContentFingerprintTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function equalSizeRewriteWithRestoredModificationTimeInvalidatesTheEntry(): void

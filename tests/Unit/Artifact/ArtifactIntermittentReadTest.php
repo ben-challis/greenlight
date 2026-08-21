@@ -6,13 +6,13 @@ namespace Greenlight\Tests\Unit\Artifact;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Artifact\IntermittentFileReadStream;
 
 final readonly class ArtifactIntermittentReadTest
@@ -20,8 +20,8 @@ final readonly class ArtifactIntermittentReadTest
     private const string SCHEME = 'greenlight-intermittent-file-read';
 
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private StreamWrapperSandbox $streamWrappers,
+        private TemporaryDirectory $tempDirectory,
+        private StreamWrappers $streamWrappers,
         private Cleanup $cleanup,
     ) {}
 

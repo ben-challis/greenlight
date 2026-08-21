@@ -8,7 +8,7 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Illuminate\Foundation\Application;
@@ -16,7 +16,7 @@ use Illuminate\Foundation\Application;
 #[SkipUnless(ClassAvailable::class, Application::class)]
 final readonly class LaravelRunTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function injectsContainerServicesFromAFreshApplicationPerTest(): void

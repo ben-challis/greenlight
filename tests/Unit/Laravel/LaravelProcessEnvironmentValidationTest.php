@@ -8,13 +8,13 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Laravel\LaravelProcessState;
+use Greenlight\Sandbox\EnvironmentVariables;
 use Illuminate\Foundation\Application as LaravelApplication;
 
 final readonly class LaravelProcessEnvironmentValidationTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     #[SkipUnless(ClassAvailable::class, LaravelApplication::class)]

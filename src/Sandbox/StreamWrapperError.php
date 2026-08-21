@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Sandbox;
 
 /**
  * A stream-wrapper sandbox cannot register or unregister a wrapper.

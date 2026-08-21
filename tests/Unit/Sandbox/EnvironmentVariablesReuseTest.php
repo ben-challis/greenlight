@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Sandbox\EnvironmentVariables;
 
-final readonly class EnvironmentSandboxReuseTest
+final readonly class EnvironmentVariablesReuseTest
 {
     #[Test]
     public function useAfterDisposalCapturesANewBaseline(): void
     {
         $name = 'GREENLIGHT_SANDBOX_REUSE_' . \strtoupper(\bin2hex(\random_bytes(6)));
-        $sandbox = new EnvironmentSandbox();
+        $sandbox = new EnvironmentVariables();
 
         try {
             $sandbox->set($name, 'first session');

@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperError;
-use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Sandbox\StreamWrapperError;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Runner\Protocol\UnselectableStream;
 
-final readonly class StreamWrapperSandboxTest
+final readonly class StreamWrappersTest
 {
     #[Test]
     public function registrationRejectsAnEmptyScheme(): void
     {
         Expect::that(static function (): void {
-            new StreamWrapperSandbox()->register('', UnselectableStream::class);
+            new StreamWrappers()->register('', UnselectableStream::class);
         })->toThrow(
             \InvalidArgumentException::class,
             message: 'Stream wrapper scheme cannot be empty.',
@@ -26,7 +26,7 @@ final readonly class StreamWrapperSandboxTest
     #[Test]
     public function disposalUnregistersEveryOwnedWrapper(): void
     {
-        $sandbox = new StreamWrapperSandbox();
+        $sandbox = new StreamWrappers();
         $sandbox->register('greenlight-sandbox-one', UnselectableStream::class);
         $sandbox->register('greenlight-sandbox-two', UnselectableStream::class);
 
@@ -44,8 +44,8 @@ final readonly class StreamWrapperSandboxTest
     #[Test]
     public function aRegistrationFailureKeepsTheEngineDiagnostic(): void
     {
-        $owner = new StreamWrapperSandbox();
-        $duplicate = new StreamWrapperSandbox();
+        $owner = new StreamWrappers();
+        $duplicate = new StreamWrappers();
         $scheme = 'greenlight-sandbox-duplicate';
         $owner->register($scheme, UnselectableStream::class);
 
@@ -64,7 +64,7 @@ final readonly class StreamWrapperSandboxTest
     #[Test]
     public function disposalContinuesAfterAWrapperWasRemovedExternally(): void
     {
-        $sandbox = new StreamWrapperSandbox();
+        $sandbox = new StreamWrappers();
         $first = 'greenlight-sandbox-first';
         $second = 'greenlight-sandbox-second';
         $sandbox->register($first, UnselectableStream::class);

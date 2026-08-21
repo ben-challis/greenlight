@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\ServerSocket;
+use Greenlight\Test\Cleanup;
 
 final readonly class ServerSocketTest
 {

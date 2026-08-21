@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Isolated;
@@ -11,19 +11,19 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
-use Greenlight\Fixture\TempDirectoryError;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Sandbox\TemporaryDirectoryError;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\Subprocess;
 
-final class TempDirectoryTest
+final class TemporaryDirectoryTest
 {
     #[Test]
     public function nothingExistsOnDiskBeforeFirstUse(): void
     {
         // path() is the only method that accesses the disk. Construction does
         // not create a directory for disposal.
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
 
         Expect::that(static function () use ($directory): void {
             $directory->dispose();
@@ -33,7 +33,7 @@ final class TempDirectoryTest
     #[Test]
     public function pathCreatesAWritableDirectoryAndMemoizesIt(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
 
         $path = $directory->path();
 
@@ -48,7 +48,7 @@ final class TempDirectoryTest
     #[Test]
     public function aTemporaryRootCannotContainANullByte(): void
     {
-        Expect::that(static fn(): TempDirectory => new TempDirectory("root\0suffix"))
+        Expect::that(static fn(): TemporaryDirectory => new TemporaryDirectory("root\0suffix"))
             ->because('the fixture MUST reject an invalid temporary root before a file-system operation')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -59,7 +59,7 @@ final class TempDirectoryTest
     #[Test]
     public function aBlockedTempRootGivesExactGuidance(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
         $blockedRoot = $directory->path() . '/blocked-root';
 
         if (\file_put_contents($blockedRoot, 'not a directory') === false) {
@@ -77,8 +77,8 @@ final class TempDirectoryTest
                         require $argv[1];
 
                         try {
-                            new Greenlight\Fixture\TempDirectory()->path();
-                        } catch (Greenlight\Fixture\TempDirectoryError $error) {
+                            new Greenlight\Sandbox\TemporaryDirectory()->path();
+                        } catch (Greenlight\Sandbox\TemporaryDirectoryError $error) {
                             fwrite(STDOUT, $error->getMessage());
                             exit(23);
                         }
@@ -116,13 +116,13 @@ final class TempDirectoryTest
         $restricted = \dirname($root);
         FilesystemRestriction::toProject($root);
 
-        $directory = new TempDirectory($restricted);
+        $directory = new TemporaryDirectory($restricted);
 
         Expect::that(
             static function () use ($directory, &$warning): void {
                 ErrorTrap::run(static fn() => $directory->path(), $warning);
             },
-        )->because('a restricted temporary root causes a fixture error')->toThrow(TempDirectoryError::class);
+        )->because('a restricted temporary root causes a fixture error')->toThrow(TemporaryDirectoryError::class);
         Expect::that($warning)
             ->because('a restricted temporary root MUST not leak engine diagnostics')
             ->toBeNull();
@@ -131,8 +131,8 @@ final class TempDirectoryTest
     #[Test]
     public function twoInstancesGetDistinctPaths(): void
     {
-        $first = new TempDirectory();
-        $second = new TempDirectory();
+        $first = new TemporaryDirectory();
+        $second = new TemporaryDirectory();
 
         Expect::that($first->path())->because('two instances get distinct paths')->not()->toBe($second->path());
 
@@ -143,7 +143,7 @@ final class TempDirectoryTest
     #[Test]
     public function subdirectoryCreatesNestedDirectories(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
 
         $nested = $directory->subdirectory('a/b');
 
@@ -156,7 +156,7 @@ final class TempDirectoryTest
     #[Test]
     public function anExistingFileBlocksANestedSubdirectoryWithTheFullTarget(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
         $blocked = $directory->path() . '/blocked';
         \file_put_contents($blocked, 'not a directory');
         $target = $blocked . '/nested';
@@ -164,7 +164,7 @@ final class TempDirectoryTest
         Expect::that(static fn(): string => $directory->subdirectory('blocked/nested'))
             ->because('an existing file blocks a nested subdirectory with the full target')
             ->toThrow(
-                TempDirectoryError::class,
+                TemporaryDirectoryError::class,
                 message: \sprintf(
                     'Failed to create subdirectory "%s": mkdir(): Not a directory.',
                     $target,
@@ -178,7 +178,7 @@ final class TempDirectoryTest
     #[DataSet('invalidSubdirectoryNames')]
     public function subdirectoryRejectsUnsafePaths(string $name, string $expectedMessage): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
 
         Expect::that(static fn(): string => $directory->subdirectory($name))
             ->because('subdirectory rejects unsafe paths')
@@ -229,7 +229,7 @@ final class TempDirectoryTest
     #[Test]
     public function disposeRemovesTheDirectoryIncludingNestedFiles(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
         $path = $directory->path();
         $nested = $directory->subdirectory('deep/inner');
         \file_put_contents($path . '/top.txt', 'top');
@@ -243,7 +243,7 @@ final class TempDirectoryTest
     #[Test]
     public function disposeReportsAnEntryThatItCannotRemove(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
         $path = $directory->path();
         $file = $path . '/locked.txt';
         \file_put_contents($file, 'keep');
@@ -260,7 +260,7 @@ final class TempDirectoryTest
             })
                 ->because('fixture cleanup MUST report the entry that it cannot remove')
                 ->toThrow(
-                    TempDirectoryError::class,
+                    TemporaryDirectoryError::class,
                     message: \sprintf(
                         'Failed to remove "%s" while disposing temp directory "%s".',
                         $file,
@@ -276,9 +276,9 @@ final class TempDirectoryTest
     #[Test]
     public function disposeReportsItsRootWhenTheRootCannotBeRemoved(): void
     {
-        $owner = new TempDirectory();
+        $owner = new TemporaryDirectory();
         $temporaryRoot = $owner->subdirectory('blocked-root');
-        $directory = new TempDirectory($temporaryRoot);
+        $directory = new TemporaryDirectory($temporaryRoot);
         $path = $directory->path();
         \chmod($temporaryRoot, 0o500);
         \clearstatcache(true, $temporaryRoot);
@@ -293,7 +293,7 @@ final class TempDirectoryTest
             })
                 ->because('fixture cleanup MUST report a root that it cannot remove')
                 ->toThrow(
-                    TempDirectoryError::class,
+                    TemporaryDirectoryError::class,
                     // PHP 8.5 includes the path argument.
                     // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
                     matching: \sprintf(
@@ -312,8 +312,8 @@ final class TempDirectoryTest
     #[Test]
     public function disposeRemovesASymbolicLinkWithoutChangingItsTarget(): void
     {
-        $directory = new TempDirectory();
-        $target = new TempDirectory();
+        $directory = new TemporaryDirectory();
+        $target = new TemporaryDirectory();
         $sentinel = $target->path() . '/sentinel.txt';
         $link = $directory->path() . '/linked-target';
         \file_put_contents($sentinel, 'keep');
@@ -342,7 +342,7 @@ final class TempDirectoryTest
     #[Test]
     public function disposeWithoutUseIsANoOp(): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
         $directory->dispose();
 
         // A no-op dispose() MUST NOT keep a stale or missing path. A later

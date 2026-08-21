@@ -7,11 +7,11 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\TerminalRowsResolver;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Sandbox\EnvironmentVariables;
 
 final readonly class ApplicationTerminalRowsTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     public function linesEnvironmentVariableSetsTerminalRows(): void

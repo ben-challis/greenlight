@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
-use Greenlight\Fixture\TempDirectoryError;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Sandbox\TemporaryDirectoryError;
 
-final class TempDirectoryRootSymbolicLinkTest
+final class TemporaryDirectoryRootSymbolicLinkTest
 {
     #[Test]
     public function disposalDoesNotFollowAReplacedRootSymbolicLink(): void
     {
-        $directory = new TempDirectory();
-        $target = new TempDirectory();
+        $directory = new TemporaryDirectory();
+        $target = new TemporaryDirectory();
         $root = $directory->path();
         $sentinel = $target->path() . '/sentinel.txt';
 
@@ -54,10 +54,10 @@ final class TempDirectoryRootSymbolicLinkTest
     #[Test]
     public function disposalReportsARootSymbolicLinkThatCannotBeRemoved(): void
     {
-        $owner = new TempDirectory();
+        $owner = new TemporaryDirectory();
         $temporaryRoot = $owner->subdirectory('blocked-root');
-        $directory = new TempDirectory($temporaryRoot);
-        $target = new TempDirectory();
+        $directory = new TemporaryDirectory($temporaryRoot);
+        $target = new TemporaryDirectory();
         $root = $directory->path();
 
         if (!\rmdir($root) || !\symlink($target->path(), $root)) {
@@ -75,7 +75,7 @@ final class TempDirectoryRootSymbolicLinkTest
             Expect::that(static fn() => $directory->dispose())
                 ->because('fixture cleanup MUST report a root symbolic link that it cannot remove')
                 ->toThrow(
-                    TempDirectoryError::class,
+                    TemporaryDirectoryError::class,
                     // PHP 8.5 includes the path argument.
                     // Remove the PHP 8.5 form when PHP 8.6 is the minimum version.
                     matching: \sprintf(

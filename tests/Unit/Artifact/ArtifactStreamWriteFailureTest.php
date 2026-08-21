@@ -8,15 +8,15 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Artifact\StreamWriter;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Artifact\ZeroWriteStream;
 
 final readonly class ArtifactStreamWriteFailureTest
 {
     private const string SCHEME = 'greenlight-zero-write';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function aZeroByteWriteFailsInsteadOfLooping(): void

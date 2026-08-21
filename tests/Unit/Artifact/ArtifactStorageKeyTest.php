@@ -13,16 +13,16 @@ use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 
 final readonly class ArtifactStorageKeyTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

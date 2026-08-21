@@ -9,14 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\TerminalRowsResolver;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class ApplicationTerminalRowsFallbackTest
 {
     public function __construct(
-        private EnvironmentSandbox $environment,
-        private TempDirectory $temporaryDirectory,
+        private EnvironmentVariables $environment,
+        private TemporaryDirectory $temporaryDirectory,
     ) {}
 
     #[Test]

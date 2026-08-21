@@ -320,33 +320,33 @@ separate counts.
 Use external coordination when different processes share the dependency. See
 the [configuration reference](configuration.md) for all resource limit rules.
 
-## Use built-in fixtures
+## Use built-in sandboxes
 
-The harness supplies per-test fixtures in `Greenlight\Fixture`. Constructor
-injection supplies each fixture.
+The harness supplies per-test sandboxes from `Greenlight\Sandbox`. Constructor
+injection supplies each sandbox.
 
-Greenlight disposes each fixture after its test. Thus, fixture state does not
+Greenlight disposes each sandbox after its test. Thus, temporary state does not
 leak to other tests or workers.
 
-* `TempDirectory` creates a unique temporary directory on first use. It removes
+* `TemporaryDirectory` creates a unique temporary directory on first use. It removes
   the directory after the test.
-* `EnvironmentSandbox` changes environment variables in `getenv`, `$_ENV`, and
+* `EnvironmentVariables` changes environment variables in `getenv`, `$_ENV`, and
   `$_SERVER`. It restores the original values after the test.
-* `AutoloaderSandbox` registers PHP autoloaders. It unregisters them in reverse
+* `Autoloaders` registers PHP autoloaders. It unregisters them in reverse
   registration order after the test.
-* `StreamWrapperSandbox` registers PHP stream wrappers. It unregisters them in
+* `StreamWrappers` registers PHP stream wrappers. It unregisters them in
   reverse registration order after the test.
 
 <!-- php-example {"example":"getting-started-example-08","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final class ExporterTest
 {
     public function __construct(
-        private readonly TempDirectory $tmp,
-        private readonly EnvironmentSandbox $env,
+        private readonly TemporaryDirectory $tmp,
+        private readonly EnvironmentVariables $env,
     ) {}
 
     #[Test]
@@ -361,18 +361,18 @@ final class ExporterTest
 }
 ```
 
-Each test receives separate instances. Each `TempDirectory` instance has a
-unique directory.
+Each test receives separate sandbox instances. Each `TemporaryDirectory`
+instance has a unique directory.
 
 ## Defer test cleanup
 
-Ask for `Greenlight\Core\Test\Cleanup` through constructor injection. Call
+Ask for `Greenlight\Test\Cleanup` through constructor injection. Call
 `defer()` immediately after the test acquires a resource.
 
 <!-- php-example {"example":"getting-started-example-09","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
+use Greenlight\Test\Cleanup;
 
 final readonly class ServerTest
 {
@@ -390,7 +390,7 @@ final readonly class ServerTest
 ```
 
 Greenlight runs cleanup callbacks once in reverse registration order. It runs
-them after `After` hooks and before per-test fixture disposal.
+them after `After` hooks and before per-test sandbox disposal.
 
 A callback failure does not prevent the remaining callbacks. A cleanup failure
 errors a passed or skipped test. An earlier test failure or error remains

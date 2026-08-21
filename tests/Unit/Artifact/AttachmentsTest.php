@@ -13,19 +13,19 @@ use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 
 final readonly class AttachmentsTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

@@ -7,13 +7,13 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\AbstractProtectedMethodService;
 use Greenlight\Tests\Fixture\Doubles\ProtectedMethodService;
 
 final readonly class ProtectedMethodInterceptionTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function classDoublesPreserveConcreteProtectedMethods(): void

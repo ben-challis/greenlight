@@ -6,12 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\ProseCheckRuleProbe;
 
 final readonly class ProseCheckLanguageRuleTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     #[DataRow(['semicolon', 'The worker stops; the orchestrator continues.', 'The worker stops. The orchestrator continues.'], 'semicolon')]

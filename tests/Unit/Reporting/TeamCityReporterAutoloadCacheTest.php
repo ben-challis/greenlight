@@ -9,12 +9,12 @@ use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\AutoloaderSandbox;
 use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Sandbox\Autoloaders;
 
 final readonly class TeamCityReporterAutoloadCacheTest
 {
-    public function __construct(private AutoloaderSandbox $autoloaders) {}
+    public function __construct(private Autoloaders $autoloaders) {}
 
     #[Test]
     public function aFailedClassLookupIsCachedAcrossEvents(): void
