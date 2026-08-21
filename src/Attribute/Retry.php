@@ -23,6 +23,8 @@ final readonly class Retry
     public ?string $onlyOn;
 
     /**
+     * @param class-string<\Throwable>|null $onlyOn
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(
@@ -33,11 +35,23 @@ final readonly class Retry
             throw new \InvalidArgumentException('Retry times must be at least 1.');
         }
 
-        if ($onlyOn !== null && !\is_a($onlyOn, \Throwable::class, true)) {
-            throw new \InvalidArgumentException('Retry onlyOn MUST name a Throwable type.');
+        $this->times = $times;
+        $this->onlyOn = $this->validatedOnlyOn($onlyOn);
+    }
+
+    /**
+     * @return class-string<\Throwable>|null
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validatedOnlyOn(?string $onlyOn): ?string
+    {
+        if ($onlyOn !== null
+            && (!\is_a($onlyOn, \Throwable::class, true) || !new \ReflectionClass($onlyOn)->isInstantiable())
+        ) {
+            throw new \InvalidArgumentException('Retry onlyOn MUST name an instantiable Throwable class.');
         }
 
-        $this->times = $times;
-        $this->onlyOn = $onlyOn;
+        return $onlyOn;
     }
 }

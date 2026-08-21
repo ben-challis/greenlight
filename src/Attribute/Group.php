@@ -13,14 +13,26 @@ final readonly class Group
     public string $name;
 
     /**
+     * @param non-empty-string $name
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $name)
+    {
+        $this->name = $this->validatedName($name);
+    }
+
+    /**
+     * @return non-empty-string
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validatedName(string $name): string
     {
         if ($name === '') {
             throw new \InvalidArgumentException('Group names cannot be empty.');
         }
 
-        $this->name = $name;
+        return $name;
     }
 }

@@ -25,12 +25,32 @@ final readonly class SkipUnless
     public array $arguments;
 
     /**
+     * @param class-string<Condition> $condition
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(
         string $condition,
         mixed ...$arguments,
     ) {
+        $this->condition = $this->validatedCondition($condition);
+
+        foreach ($arguments as $argument) {
+            if (\is_float($argument) && !\is_finite($argument)) {
+                throw new \InvalidArgumentException('SkipUnless arguments MUST use finite floats.');
+            }
+        }
+
+        $this->arguments = \array_values($arguments);
+    }
+
+    /**
+     * @return class-string<Condition>
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validatedCondition(string $condition): string
+    {
         if (!\is_a($condition, Condition::class, true)) {
             throw new \InvalidArgumentException(
                 'SkipUnless condition MUST name an instantiable Condition class.',
@@ -45,13 +65,6 @@ final readonly class SkipUnless
             );
         }
 
-        foreach ($arguments as $argument) {
-            if (\is_float($argument) && !\is_finite($argument)) {
-                throw new \InvalidArgumentException('SkipUnless arguments MUST use finite floats.');
-            }
-        }
-
-        $this->condition = $condition;
-        $this->arguments = \array_values($arguments);
+        return $condition;
     }
 }

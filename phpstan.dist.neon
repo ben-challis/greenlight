@@ -48,6 +48,7 @@ parameters:
     excludePaths:
         analyse:
             - tests/Fixture/DataRowsDuplicateInline
+            - tests/Fixture/DataRowsInvalid/EmptyDataRowLabelTest.php
             - tests/Fixture/DiscoveryAttributeArgumentsInvalid
             - tests/Fixture/DiscoveryGroupInvalid
             - tests/Fixture/DiscoveryInvalidMethods

@@ -12,16 +12,29 @@ use Greenlight\Expect\Expect;
 final class RetryTest
 {
     #[Test]
+    public function abstractThrowableTypesAreRejected(): void
+    {
+        Expect::that(
+            static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, AbstractRetryFailure::class),
+        )
+            ->because('a retry filter MUST name an instantiable Throwable class')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Retry onlyOn MUST name an instantiable Throwable class.',
+            );
+    }
+
+    #[Test]
     #[DataSet('invalidThrowableTypes')]
     public function invalidThrowableTypesAreRejected(string $onlyOn): void
     {
         Expect::that(
-            static fn(): Retry => new Retry(1, onlyOn: $onlyOn),
+            static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, $onlyOn),
         )
-            ->because('a retry filter MUST name a Throwable type')
+            ->because('a retry filter MUST name an instantiable Throwable class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Retry onlyOn MUST name a Throwable type.',
+                message: 'Retry onlyOn MUST name an instantiable Throwable class.',
             );
     }
 
@@ -37,3 +50,5 @@ final class RetryTest
         yield 'unknown class' => ['Example\MissingThrowable'];
     }
 }
+
+abstract class AbstractRetryFailure extends \Exception {}

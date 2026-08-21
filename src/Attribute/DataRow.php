@@ -21,6 +21,7 @@ final readonly class DataRow
 
     /**
      * @param array<mixed> $arguments
+     * @param non-empty-string|null $label
      *
      * @throws \InvalidArgumentException
      */
@@ -28,10 +29,20 @@ final readonly class DataRow
         public array $arguments,
         ?string $label = null,
     ) {
+        $this->label = $this->validatedLabel($label);
+    }
+
+    /**
+     * @return non-empty-string|null
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function validatedLabel(?string $label): ?string
+    {
         if ($label === '') {
             throw new \InvalidArgumentException('Data row label must not be empty.');
         }
 
-        $this->label = $label;
+        return $label;
     }
 }
