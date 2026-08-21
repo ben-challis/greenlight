@@ -79,6 +79,26 @@ for (const file of htmlFiles) {
     errors.push(`${label}: The page does not contain a valid canonical URL.`);
   }
 
+  if (label.startsWith('docs/')) {
+    if (!html.includes('class="mobile-doc-toolbar"')) {
+      errors.push(`${label}: The page does not contain the mobile documentation toolbar.`);
+    }
+
+    if (
+      !html.includes('id="mobile-documentation-menu"') ||
+      !html.includes('popovertarget="mobile-documentation-menu"')
+    ) {
+      errors.push(`${label}: The page does not contain the mobile documentation menu.`);
+    }
+  }
+
+  if (
+    label === 'docs/getting-started/index.html' &&
+    (!html.includes('id="mobile-page-index"') || !html.includes('popovertarget="mobile-page-index"'))
+  ) {
+    errors.push(`${label}: The page does not contain the mobile page index.`);
+  }
+
   const attributes = html.matchAll(/\b(?:href|src)="([^"]+)"/g);
 
   for (const [, url] of attributes) {
