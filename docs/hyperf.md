@@ -1,6 +1,7 @@
 # Hyperf applications
 
-The Hyperf bridge runs each Greenlight test attempt in a Hyperf coroutine.
+The [Hyperf](https://hyperf.io/) bridge runs each Greenlight test attempt in a
+Hyperf coroutine.
 
 The bridge supports Hyperf 3.2 with Swoole 5 or later. It does not support the
 Swow engine.

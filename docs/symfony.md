@@ -1,7 +1,7 @@
 # Symfony applications
 
-The Symfony bridge supplies Symfony services and built-in Greenlight harness
-services to test constructors.
+The [Symfony](https://symfony.com/) bridge supplies Symfony services and
+built-in Greenlight harness services to test constructors.
 
 The bridge boots the application kernel once for each worker. Register the
 plugin to activate the bridge. The bridge uses the Symfony packages that the
