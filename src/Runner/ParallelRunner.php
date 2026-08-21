@@ -130,7 +130,13 @@ final readonly class ParallelRunner
                 $summary = $orchestrator->run($plan, $sink, $workerCount, $classSeconds);
 
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
-                $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+                $sink->emit(new RunFinished(
+                    $runId,
+                    $summary,
+                    $durationSeconds,
+                    \microtime(true),
+                    $orchestrator->workerTimings(),
+                ));
 
                 $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
             } catch (\Throwable $failure) {

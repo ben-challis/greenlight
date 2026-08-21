@@ -58,7 +58,7 @@ guarantees, and incomplete-output behavior.
 | Tag               | Event                                | Payload keys                                                           |
 | ----------------- | ------------------------------------ | ---------------------------------------------------------------------- |
 | `run-started`     | Run begins                           | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
-| `run-finished`    | Run ends                             | `runId`, `summary`, `durationSeconds`, `occurredAt`                    |
+| `run-finished`    | Run ends                             | `runId`, `summary`, `durationSeconds`, `occurredAt`, `workerTimings`   |
 | `suite-started`   | Suite begins                         | `suite`, `occurredAt`                                                  |
 | `suite-finished`  | Suite ends                           | `suite`, `occurredAt`                                                  |
 | `class-started`   | Test class begins                    | `class`, `occurredAt`, `workerId`, `isolated`                          |
@@ -69,6 +69,28 @@ guarantees, and incomplete-output behavior.
 | `worker-recycled` | Greenlight replaces a worker process | `workerId`, `reason`, `occurredAt`                                     |
 
 `run-finished.summary` contains the passed, failed, errored, and skipped totals.
+
+`run-finished.workerTimings` is an optional list. Each item contains timing
+data for one worker process. Greenlight omits the key when timing data is not
+available.
+
+Each item contains these durations in seconds:
+
+* `spawnToHelloSeconds`
+* `helloToReadySeconds`
+* `readyToFirstAssignmentSeconds`
+* `assignmentGapSeconds`
+* `bootstrapBarrierSeconds`
+* `resourceCapacitySeconds`
+* `noQueuedWorkSeconds`
+* `retirementToExitSeconds`
+
+The item also contains `workerId` and `assignmentGaps`. A nullable duration is
+`null` when the worker did not reach both phase endpoints.
+
+The orchestrator calculates these values from protocol and scheduler state.
+Thus, worker test loops do not contain profile instrumentation. The idle values
+contain only states that the orchestrator can distinguish.
 
 `run-started.artifactsDirectory` is the absolute target directory for retained
 evidence from this run. Its value is `null` when an artifact directory is not

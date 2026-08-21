@@ -16,6 +16,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
@@ -125,6 +126,7 @@ final class CannedStream
                 new ResultSummary(passed: 3, failed: 1, errored: 1, skipped: 1),
                 1.234,
                 $at + 0.22,
+                [new WorkerTiming('w-1', 0.01, 0.02, 0.01, 1, 0.01, 0.01, 0.0, 0.01, 0.02)],
             ),
         ];
     }

@@ -15,6 +15,8 @@ final readonly class RunFinished implements Event
     public string $runId;
 
     /**
+     * @param list<WorkerTiming> $workerTimings Orchestrator-observed worker timing data.
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(
@@ -22,6 +24,7 @@ final readonly class RunFinished implements Event
         public ResultSummary $summary,
         public float $durationSeconds,
         public float $occurredAt,
+        public array $workerTimings = [],
     ) {
         if ($runId === '') {
             throw new \InvalidArgumentException('RunFinished requires a non-empty run ID.');
@@ -50,6 +53,9 @@ final readonly class RunFinished implements Event
             'summary' => $this->summary->toWire(),
             'durationSeconds' => $this->durationSeconds,
             'occurredAt' => $this->occurredAt,
+            ...($this->workerTimings === [] ? [] : [
+                'workerTimings' => \array_map(static fn(WorkerTiming $timing): array => $timing->toWire(), $this->workerTimings),
+            ]),
         ];
     }
 
@@ -61,6 +67,10 @@ final readonly class RunFinished implements Event
             ResultSummary::fromWire(Wire::map($payload, 'summary')),
             \max(0.0, Wire::float($payload, 'durationSeconds')),
             Wire::float($payload, 'occurredAt'),
+            \array_map(
+                WorkerTiming::fromWire(...),
+                \array_key_exists('workerTimings', $payload) ? Wire::listOfMaps($payload, 'workerTimings') : [],
+            ),
         );
     }
 }

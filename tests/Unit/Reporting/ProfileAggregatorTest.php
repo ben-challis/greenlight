@@ -14,6 +14,7 @@ use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ProfileAggregator;
@@ -74,6 +75,43 @@ final class ProfileAggregatorTest
 
         Expect::that($rendered)->because('slowest durations right align across widths')->toContain("    12.000s  Acme\\SlowTest\n")
             ->toContain("     1.000s  Acme\\QuickTest\n");
+    }
+
+    #[Test]
+    public function detailedWorkerTimingsReplaceBroadBootLatency(): void
+    {
+        $aggregator = new ProfileAggregator();
+        $events = [
+            new RunStarted('run-1', 2, 2, 100.0),
+            new WorkerSpawned('w-1', 11, 100.0),
+            new WorkerSpawned('w-2', 12, 100.0),
+            new TestClassStarted('Acme\\AlphaTest', 101.0, 'w-1'),
+            new TestClassFinished('Acme\\AlphaTest', 102.0, 'w-1'),
+            new RunFinished('run-1', new ResultSummary(passed: 1), 2.0, 102.0, [
+                new WorkerTiming('w-1', 0.1, 0.4, 0.5, 2, 0.3, 0.2, 0.25, 0.05, 0.1),
+                new WorkerTiming('w-2', 0.3, 0.6, null, 0, 0.0, 0.4, 0.75, 0.15, 0.3),
+            ]),
+        ];
+
+        foreach ($events as $event) {
+            $aggregator->onEvent($event);
+        }
+
+        $rendered = $aggregator->render(new Style(ansi: false));
+
+        Expect::that($rendered)
+            ->because('detailed timing MUST split worker startup and attribute orchestrator-visible idle time')
+            ->toContain("  Startup phases:\n")
+            ->toContain("    Spawn to hello: 0.200s average (2 workers)\n")
+            ->toContain("    Hello to ready (bootstrap): 0.500s average (2 workers)\n")
+            ->toContain("    Ready to first assignment: 0.500s average (1 worker)\n")
+            ->toContain("  Assignment gaps: 0.300s total (2 gaps)\n")
+            ->toContain("    Bootstrap barrier: 0.600s total\n")
+            ->toContain("    Resource capacity: 1.000s total\n")
+            ->toContain("    No queued work: 0.200s total\n")
+            ->toContain("  Retirement request to exit observed: 0.200s average (2 workers)\n")
+            ->not()
+            ->toContain('Boot latency:');
     }
 
     #[Test]

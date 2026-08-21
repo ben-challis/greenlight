@@ -60,6 +60,8 @@ final class WorkerHandle
 
     public readonly float $spawnedAt;
 
+    public readonly WorkerTimingRecorder $timing;
+
     public float $lastProgressAt;
 
     /**
@@ -79,6 +81,7 @@ final class WorkerHandle
         $this->tally = new ResultSummary();
         $this->spawnedAt = \hrtime(true) / 1_000_000_000;
         $this->lastProgressAt = $this->spawnedAt;
+        $this->timing = new WorkerTimingRecorder($this->spawnedAt);
     }
 
     public function beginAssignment(ResourceLease $lease): void

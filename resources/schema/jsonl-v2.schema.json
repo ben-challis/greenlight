@@ -102,7 +102,11 @@
                 "runId": {"type": "string", "minLength": 1},
                 "summary": {"$ref": "#/definitions/summary"},
                 "durationSeconds": {"type": "number", "minimum": 0},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+                "occurredAt": {"$ref": "#/definitions/occurredAt"},
+                "workerTimings": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/workerTiming"}
+                }
             }
         },
         "summary": {
@@ -165,6 +169,33 @@
                 "workerId": {"type": "string", "minLength": 1},
                 "reason": {"enum": ["test-count", "memory", "crash"]},
                 "occurredAt": {"$ref": "#/definitions/occurredAt"}
+            }
+        },
+        "workerTiming": {
+            "type": "object",
+            "required": [
+                "workerId",
+                "spawnToHelloSeconds",
+                "helloToReadySeconds",
+                "readyToFirstAssignmentSeconds",
+                "assignmentGaps",
+                "assignmentGapSeconds",
+                "bootstrapBarrierSeconds",
+                "resourceCapacitySeconds",
+                "noQueuedWorkSeconds",
+                "retirementToExitSeconds"
+            ],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "spawnToHelloSeconds": {"type": ["number", "null"], "minimum": 0},
+                "helloToReadySeconds": {"type": ["number", "null"], "minimum": 0},
+                "readyToFirstAssignmentSeconds": {"type": ["number", "null"], "minimum": 0},
+                "assignmentGaps": {"type": "integer", "minimum": 0},
+                "assignmentGapSeconds": {"type": "number", "minimum": 0},
+                "bootstrapBarrierSeconds": {"type": "number", "minimum": 0},
+                "resourceCapacitySeconds": {"type": "number", "minimum": 0},
+                "noQueuedWorkSeconds": {"type": "number", "minimum": 0},
+                "retirementToExitSeconds": {"type": ["number", "null"], "minimum": 0}
             }
         },
         "testId": {
