@@ -7,14 +7,11 @@ namespace Greenlight\Tests\Fixture\Plugins;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Fake;
+use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 
-final readonly class QuarantinePlugin implements TestLifecycleSubscriber, Fake
+final readonly class QuarantinePlugin implements AfterTestSubscriber, Fake
 {
-    #[\Override]
-    public function beforeTest(TestContext $context): void {}
-
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {

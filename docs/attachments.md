@@ -136,7 +136,8 @@ it discards an attachment.
 ## Plugins
 
 `$context->attachments` gives the same attempt-owned object to
-`TestLifecycleSubscriber::beforeTest()` and `afterTest()`. A plugin can attach
+`BeforeTestSubscriber::beforeTest()` and `AfterTestSubscriber::afterTest()`.
+A plugin can attach
 data before the test or after it examines the result.
 
 A retry decider receives attachment metadata on the `TestResult`, but it cannot

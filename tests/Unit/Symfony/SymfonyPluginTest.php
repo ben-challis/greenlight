@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Symfony;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Symfony\Service;
@@ -189,23 +188,6 @@ final class SymfonyPluginTest
 
         Expect::that($counter->count())->because('after test resets stateful container services')->toBe(0);
         Expect::that($returned)->toBe($result);
-    }
-
-    #[Test]
-    public function beforeTestPreservesLazyKernelBoot(): void
-    {
-        $factoryCalled = false;
-        $plugin = new SymfonyPlugin(static function () use (&$factoryCalled): KernelInterface {
-            $factoryCalled = true;
-
-            Fail::because('SymfonyPlugin::beforeTest() MUST NOT boot the kernel.');
-        });
-
-        $plugin->beforeTest($this->context());
-
-        Expect::that($factoryCalled)
-            ->because('the kernel remains lazy during beforeTest()')
-            ->toBeFalse();
     }
 
     #[Test]
