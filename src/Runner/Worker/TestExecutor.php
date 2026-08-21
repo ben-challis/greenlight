@@ -279,50 +279,58 @@ final readonly class TestExecutor
             $cause = $threw;
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
-            $captured = $capture?->stop();
-            $cleanupFailures = $cleanup->close();
-            $disposalFailures = $this->scopes->closeTest();
+            try {
+                $captured = $capture?->stop();
+            } finally {
+                try {
+                    $cleanupFailures = $cleanup->close();
 
-            foreach ($cleanupFailures as $cleanupFailure) {
-                if (!$cause instanceof \Throwable) {
-                    $cause = $cleanupFailure;
-                    $skipReason = null;
+                    foreach ($cleanupFailures as $cleanupFailure) {
+                        if (!$cause instanceof \Throwable) {
+                            $cause = $cleanupFailure;
+                            $skipReason = null;
 
-                    if ($cleanupFailure instanceof ExpectationFailed) {
-                        $failures = $cleanupFailure->details;
-                    } else {
-                        $error = ThrowableDetail::fromThrowable($cleanupFailure);
+                            if ($cleanupFailure instanceof ExpectationFailed) {
+                                $failures = $cleanupFailure->details;
+                            } else {
+                                $error = ThrowableDetail::fromThrowable($cleanupFailure);
+                            }
+
+                            continue;
+                        }
+
+                        if ($cleanupFailure instanceof ExpectationFailed) {
+                            $failures = [...$failures, ...$cleanupFailure->details];
+
+                            continue;
+                        }
+
+                        $failures[] = new FailureDetail(\sprintf(
+                            'Cleanup callback caused an error: %s',
+                            $cleanupFailure->getMessage(),
+                        ));
                     }
+                } finally {
+                    try {
+                        $disposalFailures = $this->scopes->closeTest();
 
-                    continue;
-                }
+                        if ($disposalFailures !== [] && !$cause instanceof \Throwable && $skipReason === null) {
+                            $cause = $disposalFailures[0];
 
-                if ($cleanupFailure instanceof ExpectationFailed) {
-                    $failures = [...$failures, ...$cleanupFailure->details];
-
-                    continue;
-                }
-
-                $failures[] = new FailureDetail(\sprintf(
-                    'Cleanup callback caused an error: %s',
-                    $cleanupFailure->getMessage(),
-                ));
-            }
-
-            if ($disposalFailures !== [] && !$cause instanceof \Throwable && $skipReason === null) {
-                $cause = $disposalFailures[0];
-
-                // An ExpectationFailed from disposal is a verification step.
-                // Automatic double verification uses this path. It fails the
-                // test with differences instead of an error.
-                if ($cause instanceof ExpectationFailed) {
-                    $failures = $cause->details;
-                } else {
-                    $error = ThrowableDetail::fromThrowable($cause);
+                            // An ExpectationFailed from disposal is a verification step.
+                            // Automatic double verification uses this path. It fails the
+                            // test with differences instead of an error.
+                            if ($cause instanceof ExpectationFailed) {
+                                $failures = $cause->details;
+                            } else {
+                                $error = ThrowableDetail::fromThrowable($cause);
+                            }
+                        }
+                    } finally {
+                        ExpectationRuntime::leaveAttempt();
+                    }
                 }
             }
-
-            ExpectationRuntime::leaveAttempt();
         }
 
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
