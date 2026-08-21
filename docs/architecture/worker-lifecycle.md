@@ -90,6 +90,31 @@ them for later assignments. Per-run harness services therefore live for the
 physical worker's lifetime. Workers rebuild per-class reflection, hooks, and
 data sets for each class.
 
+The default scheduling unit contains the selected non-isolated tests from one
+class. `#[AllowParallel]` changes each selected test or data set into a pooled
+one-entry scheduling unit.
+
+The orchestrator keeps these units in execution-plan order. It assigns them to
+workers by capacity, so their completion events can have a different order.
+
+Each split unit opens and closes its own class context. It emits one
+`TestClassStarted` and `TestClassFinished` pair.
+
+These pairs can overlap for one class. Reporters MUST combine or separate them
+without loss of test results.
+
+Greenlight has no class hooks. `#[Before]` and `#[After]` are test hooks, so
+their lifecycle does not change for a split class.
+
+A split class cannot use a per-class harness service. A service request causes
+a contained test error with corrective guidance.
+
+Data providers run during discovery. A worker also runs the applicable
+provider when it resolves arguments for a split entry.
+
+The provider MUST be pure and deterministic. The execution-plan keys detect a
+provider result that changes between discovery and execution.
+
 Each channel's integration resource catalog is capped at 1 MiB, below the
 general frame limit. Greenlight sends it through the authenticated local socket,
 not through environment variables or command arguments.
@@ -116,8 +141,10 @@ crash. It uses this frame when a worker dies before `test-finished`.
 ## Resource assignment
 
 Discovery stores `#[RequiresResource]` names in test metadata. The orchestrator
-groups non-isolated entries by class and combines their requirements. It treats
-each isolated entry as a separate scheduling unit.
+groups non-isolated entries by class and combines their requirements.
+
+It treats each `#[AllowParallel]` entry as a separate pooled scheduling unit.
+It treats each isolated entry as a separate isolated scheduling unit.
 
 Before it sends `assign`, the orchestrator claims one slot from each required
 resource in one atomic operation. A resource without a configured limit has one
@@ -244,6 +271,21 @@ may take an isolated entry, and only after the pooled queue is empty. After
 `done`, the orchestrator sends `drain` and lets the process exit instead of
 returning it to the pool. Any global state changed by the test dies with the
 worker. An isolated entry still waits for its required resources.
+
+`#[AllowParallel]` and `#[Isolated]` express incompatible process ownership.
+Discovery rejects a class that combines them.
+
+## Split classes
+
+`#[AllowParallel]` changes scheduling granularity. It does not change plan
+creation, selection, seeds, retry rules, timeout rules, or result identities.
+
+The orchestrator applies resource limits and crash containment to each split
+unit. A worker crash affects only the active test because a split unit has one
+entry.
+
+With one worker, the attribute does not create concurrency. Parallel execution
+always uses worker processes. Greenlight does not use Fibers for this feature.
 
 ## Channel numbers
 

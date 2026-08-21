@@ -25,10 +25,17 @@ final class PlanEntryFixture
         ?string $dataSetKey = null,
         array $resources = [],
         bool $isolated = false,
+        bool $allowParallel = false,
     ): PlanEntry {
         return new PlanEntry(
             new TestId($class, $method, $dataSetKey),
-            new TestMetadata($class, $method, isolated: $isolated, resources: $resources),
+            new TestMetadata(
+                $class,
+                $method,
+                isolated: $isolated,
+                resources: $resources,
+                allowParallel: $allowParallel,
+            ),
         );
     }
 }

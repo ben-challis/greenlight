@@ -87,6 +87,16 @@ final class DiscoveryError extends \RuntimeException
         );
     }
 
+    public static function incompatibleAttributes(string $class, string $first, string $second): self
+    {
+        return new self(\sprintf(
+            'Test class "%s" uses incompatible attributes #[%s] and #[%s]. Remove one of these attributes.',
+            $class,
+            $first,
+            $second,
+        ));
+    }
+
     public static function providerClassMissing(string $class, string $method, string $providerClass): self
     {
         return new self(\sprintf(

@@ -83,7 +83,7 @@ final readonly class Worker
 
             $isolated = \count($entries) === 1 && $entries[0]->metadata->isolated;
             $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId, $isolated));
-            $scopes->openClass();
+            $scopes->openClass(allowPerClassServices: !$entries[0]->metadata->allowParallel);
             $lastIndex = \count($entries) - 1;
 
             $context = null;

@@ -7,8 +7,8 @@ namespace Greenlight\Runner\Orchestrator;
 use Greenlight\Discovery\ExecutionPlan;
 
 /**
- * Produces one pooled scheduling unit for each test class. It produces a
- * one-entry scheduling unit for each isolated test.
+ * Produces one pooled scheduling unit for each test class by default. It
+ * produces one-entry units for opted-in classes and isolated tests.
  *
  * @internal
  */
@@ -28,6 +28,8 @@ final readonly class Distributor
             foreach ($entries as $entry) {
                 if ($entry->metadata->isolated) {
                     $isolated[] = new SchedulingUnit(new ExecutionPlan([$entry], $plan->seed), true);
+                } elseif ($entry->metadata->allowParallel) {
+                    $pooled[] = new SchedulingUnit(new ExecutionPlan([$entry], $plan->seed), false);
                 } else {
                     $pooledEntries[] = $entry;
                 }

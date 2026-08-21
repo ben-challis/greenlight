@@ -246,4 +246,25 @@ final readonly class TeamCityReporterTest
             . "##teamcity[testSuiteFinished name='{$alpha}' flowId='{$alpha}']\n",
         );
     }
+
+    #[Test]
+    public function concurrentAssignmentsForOneClassShareOneSuite(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TeamCityReporter($output);
+        $class = 'Acme\Flow\SplitTest';
+
+        $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
+        $reporter->onEvent(new TestClassStarted($class, 1.01, 'w-2'));
+        $reporter->onEvent(new TestClassFinished($class, 1.02, 'w-1'));
+        $reporter->onEvent(new TestClassFinished($class, 1.03, 'w-2'));
+        $reporter->finish();
+
+        Expect::that($output->buffer())
+            ->because('concurrent split assignments MUST share one TeamCity suite flow')
+            ->toBe(
+                "##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n"
+                . "##teamcity[testSuiteFinished name='{$class}' flowId='{$class}']\n",
+            );
+    }
 }

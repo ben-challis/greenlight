@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Attribute;
 
 use Greenlight\Attribute\After;
+use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\Before;
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Attribute\DataRow;
@@ -44,6 +45,12 @@ final class AttributeContractTest
         foreach ([Test::class, Before::class, After::class, DataSet::class, NoExpectations::class] as $attribute) {
             Expect::that($this->flags($attribute))->toBe(\Attribute::TARGET_METHOD);
         }
+    }
+
+    #[Test]
+    public function allowParallelTargetsClasses(): void
+    {
+        Expect::that($this->flags(AllowParallel::class))->toBe(\Attribute::TARGET_CLASS);
     }
 
     #[Test]

@@ -49,6 +49,7 @@ final readonly class TestMetadata implements WireSerializable
      * @param list<mixed> $skipUnlessArguments validated to scalars or null
      * @param list<string> $resources named resources required by this test entry
      * @param non-empty-string|null $dataSetProviderClass
+     * @param bool $allowParallel Whether the class permits separate worker assignments.
      *
      * @throws \InvalidArgumentException
      */
@@ -68,6 +69,7 @@ final readonly class TestMetadata implements WireSerializable
         array $skipUnlessArguments = [],
         array $resources = [],
         public ?string $dataSetProviderClass = null,
+        public bool $allowParallel = false,
     ) {
         if ($class === '') {
             throw new \InvalidArgumentException('Test metadata class must not be empty.');
@@ -144,6 +146,7 @@ final readonly class TestMetadata implements WireSerializable
             'capture' => $this->capture,
             'noExpectations' => $this->noExpectations,
             'resources' => $this->resources,
+            'allowParallel' => $this->allowParallel,
         ];
     }
 
@@ -205,6 +208,7 @@ final readonly class TestMetadata implements WireSerializable
             $skipUnlessArguments,
             $resources,
             $dataSetProviderClass === '' ? null : $dataSetProviderClass,
+            \array_key_exists('allowParallel', $payload) && Wire::bool($payload, 'allowParallel'),
         );
     }
 

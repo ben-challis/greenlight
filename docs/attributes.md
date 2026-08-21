@@ -378,6 +378,55 @@ period.
 public function convergesQuickly(): void { ... }
 ```
 
+## AllowParallel
+
+Target: class.
+
+No parameters.
+
+Allows Greenlight to assign tests from one class to different worker
+processes. Each selected test or data set becomes one pooled assignment.
+
+Without this attribute, Greenlight assigns all non-isolated tests in a class
+as one unit. This default preserves method order and class-scope state.
+
+Use this attribute only when all tests and data sets in the class are
+independent:
+
+<!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
+```php
+#[AllowParallel]
+final class LargeImportTest
+{
+    #[Test]
+    #[DataSet('imports')]
+    public function importsOneFile(ImportCase $case): void { ... }
+}
+```
+
+Greenlight preserves execution-plan order when it makes assignments. Worker
+placement and completion-event order remain load-dependent.
+
+Each assignment emits one class-started and class-finished event pair. The
+`#[Before]` and `#[After]` hooks still run for each test attempt.
+
+A data provider can run again in each assigned worker. Providers MUST be pure,
+deterministic, and fast.
+
+`#[AllowParallel]` is incompatible with these features:
+
+* `#[Isolated]` on the class or one of its test methods
+* a harness service with `Scope::PerClass`
+
+Discovery rejects the combination with `#[Isolated]`. A worker reports a test
+error if the class requests a per-class harness service.
+
+Retries and timeouts remain local to one test. Resource limits apply to each
+split assignment.
+
+The attribute has no concurrency effect with one worker. Greenlight uses
+worker processes for concurrency and does not use Fibers.
+
 ## RequiresResource
 
 Target: method or class. Repeatable.
@@ -403,11 +452,12 @@ final class OrderRepositoryTest { ... }
 Class-level requirements apply to each method. Greenlight combines method-level
 requirements with them. Multiple occurrences of the same name have no effect.
 
-Greenlight combines requirements from all non-isolated tests in a class and
-holds them until the class assignment finishes. Thus, a method requirement can
-reduce concurrency for other non-isolated tests in the class. Each isolated
-test has a separate assignment with its class-level and method-level
-requirements.
+By default, Greenlight combines requirements from all non-isolated tests in a
+class. It holds them until the class assignment finishes.
+
+For a class with `#[AllowParallel]`, each split assignment holds only its own
+class-level and method-level requirements. Each isolated test also has a
+separate assignment.
 
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.

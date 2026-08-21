@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Group;
 use Greenlight\Attribute\Isolated;
@@ -42,7 +43,12 @@ final class MetadataFactory
         $classRetry = $this->attributeInstance($class, Retry::class, $className);
         $classTimeout = $this->attributeInstance($class, Timeout::class, $className);
         $classIsolated = $class->getAttributes(Isolated::class) !== [];
+        $classAllowsParallel = $class->getAttributes(AllowParallel::class) !== [];
         $classResources = $this->resourceNames($class, $className);
+
+        if ($classAllowsParallel && $classIsolated) {
+            throw DiscoveryError::incompatibleAttributes($className, 'AllowParallel', 'Isolated');
+        }
 
         $metadata = [];
 
@@ -75,6 +81,10 @@ final class MetadataFactory
             $groups = \array_values(\array_unique([...$classGroups, ...$this->groupNames($method, $where)]));
             $resources = \array_values(\array_unique([...$classResources, ...$this->resourceNames($method, $where)]));
 
+            if ($classAllowsParallel && $method->getAttributes(Isolated::class) !== []) {
+                throw DiscoveryError::incompatibleAttributes($className, 'AllowParallel', 'Isolated');
+            }
+
             $metadata[] = new TestMetadata(
                 $className,
                 $methodName,
@@ -91,6 +101,7 @@ final class MetadataFactory
                 $this->skipUnlessArguments($skipUnless, $where),
                 $resources,
                 $dataSet?->providerClass,
+                $classAllowsParallel,
             );
         }
 

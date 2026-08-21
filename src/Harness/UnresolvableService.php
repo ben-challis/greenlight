@@ -58,6 +58,16 @@ final class UnresolvableService extends ServiceResolutionError
         ));
     }
 
+    public static function perClassServiceInParallelClass(string $type, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Per-class harness service "%s", required by "%s", cannot be used by a class with #[AllowParallel]. '
+            . 'Use a per-test service or remove #[AllowParallel].',
+            $type,
+            $consumer,
+        ));
+    }
+
     public static function unsupportedParameter(string $parameter, string $consumer): self
     {
         return new self(\sprintf(

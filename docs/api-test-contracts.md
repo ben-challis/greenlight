@@ -302,7 +302,7 @@ PHPDoc:
 public ?string $skipReason
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L60)
 
 ### `$skipUnlessCondition`
 
@@ -310,7 +310,7 @@ public ?string $skipReason
 public ?string $skipUnlessCondition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L61)
 
 ### `$retryTimes`
 
@@ -318,7 +318,7 @@ public ?string $skipUnlessCondition
 public ?int $retryTimes
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L62)
 
 ### `$retryOnlyOn`
 
@@ -326,7 +326,7 @@ public ?int $retryTimes
 public ?string $retryOnlyOn
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L63)
 
 ### `$timeoutSeconds`
 
@@ -334,7 +334,7 @@ public ?string $retryOnlyOn
 public ?float $timeoutSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L64)
 
 ### `$isolated`
 
@@ -342,7 +342,7 @@ public ?float $timeoutSeconds
 public bool $isolated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L65)
 
 ### `$dataSetProvider`
 
@@ -350,7 +350,7 @@ public bool $isolated
 public ?string $dataSetProvider
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L66)
 
 ### `$capture`
 
@@ -358,7 +358,7 @@ public ?string $dataSetProvider
 public bool $capture
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L67)
 
 ### `$noExpectations`
 
@@ -366,7 +366,7 @@ public bool $capture
 public bool $noExpectations
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L67)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L68)
 
 ### `$dataSetProviderClass`
 
@@ -374,7 +374,15 @@ public bool $noExpectations
 public ?string $dataSetProviderClass
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L70)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L71)
+
+### `$allowParallel`
+
+```php
+public bool $allowParallel
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L72)
 
 ### `__construct()`
 
@@ -395,6 +403,7 @@ public function __construct(
     array $skipUnlessArguments = [],
     array $resources = [],
     public ?string $dataSetProviderClass = null,
+    public bool $allowParallel = false,
 )
 ```
 
@@ -409,9 +418,10 @@ PHPDoc:
 - `@param list<mixed> $skipUnlessArguments validated to scalars or null`
 - `@param list<string> $resources named resources required by this test entry`
 - `@param non-empty-string|null $dataSetProviderClass`
+- `@param bool $allowParallel Whether the class permits separate worker assignments.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L56)
 
 ### `toWire()`
 
@@ -420,7 +430,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L128)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L130)
 
 ### `fromWire()`
 
@@ -434,7 +444,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the decoded metadata violates a domain invariant`
 - `@throws InvalidWirePayload when a required field is missing or has the wrong type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L154)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L157)
 
 ## `InvalidWirePayload`
 

@@ -313,6 +313,24 @@ returns service definitions with their scopes.
 For shared suite fixtures, move the fixtures to a small plugin. Do not keep
 them in a static property on the test class.
 
+## Split a large class after migration
+
+Keep class-level scheduling during the initial migration. This schedule
+preserves method order and one per-class harness service instance.
+
+After the suite is stable, add `#[AllowParallel]` only to an independent large
+class. The attribute makes each selected test or data set a separate worker
+assignment.
+
+Do not add the attribute to a class that uses a per-class harness service.
+Greenlight rejects that service request.
+
+Do not combine `#[AllowParallel]` with `#[Isolated]`. Greenlight rejects this
+combination during discovery.
+
+Data providers can run again in each assigned worker. Keep each provider pure,
+deterministic, and fast.
+
 ## Understand the deliberate differences
 
 These differences are intentional:
@@ -328,6 +346,7 @@ These differences are intentional:
   parallel execution.
 * Put expensive shared state in a class-scoped or suite-scoped harness service.
 * Tests run in parallel worker processes by default.
+* Tests in one class stay together unless the class has `#[AllowParallel]`.
 * Use `#[Isolated]` for a test that must own its process.
 * External dependencies require an explicit parallel strategy.
 * Use a channel for one resource for each worker.
