@@ -378,8 +378,7 @@ final class ToThrowTest
     /**
      * @return iterable<string, array{\Closure, non-empty-string}>
      */
-    // @phpstan-ignore-next-line missingType.callable (Each invalid callback has a different deliberate signature.)
-    public static function invalidThrowableCallbacks(): iterable
+    public static function invalidThrowableCallbacks(): iterable // @phpstan-ignore missingType.callable (Each invalid callback has a different deliberate signature.)
     {
         yield 'no throwable parameter' => [
             static function (): void {},

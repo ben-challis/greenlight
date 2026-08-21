@@ -8,6 +8,7 @@ parameters:
     level: max
     checkBenevolentUnionTypes: true
     checkMissingCallableSignature: true
+    reportIgnoresWithoutComments: true
     treatPhpDocTypesAsCertain: false
     tmpDir: build/cache/phpstan
     exceptions:

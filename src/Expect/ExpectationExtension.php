@@ -20,6 +20,5 @@ interface ExpectationExtension extends Plugin
      *
      * @return array<non-empty-string, \Closure>
      */
-    // @phpstan-ignore-next-line missingType.callable (Each matcher has its own parameter signature.)
-    public function matchers(): array;
+    public function matchers(): array; // @phpstan-ignore missingType.callable (Each matcher has its own parameter signature.)
 }

@@ -844,8 +844,7 @@ final class Expectation
             $matched = \preg_match($matching, $thrown->getMessage()) === 1;
         } elseif ($matched && $callback instanceof \Closure) {
             try {
-                // @phpstan-ignore-next-line argument.type (Reflection confirms that the callback accepts the matched throwable.)
-                $result = $this->invokeThrowableCallback($callback, $thrown);
+                $result = $this->invokeThrowableCallback($callback, $thrown); // @phpstan-ignore argument.type (Reflection confirms that the callback accepts the matched throwable.)
             } catch (ExpectationFailed $failure) {
                 if (!$this->negated) {
                     $this->negated = false;
