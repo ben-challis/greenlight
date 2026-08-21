@@ -780,7 +780,7 @@ PHPDoc:
 
 - `@return array<non-empty-string, \Closure>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationExtension.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationExtension.php#L23)
 
 ## `ExpectationFailed`
 
