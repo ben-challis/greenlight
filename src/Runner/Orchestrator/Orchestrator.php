@@ -86,6 +86,11 @@ final class Orchestrator
     private array $handles = [];
 
     /**
+     * @var array<string, WorkerTiming>
+     */
+    private array $reapedWorkerTimings = [];
+
+    /**
      * @var list<array{SocketChannel, float}> connected but not yet authenticated
      */
     private array $awaitingHello = [];
@@ -170,10 +175,13 @@ final class Orchestrator
      */
     public function workerTimings(): array
     {
-        return \array_values(\array_map(
-            static fn(WorkerHandle $handle): WorkerTiming => $handle->timing->snapshot($handle->workerId),
-            $this->handles,
-        ));
+        $timings = $this->reapedWorkerTimings;
+
+        foreach ($this->handles as $handle) {
+            $timings[$handle->workerId] = $handle->timing->snapshot($handle->workerId);
+        }
+
+        return \array_values($timings);
     }
 
     private function mergeCoverage(?CoverageMap $coverage): void
@@ -1058,6 +1066,7 @@ final class Orchestrator
             }
 
             $handle->timing->exitObserved($this->monotonicTime());
+            $this->reapedWorkerTimings[$handle->workerId] = $handle->timing->snapshot($handle->workerId);
             $this->channels?->release($handle->channelNumber);
             unset($this->handles[$workerId]);
         }
