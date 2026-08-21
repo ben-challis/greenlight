@@ -101,11 +101,13 @@ final class CliError extends \RuntimeException
         return new self(\sprintf('Set resource limit "%s" only once.', $name));
     }
 
-    public static function unknownReporter(string $name): self
+    /** @param list<non-empty-string> $available */
+    public static function unknownReporter(string $name, array $available): self
     {
         return new self(\sprintf(
-            'Unknown reporter "%s". Select tty, plain, junit, jsonl, github, or teamcity.',
+            'Unknown reporter "%s". Select one of: %s.',
             $name,
+            \implode(', ', $available),
         ));
     }
 }

@@ -26,7 +26,7 @@ final readonly class ReporterSelectionTest
         Expect::that($result->stderr)
             ->because('the error identifies every supported reporter')
             ->toBe(
-                'greenlight: Unknown reporter "unknown". Select tty, plain, junit, jsonl, github, or teamcity.',
+                'greenlight: Unknown reporter "unknown". Select one of: tty, plain, junit, jsonl, github, teamcity.',
             );
         Expect::that($result->stdout)
             ->because('the test run does not start')

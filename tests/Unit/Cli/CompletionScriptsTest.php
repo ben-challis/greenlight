@@ -70,7 +70,10 @@ final class CompletionScriptsTest
             Expect::that($script)->toContain($reporter);
         }
 
-        Expect::that($script)->toContain('bash zsh fish');
+        Expect::that($script)
+            ->because('completion MUST explain that custom reporter names remain valid')
+            ->toContain('Configured names remain valid')
+            ->toContain('bash zsh fish');
     }
 
     #[Test]

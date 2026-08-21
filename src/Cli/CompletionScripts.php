@@ -14,6 +14,9 @@ final readonly class CompletionScripts
 {
     public const array SHELLS = ['bash', 'zsh', 'fish'];
 
+    /** Built-in reporter names that completions suggest. Configured names remain valid. */
+    public const array BUILT_IN_REPORTERS = ['tty', 'plain', 'junit', 'jsonl', 'github', 'teamcity'];
+
     private const array COMMANDS = [
         'run' => 'Find and run tests (default)',
         'list-tests' => 'List each found test ID, one per line',
@@ -24,7 +27,7 @@ final readonly class CompletionScripts
     ];
 
     private const array FLAG_VALUES = [
-        'reporter' => ['tty', 'plain', 'junit', 'jsonl', 'github', 'teamcity'],
+        'reporter' => self::BUILT_IN_REPORTERS,
         'workers' => ['auto'],
     ];
 
@@ -62,6 +65,7 @@ final readonly class CompletionScripts
         $template = <<<'BASH'
             # bash completion for Greenlight. Load it into the current shell with:
             #   source <(greenlight completion bash)
+            # Reporter completion suggests built-ins. Configured names remain valid.
 
             _greenlight_completions()
             {
@@ -146,6 +150,7 @@ final readonly class CompletionScripts
             #compdef greenlight
             # zsh completion for Greenlight. Load it into the current shell with:
             #   source <(greenlight completion zsh)
+            # Reporter completion suggests built-ins. Configured names remain valid.
 
             _greenlight()
             {
@@ -193,6 +198,7 @@ final readonly class CompletionScripts
         $lines = [
             '# fish completion for Greenlight. Install it with:',
             '#   greenlight completion fish > ~/.config/fish/completions/greenlight.fish',
+            '# Reporter completion suggests built-ins. Configured names remain valid.',
             '',
         ];
 
