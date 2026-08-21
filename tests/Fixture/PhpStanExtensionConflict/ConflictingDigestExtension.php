@@ -9,6 +9,7 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class ConflictingDigestExtension implements ExpectationExtension, Fake
 {
+    /** @return array{toHaveDigestLength: \Closure(mixed, string): bool} */
     #[\Override]
     public function matchers(): array
     {

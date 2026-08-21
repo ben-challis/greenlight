@@ -14,7 +14,7 @@ namespace Greenlight\Core\Test;
  */
 final class Cleanup
 {
-    /** @var list<\Closure> */
+    /** @var list<\Closure(): mixed> */
     private array $callbacks = [];
 
     private bool $closed = false;

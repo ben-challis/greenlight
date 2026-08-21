@@ -139,6 +139,11 @@ final class NativeTypeTest
         return $value;
     }
 
+    /**
+     * @param callable(): mixed $value
+     *
+     * @return callable(): mixed
+     */
     public function callable(callable $value): callable
     {
         return $value;

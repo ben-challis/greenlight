@@ -9,6 +9,13 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class DigestExtension implements ExpectationExtension, Fake
 {
+    /**
+     * @return array{
+     *     toBeHexadecimal: \Closure(string): bool,
+     *     toHaveDigestLength: \Closure(string, int): bool,
+     *     toBePositive: \Closure(int): bool
+     * }
+     */
     #[\Override]
     public function matchers(): array
     {

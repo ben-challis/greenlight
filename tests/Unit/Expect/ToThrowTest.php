@@ -378,6 +378,7 @@ final class ToThrowTest
     /**
      * @return iterable<string, array{\Closure, non-empty-string}>
      */
+    // @phpstan-ignore-next-line missingType.callable (Each invalid callback has a different deliberate signature.)
     public static function invalidThrowableCallbacks(): iterable
     {
         yield 'no throwable parameter' => [
@@ -430,6 +431,7 @@ final class ToThrowTest
     public function toThrowAcceptsScopedThrowableCallbackParameterTypes(): void
     {
         $selfScopedError = new class ('self') extends \DomainException {
+            /** @return \Closure(self): void */
             public function throwableCallback(): \Closure
             {
                 return static function (self $error): void {
@@ -442,6 +444,7 @@ final class ToThrowTest
             ->toThrow($selfScopedError->throwableCallback());
 
         $parentScopedCallback = new class ('parent') extends \Exception {
+            /** @return \Closure(parent): void */
             public function throwableCallback(): \Closure
             {
                 return static function (parent $error): void {

@@ -15,5 +15,6 @@ interface SignalOperations
 
     public function enableAsync(): void;
 
+    /** @param (callable(int): void)|int $handler */
     public function register(int $signal, callable|int $handler): void;
 }

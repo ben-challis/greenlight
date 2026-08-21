@@ -8,12 +8,15 @@ namespace Greenlight\Core;
  * Removes a selected PHP error handler and reinstalls handlers that were above it.
  *
  * @internal
+ *
+ * @phpstan-type ErrorHandler callable(int, string, string, int): bool
  */
 final class ErrorHandlerStack
 {
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /** @param ErrorHandler $handler */
     public static function remove(callable $handler): void
     {
         $laterHandlers = [];
@@ -33,6 +36,7 @@ final class ErrorHandlerStack
         self::restore($laterHandlers);
     }
 
+    /** @return ErrorHandler|null */
     private static function active(): ?callable
     {
         $probe = static fn(): bool => true;
@@ -42,7 +46,7 @@ final class ErrorHandlerStack
         return $active;
     }
 
-    /** @param list<callable> $handlers */
+    /** @param list<ErrorHandler> $handlers */
     private static function restore(array $handlers): void
     {
         foreach (\array_reverse($handlers) as $handler) {

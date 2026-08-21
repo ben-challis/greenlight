@@ -6,6 +6,7 @@ includes:
 
 parameters:
     level: max
+    checkMissingCallableSignature: true
     tmpDir: build/cache/phpstan
     exceptions:
         checkedExceptionClasses:

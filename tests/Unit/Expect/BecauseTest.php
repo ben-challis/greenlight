@@ -111,6 +111,7 @@ final readonly class BecauseTest
     {
         $restoreExtensions = Expect::install([
             new class implements ExpectationExtension {
+                /** @return array{toBeOdd: \Closure(mixed): bool} */
                 #[\Override]
                 public function matchers(): array
                 {

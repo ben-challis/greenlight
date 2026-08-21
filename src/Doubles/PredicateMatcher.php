@@ -7,6 +7,7 @@ namespace Greenlight\Doubles;
 /** @internal */
 final readonly class PredicateMatcher implements ArgumentMatcher
 {
+    /** @param \Closure(mixed): mixed $predicate */
     public function __construct(
         private \Closure $predicate,
         private string $description,

@@ -19,6 +19,7 @@ final readonly class SystemSignalOperations implements SignalOperations
         \pcntl_async_signals(true);
     }
 
+    /** @param (callable(int): void)|int $handler */
     #[\Override]
     public function register(int $signal, callable|int $handler): void
     {
