@@ -8,11 +8,23 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
 <link rel="stylesheet" href={pagefindCss} />
 
 <details class="site-search" data-search data-pagefind-ignore="all">
-  <summary>
-    <span>Search</span>
-    <kbd>/</kbd>
+  <summary
+    role="button"
+    aria-label="Search documentation"
+    aria-keyshortcuts="/"
+    aria-controls="documentation-search"
+    aria-expanded="false"
+  >
+    <span class="search-label-full">Search</span>
+    <span class="search-label-short" aria-hidden="true">Find</span>
+    <kbd aria-hidden="true">/</kbd>
   </summary>
-  <div class="search-surface" role="dialog" aria-label="Search documentation">
+  <div
+    id="documentation-search"
+    class="search-surface"
+    role="region"
+    aria-label="Documentation search results"
+  >
     <div id="pagefind-search">
       <p class="search-loading">Enter text to search the documentation.</p>
     </div>
@@ -58,6 +70,8 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
   };
 
   search?.addEventListener('toggle', () => {
+    search.querySelector('summary')?.setAttribute('aria-expanded', String(search.open));
+
     if (search.open) {
       loadPagefind();
       focusSearchInput();

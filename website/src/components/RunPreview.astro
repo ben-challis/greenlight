@@ -1,15 +1,15 @@
-<figure class="run-preview" aria-label="A typical Greenlight test run">
+<figure class="run-preview" aria-label="Example Greenlight test run">
   <figcaption class="run-preview__bar">
     <code><span aria-hidden="true">›</span> vendor/bin/greenlight</code>
     <span class="run-preview__state">
       <span aria-hidden="true"></span>
-      Running
+      Example run
     </span>
   </figcaption>
 
   <div class="run-preview__body">
     <div class="run-preview__meta">
-      <strong>Greenlight <span>dev-main</span></strong>
+      <strong>Greenlight <span>1.0.0</span></strong>
       <code>PHP 8.4.14 · configuration: greenlight.php · workers: 11</code>
     </div>
 
@@ -18,28 +18,43 @@
       <div aria-hidden="true"><span></span></div>
     </div>
 
-    <ol class="run-preview__tests">
-      <li>
-        <code>Acceptance\WorkerProcessRunTest</code>
-        <span>4</span>
-        <strong>3.302s</strong>
-      </li>
-      <li>
-        <code>Acceptance\CliTest</code>
-        <span>5</span>
-        <strong>3.302s</strong>
-      </li>
-      <li>
-        <code>Acceptance\PhpStanMatcherSignatureTest</code>
-        <span>0</span>
-        <strong>3.297s</strong>
-      </li>
-      <li>
-        <code>Acceptance\SymfonyRunTest</code>
-        <span>0</span>
-        <strong>0.762s</strong>
-      </li>
-    </ol>
+    <table class="run-preview__tests">
+      <caption class="visually-hidden">Test classes in progress</caption>
+      <colgroup>
+        <col />
+        <col class="run-preview__test-count" />
+        <col class="run-preview__elapsed" />
+      </colgroup>
+      <thead class="visually-hidden">
+        <tr>
+          <th scope="col">Test class</th>
+          <th scope="col">Tests</th>
+          <th scope="col">Elapsed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row"><code>Acceptance\WorkerProcessRunTest</code></th>
+          <td>4</td>
+          <td><strong>3.302s</strong></td>
+        </tr>
+        <tr>
+          <th scope="row"><code>Acceptance\CliTest</code></th>
+          <td>5</td>
+          <td><strong>3.302s</strong></td>
+        </tr>
+        <tr>
+          <th scope="row"><code>Acceptance\PhpStanMatcherSignatureTest</code></th>
+          <td>0</td>
+          <td><strong>3.297s</strong></td>
+        </tr>
+        <tr>
+          <th scope="row"><code>Acceptance\SymfonyRunTest</code></th>
+          <td>0</td>
+          <td><strong>0.762s</strong></td>
+        </tr>
+      </tbody>
+    </table>
 
     <p class="run-preview__more">… and 3 more running</p>
   </div>

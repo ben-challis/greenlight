@@ -134,6 +134,17 @@ code {
   transform: translateY(0);
 }
 
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
 .site-header {
   position: sticky;
   z-index: 50;
@@ -240,6 +251,10 @@ code {
 }
 
 .site-search summary::-webkit-details-marker {
+  display: none;
+}
+
+.search-label-short {
   display: none;
 }
 
@@ -714,25 +729,38 @@ code {
 }
 
 .run-preview__tests {
-  display: grid;
+  width: 100%;
   margin: 1.8rem 0 0;
-  padding: 0;
-  list-style: none;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.run-preview__tests li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 2rem 4.2rem;
-  align-items: baseline;
-  min-height: 2.6rem;
+.run-preview__test-count {
+  width: 2rem;
+}
+
+.run-preview__elapsed {
+  width: 4.2rem;
+}
+
+.run-preview__tests th,
+.run-preview__tests td {
+  height: 2.6rem;
   padding-block: 0.65rem;
   border-bottom: 1px solid var(--rule);
   font-family: var(--font-code);
   font-size: clamp(0.66rem, 1.1vw, 0.78rem);
-  gap: 0.7rem;
+  vertical-align: baseline;
 }
 
-.run-preview__tests code {
+.run-preview__tests tbody th {
+  padding-right: 0.7rem;
+  font-weight: 400;
+  text-align: left;
+}
+
+.run-preview__tests tbody th code {
+  display: block;
   min-width: 0;
   color: var(--ink);
   overflow: hidden;
@@ -740,15 +768,14 @@ code {
   white-space: nowrap;
 }
 
-.run-preview__tests li > span {
+.run-preview__tests td {
   color: var(--muted);
   text-align: right;
 }
 
-.run-preview__tests li > strong {
+.run-preview__tests td > strong {
   color: var(--action);
   font-weight: 650;
-  text-align: right;
 }
 
 .run-preview__more {
@@ -1860,10 +1887,21 @@ code {
     line-height: 1.5;
   }
 
-  .run-preview__tests li {
-    grid-template-columns: minmax(0, 1fr) 1.5rem 3.6rem;
+  .run-preview__test-count {
+    width: 1.5rem;
+  }
+
+  .run-preview__elapsed {
+    width: 3.6rem;
+  }
+
+  .run-preview__tests th,
+  .run-preview__tests td {
     font-size: 0.74rem;
-    gap: 0.45rem;
+  }
+
+  .run-preview__tests tbody th {
+    padding-right: 0.45rem;
   }
 
   .run-preview__more {
@@ -1875,13 +1913,12 @@ code {
     font-size: 0.8rem;
   }
 
-  .site-search summary span {
-    font-size: 0;
+  .search-label-full {
+    display: none;
   }
 
-  .site-search summary span::after {
-    font-size: 0.9rem;
-    content: 'Find';
+  .search-label-short {
+    display: inline;
   }
 
   .capability-list p {
