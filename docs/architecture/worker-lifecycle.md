@@ -184,8 +184,8 @@ the slots.
 If the oldest unit waits, the orchestrator reserves one slot from each required
 resource. A later unit can pass it only in one of these conditions:
 
-- The later unit uses other resources.
-- Capacity exists beyond the reservation.
+* The later unit uses other resources.
+* Capacity exists beyond the reservation.
 
 Unrelated work can continue. It cannot delay the oldest unit indefinitely.
 
