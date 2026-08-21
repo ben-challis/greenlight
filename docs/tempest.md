@@ -87,8 +87,8 @@ the Tempest container to resolve the type. Greenlight harness services take
 precedence over Tempest services.
 
 Tempest can use discovered initializers and automatic constructor injection. If
-Tempest cannot resolve the type, the test reports a `TempestBridgeError`. The
-error contains the Tempest container error as its cause.
+Tempest cannot resolve the type, Greenlight throws `ServiceResolutionFailed`.
+The exception contains the Tempest container exception as its cause.
 
 ### Tagged services
 

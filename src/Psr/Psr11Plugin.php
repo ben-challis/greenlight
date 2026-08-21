@@ -7,6 +7,7 @@ namespace Greenlight\Psr;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -55,7 +56,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
     }
 
     /**
-     * @throws Psr11BridgeError
+     * @throws ServiceResolutionFailed
      */
     private function container(): ContainerInterface
     {
@@ -87,7 +88,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
      * @param class-string $type
      * @param list<object> $attributes
      *
-     * @throws Psr11BridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
@@ -132,7 +133,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
     }
 
     /**
-     * @throws Psr11BridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult

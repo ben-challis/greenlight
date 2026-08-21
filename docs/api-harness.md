@@ -413,17 +413,17 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L26)
 
-## `ServiceResolutionError`
+## `ServiceResolutionFailed`
 
 Namespace: `Greenlight\Harness`
 
-A harness service resolver cannot supply a valid service.
+Greenlight could not supply a valid service from a harness or container integration.
 
 ```php
-abstract class ServiceResolutionError extends \RuntimeException
+abstract class ServiceResolutionFailed extends \RuntimeException
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolutionError.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolutionFailed.php#L10)
 
 This type does not declare public members.
 
@@ -455,6 +455,6 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws ServiceResolutionError when the resolver cannot supply a valid service`
+- `@throws ServiceResolutionFailed when the resolver cannot supply a valid service`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L24)

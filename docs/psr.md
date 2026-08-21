@@ -54,6 +54,9 @@ Greenlight first resolves constructor parameters from its harness. It then
 uses the PSR-11 container. Harness services have precedence over container
 services.
 
+Container creation, reset, and service-resolution failures throw
+`ServiceResolutionFailed`. Concrete PSR-11 bridge exceptions are internal.
+
 For an available service ID, the container MUST return `true` from `has()`.
 The value from `get()` MUST have the declared parameter type. Greenlight
 reports a type mismatch before the test runs.

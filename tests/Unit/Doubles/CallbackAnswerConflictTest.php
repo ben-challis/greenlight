@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
@@ -30,7 +30,7 @@ final readonly class CallbackAnswerConflictTest
         )
             ->because('a callback answer MUST prevent a second answer')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'The expectation on add() already has an answer. Configure exactly one of '
                     . 'andReturns(), andReturnsSequence(), andReturnsUsing(), or andThrows().',
             );

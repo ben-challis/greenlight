@@ -6,19 +6,19 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 
-final class DoublesErrorTest
+final class InvalidDoubleUsageTest
 {
     #[Test]
     public function defaultValueErrorsNameTheParameterAndMethod(): void
     {
-        Expect::that(DoublesError::defaultValueNotReproducible('limit', 'Example', 'run')->getMessage())
+        Expect::that(InvalidDoubleUsage::defaultValueNotReproducible('limit', 'Example', 'run')->getMessage())
             ->toBe('Doubles cannot reproduce the default value of parameter $limit from Example::run() in a proxy.');
 
-        Expect::that(DoublesError::objectDefaultNotReproducible('clock', 'Example', 'run')->getMessage())
+        Expect::that(InvalidDoubleUsage::objectDefaultNotReproducible('clock', 'Example', 'run')->getMessage())
             ->toBe(
                 'Doubles cannot reproduce the object default of parameter $clock from Example::run() in a proxy. '
                 . 'Use an interface without object defaults instead.',
@@ -33,10 +33,10 @@ final class DoublesErrorTest
         string $expected,
     ): void {
         $error = match ($factory) {
-            'unsupported reflection type' => DoublesError::unsupportedReflectionType($input),
-            'parent type without parent' => DoublesError::parentTypeWithoutParent($input),
-            'unsupported nested reflection type' => DoublesError::unsupportedNestedReflectionType($input),
-            'unresolvable default constant' => DoublesError::defaultConstantUnresolvable($input),
+            'unsupported reflection type' => InvalidDoubleUsage::unsupportedReflectionType($input),
+            'parent type without parent' => InvalidDoubleUsage::parentTypeWithoutParent($input),
+            'unsupported nested reflection type' => InvalidDoubleUsage::unsupportedNestedReflectionType($input),
+            'unresolvable default constant' => InvalidDoubleUsage::defaultConstantUnresolvable($input),
             default => Fail::because(\sprintf('Unknown doubles diagnostic factory "%s".', $factory)),
         };
 

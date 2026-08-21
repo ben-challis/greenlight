@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Notifier;
 
@@ -22,7 +22,7 @@ final readonly class SpyMethodValidationTest
         Expect::that(fn(): array => $this->doubles->callsTo($spy, 'notifiy')) // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
             ->because('a misspelled method MUST NOT look like an uncalled method')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Notifier has no method notifiy(). '
                 . 'Doubles cannot inspect calls to it.',
             );

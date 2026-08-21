@@ -45,20 +45,20 @@ final readonly class PhpStanCheckedExceptionTest
             namespace Greenlight\Probe;
 
             use Greenlight\Core\Result\FailureDetail;
-            use Greenlight\Core\Wire\WireError;
+            use Greenlight\Core\Wire\WireCommunicationFailed;
             use Greenlight\Coverage\CoverageError;
-            use Greenlight\Doubles\DoublesError;
+            use Greenlight\Doubles\InvalidDoubleUsage;
             use Greenlight\Expect\ExpectationFailed;
             use Greenlight\Sandbox\TemporaryDirectoryError;
-            use Greenlight\Harness\ServiceResolutionError;
+            use Greenlight\Harness\ServiceResolutionFailed;
             use Greenlight\Harness\UnresolvableService;
-            use Greenlight\Reporting\ReportingError;
+            use Greenlight\Reporting\ReportGenerationFailed;
             use Greenlight\Runner\Integration\IntegrationFixtureError;
             use Greenlight\Runner\Protocol\ProtocolError;
             use Greenlight\Runner\Worker\WorkerError;
 
-            final class ProbeWireError extends WireError {}
-            final class ProbeServiceResolutionError extends ServiceResolutionError {}
+            final class ProbeWireCommunicationFailed extends WireCommunicationFailed {}
+            final class ProbeServiceResolutionFailed extends ServiceResolutionFailed {}
 
             function undocumentedProductionHelper(): void
             {
@@ -72,7 +72,7 @@ final readonly class PhpStanCheckedExceptionTest
 
             function undocumentedAuthoringError(): void
             {
-                throw DoublesError::invalidTimes(-1);
+                throw InvalidDoubleUsage::invalidTimes(-1);
             }
 
             function undocumentedResolutionError(): void
@@ -80,9 +80,9 @@ final readonly class PhpStanCheckedExceptionTest
                 throw UnresolvableService::unknownType(\stdClass::class, \stdClass::class);
             }
 
-            function undocumentedReportingError(): void
+            function undocumentedReportGenerationFailed(): void
             {
-                throw ReportingError::writeFailed();
+                throw ReportGenerationFailed::writeFailed();
             }
 
             function undocumentedIntegrationError(): void
@@ -100,14 +100,14 @@ final readonly class PhpStanCheckedExceptionTest
                 throw ProtocolError::malformedFrame('probe');
             }
 
-            function undocumentedWireErrorSubtype(): void
+            function undocumentedWireCommunicationFailedSubtype(): void
             {
-                throw new ProbeWireError('Expected wire failure.');
+                throw new ProbeWireCommunicationFailed('Expected wire failure.');
             }
 
-            function undocumentedServiceResolutionErrorSubtype(): void
+            function undocumentedServiceResolutionFailedSubtype(): void
             {
-                throw new ProbeServiceResolutionError('Expected service resolution failure.');
+                throw new ProbeServiceResolutionFailed('Expected service resolution failure.');
             }
 
             function undocumentedWorkerError(): void
@@ -132,13 +132,13 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Coverage\\CoverageError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Doubles\\DoublesError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Doubles\\InvalidDoubleUsage but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Harness\\UnresolvableService but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Reporting\\ReportingError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Reporting\\ReportGenerationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Runner\\Integration\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
@@ -150,10 +150,10 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Runner\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Probe\\ProbeWireError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Probe\\ProbeWireCommunicationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Runner\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',

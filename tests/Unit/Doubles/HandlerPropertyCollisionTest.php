@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\PrivateHandlerProperty;
 use Greenlight\Tests\Fixture\Doubles\ProtectedHandlerPropertyCollision;
@@ -28,7 +28,7 @@ final readonly class HandlerPropertyCollisionTest
         Expect::that(fn(): object => $this->doubles->stub($type))
             ->because('a visible property conflicts with proxy handler storage')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: $type . ' declares $__greenlightHandler. '
                     . 'This property conflicts with the proxy handler storage property.',
             );

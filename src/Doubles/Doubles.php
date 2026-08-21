@@ -47,7 +47,7 @@ final class Doubles implements Disposable
      *   classes. An empty string is invalid. The default is a project
      *   directory in the system temporary directory. A hash of the current
      *   working directory identifies it.
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function __construct(?string $proxyDirectory = null)
     {
@@ -59,7 +59,7 @@ final class Doubles implements Disposable
             $workingDirectory = \getcwd();
 
             if ($workingDirectory === false) {
-                throw DoublesError::workingDirectoryUnresolved();
+                throw InvalidDoubleUsage::workingDirectoryUnresolved();
             }
 
             $proxyDirectory = \sprintf(
@@ -84,7 +84,7 @@ final class Doubles implements Disposable
      * @param \Closure(MockPlan<T>): void|null $plan
      *
      * @return T
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function mock(string $type, ?\Closure $plan = null): object
     {
@@ -101,7 +101,7 @@ final class Doubles implements Disposable
      * @param class-string<T> $type
      *
      * @return T
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function stub(string $type): object
     {
@@ -118,7 +118,7 @@ final class Doubles implements Disposable
      * @param class-string<T> $type
      *
      * @return T
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function spy(string $type): object
     {
@@ -131,19 +131,19 @@ final class Doubles implements Disposable
      * method must exist on the doubled type.
      *
      * @return list<list<mixed>>
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function callsTo(object $double, string $method): array
     {
         if (!isset($this->doubles[$double])) {
-            throw DoublesError::foreignDouble($double::class);
+            throw InvalidDoubleUsage::foreignDouble($double::class);
         }
 
         $state = $this->doubles[$double];
         $reflection = new \ReflectionClass($state->type);
 
         if (!$reflection->hasMethod($method)) {
-            throw DoublesError::noSuchRecordedMethod($state->type, $method);
+            throw InvalidDoubleUsage::noSuchRecordedMethod($state->type, $method);
         }
 
         $method = $reflection->getMethod($method)->getName();
@@ -195,7 +195,7 @@ final class Doubles implements Disposable
      * @param \Closure(MockPlan<T>): void|null $plan
      *
      * @return T
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function create(string $type, DoubleKind $kind, ?\Closure $plan): object
     {

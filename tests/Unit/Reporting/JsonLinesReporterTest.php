@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JsonLinesReporter;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Tests\Support\JsonWire;
 
 final class JsonLinesReporterTest
@@ -107,7 +107,7 @@ final class JsonLinesReporterTest
 
         Expect::that(static fn() => $reporter->onEvent($event))->because('an unmapped event is rejected')
             ->toThrow(
-                ReportingError::class,
+                ReportGenerationFailed::class,
                 message: \sprintf(
                     'Event "%s" has no stable tag. Add the event to the tag map before Greenlight writes it.',
                     $event::class,

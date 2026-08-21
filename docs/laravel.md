@@ -69,6 +69,9 @@ take precedence over container services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
+Bridge setup and service-resolution failures throw `ServiceResolutionFailed`.
+Concrete Laravel bridge exceptions are internal.
+
 The bridge resolves bound services only. Laravel can construct an unbound class
 through implicit resolution, but the bridge does not use that mechanism. Bind
 the service in a service provider to make it injectable.

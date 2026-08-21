@@ -45,7 +45,7 @@ final class HarnessScopes
      *
      * @return T
      *
-     * @throws ServiceResolutionError when a service resolver cannot supply a valid service
+     * @throws ServiceResolutionFailed when a service resolver cannot supply a valid service
      * @throws UnresolvableService
      */
     public function resolve(string $type, string $consumer, array $attributes = []): object

@@ -34,7 +34,7 @@ final readonly class JsonLinesReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     #[\Override]
     public function onEvent(Event $event): void
@@ -42,7 +42,7 @@ final readonly class JsonLinesReporter implements Reporter
         $tag = EventTags::tagFor($event);
 
         if ($tag === null) {
-            throw ReportingError::unmappedEvent($event::class);
+            throw ReportGenerationFailed::unmappedEvent($event::class);
         }
 
         $line = \json_encode(

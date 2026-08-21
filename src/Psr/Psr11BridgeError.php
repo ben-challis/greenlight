@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Psr;
 
-use Greenlight\Harness\ServiceResolutionError;
+use Greenlight\Harness\ServiceResolutionFailed;
 
 /**
  * Reports a PSR-11 bridge configuration or run-time failure.
  *
  * @internal
  */
-final class Psr11BridgeError extends ServiceResolutionError
+final class Psr11BridgeError extends ServiceResolutionFailed
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {

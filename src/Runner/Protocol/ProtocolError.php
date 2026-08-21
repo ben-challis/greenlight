@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 
 /**
  * Greenlight raises this error when a frame, envelope, or message violates
@@ -14,7 +14,7 @@ use Greenlight\Core\Wire\WireError;
  *
  * @internal
  */
-final class ProtocolError extends WireError
+final class ProtocolError extends WireCommunicationFailed
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {

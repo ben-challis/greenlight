@@ -7,6 +7,7 @@ namespace Greenlight\Tempest;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
@@ -81,7 +82,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws TempestBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function resolve(string $type, array $attributes): object
@@ -120,7 +121,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     }
 
     /**
-     * @throws TempestBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult
@@ -143,7 +144,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     }
 
     /**
-     * @throws TempestBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function kernel(): Kernel
     {
@@ -180,7 +181,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     }
 
     /**
-     * @throws TempestBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function container(): Container
     {

@@ -12,7 +12,7 @@ final class Argument
     /**
      * This matcher accepts all values in its position.
      */
-    public static function any(): Any
+    public static function any(): ArgumentMatcher
     {
         return new Any();
     }
@@ -20,7 +20,7 @@ final class Argument
     /**
      * This matcher accepts instances of the specified class or interface.
      * It also accepts values when `get_debug_type()` returns `$type`.
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public static function type(string $type): ArgumentMatcher
     {

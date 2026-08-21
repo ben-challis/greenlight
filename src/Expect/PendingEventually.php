@@ -22,6 +22,8 @@ final class PendingEventually
     private array $retryOnExceptions = [];
 
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */

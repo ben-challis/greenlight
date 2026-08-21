@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-/** @internal */
-final class ReportingError extends \RuntimeException
+/**
+ * A reporter could not render or deliver its required output.
+ */
+final class ReportGenerationFailed extends \RuntimeException
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {

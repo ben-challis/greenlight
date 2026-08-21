@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
@@ -29,14 +29,14 @@ final readonly class BoundaryTest
     public function finalClassesCannotBeDoubled(): void
     {
         Expect::that(fn(): object => $this->doubles->mock(FinalService::class))->because('final classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
-            ->toThrow(DoublesError::class, '/is final.*proxy subclass.*interface/');
+            ->toThrow(InvalidDoubleUsage::class, '/is final.*proxy subclass.*interface/');
     }
 
     #[Test]
     public function readonlyClassesCannotBeDoubled(): void
     {
         Expect::that(fn(): object => $this->doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
-            ->toThrow(DoublesError::class, '/readonly class.*interface/');
+            ->toThrow(InvalidDoubleUsage::class, '/readonly class.*interface/');
     }
 
     #[Test]
@@ -44,7 +44,7 @@ final readonly class BoundaryTest
     {
         Expect::that(fn(): object => $this->doubles->mock(Suit::class))->because('enums cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Suit is an enum. '
                     . 'Doubles does not support enums. Use an interface that the enum implements.',
             );
@@ -56,7 +56,7 @@ final readonly class BoundaryTest
         Expect::that(fn(): object => $this->doubles->mock(ReusableBehavior::class)) // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->because('a trait cannot supply an object type for a generated proxy')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: ReusableBehavior::class . ' is a trait. '
                     . 'Doubles cannot create a proxy for a trait. '
                     . 'Use a class or interface that uses it.',
@@ -73,7 +73,7 @@ final readonly class BoundaryTest
         Expect::that(fn(): object => $this->doubles->mock($type))
             ->because('the proxy handler method cannot be declared by the doubled type')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: $type . ' declares __greenlightAttachHandler(). '
                     . 'This method conflicts with the proxy handler method.',
             );
@@ -115,7 +115,7 @@ final readonly class BoundaryTest
     {
         Expect::that(fn(): object => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects(self::missingMethod());
-        }))->because('planning a missing method is an authoring error')->toThrow(DoublesError::class, '/has no method subtract\(\)/');
+        }))->because('planning a missing method is an authoring error')->toThrow(InvalidDoubleUsage::class, '/has no method subtract\(\)/');
     }
 
     /** @return non-empty-string */
@@ -138,7 +138,7 @@ final readonly class BoundaryTest
             },
         ))
             ->because('planning an unplannable method is an authoring error')
-            ->toThrow(DoublesError::class, message: $message);
+            ->toThrow(InvalidDoubleUsage::class, message: $message);
     }
 
     /**

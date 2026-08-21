@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Notifier;
@@ -53,7 +53,7 @@ final readonly class SpyTest
 
         Expect::that(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'The spy of "' . Calculator::class . '" cannot supply a value for "add()". '
                     . 'Spies only record interactions. '
                     . 'Use mock() with explicit expectations for calls that return values.',
@@ -67,7 +67,7 @@ final readonly class SpyTest
 
         Expect::that(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects') // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'This Doubles factory did not create the stdClass instance.',
             );
     }

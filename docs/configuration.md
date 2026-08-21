@@ -379,6 +379,10 @@ The loader calls this method. User configuration does not call it.
 
 Return the builder from `greenlight.php`. Do not call `build()`.
 
+Configuration builders throw `InvalidConfiguration` for invalid values or
+invalid combinations. Catch this public type when an integration adds
+configuration before Greenlight starts the run.
+
 ## Channels and resource limits
 
 Every worker process runs in a channel: a stable slot numbered from 1 to the
