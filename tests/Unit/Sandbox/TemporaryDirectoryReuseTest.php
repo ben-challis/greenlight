@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
-final readonly class TempDirectoryReuseTest
+final readonly class TemporaryDirectoryReuseTest
 {
     #[Test]
     #[DataSet('disposedRoots')]
     public function useAfterDisposalCreatesAFreshDirectory(bool $externallyRemoved): void
     {
-        $directory = new TempDirectory();
+        $directory = new TemporaryDirectory();
         $first = $directory->path();
 
         if ($externallyRemoved) {

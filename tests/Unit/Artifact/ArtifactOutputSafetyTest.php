@@ -12,19 +12,19 @@ use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class ArtifactOutputSafetyTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

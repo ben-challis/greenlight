@@ -15,7 +15,6 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
@@ -30,6 +29,7 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Test\Cleanup;
 
 /**
  * Each test attempt can have these operations, in this order:

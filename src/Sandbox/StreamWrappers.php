@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Sandbox;
 
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Disposable;
@@ -10,7 +10,7 @@ use Greenlight\Harness\Disposable;
 /**
  * Registers stream wrappers and unregisters them when the test scope closes.
  */
-final class StreamWrapperSandbox implements Disposable
+final class StreamWrappers implements Disposable
 {
     /** @var list<non-empty-string> */
     private array $schemes = [];

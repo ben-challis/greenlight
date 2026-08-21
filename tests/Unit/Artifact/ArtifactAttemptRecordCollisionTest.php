@@ -9,13 +9,13 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class ArtifactAttemptRecordCollisionTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function aFileAtTheTestDirectoryBlocksAttemptRecording(): void

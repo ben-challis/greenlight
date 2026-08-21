@@ -8,9 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\NativeFileCopier;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Artifact\TrackedOpenStream;
 
 final readonly class ArtifactCopyOpenFailureTest
@@ -18,8 +18,8 @@ final readonly class ArtifactCopyOpenFailureTest
     private const string SCHEME = 'greenlight-tracked-open';
 
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private StreamWrapperSandbox $streamWrappers,
+        private TemporaryDirectory $tempDirectory,
+        private StreamWrappers $streamWrappers,
     ) {}
 
     #[Test]

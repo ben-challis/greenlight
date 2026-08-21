@@ -16,11 +16,11 @@ use Greenlight\Condition\OperatingSystemFamily;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Condition\PhpVersionLessThan;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Sandbox\EnvironmentVariables;
 
 final readonly class ConditionsTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     #[DataSet('extensionLoadedStates')]

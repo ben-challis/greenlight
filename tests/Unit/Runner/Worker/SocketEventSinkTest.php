@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\SuiteStarted;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\SocketEventSink;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final readonly class SocketEventSinkTest

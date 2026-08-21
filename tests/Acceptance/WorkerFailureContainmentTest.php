@@ -10,7 +10,7 @@ use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
@@ -19,7 +19,7 @@ use Greenlight\Tests\Support\ProcessResult;
 /** Crash and hang fixtures MUST NOT run in the orchestrator process. */
 final readonly class WorkerFailureContainmentTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function crashedWorkersAreContainedAndTheRunCompletes(): void

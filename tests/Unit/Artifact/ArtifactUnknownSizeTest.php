@@ -7,13 +7,13 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Artifact\UnknownSizeFileStream;
 
 final readonly class ArtifactUnknownSizeTest
@@ -21,8 +21,8 @@ final readonly class ArtifactUnknownSizeTest
     private const string SCHEME = 'greenlight-unknown-size';
 
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private StreamWrapperSandbox $streamWrappers,
+        private TemporaryDirectory $tempDirectory,
+        private StreamWrappers $streamWrappers,
         private Cleanup $cleanup,
     ) {}
 

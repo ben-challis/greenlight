@@ -8,11 +8,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class TestDiscovererNonFileEntryTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function aDirectoryLinkNamedLikeATestFileIsIgnored(): void

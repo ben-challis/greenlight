@@ -9,14 +9,14 @@ use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
 
 final readonly class ConfigLoaderOpenFailureTest
 {
     private const string SCHEME = 'greenlight-config-open-failure';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function openFailureIsWrappedWithoutEngineDiagnostics(): void

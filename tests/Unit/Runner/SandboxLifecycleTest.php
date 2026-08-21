@@ -8,30 +8,30 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Support\CollectingEventSink;
 
-final readonly class FixtureLifecycleTest
+final readonly class SandboxLifecycleTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     #[DataSet('initialEnvironmentValues')]
-    public function defaultFixturesAreInjectedAndCleanedUpAfterTheTest(?string $initialValue): void
+    public function defaultSandboxesAreInjectedAndCleanedUpAfterTheTest(?string $initialValue): void
     {
         TraceLog::drain();
 
         if ($initialValue === null) {
-            $this->environment->unset('GREENLIGHT_FIXTURE_E2E');
+            $this->environment->unset('GREENLIGHT_SANDBOX_E2E');
         } else {
-            $this->environment->set('GREENLIGHT_FIXTURE_E2E', $initialValue);
+            $this->environment->set('GREENLIGHT_SANDBOX_E2E', $initialValue);
         }
 
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/HarnessFixtures';
+        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/HarnessSandboxes';
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
@@ -49,9 +49,9 @@ final readonly class FixtureLifecycleTest
         Expect::that($outcome->summary->passed)->toBe(1);
         Expect::that($tempPath)->not()->toBeNull();
         Expect::that(\file_exists($tempPath))->toBeFalse();
-        Expect::that(\getenv('GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue ?? false);
-        Expect::that($this->superglobalValue($_ENV, 'GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue);
-        Expect::that($this->superglobalValue($_SERVER, 'GREENLIGHT_FIXTURE_E2E'))->toBe($initialValue);
+        Expect::that(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue ?? false);
+        Expect::that($this->superglobalValue($_ENV, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
+        Expect::that($this->superglobalValue($_SERVER, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
     }
 
     /**

@@ -8,11 +8,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Condition\EnvironmentVariableSet;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
+use Greenlight\Sandbox\EnvironmentVariables;
 
 final readonly class EnvironmentVariableAbsenceTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     public function anAbsentVariableDoesNotEqualAnEmptyValue(): void

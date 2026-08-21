@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 
 final readonly class DoublesWorkingDirectoryTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

@@ -9,14 +9,14 @@ use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 
 final readonly class AttachmentRunTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function attachmentsSurviveASequentialRunWithRetryAndPluginEvidence(): void

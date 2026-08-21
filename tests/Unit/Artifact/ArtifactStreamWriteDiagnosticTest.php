@@ -8,15 +8,15 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Artifact\StreamWriter;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Artifact\WarningWriteStream;
 
 final readonly class ArtifactStreamWriteDiagnosticTest
 {
     private const string SCHEME = 'greenlight-artifact-write-warning';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function aStreamWriteDiagnosticIsContainedByTheAttachmentError(): void

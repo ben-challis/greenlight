@@ -8,13 +8,13 @@ use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Runner\CpuCores;
+use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class CpuCoresFallbackTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     #[Isolated]

@@ -8,12 +8,12 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 
 final readonly class AcceptanceProjectTest
 {
-    public function __construct(private TempDirectory $workspace) {}
+    public function __construct(private TemporaryDirectory $workspace) {}
 
     #[Test]
     public function createsAProjectAndWritesNestedFiles(): void

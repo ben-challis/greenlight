@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 /** Owns validated, fail-fast file writes inside one test project. */
 final readonly class ProjectFiles
@@ -16,7 +16,7 @@ final readonly class ProjectFiles
     ) {}
 
     public static function create(
-        TempDirectory $workspace,
+        TemporaryDirectory $workspace,
         string $name,
         string $description = 'test project',
     ): self {

@@ -9,14 +9,14 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Coverage\UnreadableSourceStream;
 
 final readonly class HtmlExporterUnreadableSourceTest
 {
     private const string SCHEME = 'greenlight-unreadable-source';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function unreadableSourceFallsBackBeforeOpeningTheFile(): void

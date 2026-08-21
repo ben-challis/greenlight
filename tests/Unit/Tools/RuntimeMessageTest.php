@@ -6,12 +6,12 @@ namespace Greenlight\Tests\Unit\Tools;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class RuntimeMessageTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function coverageGateReportsAMissingExportExactly(): void

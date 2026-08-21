@@ -8,14 +8,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Filesystem\VanishingDirectoryStream;
 
 final readonly class StatChangeDetectorDirectoryRaceTest
 {
     private const string SCHEME = 'greenlight-vanishing-directory';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function aDirectoryThatVanishesDuringTheScanIsIgnored(): void

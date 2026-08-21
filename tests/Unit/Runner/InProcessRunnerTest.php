@@ -11,20 +11,20 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final readonly class InProcessRunnerTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private EnvironmentSandbox $environment,
+        private TemporaryDirectory $tempDirectory,
+        private EnvironmentVariables $environment,
     ) {}
 
     #[Test]

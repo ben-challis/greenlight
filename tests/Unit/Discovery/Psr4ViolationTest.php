@@ -10,13 +10,13 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\SomewhereElse\MismatchTest;
 use Greenlight\Tests\Support\FixturePath;
 
 final readonly class Psr4ViolationTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     /**
      * @return \Closure(): ExecutionPlan

@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Artifact\NativeFileCopier;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Artifact\UnreadableCopySourceStream;
 
 final readonly class ArtifactCopyReadFailureTest
@@ -17,8 +17,8 @@ final readonly class ArtifactCopyReadFailureTest
     private const string SCHEME = 'greenlight-unreadable-copy-source';
 
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private StreamWrapperSandbox $streamWrappers,
+        private TemporaryDirectory $tempDirectory,
+        private StreamWrappers $streamWrappers,
     ) {}
 
     #[Test]

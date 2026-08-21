@@ -126,7 +126,6 @@ and meaning. Use the singular form unless the context requires a plural.
 | discovery cache | Technical noun | Stored test metadata that Greenlight can reuse for unchanged files |
 | double | Technical noun | A test object that replaces a collaborator |
 | envelope | Technical noun | A versioned JSONL object that contains one event |
-| environment sandbox | Technical noun | A fixture that isolates and restores environment-variable state |
 | event | Technical noun | A record of one occurrence in the run lifecycle |
 | event tag | Technical noun | A string that selects the event payload shape |
 | execution plan | Technical noun | The ordered test metadata that discovery sends for execution |
@@ -140,6 +139,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | harness provider | Technical noun | A plugin that supplies services to the Greenlight harness |
 | harness service | Technical noun | An object that the harness supplies to a test constructor |
 | Hyperf bridge | Technical noun | The component that connects the Greenlight harness to a Hyperf application, container, and coroutine runtime |
+| integration fixture | Technical noun | External infrastructure that the orchestrator owns for one run |
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
@@ -181,6 +181,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | run time | Technical noun | The time when a program executes |
 | runtime | Noun modifier | Related to program execution |
 | runtime boundary | Technical noun | A plugin-defined execution context that contains one complete test attempt |
+| sandbox | Technical noun | A per-test facility that owns temporary state and restores or removes it after the test |
 | service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |

@@ -9,8 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
 use Greenlight\Core\Result\DiagnosticSeverity;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class OutputCaptureTest

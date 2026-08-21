@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 
@@ -14,7 +14,7 @@ final readonly class SeedOrderTest
 {
     private const array CLASSES = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function theSameSeedProducesTheSameOrderAcrossRuns(): void

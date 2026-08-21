@@ -10,12 +10,12 @@ use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 
 final readonly class DiscoveryCachePersistenceTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function unencodableMetadataDoesNotWriteACache(): void

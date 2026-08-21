@@ -7,14 +7,14 @@ namespace Greenlight\Tests\Unit\Runner;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\ParallelRunner;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final readonly class ParallelRunnerTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function runSubscribersObserveTheCompleteParallelEventStream(): void

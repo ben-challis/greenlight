@@ -8,9 +8,9 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\StreamWrapperSandbox;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 
 final readonly class ApplicationStreamOutputTest
@@ -18,7 +18,7 @@ final readonly class ApplicationStreamOutputTest
     private const string SCHEME = 'greenlight-application-partial-write';
 
     public function __construct(
-        private StreamWrapperSandbox $streamWrappers,
+        private StreamWrappers $streamWrappers,
         private Cleanup $cleanup,
     ) {}
 

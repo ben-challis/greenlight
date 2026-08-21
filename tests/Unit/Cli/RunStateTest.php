@@ -11,12 +11,12 @@ use Greenlight\Cli\RunState;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class RunStateTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function roundTripsFailureSetsIncludingEmpty(): void

@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\SystemSignalOperations;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SystemSignalOperationsTest

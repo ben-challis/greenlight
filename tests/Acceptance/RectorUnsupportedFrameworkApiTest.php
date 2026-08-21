@@ -8,13 +8,13 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorUnsupportedFrameworkApiTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     #[DataSet(RectorMigrationRunTest::class, 'unsupportedFrameworkApiSources')]

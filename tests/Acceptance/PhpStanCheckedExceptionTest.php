@@ -7,13 +7,13 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanCheckedExceptionTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function controlSignalsNeedThrowsTagsOutsideTestCode(): void
@@ -47,7 +47,7 @@ final readonly class PhpStanCheckedExceptionTest
             use Greenlight\Coverage\CoverageError;
             use Greenlight\Doubles\DoublesError;
             use Greenlight\Expect\ExpectationFailed;
-            use Greenlight\Fixture\TempDirectoryError;
+            use Greenlight\Sandbox\TemporaryDirectoryError;
             use Greenlight\Harness\ServiceResolutionError;
             use Greenlight\Harness\UnresolvableService;
             use Greenlight\Reporting\ReportingError;
@@ -88,9 +88,9 @@ final readonly class PhpStanCheckedExceptionTest
                 throw IntegrationFixtureError::cleanup([]);
             }
 
-            function undocumentedTempDirectoryError(): void
+            function undocumentedTemporaryDirectoryError(): void
             {
-                throw TempDirectoryError::symbolicLink('/probe');
+                throw TemporaryDirectoryError::symbolicLink('/probe');
             }
 
             function undocumentedProtocolError(): void
@@ -142,7 +142,7 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Runner\\Integration\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Fixture\\TempDirectoryError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Sandbox\\TemporaryDirectoryError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Runner\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',

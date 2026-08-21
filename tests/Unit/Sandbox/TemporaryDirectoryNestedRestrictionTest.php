@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
-use Greenlight\Fixture\TempDirectoryError;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Sandbox\TemporaryDirectoryError;
 
-final readonly class TempDirectoryNestedRestrictionTest
+final readonly class TemporaryDirectoryNestedRestrictionTest
 {
-    public function __construct(private TempDirectory $directory) {}
+    public function __construct(private TemporaryDirectory $directory) {}
 
     #[Test]
     public function unreadableNestedDirectoryProducesATypedCleanupError(): void
@@ -40,7 +40,7 @@ final readonly class TempDirectoryNestedRestrictionTest
             })
                 ->because('fixture cleanup MUST translate directory traversal failures')
                 ->toThrow(
-                    TempDirectoryError::class,
+                    TemporaryDirectoryError::class,
                     matching: \sprintf(
                         '/^Failed to remove temp directory "%s": .*%s.*Permission denied\.$/',
                         \preg_quote($root, '/'),

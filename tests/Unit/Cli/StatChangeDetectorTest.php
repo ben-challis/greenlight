@@ -9,12 +9,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class StatChangeDetectorTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function ignoresMissingDirectoriesAndNonPhpFiles(): void

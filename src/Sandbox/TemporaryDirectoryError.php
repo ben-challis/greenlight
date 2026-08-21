@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Sandbox;
 
 /**
  * A temporary-directory operation cannot create, validate, or remove a path.
  */
-final class TempDirectoryError extends \RuntimeException
+final class TemporaryDirectoryError extends \RuntimeException
 {
     private function __construct(string $message)
     {

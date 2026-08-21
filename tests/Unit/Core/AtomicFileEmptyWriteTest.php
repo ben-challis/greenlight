@@ -7,11 +7,11 @@ namespace Greenlight\Tests\Unit\Core;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\AtomicFile;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class AtomicFileEmptyWriteTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function writeReplacesTheTargetWithEmptyContent(): void

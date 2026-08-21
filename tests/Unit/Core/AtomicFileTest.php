@@ -9,14 +9,14 @@ use Greenlight\Core\AtomicFile;
 use Greenlight\Core\AtomicFileError;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Random\Engine;
 use Random\RandomException;
 use Random\Randomizer;
 
 final readonly class AtomicFileTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function writeReplacesTheTargetWithoutTemporaryResidue(): void

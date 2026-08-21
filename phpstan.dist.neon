@@ -23,7 +23,7 @@ parameters:
             - Greenlight\Discovery\DiscoveryError
             - Greenlight\Doubles\DoublesError
             - Greenlight\Expect\ExpectationFailed
-            - Greenlight\Fixture\TempDirectoryError
+            - Greenlight\Sandbox\TemporaryDirectoryError
             - Greenlight\Harness\ServiceResolutionError
             - Greenlight\PhpStan\MatcherMapError
             - Greenlight\Reporting\ReportingError

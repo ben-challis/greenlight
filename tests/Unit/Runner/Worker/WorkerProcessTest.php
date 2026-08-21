@@ -9,19 +9,19 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Condition\FunctionAvailable;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Worker\WorkerProcess;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class WorkerProcessTest
 {
     public function __construct(
-        private EnvironmentSandbox $environment,
-        private TempDirectory $tempDirectory,
+        private EnvironmentVariables $environment,
+        private TemporaryDirectory $tempDirectory,
         private Cleanup $cleanup,
     ) {}
 

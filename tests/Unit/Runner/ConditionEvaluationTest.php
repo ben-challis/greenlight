@@ -16,18 +16,18 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerError;
+use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Condition\ThrowingCondition;
 use Greenlight\Tests\Fixture\Lifecycle\ConditionArguments\ConditionArgumentsTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final readonly class ConditionEvaluationTest
 {
-    public function __construct(private EnvironmentSandbox $environment) {}
+    public function __construct(private EnvironmentVariables $environment) {}
 
     #[Test]
     public function parameterizedConditionsSkipWithRenderedArgumentsAndRunWhenSatisfied(): void

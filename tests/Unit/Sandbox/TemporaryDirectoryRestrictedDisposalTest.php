@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Fixture;
+namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\Subprocess;
 
-final readonly class TempDirectoryRestrictedDisposalTest
+final readonly class TemporaryDirectoryRestrictedDisposalTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function restrictedRootDisposalFailsWithoutEngineDiagnostics(): void
@@ -23,7 +23,7 @@ final readonly class TempDirectoryRestrictedDisposalTest
             <<<'PHP'
                 require $argv[1];
 
-                $directory = new Greenlight\Fixture\TempDirectory($argv[2]);
+                $directory = new Greenlight\Sandbox\TemporaryDirectory($argv[2]);
                 $directory->path();
 
                 if (ini_set('open_basedir', $argv[3]) === false) {
@@ -37,7 +37,7 @@ final readonly class TempDirectoryRestrictedDisposalTest
                         },
                         $warning,
                     );
-                } catch (Greenlight\Fixture\TempDirectoryError $error) {
+                } catch (Greenlight\Sandbox\TemporaryDirectoryError $error) {
                     echo $warning === null ? "clean\n" : "leaked: {$warning}\n";
                     echo $error->getMessage();
                     exit(23);

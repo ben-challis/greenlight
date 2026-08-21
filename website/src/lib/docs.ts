@@ -142,9 +142,14 @@ export const docSections = [
         description: 'This reference lists double factories, argument matchers, captors, and mock plans.',
       },
       {
-        id: 'api-fixtures-harness',
-        title: 'Fixtures and harness',
-        description: 'This reference lists fixtures and harness service contracts.',
+        id: 'api-sandboxes',
+        title: 'Sandbox API',
+        description: 'This reference lists the sandboxes that isolate temporary test state.',
+      },
+      {
+        id: 'api-harness',
+        title: 'Harness API',
+        description: 'This reference lists harness service and integration-resource contracts.',
       },
       {
         id: 'api-plugins',

@@ -13,14 +13,14 @@ use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\DoublesError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ProxyStorageContract;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class ProxyStorageTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function aFileThatBlocksTheProxyDirectoryGivesExactGuidance(): void

@@ -13,8 +13,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\OperatingSystemFamily;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\CpuCores;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Runner\FakeCpuCoreCounter;
 use Greenlight\Tests\Fixture\Runner\FakeNumberOfCpuCoreNotFound;
 use Greenlight\Tests\Support\ProcessResult;
@@ -22,7 +22,7 @@ use Greenlight\Tests\Support\Subprocess;
 
 final readonly class CpuCoresTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     #[Isolated]

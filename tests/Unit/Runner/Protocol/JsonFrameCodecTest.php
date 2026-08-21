@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class JsonFrameCodecTest

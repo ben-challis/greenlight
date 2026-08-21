@@ -7,12 +7,12 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\Orchestrator\ServerSocket;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class ServerSocketUnixCleanupTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     public function closingAUnixListenerRemovesItsOwnedSocketDirectory(): void

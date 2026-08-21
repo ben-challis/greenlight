@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 final readonly class PhpStanProbe
 {
@@ -21,7 +21,7 @@ final readonly class PhpStanProbe
      * @throws \RuntimeException when PHPStan cannot run or return a valid file report
      */
     public static function analyze(
-        TempDirectory $workspace,
+        TemporaryDirectory $workspace,
         string $goodSource,
         string $badSource,
         ?string $configFile = null,

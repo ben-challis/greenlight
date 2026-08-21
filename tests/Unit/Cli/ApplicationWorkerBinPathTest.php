@@ -9,8 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\MemoryStream;
@@ -18,8 +18,8 @@ use Greenlight\Tests\Support\MemoryStream;
 final readonly class ApplicationWorkerBinPathTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private EnvironmentSandbox $environment,
+        private TemporaryDirectory $tempDirectory,
+        private EnvironmentVariables $environment,
     ) {}
 
     #[Test]

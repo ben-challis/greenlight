@@ -7,15 +7,15 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Artifact\StreamWriter;
+use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Artifact\PartialWriteStream;
 
 final readonly class ArtifactStreamPartialWriteTest
 {
     private const string SCHEME = 'greenlight-partial-write';
 
-    public function __construct(private StreamWrapperSandbox $streamWrappers) {}
+    public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
     public function partialWritesContinueUntilEveryByteIsWritten(): void

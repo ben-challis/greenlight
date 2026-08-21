@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Fixture\StreamWrapperSandbox;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Sandbox\StreamWrappers;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Runner\Protocol\FlushFailureStream;
 
 final readonly class SocketChannelFlushFailureTest
@@ -19,7 +19,7 @@ final readonly class SocketChannelFlushFailureTest
     private const string STREAM_SCHEME = 'greenlight-flush-failure';
 
     public function __construct(
-        private StreamWrapperSandbox $streamWrappers,
+        private StreamWrappers $streamWrappers,
         private Cleanup $cleanup,
     ) {}
 

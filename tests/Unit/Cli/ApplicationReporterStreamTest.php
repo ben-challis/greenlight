@@ -6,18 +6,18 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\EnvironmentSandbox;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class ApplicationReporterStreamTest
 {
     public function __construct(
-        private TempDirectory $tempDirectory,
-        private EnvironmentSandbox $environment,
+        private TemporaryDirectory $tempDirectory,
+        private EnvironmentVariables $environment,
         private Cleanup $cleanup,
     ) {}
 

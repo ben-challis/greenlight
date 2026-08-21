@@ -6,17 +6,17 @@ namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessTest
 {
     public function __construct(
-        private TempDirectory $workspace,
+        private TemporaryDirectory $workspace,
         private Cleanup $cleanup,
     ) {}
 

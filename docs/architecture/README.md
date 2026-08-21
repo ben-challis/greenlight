@@ -54,10 +54,11 @@ public.
 | --- | --- | --- |
 | `Core` | Shared immutable values, events, results, and worker-protocol data | Nothing |
 | `Attribute`, `Condition` | User test metadata | `Core` |
+| `Test` | Per-test cleanup controls | Nothing |
 | `Config` | Public builders and resolved internal configuration | `Core`, `Plugin` |
 | `Expect` | Immediate and temporal expectations | `Core`, `Plugin` |
 | `Harness`, `Plugin` | Lifecycle scopes and extension interfaces | `Core` |
-| `Doubles`, `Fixture` | Test-author tools that use harness scopes | Lower test-author modules |
+| `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
 | `Discovery` | PHP declaration discovery and execution plans | `Core`, `Attribute` |
 | `Capture`, `Coverage` | Bounded output capture and line-coverage values | `Core` |
 | `Reporting` | Event consumers and output formats | `Core` |
@@ -82,7 +83,7 @@ The CLI applies overrides once between these two forms.
 
 ### Test authors
 
-Test authors use attributes, `Expect`, fixtures, doubles, attachments, and
+Test authors use attributes, `Expect`, sandboxes, doubles, attachments, and
 conditions. They can also use the documented harness and plugin interfaces.
 These interfaces define PHP signatures, lifecycle rules, and error behavior.
 

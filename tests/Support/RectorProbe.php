@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 
 /**
  * Runs the bundled PhpUnitToGreenlightRector against one PHPUnit-style test
@@ -27,7 +27,7 @@ final readonly class RectorProbe
      * @throws \RuntimeException when Rector cannot run or the probe file cannot be read back
      */
     public static function convert(
-        TempDirectory $workspace,
+        TemporaryDirectory $workspace,
         string $testClassSource,
         array $configuration = [],
         string $name = 'rector-probe',

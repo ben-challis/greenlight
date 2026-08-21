@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Fixture;
+namespace Greenlight\Sandbox;
 
 use Greenlight\Harness\Disposable;
 
 /**
  * Registers autoloaders and unregisters them when the test scope closes.
  */
-final class AutoloaderSandbox implements Disposable
+final class Autoloaders implements Disposable
 {
     /** @var list<callable(string): void> */
     private array $autoloaders = [];

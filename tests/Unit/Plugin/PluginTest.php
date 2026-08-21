@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\Cleanup;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
@@ -17,7 +16,6 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
-use Greenlight\Fixture\TempDirectory;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\HarnessProvider;
@@ -30,6 +28,8 @@ use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerError;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Fixture\Plugins\EvenNumbersExtension;
@@ -50,9 +50,9 @@ final readonly class PluginTest
             {
                 return [
                     new ServiceDefinition(
-                        TempDirectory::class,
+                        TemporaryDirectory::class,
                         Scope::PerTest,
-                        static fn(): TempDirectory => new TempDirectory(),
+                        static fn(): TemporaryDirectory => new TemporaryDirectory(),
                     ),
                 ];
             }
@@ -63,7 +63,7 @@ final readonly class PluginTest
             ->because('plugin services MUST not replace Greenlight-owned defaults')
             ->toThrow(
                 \LogicException::class,
-                message: 'A harness service for Greenlight\Fixture\TempDirectory is already registered.',
+                message: 'A harness service for Greenlight\Sandbox\TemporaryDirectory is already registered.',
             );
     }
 

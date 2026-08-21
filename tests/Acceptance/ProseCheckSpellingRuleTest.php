@@ -6,12 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use Greenlight\Fixture\TempDirectory;
+use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\ProseCheckRuleProbe;
 
 final readonly class ProseCheckSpellingRuleTest
 {
-    public function __construct(private TempDirectory $tempDirectory) {}
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     #[DataRow(['british-spelling', 'The reporter uses a different colour.', 'The reporter uses a different color.'], 'colour')]
