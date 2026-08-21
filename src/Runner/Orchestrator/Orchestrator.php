@@ -75,6 +75,7 @@ final class Orchestrator
     private const float PROGRESS_DEADLINE_SECONDS = 60.0;
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
+    private const float WORKER_EXIT_GRACE_SECONDS = 2.0;
 
     private ?ResourceScheduler $scheduler = null;
 
@@ -206,6 +207,7 @@ final class Orchestrator
                     $this->drainAll();
                 }
 
+                $this->reapRetiringHandles();
                 $this->spawnUpTo($workerCount, $server->address, $token, $sink, $spawnBudget);
 
                 if ($this->finished()) {
@@ -244,7 +246,10 @@ final class Orchestrator
         // allocator has a channel for each possible live worker.
         $channels = $this->channels ??= new ChannelAllocator($workerCount);
 
-        while (!$this->draining && $this->pendingUnits() > $this->unassignedActiveCount() && $this->activeCount() < $workerCount) {
+        while (!$this->draining
+            && $this->pendingUnits() > $this->unassignedActiveCount()
+            && \count($this->handles) < $workerCount
+        ) {
             $workerId = $spawnBudget->nextWorkerId();
 
             $command = [...$this->workerCommand, '__worker', $address, $workerId, $token];
@@ -282,25 +287,12 @@ final class Orchestrator
         }
     }
 
-    private function activeCount(): int
-    {
-        $active = 0;
-
-        foreach ($this->handles as $handle) {
-            if (!$handle->done) {
-                ++$active;
-            }
-        }
-
-        return $active;
-    }
-
     private function finished(): bool
     {
         if ($this->pendingUnits() > 0 && !$this->draining) {
             return false;
         }
-        return \array_all($this->handles, fn($handle) => $handle->done);
+        return $this->handles === [];
     }
 
     private function pendingUnits(): int
@@ -319,7 +311,7 @@ final class Orchestrator
         $count = 0;
 
         foreach ($this->handles as $handle) {
-            if (!$handle->done && $handle->assigned === null) {
+            if ($handle->isActive() && $handle->assigned === null) {
                 ++$count;
             }
         }
@@ -338,21 +330,22 @@ final class Orchestrator
     private function tick(mixed $server, string $token, EventSink $sink): void
     {
         $read = [$server];
+        $waitMicroseconds = $this->hasRetiringHandles() ? 10_000 : 200_000;
 
         foreach ($this->awaitingHello as [$channel]) {
             $read[] = $channel->stream();
         }
 
         foreach ($this->handles as $handle) {
-            if (!$handle->done && $handle->channel !== null) {
+            if ($handle->isActive() && $handle->channel !== null) {
                 $read[] = $handle->channel->stream();
             }
         }
 
-        $connection = ErrorTrap::run(static function () use ($server, $read) {
+        $connection = ErrorTrap::run(static function () use ($server, $read, $waitMicroseconds) {
             $write = null;
             $except = null;
-            \stream_select($read, $write, $except, 0, 200_000);
+            \stream_select($read, $write, $except, 0, $waitMicroseconds);
 
             return \stream_socket_accept($server, 0);
         });
@@ -366,6 +359,7 @@ final class Orchestrator
         $this->detectCrashes($sink);
         $this->enforceTimeouts($sink);
         $this->assignWaiting($sink);
+        $this->reapRetiringHandles();
     }
 
     /**
@@ -492,7 +486,7 @@ final class Orchestrator
         foreach ($this->handles as $handle) {
             $channel = $handle->channel;
 
-            if ($handle->done || $channel === null) {
+            if (!$handle->isActive() || $channel === null) {
                 continue;
             }
 
@@ -564,7 +558,7 @@ final class Orchestrator
 
                     $this->assignNext($handle, $sink);
 
-                    if ($handle->done) {
+                    if (!$handle->isActive()) {
                         break;
                     }
                 } elseif ($message instanceof Fatal) {
@@ -588,7 +582,7 @@ final class Orchestrator
         $ready = 0;
 
         foreach ($this->handles as $handle) {
-            if (!$handle->done && $handle->ready) {
+            if ($handle->isActive() && $handle->ready) {
                 ++$ready;
             }
         }
@@ -600,7 +594,7 @@ final class Orchestrator
         $this->initialBarrierPassed = true;
 
         foreach ($this->handles as $handle) {
-            if (!$handle->done && $handle->ready && $handle->assigned === null) {
+            if ($handle->isActive() && $handle->ready && $handle->assigned === null) {
                 // Every initial worker is fresh, so once pooled work is gone
                 // it may take an isolated unit.
                 $this->assignNext($handle, $sink);
@@ -690,7 +684,7 @@ final class Orchestrator
         $this->resourceScheduler()->clearPending();
 
         foreach ($this->handles as $handle) {
-            if (!$handle->done && $handle->channel !== null) {
+            if ($handle->isActive() && $handle->channel !== null) {
                 try {
                     $handle->channel->send(new Drain());
                 } catch (ProtocolError) {
@@ -711,7 +705,7 @@ final class Orchestrator
     private function detectCrashes(EventSink $sink): void
     {
         foreach ($this->handles as $handle) {
-            if ($handle->done) {
+            if (!$handle->isActive()) {
                 continue;
             }
 
@@ -763,7 +757,7 @@ final class Orchestrator
     private function enforceTimeouts(EventSink $sink): void
     {
         foreach ($this->handles as $handle) {
-            if ($handle->done) {
+            if (!$handle->isActive()) {
                 continue;
             }
 
@@ -804,7 +798,6 @@ final class Orchestrator
             $deadline = $handle->inFlightSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
 
             if ($this->monotonicTime() > $deadline) {
-                $handle->terminate();
                 $this->containTimeout($handle, $sink, $budget);
             }
         }
@@ -840,7 +833,7 @@ final class Orchestrator
             ));
         }
 
-        $this->retireFailedWorker($handle, $sink);
+        $this->retireFailedWorker($handle, $sink, true);
     }
 
     /**
@@ -888,12 +881,16 @@ final class Orchestrator
         $sink->emit(new TestFinished($result, \microtime(true)));
     }
 
-    private function retireFailedWorker(WorkerHandle $handle, EventSink $sink): void
+    private function retireFailedWorker(WorkerHandle $handle, EventSink $sink, bool $kill = false): void
     {
         $remainder = $handle->unfinished();
         $sink->emit(new WorkerRecycled($handle->workerId, RecycleReason::Crash, \microtime(true)));
         $this->releaseAssignment($handle);
-        $this->finishHandle($handle);
+        if ($kill) {
+            $handle->kill($this->monotonicTime());
+        } else {
+            $this->finishHandle($handle);
+        }
         $this->enqueueRemainder($remainder);
     }
 
@@ -982,7 +979,7 @@ final class Orchestrator
         $this->retryWaitingWorkers = false;
 
         foreach ($this->handles as $handle) {
-            if ($handle->done || $handle->channel === null || $handle->assigned !== null) {
+            if (!$handle->isActive() || $handle->channel === null || $handle->assigned !== null) {
                 continue;
             }
 
@@ -1015,30 +1012,26 @@ final class Orchestrator
 
     private function finishHandle(WorkerHandle $handle): void
     {
-        if (!$handle->done) {
-            $this->channels?->release($handle->channelNumber);
-        }
+        $handle->retire($this->monotonicTime(), self::WORKER_EXIT_GRACE_SECONDS);
+    }
 
-        $handle->done = true;
-        $handle->drainPipes();
-        $handle->channel?->close();
+    private function reapRetiringHandles(): void
+    {
+        $now = $this->monotonicTime();
 
-        if (\is_resource($handle->process)) {
-            // Permit the worker to exit, and then collect it.
-            $deadline = $this->monotonicTime() + 2.0;
-
-            while ($this->monotonicTime() < $deadline && $handle->isRunning()) {
-                \usleep(10_000);
+        foreach ($this->handles as $workerId => $handle) {
+            if (!$handle->reap($now)) {
+                continue;
             }
 
-            ErrorTrap::run(static function () use ($handle) {
-                if ($handle->isRunning()) {
-                    \proc_terminate($handle->process, 9);
-                }
-
-                \proc_close($handle->process);
-            });
+            $this->channels?->release($handle->channelNumber);
+            unset($this->handles[$workerId]);
         }
+    }
+
+    private function hasRetiringHandles(): bool
+    {
+        return \array_any($this->handles, static fn(WorkerHandle $handle): bool => $handle->isRetiring());
     }
 
     private function monotonicTime(): float
