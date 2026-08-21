@@ -8,6 +8,14 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class ScopedMatcherExtension extends MatcherSubject implements ExpectationExtension
 {
+    /**
+     * @return array{
+     *     toAcceptSelf: \Closure(self): bool,
+     *     toAcceptParent: \Closure(parent): bool,
+     *     toAcceptSelfArgument: \Closure(mixed, self): bool,
+     *     toAcceptParentArgument: \Closure(mixed, parent): bool
+     * }
+     */
     #[\Override]
     public function matchers(): array
     {

@@ -9,6 +9,14 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class InvalidReturnExtension implements ExpectationExtension, Fake
 {
+    /**
+     * @return array{
+     *     toReturnText: \Closure(string): string,
+     *     toReturnBoolean: \Closure(string): bool,
+     *     toReturnMixed: \Closure(string): mixed,
+     *     toReturnUntyped: \Closure(string): mixed
+     * }
+     */
     #[\Override]
     public function matchers(): array
     {
