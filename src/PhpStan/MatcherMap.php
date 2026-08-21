@@ -126,6 +126,14 @@ final readonly class MatcherMap
         return '(' . \implode(', ', $parts) . ')';
     }
 
+    /**
+     * Returns the declared matcher return type. An absent type remains unresolved.
+     */
+    public function returnType(string $name): ?\ReflectionType
+    {
+        return $this->matcher($name)->getReturnType();
+    }
+
     private function matcher(string $name): \ReflectionFunction
     {
         if (!isset($this->matchers[$name])) {
@@ -144,7 +152,7 @@ final readonly class MatcherMap
     {
         return \sprintf(
             '%s %s$%s%s',
-            self::typeName($parameter->getType()),
+            self::typeName($parameter->getType(), self::scopeClass($parameter->getDeclaringFunction())),
             $parameter->isVariadic() ? '...' : '',
             $parameter->getName(),
             !$parameter->isVariadic() && $parameter->isOptional() ? ' = ' . $defaultPlaceholder : '',
@@ -155,20 +163,25 @@ final readonly class MatcherMap
      * Renders a native reflection type in source-code form.
      *
      * Signature comparison and generated @method annotations use this form.
+     *
+     * @param ?\ReflectionClass<object> $scopeClass
      */
-    public static function typeName(?\ReflectionType $type): string
+    public static function typeName(?\ReflectionType $type, ?\ReflectionClass $scopeClass = null): string
     {
         if ($type instanceof \ReflectionUnionType) {
             return \implode('|', \array_map(
                 static fn(\ReflectionType $member): string => $member instanceof \ReflectionIntersectionType
-                    ? '(' . self::typeName($member) . ')'
-                    : self::typeName($member),
+                    ? '(' . self::typeName($member, $scopeClass) . ')'
+                    : self::typeName($member, $scopeClass),
                 $type->getTypes(),
             ));
         }
 
         if ($type instanceof \ReflectionIntersectionType) {
-            return \implode('&', \array_map(self::typeName(...), $type->getTypes()));
+            return \implode('&', \array_map(
+                static fn(\ReflectionType $member): string => self::typeName($member, $scopeClass),
+                $type->getTypes(),
+            ));
         }
 
         if (!$type instanceof \ReflectionNamedType) {
@@ -177,6 +190,31 @@ final readonly class MatcherMap
 
         $nullable = $type->allowsNull() && !\in_array($type->getName(), ['mixed', 'null'], true);
 
-        return ($nullable ? '?' : '') . $type->getName();
+        return ($nullable ? '?' : '') . self::resolvedTypeName($type->getName(), $scopeClass);
+    }
+
+    /** @param ?\ReflectionClass<object> $scopeClass */
+    private static function resolvedTypeName(string $name, ?\ReflectionClass $scopeClass): string
+    {
+        if (!\in_array($name, ['self', 'static', 'parent'], true) || !$scopeClass instanceof \ReflectionClass) {
+            return $name;
+        }
+
+        if ($name === 'parent') {
+            $parentClass = $scopeClass->getParentClass();
+            $scopeClass = $parentClass === false ? null : $parentClass;
+        }
+
+        return $scopeClass instanceof \ReflectionClass
+            ? '\\' . $scopeClass->getName()
+            : 'mixed';
+    }
+
+    /** @return ?\ReflectionClass<object> */
+    private static function scopeClass(\ReflectionFunctionAbstract $function): ?\ReflectionClass
+    {
+        return $function instanceof \ReflectionMethod
+            ? $function->getDeclaringClass()
+            : $function->getClosureScopeClass();
     }
 }

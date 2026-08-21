@@ -65,7 +65,9 @@ final readonly class ExtensionMatcherSubjectRule implements Rule
         }
 
         $subjectParameter = $map->subjectParameter($name);
-        $accepted = NativeType::fromReflection($subjectParameter?->getType());
+        $accepted = $subjectParameter instanceof \ReflectionParameter
+            ? NativeType::fromParameter($subjectParameter)
+            : new MixedType();
 
         if ($accepted instanceof MixedType || !$accepted->accepts($subject, $scope->isDeclareStrictTypes())->no()) {
             return [];

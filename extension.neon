@@ -53,3 +53,9 @@ services:
             matcherMap: @greenlight.matcherMapProvider
         tags:
             - phpstan.rules.rule
+    greenlight.extensionMatcherReturnRule:
+        class: Greenlight\PhpStan\ExtensionMatcherReturnRule
+        arguments:
+            matcherMap: @greenlight.matcherMapProvider
+        tags:
+            - phpstan.rules.rule

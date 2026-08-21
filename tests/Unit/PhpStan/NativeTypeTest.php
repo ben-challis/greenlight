@@ -8,10 +8,11 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\NativeType;
+use Greenlight\Tests\Fixture\PhpStanScopedMatcher\MatcherSubject;
 use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\VerbosityLevel;
 
-final class NativeTypeTest
+final class NativeTypeTest extends MatcherSubject
 {
     #[Test]
     #[DataSet('nativeTypes')]
@@ -52,6 +53,31 @@ final class NativeTypeTest
             ->toBe(ConstantBooleanType::class);
         Expect::that($mapped->describe(VerbosityLevel::typeOnly()))
             ->toBe($expected ? 'true' : 'false');
+    }
+
+    #[Test]
+    public function relativeTypesUseTheClosureScopeClass(): void
+    {
+        $selfClosure = static fn(self $subject): bool => true;
+        $parentClosure = static fn(parent $subject): bool => true;
+        $staticClosure = static fn(): static => throw new \LogicException('Not called.');
+
+        $selfParameter = new \ReflectionFunction($selfClosure)->getParameters()[0];
+        $parentParameter = new \ReflectionFunction($parentClosure)->getParameters()[0];
+        $staticReflection = new \ReflectionFunction($staticClosure);
+
+        Expect::that(NativeType::fromParameter($selfParameter)->getObjectClassNames())
+            ->because('self uses the closure scope class')
+            ->toBe([self::class]);
+        Expect::that(NativeType::fromParameter($parentParameter)->getObjectClassNames())
+            ->because('parent uses the closure scope parent class')
+            ->toBe([MatcherSubject::class]);
+        Expect::that(NativeType::fromReflection(
+            $staticReflection->getReturnType(),
+            $staticReflection->getClosureScopeClass(),
+        )->getObjectClassNames())
+            ->because('static uses the closure scope class')
+            ->toBe([self::class]);
     }
 
     /**
