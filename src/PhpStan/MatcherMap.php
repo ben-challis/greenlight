@@ -123,7 +123,11 @@ final readonly class MatcherMap
             $matcher->getParameters(),
         );
 
-        return '(' . \implode(', ', $parts) . ')';
+        return \sprintf(
+            '(%s): %s',
+            \implode(', ', $parts),
+            self::typeName($matcher->getReturnType(), self::scopeClass($matcher)),
+        );
     }
 
     /**

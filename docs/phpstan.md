@@ -209,8 +209,8 @@ Expect::eventually(fn(): string => $hash)
     ->toHaveDigestLength(6);
 ```
 
-If configuration files register one matcher name with different signatures,
-analysis fails. PHPStan does not select one signature.
+If configuration files register one matcher name with different parameter or
+return types, analysis fails. PHPStan does not select one signature.
 
 Subject-type errors use the `greenlight.extensionMatcher.subjectType`
 identifier. Return-type errors use the
