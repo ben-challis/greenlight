@@ -29,20 +29,19 @@ final readonly class DataRow
         public array $arguments,
         ?string $label = null,
     ) {
-        $this->label = $this->validatedLabel($label);
+        $this->assertValidLabel($label);
+        $this->label = $label;
     }
 
     /**
-     * @return non-empty-string|null
+     * @phpstan-assert non-empty-string|null $label
      *
      * @throws \InvalidArgumentException
      */
-    private function validatedLabel(?string $label): ?string
+    private function assertValidLabel(?string $label): void
     {
         if ($label === '') {
             throw new \InvalidArgumentException('Data row label must not be empty.');
         }
-
-        return $label;
     }
 }

@@ -33,7 +33,8 @@ final readonly class SkipUnless
         string $condition,
         mixed ...$arguments,
     ) {
-        $this->condition = $this->validatedCondition($condition);
+        $this->assertValidCondition($condition);
+        $this->condition = $condition;
 
         foreach ($arguments as $argument) {
             if (\is_float($argument) && !\is_finite($argument)) {
@@ -45,11 +46,11 @@ final readonly class SkipUnless
     }
 
     /**
-     * @return class-string<Condition>
+     * @phpstan-assert class-string<Condition> $condition
      *
      * @throws \InvalidArgumentException
      */
-    private function validatedCondition(string $condition): string
+    private function assertValidCondition(string $condition): void
     {
         if (!\is_a($condition, Condition::class, true)) {
             throw new \InvalidArgumentException(
@@ -64,7 +65,5 @@ final readonly class SkipUnless
                 'SkipUnless condition MUST name an instantiable Condition class.',
             );
         }
-
-        return $condition;
     }
 }

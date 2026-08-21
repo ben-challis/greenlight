@@ -19,20 +19,19 @@ final readonly class Group
      */
     public function __construct(string $name)
     {
-        $this->name = $this->validatedName($name);
+        $this->assertValidName($name);
+        $this->name = $name;
     }
 
     /**
-     * @return non-empty-string
+     * @phpstan-assert non-empty-string $name
      *
      * @throws \InvalidArgumentException
      */
-    private function validatedName(string $name): string
+    private function assertValidName(string $name): void
     {
         if ($name === '') {
             throw new \InvalidArgumentException('Group names cannot be empty.');
         }
-
-        return $name;
     }
 }

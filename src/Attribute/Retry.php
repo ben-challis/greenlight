@@ -36,20 +36,19 @@ final readonly class Retry
         }
 
         $this->times = $times;
-        $this->onlyOn = $this->validatedOnlyOn($onlyOn);
+        $this->assertValidOnlyOn($onlyOn);
+        $this->onlyOn = $onlyOn;
     }
 
     /**
-     * @return class-string<\Throwable>|null
+     * @phpstan-assert class-string<\Throwable>|null $onlyOn
      *
      * @throws \InvalidArgumentException
      */
-    private function validatedOnlyOn(?string $onlyOn): ?string
+    private function assertValidOnlyOn(?string $onlyOn): void
     {
         if ($onlyOn !== null && !\is_a($onlyOn, \Throwable::class, true)) {
             throw new \InvalidArgumentException('Retry onlyOn MUST name a Throwable type.');
         }
-
-        return $onlyOn;
     }
 }

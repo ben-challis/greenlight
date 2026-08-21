@@ -19,20 +19,19 @@ final readonly class Skip
      */
     public function __construct(string $reason)
     {
-        $this->reason = $this->validatedReason($reason);
+        $this->assertValidReason($reason);
+        $this->reason = $reason;
     }
 
     /**
-     * @return non-empty-string
+     * @phpstan-assert non-empty-string $reason
      *
      * @throws \InvalidArgumentException If $reason is empty.
      */
-    private function validatedReason(string $reason): string
+    private function assertValidReason(string $reason): void
     {
         if ($reason === '') {
             throw new \InvalidArgumentException('Skip reasons cannot be empty.');
         }
-
-        return $reason;
     }
 }
