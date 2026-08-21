@@ -38,11 +38,14 @@ final class ServerSocket
         $socketPath = $socketDirectory . '/s';
         $errorMessage = null;
 
-        $server = ErrorTrap::run(static function () use ($runtime, $socketDirectory, $socketPath, &$errorMessage) {
-            \mkdir($socketDirectory, 0o700);
+        $server = ErrorTrap::run(
+            static function () use ($runtime, $socketDirectory, $socketPath, &$errorMessage) {
+                \mkdir($socketDirectory, 0o700);
 
-            return $runtime->listen('unix://' . $socketPath, $errorMessage);
-        });
+                return $runtime->listen('unix://' . $socketPath, $errorMessage);
+            },
+            wrap: static fn(\Throwable $error): ProtocolError => ProtocolError::listenerFailed($error),
+        );
 
         if (\is_resource($server)) {
             $boundPath = $runtime->name($server);
@@ -63,9 +66,12 @@ final class ServerSocket
 
         ErrorTrap::run(static fn() => \rmdir($socketDirectory));
 
-        $server = ErrorTrap::run(static function () use ($runtime, &$errorMessage) {
-            return $runtime->listen('tcp://127.0.0.1:0', $errorMessage);
-        });
+        $server = ErrorTrap::run(
+            static function () use ($runtime, &$errorMessage) {
+                return $runtime->listen('tcp://127.0.0.1:0', $errorMessage);
+            },
+            wrap: static fn(\Throwable $error): ProtocolError => ProtocolError::listenerFailed($error),
+        );
 
         if (!\is_resource($server)) {
             throw ProtocolError::malformedFrame(

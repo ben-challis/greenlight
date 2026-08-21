@@ -40,6 +40,11 @@ final class ProtocolError extends WireError
         return new self(\sprintf('Worker protocol stream %s failed.', $operation), $previous);
     }
 
+    public static function listenerFailed(\Throwable $previous): self
+    {
+        return new self('Greenlight could not open the orchestrator socket.', $previous);
+    }
+
     public static function unsupportedVersion(int $version): self
     {
         return new self(\sprintf('Unsupported protocol version %d.', $version));
