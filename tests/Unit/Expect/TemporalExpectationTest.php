@@ -539,7 +539,7 @@ final readonly class TemporalExpectationTest
     public function temporalBecauseRequiresANonEmptyReason(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::eventually(static fn(): bool => true)->within(0.030)->because('   '),
+            static fn() => Expect::eventually(static fn(): bool => true)->within(0.030)->because('   '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
         );
 
         Expect::that($detail->message)->because('temporal because requires a non empty reason')->toBe('because() requires a non-empty reason.');
