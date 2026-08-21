@@ -36,8 +36,9 @@ final class TemporaryDirectory implements Disposable
             $resolvedTemporaryRoot = ErrorTrap::run(static fn() => \realpath($systemTemporaryRoot));
             $temporaryRoot = $resolvedTemporaryRoot === false ? $systemTemporaryRoot : $resolvedTemporaryRoot;
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
+            $created = ErrorTrap::run(static fn() => \mkdir($path, 0700), $warning);
 
-            if (!ErrorTrap::run(static fn() => \mkdir($path, 0700), $warning)) {
+            if (!$created) {
                 throw TemporaryDirectoryError::rootCreationFailed($path, $warning);
             }
 
@@ -118,7 +119,9 @@ final class TemporaryDirectory implements Disposable
         }
 
         if ($isLink) {
-            if (!ErrorTrap::run(static fn() => \unlink($path), $warning)) {
+            $unlinked = ErrorTrap::run(static fn() => \unlink($path), $warning);
+
+            if (!$unlinked) {
                 throw TemporaryDirectoryError::rootLinkRemovalFailed($path, $warning);
             }
 
@@ -160,8 +163,9 @@ final class TemporaryDirectory implements Disposable
                 ? TemporaryDirectoryError::rootRemovalFailed($path, $error->getMessage())
                 : $error,
         );
+        $removed = ErrorTrap::run(static fn() => \rmdir($path), $warning);
 
-        if (!ErrorTrap::run(static fn() => \rmdir($path), $warning)) {
+        if (!$removed) {
             throw TemporaryDirectoryError::rootRemovalFailed($path, $warning);
         }
 

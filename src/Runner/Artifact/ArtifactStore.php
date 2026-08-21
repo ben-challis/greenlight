@@ -828,8 +828,9 @@ final class ArtifactStore
             if (\file_exists($current)) {
                 throw AttachmentError::storage('Attachment output path contains a non-directory entry');
             }
+            $created = ErrorTrap::run(static fn() => \mkdir($current, 0o700), $warning);
 
-            if (!ErrorTrap::run(static fn() => \mkdir($current, 0o700), $warning)) {
+            if (!$created) {
                 throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));
             }
         }

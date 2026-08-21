@@ -48,7 +48,9 @@ final class CpuCores
      */
     private static function probe(): int
     {
-        if (ErrorTrap::run(static fn() => \is_file('/proc/cpuinfo'))) {
+        $cpuInfoExists = ErrorTrap::run(static fn() => \is_file('/proc/cpuinfo'));
+
+        if ($cpuInfoExists) {
             $cpuinfo = ErrorTrap::run(static fn() => \file_get_contents('/proc/cpuinfo'));
 
             if (\is_string($cpuinfo)) {
