@@ -143,21 +143,30 @@ jobs:
       - name: "Install and run the exported package"
         shell: "bash"
         run: |
-          mkdir -p "${RUNNER_TEMP}/greenlight-export" "${RUNNER_TEMP}/greenlight-consumer/tests"
+          mkdir -p "${RUNNER_TEMP}/greenlight-export" "${RUNNER_TEMP}/greenlight-consumer"
           composer archive --format=zip --dir="${RUNNER_TEMP}" --file=greenlight
           unzip -q "${RUNNER_TEMP}/greenlight.zip" -d "${RUNNER_TEMP}/greenlight-export"
-          cp .github/fixtures/installed-package-consumer/composer.json "${RUNNER_TEMP}/greenlight-consumer"
-          cp .github/fixtures/installed-package-consumer/greenlight.php "${RUNNER_TEMP}/greenlight-consumer"
-          cp .github/fixtures/installed-package-consumer/InstalledPackageTest.php "${RUNNER_TEMP}/greenlight-consumer/tests"
+          cp -R .github/fixtures/installed-package-consumer/. "${RUNNER_TEMP}/greenlight-consumer"
           cd "${RUNNER_TEMP}/greenlight-consumer"
           composer install --no-interaction --no-progress --prefer-dist
           test ! -L vendor/greenlight/greenlight
-          package_name="$(composer show --name-only)"
+          package_name="$(composer show --name-only greenlight/greenlight)"
           test "${package_name}" = "greenlight/greenlight"
           # shellcheck disable=SC2016
           php -r '$metadata = json_decode(file_get_contents("vendor/greenlight/greenlight/composer.json"), true, flags: JSON_THROW_ON_ERROR); exit(array_diff(array_keys($metadata["require"] ?? []), ["php"]) === [] ? 0 : 1);'
           vendor/bin/greenlight --version | grep -Eq '^Greenlight [^[:space:]]+$'
           vendor/bin/greenlight run --no-ansi
+          vendor/bin/phpstan analyse --configuration=phpstan.neon --no-progress
+          phpstan_report="${RUNNER_TEMP}/greenlight-phpstan-invalid.json"
+          set +e
+          vendor/bin/phpstan analyse --configuration=phpstan-invalid.neon --no-progress --error-format=json > "${phpstan_report}"
+          phpstan_status="$?"
+          set -e
+          if [[ "${phpstan_status}" -ne 1 ]]; then
+            printf 'PHPStan returned status %s for the invalid Greenlight usage. Expected status 1.\n' "${phpstan_status}" >&2
+            exit 1
+          fi
+          php verify-phpstan-diagnostic.php "${phpstan_report}"
 
   hyperf-bridge:
     name: "Hyperf bridge"
