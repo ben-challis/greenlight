@@ -89,7 +89,7 @@ final readonly class ParallelRunner
             $fixtures = new ProvisionedIntegrationFixtures();
 
             if (\count($plan) > 0) {
-                [$pooled, $isolated] = new Distributor()->units($plan);
+                [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $workerCount);
                 $channelCount = \min($workerCount, \count($pooled) + \count($isolated));
                 $fixtures = IntegrationFixtureManager::provision(
                     $orchestratorSide,
@@ -127,7 +127,7 @@ final readonly class ParallelRunner
                     resourceLimits: $configuration->resourceLimits,
                 );
 
-                $summary = $orchestrator->run($plan, $sink, $workerCount);
+                $summary = $orchestrator->run($plan, $sink, $workerCount, $classSeconds);
 
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));

@@ -257,7 +257,7 @@ final readonly class WorkerProcess
             )->run(
                 $message->slice,
                 new SocketEventSink($channel),
-                null,
+                $message->stopAfterFailures,
                 new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
                 static fn(): bool => $channel->poll() instanceof Drain,
                 $scopes,

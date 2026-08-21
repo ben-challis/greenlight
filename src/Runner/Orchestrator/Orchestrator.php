@@ -172,6 +172,7 @@ final class Orchestrator
 
     /**
      * @param positive-int $workerCount
+     * @param array<string, float> $classSeconds Recorded class durations.
      *
      * @throws ProtocolError
      * @throws AttachmentError
@@ -179,13 +180,13 @@ final class Orchestrator
      * @throws ReportingError
      * @throws WireError
      */
-    public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount): ResultSummary
+    public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount, array $classSeconds = []): ResultSummary
     {
         foreach ($plan->entries as $entry) {
             $this->entriesById[(string) $entry->id] = $entry;
         }
 
-        [$pooled, $isolated] = new Distributor()->units($plan);
+        [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $workerCount);
         $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->resourceLimits);
 
         if ($this->scheduler->pendingCount() === 0) {
@@ -469,6 +470,7 @@ final class Orchestrator
                 $this->policy,
                 $this->artifactStore?->session(),
                 $this->artifactConfiguration,
+                $this->remainingFailureAllowance(),
             ));
             $handle->lastProgressAt = $this->monotonicTime();
         } catch (ProtocolError) {
@@ -668,6 +670,18 @@ final class Orchestrator
         }
 
         $handle->inFlightAttempt = $message->attempt;
+    }
+
+    /**
+     * @return positive-int|null
+     */
+    private function remainingFailureAllowance(): ?int
+    {
+        if ($this->stopAfterFailures === null) {
+            return null;
+        }
+
+        return \max(1, $this->stopAfterFailures - $this->summary->failed - $this->summary->errored);
     }
 
     private function drainAll(): void
