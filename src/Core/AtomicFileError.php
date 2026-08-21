@@ -25,22 +25,29 @@ final class AtomicFileError extends \RuntimeException
         ), $previous);
     }
 
-    public static function cannotWriteTemporary(string $temporary, ?string $reason): self
-    {
+    public static function cannotWriteTemporary(
+        string $temporary,
+        ?string $reason,
+        ?\Throwable $previous = null,
+    ): self {
         return new self(\sprintf(
             'Cannot write temporary file "%s"%s.',
             $temporary,
             $reason === null ? '' : ': ' . $reason,
-        ));
+        ), $previous);
     }
 
-    public static function cannotRename(string $temporary, string $path, ?string $reason): self
-    {
+    public static function cannotRename(
+        string $temporary,
+        string $path,
+        ?string $reason,
+        ?\Throwable $previous = null,
+    ): self {
         return new self(\sprintf(
             'Cannot rename "%s" to "%s"%s.',
             $temporary,
             $path,
             $reason === null ? '' : ': ' . $reason,
-        ));
+        ), $previous);
     }
 }
