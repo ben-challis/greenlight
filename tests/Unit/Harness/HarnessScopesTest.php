@@ -41,7 +41,7 @@ final class HarnessScopesTest
     {
         $registered = new \ArrayObject(['registered']);
         $registry = new HarnessRegistry([
-            new ServiceDefinition(\ArrayObject::class, Scope::PerRun, static fn(): \ArrayObject => $registered),
+            new ServiceDefinition(\ArrayObject::class, Scope::PerWorker, static fn(): \ArrayObject => $registered),
         ]);
         $resolver = new class implements ServiceResolver {
             public bool $consulted = false;
@@ -149,7 +149,7 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
 
         $resolved = $scopes->resolve(Disposable::class, 'test');
-        $failures = $scopes->closeRun();
+        $failures = $scopes->closeWorker();
 
         Expect::that($resolved)
             ->because('the resolver retains ownership of the service lifecycle')
@@ -278,7 +278,6 @@ final class HarnessScopesTest
     {
         yield 'per test' => [Scope::PerTest, false];
         yield 'per class' => [Scope::PerClass, false];
-        yield 'per suite' => [Scope::PerSuite, true];
-        yield 'per run' => [Scope::PerRun, true];
+        yield 'per worker' => [Scope::PerWorker, true];
     }
 }

@@ -383,8 +383,7 @@ Namespace: `Greenlight\Plugin`
 
 Observes the orchestrator event stream.
 
-`onRunEvent()` receives run, worker, suite, class, and test events in the
-order that they arrive.
+`onRunEvent()` receives run, worker, class, and test events in arrival order.
 
 The subscriber only observes events and cannot change results.
 
@@ -392,7 +391,7 @@ The subscriber only observes events and cannot change results.
 interface RunLifecycleSubscriber extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L16)
 
 ### `onRunEvent()`
 
@@ -400,7 +399,7 @@ interface RunLifecycleSubscriber extends Plugin
 public function onRunEvent(Event $event): void;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L18)
 
 ## `TestAttemptRunner`
 

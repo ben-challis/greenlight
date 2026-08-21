@@ -8,16 +8,11 @@ namespace Greenlight\Harness;
  * A registry definition has precedence over a service resolver. Greenlight
  * does not manage or dispose objects from a service resolver.
  *
- * Currently, the suite service scope and run service scope have the same
- * lifetime. The execution plan does not contain suite boundaries.
- *
  * @internal
  */
 final class HarnessScopes
 {
-    private readonly ScopeContainer $run;
-
-    private readonly ScopeContainer $suite;
+    private readonly ScopeContainer $worker;
 
     private ?ScopeContainer $class = null;
 
@@ -32,8 +27,7 @@ final class HarnessScopes
         private readonly HarnessRegistry $registry,
         private readonly array $resolvers = [],
     ) {
-        $this->run = new ScopeContainer();
-        $this->suite = new ScopeContainer();
+        $this->worker = new ScopeContainer();
     }
 
     /**
@@ -120,16 +114,15 @@ final class HarnessScopes
     /**
      * @return list<\Throwable>
      */
-    public function closeRun(): array
+    public function closeWorker(): array
     {
-        return [...$this->suite->dispose(), ...$this->run->dispose()];
+        return $this->worker->dispose();
     }
 
     private function containerFor(Scope $scope): ScopeContainer
     {
         return match ($scope) {
-            Scope::PerRun => $this->run,
-            Scope::PerSuite => $this->suite,
+            Scope::PerWorker => $this->worker,
             Scope::PerClass => $this->class ?? throw new \LogicException('No class scope is open.'),
             Scope::PerTest => $this->test ?? throw new \LogicException('No test scope is open.'),
         };

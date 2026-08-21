@@ -48,7 +48,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
         return [
             new ServiceDefinition(
                 ContainerInterface::class,
-                $this->refreshBetweenTests ? Scope::PerTest : Scope::PerRun,
+                $this->refreshBetweenTests ? Scope::PerTest : Scope::PerWorker,
                 $this->container(...),
             ),
         ];

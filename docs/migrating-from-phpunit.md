@@ -344,7 +344,7 @@ These differences are intentional:
 * Greenlight has no `#[Depends]`.
 * Test dependencies create hidden order requirements that conflict with
   parallel execution.
-* Put expensive shared state in a class-scoped or suite-scoped harness service.
+* Put expensive shared state in a class-scoped or worker-scoped harness service.
 * Tests run in parallel worker processes by default.
 * Tests in one class stay together unless the class has `#[AllowParallel]`.
 * Use `#[Isolated]` for a test that must own its process.

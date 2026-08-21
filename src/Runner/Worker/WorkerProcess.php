@@ -159,7 +159,7 @@ final readonly class WorkerProcess
                     try {
                         return $this->runAssignments($channel, $plugins, $registry, $scopes, $workerId);
                     } finally {
-                        $scopes->closeRun();
+                        $scopes->closeWorker();
                     }
                 });
 
@@ -179,7 +179,7 @@ final readonly class WorkerProcess
 
             return 1;
         } finally {
-            $scopes?->closeRun();
+            $scopes?->closeWorker();
             $channel->close();
         }
     }

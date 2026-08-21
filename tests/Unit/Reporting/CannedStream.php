@@ -8,8 +8,6 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\SuiteFinished;
-use Greenlight\Core\Event\SuiteStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -102,7 +100,6 @@ final class CannedStream
             new RunStarted('run-1', 6, 2, $at),
             new WorkerSpawned('w-1', 101, $at + 0.01),
             new WorkerSpawned('w-2', 102, $at + 0.02),
-            new SuiteStarted('unit', $at + 0.03),
             new TestClassStarted($calc, $at + 0.04),
             new TestStarted($adds, $at + 0.05),
             new TestFinished(new TestResult($adds, Outcome::Passed, 0.012, 1024, expectations: 2), $at + 0.06),
@@ -120,7 +117,6 @@ final class CannedStream
             new TestFinished(new TestResult($retries, Outcome::Passed, 0.15, 512, attempts: 3, expectations: 3), $at + 0.18),
             new TestClassFinished($network, $at + 0.19),
             new WorkerRecycled('w-1', RecycleReason::Memory, $at + 0.2),
-            new SuiteFinished('unit', $at + 0.21),
             new RunFinished(
                 'run-1',
                 new ResultSummary(passed: 3, failed: 1, errored: 1, skipped: 1),

@@ -73,8 +73,8 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     public function services(): array
     {
         return [
-            new ServiceDefinition(Kernel::class, Scope::PerRun, $this->kernel(...)),
-            new ServiceDefinition(Container::class, Scope::PerRun, $this->container(...)),
+            new ServiceDefinition(Kernel::class, Scope::PerWorker, $this->kernel(...)),
+            new ServiceDefinition(Container::class, Scope::PerWorker, $this->container(...)),
         ];
     }
 

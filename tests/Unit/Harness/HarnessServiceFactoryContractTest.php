@@ -25,7 +25,7 @@ final class HarnessServiceFactoryContractTest
         $scopes = new HarnessScopes(new HarnessRegistry([
             new ServiceDefinition(
                 \Countable::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 $factory,
             ),
         ]));
@@ -88,7 +88,7 @@ final class HarnessServiceFactoryContractTest
         return new HarnessScopes(new HarnessRegistry([
             new ServiceDefinition(
                 $type,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): object => new \stdClass(),
             ),
         ]));

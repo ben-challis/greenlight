@@ -109,7 +109,7 @@ have the declared parameter type.
 ### Kernel and container services
 
 Greenlight supplies `Tempest\Core\Kernel` and
-`Tempest\Container\Container` as harness services for each run:
+`Tempest\Container\Container` as harness services for each worker:
 
 <!-- php-example {"example":"tempest-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php

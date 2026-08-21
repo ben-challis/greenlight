@@ -88,7 +88,7 @@ instance of the declared type, the test fails and does not receive the object.
 
 ### The kernel itself
 
-Greenlight supplies `KernelInterface` as a per-run harness service. Tests can
+Greenlight supplies `KernelInterface` as a per-worker harness service. Tests can
 use it to inspect boot parameters or the container directly:
 
 <!-- php-example {"example":"symfony-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->

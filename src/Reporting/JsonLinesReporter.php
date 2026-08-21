@@ -11,17 +11,16 @@ use Greenlight\Reporting\Output\Output;
 /**
  * Writes one JSON object for each event when the event arrives.
  *
- * Each line has the form {"v": 2, "event": "<tag>", "data": {...}}. data is
+ * Each line has the form {"v": 3, "event": "<tag>", "data": {...}}. data is
  * the event wire payload.
  *
- * Add new tags only. Do not change or remove published tags. The schema is in
- * docs/architecture/jsonl.md.
+ * The schema is in docs/architecture/jsonl.md.
  *
  * @internal
  */
 final readonly class JsonLinesReporter implements Reporter
 {
-    private const int VERSION = 2;
+    private const int VERSION = 3;
 
     public function __construct(private Output $output) {}
 

@@ -271,7 +271,7 @@ Namespace: `Greenlight\Harness`
 
 Defines the lifetime of a harness service.
 
-PerRun matches the worker lifetime.
+PerWorker matches the physical worker lifetime.
 
 ```php
 enum Scope: string
@@ -295,21 +295,13 @@ case PerClass = 'per-class';
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L15)
 
-### `PerSuite`
+### `PerWorker`
 
 ```php
-case PerSuite = 'per-suite';
+case PerWorker = 'per-worker';
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L16)
-
-### `PerRun`
-
-```php
-case PerRun = 'per-run';
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L17)
 
 ## `SensitiveValue`
 

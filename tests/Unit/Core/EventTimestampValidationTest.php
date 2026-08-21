@@ -10,8 +10,6 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\SuiteFinished;
-use Greenlight\Core\Event\SuiteStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -51,8 +49,6 @@ final readonly class EventTimestampValidationTest
 
         yield 'run started' => [static fn(float $at): Event => new RunStarted('run-1', 1, 1, $at)];
         yield 'run finished' => [static fn(float $at): Event => new RunFinished('run-1', new ResultSummary(), 0.0, $at)];
-        yield 'suite started' => [static fn(float $at): Event => new SuiteStarted('unit', $at)];
-        yield 'suite finished' => [static fn(float $at): Event => new SuiteFinished('unit', $at)];
         yield 'test class started' => [static fn(float $at): Event => new TestClassStarted('Acme\TimestampTest', $at)];
         yield 'test class finished' => [static fn(float $at): Event => new TestClassFinished('Acme\TimestampTest', $at)];
         yield 'test started' => [static fn(float $at): Event => new TestStarted($id, $at)];

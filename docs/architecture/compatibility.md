@@ -57,9 +57,6 @@ These changes require a new envelope version and schema file:
 - Add an event tag.
 - Extend a closed enum.
 
-Reserved event tags are an exception. They belong to the current schema before
-Greenlight emits them.
-
 For a run that completes normally, `run-started` is the first event.
 `run-finished` is the last event. Events from one worker keep their send order.
 Events from different workers can interleave by arrival time. Consumers

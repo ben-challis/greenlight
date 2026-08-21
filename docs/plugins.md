@@ -254,7 +254,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
         return [
             new ServiceDefinition(
                 BrokerClient::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn() => new BrokerClient(
                     $broker->string('host'),
                     $broker->secret('token')->reveal(),
@@ -283,7 +283,7 @@ boundary. Greenlight calls it after worker bootstrap and before it reports that
 the worker is ready.
 
 Call the callback once and return its value. Use `finally` to close the runtime
-when the worker drains, recycles, disconnects, or throws. Run-scope harness
+when the worker drains, recycles, disconnects, or throws. Worker-scope harness
 services close before the callback returns.
 
 Greenlight nests multiple runtime boundaries in priority order. A boundary
@@ -404,7 +404,7 @@ public function onRunEvent(Event $event): void;
 ```
 
 Run subscribers receive the event stream in the orchestrator process. The
-stream contains run, worker, suite, class, and test events.
+stream contains run, worker, class, and test events.
 
 Run subscribers cannot change results across the process boundary. Integration
 fixture provisioning completes before `RunStarted`.
@@ -423,7 +423,7 @@ final class DatabaseProvider implements HarnessProvider
     public function services(): array
     {
         return [
-            new ServiceDefinition(TestDatabase::class, Scope::PerSuite, static fn() => TestDatabase::migrate()),
+            new ServiceDefinition(TestDatabase::class, Scope::PerWorker, static fn() => TestDatabase::migrate()),
         ];
     }
 }
@@ -431,10 +431,10 @@ final class DatabaseProvider implements HarnessProvider
 
 Harness providers supply services to test constructors.
 
-Services can be scoped as `PerTest`, `PerClass`, `PerSuite`, or `PerRun`.
-`PerRun` means the physical worker lifetime, not the orchestrator-owned
-integration fixture lifetime. Services are lazy, so a service is not constructed
-unless it is actually used.
+Services can be scoped as `PerTest`, `PerClass`, or `PerWorker`.
+`PerWorker` means the physical worker lifetime. It does not mean the
+orchestrator-owned integration fixture lifetime. Services are lazy. Greenlight
+constructs a service only when a test uses it.
 
 If a service implements `Greenlight\Harness\Disposable`, Greenlight calls its
 disposal method when the scope closes. Greenlight uses reverse creation order.
