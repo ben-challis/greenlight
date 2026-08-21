@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
@@ -31,6 +32,14 @@ final readonly class OrchestratorInitialAssignmentTest
         $firstWorker = $this->assignments($directory, 'w-1');
         $secondWorker = $this->assignments($directory, 'w-2');
         $slowReadyAt = (float) \file_get_contents($directory . '/slow-ready');
+        $firstWorkerTiming = \array_find(
+            $orchestrator->workerTimings(),
+            static fn(WorkerTiming $timing): bool => $timing->workerId === 'w-1',
+        );
+
+        if ($firstWorkerTiming === null) {
+            throw new \LogicException('The first worker timing record is missing.');
+        }
 
         Expect::that($firstWorker[0]['at'])
             ->because('useful work SHOULD start before the slowest initial worker is ready')
@@ -53,6 +62,9 @@ final readonly class OrchestratorInitialAssignmentTest
         Expect::that($assignedClasses)
             ->because('either ready worker MAY receive work after the fair first wave')
             ->toBe(['FirstTest', 'SecondTest', 'ThirdTest']);
+        Expect::that($firstWorkerTiming->bootstrapBarrierSeconds)
+            ->because('profile output MUST attribute the fair first-wave wait to bootstrap coordination')
+            ->toBeGreaterThan(0.0);
     }
 
     #[Test]
