@@ -150,8 +150,7 @@ jobs:
           cd "${RUNNER_TEMP}/greenlight-consumer"
           composer install --no-interaction --no-progress --prefer-dist
           test ! -L vendor/greenlight/greenlight
-          package_name="$(composer show --name-only greenlight/greenlight)"
-          test "${package_name}" = "greenlight/greenlight"
+          composer show --name-only | grep -Fx 'greenlight/greenlight'
           # shellcheck disable=SC2016
           php -r '$metadata = json_decode(file_get_contents("vendor/greenlight/greenlight/composer.json"), true, flags: JSON_THROW_ON_ERROR); exit(array_diff(array_keys($metadata["require"] ?? []), ["php"]) === [] ? 0 : 1);'
           vendor/bin/greenlight --version | grep -Eq '^Greenlight [^[:space:]]+$'
