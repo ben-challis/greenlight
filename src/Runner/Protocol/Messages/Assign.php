@@ -12,7 +12,7 @@ use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\Message;
 
 /**
- * Sends an execution-plan part and worker replacement limits to a worker.
+ * Sends an execution-plan part, limits, and settings to a worker.
  *
  * @internal
  */
@@ -23,6 +23,7 @@ final readonly class Assign implements Message
      * @param positive-int|null $recycleAboveMemoryBytes
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
+     * @param positive-int|null $stopAfterFailures Remaining assignment failure allowance.
      */
     public function __construct(
         public ExecutionPlan $slice,
@@ -34,6 +35,7 @@ final readonly class Assign implements Message
         public ?ResultPolicy $policy = null,
         public ?ArtifactSession $artifactSession = null,
         public ?ArtifactConfiguration $artifactConfiguration = null,
+        public ?int $stopAfterFailures = null,
     ) {}
 
     #[\Override]
@@ -55,6 +57,7 @@ final readonly class Assign implements Message
             'policy' => $this->policy?->toWire(),
             'artifactSession' => $this->artifactSession?->toWire(),
             'artifactConfiguration' => $this->artifactConfiguration?->toWire(),
+            'stopAfterFailures' => $this->stopAfterFailures,
         ];
     }
 
@@ -65,6 +68,9 @@ final readonly class Assign implements Message
         $recycleAboveMemory = Wire::nullableInt($payload, 'recycleAboveMemoryBytes');
         $coverageInclude = Wire::nullableListOfStrings($payload, 'coverageInclude');
         $coverageDriver = Wire::nullableString($payload, 'coverageDriver');
+        $stopAfterFailures = \array_key_exists('stopAfterFailures', $payload)
+            ? Wire::nullableInt($payload, 'stopAfterFailures')
+            : null;
 
         if ($coverageInclude !== null) {
             $coverageInclude = \array_values(\array_filter($coverageInclude, static fn(string $path): bool => $path !== ''));
@@ -84,6 +90,7 @@ final readonly class Assign implements Message
             ($artifactConfiguration = \array_key_exists('artifactConfiguration', $payload) ? Wire::nullableMap($payload, 'artifactConfiguration') : null) === null
                 ? null
                 : ArtifactConfiguration::fromWire($artifactConfiguration),
+            $stopAfterFailures === null ? null : \max(1, $stopAfterFailures),
         );
     }
 }

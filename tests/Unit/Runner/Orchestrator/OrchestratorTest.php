@@ -11,6 +11,7 @@ use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Result\ResultSummary;
+use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
@@ -486,7 +487,7 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
-    public function failureLimitDrainsQueuedClassAssignments(): void
+    public function failureLimitDrainsRemainingBatchedClasses(): void
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
@@ -496,11 +497,19 @@ final class OrchestratorTest
             stopAfterFailures: 1,
         );
 
-        $summary = $orchestrator->run($this->failingThenPassingPlan(), $sink, 1);
+        $summary = $orchestrator->run(
+            $this->failingThenPassingPlan(),
+            $sink,
+            1,
+            [
+                AaTest::class => 0.001,
+                BbTest::class => 0.001,
+            ],
+        );
         $results = $sink->results();
 
         Expect::that($summary->total())
-            ->because('the failure limit MUST stop before the queued class assignment runs')
+            ->because('the failure limit MUST stop before the remaining batched class runs')
             ->toBe(1);
         Expect::that($summary->errored)
             ->toBe(1);
@@ -508,6 +517,42 @@ final class OrchestratorTest
             ->toHaveCount(1);
         Expect::that((string) $results[0]->id)
             ->toBe(AaTest::class . '::fails');
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
+    public function workerRecyclingPreservesABatchedRemainder(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $sink = new CollectingEventSink();
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+            recycleAfterTests: 1,
+        );
+
+        $summary = $orchestrator->run(
+            $this->twoClassPassingPlan(),
+            $sink,
+            1,
+            [
+                CleanTest::class => 0.001,
+                WaitingResourceTest::class => 0.001,
+            ],
+        );
+
+        Expect::that($summary->passed)
+            ->because('a replacement worker MUST complete the remainder of a batched assignment')
+            ->toBe(2);
+        Expect::that(\array_map(
+            static fn(TestResult $result): string => (string) $result->id,
+            $sink->results(),
+        ))
+            ->because('worker recycling MUST preserve class and test order')
+            ->toBe([
+                CleanTest::class . '::passesAndIsCollectable',
+                WaitingResourceTest::class . '::runsAfterTheWait',
+            ]);
     }
 
     #[Test]
@@ -536,6 +581,42 @@ final class OrchestratorTest
                 . "Worker output:\nThe worker emitted crash diagnostics.",
             );
         Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
+    public function crashedWorkerRequeuesLaterClassesFromABatchedAssignment(): void
+    {
+        $root = \dirname(__DIR__, 4);
+        $sink = new CollectingEventSink();
+        $orchestrator = new Orchestrator(
+            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workingDirectory: $root,
+        );
+
+        $summary = $orchestrator->run(
+            $this->crashThenPassingPlan(),
+            $sink,
+            1,
+            [
+                CrashDiagnosticsTest::class => 0.001,
+                CleanTest::class => 0.001,
+            ],
+        );
+        $results = $sink->results();
+
+        Expect::that($summary->errored)->toBe(1);
+        Expect::that($summary->passed)
+            ->because('crash containment MUST requeue later classes in a batched assignment')
+            ->toBe(1);
+        Expect::that(\array_map(
+            static fn(TestResult $result): string => (string) $result->id,
+            $results,
+        ))
+            ->toBe([
+                CrashDiagnosticsTest::class . '::writesDiagnosticsThenExits',
+                CleanTest::class . '::passesAndIsCollectable',
+            ]);
     }
 
     #[Test]
@@ -691,6 +772,17 @@ final class OrchestratorTest
 
         return new ExecutionPlan([
             new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+        ]);
+    }
+
+    private function crashThenPassingPlan(): ExecutionPlan
+    {
+        $crash = new TestId(CrashDiagnosticsTest::class, 'writesDiagnosticsThenExits');
+        $passing = new TestId(CleanTest::class, 'passesAndIsCollectable');
+
+        return new ExecutionPlan([
+            new PlanEntry($crash, new TestMetadata($crash->class, $crash->method)),
+            new PlanEntry($passing, new TestMetadata($passing->class, $passing->method)),
         ]);
     }
 

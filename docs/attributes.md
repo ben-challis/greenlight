@@ -459,6 +459,10 @@ For a class with `#[AllowParallel]`, each split assignment holds only its own
 class-level and method-level requirements. Each isolated test also has a
 separate assignment.
 
+Cached duration data can put small classes in one unit only when they have
+identical resource sets. Greenlight does not batch a class that contains an
+isolated or `#[AllowParallel]` test.
+
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.
 

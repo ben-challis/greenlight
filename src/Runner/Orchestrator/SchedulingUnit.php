@@ -7,7 +7,7 @@ namespace Greenlight\Runner\Orchestrator;
 use Greenlight\Discovery\ExecutionPlan;
 
 /**
- * One test-class assignment and its required resources.
+ * One bounded assignment and its required resources.
  *
  * @internal
  */

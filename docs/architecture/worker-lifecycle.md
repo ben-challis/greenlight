@@ -31,7 +31,7 @@ Ten message types cross the socket:
 | `hello` | worker to orchestrator | worker ID, shared token, process ID |
 | `bootstrap` | orchestrator to worker | stable channel, config file path, that channel's integration resources |
 | `ready` | worker to orchestrator | bootstrap acknowledgement |
-| `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, coverage settings, leak detection flag, result policy, artifact session and limits |
+| `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, remaining failure allowance, coverage settings, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `attempt-started` | worker to orchestrator | active test ID and attempt number for a crash report |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
@@ -115,6 +115,14 @@ provider when it resolves arguments for a split entry.
 The provider MUST be pure and deterministic. The execution-plan keys detect a
 provider result that changes between discovery and execution.
 
+When a previous run supplies class durations, the orchestrator can put adjacent
+small classes in one assignment. Each batch has a maximum predicted duration of
+50 ms and a maximum of 16 classes. Each adjacent group with the same resource
+set keeps at least one pooled unit for each requested worker. Batching does not
+change the class order or seed. A run without duration data keeps one pooled
+unit for each class. Greenlight does not batch a class that contains an
+`#[AllowParallel]` entry.
+
 Each channel's integration resource catalog is capped at 1 MiB, below the
 general frame limit. Greenlight sends it through the authenticated local socket,
 not through environment variables or command arguments.
@@ -133,6 +141,10 @@ attachments if a worker crashes. See [artifact storage](artifacts.md).
 it with the events it counted and fails the run on a mismatch. A lost or
 duplicated frame cannot silently pass a suite.
 
+The assignment includes the remaining failure allowance. A worker stops its
+batch locally when it uses that allowance. The orchestrator also drains all
+workers when the run reaches the limit.
+
 A retried test still produces one `test-started` event and one `test-finished`
 event. Attempts are not separate public events. The internal `attempt-started`
 frame lets the orchestrator report the correct attempt count after a worker
@@ -145,6 +157,9 @@ groups non-isolated entries by class and combines their requirements.
 
 It treats each `#[AllowParallel]` entry as a separate pooled scheduling unit.
 It treats each isolated entry as a separate isolated scheduling unit.
+It can batch small classes only when their combined resource sets are
+identical. It does not batch a class that contains an isolated or
+`#[AllowParallel]` entry.
 
 Before it sends `assign`, the orchestrator claims one slot from each required
 resource in one atomic operation. A resource without a configured limit has one
