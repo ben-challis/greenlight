@@ -100,7 +100,11 @@ final class StreamWrapperError extends \RuntimeException
 ### `registrationFailed()`
 
 ```php
-public static function registrationFailed(string $scheme, ?string $warning): self
+public static function registrationFailed(
+    string $scheme,
+    ?string $warning,
+    ?\Throwable $previous = null,
+): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrapperError.php#L17)
@@ -115,7 +119,7 @@ PHPDoc:
 
 - `@param non-empty-list<array{non-empty-string, string|null}> $failures`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrapperError.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrapperError.php#L32)
 
 ## `StreamWrappers`
 
@@ -153,7 +157,7 @@ PHPDoc:
 
 - `@throws StreamWrapperError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L44)
 
 ## `TemporaryDirectory`
 

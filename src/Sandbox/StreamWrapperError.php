@@ -9,18 +9,21 @@ namespace Greenlight\Sandbox;
  */
 final class StreamWrapperError extends \RuntimeException
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
-    public static function registrationFailed(string $scheme, ?string $warning): self
-    {
+    public static function registrationFailed(
+        string $scheme,
+        ?string $warning,
+        ?\Throwable $previous = null,
+    ): self {
         return new self(\sprintf(
             'Failed to register stream wrapper "%s"%s.',
             $scheme,
             $warning === null ? '' : ': ' . $warning,
-        ));
+        ), $previous);
     }
 
     /**
