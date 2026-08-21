@@ -20,7 +20,11 @@
   --font-body: 'Source Sans 3 Variable', sans-serif;
   --font-code: 'Recursive Variable', ui-monospace, monospace;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --page-padding: clamp(1.1rem, 3vw, 3rem);
+  --page-padding: max(
+    clamp(1.1rem, 3vw, 3rem),
+    env(safe-area-inset-left, 0px),
+    env(safe-area-inset-right, 0px)
+  );
   --max-width: 92rem;
 }
 
@@ -1432,15 +1436,21 @@ code {
   }
 
   .header-inner {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto auto;
+    gap: clamp(0.65rem, 2vw, 1rem);
   }
 
   .primary-nav {
+    display: flex;
+    gap: 0;
+  }
+
+  .primary-nav a:last-child {
     display: none;
   }
 
   .site-search {
-    grid-column: 2;
+    grid-column: 3;
   }
 
   .site-search summary {
@@ -1808,6 +1818,63 @@ code {
 }
 
 @media (max-width: 34rem) {
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions .button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .install-command {
+    align-items: flex-start;
+    width: 100%;
+    overflow: visible;
+    white-space: normal;
+  }
+
+  .install-command > span {
+    padding-top: 0.12rem;
+  }
+
+  .install-command code {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    line-height: 1.45;
+    white-space: normal;
+  }
+
+  .install-command > .command-copy {
+    align-self: center;
+  }
+
+  .run-preview__bar {
+    padding: 0.9rem 1rem;
+    font-size: 0.74rem;
+  }
+
+  .run-preview__meta code {
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+
+  .run-preview__tests li {
+    grid-template-columns: minmax(0, 1fr) 1.5rem 3.6rem;
+    font-size: 0.74rem;
+    gap: 0.45rem;
+  }
+
+  .run-preview__more {
+    font-size: 0.72rem;
+  }
+
+  .code-window pre,
+  .terminal-window pre {
+    font-size: 0.8rem;
+  }
+
   .site-search summary span {
     font-size: 0;
   }
@@ -1842,6 +1909,22 @@ code {
   .footer-inner nav {
     flex-direction: column;
     gap: 0.5rem;
+  }
+}
+
+@media (pointer: coarse) {
+  .site-search summary,
+  .command-copy {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .primary-nav a,
+  .footer-inner nav a,
+  .mobile-nav-utilities a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
   }
 }
 
