@@ -38,6 +38,11 @@ final class TtyReporter implements Reporter, Ticking
     private array $live = [];
 
     /**
+     * @var array<non-empty-string, positive-int>
+     */
+    private array $activeClassAssignments = [];
+
+    /**
      * @var list<TestResult>
      */
     private array $problems = [];
@@ -137,7 +142,13 @@ final class TtyReporter implements Reporter, Ticking
 
         if ($event instanceof TestClassStarted) {
             $this->lastEventAt = $event->occurredAt;
-            $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => $event->occurredAt];
+            $active = $this->activeClassAssignments[$event->class] ?? 0;
+            $this->activeClassAssignments[$event->class] = $active + 1;
+
+            if ($active === 0) {
+                $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => $event->occurredAt];
+            }
+
             $this->redraw();
 
             return;
@@ -192,6 +203,15 @@ final class TtyReporter implements Reporter, Ticking
 
         if ($event instanceof TestClassFinished) {
             $this->lastEventAt = $event->occurredAt;
+            $active = $this->activeClassAssignments[$event->class] ?? 0;
+
+            if ($active > 1) {
+                $this->activeClassAssignments[$event->class] = $active - 1;
+
+                return;
+            }
+
+            unset($this->activeClassAssignments[$event->class]);
             $this->finalizeClass($event->class);
 
             return;

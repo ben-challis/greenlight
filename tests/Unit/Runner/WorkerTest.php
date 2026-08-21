@@ -33,6 +33,7 @@ use Greenlight\Tests\Fixture\Lifecycle\PerTestDisposeFails\FailingPerTestDisposa
 use Greenlight\Tests\Fixture\Lifecycle\Retries\RetriesTest;
 use Greenlight\Tests\Fixture\Lifecycle\RetryFilter\RetryFilterTest;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
+use Greenlight\Tests\Fixture\Lifecycle\Services\ServicesTest;
 use Greenlight\Tests\Fixture\Lifecycle\TemporalRetry\TemporalRetryTest;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe;
@@ -392,6 +393,35 @@ final class WorkerTest
             'probe1:touched',
             'probe1:disposed',
         ]);
+    }
+
+    #[Test]
+    public function parallelClassesRejectPerClassHarnessServices(): void
+    {
+        $id = new TestId(ServicesTest::class, 'firstTouch');
+        $plan = new ExecutionPlan([
+            new PlanEntry($id, new TestMetadata($id->class, $id->method, allowParallel: true)),
+        ]);
+        $registry = $this->registry();
+        $registry->register(new ServiceDefinition(
+            ServiceProbe::class,
+            Scope::PerClass,
+            static fn(): ServiceProbe => new ServiceProbe(),
+        ));
+        $sink = new CollectingEventSink();
+
+        new Worker($registry)->run($plan, $sink);
+
+        $result = $sink->results()[0];
+        Expect::that($result->outcome)
+            ->because('a parallel class MUST NOT silently receive one class scope for each split entry')
+            ->toBe(Outcome::Errored);
+        Expect::that($result->error?->message)->toBe(\sprintf(
+            'Per-class harness service "%s", required by "%s", cannot be used by a class with #[AllowParallel]. '
+            . 'Use a per-test service or remove #[AllowParallel].',
+            ServiceProbe::class,
+            $id->class,
+        ));
     }
 
     #[Test]

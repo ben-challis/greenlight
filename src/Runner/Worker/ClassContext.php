@@ -13,8 +13,8 @@ use Greenlight\Discovery\DiscoveryError;
  * Contains the execution state for one test class. This state includes
  * reflection, hook lists, and expanded data sets.
  *
- * Data providers run one time for each class. The class scope stores their
- * expanded data sets.
+ * Data providers run one time for each class assignment. The class context
+ * stores their expanded data sets.
  *
  * @internal
  */

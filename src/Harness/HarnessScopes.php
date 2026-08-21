@@ -23,6 +23,8 @@ final class HarnessScopes
 
     private ?ScopeContainer $test = null;
 
+    private bool $classServicesAllowed = true;
+
     /**
      * @param list<ServiceResolver> $resolvers
      */
@@ -51,6 +53,10 @@ final class HarnessScopes
         $definition = $this->registry->find($type);
 
         if ($definition instanceof ServiceDefinition) {
+            if ($definition->scope === Scope::PerClass && !$this->classServicesAllowed) {
+                throw UnresolvableService::perClassServiceInParallelClass($type, $consumer);
+            }
+
             $service = $this->containerFor($definition->scope)->get($definition);
 
             if (!$service instanceof $type) {
@@ -77,9 +83,10 @@ final class HarnessScopes
         throw UnresolvableService::unknownType($type, $consumer, \count($this->resolvers));
     }
 
-    public function openClass(): void
+    public function openClass(bool $allowPerClassServices = true): void
     {
         $this->class = new ScopeContainer();
+        $this->classServicesAllowed = $allowPerClassServices;
     }
 
     /**
@@ -89,6 +96,7 @@ final class HarnessScopes
     {
         $failures = $this->class?->dispose() ?? [];
         $this->class = null;
+        $this->classServicesAllowed = true;
 
         return $failures;
     }

@@ -82,18 +82,23 @@ Default: `'auto'` workers, a `256M` memory recycle limit, and no test-count
 recycle limit.
 
 A worker requests one class at a time. When the worker finishes that class, it
-requests the next class. Thus, a long class does not make another worker idle.
+requests the next class.
+
+Greenlight keeps this class-level schedule by default. Add `#[AllowParallel]`
+to an independent large class to make each test or data set a separate
+assignment.
+
 The orchestrator gives first priority to classes that failed in the previous
 run. It orders the other classes by previous duration, longest first.
 
 Worker placement is load-dependent. The stable parts are:
 
 * queue order for a given plan
-* method order within each class under the selected seed
-* per-class results
+* method and data-set order in the execution plan
+* assignment queue order for entries from `#[AllowParallel]` classes
 
 The seed reproduces failures related to order. It does not reproduce exact
-worker placement.
+worker placement or completion-event order.
 
 `$count` accepts a positive integer or `'auto'`. With `'auto'`, Greenlight uses
 one worker per CPU core. Install the suggested `fidry/cpu-core-counter` package

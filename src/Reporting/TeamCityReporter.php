@@ -18,8 +18,8 @@ use Greenlight\Reporting\Output\Output;
 
 /**
  * Each message uses the test-class name as its flowId. Thus, consumers can
- * separate parallel output. A test class does not use multiple workers. The
- * test-class name is also available on test events and test-class events.
+ * separate parallel output. Concurrent assignments for one split class share
+ * one open suite. Test events and test-class events contain the class name.
  *
  * The reporter omits JetBrains navigation hints if the orchestrator cannot
  * load the class.
@@ -34,6 +34,11 @@ final class TeamCityReporter implements Reporter
      * @var array<string, ?string>
      */
     private array $classFiles = [];
+
+    /**
+     * @var array<non-empty-string, positive-int>
+     */
+    private array $activeClassAssignments = [];
 
     private ?string $artifactsDirectory = null;
     private bool $hasAttachments = false;
@@ -50,6 +55,13 @@ final class TeamCityReporter implements Reporter
         }
 
         if ($event instanceof TestClassStarted) {
+            $active = $this->activeClassAssignments[$event->class] ?? 0;
+            $this->activeClassAssignments[$event->class] = $active + 1;
+
+            if ($active > 0) {
+                return;
+            }
+
             $attributes = ['name' => $event->class];
 
             $hint = $this->locationHint($event->class);
@@ -66,6 +78,15 @@ final class TeamCityReporter implements Reporter
         }
 
         if ($event instanceof TestClassFinished) {
+            $active = $this->activeClassAssignments[$event->class] ?? 0;
+
+            if ($active > 1) {
+                $this->activeClassAssignments[$event->class] = $active - 1;
+
+                return;
+            }
+
+            unset($this->activeClassAssignments[$event->class]);
             $this->message('testSuiteFinished', [
                 'name' => $event->class,
                 'flowId' => $event->class,

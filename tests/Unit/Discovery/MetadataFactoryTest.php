@@ -14,6 +14,8 @@ use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongGroupTypeTe
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\AbstractMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\NonPublicMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\StaticMethodTest;
+use Greenlight\Tests\Fixture\DiscoveryParallelConflict\ClassIsolatedTest;
+use Greenlight\Tests\Fixture\DiscoveryParallelConflict\MethodIsolatedTest;
 
 final class MetadataFactoryTest
 {
@@ -90,6 +92,34 @@ final class MetadataFactoryTest
         yield 'static' => [StaticMethodTest::class, 'it is static'];
 
         yield 'abstract' => [AbstractMethodTest::class, 'it is abstract'];
+    }
+
+    /**
+     * @param class-string $class
+     */
+    #[Test]
+    #[DataSet('parallelIsolationConflicts')]
+    public function rejectsParallelClassesWithIsolation(string $class): void
+    {
+        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+            ->because('parallel class splitting and process isolation are incompatible')
+            ->toThrow(
+                DiscoveryError::class,
+                message: \sprintf(
+                    'Test class "%s" uses incompatible attributes #[AllowParallel] and #[Isolated]. '
+                    . 'Remove one of these attributes.',
+                    $class,
+                ),
+            );
+    }
+
+    /**
+     * @return iterable<string, array{class-string}>
+     */
+    public static function parallelIsolationConflicts(): iterable
+    {
+        yield 'class isolation' => [ClassIsolatedTest::class];
+        yield 'method isolation' => [MethodIsolatedTest::class];
     }
 
     /**

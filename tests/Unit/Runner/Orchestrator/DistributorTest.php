@@ -6,8 +6,10 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Distributor;
+use Greenlight\Runner\Orchestrator\SchedulingUnit;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class DistributorTest
@@ -67,5 +69,36 @@ final class DistributorTest
         Expect::that($isolated)->because('class units hold the union of every entry requirement')->toHaveCount(1);
         Expect::that($isolated[0]->resources)->because('class units hold the union of every entry requirement')->toBe(['sandbox']);
         Expect::that($isolated[0]->isolated)->because('class units hold the union of every entry requirement')->toBeTrue();
+    }
+
+    #[Test]
+    public function optedInClassEntriesBecomePooledSingletonUnitsInPlanOrder(): void
+    {
+        $plan = new ExecutionPlan([
+            PlanEntryFixture::create('LargeTest', 'rows', 'first', ['database'], allowParallel: true),
+            PlanEntryFixture::create('LargeTest', 'rows', 'second', ['queue'], allowParallel: true),
+            PlanEntryFixture::create('OtherTest', 'staysTogether'),
+            PlanEntryFixture::create('OtherTest', 'alsoStaysTogether'),
+        ], 42);
+
+        [$pooled, $isolated] = new Distributor()->units($plan);
+
+        Expect::that(\array_map(
+            static fn(SchedulingUnit $unit): array => \array_map(
+                static fn(PlanEntry $entry): string => (string) $entry->id,
+                $unit->plan->entries,
+            ),
+            $pooled,
+        ))
+            ->because('the opt-in MUST split entries without changing their plan order')
+            ->toBe([
+                ['LargeTest::rows[first]'],
+                ['LargeTest::rows[second]'],
+                ['OtherTest::staysTogether', 'OtherTest::alsoStaysTogether'],
+            ]);
+        Expect::that($pooled[0]->plan->seed)->toBe(42);
+        Expect::that($pooled[0]->resources)->toBe(['database']);
+        Expect::that($pooled[1]->resources)->toBe(['queue']);
+        Expect::that($isolated)->toBe([]);
     }
 }

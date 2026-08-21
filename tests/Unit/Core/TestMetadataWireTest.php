@@ -120,6 +120,7 @@ final class TestMetadataWireTest
         yield 'data-set provider class' => ['dataSetProviderClass', null];
         yield 'skip-unless arguments' => ['skipUnlessArguments', []];
         yield 'no-expectations policy' => ['noExpectations', false];
+        yield 'parallel class opt-in' => ['allowParallel', false];
     }
 
     /**

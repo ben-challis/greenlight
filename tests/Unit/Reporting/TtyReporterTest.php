@@ -76,6 +76,24 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function concurrentAssignmentsForOneClassShareOneLiveEntry(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, color: false, cursor: false);
+
+        $reporter->onEvent(new TestClassStarted('App\SplitTest', 1.0, 'w-1'));
+        $reporter->onEvent(new TestClassStarted('App\SplitTest', 1.01, 'w-2'));
+        $reporter->onEvent(new TestFinished($this->result('App\SplitTest', 'one', Outcome::Passed), 1.1));
+        $reporter->onEvent(new TestClassFinished('App\SplitTest', 1.11, 'w-1'));
+        $reporter->onEvent(new TestFinished($this->result('App\SplitTest', 'two', Outcome::Passed), 1.2));
+        $reporter->onEvent(new TestClassFinished('App\SplitTest', 1.21, 'w-2'));
+
+        Expect::that($output->buffer())
+            ->because('concurrent split assignments MUST retain all results in one live class entry')
+            ->toBe("✓ App\\SplitTest (2 tests, 0.020s)\n");
+    }
+
+    #[Test]
     public function aClassFinishedEventWithoutAStartUsesAnEmptyState(): void
     {
         $output = new BufferOutput();

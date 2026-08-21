@@ -22,6 +22,23 @@ final readonly class After
 
 This type does not declare public members.
 
+## `AllowParallel`
+
+Namespace: `Greenlight\Attribute`
+
+Allows Greenlight to assign tests from one class to different workers.
+
+The class MUST NOT use per-class harness services or `#[Isolated]`.
+
+```php
+#[\Attribute(\Attribute::TARGET_CLASS)]
+final readonly class AllowParallel
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/AllowParallel.php#L13)
+
+This type does not declare public members.
+
 ## `Before`
 
 Namespace: `Greenlight\Attribute`
@@ -230,7 +247,7 @@ This type does not declare public members.
 
 Namespace: `Greenlight\Attribute`
 
-Declares a resource that the assignment for the test class requires.
+Declares a resource that the assignment for the test requires.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]

@@ -115,8 +115,11 @@ The orchestrator controls resource limits, worker replacement, event checks,
 and reports. It also stores test durations to improve the order of later runs.
 
 Greenlight normally schedules complete test classes. It schedules each
-`#[Isolated]` test separately. It preserves the method order in a class, but
-different workers can run different classes.
+`#[Isolated]` test separately. Add `#[AllowParallel]` to split an independent
+large class into one assignment for each selected test or data set.
+
+Greenlight preserves execution-plan order. Worker placement and completion
+order remain load-dependent.
 
 Use a channel to give each worker a separate external resource. Use
 `#[RequiresResource]` to limit concurrent access to a shared resource.

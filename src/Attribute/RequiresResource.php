@@ -7,7 +7,7 @@ namespace Greenlight\Attribute;
 use Greenlight\Core\Test\ResourceName;
 
 /**
- * Declares a resource that the assignment for the test class requires.
+ * Declares a resource that the assignment for the test requires.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 final readonly class RequiresResource
