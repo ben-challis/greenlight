@@ -330,6 +330,11 @@ first, PHPStan reports a broken provider before a test can report the error:
 * Constant inline row labels must be unique. An explicit label must not
   duplicate a generated positional label such as `#0`.
 
+Provider purity is a Greenlight runtime contract. The Greenlight PHPStan
+extension validates provider signatures and row shapes, but it does not
+enforce this contract. Add `@phpstan-pure` to report operations that PHPStan
+knows are impure.
+
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]

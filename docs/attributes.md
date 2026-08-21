@@ -104,8 +104,10 @@ or:
 
 The provider must return an iterable of named data sets for the test method.
 
-Providers run at discovery time before tests execute. Do not use I/O or global
-state in a provider.
+Greenlight invokes each provider when it creates the execution plan and again
+when a worker resolves the planned data-set key. A provider MUST return the
+same data each time and MUST NOT change external state. Do not use I/O or
+global state in a provider.
 
 Each provider key names a data set and appears in test IDs and reports. Each
 provider value is the argument list for one test invocation.
