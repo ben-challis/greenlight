@@ -63,7 +63,7 @@ final class Expectation
      * An extension cannot replace a native matcher. PHP calls the native
      * method directly.
      *
-     * @param array<int, mixed> $arguments
+     * @param array<array-key, mixed> $arguments
      *
      * @return self<T>
      *
@@ -88,6 +88,41 @@ final class Expectation
             'Greenlight has no native or registered extension matcher named %s.',
             $name,
         ));
+    }
+
+    /**
+     * Runs one native or extension matcher by name.
+     *
+     * @internal Temporal expectations use this method for matcher dispatch.
+     *
+     * @param array<array-key, mixed> $arguments
+     *
+     * @return self<T>
+     *
+     * @throws ExpectationFailed
+     */
+    public function dispatchMatcher(string $name, array $arguments): self
+    {
+        try {
+            $method = new \ReflectionMethod($this, $name);
+        } catch (\ReflectionException) {
+            return $this->__call($name, $arguments);
+        }
+
+        if (!$method->isPublic() || $method->isStatic() || $name === '__call') {
+            return $this->__call($name, $arguments);
+        }
+
+        $result = $method->invokeArgs($this, $arguments);
+
+        if (!$result instanceof self) {
+            throw new \LogicException(\sprintf(
+                'Matcher "%s" did not return an Expectation.',
+                $name,
+            ));
+        }
+
+        return $result;
     }
 
     /**

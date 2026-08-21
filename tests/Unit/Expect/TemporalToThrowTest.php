@@ -93,13 +93,10 @@ final class TemporalToThrowTest
 
         $detail = FailureProbe::detailOf(
             static function () use ($eventually): void {
-                new \ReflectionMethod($eventually, 'toThrow')->invokeArgs(
-                    $eventually,
-                    [
-                        'throwable' => static function (\RuntimeException $error): void {},
-                        'message' => 'boom',
-                    ],
-                );
+                $eventually->__call('toThrow', [
+                    'throwable' => static function (\RuntimeException $error): void {},
+                    'message' => 'boom',
+                ]);
             },
         );
 
@@ -122,13 +119,10 @@ final class TemporalToThrowTest
 
         $detail = FailureProbe::detailOf(
             static function () use ($eventually, $failure): void {
-                new \ReflectionMethod($eventually, 'toThrow')->invokeArgs(
-                    $eventually,
-                    [
-                        'throwable' => $failure,
-                        'matching' => '/boom/',
-                    ],
-                );
+                $eventually->__call('toThrow', [
+                    'throwable' => $failure,
+                    'matching' => '/boom/',
+                ]);
             },
         );
 
