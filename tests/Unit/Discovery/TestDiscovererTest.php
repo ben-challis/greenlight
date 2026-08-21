@@ -151,6 +151,22 @@ final class TestDiscovererTest
     }
 
     #[Test]
+    public function aNativeDirectoryThrowableBecomesADiscoveryError(): void
+    {
+        Expect::that(
+            static fn(): array => new TestDiscoverer()->testFiles(["invalid\0tests"]),
+        )
+            ->because('a native directory throwable MUST not escape the discovery seam')
+            ->toThrow(
+                static function (DiscoveryError $error): void {
+                    Expect::that($error->getPrevious())
+                        ->because('the discovery error MUST preserve the native directory error')
+                        ->toBeInstanceOf(\ValueError::class);
+                },
+            );
+    }
+
+    #[Test]
     #[Isolated]
     public function inaccessibleDirectoryFailsWithoutEngineDiagnostics(): void
     {

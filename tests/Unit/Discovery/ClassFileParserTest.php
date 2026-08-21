@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ClassDeclaration;
 use Greenlight\Discovery\ClassFileParser;
+use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Expect\Expect;
 use Greenlight\Fixture\TempDirectory;
 
@@ -79,5 +80,19 @@ final readonly class ClassFileParserTest
                 ['Example\Named\NamedTest', 'class'],
                 ['GlobalTest', 'class'],
             ]);
+    }
+
+    #[Test]
+    public function aNativeReadThrowableBecomesADiscoveryError(): void
+    {
+        Expect::that(static fn(): array => ClassFileParser::declarationsIn("invalid\0Test.php"))
+            ->because('a native file-read throwable MUST not escape the discovery seam')
+            ->toThrow(
+                static function (DiscoveryError $error): void {
+                    Expect::that($error->getPrevious())
+                        ->because('the discovery error MUST preserve the native file-read error')
+                        ->toBeInstanceOf(\ValueError::class);
+                },
+            );
     }
 }

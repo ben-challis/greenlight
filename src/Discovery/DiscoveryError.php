@@ -20,18 +20,24 @@ final class DiscoveryError extends \RuntimeException
         parent::__construct($message, previous: $previous);
     }
 
-    public static function directoryNotFound(string $directory): self
+    public static function directoryNotFound(string $directory, ?\Throwable $previous = null): self
     {
-        return new self(\sprintf('Discovery directory "%s" is missing or is not a directory.', $directory));
+        return new self(
+            \sprintf('Discovery directory "%s" is missing or is not a directory.', $directory),
+            $previous,
+        );
     }
 
-    public static function unreadableFile(string $file, ?string $reason = null): self
-    {
+    public static function unreadableFile(
+        string $file,
+        ?string $reason = null,
+        ?\Throwable $previous = null,
+    ): self {
         return new self(\sprintf(
             'Greenlight cannot read test file "%s"%s.',
             $file,
             $reason === null ? '' : ': ' . $reason,
-        ));
+        ), $previous);
     }
 
     public static function noClassInFile(string $file): self
