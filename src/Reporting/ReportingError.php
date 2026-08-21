@@ -7,14 +7,14 @@ namespace Greenlight\Reporting;
 /** @internal */
 final class ReportingError extends \RuntimeException
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
-    public static function writeFailed(): self
+    public static function writeFailed(?\Throwable $previous = null): self
     {
-        return new self('Greenlight did not write reporter output to the stream.');
+        return new self('Greenlight did not write reporter output to the stream.', $previous);
     }
 
     /**

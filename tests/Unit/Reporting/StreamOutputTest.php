@@ -66,6 +66,30 @@ final readonly class StreamOutputTest
     }
 
     #[Test]
+    public function aClosedStreamThrowableBecomesAReportingError(): void
+    {
+        $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r+'));
+
+        Expect::that($stream)
+            ->because('Greenlight MUST open the in-memory stream.')
+            ->not()
+            ->toBeFalse();
+        \fclose($stream);
+
+        $output = new StreamOutput($stream);
+
+        Expect::that(static fn() => $output->write('cannot be written'))
+            ->because('a native stream throwable MUST not escape the reporting seam')
+            ->toThrow(
+                static function (ReportingError $error): void {
+                    Expect::that($error->getPrevious())
+                        ->because('the reporting error MUST preserve the native stream error')
+                        ->toBeInstanceOf(\TypeError::class);
+                },
+            );
+    }
+
+    #[Test]
     public function partialWritesAreRetriedUntilTheReporterTextIsComplete(): void
     {
         $stream = $this->openPartialWriteStream('partial');
