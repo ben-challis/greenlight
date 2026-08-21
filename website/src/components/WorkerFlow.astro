@@ -1,0 +1,41 @@
+<figure class="worker-flow" aria-labelledby="worker-flow-caption">
+  <figcaption id="worker-flow-caption" class="worker-flow__caption">
+    <span>Execution plan</span>
+    <strong>Classes move independently. Results return in order.</strong>
+  </figcaption>
+
+  <div class="worker-flow__stage" aria-hidden="true">
+    <div class="worker-flow__source">
+      <span>discovered once</span>
+      <strong>12 test classes</strong>
+    </div>
+
+    <ol class="worker-flow__lanes">
+      <li>
+        <code>CheckoutTest</code>
+        <span>worker 01</span>
+        <strong>passed</strong>
+      </li>
+      <li>
+        <code>OrderTest</code>
+        <span>worker 02</span>
+        <strong>running</strong>
+      </li>
+      <li>
+        <code>BillingTest</code>
+        <span>worker 03</span>
+        <strong>passed</strong>
+      </li>
+    </ol>
+
+    <div class="worker-flow__result">
+      <span>one ordered report</span>
+      <strong>802 tests</strong>
+    </div>
+  </div>
+
+  <p class="worker-flow__description">
+    Greenlight discovers the suite once, assigns test classes to available workers,
+    and combines their results into one ordered report.
+  </p>
+</figure>

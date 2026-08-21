@@ -4,6 +4,7 @@ import { Code } from 'astro:components';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import RunPreview from '../components/RunPreview.astro';
 import TerminalOutput from '../components/TerminalOutput.astro';
+import WorkerFlow from '../components/WorkerFlow.astro';
 import { githubUrl, sitePath } from '../lib/paths';
 
 const testExample = `<?php
@@ -76,12 +77,15 @@ final class PriceTest
 
     <section class="execution-story section-shell">
       <div class="execution-heading">
-        <p class="eyebrow">Run the suite</p>
-        <h2>Greenlight manages the worker pool for you.</h2>
-        <p>
-          The runner discovers the suite once, keeps the available workers busy,
-          and returns one ordered result.
-        </p>
+        <WorkerFlow />
+        <div class="execution-heading-copy">
+          <p class="eyebrow">Run the suite</p>
+          <h2>Greenlight manages the worker pool for you.</h2>
+          <p>
+            The runner discovers the suite once, keeps the available workers busy,
+            and returns one ordered result.
+          </p>
+        </div>
       </div>
       <ol class="execution-steps">
         <li>
