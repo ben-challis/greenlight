@@ -207,6 +207,7 @@ final readonly class TestExecutor
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
+        $disposalFailures = [];
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $capture?->start();
@@ -313,19 +314,6 @@ final readonly class TestExecutor
                 } finally {
                     try {
                         $disposalFailures = $this->scopes->closeTest();
-
-                        if ($disposalFailures !== [] && !$cause instanceof \Throwable && $skipReason === null) {
-                            $cause = $disposalFailures[0];
-
-                            // An ExpectationFailed from disposal is a verification step.
-                            // Automatic double verification uses this path. It fails the
-                            // test with differences instead of an error.
-                            if ($cause instanceof ExpectationFailed) {
-                                $failures = $cause->details;
-                            } else {
-                                $error = ThrowableDetail::fromThrowable($cause);
-                            }
-                        }
                     } finally {
                         ExpectationRuntime::leaveAttempt();
                     }
@@ -366,6 +354,12 @@ final readonly class TestExecutor
             output: $captured,
             expectations: ExpectationCounter::count(),
         );
+
+        $result = HarnessServiceDisposal::applyToTest($result, $disposalFailures);
+
+        if (!$cause instanceof \Throwable && $disposalFailures !== []) {
+            $cause = $disposalFailures[0];
+        }
 
         // The counter includes double verification from scope close. A passed
         // test with no verified expectations is a risky test unless it has

@@ -51,6 +51,8 @@ final class WorkerHandle
 
     public WorkerLifecycle $lifecycle = WorkerLifecycle::Active;
 
+    public bool $stopRequested = false;
+
     private float $retirementDeadline = 0.0;
 
     public string $diagnostics = '';
@@ -130,6 +132,11 @@ final class WorkerHandle
     {
         return $this->lifecycle === WorkerLifecycle::Retiring
             || $this->lifecycle === WorkerLifecycle::Killing;
+    }
+
+    public function requestStop(): void
+    {
+        $this->stopRequested = true;
     }
 
     public function retire(float $now, float $graceSeconds): void

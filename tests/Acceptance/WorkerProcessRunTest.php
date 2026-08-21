@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -46,6 +47,33 @@ final readonly class WorkerProcessRunTest
 
         Expect::that($result->exitCode)->because('worker recycling keeps results intact')->toBe(0);
         Expect::that($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
+    }
+
+    /** @param list<string> $arguments */
+    #[Test]
+    #[DataSet('workerDisposalModes')]
+    public function workerDisposalFailuresAreEquivalentAcrossExecutionModes(array $arguments): void
+    {
+        $result = $this->runIn('HarnessDisposalRun', $arguments);
+
+        Expect::that($result->exitCode)
+            ->because('worker disposal MUST make each execution mode unsuccessful')
+            ->toBe(1);
+        Expect::that($result->output())
+            ->because('each execution mode MUST report the worker disposal failure')
+            ->toContain('test broke first')
+            ->toContain('Worker harness service disposal failed.')
+            ->toContain('harness service disposal broke');
+    }
+
+    /**
+     * @return iterable<string, array{list<string>}>
+     */
+    public static function workerDisposalModes(): iterable
+    {
+        yield 'in-process' => [['run', '--workers=1']];
+        yield 'parallel drain' => [['run', '--workers=2']];
+        yield 'parallel recycle' => [['run', '--config=greenlight.recycle.php']];
     }
 
     /**

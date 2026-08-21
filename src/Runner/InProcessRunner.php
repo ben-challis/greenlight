@@ -27,6 +27,7 @@ use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Runner\Worker\WorkerError;
 
 /**
  * Discovers and executes a plan in the orchestrator process.
@@ -142,20 +143,32 @@ final readonly class InProcessRunner
                 $collectingCoverage = $collector instanceof CoverageCollector;
                 $collector?->start();
 
-                $outcome = $plugins->runWorker(static fn() => new Worker(
-                    DefaultServices::registry($plugins, $resources),
-                    $plugins,
-                    $detectLeaks ? new LeakDetector() : null,
-                    'in-process',
-                    $configuration->policy->isNoOp() ? null : $configuration->policy,
-                    $artifactStore,
-                )->run(
-                    $plan,
-                    $sink,
-                    $configuration->stopAfterFailures,
-                    null,
-                    $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
-                ));
+                try {
+                    $outcome = $plugins->runWorker(static fn() => new Worker(
+                        DefaultServices::registry($plugins, $resources),
+                        $plugins,
+                        $detectLeaks ? new LeakDetector() : null,
+                        'in-process',
+                        $configuration->policy->isNoOp() ? null : $configuration->policy,
+                        $artifactStore,
+                    )->run(
+                        $plan,
+                        $sink,
+                        $configuration->stopAfterFailures,
+                        null,
+                        $shutdown instanceof GracefulShutdown ? $shutdown->requested(...) : null,
+                    ));
+                } catch (WorkerError $failure) {
+                    $detail = ThrowableDetail::fromThrowable($failure);
+
+                    throw ProtocolError::workerFatal(
+                        'in-process',
+                        $detail->message,
+                        $detail->file,
+                        $detail->line,
+                        $failure,
+                    );
+                }
                 $summary = $outcome->summary;
 
                 $collectingCoverage = false;

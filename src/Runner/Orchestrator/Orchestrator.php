@@ -477,6 +477,10 @@ final class Orchestrator
         }
 
         if ($decision->kind === DispatchKind::Drain) {
+            if ($handle->stopRequested) {
+                return;
+            }
+
             $at = $this->monotonicTime();
             $handle->timing->wait(WorkerIdleReason::NoQueuedWork, $at);
             $handle->timing->retirementRequested($at);
@@ -487,7 +491,7 @@ final class Orchestrator
                 // Crash detection processes a worker that is already gone.
             }
 
-            $this->finishHandle($handle);
+            $handle->requestStop();
 
             return;
         }
@@ -613,7 +617,7 @@ final class Orchestrator
                             // The worker is already gone after Done. No drain is necessary.
                         }
 
-                        $this->finishHandle($handle);
+                        $handle->requestStop();
 
                         break;
                     }
@@ -746,7 +750,7 @@ final class Orchestrator
         $this->resourceScheduler()->clearPending();
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->channel !== null) {
+            if ($handle->isActive() && $handle->channel !== null && !$handle->stopRequested) {
                 $handle->timing->retirementRequested($this->monotonicTime());
                 try {
                     $handle->channel->send(new Drain());
@@ -754,9 +758,7 @@ final class Orchestrator
                     // Crash detection processes a worker that is already gone.
                 }
 
-                if ($handle->assigned === null) {
-                    $this->finishHandle($handle);
-                }
+                $handle->requestStop();
             }
         }
     }
@@ -806,6 +808,12 @@ final class Orchestrator
             // current. Do not poll here because another poll discards a
             // returned message.
             if (!$handle->channel->isEof()) {
+                continue;
+            }
+
+            if ($handle->stopRequested && $handle->assigned === null) {
+                $this->finishHandle($handle);
+
                 continue;
             }
 

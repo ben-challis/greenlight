@@ -144,19 +144,10 @@ final readonly class WorkerProcess
                 $registry = DefaultServices::registry($plugins, $message->resources);
                 $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
 
-                $finalMessage = $plugins->runWorker(function () use (
-                    $channel,
-                    $plugins,
-                    $registry,
+                $finalMessage = $plugins->runWorker(fn(): ?Message => HarnessServiceDisposal::runAndClose(
                     $scopes,
-                    $workerId,
-                ): ?Message {
-                    try {
-                        return $this->runAssignments($channel, $plugins, $registry, $scopes, $workerId);
-                    } finally {
-                        $scopes->closeRun();
-                    }
-                });
+                    fn(): ?Message => $this->runAssignments($channel, $plugins, $registry, $scopes, $workerId),
+                ));
 
                 if ($finalMessage instanceof Message) {
                     $channel->send($finalMessage);
@@ -185,6 +176,7 @@ final readonly class WorkerProcess
      *
      * @throws WireError
      * @throws ProtocolError
+     * @throws WorkerError
      */
     private function runAssignments(
         SocketChannel $channel,

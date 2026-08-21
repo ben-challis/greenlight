@@ -134,6 +134,41 @@ final readonly class TestResult implements WireSerializable
     }
 
     /**
+     * Returns an errored result for a teardown failure. It removes a previous
+     * skip because teardown did not complete successfully.
+     *
+     * @internal
+     *
+     * @param list<FailureDetail> $secondaryFailures
+     */
+    public function erroredByTeardown(ThrowableDetail $error, array $secondaryFailures = []): self
+    {
+        return $this->with(
+            outcome: Outcome::Errored,
+            failures: [...$this->failures, ...$secondaryFailures],
+            error: $error,
+            clearSkipReason: true,
+        );
+    }
+
+    /**
+     * Returns a failed result for teardown verification failures. It removes a
+     * previous skip because teardown did not complete successfully.
+     *
+     * @internal
+     *
+     * @param non-empty-list<FailureDetail> $failures
+     */
+    public function failedByTeardown(array $failures): self
+    {
+        return $this->with(
+            outcome: Outcome::Failed,
+            failures: [...$this->failures, ...$failures],
+            clearSkipReason: true,
+        );
+    }
+
+    /**
      * @internal
      *
      * @param list<FailureDetail> $failures
@@ -159,6 +194,7 @@ final readonly class TestResult implements WireSerializable
         ?ThrowableDetail $error = null,
         ?array $attachments = null,
         ?int $attempts = null,
+        bool $clearSkipReason = false,
     ): self {
         return new self(
             $this->id,
@@ -168,7 +204,7 @@ final readonly class TestResult implements WireSerializable
             $attempts ?? $this->attempts,
             $failures ?? $this->failures,
             $error ?? $this->error,
-            $this->skipReason,
+            $clearSkipReason ? null : $this->skipReason,
             $transformations ?? $this->transformations,
             $this->output,
             $risky ?? $this->risky,

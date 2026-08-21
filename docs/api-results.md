@@ -812,7 +812,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L180)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L216)
 
 ### `fromWire()`
 
@@ -821,7 +821,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L206)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L242)
 
 ## `ThrowableDetail`
 
