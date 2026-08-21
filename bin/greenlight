@@ -3,6 +3,9 @@
 
 declare(strict_types=1);
 
+namespace Greenlight;
+
+// @phpstan-ignore smaller.alwaysFalse (The executable validates the PHP version at run time before it loads Composer.)
 if (\PHP_VERSION_ID < 80400) {
     \fwrite(\STDERR, \sprintf(
         "Greenlight requires PHP 8.4 or later. The current PHP version is %s.\n",
@@ -44,10 +47,13 @@ if ($workingDirectory === false) {
 
 /** @var list<string> $arguments */
 $arguments = [];
+$serverArguments = $_SERVER['argv'] ?? [];
 
-foreach (\array_slice($_SERVER['argv'] ?? [], 1) as $argument) {
-    if (\is_string($argument)) {
-        $arguments[] = $argument;
+if (\is_array($serverArguments)) {
+    foreach (\array_slice($serverArguments, 1) as $argument) {
+        if (\is_string($argument)) {
+            $arguments[] = $argument;
+        }
     }
 }
 

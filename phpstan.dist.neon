@@ -35,6 +35,12 @@ parameters:
         - src
         - tests
         - tools
+        - bin/greenlight
+        - greenlight.php
+        - greenlight.coverage.php
+        - greenlight.tempest-coverage.php
+        - rector.php
+        - rector.docs.php
     scanFiles:
         - stubs/tempest.stub.php
         - tools/phpstan-stubs/hyperf.php
