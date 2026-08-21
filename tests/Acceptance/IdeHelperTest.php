@@ -26,7 +26,8 @@ final readonly class IdeHelperTest
 
         $helper = (string) \file_get_contents($target);
         Expect::that($helper)->because('writes a lintable helper and skips when nothing is configured')->toContain('@method self toHaveDigestLength(int $length)')
-            ->toContain('@mixin Expectation')
+            ->toContain('@method Expectation<T> toBeWithin(float $delta, float $of)')
+            ->toContain('@method Expectation<T> toHaveDigestLength(int $length)')
             ->toContain('abstract class TemporalExpectation');
 
         $lint = Subprocess::run($root, [\PHP_BINARY, '-l', $target]);

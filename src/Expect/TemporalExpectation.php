@@ -84,57 +84,9 @@ abstract class TemporalExpectation
      */
     final public function __call(string $name, array $arguments): Expectation
     {
-        if ($name === 'toThrow') {
-            $this->validateToThrowArguments($arguments);
-        }
+        $matcher = ExpectationCall::forTemporal($name, $arguments);
 
-        if ($name === 'toBeIn') {
-            $key = \array_key_exists('haystack', $arguments) ? 'haystack' : 0;
-            $haystack = $arguments[$key] ?? null;
-
-            if ($haystack instanceof \Traversable) {
-                $arguments[$key] = \iterator_to_array($haystack, false);
-            }
-        }
-
-        return $this->apply(
-            static fn(Expectation $expectation): Expectation => $expectation->dispatchMatcher($name, $arguments),
-        );
-    }
-
-    /**
-     * @param array<array-key, mixed> $arguments
-     *
-     * @throws ExpectationFailed
-     */
-    private function validateToThrowArguments(array $arguments): void
-    {
-        $throwable = $arguments['throwable'] ?? $arguments[0] ?? null;
-        $matching = $arguments['matching'] ?? $arguments[1] ?? null;
-        $message = $arguments['message'] ?? $arguments[2] ?? null;
-
-        if ($throwable instanceof \Closure && ($matching !== null || $message !== null)) {
-            $this->usageFailure('Do not specify matching: or message: when the throwable is a callback.');
-        }
-
-        if ($throwable instanceof \Throwable && ($matching !== null || $message !== null)) {
-            $this->usageFailure(
-                'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
-            );
-        }
-
-        if ($matching !== null && $message !== null) {
-            $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
-        }
-    }
-
-    /** @throws ExpectationFailed */
-    private function usageFailure(string $message): never
-    {
-        throw ExpectationFailed::fromDetail(new FailureDetail(
-            $message,
-            location: CallSite::capture(),
-        ));
+        return $this->apply($matcher->invoke(...));
     }
 
     /**

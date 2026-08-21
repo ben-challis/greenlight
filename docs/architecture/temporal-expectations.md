@@ -9,18 +9,24 @@ and dependency-based creation methods are internal.
 
 ## Matcher operation
 
-`TemporalExpectation::__call()` sends native and extension matcher calls to an
-ordinary `Expectation`. The `@mixin Expectation<T>` declaration supplies the
-native matcher types to PHPStan. The API-reference generator uses this
-declaration to document the same methods on each public temporal return type.
+`TemporalExpectation::__call()` sends each native or extension matcher to an
+ordinary `Expectation`. Each poll creates this ordinary expectation for the
+probe value. The matcher runs without an increment to the expectation counter.
+The temporal matcher increments the counter one time.
 
-Each poll creates an ordinary expectation for the probe value. It runs the
-selected matcher without an increment to the expectation counter. The temporal
-matcher increments the counter one time.
+The `@mixin Expectation<T>` declaration supplies the native matcher methods to
+the API-reference generator.
 
-Custom matchers use the same `Expectation::__call()` path. An exception from
-matcher code stops the poll operation. `eventually()` retries a probe exception
-only if `retryOnException()` lists its type.
+Native matcher methods are not reflection-visible on `TemporalExpectation`.
+This is an intentional interface change. Code that reflects matcher methods
+MUST use `Expectation` as its source.
+
+The PHPStan extension supplies the native methods on temporal chains. The IDE
+helper supplies the same methods as annotations. Thus, normal temporal matcher
+syntax keeps its static signatures in these tools.
+
+An exception from matcher code stops the poll operation. `eventually()` retries
+a probe exception only if `retryOnException()` lists its type.
 
 A successful temporal matcher returns an ordinary `Expectation` for the last
 value. Each matcher after it checks that value one time.

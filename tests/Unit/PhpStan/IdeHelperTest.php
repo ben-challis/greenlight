@@ -22,6 +22,8 @@ final class IdeHelperTest
             ->toContain(' * @method self toBeHexadecimal()')
             ->toContain(' * @method self toHaveDigestLength(int $length)')
             ->toContain(' * @method self toBePositive()')
+            ->toContain(' * @method Expectation<T> toBeWithin(float $delta, float $of)')
+            ->toContain(' * @method Expectation<T> toHaveDigestLength(int $length)')
             ->toContain('final class Expectation {}')
             ->toContain('The IDE does not execute or autoload');
     }

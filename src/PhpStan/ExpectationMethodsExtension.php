@@ -13,11 +13,12 @@ use Greenlight\Expect\TemporalExpectation;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\MethodsClassReflectionExtension;
+use PHPStan\Reflection\ReflectionProvider;
 
 /**
- * Gets matcher closure signatures through reflection. PHPStan uses the
- * signatures to check dynamic methods. Different signatures for one matcher
- * name cause an analysis error.
+ * Gets native matcher methods and extension matcher closure signatures.
+ * PHPStan uses these signatures to check dynamic methods. Different signatures
+ * for one extension matcher name cause an analysis error.
  *
  * PHPStan and workers use the same procedure to load configuration files.
  * PHPStan creates configured expectation extensions in the PHPStan process.
@@ -26,7 +27,10 @@ use PHPStan\Reflection\MethodsClassReflectionExtension;
  */
 final readonly class ExpectationMethodsExtension implements MethodsClassReflectionExtension
 {
-    public function __construct(private MatcherMapProvider $matcherMap) {}
+    public function __construct(
+        private MatcherMapProvider $matcherMap,
+        private ReflectionProvider $reflectionProvider,
+    ) {}
 
     /**
      * @throws ConfigFileError
@@ -36,13 +40,17 @@ final readonly class ExpectationMethodsExtension implements MethodsClassReflecti
     #[\Override]
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
     {
-        return \in_array($classReflection->getName(), [
+        if (!\in_array($classReflection->getName(), [
             Expectation::class,
             TemporalExpectation::class,
             EventuallyExpectation::class,
             ConsistentlyExpectation::class,
-        ], true)
-            && $this->matcherMap->get()->has($methodName);
+        ], true)) {
+            return false;
+        }
+
+        return $this->isNativeTemporalMatcher($classReflection, $methodName)
+            || $this->matcherMap->get()->has($methodName);
     }
 
     /**
@@ -53,10 +61,34 @@ final readonly class ExpectationMethodsExtension implements MethodsClassReflecti
     #[\Override]
     public function getMethod(ClassReflection $classReflection, string $methodName): MethodReflection
     {
+        if ($this->isNativeTemporalMatcher($classReflection, $methodName)) {
+            return new NativeMatcherMethod(
+                $classReflection,
+                $this->reflectionProvider->getClass(Expectation::class)->getNativeMethod($methodName),
+            );
+        }
+
         return new ExtensionMatcherMethod(
             $classReflection,
             $methodName,
             $this->matcherMap->get()->parameters($methodName),
         );
+    }
+
+    private function isNativeTemporalMatcher(ClassReflection $classReflection, string $methodName): bool
+    {
+        if (!\str_starts_with($methodName, 'to')
+            || !\in_array($classReflection->getName(), [
+                TemporalExpectation::class,
+                EventuallyExpectation::class,
+                ConsistentlyExpectation::class,
+            ], true)
+        ) {
+            return false;
+        }
+
+        return $this->reflectionProvider
+            ->getClass(Expectation::class)
+            ->hasNativeMethod($methodName);
     }
 }

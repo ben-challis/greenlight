@@ -155,13 +155,13 @@ A dynamic method name or position keeps the documented `mixed` value type.
 ## Custom matcher checks
 
 These checks apply when a plugin adds matchers through `ExpectationExtension`.
-See [plugins](plugins.md). Built-in matchers such as `toBe()` are real methods.
-Thus, PHPStan checks them without help from the extension.
+See [plugins](plugins.md). Built-in matchers such as `toBe()` are real methods
+on `Expectation`. The extension supplies their signatures on temporal chains.
 
-Custom matcher calls use `__call()` at run time. PHPStan cannot infer their
-signatures from `__call()`. The extension loads your configuration files in the
-same way as workers. It reflects each matcher closure and checks calls against
-the real signature.
+Temporal matcher calls and custom matcher calls use `__call()` at run time.
+PHPStan cannot infer their signatures from `__call()`. The extension reflects
+native matcher methods from `Expectation`. It also loads configuration files
+and reflects each custom matcher closure.
 
 The declared closure return type must be compatible with `bool`. PHPStan leaves
 an absent or `mixed` return type unresolved.

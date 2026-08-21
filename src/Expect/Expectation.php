@@ -91,41 +91,6 @@ final class Expectation
     }
 
     /**
-     * Runs one native or extension matcher by name.
-     *
-     * @internal Temporal expectations use this method for matcher dispatch.
-     *
-     * @param array<array-key, mixed> $arguments
-     *
-     * @return self<T>
-     *
-     * @throws ExpectationFailed
-     */
-    public function dispatchMatcher(string $name, array $arguments): self
-    {
-        try {
-            $method = new \ReflectionMethod($this, $name);
-        } catch (\ReflectionException) {
-            return $this->__call($name, $arguments);
-        }
-
-        if (!$method->isPublic() || $method->isStatic() || $name === '__call') {
-            return $this->__call($name, $arguments);
-        }
-
-        $result = $method->invokeArgs($this, $arguments);
-
-        if (!$result instanceof self) {
-            throw new \LogicException(\sprintf(
-                'Matcher "%s" did not return an Expectation.',
-                $name,
-            ));
-        }
-
-        return $result;
-    }
-
-    /**
      * Inverts the next matcher in the chain. That matcher consumes the
      * inversion. Negation does not apply to subject type checks. A matcher
      * fails if it cannot process the subject type.
@@ -831,18 +796,10 @@ final class Expectation
         $callback = $throwable instanceof \Closure ? $throwable : null;
         $instance = $throwable instanceof \Throwable ? $throwable : null;
 
-        if ($callback instanceof \Closure && ($matching !== null || $message !== null)) {
-            $this->usageFailure('Do not specify matching: or message: when the throwable is a callback.');
-        }
+        $validationError = ExpectationCall::toThrowValidationError($throwable, $matching, $message);
 
-        if ($instance instanceof \Throwable && ($matching !== null || $message !== null)) {
-            $this->usageFailure(
-                'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
-            );
-        }
-
-        if ($matching !== null && $message !== null) {
-            $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
+        if ($validationError !== null) {
+            $this->usageFailure($validationError);
         }
 
         if ($matching !== null) {
