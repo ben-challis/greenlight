@@ -49,7 +49,9 @@ final class WorkerHandle
      */
     public int $inFlightAttempt = 0;
 
-    public bool $done = false;
+    public WorkerLifecycle $lifecycle = WorkerLifecycle::Active;
+
+    private float $retirementDeadline = 0.0;
 
     public string $diagnostics = '';
 
@@ -114,6 +116,95 @@ final class WorkerHandle
         $status = \proc_get_status($this->process);
 
         return $status['running'];
+    }
+
+    public function isActive(): bool
+    {
+        return $this->lifecycle === WorkerLifecycle::Active;
+    }
+
+    public function isRetiring(): bool
+    {
+        return $this->lifecycle === WorkerLifecycle::Retiring
+            || $this->lifecycle === WorkerLifecycle::Killing;
+    }
+
+    public function retire(float $now, float $graceSeconds): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        $this->lifecycle = WorkerLifecycle::Retiring;
+        $this->retirementDeadline = $now + $graceSeconds;
+        $this->drainPipes();
+        $this->channel?->close();
+    }
+
+    public function kill(float $now): void
+    {
+        $this->retire($now, 0.0);
+
+        if ($this->lifecycle !== WorkerLifecycle::Retiring) {
+            return;
+        }
+
+        $this->sendKillSignal();
+    }
+
+    /**
+     * Advances process retirement without waiting for the process.
+     *
+     * @return bool True when the process handle is fully reaped.
+     */
+    public function reap(float $now): bool
+    {
+        if ($this->lifecycle === WorkerLifecycle::Reaped) {
+            return true;
+        }
+
+        if (!$this->isRetiring()) {
+            return false;
+        }
+
+        $this->drainPipes();
+
+        if ($this->isRunning()) {
+            if ($this->lifecycle === WorkerLifecycle::Retiring && $now >= $this->retirementDeadline) {
+                $this->sendKillSignal();
+            }
+
+            return false;
+        }
+
+        $this->drainPipes();
+        $this->closeDiagnosticPipes();
+
+        if (\is_resource($this->process)) {
+            ErrorTrap::run(fn() => \proc_close($this->process));
+        }
+
+        $this->lifecycle = WorkerLifecycle::Reaped;
+
+        return true;
+    }
+
+    private function sendKillSignal(): void
+    {
+        if (\is_resource($this->process)) {
+            ErrorTrap::run(fn() => \proc_terminate($this->process, 9));
+        }
+
+        $this->lifecycle = WorkerLifecycle::Killing;
+    }
+
+    private function closeDiagnosticPipes(): void
+    {
+        foreach ([$this->stdout, $this->stderr] as $pipe) {
+            if (\is_resource($pipe)) {
+                ErrorTrap::run(static fn() => \fclose($pipe));
+            }
+        }
     }
 
     /**
@@ -224,6 +315,8 @@ final class WorkerHandle
                 \proc_close($this->process);
             });
         }
+
+        $this->lifecycle = WorkerLifecycle::Reaped;
     }
 
     /**
