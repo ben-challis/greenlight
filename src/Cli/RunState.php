@@ -151,6 +151,17 @@ final class RunState
             return false;
         }
 
+        $directory = \dirname($this->file);
+        $directoryExists = ErrorTrap::run(static fn() => \is_dir($directory));
+
+        if (!$directoryExists && !ErrorTrap::run(static fn() => \mkdir($directory, 0o700, true))) {
+            $directoryExists = ErrorTrap::run(static fn() => \is_dir($directory));
+
+            if (!$directoryExists) {
+                return false;
+            }
+        }
+
         try {
             AtomicFile::write($this->file, $encoded);
         } catch (AtomicFileError) {

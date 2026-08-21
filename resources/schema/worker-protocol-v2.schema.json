@@ -95,7 +95,9 @@
             "properties": {
                 "channel": {"type": "integer", "minimum": 1},
                 "configFile": {"type": ["string", "null"]},
-                "resources": {"$ref": "#/definitions/integrationResources"}
+                "resources": {"$ref": "#/definitions/integrationResources"},
+                "generatedCodeDirectory": {"type": ["string", "null"]},
+                "temporaryDirectory": {"type": ["string", "null"]}
             }
         },
         "integrationResources": {

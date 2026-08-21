@@ -60,6 +60,7 @@ final readonly class Configuration
         public array $excludePaths = [],
         public ArtifactConfiguration $artifacts = new ArtifactConfiguration(),
         public array $resourceLimits = [],
+        public StorageConfiguration $storage = new StorageConfiguration(),
     ) {}
 
     /**
@@ -90,6 +91,7 @@ final readonly class Configuration
             excludePaths: $this->excludePaths,
             artifacts: $this->artifacts,
             resourceLimits: $this->resourceLimits,
+            storage: $this->storage,
         );
     }
 
@@ -121,6 +123,7 @@ final readonly class Configuration
             excludePaths: $paths,
             artifacts: $this->artifacts,
             resourceLimits: $this->resourceLimits,
+            storage: $this->storage,
         );
     }
 }

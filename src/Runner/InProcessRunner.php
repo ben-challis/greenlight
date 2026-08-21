@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Config\StorageLayout;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Core\Event\RunFinished;
@@ -58,6 +59,7 @@ final readonly class InProcessRunner
         array $classSeconds = [],
         ?GracefulShutdown $shutdown = null,
     ): RunResult {
+        $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
         $seed = null;
 
         if ($configuration->randomizeOrder) {
@@ -77,6 +79,7 @@ final readonly class InProcessRunner
             $artifactConfiguration,
             $this->workingDirectory,
             $runId,
+            temporaryDirectory: $storage->temporaryDirectory,
         );
         $channelEnvironment = null;
 
@@ -143,7 +146,12 @@ final readonly class InProcessRunner
                 $collector?->start();
 
                 $outcome = $plugins->runWorker(static fn() => new Worker(
-                    DefaultServices::registry($plugins, $resources),
+                    DefaultServices::registry(
+                        $plugins,
+                        $resources,
+                        $storage->generatedCodeDirectory,
+                        $storage->temporaryDirectory,
+                    ),
                     $plugins,
                     $detectLeaks ? new LeakDetector() : null,
                     'in-process',
@@ -204,7 +212,14 @@ final readonly class InProcessRunner
     {
         $filter = SelectionFilter::fromConfiguration($configuration);
 
-        return new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories));
+        $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
+
+        return new TestDiscoverer()->discover(
+            $directories,
+            $filter,
+            $seed,
+            DiscoveryCache::forDirectories($directories, $storage->cacheDirectory),
+        );
     }
 
     private function sharded(ExecutionPlan $plan, Configuration $configuration): ExecutionPlan
