@@ -13,6 +13,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
@@ -160,6 +161,19 @@ final class Orchestrator
     public function detectedLeaks(): array
     {
         return $this->leaks;
+    }
+
+    /**
+     * Returns orchestrator-observed timing data for each spawned worker.
+     *
+     * @return list<WorkerTiming>
+     */
+    public function workerTimings(): array
+    {
+        return \array_values(\array_map(
+            static fn(WorkerHandle $handle): WorkerTiming => $handle->timing->snapshot($handle->workerId),
+            $this->handles,
+        ));
     }
 
     private function mergeCoverage(?CoverageMap $coverage): void
@@ -382,6 +396,7 @@ final class Orchestrator
                 if ($handle !== null && $handle->channel === null) {
                     $handle->channel = $channel;
                     $handle->lastProgressAt = $this->monotonicTime();
+                    $handle->timing->hello($handle->lastProgressAt);
                     try {
                         $channel->send(new Bootstrap(
                             $handle->channelNumber,
@@ -430,10 +445,16 @@ final class Orchestrator
             : $this->resourceScheduler()->dispatch($handle->isFresh());
 
         if ($decision->kind === DispatchKind::Wait) {
+            $handle->timing->wait(WorkerIdleReason::ResourceCapacity, $this->monotonicTime());
+
             return;
         }
 
         if ($decision->kind === DispatchKind::Drain) {
+            $at = $this->monotonicTime();
+            $handle->timing->wait(WorkerIdleReason::NoQueuedWork, $at);
+            $handle->timing->retirementRequested($at);
+
             try {
                 $channel->send(new Drain());
             } catch (ProtocolError) {
@@ -467,6 +488,7 @@ final class Orchestrator
                 $this->remainingFailureAllowance(),
             ));
             $handle->lastProgressAt = $this->monotonicTime();
+            $handle->timing->assigned($handle->lastProgressAt);
         } catch (ProtocolError) {
             // The worker stopped before it received the assignment. Crash
             // containment puts the complete scheduling unit in the queue for
@@ -508,8 +530,11 @@ final class Orchestrator
                     }
 
                     $handle->ready = true;
+                    $readyAt = $this->monotonicTime();
+                    $handle->timing->ready($readyAt);
 
                     if (!$this->initialBarrierPassed) {
+                        $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
                         $this->openInitialBarrier($sink);
                     } else {
                         // A replacement worker can start as soon as its own
@@ -518,6 +543,9 @@ final class Orchestrator
                         $this->assignNext($handle, $sink);
                     }
                 } elseif ($message instanceof Recycling) {
+                    $at = $this->monotonicTime();
+                    $handle->timing->assignmentFinished($at);
+                    $handle->timing->retirementRequested($at);
                     $this->crossCheck($handle, $message->summary);
                     $this->assertRemainder($handle, $message->remaining);
                     $this->mergeCoverage($message->coverage);
@@ -528,6 +556,8 @@ final class Orchestrator
 
                     break;
                 } elseif ($message instanceof Done) {
+                    $at = $this->monotonicTime();
+                    $handle->timing->assignmentFinished($at);
                     $this->crossCheck($handle, $message->summary);
                     $this->mergeCoverage($message->coverage);
                     $this->leaks = [...$this->leaks, ...$message->leaks];
@@ -539,12 +569,14 @@ final class Orchestrator
                         // after Done, and a replacement worker processes the
                         // queue.
                         $sink->emit(new WorkerRecycled($handle->workerId, $message->wantsRecycle, \microtime(true)));
+                        $handle->timing->retirementRequested($at);
                         $this->finishHandle($handle);
 
                         break;
                     }
 
                     if ($this->draining || $isolatedAssignment) {
+                        $handle->timing->retirementRequested($this->monotonicTime());
                         try {
                             $channel->send(new Drain());
                         } catch (ProtocolError) {
@@ -685,6 +717,7 @@ final class Orchestrator
 
         foreach ($this->handles as $handle) {
             if ($handle->isActive() && $handle->channel !== null) {
+                $handle->timing->retirementRequested($this->monotonicTime());
                 try {
                     $handle->channel->send(new Drain());
                 } catch (ProtocolError) {
@@ -1024,6 +1057,7 @@ final class Orchestrator
                 continue;
             }
 
+            $handle->timing->exitObserved($this->monotonicTime());
             $this->channels?->release($handle->channelNumber);
             unset($this->handles[$workerId]);
         }

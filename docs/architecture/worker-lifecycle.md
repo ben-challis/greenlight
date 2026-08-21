@@ -81,6 +81,19 @@ sequenceDiagram
 `ready` and `done` act as work requests. The orchestrator assigns work when a
 worker becomes ready and whenever it finishes an assignment.
 
+The orchestrator records worker timing only at protocol and scheduler
+transitions. It records these lifecycle phases:
+
+* process spawn to observed `hello`
+* observed `hello` to observed `ready`, which includes worker bootstrap
+* observed `ready` to the first sent `assign`
+* observed `done` to the next sent `assign`
+* a retirement request to observed process exit
+
+The orchestrator also attributes idle time to the initial ready barrier,
+resource capacity, or no queued work. It does not add instrumentation to a
+worker test loop or a scheduler polling loop.
+
 The initial ready barrier prevents tests from starting while another initial
 worker is still bootstrapping. A replacement worker created after a crash or
 recycle needs to complete only its own bootstrap.

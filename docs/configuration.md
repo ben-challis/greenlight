@@ -699,7 +699,12 @@ The profile includes:
 * workers requested
 * workers spawned
 * workers recycled
-* average boot latency, measured from spawn to first class
+* average spawn-to-hello time
+* average hello-to-ready bootstrap time
+* average ready-to-first-assignment time
+* total time between assignments
+* idle time from the bootstrap barrier, resource capacity, and no queued work
+* average time from a retirement request to observed process exit
 * per-worker class count, busy time, and utilization for non-isolated workers
 * workers that run isolated tests
 * makespan spread between the first and last worker to finish

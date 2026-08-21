@@ -90,7 +90,7 @@ PHPDoc:
 public ResultSummary $summary
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L24)
 
 ### `$durationSeconds`
 
@@ -98,7 +98,7 @@ public ResultSummary $summary
 public float $durationSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L25)
 
 ### `$occurredAt`
 
@@ -106,7 +106,15 @@ public float $durationSeconds
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L26)
+
+### `$workerTimings`
+
+```php
+public array $workerTimings
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L27)
 
 ### `__construct()`
 
@@ -116,14 +124,16 @@ public function __construct(
     public ResultSummary $summary,
     public float $durationSeconds,
     public float $occurredAt,
+    public array $workerTimings = [],
 )
 ```
 
 PHPDoc:
 
+- `@param list<WorkerTiming> $workerTimings Orchestrator-observed worker timing data.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L22)
 
 ### `toWire()`
 
@@ -132,7 +142,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L48)
 
 ### `fromWire()`
 
@@ -141,7 +151,7 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L62)
 
 ## `RunStarted`
 
@@ -767,3 +777,148 @@ public static function fromWire(array $payload): static
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L55)
+
+## `WorkerTiming`
+
+Namespace: `Greenlight\Core\Event`
+
+Contains orchestrator-observed timing data for one worker process.
+
+A null phase duration means that the worker did not reach both phase
+endpoints. Idle durations contain only states that the orchestrator can
+distinguish.
+
+```php
+final readonly class WorkerTiming implements WireSerializable
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L17)
+
+### `$workerId`
+
+```php
+public string $workerId;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L20)
+
+### `$assignmentGaps`
+
+```php
+public int $assignmentGaps;
+```
+
+PHPDoc:
+
+- `@var non-negative-int`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L23)
+
+### `$spawnToHelloSeconds`
+
+```php
+public ?float $spawnToHelloSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L30)
+
+### `$helloToReadySeconds`
+
+```php
+public ?float $helloToReadySeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L31)
+
+### `$readyToFirstAssignmentSeconds`
+
+```php
+public ?float $readyToFirstAssignmentSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L32)
+
+### `$assignmentGapSeconds`
+
+```php
+public float $assignmentGapSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L34)
+
+### `$bootstrapBarrierSeconds`
+
+```php
+public float $bootstrapBarrierSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L35)
+
+### `$resourceCapacitySeconds`
+
+```php
+public float $resourceCapacitySeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L36)
+
+### `$noQueuedWorkSeconds`
+
+```php
+public float $noQueuedWorkSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L37)
+
+### `$retirementToExitSeconds`
+
+```php
+public ?float $retirementToExitSeconds
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L38)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string $workerId,
+    public ?float $spawnToHelloSeconds,
+    public ?float $helloToReadySeconds,
+    public ?float $readyToFirstAssignmentSeconds,
+    int $assignmentGaps,
+    public float $assignmentGapSeconds,
+    public float $bootstrapBarrierSeconds,
+    public float $resourceCapacitySeconds,
+    public float $noQueuedWorkSeconds,
+    public ?float $retirementToExitSeconds,
+)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L28)
+
+### `toWire()`
+
+```php
+[\Override]
+public function toWire(): array
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L67)
+
+### `fromWire()`
+
+```php
+[\Override]
+public static function fromWire(array $payload): static
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L84)

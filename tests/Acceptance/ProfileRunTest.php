@@ -33,7 +33,12 @@ final readonly class ProfileRunTest
         Expect::that($result->exitCode)->because('live profile and offline report agree')->toBe(0);
         Expect::that($live)->toContain('Profile:')
             ->toContain('spawned, 0 recycled')
-            ->toContain('Boot latency:')
+            ->toContain('Startup phases:')
+            ->toContain('Spawn to hello:')
+            ->toContain('Hello to ready (bootstrap):')
+            ->toContain('Ready to first assignment:')
+            ->toContain('Idle attribution:')
+            ->toContain('Retirement request to exit observed:')
             ->toContain('Slowest classes:');
 
         // The plain report and JSONL lines share standard output. Extract the

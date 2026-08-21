@@ -11,6 +11,7 @@ use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Event\WorkerTiming;
 
 /**
  * Makes a run profile only from the event stream.
@@ -18,13 +19,12 @@ use Greenlight\Core\Event\WorkerSpawned;
  * Thus, a live run and a saved JSONL artifact produce the same values.
  *
  * Class events use worker clocks. Worker and run events use orchestrator
- * clocks. These clocks use host wall time. Thus, boot latency can
- * include a scheduler delay.
+ * clocks. Detailed worker timings use the orchestrator monotonic clock.
  *
  * Worker busy time is the sum of its test-class periods. Utilization is busy
  * time divided by the worker period for a non-isolated worker. Boot latency is
- * the time from process start to the first test class. It includes the hello
- * exchange and the wait for the first assignment.
+ * the time from process start to the first test class. Legacy streams use this
+ * broad latency when they have no detailed worker timing data.
  *
  * @internal
  */
@@ -116,6 +116,12 @@ final class ProfileAggregator
 
         $lines[] = $workerSummary . \sprintf(', %d recycled', $recycled);
 
+        if ($this->runFinished->workerTimings !== []) {
+            foreach ($this->timingLines($this->runFinished->workerTimings) as $line) {
+                $lines[] = $line;
+            }
+        }
+
         $bootLatencies = [];
         $finishTimes = [];
 
@@ -131,7 +137,7 @@ final class ProfileAggregator
             }
         }
 
-        if ($bootLatencies !== []) {
+        if ($this->runFinished->workerTimings === [] && $bootLatencies !== []) {
             $lines[] = \sprintf(
                 '  Boot latency: %.3fs average (spawn to first class, %s)',
                 ProfileDuration::average($bootLatencies),
@@ -187,6 +193,89 @@ final class ProfileAggregator
         }
 
         return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * Returns detailed worker lifecycle and idle timing lines.
+     *
+     * @param list<WorkerTiming> $timings
+     *
+     * @return list<string>
+     */
+    private function timingLines(array $timings): array
+    {
+        $spawnToHello = [];
+        $helloToReady = [];
+        $readyToAssignment = [];
+        $retirementToExit = [];
+        $assignmentGaps = 0;
+        $assignmentGapSeconds = 0.0;
+        $bootstrapBarrierSeconds = 0.0;
+        $resourceCapacitySeconds = 0.0;
+        $noQueuedWorkSeconds = 0.0;
+
+        foreach ($timings as $timing) {
+            if ($timing->spawnToHelloSeconds !== null) {
+                $spawnToHello[] = $timing->spawnToHelloSeconds;
+            }
+
+            if ($timing->helloToReadySeconds !== null) {
+                $helloToReady[] = $timing->helloToReadySeconds;
+            }
+
+            if ($timing->readyToFirstAssignmentSeconds !== null) {
+                $readyToAssignment[] = $timing->readyToFirstAssignmentSeconds;
+            }
+
+            if ($timing->retirementToExitSeconds !== null) {
+                $retirementToExit[] = $timing->retirementToExitSeconds;
+            }
+
+            $assignmentGaps += $timing->assignmentGaps;
+            $assignmentGapSeconds = ProfileDuration::add($assignmentGapSeconds, $timing->assignmentGapSeconds);
+            $bootstrapBarrierSeconds = ProfileDuration::add($bootstrapBarrierSeconds, $timing->bootstrapBarrierSeconds);
+            $resourceCapacitySeconds = ProfileDuration::add($resourceCapacitySeconds, $timing->resourceCapacitySeconds);
+            $noQueuedWorkSeconds = ProfileDuration::add($noQueuedWorkSeconds, $timing->noQueuedWorkSeconds);
+        }
+
+        $lines = ['  Startup phases:'];
+
+        foreach ([
+            ['Spawn to hello', $spawnToHello],
+            ['Hello to ready (bootstrap)', $helloToReady],
+            ['Ready to first assignment', $readyToAssignment],
+        ] as [$label, $durations]) {
+            if ($durations === []) {
+                continue;
+            }
+
+            $lines[] = \sprintf(
+                '    %s: %.3fs average (%s)',
+                $label,
+                ProfileDuration::average($durations),
+                Plural::count(\count($durations), 'worker'),
+            );
+        }
+
+        $lines[] = \sprintf(
+            '  Assignment gaps: %.3fs total (%s)',
+            $assignmentGapSeconds,
+            Plural::count($assignmentGaps, 'gap'),
+        );
+        $lines[] = '  Idle attribution:';
+        $lines[] = \sprintf('    Bootstrap barrier: %.3fs total', $bootstrapBarrierSeconds);
+        $lines[] = \sprintf('    Resource capacity: %.3fs total', $resourceCapacitySeconds);
+        $lines[] = \sprintf('    No queued work: %.3fs total', $noQueuedWorkSeconds);
+
+        if ($retirementToExit !== []) {
+            $lines[] = \sprintf(
+                '  Retirement request to exit observed: %.3fs average (%s)',
+                ProfileDuration::average($retirementToExit),
+                Plural::count(\count($retirementToExit), 'worker'),
+            );
+        }
+
+        return $lines;
     }
 
     /**

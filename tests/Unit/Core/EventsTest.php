@@ -18,6 +18,7 @@ use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
+use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
@@ -152,6 +153,12 @@ final class EventsTest
             'workers' => 1,
             'occurredAt' => 1_780_000_000.0,
         ]);
+        $finishedRun = RunFinished::fromWire([
+            'runId' => 'run-1',
+            'summary' => new ResultSummary()->toWire(),
+            'durationSeconds' => 1.0,
+            'occurredAt' => 1_780_000_001.0,
+        ]);
 
         Expect::that($started->workerId)
             ->because('legacy class-started events have no worker attribution')
@@ -165,6 +172,23 @@ final class EventsTest
         Expect::that($run->artifactsDirectory)
             ->because('legacy run-started events have no artifacts directory')
             ->toBeNull();
+        Expect::that($finishedRun->workerTimings)
+            ->because('legacy run-finished events have no worker timing data')
+            ->toBe([]);
+    }
+
+    #[Test]
+    public function runFinishedAddsWorkerTimingsAsAnOptionalWireField(): void
+    {
+        $timing = new WorkerTiming('w-1', 0.1, 0.2, 0.3, 1, 0.4, 0.5, 0.6, 0.7, 0.8);
+        $event = new RunFinished('run-1', new ResultSummary(passed: 1), 2.0, 3.0, [$timing]);
+
+        Expect::that($event->toWire())
+            ->because('run-finished adds timing data without changing its existing fields')
+            ->toHaveKey('workerTimings');
+        Expect::that(RunFinished::fromWire(JsonWire::roundTrip($event->toWire()))->workerTimings[0]->toWire())
+            ->because('run-finished worker timing MUST survive the event wire')
+            ->toBe($timing->toWire());
     }
 
     #[Test]
