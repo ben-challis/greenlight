@@ -691,7 +691,7 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the harness on a small parameter set"
-        run: "php tools/benchmark.php --shape=many-fast --scale=1 --runs=1"
+        run: "php tools/benchmark.php --shape=many-fast --scale=1 --workers=2 --warmups=1 --runs=1 --seed=20260821"
 
   deploy-documentation:
     name: "Deploy documentation"
