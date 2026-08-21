@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Core\Event\Event;
+use Greenlight\Core\Event\TestClassFinished;
+use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -31,19 +33,24 @@ final class FailedTestsTap implements EventSink
      */
     private array $classSeconds = [];
 
+    /**
+     * @var array<string, array{class: non-empty-string, occurredAt: float}>
+     */
+    private array $startedClasses = [];
+
     public function __construct(private readonly EventSink $inner) {}
 
     #[\Override]
     public function emit(Event $event): void
     {
-        if ($event instanceof TestFinished) {
-            $class = $event->result->id->class;
-            $recorded = $this->classSeconds[$class] ?? 0.0;
-            $duration = $event->result->durationSeconds;
-            $this->classSeconds[$class] = $recorded > \PHP_FLOAT_MAX - $duration
-                ? \PHP_FLOAT_MAX
-                : $recorded + $duration;
-
+        if ($event instanceof TestClassStarted) {
+            $this->startedClasses[$event->workerId] = [
+                'class' => $event->class,
+                'occurredAt' => $event->occurredAt,
+            ];
+        } elseif ($event instanceof TestClassFinished) {
+            $this->recordClassDuration($event);
+        } elseif ($event instanceof TestFinished) {
             if (!$event->result->outcome->isSuccessful()) {
                 $id = (string) $event->result->id;
 
@@ -54,6 +61,32 @@ final class FailedTestsTap implements EventSink
         }
 
         $this->inner->emit($event);
+    }
+
+    private function recordClassDuration(TestClassFinished $event): void
+    {
+        $started = $this->startedClasses[$event->workerId] ?? null;
+
+        if ($started === null || $started['class'] !== $event->class) {
+            return;
+        }
+
+        unset($this->startedClasses[$event->workerId]);
+
+        if ($event->occurredAt < $started['occurredAt']) {
+            return;
+        }
+
+        $duration = $event->occurredAt - $started['occurredAt'];
+
+        if (!\is_finite($duration)) {
+            $duration = \PHP_FLOAT_MAX;
+        }
+
+        $recorded = $this->classSeconds[$event->class] ?? 0.0;
+        $this->classSeconds[$event->class] = $recorded > \PHP_FLOAT_MAX - $duration
+            ? \PHP_FLOAT_MAX
+            : $recorded + $duration;
     }
 
     /**

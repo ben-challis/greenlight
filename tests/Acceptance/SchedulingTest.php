@@ -48,9 +48,45 @@ final readonly class SchedulingTest
             ->toContain('SchedulingProbe\SlowTest');
     }
 
-    private function run(AcceptanceProject $project): ProcessResult
+    #[Test]
+    public function classWallDurationMakesOverheadHeavyClassLeadTheNextRun(): void
     {
-        return GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
+        $project = $this->writeOverheadProject();
+
+        $first = $this->run($project, workers: 1);
+        $firstClasses = $this->startedClasses(JsonlEvents::from($first));
+        $cached = RunState::forWorkingDirectory($project->directory)->classSeconds();
+        $second = $this->run($project, workers: 1);
+        $secondClasses = $this->startedClasses(JsonlEvents::from($second));
+        $firstOutput = $first->output();
+        $secondOutput = $second->output();
+
+        Expect::that($first->exitCode)
+            ->because($firstOutput === '' ? 'The first scheduling run returned no output.' : $firstOutput)
+            ->toBe(0);
+        Expect::that($firstClasses)
+            ->because('the first run MUST use discovery order without timing data')
+            ->toBe([
+                'SchedulingOverheadProbe\AlphaTest',
+                'SchedulingOverheadProbe\SlowTest',
+            ]);
+        Expect::that($cached['SchedulingOverheadProbe\SlowTest'] ?? 0.0)
+            ->because('the timing cache MUST include plugin overhead after the test result duration')
+            ->toBeGreaterThan($cached['SchedulingOverheadProbe\AlphaTest'] ?? \PHP_FLOAT_MAX);
+        Expect::that($second->exitCode)
+            ->because($secondOutput === '' ? 'The second scheduling run returned no output.' : $secondOutput)
+            ->toBe(0);
+        Expect::that($secondClasses)
+            ->because('the next run MUST schedule the overhead-heavy class first')
+            ->toBe([
+                'SchedulingOverheadProbe\SlowTest',
+                'SchedulingOverheadProbe\AlphaTest',
+            ]);
+    }
+
+    private function run(AcceptanceProject $project, int $workers = 2): ProcessResult
+    {
+        return GreenlightCli::run($project->directory, ['run', '--workers=' . $workers, '--reporter=jsonl']);
     }
 
     /**
@@ -141,6 +177,89 @@ final readonly class SchedulingTest
             }
 
             return GreenlightConfig::create()->paths([__DIR__ . '/tests']);
+            PHP);
+
+        return $project;
+    }
+
+    private function writeOverheadProject(): AcceptanceProject
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'scheduling-overhead');
+        $project->writeFile('OverheadPlugin.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace SchedulingOverheadProbe;
+
+            use Greenlight\Core\Result\TestResult;
+            use Greenlight\Plugin\TestContext;
+            use Greenlight\Plugin\TestLifecycleSubscriber;
+
+            final class OverheadPlugin implements TestLifecycleSubscriber
+            {
+                public function beforeTest(TestContext $context): void {}
+
+                public function afterTest(TestContext $context, TestResult $result): TestResult
+                {
+                    if ($context->id->class === SlowTest::class) {
+                        \usleep(300_000);
+                    }
+
+                    return $result;
+                }
+            }
+            PHP);
+        $project->writeFile('tests/AlphaTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace SchedulingOverheadProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class AlphaTest
+            {
+                #[Test]
+                public function slowerTestBody(): void
+                {
+                    \usleep(20_000);
+                }
+            }
+            PHP);
+        $project->writeFile('tests/SlowTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace SchedulingOverheadProbe;
+
+            use Greenlight\Attribute\Test;
+
+            final class SlowTest
+            {
+                #[Test]
+                public function quickTestBody(): void {}
+            }
+            PHP);
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+            use SchedulingOverheadProbe\OverheadPlugin;
+
+            require_once __DIR__ . '/OverheadPlugin.php';
+
+            foreach (\glob(__DIR__ . '/tests/*Test.php') ?: [] as $file) {
+                require_once $file;
+            }
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->plugins(new OverheadPlugin());
             PHP);
 
         return $project;
