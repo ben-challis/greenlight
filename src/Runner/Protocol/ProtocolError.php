@@ -35,6 +35,11 @@ final class ProtocolError extends WireError
         ));
     }
 
+    public static function streamOperationFailed(string $operation, \Throwable $previous): self
+    {
+        return new self(\sprintf('Worker protocol stream %s failed.', $operation), $previous);
+    }
+
     public static function unsupportedVersion(int $version): self
     {
         return new self(\sprintf('Unsupported protocol version %d.', $version));

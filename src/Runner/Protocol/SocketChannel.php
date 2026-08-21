@@ -51,21 +51,26 @@ final class SocketChannel
 
         $bytes = $this->codec->encode(MessageRegistry::envelope($message));
 
-        $completed = ErrorTrap::run(function () use ($bytes) {
-            $remaining = \strlen($bytes);
+        $completed = ErrorTrap::run(
+            function () use ($bytes) {
+                $remaining = \strlen($bytes);
 
-            while ($remaining > 0) {
-                $written = \fwrite($this->stream, \substr($bytes, -$remaining));
+                while ($remaining > 0) {
+                    $written = \fwrite($this->stream, \substr($bytes, -$remaining));
 
-                if ($written === false || $written === 0) {
-                    return false;
+                    if ($written === false || $written === 0) {
+                        return false;
+                    }
+
+                    $remaining -= $written;
                 }
 
-                $remaining -= $written;
-            }
-
-            return \fflush($this->stream);
-        }, $warning);
+                return \fflush($this->stream);
+            },
+            $warning,
+            wrap: static fn(\Throwable $error): ProtocolError =>
+                ProtocolError::streamOperationFailed('write', $error),
+        );
 
         if (!$completed) {
             throw ProtocolError::malformedFrame('peer closed the connection during a write', $warning);
@@ -151,11 +156,16 @@ final class SocketChannel
 
         \stream_set_blocking($this->stream, false);
 
-        [$bytes, $reachedEof] = ErrorTrap::run(function () {
-            $bytes = \fread($this->stream, 65536);
+        [$bytes, $reachedEof] = ErrorTrap::run(
+            function () {
+                $bytes = \fread($this->stream, 65536);
 
-            return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
-        }, $warning);
+                return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
+            },
+            $warning,
+            wrap: static fn(\Throwable $error): ProtocolError =>
+                ProtocolError::streamOperationFailed('read', $error),
+        );
 
         if ($bytes === false && !$reachedEof) {
             throw ProtocolError::malformedFrame('peer connection failed during a read', $warning);
