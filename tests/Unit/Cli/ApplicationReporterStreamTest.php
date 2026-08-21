@@ -53,4 +53,39 @@ final readonly class ApplicationReporterStreamTest
         Expect::that($errors)
             ->toBe('');
     }
+
+    #[Test]
+    public function ansiFlagSelectsColoredAppendOnlyOutputWithoutATerminal(): void
+    {
+        $this->environment->unset('GREENLIGHT_CHANNEL');
+        $this->environment->set('CI', 'true');
+        $this->environment->unset('NO_COLOR');
+        $project = AcceptanceProject::createWithDiscoveryBasicTests(
+            $this->tempDirectory,
+            'application-ansi-output',
+        );
+        $stdout = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stdout));
+        $stderr = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stderr));
+
+        $exit = Application::forStreams($stdout, $stderr)->run(
+            ['run', '--workers=1', '--ansi'],
+            $project->directory,
+        );
+        \rewind($stdout);
+        \rewind($stderr);
+        $output = \stream_get_contents($stdout);
+        $errors = \stream_get_contents($stderr);
+
+        Expect::that($exit)
+            ->toBe(0);
+        Expect::that($output)
+            ->because('the ANSI flag uses color without cursor control')
+            ->toContain("\x1b[32m")
+            ->not()
+            ->toContain("\x1b[0J");
+        Expect::that($errors)
+            ->toBe('');
+    }
 }
