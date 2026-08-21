@@ -6,13 +6,10 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\ExpectationCounter;
-use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Expect\PendingEventually;
-use Greenlight\Expect\TemporalExpectation;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
 use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
@@ -21,13 +18,6 @@ use Greenlight\Tests\Fixture\Expect\TransientProbeFailure;
 final readonly class TemporalExpectationTest
 {
     public function __construct(private Cleanup $cleanup) {}
-
-    #[Test]
-    public function temporalAndImmediateExpectationsExposeTheSameNativeMatchers(): void
-    {
-        Expect::that($this->matcherSignatures(Expectation::class))->because('temporal and immediate expectations expose the same native matchers')
-            ->toEqual($this->matcherSignatures(TemporalExpectation::class));
-    }
 
     #[Test]
     public function eventuallyStopsAtTheFirstMatchingObservation(): void
@@ -468,8 +458,7 @@ final readonly class TemporalExpectationTest
                 return static function (): void {};
             })
                 ->within(0.100);
-            new \ReflectionMethod(EventuallyExpectation::class, 'toThrow')
-                ->invoke($eventually, \RuntimeException::class, '/x/', 'x');
+            $eventually->__call('toThrow', [\RuntimeException::class, '/x/', 'x']);
         })->because('polling durations and exception types are validated')->toThrow(
             ExpectationFailed::class,
             matching: '/^Specify matching: or message: for toThrow\(\)\. Do not specify both\./',
@@ -566,34 +555,4 @@ final readonly class TemporalExpectationTest
             ->toContain('earlier changes omitted');
     }
 
-    /**
-     * @param class-string $class
-     *
-     * @return array<string, list<string>>
-     */
-    private function matcherSignatures(string $class): array
-    {
-        $signatures = [];
-
-        foreach (new \ReflectionClass($class)->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if (!\str_starts_with($method->getName(), 'to')) {
-                continue;
-            }
-
-            $signatures[$method->getName()] = \array_map(
-                static fn(\ReflectionParameter $parameter): string => \sprintf(
-                    '%s %s%s%s',
-                    (string) $parameter->getType(),
-                    $parameter->isVariadic() ? '...' : '',
-                    $parameter->getName(),
-                    $parameter->isOptional() && !$parameter->isVariadic() ? '?' : '',
-                ),
-                $method->getParameters(),
-            );
-        }
-
-        \ksort($signatures);
-
-        return $signatures;
-    }
 }

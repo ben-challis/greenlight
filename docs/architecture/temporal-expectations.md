@@ -4,10 +4,17 @@
 values that a probe returns. Only the fluent API is public. Its poll support is
 internal.
 
+These `Expect` methods are the public construction interface. The constructors
+and dependency-based creation methods are internal.
+
 ## Matcher operation
 
-`TemporalExpectation` has the same native matcher methods as `Expectation`.
-Each poll creates an ordinary expectation for the probe value. It then runs the
+`TemporalExpectation::__call()` sends native and extension matcher calls to an
+ordinary `Expectation`. The `@mixin Expectation<T>` declaration supplies the
+native matcher types to PHPStan. The API-reference generator uses this
+declaration to document the same methods on each public temporal return type.
+
+Each poll creates an ordinary expectation for the probe value. It runs the
 selected matcher without an increment to the expectation counter. The temporal
 matcher increments the counter one time.
 
