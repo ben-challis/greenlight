@@ -8,7 +8,8 @@ use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
 use Psr\Container\ContainerInterface;
 
-$mode = \getenv('GREENLIGHT_HYPERF_CONTAINER_LIFETIME') ?: 'worker';
+$configuredLifetime = \getenv('GREENLIGHT_HYPERF_CONTAINER_LIFETIME');
+$mode = \is_string($configuredLifetime) && $configuredLifetime !== '' ? $configuredLifetime : 'worker';
 $lifetime = match ($mode) {
     'worker' => ContainerLifetime::Worker,
     'attempt' => ContainerLifetime::TestAttempt,
@@ -16,9 +17,17 @@ $lifetime = match ($mode) {
 };
 $marker = __DIR__ . '/runtime/lifecycle-' . $mode . '.json';
 @\unlink($marker);
-$record = static function (ContainerInterface $container) use ($marker): void {
-    $probe = $container->get(DisposalProbe::class);
-    $json = \json_encode($probe->snapshot(), \JSON_THROW_ON_ERROR);
+$probe = static function (ContainerInterface $container): DisposalProbe {
+    $service = $container->get(DisposalProbe::class);
+
+    if (!$service instanceof DisposalProbe) {
+        throw new \RuntimeException('The Hyperf container MUST return DisposalProbe.');
+    }
+
+    return $service;
+};
+$record = static function (ContainerInterface $container) use ($marker, $probe): void {
+    $json = \json_encode($probe($container)->snapshot(), \JSON_THROW_ON_ERROR);
 
     if (\file_put_contents($marker, $json) === false) {
         throw new \RuntimeException('The Hyperf acceptance fixture did not write its lifecycle marker.');
@@ -31,12 +40,12 @@ return GreenlightConfig::create()
     ->plugins(new HyperfPlugin(
         __DIR__,
         containerLifetime: $lifetime,
-        reset: static function (ContainerInterface $container) use ($record): void {
-            $container->get(DisposalProbe::class)->reset();
+        reset: static function (ContainerInterface $container) use ($probe, $record): void {
+            $probe($container)->reset();
             $record($container);
         },
-        dispose: static function (ContainerInterface $container) use ($record): void {
-            $container->get(DisposalProbe::class)->dispose();
+        dispose: static function (ContainerInterface $container) use ($probe, $record): void {
+            $probe($container)->dispose();
             $record($container);
         },
     ));

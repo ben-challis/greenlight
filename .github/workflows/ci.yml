@@ -196,6 +196,10 @@ jobs:
         working-directory: ".github/fixtures/hyperf-bridge"
         run: "php verify-path-diagnostics.php"
 
+      - name: "Analyze the Hyperf bridge"
+        working-directory: ".github/fixtures/hyperf-bridge"
+        run: "vendor/bin/phpstan analyse --ansi --no-progress --memory-limit=-1"
+
       - name: "Run Hyperf worker-container acceptance tests"
         working-directory: ".github/fixtures/hyperf-bridge"
         env:
@@ -467,6 +471,9 @@ jobs:
         run: |
           composer config platform.php 8.5.0
           composer require --dev --no-interaction --no-progress --with-all-dependencies "tempest/framework:^3.18"
+
+      - name: "Analyze the Tempest bridge"
+        run: "vendor/bin/phpstan analyse --ansi --no-progress --memory-limit=-1 --configuration=.github/fixtures/tempest-bridge/phpstan.neon"
 
       - name: "Run Tempest bridge tests with coverage"
         shell: "bash"
