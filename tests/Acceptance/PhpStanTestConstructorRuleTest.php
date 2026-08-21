@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 
+#[AllowParallel]
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanTestConstructorRuleTest
 {
