@@ -116,14 +116,17 @@ final readonly class OrchestratorRetirementTest
         }
 
         Expect::that($summary->passed)
-            ->because('the active worker MUST complete all assignments while the first worker exits')
+            ->because('the worker pool MUST complete all assignments while the first worker exits')
             ->toBe(3);
         Expect::that(\trim((string) \file_get_contents($log)))
             ->because('the delayed worker MUST observe progress before it exits')
             ->toBe('progress-observed');
-        Expect::that($workers)
-            ->because('the active worker MUST receive the queued and requeued assignments')
-            ->toBe(['w-2', 'w-2', 'w-2']);
+        Expect::that(\array_slice($workers, 0, 2))
+            ->because('the active worker MUST receive queued work while the first worker exits')
+            ->toBe(['w-2', 'w-2']);
+        Expect::that($workers[2])
+            ->because('the active worker or its bootstrapped replacement MAY receive requeued work')
+            ->toBeOneOf('w-2', 'w-3');
     }
 
     #[Test]

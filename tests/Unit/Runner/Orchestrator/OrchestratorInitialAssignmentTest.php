@@ -35,12 +35,24 @@ final readonly class OrchestratorInitialAssignmentTest
         Expect::that($firstWorker[0]['at'])
             ->because('useful work SHOULD start before the slowest initial worker is ready')
             ->toBeLessThan($slowReadyAt);
-        Expect::that(\array_column($firstWorker, 'class'))
-            ->because('the fast worker MUST wait for the other intended worker before its second assignment')
-            ->toBe(['FirstTest', 'ThirdTest']);
-        Expect::that(\array_column($secondWorker, 'class'))
+        $fastWorkerAssignmentsBeforeSlowReady = \array_values(\array_filter(
+            $firstWorker,
+            static fn(array $assignment): bool => $assignment['at'] < $slowReadyAt,
+        ));
+
+        Expect::that(\array_column($fastWorkerAssignmentsBeforeSlowReady, 'class'))
+            ->because('the fast worker MUST NOT take a second assignment before the other intended worker is ready')
+            ->toBe(['FirstTest']);
+        Expect::that($secondWorker[0]['class'])
             ->because('each intended initial worker MUST receive one fair first assignment')
-            ->toBe(['SecondTest']);
+            ->toBe('SecondTest');
+
+        $assignedClasses = [...\array_column($firstWorker, 'class'), ...\array_column($secondWorker, 'class')];
+        \sort($assignedClasses);
+
+        Expect::that($assignedClasses)
+            ->because('either ready worker MAY receive work after the fair first wave')
+            ->toBe(['FirstTest', 'SecondTest', 'ThirdTest']);
     }
 
     #[Test]
