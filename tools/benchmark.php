@@ -21,6 +21,11 @@ const PHPUNIT_VERSION = '13.2.3';
 const PARATEST_VERSION = '7.23.0';
 
 $options = \getopt('', ['shape:', 'scale:', 'workers:', 'runs:', 'with-phpunit']);
+
+if ($options === false) {
+    throw new RuntimeException('Cannot parse benchmark options.');
+}
+
 $shapes = isset($options['shape']) && \is_string($options['shape'])
     ? [$options['shape']]
     : ['many-fast', 'few-slow', 'giant-dataset', 'mixed'];

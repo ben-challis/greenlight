@@ -12,8 +12,13 @@ final class SimpleXml
     public static function attributes(\SimpleXMLElement $element): array
     {
         $attributes = [];
+        $xmlAttributes = $element->attributes();
 
-        foreach ($element->attributes() as $name => $value) {
+        if ($xmlAttributes === null) {
+            return [];
+        }
+
+        foreach ($xmlAttributes as $name => $value) {
             $attributes[$name] = (string) $value;
         }
 

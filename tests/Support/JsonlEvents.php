@@ -63,13 +63,15 @@ final class JsonlEvents
 
                 $events[] = $eventClass::fromWire(Wire::map($map, 'data'));
             } catch (\Throwable $failure) {
+                $code = $failure->getCode();
+
                 throw new \RuntimeException(
                     \sprintf(
                         'Invalid Greenlight JSONL on stdout line %d: %s',
                         $index + 1,
                         $failure->getMessage(),
                     ),
-                    $failure->getCode(),
+                    \is_int($code) ? $code : 0,
                     $failure,
                 );
             }

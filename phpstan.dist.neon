@@ -6,6 +6,7 @@ includes:
 
 parameters:
     level: max
+    checkBenevolentUnionTypes: true
     checkMissingCallableSignature: true
     treatPhpDocTypesAsCertain: false
     tmpDir: build/cache/phpstan
