@@ -304,6 +304,12 @@ jobs:
         env:
           SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
 
+      # Lowest Rector uses the lowest PHPStan API in the test suite.
+      # Run the tests before the PHPStan update.
+      - name: "Tests"
+        if: "matrix.dependencies == 'lowest'"
+        run: "composer tests"
+
       # The lowest compatible PHPStan version reports false errors for types
       # that later PHPStan 2.2 releases can infer.
       - name: "Update PHPStan for lowest-dependency analysis"
@@ -358,7 +364,7 @@ jobs:
           key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
 
       - name: "Tests"
-        if: "matrix.analytics != true"
+        if: "matrix.analytics != true && matrix.dependencies != 'lowest'"
         run: "composer tests"
 
       - name: "Tests with JUnit output"
