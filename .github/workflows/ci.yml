@@ -234,24 +234,31 @@ jobs:
           - php-version: "8.4"
             dependencies: "locked"
             analytics: true
+            analysis: "full"
           - php-version: "8.4"
             dependencies: "lowest"
             symfony-version: "6.4.*"
+            analysis: "phpstan"
           - php-version: "8.5"
             dependencies: "lowest"
             symfony-version: "6.4.*"
+            analysis: "phpstan"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "6.4.*"
+            analysis: "phpstan"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "7.4.*"
+            analysis: "phpstan"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "8.1.*"
+            analysis: "phpstan"
           - php-version: "8.5"
             dependencies: "highest"
             symfony-version: "8.1.*"
+            analysis: "phpstan"
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
@@ -294,15 +301,24 @@ jobs:
         env:
           SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
 
+      # The lowest compatible PHPStan version reports false errors for types
+      # that later PHPStan 2.2 releases can infer.
+      - name: "Update PHPStan for lowest-dependency analysis"
+        if: "matrix.dependencies == 'lowest' && matrix.analysis == 'phpstan'"
+        shell: "bash"
+        run: >-
+          composer update --no-interaction --no-progress --prefer-dist
+          phpstan/phpstan phpstan/phpstan-deprecation-rules phpstan/phpstan-strict-rules
+
       - name: "Calculate static analysis cache content hash"
         id: "analysis_cache"
-        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
+        if: "matrix.analysis"
         env:
           CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'phpstan.docs.neon', 'rector.php', 'rector.docs.php', 'tools/docs-php.php', 'tools/rector-config.php') }}"
         run: 'echo "content_hash=${CONTENT_HASH}" >> "${GITHUB_OUTPUT}"'
 
       - name: "Restore static analysis cache"
-        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
+        if: "matrix.analysis"
         uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
         with:
           path: |
@@ -312,15 +328,19 @@ jobs:
             build/cache/phpstan-docs
             build/cache/rector
             build/cache/rector-docs
-          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
-          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-"
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
+          restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ steps.analysis_cache.outputs.content_hash }}-"
 
       - name: "Static analysis"
-        if: "matrix.dependencies == 'locked' && matrix.php-version == '8.4'"
+        if: "matrix.analysis == 'full'"
         run: "composer static-analysis"
 
+      - name: "PHPStan"
+        if: "matrix.analysis == 'phpstan'"
+        run: "composer phpstan"
+
       - name: "Save static analysis cache"
-        if: "${{ !cancelled() && matrix.dependencies == 'locked' && matrix.php-version == '8.4' }}"
+        if: "${{ !cancelled() && matrix.analysis }}"
         uses: "actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
         with:
           path: |
@@ -330,12 +350,8 @@ jobs:
             build/cache/phpstan-docs
             build/cache/rector
             build/cache/rector-docs
-          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
+          key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
 
-      # PHPStan does not run in the "lowest" jobs. The oldest permitted PHPStan
-      # cannot infer types that the code requires. Examples include the
-      # proc_open return type and ReflectionClass variance. Consequently, all PHPStan
-      # reports in these jobs are false.
       - name: "Tests"
         if: "matrix.analytics != true"
         run: "composer tests"
