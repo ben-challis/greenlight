@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Config\Configuration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Discovery\ExecutionPlan;
@@ -24,7 +23,6 @@ interface ExecutionAdapter
      */
     public function topology(
         ExecutionPlan $plan,
-        Configuration $configuration,
         array $classSeconds,
     ): ExecutionTopology;
 

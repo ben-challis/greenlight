@@ -370,14 +370,16 @@ Default: declared order, no seed.
 
 Randomizes class order.
 
-If `$seed` is `null`, Greenlight selects and prints a seed at run time. Use
-`--seed` with that value to reproduce the same order.
+If `$seed` is `null`, Greenlight selects one seed when it resolves the command.
+Discovery and execution use this seed. Greenlight prints the seed. Use `--seed`
+with that value to reproduce the same order.
 
 ### `build(): Configuration`
 
 The loader calls this method. User configuration does not call it.
 
-`build()` validates the builder and returns the immutable configuration object.
+`build()` validates the builder and returns immutable configuration values.
+These values group discovery, worker, execution, and order settings.
 
 Return the builder from `greenlight.php`. Do not call `build()`.
 

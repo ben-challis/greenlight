@@ -7,12 +7,12 @@ namespace Greenlight\Tests\Unit\Runner;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ConfigurationResolver;
-use Greenlight\Config\Configuration;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
@@ -51,8 +51,10 @@ final readonly class RunCoordinatorTest
         $sink = new CollectingEventSink();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $result = $this->coordinator()->run(
-            $configuration,
+            $resolved,
+            $resolved->selection,
             [$fixtureDirectory],
             $sink,
             new InProcessExecution(),
@@ -80,15 +82,18 @@ final readonly class RunCoordinatorTest
         $sink = new CollectingEventSink();
         $root = \dirname(__DIR__, 3);
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
 
         $result = $this->coordinator()->run(
-            $configuration,
+            $resolved,
+            $resolved->selection,
             [$fixtureDirectory],
             $sink,
             new ProcessPoolExecution(
                 [\PHP_BINARY, $root . '/bin/greenlight'],
                 $this->tempDirectory->path(),
                 2,
+                $resolved->workers,
             ),
         );
 
@@ -111,7 +116,6 @@ final readonly class RunCoordinatorTest
             #[\Override]
             public function topology(
                 ExecutionPlan $plan,
-                Configuration $configuration,
                 array $classSeconds,
             ): ExecutionTopology {
                 return new ExecutionTopology(3, 1);
@@ -130,8 +134,10 @@ final readonly class RunCoordinatorTest
         };
         $sink = new CollectingEventSink();
 
+        $configuration = ConfigurationResolver::resolve(GreenlightConfig::create()->build(), new CliOverrides());
         $result = $this->coordinator()->run(
-            GreenlightConfig::create()->build(),
+            $configuration,
+            $configuration->selection,
             [$this->tempDirectory->subdirectory('empty-plan')],
             $sink,
             $execution,
@@ -162,8 +168,9 @@ final readonly class RunCoordinatorTest
         $firstSink = new CollectingEventSink();
         $secondSink = new CollectingEventSink();
 
-        $first = $coordinator->run($configuration, [$fixtureDirectory], $firstSink, new InProcessExecution());
-        $second = $coordinator->run($configuration, [$fixtureDirectory], $secondSink, new InProcessExecution());
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
+        $first = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $firstSink, new InProcessExecution());
+        $second = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $secondSink, new InProcessExecution());
 
         Expect::that($first->seed)
             ->because('the run result MUST report its explicit random seed')
@@ -182,7 +189,8 @@ final readonly class RunCoordinatorTest
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
         $completeSink = new CollectingEventSink();
 
-        $coordinator->run($base, [$fixtureDirectory], $completeSink, new InProcessExecution());
+        $complete = ConfigurationResolver::resolve($base, new CliOverrides());
+        $coordinator->run($complete, $complete->selection, [$fixtureDirectory], $completeSink, new InProcessExecution());
         $completeIds = $this->resultIds($completeSink);
         $shardedIds = [];
 
@@ -190,9 +198,9 @@ final readonly class RunCoordinatorTest
             $sink = new CollectingEventSink();
             $configuration = ConfigurationResolver::resolve(
                 $base,
-                new CliOverrides(shard: [$index, 3]),
+                new CliOverrides(selection: new TestSelection(shard: [$index, 3])),
             );
-            $result = $coordinator->run($configuration, [$fixtureDirectory], $sink, new InProcessExecution());
+            $result = $coordinator->run($configuration, $configuration->selection, [$fixtureDirectory], $sink, new InProcessExecution());
             $ids = $this->resultIds($sink);
 
             Expect::that($result->plannedTests)
@@ -218,8 +226,10 @@ final readonly class RunCoordinatorTest
         $configuration = GreenlightConfig::create()->build();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $this->coordinator()->run(
-            $configuration,
+            $resolved,
+            $resolved->selection,
             [$fixtureDirectory],
             new CollectingEventSink(),
             new InProcessExecution(),
@@ -240,10 +250,12 @@ final readonly class RunCoordinatorTest
         $configuration = GreenlightConfig::create()->plugins(
             static fn(): FailingWorkerBootstrapPlugin => new FailingWorkerBootstrapPlugin($failure),
         )->build();
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
         Expect::that(fn() => $this->coordinator()->run(
-            $configuration,
+            $resolved,
+            $resolved->selection,
             [$fixtureDirectory],
             new CollectingEventSink(),
             new InProcessExecution(),

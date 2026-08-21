@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Config\Configuration;
 use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -37,7 +36,6 @@ final readonly class InProcessExecution implements ExecutionAdapter
     #[\Override]
     public function topology(
         ExecutionPlan $plan,
-        Configuration $configuration,
         array $classSeconds,
     ): ExecutionTopology {
         return new ExecutionTopology(1, 1);
@@ -50,8 +48,8 @@ final readonly class InProcessExecution implements ExecutionAdapter
         EventSink $sink,
         ExecutionContext $context,
     ): ExecutionOutcome {
-        $configuration = $context->configuration;
-        $plugins = PluginInstances::forWorker($configuration->plugins);
+        $execution = $context->execution;
+        $plugins = PluginInstances::forWorker($execution->plugins);
         $resources = $context->fixtures->forChannel(1);
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
@@ -92,12 +90,12 @@ final readonly class InProcessExecution implements ExecutionAdapter
                     $plugins,
                     $this->detectLeaks ? new LeakDetector() : null,
                     'in-process',
-                    $configuration->policy->isNoOp() ? null : $configuration->policy,
+                    $execution->policy->isNoOp() ? null : $execution->policy,
                     $context->artifacts,
                 )->run(
                     $plan,
                     new PublishingEventSink($context->artifacts, $sink),
-                    $configuration->stopAfterFailures,
+                    $execution->stopAfterFailures,
                     null,
                     $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
                 ));

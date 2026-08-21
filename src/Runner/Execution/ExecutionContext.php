@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Config\Configuration;
+use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Artifact\ArtifactStore;
@@ -21,7 +21,7 @@ final readonly class ExecutionContext
      * @param array<string, float> $classSeconds Recorded class durations.
      */
     public function __construct(
-        public Configuration $configuration,
+        public ExecutionConfiguration $execution,
         public ArtifactStore $artifacts,
         public ProvisionedIntegrationFixtures $fixtures,
         public PluginRegistry $orchestratorPlugins,

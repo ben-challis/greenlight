@@ -6,17 +6,16 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Cli\CliOverrides;
+use Greenlight\Cli\ConfigurationResolver;
+use Greenlight\Cli\ExecutionOverrides;
 use Greenlight\Cli\PlanFormatter;
-use Greenlight\Config\Configuration;
-use Greenlight\Config\CoverageConfiguration;
-use Greenlight\Config\CoverageExport;
+use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Config\SuiteConfiguration;
-use Greenlight\Config\WatchConfiguration;
-use Greenlight\Config\WorkerCount;
-use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Config\SuiteBuilder;
+use Greenlight\Core\Test\TestInclusions;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 
 final class PlanFormatterTest
@@ -24,23 +23,15 @@ final class PlanFormatterTest
     #[Test]
     public function formatsTheResolvedPlanWithExactLabels(): void
     {
-        $configuration = new Configuration(
-            paths: ['tests'],
-            suites: [],
-            workers: WorkerCount::auto(),
-            recycleAfterTests: null,
-            recycleAboveMemoryBytes: 128 * 1024 * 1024,
-            coverage: new CoverageConfiguration(
-                includePaths: ['src'],
-                driver: 'xdebug',
-                exports: [new CoverageExport('json', 'build/coverage.json')],
-            ),
-            watch: new WatchConfiguration(),
-            plugins: [],
-            policy: new ResultPolicy(),
-            stopAfterFailures: null,
-            randomizeOrder: false,
-            randomSeed: null,
+        $configuration = ConfigurationResolver::resolve(
+            GreenlightConfig::create()
+                ->workers(recycleAboveMemory: '128M')
+                ->coverage(static fn(CoverageBuilder $coverage) => $coverage
+                    ->include('src')
+                    ->driver('xdebug')
+                    ->export('json', 'build/coverage.json'))
+                ->build(),
+            new CliOverrides(),
         );
 
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
@@ -75,18 +66,19 @@ final class PlanFormatterTest
     #[Test]
     public function formatsRuntimeSeedSelectionAndPluginClasses(): void
     {
-        $configuration = GreenlightConfig::create()
-            ->randomizeOrder()
-            ->plugins(
-                static fn(): NamedFakePlugin => new NamedFakePlugin(),
-            )
-            ->build();
+        $configuration = ConfigurationResolver::resolve(
+            GreenlightConfig::create()
+                ->randomizeOrder()
+                ->plugins(static fn(): NamedFakePlugin => new NamedFakePlugin())
+                ->build(),
+            new CliOverrides(),
+        );
 
         $formatted = PlanFormatter::format($configuration, '/project/greenlight.php', '/project');
 
         Expect::that($formatted)
-            ->because('the plan names runtime seed selection and configured plugins')
-            ->toContain('  order: random (seed chosen at run time)');
+            ->because('the plan names the one resolved seed and configured plugins')
+            ->toContain('  order: random (seed ');
         Expect::that($formatted)
             ->toContain('  plugins: ' . NamedFakePlugin::class);
     }
@@ -98,26 +90,20 @@ final class PlanFormatterTest
     #[DataSet('failureLimits')]
     public function formatsConfiguredPlanDetails(int $failureLimit, string $expectedFailureLimit): void
     {
-        $configuration = new Configuration(
-            paths: ['tests'],
-            suites: [
-                new SuiteConfiguration('unit', ['tests/Unit'], ['fast']),
-                new SuiteConfiguration('acceptance', ['tests/Acceptance'], []),
-            ],
-            workers: WorkerCount::exactly(3),
-            recycleAfterTests: 25,
-            recycleAboveMemoryBytes: 256 * 1024 * 1024,
-            coverage: null,
-            watch: new WatchConfiguration(),
-            plugins: [
-                PluginDefinition::fromFactory(static fn(): NamedFakePlugin => new NamedFakePlugin()),
-            ],
-            policy: new ResultPolicy(),
-            stopAfterFailures: $failureLimit,
-            randomizeOrder: true,
-            randomSeed: 4242,
-            groups: ['smoke', 'unit'],
-            resourceLimits: ['database' => 2, 'redis' => 1],
+        $configuration = ConfigurationResolver::resolve(
+            GreenlightConfig::create()
+                ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit')->tag('fast'))
+                ->suite('acceptance', static fn(SuiteBuilder $suite) => $suite->in('tests/Acceptance'))
+                ->workers(count: 3, recycleAfterTests: 25)
+                ->resourceLimit('database', 2)
+                ->resourceLimit('redis')
+                ->plugins(static fn(): NamedFakePlugin => new NamedFakePlugin())
+                ->randomizeOrder(4242)
+                ->build(),
+            new CliOverrides(
+                execution: new ExecutionOverrides(stopAfterFailures: $failureLimit),
+                selection: new TestSelection(include: new TestInclusions(groups: ['smoke', 'unit'])),
+            ),
         );
 
         $temporary = \rtrim(\sys_get_temp_dir(), '/');

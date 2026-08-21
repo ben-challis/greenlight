@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Config\Configuration;
+use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\WireCommunicationFailed;
@@ -36,6 +36,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         private array $workerCommand,
         private string $workingDirectory,
         private int $workerCount,
+        private WorkerConfiguration $workers,
         private ?CoverageSettings $coverageSettings = null,
         private ?string $configFile = null,
         private bool $detectLeaks = false,
@@ -50,14 +51,13 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
     #[\Override]
     public function topology(
         ExecutionPlan $plan,
-        Configuration $configuration,
         array $classSeconds,
     ): ExecutionTopology {
         [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $this->workerCount);
         $fixtureChannels = new ResourceScheduler(
             $pooled,
             $isolated,
-            $configuration->resourceLimits,
+            $this->workers->resourceLimits,
         )->initialWorkerTarget($this->workerCount);
 
         return new ExecutionTopology($this->workerCount, $fixtureChannels);
@@ -74,7 +74,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         EventSink $sink,
         ExecutionContext $context,
     ): ExecutionOutcome {
-        $configuration = $context->configuration;
+        $execution = $context->execution;
         $orchestrator = new Orchestrator(
             NativeWorkerTransport::listen(
                 $this->workerCommand,
@@ -82,20 +82,20 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                 $context->storage->temporaryDirectory,
             ),
             new OrchestratorConfiguration(
-                recycleAfterTests: $configuration->recycleAfterTests,
-                recycleAboveMemoryBytes: $configuration->recycleAboveMemoryBytes,
-                stopAfterFailures: $configuration->stopAfterFailures,
+                recycleAfterTests: $this->workers->recycleAfterTests,
+                recycleAboveMemoryBytes: $this->workers->recycleAboveMemoryBytes,
+                stopAfterFailures: $execution->stopAfterFailures,
                 coverageSettings: $this->coverageSettings,
                 configFile: $this->configFile,
                 detectLeaks: $this->detectLeaks,
-                policy: $configuration->policy->isNoOp() ? null : $configuration->policy,
+                policy: $execution->policy->isNoOp() ? null : $execution->policy,
                 shutdown: $this->shutdown,
                 ticker: $this->ticker,
                 artifactStore: $context->artifacts,
-                artifactConfiguration: $configuration->artifacts,
+                artifactConfiguration: $execution->artifacts,
                 integrationFixtures: $context->fixtures,
-                resourceLimits: $configuration->resourceLimits,
-                initialWorkerAssignment: PluginInstances::hasWorkerBootstrapSubscribers($configuration->plugins)
+                resourceLimits: $this->workers->resourceLimits,
+                initialWorkerAssignment: PluginInstances::hasWorkerBootstrapSubscribers($execution->plugins)
                     ? InitialWorkerAssignment::AfterAllReady
                     : InitialWorkerAssignment::Progressive,
                 generatedCodeDirectory: $context->storage->generatedCodeDirectory,

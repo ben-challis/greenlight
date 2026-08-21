@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Config\ExecutionConfiguration;
+use Greenlight\Config\ResolvedConfiguration;
+use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Core\Result\ResultPolicy;
 
 /**
@@ -14,11 +17,8 @@ use Greenlight\Core\Result\ResultPolicy;
  * 2. The configuration file
  * 3. Command-line flags
  *
- * The input Configuration already combines the first two sources. resolve()
- * determines if each command-line flag replaces a configuration value.
- *
- * If random order is active and neither source supplies a seed, resolve()
- * selects one seed.
+ * The input Configuration already combines the first two sources. This class
+ * resolves each command-line value and selects one seed for the command.
  *
  * @internal
  */
@@ -27,48 +27,38 @@ final class ConfigurationResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function resolve(Configuration $configuration, CliOverrides $overrides): Configuration
+    public static function resolve(Configuration $configuration, CliOverrides $overrides): ResolvedConfiguration
     {
-        $randomizeOrder = $overrides->seed !== null || $configuration->randomizeOrder;
-        $randomSeed = $overrides->seed ?? $configuration->randomSeed;
-        $artifacts = $configuration->artifacts;
+        $executionOverrides = $overrides->execution;
+        $artifacts = $configuration->execution->artifacts;
 
-        if ($overrides->artifactsDirectory !== null) {
-            $artifacts = $artifacts->withDirectory($overrides->artifactsDirectory);
+        if ($executionOverrides->artifactsDirectory !== null) {
+            $artifacts = $artifacts->withDirectory($executionOverrides->artifactsDirectory);
         }
 
-        if ($randomizeOrder && $randomSeed === null) {
-            $randomSeed = \random_int(0, 2 ** 31 - 1);
-        }
-
-        return new Configuration(
-            paths: $configuration->paths,
-            suites: $configuration->suites,
-            workers: $overrides->workers ?? $configuration->workers,
-            recycleAfterTests: $configuration->recycleAfterTests,
-            recycleAboveMemoryBytes: $configuration->recycleAboveMemoryBytes,
+        return new ResolvedConfiguration(
+            discovery: $configuration->discovery,
+            workers: new WorkerConfiguration(
+                count: $executionOverrides->workers ?? $configuration->workers->count,
+                recycleAfterTests: $configuration->workers->recycleAfterTests,
+                recycleAboveMemoryBytes: $configuration->workers->recycleAboveMemoryBytes,
+                resourceLimits: \array_replace($configuration->workers->resourceLimits, $executionOverrides->resourceLimits),
+            ),
+            execution: new ExecutionConfiguration(
+                plugins: $configuration->execution->plugins,
+                policy: new ResultPolicy(
+                    $configuration->execution->policy->failOnDeprecation || $executionOverrides->policy->failOnDeprecation,
+                    $configuration->execution->policy->failOnNotice || $executionOverrides->policy->failOnNotice,
+                    $configuration->execution->policy->ignoreDeprecations,
+                    $configuration->execution->policy->failOnRisky || $executionOverrides->policy->failOnRisky,
+                ),
+                stopAfterFailures: $executionOverrides->stopAfterFailures ?? $configuration->execution->stopAfterFailures,
+                artifacts: $artifacts,
+            ),
+            order: $configuration->order->resolve($overrides->seed),
+            selection: $overrides->selection,
             coverage: $configuration->coverage,
             watch: $configuration->watch,
-            plugins: $configuration->plugins,
-            policy: new ResultPolicy(
-                $configuration->policy->failOnDeprecation || $overrides->failOnDeprecation,
-                $configuration->policy->failOnNotice || $overrides->failOnNotice,
-                $configuration->policy->ignoreDeprecations,
-                $configuration->policy->failOnRisky || $overrides->failOnRisky,
-            ),
-            stopAfterFailures: $overrides->stopAfterFailures ?? $configuration->stopAfterFailures,
-            randomizeOrder: $randomizeOrder,
-            randomSeed: $randomSeed,
-            groups: $overrides->groups === [] ? $configuration->groups : $overrides->groups,
-            filters: $overrides->filters,
-            onlyTests: $overrides->testIds === [] ? null : $overrides->testIds,
-            shard: $overrides->shard,
-            excludeGroups: $overrides->excludeGroups,
-            excludeClasses: $overrides->excludeClasses,
-            excludeMethods: $overrides->excludeMethods,
-            excludePaths: $overrides->excludePaths,
-            artifacts: $artifacts,
-            resourceLimits: \array_replace($configuration->resourceLimits, $overrides->resourceLimits),
             storage: $configuration->storage,
         );
     }

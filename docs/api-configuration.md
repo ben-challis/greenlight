@@ -358,7 +358,7 @@ public function failFast(bool $enabled = true): self
 
 ### `randomizeOrder()`
 
-If the seed is null, Greenlight generates and prints a seed at run time.
+If the seed is null, Greenlight selects and prints a seed when it resolves the command.
 
 ```php
 public function randomizeOrder(?int $seed = null): self

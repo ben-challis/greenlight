@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
-use Greenlight\Config\Configuration;
+use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Result\ResultSummary;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
@@ -46,35 +47,34 @@ final readonly class RunCoordinator
      * @throws WireCommunicationFailed
      */
     public function run(
-        Configuration $configuration,
+        ResolvedConfiguration $configuration,
+        TestSelection $selection,
         array $directories,
         EventSink $sink,
         ExecutionAdapter $execution,
         array $priorityClasses = [],
         array $classSeconds = [],
     ): RunResult {
-        $seed = $configuration->randomizeOrder
-            ? $configuration->randomSeed ?? \random_int(0, 2 ** 31 - 1)
-            : null;
-        $classSeconds = $configuration->randomizeOrder ? [] : $classSeconds;
+        $seed = $configuration->order->seed;
+        $classSeconds = $configuration->order->isRandomized() ? [] : $classSeconds;
         $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
         $plan = PlanOrder::schedule(
-            $this->sharded($this->discover($configuration, $directories, $seed, $storage), $configuration),
+            $this->sharded($this->discover($selection, $directories, $seed, $storage), $selection),
             $priorityClasses,
             $classSeconds,
         );
-        $topology = $execution->topology($plan, $configuration, $classSeconds);
+        $topology = $execution->topology($plan, $classSeconds);
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifacts = ArtifactStore::open(
-            $configuration->artifacts,
+            $configuration->execution->artifacts,
             $this->workingDirectory,
             $runId,
             temporaryDirectory: $storage->temporaryDirectory,
         );
 
         try {
-            $orchestratorPlugins = PluginInstances::forOrchestrator($configuration->plugins);
+            $orchestratorPlugins = PluginInstances::forOrchestrator($configuration->execution->plugins);
 
             if ($orchestratorPlugins->runSubscribers() !== []) {
                 $sink = new PluginEventSink($orchestratorPlugins, $sink);
@@ -100,7 +100,7 @@ final readonly class RunCoordinator
                 $runId,
                 $topology->workers,
                 $topology->fixtureChannels,
-                $configuration->shard,
+                $selection->shard,
             );
 
             try {
@@ -115,7 +115,7 @@ final readonly class RunCoordinator
                     $plan,
                     $sink,
                     new ExecutionContext(
-                        $configuration,
+                        $configuration->execution,
                         $artifacts,
                         $fixtures,
                         $orchestratorPlugins,
@@ -166,26 +166,26 @@ final readonly class RunCoordinator
      * @throws DiscoveryError
      */
     private function discover(
-        Configuration $configuration,
+        TestSelection $selection,
         array $directories,
         ?int $seed,
         StorageLayout $storage,
     ): ExecutionPlan {
         return new TestDiscoverer()->discover(
             $directories,
-            SelectionFilter::fromConfiguration($configuration),
+            $selection,
             $seed,
             DiscoveryCache::forDirectories($directories, $storage->cacheDirectory),
         );
     }
 
-    private function sharded(ExecutionPlan $plan, Configuration $configuration): ExecutionPlan
+    private function sharded(ExecutionPlan $plan, TestSelection $selection): ExecutionPlan
     {
-        if ($configuration->shard === null) {
+        if ($selection->shard === null) {
             return $plan;
         }
 
-        [$index, $count] = $configuration->shard;
+        [$index, $count] = $selection->shard;
 
         return PlanShard::select($plan, \max(1, $index), \max(1, $count));
     }

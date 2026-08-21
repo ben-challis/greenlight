@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+use Greenlight\Core\Test\TestSelection;
+
 /**
- * Contains validated settings from the configuration file.
+ * Contains the settings for one resolved command.
  *
  * @internal
  */
-final readonly class Configuration
+final readonly class ResolvedConfiguration
 {
     public function __construct(
         public DiscoveryConfiguration $discovery,
         public WorkerConfiguration $workers,
         public ExecutionConfiguration $execution,
-        public OrderConfiguration $order,
+        public RunOrder $order,
+        public TestSelection $selection,
         public ?CoverageConfiguration $coverage,
         public WatchConfiguration $watch,
-        public StorageConfiguration $storage = new StorageConfiguration(),
+        public StorageConfiguration $storage,
     ) {}
 }

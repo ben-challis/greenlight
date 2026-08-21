@@ -58,6 +58,7 @@ final class IncrementalConfiguratorTest
                 ->maxAttachmentSize('2M')
                 ->maxRunAttachments(200))
             ->build()
+            ->execution
             ->artifacts;
 
         Expect::that($artifacts->directory)

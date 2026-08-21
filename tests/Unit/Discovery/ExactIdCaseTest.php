@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\Filter;
+use Greenlight\Core\Test\TestInclusions;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
 
 final class ExactIdCaseTest
@@ -23,7 +24,7 @@ final class ExactIdCaseTest
         string $renderedId,
         bool $accepted,
     ): void {
-        $filter = new Filter(includeIds: $patterns, includeExactIds: $exactIds);
+        $filter = new TestSelection(include: new TestInclusions(idPatterns: $patterns, exactIds: $exactIds));
 
         Expect::that($filter->acceptsId($renderedId))
             ->because('exact IDs MUST match verbatim, while ID patterns MUST ignore letter case')
