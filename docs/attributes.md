@@ -412,13 +412,17 @@ requirements.
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.
 
-The requirement controls the class start time. It does not select a concrete
+The attribute declares only the named requirement. Configuration determines
+whether its limit applies to one run or to processes on the same machine. See
+[configuration](configuration.md#machine-scoped-resource-limits).
+
+The requirement controls when a class can start. It does not select a specific
 resource instance or provide a lease identifier. Use `TestChannel` when every
 worker can have its own instance. A smaller set of distinct instances still
 needs an application-owned allocator.
 
-Resource counts live in the current orchestrator. Other Greenlight processes,
-worktrees, and shards have their own counts.
+Run-scoped resource counts live in the current orchestrator. Machine-scoped
+limits can coordinate processes, worktrees, and shards on the same machine.
 
 ## Isolated
 

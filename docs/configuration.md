@@ -140,6 +140,57 @@ identifier. If a test needs one of several distinct instances, the application
 must allocate it. Use a channel instead when every worker can have its own
 instance.
 
+### Machine-scoped resource limits
+
+Machine-scoped resource limits use the same resource requirements but share
+capacity across Greenlight processes on one machine.
+
+### `resourceCoordinationNamespace(string $namespace): self`
+
+Default: none.
+
+Sets the namespace for machine-scoped resource limits. Names use the same
+`[a-z0-9][a-z0-9._-]*` format as resources.
+
+`machineResourceLimit()` requires this namespace. To share a dependency, give
+the same value to each worktree or shard on the same machine. For unrelated
+projects, use different namespaces, even if the projects use the same resource
+names.
+
+### `machineResourceLimit(string $name, int $limit = 1): self`
+
+Default: not configured.
+
+Limits the number of concurrent class assignments across Greenlight processes
+on the same machine:
+
+<!-- php-example {"example":"configuration-machine-resource-limit","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+return GreenlightConfig::create()
+    ->resourceCoordinationNamespace('orders-service')
+    ->machineResourceLimit('postgres', 2)
+    ->machineResourceLimit('payments-sandbox');
+```
+
+Names and limits use the same validation rules as `resourceLimit()`. Configure
+each resource in only one scope.
+
+Greenlight uses advisory file locks under the current user's system temporary
+directory. Greenlight releases locks after an assignment or an orchestrator
+process finishes. Greenlight requires the same limit from all concurrent
+processes in a coordination namespace. A disagreement fails before tests start.
+
+Greenlight tries to get one permit for all required machine resources. If one
+resource is unavailable, it releases all slots from that attempt. A resource
+wait does not block worker messages, timeout control, or Ctrl+C.
+
+Machine resource coordination operates on one machine. It does not coordinate
+containers with separate temporary directories or processes on network file
+systems. Other applications do not use these locks.
+
+Greenlight does not let a nested run get a machine resource that its outer test
+holds. Greenlight reports this condition immediately.
+
 ### `coverage(callable $configurator): self`
 
 Default: coverage off.
@@ -337,6 +388,10 @@ Use a channel when each worker can have a separate resource. Use
 concurrency. A resource limit controls the number of assignments that can run.
 It does not assign a resource instance to an assignment.
 
+`resourceLimit()` controls capacity for one run. `machineResourceLimit()`
+controls capacity across Greenlight processes in one coordination namespace.
+Both forms use the same `#[RequiresResource]` declaration.
+
 Two concurrent tests do not share a channel. Channel numbers are from 1 through
 the worker count. The number of worker processes during the run does not change
 this range. After a worker recycle or crash, its replacement reuses the freed
@@ -463,7 +518,7 @@ Overrides the worker process count.
 
 ### `--resource-limit=<name>=<n>`
 
-Sets a resource limit for this run and overrides `greenlight.php`.
+Sets a resource limit for this run. This option overrides `greenlight.php`.
 
 ```sh
 vendor/bin/greenlight run \
@@ -473,6 +528,25 @@ vendor/bin/greenlight run \
 
 Repeat the option to set limits for different resources. Use each name only one
 time.
+
+### `--machine-resource-limit=<name>=<n>`
+
+Sets a machine-scoped resource limit. This option overrides `greenlight.php`.
+
+```sh
+vendor/bin/greenlight run \
+    --resource-coordination-namespace=orders-service \
+    --machine-resource-limit=payments-sandbox=2
+```
+
+Repeat the option for different resources. A name cannot appear in both
+`--resource-limit` and `--machine-resource-limit`. A command-line definition
+replaces the configuration-file definition and its scope.
+
+### `--resource-coordination-namespace=<name>`
+
+Sets or overrides the namespace for machine-scoped resource limits.
+Machine-scoped limits require this option or its configuration equivalent.
 
 ### `--bail[=<n>]`
 
@@ -583,8 +657,12 @@ Only whole classes move between shards. Individual methods are not split.
 Combines with `--group` and `--filter`. Greenlight divides the filtered plan
 into shards.
 
-Each shard enforces its own resource limits. If four shards each use
-`postgres=2`, up to eight tests can use PostgreSQL across the CI job.
+Each shard enforces run-scoped limits separately. If four shards each use
+`--resource-limit=postgres=2`, up to eight tests can use PostgreSQL across the
+CI job.
+
+Machine-scoped resource limits coordinate shards on the same machine when their
+namespace and limit agree. Shards on separate machines remain independent.
 
 ### `--failed`
 

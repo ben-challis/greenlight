@@ -115,6 +115,11 @@ crash. It uses this frame when a worker dies before `test-finished`.
 
 ## Resource assignment
 
+Run-scoped resource limits use counters in the orchestrator. Machine-scoped
+resource limits add a machine resource permit. The permit holds one slot file
+for each required machine resource. `ResourceLease` owns both types of
+capacity. Each completion and containment path releases them together.
+
 Discovery stores `#[RequiresResource]` names in test metadata. The orchestrator
 groups non-isolated entries by class and combines their requirements. It treats
 each isolated entry as a separate scheduling unit.
@@ -125,6 +130,15 @@ slot. The assignment retains its slots until it finishes. The orchestrator also
 releases the slots if the worker recycles, crashes, reaches a timeout, or does
 not receive the assignment. Retries remain in the same assignment and retain
 the slots.
+
+The orchestrator uses `LOCK_NB` when it calls `flock()` for machine resource
+permits. Another process can release a permit without a local event. The
+orchestrator checks idle workers on each 200 ms event-loop tick.
+
+The `assign` message contains the coordination keys for the class. The worker
+sets them in an internal environment variable while the class runs. A nested
+Greenlight process rejects the same machine resource. This prevents a deadlock
+with the outer test.
 
 If the oldest unit waits, the orchestrator reserves one slot from each required
 resource. A later unit can pass it only in one of these conditions:
@@ -140,10 +154,13 @@ assignment. Thus, the normal progress deadline does not classify the worker as
 stalled. After capacity becomes available, the orchestrator checks the workers
 that wait for resources.
 
-The orchestrator claims resource capacity from the test metadata in `assign`,
-without another protocol message. Each Greenlight process, worktree, or shard
-has separate resource counters. Different runs require an external lock or
-service for coordination.
+Parallel resource assignment occurs only in the orchestrator. The `assign`
+message already contains test metadata and coordination keys. Thus, resource
+assignment requires no additional protocol message.
+
+Each run has separate run-scoped counters. Processes, worktrees, and shards on
+the same machine can share capacity through one coordination namespace. See
+[machine resource coordination](resource-coordination.md).
 
 The orchestrator controls capacity, not resource identity. A limit of two
 permits two assignments that require the resource at the same time. It does not

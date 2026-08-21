@@ -39,10 +39,11 @@ For a nonempty plan, the runner provisions integration fixtures before
 The runner closes the graph after `RunFinished` or after a run failure.
 
 The orchestrator makes decisions that apply to more than one worker. It
-controls assignments, resource capacity, bail, hard timeouts, crash
-containment, summary totals, artifact publication, and the final coverage
-merge. Workers execute their plan sections in sequence and send each result
-immediately.
+controls assignments, run-scoped resource limits, machine resource permits,
+bail, hard timeouts, crash containment, summary totals, artifact publication,
+and the final coverage merge. Workers execute their plan sections in sequence
+and send each result immediately. The in-process runner gets machine resource
+permits directly for each class.
 
 ## Module map
 
@@ -112,7 +113,7 @@ read [compatibility](compatibility.md).
 - Discovery occurs before execution. Workers consume plans and do not scan the
   file system.
 - One terminal `TestResult` represents all attempts of one test ID.
-- The orchestrator controls the global summary and all resource totals.
+- The orchestrator controls the parallel-run summary and its resource totals.
 - Greenlight contains worker failures. It does not automatically repeat the
   test that stops its process.
 - Binary attachment content stays out of event and protocol frames.
@@ -124,6 +125,7 @@ read [compatibility](compatibility.md).
 - [Compatibility and public interfaces](compatibility.md)
 - [Worker lifecycle and wire protocol](worker-lifecycle.md)
 - [Orchestrator-owned integration fixtures](orchestrator-integration-fixtures.md)
+- [Machine resource coordination](resource-coordination.md)
 - [Artifact storage](artifacts.md)
 - [JSONL reporter schema](jsonl.md)
 - [Coverage JSON schema](coverage-json.md)

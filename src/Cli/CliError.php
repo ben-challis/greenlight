@@ -88,10 +88,11 @@ final class CliError extends \RuntimeException
         return new self(\sprintf('%s requires a positive integer. Received "%s".', $flag, $raw));
     }
 
-    public static function malformedResourceLimit(string $raw): self
+    public static function malformedResourceLimit(string $flag, string $raw): self
     {
         return new self(\sprintf(
-            '--resource-limit requires <name>=<limit>, such as postgres=2. Received "%s".',
+            '%s requires <name>=<limit>, such as postgres=2. Received "%s".',
+            $flag,
             $raw,
         ));
     }
@@ -99,6 +100,14 @@ final class CliError extends \RuntimeException
     public static function duplicateResourceLimit(string $name): self
     {
         return new self(\sprintf('Set resource limit "%s" only once.', $name));
+    }
+
+    public static function invalidResourceCoordinationNamespace(string $namespace): self
+    {
+        return new self(\sprintf(
+            '--resource-coordination-namespace requires a name that matches [a-z0-9][a-z0-9._-]*. Received "%s".',
+            $namespace,
+        ));
     }
 
     public static function unknownReporter(string $name): self

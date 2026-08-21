@@ -85,12 +85,16 @@ final class CliErrorTest
             '--workers requires a positive integer. Received "0".',
         ];
         yield 'malformed resource limit' => [
-            static fn(): CliError => CliError::malformedResourceLimit('postgres'),
+            static fn(): CliError => CliError::malformedResourceLimit('--resource-limit', 'postgres'),
             '--resource-limit requires <name>=<limit>, such as postgres=2. Received "postgres".',
         ];
         yield 'duplicate resource limit' => [
             static fn(): CliError => CliError::duplicateResourceLimit('postgres'),
             'Set resource limit "postgres" only once.',
+        ];
+        yield 'invalid resource coordination namespace' => [
+            static fn(): CliError => CliError::invalidResourceCoordinationNamespace('Bad'),
+            '--resource-coordination-namespace requires a name that matches [a-z0-9][a-z0-9._-]*. Received "Bad".',
         ];
         yield 'unknown reporter' => [
             static fn(): CliError => CliError::unknownReporter('verbose'),
