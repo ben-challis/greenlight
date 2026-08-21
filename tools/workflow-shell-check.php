@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 $root = \dirname(__DIR__);
 $workflowFiles = [];
+/** @var list<string> $arguments */
+$arguments = $_SERVER['argv'] ?? [];
 
-foreach (\array_slice($argv, 1) as $argument) {
+foreach (\array_slice($arguments, 1) as $argument) {
     if (\str_starts_with($argument, '-')) {
         \fwrite(\STDERR, \sprintf("Unknown workflow shell check option \"%s\".\n", $argument));
 

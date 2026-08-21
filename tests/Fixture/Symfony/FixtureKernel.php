@@ -32,7 +32,7 @@ final class FixtureKernel extends Kernel
     #[\Override]
     public function getCacheDir(): string
     {
-        return $this->stateDir() . '/cache/' . $this->environment;
+        return $this->stateDir() . '/cache/' . $this->getEnvironment();
     }
 
     #[\Override]

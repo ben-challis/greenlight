@@ -662,13 +662,9 @@ final class ArtifactStore
             return 'application/octet-stream';
         }
 
-        try {
-            $type = \finfo_file($finfo, $path);
+        $type = \finfo_file($finfo, $path);
 
-            return \is_string($type) && $type !== '' ? $type : 'application/octet-stream';
-        } finally {
-            \finfo_close($finfo);
-        }
+        return \is_string($type) && $type !== '' ? $type : 'application/octet-stream';
     }
 
     /**

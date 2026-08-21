@@ -118,7 +118,7 @@ final class BareKernel implements KernelInterface, Fake
 
     // No Override attribute: the parent declaration only exists on
     // Symfony >= 8, and the attribute is a compile error without one.
-    public function getShareDir(): ?string
+    public function getShareDir(): null
     {
         return null;
     }
