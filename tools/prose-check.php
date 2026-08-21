@@ -1722,7 +1722,9 @@ function prosePrintFinding(array $finding, string $suffix = ''): void
     ) . "\n";
 }
 
-$options = \proseArguments($argv);
+/** @var list<string> $arguments */
+$arguments = $_SERVER['argv'] ?? [];
+$options = \proseArguments($arguments);
 $findings = \proseFindings($options['root']);
 
 if ($options['command'] === 'review') {

@@ -249,6 +249,7 @@ jobs:
             dependencies: "highest"
             symfony-version: "6.4.*"
             analysis: "phpstan"
+            phpstan-configuration: "phpstan.no-laravel.neon"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "7.4.*"
