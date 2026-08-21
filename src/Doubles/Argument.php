@@ -30,6 +30,8 @@ final class Argument
     /**
      * This matcher accepts the value when the closure returns true.
      * The description identifies the constraint in failure messages.
+     *
+     * @param \Closure(mixed): mixed $predicate
      */
     public static function predicate(\Closure $predicate, string $description = 'predicate'): ArgumentMatcher
     {

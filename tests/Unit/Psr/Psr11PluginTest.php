@@ -238,6 +238,7 @@ final readonly class Psr11PluginTest
     #[Test]
     public function aFactoryMustReturnAPsr11Container(): void
     {
+        // @phpstan-ignore-next-line argument.type (This test deliberately supplies an invalid factory result.)
         $plugin = new Psr11Plugin($this->invalidContainerFactory());
 
         Expect::that(static fn(): ?object => $plugin->resolve(Greeter::class, []))->toThrow(
@@ -350,6 +351,7 @@ final readonly class Psr11PluginTest
         return $container;
     }
 
+    /** @return \Closure(): \stdClass */
     private function invalidContainerFactory(): \Closure
     {
         return static fn(): object => new \stdClass();

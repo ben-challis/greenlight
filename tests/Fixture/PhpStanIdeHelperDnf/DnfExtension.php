@@ -9,6 +9,7 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class DnfExtension implements ExpectationExtension, Fake
 {
+    /** @return array{toCompareWith: \Closure(mixed, (\Countable&\Iterator<mixed, mixed>)|string): bool} */
     #[\Override]
     public function matchers(): array
     {

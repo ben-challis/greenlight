@@ -421,6 +421,7 @@ final readonly class OutputCaptureTest
         yield 'negative diagnostics bound' => [1, -1, 'Diagnostics bound must be at least 1 entry, got -1.'];
     }
 
+    /** @return (callable(int, string, string, int): bool)|null */
     private function activeErrorHandler(): ?callable
     {
         $probe = static fn(): bool => false;
@@ -430,6 +431,7 @@ final readonly class OutputCaptureTest
         return $active;
     }
 
+    /** @param (callable(int, string, string, int): bool)|null $baseline */
     private function restoreErrorHandler(?callable $baseline): void
     {
         for ($attempt = 0; $attempt < 4; ++$attempt) {

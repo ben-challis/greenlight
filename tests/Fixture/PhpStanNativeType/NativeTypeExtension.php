@@ -9,6 +9,13 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class NativeTypeExtension implements ExpectationExtension, Fake
 {
+    /**
+     * @return array{
+     *     toAcceptNullableDateTime: \Closure(\DateTimeInterface|null): true,
+     *     toAcceptIntegerOrString: \Closure(int|string): true,
+     *     toAcceptSerializableString: \Closure(\JsonSerializable&\Stringable): true
+     * }
+     */
     #[\Override]
     public function matchers(): array
     {

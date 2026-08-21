@@ -9,6 +9,7 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class EvenNumbersExtension implements ExpectationExtension, Fake
 {
+    /** @return array{toBeEven: \Closure(mixed): bool} */
     #[\Override]
     public function matchers(): array
     {

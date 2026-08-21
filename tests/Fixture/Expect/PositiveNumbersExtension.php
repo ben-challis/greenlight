@@ -9,6 +9,7 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class PositiveNumbersExtension implements ExpectationExtension, Fake
 {
+    /** @return array{toBePositive: \Closure(mixed): bool} */
     #[\Override]
     public function matchers(): array
     {

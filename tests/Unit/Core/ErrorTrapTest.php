@@ -209,6 +209,7 @@ final class ErrorTrapTest
         }
     }
 
+    /** @return (callable(int, string, string, int): bool)|null */
     private function activeErrorHandler(): ?callable
     {
         $probe = static fn(): bool => true;
@@ -218,6 +219,7 @@ final class ErrorTrapTest
         return $active;
     }
 
+    /** @param callable(int, string, string, int): bool $last */
     private function restoreErrorHandlersThrough(callable $last): void
     {
         while (($active = $this->activeErrorHandler()) !== null) {

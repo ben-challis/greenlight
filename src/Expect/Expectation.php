@@ -844,6 +844,7 @@ final class Expectation
             $matched = \preg_match($matching, $thrown->getMessage()) === 1;
         } elseif ($matched && $callback instanceof \Closure) {
             try {
+                // @phpstan-ignore-next-line argument.type (Reflection confirms that the callback accepts the matched throwable.)
                 $result = $this->invokeThrowableCallback($callback, $thrown);
             } catch (ExpectationFailed $failure) {
                 if (!$this->negated) {
@@ -997,6 +998,10 @@ final class Expectation
      *
      * @return class-string<\Throwable>
      *
+     * @template TThrowable of \Throwable
+     *
+     * @param \Closure(TThrowable): mixed $callback
+     *
      * @throws ExpectationFailed
      */
     private function requireThrowableCallback(\Closure $callback): string
@@ -1055,6 +1060,12 @@ final class Expectation
         return $throwable;
     }
 
+    /**
+     * @template TThrowable of \Throwable
+     *
+     * @param \Closure(TThrowable): mixed $callback
+     * @param TThrowable $throwable
+     */
     private function invokeThrowableCallback(\Closure $callback, \Throwable $throwable): mixed
     {
         return $callback($throwable);
