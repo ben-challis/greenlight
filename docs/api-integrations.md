@@ -194,7 +194,7 @@ Boots one Laravel application lazily for a test and resolves bound services.
 resources by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L25)
@@ -245,15 +245,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L85)
 
-### `beforeTest()`
-
-```php
-[\Override]
-public function beforeTest(TestContext $context): void
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L115)
-
 ### `afterTest()`
 
 ```php
@@ -261,7 +252,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L118)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L115)
 
 ## `Laravel\Service`
 
@@ -312,7 +303,7 @@ plugin discards the container after each test that uses it.
 by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class Psr11Plugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L23)
@@ -363,15 +354,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L92)
 
-### `beforeTest()`
-
-```php
-[\Override]
-public function beforeTest(TestContext $context): void
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L134)
-
 ### `afterTest()`
 
 ```php
@@ -383,7 +365,7 @@ PHPDoc:
 
 - `@throws Psr11BridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L137)
 
 ## `Psr\Service`
 
@@ -697,7 +679,7 @@ service keeps state between tests, do not disable resets.
 external resources with `GREENLIGHT_CHANNEL`.
 
 ```php
-final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L29)
@@ -749,15 +731,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L85)
 
-### `beforeTest()`
-
-```php
-[\Override]
-public function beforeTest(TestContext $context): void
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L115)
-
 ### `afterTest()`
 
 ```php
@@ -765,7 +738,7 @@ public function beforeTest(TestContext $context): void
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L118)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L115)
 
 ## `TempestPlugin`
 
@@ -780,10 +753,10 @@ attributes select tagged Tempest bindings. Tests MUST isolate external
 resources by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class TempestPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber, WorkerBootstrapSubscriber
+final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceResolver, WorkerBootstrapSubscriber
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L36)
 
 ### `__construct()`
 
@@ -801,7 +774,7 @@ PHPDoc:
 - `@param list<DiscoveryLocation> $discoveryLocations Additional locations for Tempest discovery.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L49)
 
 ### `onWorkerBootstrap()`
 
@@ -810,7 +783,7 @@ PHPDoc:
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L63)
 
 ### `services()`
 
@@ -823,7 +796,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L72)
 
 ### `resolve()`
 
@@ -838,7 +811,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws TempestBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L85)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L86)
 
 ### `beforeTest()`
 
@@ -847,7 +820,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L111)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L112)
 
 ### `afterTest()`
 
@@ -860,4 +833,4 @@ PHPDoc:
 
 - `@throws TempestBridgeError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L124)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L125)

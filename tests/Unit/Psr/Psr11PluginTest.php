@@ -71,7 +71,7 @@ final readonly class Psr11PluginTest
     }
 
     #[Test]
-    public function containerCreationIsLazy(): void
+    public function pluginConstructionIsLazy(): void
     {
         $created = false;
         $plugin = new Psr11Plugin(static function () use (&$created): ContainerInterface {
@@ -80,9 +80,10 @@ final readonly class Psr11PluginTest
             return new ArrayContainer([]);
         });
 
-        $plugin->beforeTest($this->context());
-
-        Expect::that($created)->toBeFalse();
+        Expect::that($plugin)->toBeInstanceOf(Psr11Plugin::class);
+        Expect::that($created)
+            ->because('plugin construction MUST NOT create the container')
+            ->toBeFalse();
     }
 
     #[Test]

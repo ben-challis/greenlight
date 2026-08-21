@@ -14,7 +14,6 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Harness\Scope;
 use Greenlight\Laravel\LaravelBridgeError;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
@@ -102,23 +101,6 @@ final class LaravelPluginTest
         // Laravel could construct ArrayObject through implicit resolution.
         // The bridge only serves explicit bindings.
         Expect::that($this->plugin()->resolve(\ArrayObject::class, []))->toBeNull();
-    }
-
-    #[Test]
-    public function beforeTestPreservesLazyApplicationBoot(): void
-    {
-        $factoryCalled = false;
-        $plugin = new LaravelPlugin(static function () use (&$factoryCalled): Application {
-            $factoryCalled = true;
-
-            Fail::because('LaravelPlugin::beforeTest() MUST NOT boot the application.');
-        });
-
-        $plugin->beforeTest($this->context());
-
-        Expect::that($factoryCalled)
-            ->because('the application remains lazy during beforeTest()')
-            ->toBeFalse();
     }
 
     #[Test]

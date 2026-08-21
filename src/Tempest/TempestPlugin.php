@@ -8,9 +8,10 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Plugin\AfterTestSubscriber;
+use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Tempest\Container\Container;
@@ -32,7 +33,7 @@ use Tempest\Http\Request;
  * attributes select tagged Tempest bindings. Tests MUST isolate external
  * resources by `GREENLIGHT_CHANNEL`.
  */
-final class TempestPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber, WorkerBootstrapSubscriber
+final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceResolver, WorkerBootstrapSubscriber
 {
     private ?FrameworkKernel $kernel = null;
 
