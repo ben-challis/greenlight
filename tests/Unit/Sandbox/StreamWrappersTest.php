@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrapperError;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Runner\Protocol\UnselectableStream;
+use Greenlight\Tests\Fixture\StreamWrapper\AutoloadableStream;
 
 final readonly class StreamWrappersTest
 {
@@ -58,6 +59,37 @@ final readonly class StreamWrappersTest
             );
         } finally {
             $owner->dispose();
+        }
+    }
+
+    #[Test]
+    public function anAutoloadThrowableBecomesAStreamWrapperError(): void
+    {
+        $cause = new \RuntimeException('The fixture autoloader failed');
+        $loader = static function (string $class) use ($cause): void {
+            if ($class === AutoloadableStream::class) {
+                throw $cause;
+            }
+        };
+        \spl_autoload_register($loader, prepend: true);
+
+        try {
+            Expect::that(static function (): void {
+                new StreamWrappers()->register(
+                    'greenlight-sandbox-autoload',
+                    AutoloadableStream::class,
+                );
+            })
+                ->because('an autoload throwable MUST not escape the stream-wrapper seam')
+                ->toThrow(
+                    static function (StreamWrapperError $error) use ($cause): void {
+                        Expect::that($error->getPrevious())
+                            ->because('the stream-wrapper error MUST preserve the autoload error')
+                            ->toBe($cause);
+                    },
+                );
+        } finally {
+            \spl_autoload_unregister($loader);
         }
     }
 

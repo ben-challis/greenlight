@@ -26,10 +26,14 @@ final class StreamWrappers implements Disposable
             throw new \InvalidArgumentException('Stream wrapper scheme cannot be empty.');
         }
 
-        if (!ErrorTrap::run(
+        $registered = ErrorTrap::run(
             static fn() => \stream_wrapper_register($scheme, $wrapper),
             $warning,
-        )) {
+            wrap: static fn(\Throwable $error): StreamWrapperError =>
+                StreamWrapperError::registrationFailed($scheme, $error->getMessage(), $error),
+        );
+
+        if (!$registered) {
             throw StreamWrapperError::registrationFailed($scheme, $warning);
         }
 
@@ -43,7 +47,9 @@ final class StreamWrappers implements Disposable
         $failures = [];
 
         foreach (\array_reverse($this->schemes) as $scheme) {
-            if (!ErrorTrap::run(static fn() => \stream_wrapper_unregister($scheme), $warning)) {
+            $unregistered = ErrorTrap::run(static fn() => \stream_wrapper_unregister($scheme), $warning);
+
+            if (!$unregistered) {
                 $failures[] = [$scheme, $warning];
             }
         }
