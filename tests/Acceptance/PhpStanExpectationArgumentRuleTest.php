@@ -74,4 +74,60 @@ final readonly class PhpStanExpectationArgumentRuleTest
         Expect::that($probe->messages())->toContain('toMatchJson() requires valid expected JSON');
         Expect::that($probe->messages())->toContain('within() requires a finite duration greater than 0.000 seconds');
     }
+
+    #[Test]
+    public function toleranceAndReasonArgumentsMustMatchRuntimeConstraints(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            /**
+             * @param non-empty-string $reason
+             */
+            function greenlightGoodToleranceAndReasonProbe(float $delta, string $reason): void
+            {
+                Expect::that(1.0)->toBeWithin(0.0, 1.0);
+                Expect::that(1.0)->toBeWithin($delta, 1.0);
+                Expect::that(true)->because('0')->toBeTrue();
+                Expect::that(true)->because($reason)->toBeTrue();
+                Expect::eventually(static fn(): bool => true)
+                    ->within(0.001)
+                    ->because($reason)
+                    ->toBeTrue();
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            function greenlightBadToleranceAndReasonProbe(): void
+            {
+                Expect::that(1.0)->toBeWithin(-0.1, 1.0);
+                Expect::that(1.0)->toBeWithin(delta: INF, of: 1.0);
+                Expect::that(1.0)->toBeWithin(-INF, 1.0);
+                Expect::that(1.0)->toBeWithin(NAN, 1.0);
+                Expect::that(true)->because('   ')->toBeTrue();
+                Expect::eventually(static fn(): bool => true)
+                    ->within(0.001)
+                    ->because("\t\n")
+                    ->toBeTrue();
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->because('constant tolerances and reasons must satisfy runtime constraints')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(6);
+        Expect::that($probe->messages())->toContain('toBeWithin() requires a finite tolerance of zero or more');
+        Expect::that($probe->messages())->toContain('because() requires a non-empty reason');
+    }
 }

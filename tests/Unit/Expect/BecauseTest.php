@@ -88,7 +88,9 @@ final readonly class BecauseTest
 
         Expect::that($empty->message)->because('an empty reason is a usage failure')->toBe('because() requires a non-empty reason.');
 
-        $blank = FailureProbe::detailOf(static fn() => Expect::that(true)->because('   '));
+        $blank = FailureProbe::detailOf(
+            static fn() => Expect::that(true)->because('   '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+        );
 
         Expect::that($blank->message)->because('an empty reason is a usage failure')->toBe('because() requires a non-empty reason.');
     }

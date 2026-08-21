@@ -51,6 +51,8 @@ final class ExpectationArgumentRule implements Rule
                 'toMatch' => $this->patternErrors($node, $scope, $method, 'pattern', 0),
                 'toThrow' => $this->patternErrors($node, $scope, $method, 'matching', 1),
                 'toMatchJson' => $this->jsonErrors($node, $scope),
+                'toBeWithin' => $this->toleranceErrors($node, $scope),
+                'because' => $this->reasonErrors($node, $scope),
                 default => [],
             };
         }
@@ -68,6 +70,61 @@ final class ExpectationArgumentRule implements Rule
                 || $this->isType($scope, $node, PendingConsistently::class))
         ) {
             return $this->durationErrors($node, $scope, $method, 0.001, true);
+        }
+
+        return [];
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function toleranceErrors(MethodCall $call, Scope $scope): array
+    {
+        $argument = $this->argument($call, 'delta', 0);
+
+        if (!$argument instanceof Arg) {
+            return [];
+        }
+
+        foreach ($scope->getType($argument->value)->getConstantScalarValues() as $delta) {
+            if ((\is_int($delta) || \is_float($delta))
+                && \is_finite((float) $delta)
+                && $delta >= 0.0
+            ) {
+                continue;
+            }
+
+            return [RuleErrorBuilder::message('toBeWithin() requires a finite tolerance of zero or more.')
+                ->identifier('greenlight.expectationArgument.tolerance')
+                ->line($call->getStartLine())
+                ->build()];
+        }
+
+        return [];
+    }
+
+    /**
+     * @return list<IdentifierRuleError>
+     */
+    private function reasonErrors(MethodCall $call, Scope $scope): array
+    {
+        $argument = $this->argument($call, 'reason', 0);
+
+        if (!$argument instanceof Arg) {
+            return [];
+        }
+
+        foreach ($scope->getType($argument->value)->getConstantStrings() as $reason) {
+            $value = $reason->getValue();
+
+            if ($value === '' || \trim($value) !== '') {
+                continue;
+            }
+
+            return [RuleErrorBuilder::message('because() requires a non-empty reason.')
+                ->identifier('greenlight.expectationArgument.reason')
+                ->line($call->getStartLine())
+                ->build()];
         }
 
         return [];
