@@ -53,6 +53,22 @@ final readonly class AtomicFileTest
     }
 
     #[Test]
+    public function temporaryWriteThrowableBecomesAnAtomicFileError(): void
+    {
+        $path = $this->tempDirectory->path() . "/invalid\0/state.json";
+
+        Expect::that(static fn() => AtomicFile::write($path, '{}'))
+            ->because('a native write throwable MUST not escape the atomic-file seam')
+            ->toThrow(
+                static function (AtomicFileError $error): void {
+                    Expect::that($error->getPrevious())
+                        ->because('the atomic-file error MUST preserve the native write error')
+                        ->toBeInstanceOf(\ValueError::class);
+                },
+            );
+    }
+
+    #[Test]
     public function randomNameFailurePreservesItsCauseWithoutWritingAFile(): void
     {
         $path = $this->tempDirectory->path() . '/state.json';
