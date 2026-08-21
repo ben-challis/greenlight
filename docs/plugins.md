@@ -436,6 +436,10 @@ Declare matcher parameters with normal native PHP types. PHP enforces these
 types at run time. Greenlight's PHPStan extension reads them for static
 analysis.
 
+Declare `bool` as the matcher return type. An absent or `mixed` return type
+remains unresolved. PHPStan reports other declared types when code calls the
+matcher.
+
 #### PHPStan support for extension matchers
 
 The expectation chain sends matcher calls through `__call`. PHPStan cannot
@@ -446,8 +450,8 @@ Greenlight configuration files in the same way as workers. It reflects each
 matcher closure and exposes each matcher as a real expectation-chain method.
 This support includes `eventually()` and `consistently()` chains.
 
-Typos, incorrect argument counts, and incorrect argument types then cause a
-normal `phpstan analyse` error.
+Typos, incorrect argument counts, incorrect argument types, and incompatible
+return types then cause a normal `phpstan analyse` error.
 
 ```neon
 includes:

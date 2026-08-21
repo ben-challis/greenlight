@@ -29,8 +29,8 @@ final class MatcherMapFirstDeclarationTest
                 MatcherMapError::class,
                 message: \sprintf(
                     'Extension matcher "toHaveDigestLength" is declared with conflicting signatures: '
-                    . '(string $subject, int $length) in "%s" and '
-                    . '(mixed $subject, string $length) in "%s". '
+                    . '(string $subject, int $length): bool in "%s" and '
+                    . '(mixed $subject, string $length): bool in "%s". '
                     . 'Static analysis needs one signature per matcher name across all configured files.',
                     self::CONFIG,
                     self::CONFLICTING_CONFIG,

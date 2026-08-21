@@ -111,4 +111,54 @@ final readonly class PhpStanMatcherSubjectTest
         Expect::that(\count($probe->errors))->toBe(3);
         Expect::that($probe->messages())->toContain('requires subject type string, but the subject has type int');
     }
+
+    #[Test]
+    public function relativeMatcherTypesUseTheClosureScope(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+            use Greenlight\Tests\Fixture\PhpStanScopedMatcher\MatcherSubject;
+            use Greenlight\Tests\Fixture\PhpStanScopedMatcher\ScopedMatcherExtension;
+
+            function greenlightGoodScopedMatcherProbe(): void
+            {
+                $extension = new ScopedMatcherExtension();
+                Expect::that($extension)->toAcceptSelf();
+                Expect::that($extension)->toAcceptParent();
+                Expect::that('value')->toAcceptSelfArgument($extension);
+                Expect::that('value')->toAcceptParentArgument(new MatcherSubject());
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+            use Greenlight\Tests\Fixture\PhpStanScopedMatcher\MatcherSubject;
+
+            function greenlightBadScopedMatcherProbe(): void
+            {
+                Expect::that(new MatcherSubject())->toAcceptSelf();
+                Expect::that('value')->toAcceptParent();
+                Expect::that('value')->toAcceptSelfArgument(new MatcherSubject());
+                Expect::that('value')->toAcceptParentArgument(new \stdClass());
+            }
+            PHP,
+            \dirname(__DIR__) . '/Fixture/PhpStanScopedMatcher/probe.neon',
+        );
+
+        Expect::that($probe->exitCode)->because('relative matcher types use the closure scope')->toBe(1);
+        Expect::that($probe->goodPassed)->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(4);
+        Expect::that($probe->messages())
+            ->toContain('requires subject type Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\ScopedMatcherExtension')
+            ->toContain('expects Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\MatcherSubject');
+    }
 }

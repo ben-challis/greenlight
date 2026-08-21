@@ -163,6 +163,9 @@ signatures from `__call()`. The extension loads your configuration files in the
 same way as workers. It reflects each matcher closure and checks calls against
 the real signature.
 
+The declared closure return type must be compatible with `bool`. PHPStan leaves
+an absent or `mixed` return type unresolved.
+
 For example, use a plugin with these matchers:
 
 <!-- php-example {"example":"phpstan-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->
@@ -206,11 +209,13 @@ Expect::eventually(fn(): string => $hash)
     ->toHaveDigestLength(6);
 ```
 
-If configuration files register one matcher name with different signatures,
-analysis fails. PHPStan does not select one signature.
+If configuration files register one matcher name with different parameter or
+return types, analysis fails. PHPStan does not select one signature.
 
 Subject-type errors use the `greenlight.extensionMatcher.subjectType`
-identifier. Matcher argument errors keep the PHPStan error identifier.
+identifier. Return-type errors use the
+`greenlight.extensionMatcher.returnType` identifier. Matcher argument errors
+keep the PHPStan error identifier.
 
 To give an IDE the same signatures, generate the helper file:
 

@@ -28,7 +28,7 @@ final readonly class ExtensionMatcherParameter implements ParameterReflection
     #[\Override]
     public function getType(): Type
     {
-        return NativeType::fromReflection($this->parameter->getType());
+        return NativeType::fromParameter($this->parameter);
     }
 
     #[\Override]
