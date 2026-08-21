@@ -136,3 +136,6 @@ Readers **MUST** ignore unknown keys.
 
 If version 1 defines a field, a change to its definition or shape **MUST** use a
 new `v` value.
+
+Per-test coverage uses the separate JSONL format documented in
+[the per-test coverage schema](test-coverage-jsonl.md).

@@ -84,7 +84,7 @@ final readonly class SelectionTest
         );
 
         Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1);
-        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('Greenlight found no tests');
+        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('Exact test selection did not find');
     }
 
     #[Test]
@@ -183,6 +183,22 @@ final readonly class SelectionTest
         $result = $this->run($project, '--failed');
         Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
         Expect::that($result->output())->because('failed reruns exactly the previous failures')->toContain('No tests failed');
+    }
+
+    #[Test]
+    public function exactIdsSelectOnlyTheNamedTestAndRejectStaleIds(): void
+    {
+        $project = $this->writeProject();
+        $id = 'SelectionProbe\SelectionProbeTest::alwaysPasses';
+        $project->writeFile('exact-tests.txt', "\n{$id}\n{$id}\n");
+
+        $result = $this->run($project, '--test-id-file=exact-tests.txt');
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($this->sortedFinishedTestIds($result))->toBe([$id]);
+
+        $result = $this->run($project, '--test-id=SelectionProbe\SelectionProbeTest::missing');
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('Exact test selection did not find');
     }
 
     #[Test]

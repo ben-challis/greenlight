@@ -11,6 +11,7 @@ use Greenlight\Core\Wire\WireError;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Bootstrap;
+use Greenlight\Runner\Protocol\Messages\CoverageChunk;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -39,6 +40,7 @@ final class MessageRegistry
         'bootstrap' => Bootstrap::class,
         'ready' => Ready::class,
         'assign' => Assign::class,
+        'coverage' => CoverageChunk::class,
         'drain' => Drain::class,
         'event' => EventEnvelope::class,
         'attempt-started' => AttemptStarted::class,

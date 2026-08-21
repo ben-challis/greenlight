@@ -24,7 +24,9 @@ use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Utf8;
 use Greenlight\Core\Wire\WireError;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Reporting\ReportingError;
@@ -36,6 +38,7 @@ use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Bootstrap;
+use Greenlight\Runner\Protocol\Messages\CoverageChunk;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
@@ -45,6 +48,7 @@ use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Runner\TestCoverageStore;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\WorkerError;
 
@@ -138,6 +142,7 @@ final class Orchestrator
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
         private readonly array $resourceLimits = [],
+        private readonly ?TestCoverageStore $testCoverageStore = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -175,12 +180,15 @@ final class Orchestrator
      *
      * @throws ProtocolError
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws InvalidWirePayload
      * @throws ReportingError
      * @throws WireError
      */
     public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount): ResultSummary
     {
+        $this->testCoverageStore?->registerPlan($plan);
+
         foreach ($plan->entries as $entry) {
             $this->entriesById[(string) $entry->id] = $entry;
         }
@@ -330,6 +338,7 @@ final class Orchestrator
      * @param resource $server
      * @param non-empty-string $token
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws WireError
@@ -469,6 +478,7 @@ final class Orchestrator
                 $this->policy,
                 $this->artifactStore?->session(),
                 $this->artifactConfiguration,
+                $this->coverageSettings?->perTest === true,
             ));
             $handle->lastProgressAt = $this->monotonicTime();
         } catch (ProtocolError) {
@@ -481,6 +491,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws WireError
@@ -521,6 +532,11 @@ final class Orchestrator
                         // only to the initial pool.
                         $this->assignNext($handle, $sink);
                     }
+                } elseif ($message instanceof CoverageChunk) {
+                    $this->testCoverageStore?->record(
+                        $message->test,
+                        new CoverageMap([new FileCoverage($message->file, $message->lines, [])]),
+                    );
                 } elseif ($message instanceof Recycling) {
                     $this->crossCheck($handle, $message->summary);
                     $this->assertRemainder($handle, $message->remaining);

@@ -58,6 +58,7 @@ use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Reporting\TtyReporter;
+use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Runner\InProcessRunner;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
@@ -66,6 +67,7 @@ use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\SelectionFilter;
 use Greenlight\Runner\SubprocessCoverage;
+use Greenlight\Runner\TestCoverageStore;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
@@ -126,6 +128,8 @@ final readonly class Application
                              substring or a full match with * wildcards.
                              You can repeat this option.
           --test-id=<id>     Run only this exact test ID. You can repeat this option.
+          --test-id-file=<path>
+                             Read exact test IDs, one per line.
           --exclude-group=<name>     Skip tests in this group. You can repeat this option.
           --exclude-class=<pattern>  Skip classes that match this pattern.
                              Matching is case-sensitive. Use a substring or * wildcards.
@@ -154,6 +158,12 @@ final readonly class Application
           --watch            Run selected tests at startup and after file changes.
                              Enter reruns them. q quits with exit code 0.
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
+          --coverage-map=<path>
+                             Write versioned per-test coverage JSONL.
+          --coverage-include=<path>
+                             Set a source root for command-line coverage.
+                             You can repeat this option.
+          --no-coverage      Disable configured coverage for this run.
           --verbose          Print a permanent line per completed class in
                              interactive output
           --no-ansi          Disable colors and the live progress window.
@@ -316,6 +326,7 @@ final readonly class Application
         try {
             [$resolved, $configFile] = $this->loadConfiguration($arguments, $workingDirectory);
             $overrides = CliOverrides::fromArguments($arguments);
+            $exactIds = $this->exactTestIds($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -326,8 +337,26 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
+        if ($exactIds !== []) {
+            $resolved = $resolved->withOnlyTests($exactIds);
+        }
+
+        if ($arguments->has('no-coverage') && ($arguments->has('coverage-map') || $arguments->has('coverage-include'))) {
+            $this->printError('--no-coverage cannot be combined with --coverage-map or --coverage-include.', $arguments->has('no-ansi'));
+
+            return self::EXIT_USAGE;
+        }
+
         if ($arguments->has('watch') && ($overrides->repeat !== null || $overrides->repeatUntilFailure)) {
             $this->printError('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
+
+            return self::EXIT_USAGE;
+        }
+
+        if ($arguments->has('watch')
+            && ($arguments->has('coverage-map') || $resolved->coverage?->perTestTarget !== null)
+        ) {
+            $this->printError('Per-test coverage mapping is not supported in watch mode.', $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
         }
@@ -390,7 +419,10 @@ final readonly class Application
                 return self::EXIT_OK;
             }
 
-            $resolved = $resolved->withOnlyTests($previousFailures);
+            $resolved = $resolved->withOnlyTests(\array_values(\array_unique([
+                ...($resolved->onlyTests ?? []),
+                ...$previousFailures,
+            ])));
         }
 
         $priorityClasses = [];
@@ -507,28 +539,41 @@ final readonly class Application
         RunState $state,
     ): int {
         $workers = $resolved->workers->fixed ?? CpuCores::count();
-        $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
+        $testCoverageStore = null;
 
-        // The worker-pool path collects orchestrator coverage unless this
-        // process inherits relay variables. A second driver period closes
-        // the inherited process period too early.
-        $coverageSession = CoverageSession::open(
-            $coverageSettings,
-            $workers !== 1 && $workerBin !== false && !SubprocessCoverage::requested(),
-        );
+        try {
+            $coverageConfig = $arguments->has('no-coverage') ? null : $resolved->coverage;
+            $coverageSettings = $this->coverageSettings($coverageConfig, $workingDirectory, $arguments);
+            $testCoverageStore = $coverageSettings?->perTest === true ? TestCoverageStore::open() : null;
+
+            // The worker-pool path collects orchestrator coverage unless this
+            // process inherits relay variables. A second driver period closes
+            // the inherited process period too early.
+            $coverageSession = CoverageSession::open(
+                $coverageSettings,
+                $workers !== 1 && $workerBin !== false && !SubprocessCoverage::requested(),
+            );
+        } catch (CoverageError $error) {
+            $reporter->finish();
+            $testCoverageStore?->close();
+            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+            return self::EXIT_FAILURE;
+        }
 
         try {
             try {
                 if ($workers === 1 || $workerBin === false) {
                     $run = new InProcessRunner($workingDirectory)
-                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
+                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $testCoverageStore);
                 } else {
                     $run = new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
-                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
+                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null, $testCoverageStore);
                 }
-            } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+            } catch (AttachmentError|CoverageError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
                 $reporter->finish();
+                $testCoverageStore?->close();
                 $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                 $interruptExit = $shutdown->exitCode();
@@ -560,34 +605,66 @@ final readonly class Application
         $interruptExit = $shutdown->exitCode();
 
         if ($interruptExit !== null) {
+            $testCoverageStore?->close();
             ($this->err)("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
             return $interruptExit;
         }
 
         if ($run->plannedTests === 0) {
+            $testCoverageStore?->close();
             ($this->err)("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
             return self::EXIT_FAILURE;
         }
 
-        $coverageConfig = $resolved->coverage;
-
         if ($coverageConfig instanceof CoverageConfiguration) {
             if (!$coverage instanceof CoverageMap) {
                 ($this->err)("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
             } elseif (!$this->writeCoverage($coverageConfig, $coverage, $workingDirectory, $this->stdoutStyle($arguments->has('no-ansi')))) {
+                $testCoverageStore?->close();
+
                 return self::EXIT_FAILURE;
             }
         }
 
         if ($run->leaks !== []) {
+            $testCoverageStore?->close();
             ($this->err)(SummaryFormat::leaks($run->leaks, $this->stderrStyle($arguments->has('no-ansi'))));
 
             return self::EXIT_FAILURE;
         }
 
-        return $run->summary->isSuccessful() ? self::EXIT_OK : self::EXIT_FAILURE;
+        if (!$run->summary->isSuccessful()) {
+            $testCoverageStore?->close();
+
+            return self::EXIT_FAILURE;
+        }
+
+        if ($testCoverageStore instanceof TestCoverageStore && $coverage instanceof CoverageMap) {
+            $target = $arguments->value('coverage-map') ?? $coverageConfig?->perTestTarget;
+
+            if ($target !== null && $target !== '') {
+                try {
+                    $root = \realpath($workingDirectory);
+                    $testCoverageStore->write(
+                        $this->absolutePath($target, $workingDirectory),
+                        $root === false ? $workingDirectory : $root,
+                        $run->runId,
+                        $coverage,
+                    );
+                } catch (CoverageError $error) {
+                    $testCoverageStore->close();
+                    $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+                    return self::EXIT_FAILURE;
+                }
+            } else {
+                $testCoverageStore->close();
+            }
+        }
+
+        return self::EXIT_OK;
     }
 
     /**
@@ -749,6 +826,41 @@ final readonly class Application
         }
 
         return $shutdown->exitCode() ?? self::EXIT_OK;
+    }
+
+    /** @throws CoverageError */
+    private function coverageSettings(
+        ?CoverageConfiguration $configuration,
+        string $workingDirectory,
+        ?ParsedArguments $arguments = null,
+    ): ?CoverageSettings {
+        $perTestTarget = $arguments?->value('coverage-map') ?? $configuration?->perTestTarget;
+        $cliIncludes = $arguments?->values('coverage-include') ?? [];
+
+        if (!$configuration instanceof CoverageConfiguration && $perTestTarget === null && $cliIncludes === []) {
+            return null;
+        }
+
+        $include = [];
+
+        $configuredIncludes = $configuration instanceof CoverageConfiguration ? $configuration->includePaths : [];
+
+        foreach ([...$configuredIncludes, ...$cliIncludes] as $path) {
+            $absolute = $this->absolutePath($path, $workingDirectory);
+            $real = \realpath($absolute);
+
+            if ($real !== false) {
+                $include[] = $real;
+            } elseif ($absolute !== '') {
+                $include[] = $absolute;
+            }
+        }
+
+        if ($perTestTarget !== null && $include === []) {
+            throw CoverageError::perTestIncludeRequired();
+        }
+
+        return new CoverageSettings($include, $configuration?->driver, $perTestTarget !== null);
     }
 
     private function writeCoverage(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory, Style $style): bool
@@ -1335,6 +1447,7 @@ final readonly class Application
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
             new OptionSpec('test-id', OptionValue::Required, repeatable: true),
+            new OptionSpec('test-id-file', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-group', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-class', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-method', OptionValue::Required, repeatable: true),
@@ -1352,6 +1465,9 @@ final readonly class Application
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('artifacts-dir', OptionValue::Required),
+            new OptionSpec('coverage-map', OptionValue::Required),
+            new OptionSpec('coverage-include', OptionValue::Required, repeatable: true),
+            new OptionSpec('no-coverage'),
             new OptionSpec('baseline', OptionValue::Required),
             new OptionSpec('current', OptionValue::Required),
             new OptionSpec('watch'),
@@ -1374,5 +1490,54 @@ final readonly class Application
         }
 
         return \rtrim($workingDirectory, '/') . '/' . $path;
+    }
+
+    /**
+     * @return list<non-empty-string>
+     *
+     * @throws CliError
+     */
+    private function exactTestIds(ParsedArguments $arguments, string $workingDirectory): array
+    {
+        $ids = [];
+
+        foreach ($arguments->values('test-id') as $id) {
+            if ($id === '') {
+                throw CliError::optionRequiresValue('test-id');
+            }
+
+            $ids[$id] = true;
+        }
+
+        foreach ($arguments->values('test-id-file') as $file) {
+            if ($file === '') {
+                throw CliError::optionRequiresValue('test-id-file');
+            }
+
+            $path = $this->absolutePath($file, $workingDirectory);
+            $lines = \file($path, \FILE_IGNORE_NEW_LINES);
+
+            if (!\is_array($lines)) {
+                throw CliError::exactTestFileUnreadable($path);
+            }
+
+            $fileIds = [];
+
+            foreach ($lines as $line) {
+                $id = \trim($line);
+
+                if ($id !== '') {
+                    $fileIds[$id] = true;
+                }
+            }
+
+            if ($fileIds === []) {
+                throw CliError::exactTestFileEmpty($path);
+            }
+
+            $ids += $fileIds;
+        }
+
+        return \array_keys($ids);
     }
 }

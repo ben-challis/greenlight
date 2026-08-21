@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Fixture\TempDirectory;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -139,6 +140,82 @@ final readonly class CoverageRunTest
             ->toContain('coverage-out/coverage.json')
             ->not()
             ->toContain('json → coverage-out/coverage.json');
+    }
+
+    #[Test]
+    public function missingDriverFailsWhenAPerTestArtifactWasRequested(): void
+    {
+        $project = $this->writeProject();
+        $root = \dirname(__DIR__, 2);
+        $result = $this->runIn($project, [
+            'run',
+            '--workers=1',
+            '--reporter=plain',
+            '--coverage-map=coverage-out/test-map.jsonl',
+            '--coverage-include=' . $root . '/tests/Fixture/CoverageLib',
+        ], 'off');
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('Per-test coverage was requested but cannot be collected');
+        Expect::that(\is_file($project->path('coverage-out/test-map.jsonl')))->toBeFalse();
+    }
+
+    #[Test]
+    public function exportsPerTestCoverageThroughTheProcessPool(): void
+    {
+        $project = $this->writeProject();
+        $root = \dirname(__DIR__, 2);
+        $result = $this->runIn($project, [
+            'run',
+            '--workers=2',
+            '--reporter=plain',
+            '--coverage-map=coverage-out/test-map.jsonl',
+            '--coverage-include=' . $root . '/tests/Fixture/CoverageLib',
+        ], 'coverage');
+
+        Expect::that($result->exitCode)->toBe(0);
+
+        $lines = \file(
+            $project->path('coverage-out/test-map.jsonl'),
+            \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES,
+        );
+
+        if (!\is_array($lines)) {
+            Fail::because('Expected a readable per-test coverage artifact.');
+        }
+
+        $records = [];
+
+        foreach ($lines as $line) {
+            $record = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
+
+            if (!\is_array($record)) {
+                Fail::because('Expected every per-test coverage line to decode to an object.');
+            }
+
+            $records[] = $record;
+        }
+        $tests = [];
+        $mapping = [];
+
+        foreach ($records as $record) {
+            if (($record['type'] ?? null) === 'test') {
+                $tests[] = $record;
+            }
+
+            $file = $record['file'] ?? null;
+
+            if (($record['type'] ?? null) === 'coverage'
+                && \is_string($file)
+                && \str_ends_with($file, 'CoverageLib/Math.php')
+            ) {
+                $mapping[] = $record;
+            }
+        }
+
+        Expect::that($tests)->toHaveCount(1);
+        Expect::that($tests[0]['renderedId'])->toBe('Greenlight\Tests\Fixture\CoverageSuite\MathTest::addsTwoIntegers');
+        Expect::that($mapping)->not()->toBeEmpty();
     }
 
     #[Test]

@@ -60,6 +60,7 @@ final readonly class ParallelRunner
         array $classSeconds = [],
         ?GracefulShutdown $shutdown = null,
         ?Ticking $ticker = null,
+        ?TestCoverageStore $testCoverageStore = null,
     ): RunResult {
         $seed = null;
 
@@ -68,8 +69,10 @@ final readonly class ParallelRunner
         }
 
         $filter = SelectionFilter::fromConfiguration($configuration);
+        $discovered = new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories));
+        SelectionFilter::assertExactIdsMatched($configuration, $discovered);
         $plan = PlanOrder::schedule(
-            $this->sharded(new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)), $configuration),
+            $this->sharded($discovered, $configuration),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );
@@ -125,6 +128,7 @@ final readonly class ParallelRunner
                     $artifactConfiguration,
                     $fixtures,
                     resourceLimits: $configuration->resourceLimits,
+                    testCoverageStore: $testCoverageStore,
                 );
 
                 $summary = $orchestrator->run($plan, $sink, $workerCount);
@@ -132,7 +136,7 @@ final readonly class ParallelRunner
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-                $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks());
+                $result = new RunResult($summary, \count($plan), $durationSeconds, $seed, $orchestrator->collectedCoverage(), $orchestrator->detectedLeaks(), $runId);
             } catch (\Throwable $failure) {
                 $cleanupFailures = $fixtures->close();
 

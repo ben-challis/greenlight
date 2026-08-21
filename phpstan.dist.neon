@@ -36,6 +36,7 @@ parameters:
         - tests
         - tools
     scanFiles:
+        - packages/infection-adapter/src/CoverageXmlWriter.php
         - stubs/tempest.stub.php
         - tools/phpstan-stubs/hyperf.php
     excludePaths:
