@@ -6,6 +6,7 @@ namespace Greenlight\Plugin;
 
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\TerminalServiceResolver;
 
 /**
  * Stores the plugins for one run and groups them by capability.
@@ -141,7 +142,18 @@ final readonly class PluginRegistry
      */
     public function serviceResolvers(): array
     {
-        return $this->sorted($this->ofType(ServiceResolver::class));
+        $resolvers = $this->sorted($this->ofType(ServiceResolver::class));
+
+        return [
+            ...\array_values(\array_filter(
+                $resolvers,
+                static fn(ServiceResolver $resolver): bool => !$resolver instanceof TerminalServiceResolver,
+            )),
+            ...\array_values(\array_filter(
+                $resolvers,
+                static fn(ServiceResolver $resolver): bool => $resolver instanceof TerminalServiceResolver,
+            )),
+        ];
     }
 
     /**

@@ -8,6 +8,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -81,10 +82,9 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ?object
+    public function resolve(string $type, array $attributes): ServiceResolution
     {
         $id = $type;
 
@@ -94,23 +94,29 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             }
         }
 
-        $app = $this->application();
+        try {
+            $app = $this->application();
 
-        if (!$app->bound($id)) {
-            if ($id !== $type) {
-                throw LaravelBridgeError::unknownServiceId($id, $type);
+            if (!$app->bound($id)) {
+                return $id !== $type
+                    ? ServiceResolution::failed(LaravelBridgeError::unknownServiceId($id, $type))
+                    : ServiceResolution::unhandled();
             }
 
-            return null;
+            $service = $app->make($id);
+
+            if (!$service instanceof $type) {
+                return ServiceResolution::failed(
+                    LaravelBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
+                );
+            }
+
+            return ServiceResolution::resolved($service);
+        } catch (ServiceResolutionFailed $error) {
+            return ServiceResolution::failed($error);
+        } catch (\Throwable $cause) {
+            return ServiceResolution::failed(LaravelBridgeError::serviceResolutionFailed($id, $type, $cause));
         }
-
-        $service = $app->make($id);
-
-        if (!$service instanceof $type) {
-            throw LaravelBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
-        }
-
-        return $service;
     }
 
     #[\Override]

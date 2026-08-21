@@ -9,7 +9,12 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolution;
+use Greenlight\Harness\ServiceResolutionFailed;
+use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Plugin\HarnessProvider;
+use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
 
@@ -50,6 +55,41 @@ final class PluginRegistryHarnessPriorityTest
                 \stdClass::class,
                 \DateTimeImmutable::class,
             ]);
+    }
+
+    #[Test]
+    public function terminalServiceResolverAlwaysFollowsFallbackResolvers(): void
+    {
+        $terminal = new class implements Fake, Plugin, Prioritized, TerminalServiceResolver {
+            #[\Override]
+            public function priority(): int
+            {
+                return -100;
+            }
+
+            #[\Override]
+            public function resolve(string $type, array $attributes): ServiceResolution
+            {
+                return ServiceResolution::failed(new class ('Terminal failure.') extends ServiceResolutionFailed {});
+            }
+        };
+        $fallback = new class implements Fake, Plugin, Prioritized, ServiceResolver {
+            #[\Override]
+            public function priority(): int
+            {
+                return 100;
+            }
+
+            #[\Override]
+            public function resolve(string $type, array $attributes): ServiceResolution
+            {
+                return ServiceResolution::unhandled();
+            }
+        };
+
+        Expect::that(new PluginRegistry([$terminal, $fallback])->serviceResolvers())
+            ->because('a terminal resolver MUST follow all fallback-capable resolvers')
+            ->toBe([$fallback, $terminal]);
     }
 
     /**

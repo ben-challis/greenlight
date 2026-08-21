@@ -449,23 +449,39 @@ In `Greenlight\Harness`.
 
 <!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
-public function resolve(string $type, array $attributes): ?object;
+public function resolve(string $type, array $attributes): ServiceResolution;
 ```
 
 A service resolver is a fallback source for a constructor parameter type.
 
 Registered harness services always take precedence. If no service matches,
 Greenlight calls resolvers in registration order. Each call receives the
-declared parameter type and the attribute instances. Greenlight injects the
-first non-null object.
+declared parameter type and the attribute instances.
 
-If the resolver cannot supply the requested type, return `null`. If it returns
-an object of a different type, the test has an error and names the resolver.
+Return `ServiceResolution::unhandled()` when the resolver does not support the
+type. Greenlight then calls the next resolver.
+
+Return `ServiceResolution::resolved($service)` when the resolver supplies the
+service. The service MUST have the requested type.
+
+Return `ServiceResolution::failed($error)` when the resolver handles the
+request but cannot supply a valid service. The error MUST be a
+`ServiceResolutionFailed`. Greenlight stops the resolver chain and exposes the
+public `ServiceResolutionFailed` contract.
+
+An explicit service ID or tag means that the applicable resolver handles the
+request. A missing explicit service is a failed result, not an unhandled
+result. A container operation failure is also a failed result.
+
+Implement `TerminalServiceResolver` when a resolver handles every request.
+Greenlight places one terminal resolver after all fallback-capable resolvers.
+A terminal resolver MUST NOT return an unhandled result. Greenlight rejects a
+resolver chain that has an item after a terminal resolver.
 
 The resolver owns each object that it returns. Harness scopes do not track or
 call disposal methods on these objects.
 
-The framework bridges use this interface to inject container services. See
+The framework bridges use these interfaces to inject container services. See
 [Symfony applications](symfony.md), [Laravel applications](laravel.md), and
 [Tempest applications](tempest.md).
 

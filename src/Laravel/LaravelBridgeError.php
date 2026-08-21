@@ -13,9 +13,9 @@ use Greenlight\Harness\ServiceResolutionFailed;
  */
 final class LaravelBridgeError extends ServiceResolutionFailed
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
     public static function bootstrapFileMissing(string $path): self
@@ -93,5 +93,17 @@ final class LaravelBridgeError extends ServiceResolutionFailed
             $actual,
             $type,
         ));
+    }
+
+    public static function serviceResolutionFailed(string $id, string $type, \Throwable $previous): self
+    {
+        return new self(
+            \sprintf(
+                'The Laravel container failed when it resolved service "%s" for parameter type "%s".',
+                $id,
+                $type,
+            ),
+            previous: $previous,
+        );
     }
 }

@@ -7,6 +7,7 @@ namespace Greenlight\Psr;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -87,11 +88,9 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     *
-     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ?object
+    public function resolve(string $type, array $attributes): ServiceResolution
     {
         $id = $type;
         $explicit = false;
@@ -103,33 +102,35 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
             }
         }
 
-        $container = $this->container();
-
         try {
+            $container = $this->container();
+
             $hasService = $container->has($id);
+        } catch (ServiceResolutionFailed $error) {
+            return ServiceResolution::failed($error);
         } catch (\Throwable $threw) {
-            throw Psr11BridgeError::serviceCheckFailed($id, $threw);
+            return ServiceResolution::failed(Psr11BridgeError::serviceCheckFailed($id, $threw));
         }
 
         if (!$hasService) {
-            if ($explicit) {
-                throw Psr11BridgeError::unknownServiceId($id, $type);
-            }
-
-            return null;
+            return $explicit
+                ? ServiceResolution::failed(Psr11BridgeError::unknownServiceId($id, $type))
+                : ServiceResolution::unhandled();
         }
 
         try {
             $service = $container->get($id);
         } catch (\Throwable $threw) {
-            throw Psr11BridgeError::serviceReadFailed($id, $threw);
+            return ServiceResolution::failed(Psr11BridgeError::serviceReadFailed($id, $threw));
         }
 
         if (!$service instanceof $type) {
-            throw Psr11BridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
+            return ServiceResolution::failed(
+                Psr11BridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
+            );
         }
 
-        return $service;
+        return ServiceResolution::resolved($service);
     }
 
     /**

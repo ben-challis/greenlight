@@ -13,9 +13,9 @@ use Greenlight\Harness\ServiceResolutionFailed;
  */
 final class HyperfBridgeError extends ServiceResolutionFailed
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
     public static function basePathMissing(string $path): self
@@ -163,5 +163,17 @@ final class HyperfBridgeError extends ServiceResolutionFailed
             $actual,
             $type,
         ));
+    }
+
+    public static function serviceResolutionFailed(string $id, string $type, \Throwable $previous): self
+    {
+        return new self(
+            \sprintf(
+                'The Hyperf container failed when it resolved service "%s" for parameter type "%s".',
+                $id,
+                $type,
+            ),
+            previous: $previous,
+        );
     }
 }

@@ -8,6 +8,7 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Doubles\Fake;
+use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
@@ -27,9 +28,9 @@ class FakeCapabilityPlugin implements AfterTestSubscriber, BeforeTestSubscriber,
     public function onRunEvent(Event $event): void {}
 
     #[\Override]
-    public function resolve(string $type, array $attributes): ?object
+    public function resolve(string $type, array $attributes): ServiceResolution
     {
-        return null;
+        return ServiceResolution::unhandled();
     }
 
     #[\Override]

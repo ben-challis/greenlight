@@ -7,8 +7,9 @@ namespace Greenlight\Tempest;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
-use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -34,7 +35,7 @@ use Tempest\Http\Request;
  * attributes select tagged Tempest bindings. Tests MUST isolate external
  * resources by `GREENLIGHT_CHANNEL`.
  */
-final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceResolver, WorkerBootstrapSubscriber
+final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber
 {
     private ?FrameworkKernel $kernel = null;
 
@@ -82,10 +83,9 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): object
+    public function resolve(string $type, array $attributes): ServiceResolution
     {
         $tag = null;
 
@@ -97,17 +97,19 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
 
         try {
             $service = $this->container()->get($type, $tag);
-        } catch (TempestBridgeError $error) {
-            throw $error;
+        } catch (ServiceResolutionFailed $error) {
+            return ServiceResolution::failed($error);
         } catch (\Throwable $cause) {
-            throw TempestBridgeError::serviceResolutionFailed($type, $cause);
+            return ServiceResolution::failed(TempestBridgeError::serviceResolutionFailed($type, $cause));
         }
 
         if (!$service instanceof $type) {
-            throw TempestBridgeError::serviceTypeMismatch($type, \get_debug_type($service));
+            return ServiceResolution::failed(
+                TempestBridgeError::serviceTypeMismatch($type, \get_debug_type($service)),
+            );
         }
 
-        return $service;
+        return ServiceResolution::resolved($service);
     }
 
     #[\Override]
