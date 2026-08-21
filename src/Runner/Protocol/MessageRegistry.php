@@ -63,6 +63,14 @@ final class MessageRegistry
     }
 
     /**
+     * @return array<non-empty-string, class-string<Message>>
+     */
+    public static function all(): array
+    {
+        return self::TAGS;
+    }
+
+    /**
      * @param array<string, mixed> $envelope
      *
      * @throws ProtocolError

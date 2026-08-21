@@ -1,0 +1,741 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v2.schema.json",
+    "title": "Greenlight worker protocol envelope (version 2)",
+    "description": "The JSON body of one length-prefixed worker protocol frame.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["v", "t", "p"],
+    "properties": {
+        "v": {"enum": [2]},
+        "t": {"type": "string", "minLength": 1},
+        "p": {"type": ["object", "array"]}
+    },
+    "oneOf": [
+        {
+            "properties": {
+                "t": {"enum": ["hello"]},
+                "p": {"$ref": "#/definitions/hello"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["bootstrap"]},
+                "p": {"$ref": "#/definitions/bootstrap"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["ready"]},
+                "p": {"$ref": "#/definitions/emptyPayload"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["assign"]},
+                "p": {"$ref": "#/definitions/assign"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["drain"]},
+                "p": {"$ref": "#/definitions/emptyPayload"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["event"]},
+                "p": {"$ref": "#/definitions/eventEnvelope"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["attempt-started"]},
+                "p": {"$ref": "#/definitions/attemptStarted"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["recycling"]},
+                "p": {"$ref": "#/definitions/recycling"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["done"]},
+                "p": {"$ref": "#/definitions/done"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["fatal"]},
+                "p": {"$ref": "#/definitions/fatal"}
+            }
+        }
+    ],
+    "definitions": {
+        "emptyPayload": {
+            "type": "array",
+            "maxItems": 0
+        },
+        "hello": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["workerId", "token", "pid"],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "token": {"type": "string", "minLength": 1},
+                "pid": {"type": "integer", "minimum": 1}
+            }
+        },
+        "bootstrap": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["channel", "configFile", "resources"],
+            "properties": {
+                "channel": {"type": "integer", "minimum": 1},
+                "configFile": {"type": ["string", "null"]},
+                "resources": {"$ref": "#/definitions/integrationResources"}
+            }
+        },
+        "integrationResources": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["fixtures"],
+            "properties": {
+                "fixtures": {"$ref": "#/definitions/fixtureMap"}
+            }
+        },
+        "fixtureMap": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": {"$ref": "#/definitions/fixtureResource"}
+                },
+                {"$ref": "#/definitions/emptyMap"}
+            ]
+        },
+        "fixtureResource": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["values", "secrets"],
+            "properties": {
+                "values": {"$ref": "#/definitions/jsonMap"},
+                "secrets": {"$ref": "#/definitions/stringMap"}
+            }
+        },
+        "jsonMap": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": {"$ref": "#/definitions/jsonValue"}
+                },
+                {"$ref": "#/definitions/emptyMap"}
+            ]
+        },
+        "jsonValue": {
+            "oneOf": [
+                {"type": "null"},
+                {"type": "boolean"},
+                {"type": "number"},
+                {"type": "string"},
+                {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/jsonValue"}
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": {"$ref": "#/definitions/jsonValue"}
+                }
+            ]
+        },
+        "stringMap": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": {"type": "string"}
+                },
+                {"$ref": "#/definitions/emptyMap"}
+            ]
+        },
+        "emptyMap": {
+            "type": "array",
+            "maxItems": 0
+        },
+        "assign": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "slice",
+                "recycleAfterTests",
+                "recycleAboveMemoryBytes",
+                "coverageInclude",
+                "coverageDriver",
+                "detectLeaks",
+                "policy"
+            ],
+            "properties": {
+                "slice": {"$ref": "#/definitions/executionPlan"},
+                "recycleAfterTests": {"type": ["integer", "null"], "minimum": 1},
+                "recycleAboveMemoryBytes": {"type": ["integer", "null"], "minimum": 1},
+                "coverageInclude": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {
+                            "type": "array",
+                            "items": {"type": "string", "minLength": 1}
+                        }
+                    ]
+                },
+                "coverageDriver": {"type": ["string", "null"], "minLength": 1},
+                "detectLeaks": {"type": "boolean"},
+                "policy": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/resultPolicy"}
+                    ]
+                },
+                "artifactSession": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/artifactSession"}
+                    ]
+                },
+                "artifactConfiguration": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/artifactConfiguration"}
+                    ]
+                },
+                "stopAfterFailures": {
+                    "type": ["integer", "null"],
+                    "minimum": 1
+                }
+            }
+        },
+        "executionPlan": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["seed", "entries"],
+            "properties": {
+                "seed": {"type": ["integer", "null"]},
+                "entries": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/planEntry"}
+                }
+            }
+        },
+        "planEntry": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "metadata"],
+            "properties": {
+                "id": {"$ref": "#/definitions/testId"},
+                "metadata": {"$ref": "#/definitions/testMetadata"}
+            }
+        },
+        "testMetadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "class",
+                "method",
+                "groups",
+                "skipReason",
+                "skipUnlessCondition",
+                "retryTimes",
+                "retryOnlyOn",
+                "timeoutSeconds",
+                "isolated",
+                "dataSetProvider",
+                "capture"
+            ],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "method": {"type": "string", "minLength": 1},
+                "groups": {
+                    "type": "array",
+                    "items": {"type": "string", "minLength": 1}
+                },
+                "skipReason": {"type": ["string", "null"], "minLength": 1},
+                "skipUnlessCondition": {"type": ["string", "null"], "minLength": 1},
+                "skipUnlessArguments": {
+                    "type": "array",
+                    "items": {"type": ["string", "number", "boolean", "null"]}
+                },
+                "retryTimes": {"type": ["integer", "null"], "minimum": 1},
+                "retryOnlyOn": {"type": ["string", "null"], "minLength": 1},
+                "timeoutSeconds": {"type": ["number", "null"], "minimum": 0, "exclusiveMinimum": true},
+                "isolated": {"type": "boolean"},
+                "dataSetProvider": {"type": ["string", "null"], "minLength": 1},
+                "dataSetProviderClass": {"type": ["string", "null"], "minLength": 1},
+                "capture": {"type": "boolean"},
+                "noExpectations": {"type": "boolean"},
+                "resources": {
+                    "type": "array",
+                    "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"}
+                },
+                "allowParallel": {"type": "boolean"}
+            }
+        },
+        "resultPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["failOnDeprecation", "failOnNotice", "ignoreDeprecations", "failOnRisky"],
+            "properties": {
+                "failOnDeprecation": {"type": "boolean"},
+                "failOnNotice": {"type": "boolean"},
+                "ignoreDeprecations": {
+                    "type": "array",
+                    "items": {"type": "string", "minLength": 1}
+                },
+                "failOnRisky": {"type": "boolean"}
+            }
+        },
+        "artifactSession": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stagingDirectory", "publicDirectory"],
+            "properties": {
+                "stagingDirectory": {"type": "string", "minLength": 1},
+                "publicDirectory": {"type": "string", "minLength": 1}
+            }
+        },
+        "artifactConfiguration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "directory",
+                "maxAttachmentsPerTest",
+                "maxAttachmentBytes",
+                "maxTestBytes",
+                "maxRunAttachments",
+                "maxRunBytes"
+            ],
+            "properties": {
+                "directory": {"type": "string", "minLength": 1},
+                "maxAttachmentsPerTest": {"type": "integer", "minimum": 1},
+                "maxAttachmentBytes": {"type": "integer", "minimum": 1},
+                "maxTestBytes": {"type": "integer", "minimum": 1},
+                "maxRunAttachments": {"type": "integer", "minimum": 1},
+                "maxRunBytes": {"type": "integer", "minimum": 1}
+            }
+        },
+        "attemptStarted": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "attempt"],
+            "properties": {
+                "id": {"$ref": "#/definitions/testId"},
+                "attempt": {"type": "integer", "minimum": 1}
+            }
+        },
+        "recycling": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["reason", "remaining", "summary", "coverage"],
+            "properties": {
+                "reason": {"$ref": "#/definitions/recycleReason"},
+                "remaining": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/testId"}
+                },
+                "summary": {"$ref": "#/definitions/resultSummary"},
+                "coverage": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/coverageMap"}
+                    ]
+                }
+            }
+        },
+        "done": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["summary", "peakMemoryBytes", "coverage", "leaks", "wantsRecycle"],
+            "properties": {
+                "summary": {"$ref": "#/definitions/resultSummary"},
+                "peakMemoryBytes": {"type": "integer", "minimum": 0},
+                "coverage": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/coverageMap"}
+                    ]
+                },
+                "leaks": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/testId"}
+                },
+                "wantsRecycle": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/recycleReason"}
+                    ]
+                }
+            }
+        },
+        "recycleReason": {
+            "enum": ["test-count", "memory", "crash"]
+        },
+        "coverageMap": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["files"],
+            "properties": {
+                "files": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": {"$ref": "#/definitions/coverageLineSets"}
+                        },
+                        {"$ref": "#/definitions/emptyMap"}
+                    ]
+                }
+            }
+        },
+        "coverageLineSets": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+                "type": "array",
+                "items": {"type": "integer", "minimum": 1}
+            }
+        },
+        "fatal": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["detail"],
+            "properties": {
+                "detail": {"$ref": "#/definitions/throwableDetail"}
+            }
+        },
+        "eventEnvelope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["event", "data"],
+            "properties": {
+                "event": {"type": "string", "minLength": 1},
+                "data": {"type": "object"}
+            },
+            "oneOf": [
+                {
+                    "properties": {
+                        "event": {"enum": ["run-started"]},
+                        "data": {"$ref": "#/definitions/runStarted"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["run-finished"]},
+                        "data": {"$ref": "#/definitions/runFinished"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["suite-started"]},
+                        "data": {"$ref": "#/definitions/suiteEvent"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["suite-finished"]},
+                        "data": {"$ref": "#/definitions/suiteEvent"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["class-started"]},
+                        "data": {"$ref": "#/definitions/testClassStarted"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["class-finished"]},
+                        "data": {"$ref": "#/definitions/testClassFinished"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["test-started"]},
+                        "data": {"$ref": "#/definitions/testStarted"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["test-finished"]},
+                        "data": {"$ref": "#/definitions/testFinished"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["worker-spawned"]},
+                        "data": {"$ref": "#/definitions/workerSpawned"}
+                    }
+                },
+                {
+                    "properties": {
+                        "event": {"enum": ["worker-recycled"]},
+                        "data": {"$ref": "#/definitions/workerRecycled"}
+                    }
+                }
+            ]
+        },
+        "runStarted": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runId", "plannedTests", "workers", "occurredAt"],
+            "properties": {
+                "runId": {"type": "string", "minLength": 1},
+                "plannedTests": {"type": "integer", "minimum": 0},
+                "workers": {"type": "integer", "minimum": 1},
+                "occurredAt": {"type": "number"},
+                "artifactsDirectory": {"type": ["string", "null"]}
+            }
+        },
+        "runFinished": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["runId", "summary", "durationSeconds", "occurredAt"],
+            "properties": {
+                "runId": {"type": "string", "minLength": 1},
+                "summary": {"$ref": "#/definitions/resultSummary"},
+                "durationSeconds": {"type": "number", "minimum": 0},
+                "occurredAt": {"type": "number"}
+            }
+        },
+        "suiteEvent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["suite", "occurredAt"],
+            "properties": {
+                "suite": {"type": "string", "minLength": 1},
+                "occurredAt": {"type": "number"}
+            }
+        },
+        "testClassStarted": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["class", "occurredAt"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "occurredAt": {"type": "number"},
+                "workerId": {"type": "string"},
+                "isolated": {"type": "boolean"}
+            }
+        },
+        "testClassFinished": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["class", "occurredAt"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "occurredAt": {"type": "number"},
+                "workerId": {"type": "string"}
+            }
+        },
+        "testStarted": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "occurredAt"],
+            "properties": {
+                "id": {"$ref": "#/definitions/testId"},
+                "occurredAt": {"type": "number"}
+            }
+        },
+        "testFinished": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["result", "occurredAt"],
+            "properties": {
+                "result": {"$ref": "#/definitions/testResult"},
+                "occurredAt": {"type": "number"}
+            }
+        },
+        "workerSpawned": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["workerId", "pid", "occurredAt"],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "pid": {"type": "integer", "minimum": 1},
+                "occurredAt": {"type": "number"}
+            }
+        },
+        "workerRecycled": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["workerId", "reason", "occurredAt"],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "reason": {"$ref": "#/definitions/recycleReason"},
+                "occurredAt": {"type": "number"}
+            }
+        },
+        "testId": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["class", "method", "dataSetKey"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "method": {"type": "string", "minLength": 1},
+                "dataSetKey": {"type": ["string", "null"]}
+            }
+        },
+        "resultSummary": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failed", "errored", "skipped"],
+            "properties": {
+                "passed": {"type": "integer", "minimum": 0},
+                "failed": {"type": "integer", "minimum": 0},
+                "errored": {"type": "integer", "minimum": 0},
+                "skipped": {"type": "integer", "minimum": 0}
+            }
+        },
+        "testResult": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "outcome",
+                "durationSeconds",
+                "memoryDeltaBytes",
+                "attempts",
+                "failures",
+                "error",
+                "skipReason",
+                "transformations",
+                "output"
+            ],
+            "properties": {
+                "id": {"$ref": "#/definitions/testId"},
+                "outcome": {"$ref": "#/definitions/outcome"},
+                "durationSeconds": {"type": "number", "minimum": 0},
+                "memoryDeltaBytes": {"type": "integer"},
+                "attempts": {"type": "integer", "minimum": 1},
+                "failures": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/failureDetail"}
+                },
+                "error": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/throwableDetail"}
+                    ]
+                },
+                "skipReason": {"type": ["string", "null"]},
+                "transformations": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/outcomeTransformation"}
+                },
+                "output": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/capturedOutput"}
+                    ]
+                },
+                "risky": {"type": "boolean"},
+                "expectations": {"type": "integer", "minimum": 0},
+                "attachments": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/attachment"}
+                }
+            }
+        },
+        "outcome": {
+            "enum": ["passed", "failed", "errored", "skipped"]
+        },
+        "failureDetail": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["message", "expected", "actual", "location"],
+            "properties": {
+                "message": {"type": "string", "minLength": 1},
+                "expected": {"type": ["string", "null"]},
+                "actual": {"type": ["string", "null"]},
+                "location": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/sourceLocation"}
+                    ]
+                }
+            }
+        },
+        "sourceLocation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["file", "line"],
+            "properties": {
+                "file": {"type": "string", "minLength": 1},
+                "line": {"type": "integer", "minimum": 1}
+            }
+        },
+        "throwableDetail": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["class", "message", "file", "line", "stackFrames"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "message": {"type": "string"},
+                "file": {"type": "string", "minLength": 1},
+                "line": {"type": "integer", "minimum": 1},
+                "stackFrames": {
+                    "type": "array",
+                    "items": {"type": "string"}
+                }
+            }
+        },
+        "outcomeTransformation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["transformedBy", "from", "to"],
+            "properties": {
+                "transformedBy": {"type": "string", "minLength": 1},
+                "from": {"$ref": "#/definitions/outcome"},
+                "to": {"$ref": "#/definitions/outcome"}
+            }
+        },
+        "capturedOutput": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stdout", "diagnostics", "stdoutTruncated", "diagnosticsTruncated"],
+            "properties": {
+                "stdout": {"type": "string"},
+                "diagnostics": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/diagnostic"}
+                },
+                "stdoutTruncated": {"type": "boolean"},
+                "diagnosticsTruncated": {"type": "boolean"}
+            }
+        },
+        "diagnostic": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["severity", "message", "file", "line"],
+            "properties": {
+                "severity": {"enum": ["notice", "warning", "deprecation"]},
+                "message": {"type": "string"},
+                "file": {"type": "string"},
+                "line": {"type": "integer", "minimum": 1}
+            }
+        },
+        "attachment": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "kind", "mediaType", "sizeBytes", "sha256", "attempt", "path"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "kind": {"enum": ["value", "text", "binary", "file"]},
+                "mediaType": {"type": "string", "minLength": 1},
+                "sizeBytes": {"type": "integer", "minimum": 0},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "attempt": {"type": "integer", "minimum": 1},
+                "path": {"type": "string", "minLength": 1},
+                "retention": {"enum": ["on-failure", "always"]},
+                "storageKey": {"type": "string", "minLength": 1}
+            }
+        }
+    }
+}

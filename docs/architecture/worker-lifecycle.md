@@ -17,6 +17,9 @@ oversized or malformed frames as protocol errors. The JSON envelope contains a
 protocol version (`v`, currently `2`), a type tag, and the payload. Greenlight
 also rejects unknown versions and tags.
 
+The [version 2 schema](../../resources/schema/worker-protocol-v2.schema.json)
+specifies each envelope and payload that Greenlight sends.
+
 The socket carries all protocol data. Greenlight closes the worker's stdin after
 spawn and drains stdout and stderr into a small bounded buffer. The orchestrator
 attaches the buffered output to a crash report when something goes wrong. Test
