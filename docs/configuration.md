@@ -305,6 +305,54 @@ later. Greenlight releases run quota when it discards an attachment.
 
 See [test attachments](attachments.md) for the runtime API and security model.
 
+### `storage(callable $configurator): self`
+
+Default: all storage uses the system temporary directory.
+
+The configurator receives a `StorageBuilder`. Repeated calls use the same
+builder.
+
+Use `rootDirectory()` to put all Greenlight storage below one directory. An
+area-specific directory replaces its directory below the root.
+
+`StorageBuilder` has these methods:
+
+* `rootDirectory(string $directory): self` sets the common storage root.
+* `stateDirectory(string $directory): self` stores prior failures and the
+  timing cache.
+* `cacheDirectory(string $directory): self` stores discovery metadata.
+* `generatedCodeDirectory(string $directory): self` stores generated double
+  proxy PHP.
+* `temporaryDirectory(string $directory): self` stores run-owned temporary
+  data.
+
+Relative directories resolve against the initial project working directory.
+Greenlight creates missing directories when a storage product first writes
+data.
+
+Use separate areas when their retention or trust requirements differ:
+
+<!-- php-example {"example":"configuration-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+->storage(fn ($storage) => $storage
+    ->stateDirectory('build/greenlight-state')
+    ->cacheDirectory('build/greenlight-cache')
+    ->generatedCodeDirectory('/var/tmp/greenlight-code')
+    ->temporaryDirectory('/var/tmp/greenlight'))
+```
+
+The state directory contains `run-state.json`. This file has the failed test
+IDs and class durations from the previous run.
+
+Do not share one state directory between concurrent shards. Each shard writes
+one complete snapshot and can replace data from another shard.
+
+Generated proxy files contain executable PHP. Use only a private, trusted
+directory. Do not restore this directory from an untrusted cache.
+
+Greenlight does not remove configured roots. It removes only temporary child
+directories that it creates and owns.
+
 ### `failFast(bool $enabled = true): self`
 
 Default: off.

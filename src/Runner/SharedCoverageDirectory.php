@@ -24,9 +24,10 @@ final readonly class SharedCoverageDirectory
     ) {}
 
     /** @throws CoverageError */
-    public static function open(CoverageSettings $settings): self
+    public static function open(CoverageSettings $settings, ?string $temporaryDirectory = null): self
     {
-        $directory = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-coverage-' . \bin2hex(\random_bytes(6));
+        $temporaryDirectory ??= \sys_get_temp_dir();
+        $directory = \rtrim($temporaryDirectory, '/') . '/greenlight-coverage-' . \bin2hex(\random_bytes(6));
         $created = ErrorTrap::run(static fn() => \mkdir($directory, 0o700, true), $warning);
 
         if (!$created) {

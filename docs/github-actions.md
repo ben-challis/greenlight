@@ -1,7 +1,7 @@
 # GitHub Actions
 
-Greenlight stores run state in the system temporary directory. Run state
-contains failed test IDs and class durations from the previous run.
+Greenlight stores run state in the system temporary directory by default. Run
+state contains failed test IDs and class durations from the previous run.
 
 The next run uses this data to put failed classes first. It then puts the
 remaining classes in longest-first order. This order reduces idle worker time
@@ -9,8 +9,16 @@ near the end of a run.
 
 ## Cache run state
 
-Use a known temporary directory for the Greenlight test step. Restore the run
-state before the step and save it after the step.
+Configure a project state directory. Restore the state before the test step and
+save it after the step.
+
+For example, add this configuration to `greenlight.php`:
+
+<!-- php-example {"mode":"display","reason":"Shows one method in an existing Greenlight configuration chain."} -->
+```php
+->storage(fn ($storage) => $storage
+    ->stateDirectory('build/greenlight-state'))
+```
 
 This example keeps separate state for each operating system and PHP version:
 
@@ -24,27 +32,22 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Prepare Greenlight run-state directory
-        run: mkdir -p "${RUNNER_TEMP}/greenlight-state"
-
       - name: Restore Greenlight run state
         uses: actions/cache/restore@v6
         with:
-          path: ${{ runner.temp }}/greenlight-state/greenlight-state-*.json
+          path: build/greenlight-state/run-state.json
           key: greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php }}-
 
       - name: Run tests
         id: tests
-        env:
-          TMPDIR: ${{ runner.temp }}/greenlight-state
         run: vendor/bin/greenlight run
 
       - name: Save Greenlight run state
         if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
         uses: actions/cache/save@v6
         with:
-          path: ${{ runner.temp }}/greenlight-state/greenlight-state-*.json
+          path: build/greenlight-state/run-state.json
           key: greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php }}-${{ github.run_id }}-${{ github.run_attempt }}
 ```
 
@@ -71,7 +74,8 @@ For cache matching and security rules, see the
 ## Other Greenlight caches
 
 Greenlight also stores discovery data and generated double proxies in the
-system temporary directory.
+system temporary directory by default. Configure these areas separately from
+run state.
 
 Do not cache discovery data across fresh GitHub Actions checkouts. Discovery
 entries include file modification times, which usually change at checkout.

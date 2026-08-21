@@ -43,6 +43,8 @@ final class GreenlightConfig
 
     private ?ArtifactBuilder $artifacts = null;
 
+    private ?StorageBuilder $storage = null;
+
     /**
      * @var list<Plugin>
      */
@@ -262,6 +264,21 @@ final class GreenlightConfig
     }
 
     /**
+     * Sets directories for persistent state, caches, generated code, and
+     * temporary run data. Multiple calls use the same builder.
+     *
+     * @param callable(StorageBuilder): mixed $configurator
+     */
+    public function storage(callable $configurator): self
+    {
+        $builder = $this->storage instanceof StorageBuilder ? clone $this->storage : new StorageBuilder();
+        $configurator($builder);
+        $this->storage = clone $builder;
+
+        return $this;
+    }
+
+    /**
      * Fails an otherwise passed test if captured output contains a
      * deprecation. The diagnostic becomes the failure detail. Use a regular
      * expression to exempt known dependency messages.
@@ -388,6 +405,7 @@ final class GreenlightConfig
             randomSeed: $this->randomSeed,
             artifacts: $this->artifacts?->toConfiguration() ?? new ArtifactConfiguration(),
             resourceLimits: $this->resourceLimits,
+            storage: $this->storage?->toConfiguration() ?? new StorageConfiguration(),
         );
     }
 }

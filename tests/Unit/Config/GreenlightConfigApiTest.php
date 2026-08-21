@@ -40,6 +40,7 @@ final class GreenlightConfigApiTest
             'plugins',
             'randomizeOrder',
             'resourceLimit',
+            'storage',
             'suite',
             'watch',
             'workers',

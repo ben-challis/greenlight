@@ -15,6 +15,7 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\StorageLayout;
 use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\AtomicFile;
@@ -334,7 +335,7 @@ final readonly class Application
         }
 
         if ($arguments->has('dry-run')) {
-            ($this->out)(PlanFormatter::format($resolved, $configFile));
+            ($this->out)(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 
             return self::EXIT_OK;
         }
@@ -375,7 +376,8 @@ final readonly class Application
             return $this->watchCommand($arguments, $workingDirectory, $workerBin, $resolved, $configFile, $shutdown);
         }
 
-        $state = RunState::forWorkingDirectory($workingDirectory);
+        $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
+        $state = RunState::forFile($storage->runStateFile);
         $previousFailures = $state->failedTests();
 
         if ($arguments->has('failed')) {
@@ -517,6 +519,7 @@ final readonly class Application
         $coverageSession = CoverageSession::open(
             $coverageSettings,
             $workers !== 1 && $workerBin !== false && !SubprocessCoverage::requested(),
+            StorageLayout::resolve($resolved->storage, $workingDirectory)->temporaryDirectory,
         );
 
         try {
@@ -692,10 +695,11 @@ final readonly class Application
         $workers = $resolved->workers->fixed ?? CpuCores::count();
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
+        $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
         $this->warnWhenLeakDetectionIsUnreliable($detectLeaks, $arguments->has('no-ansi'));
 
         $runOnce =
-            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown): array {
+            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown, $storage): array {
                 $priorityClasses = \array_values(\array_filter(
                     $priorityClasses,
                     static fn(mixed $class): bool => \is_string($class) && $class !== '',
@@ -711,7 +715,8 @@ final readonly class Application
 
                 $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
 
-                $classSeconds = $resolved->randomizeOrder ? [] : RunState::forWorkingDirectory($workingDirectory)->classSeconds();
+                $state = RunState::forFile($storage->runStateFile);
+                $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
 
                 try {
                     if ($workers === 1 || $workerBin === false) {
@@ -729,7 +734,7 @@ final readonly class Application
                 }
 
                 $reporter->finish();
-                $this->persistRunState(RunState::forWorkingDirectory($workingDirectory), $failedTap->failedTests(), $failedTap->classSeconds());
+                $this->persistRunState($state, $failedTap->failedTests(), $failedTap->classSeconds());
 
                 return $tap->failedClasses();
             };
@@ -1146,7 +1151,13 @@ final readonly class Application
         $filter = SelectionFilter::fromConfiguration($resolved);
 
         $directories = $this->directories($resolved, $workingDirectory);
-        $plan = new TestDiscoverer()->discover($directories, $filter, $resolved->randomSeed, DiscoveryCache::forDirectories($directories));
+        $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
+        $plan = new TestDiscoverer()->discover(
+            $directories,
+            $filter,
+            $resolved->randomSeed,
+            DiscoveryCache::forDirectories($directories, $storage->cacheDirectory),
+        );
 
         if ($resolved->shard !== null) {
             return PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));

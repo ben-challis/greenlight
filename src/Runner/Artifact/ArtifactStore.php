@@ -41,6 +41,7 @@ final class ArtifactStore
         string $workingDirectory,
         string $runId,
         ?FileCopier $fileCopier = null,
+        ?string $temporaryDirectory = null,
     ): self {
         $configured = \rtrim($configuration->directory, '/');
 
@@ -66,7 +67,8 @@ final class ArtifactStore
         $output = \str_starts_with($configured, '/')
             ? $public
             : \rtrim($workingDirectory, '/') . '/' . $public;
-        $staging = \rtrim(\sys_get_temp_dir(), '/') . '/greenlight-artifacts-'
+        $temporaryDirectory ??= \sys_get_temp_dir();
+        $staging = \rtrim($temporaryDirectory, '/') . '/greenlight-artifacts-'
             . \substr(\hash('sha256', $runId), 0, 16)
             . '-' . \bin2hex(\random_bytes(6));
         return new self(
