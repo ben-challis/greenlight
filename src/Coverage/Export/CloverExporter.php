@@ -30,19 +30,7 @@ final readonly class CloverExporter implements CoverageExporter
         foreach ($map->files() as $path => $file) {
             $out .= \sprintf('    <file name="%s">', XmlEscaper::attribute($path)) . "\n";
 
-            $counts = [];
-
-            foreach ($file->coveredLines as $line) {
-                $counts[$line] = 1;
-            }
-
-            foreach ($file->uncoveredLines as $line) {
-                $counts[$line] = 0;
-            }
-
-            \ksort($counts);
-
-            foreach ($counts as $line => $count) {
+            foreach ($file->lineHits() as $line => $count) {
                 $out .= \sprintf('      <line num="%d" type="stmt" count="%d"/>', $line, $count) . "\n";
             }
 

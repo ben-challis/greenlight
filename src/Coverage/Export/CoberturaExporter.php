@@ -53,19 +53,7 @@ final readonly class CoberturaExporter implements CoverageExporter
             $out .= '          <methods/>' . "\n";
             $out .= '          <lines>' . "\n";
 
-            $hits = [];
-
-            foreach ($file->coveredLines as $line) {
-                $hits[$line] = 1;
-            }
-
-            foreach ($file->uncoveredLines as $line) {
-                $hits[$line] = 0;
-            }
-
-            \ksort($hits);
-
-            foreach ($hits as $line => $hit) {
+            foreach ($file->lineHits() as $line => $hit) {
                 $out .= \sprintf('            <line number="%d" hits="%d"/>', $line, $hit) . "\n";
             }
 
