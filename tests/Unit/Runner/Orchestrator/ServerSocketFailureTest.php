@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\ServerSocket;
+use Greenlight\Runner\Orchestrator\ServerSocketRuntime;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\ControlledServerSocketRuntime;
@@ -31,6 +32,39 @@ final readonly class ServerSocketFailureTest
         Expect::that($runtime->unixDirectoryExists())
             ->because('a failed Unix listener MUST remove its generated directory')
             ->toBeFalse();
+    }
+
+    #[Test]
+    public function listenerThrowableBecomesAProtocolError(): void
+    {
+        $cause = new \RuntimeException('The fixture listener failed.');
+        $runtime = new class ($cause) implements ServerSocketRuntime {
+            public function __construct(private readonly \Throwable $cause) {}
+
+            #[\Override]
+            public function listen(string $address, ?string &$errorMessage): never
+            {
+                throw $this->cause;
+            }
+
+            #[\Override]
+            public function name($server): string|false
+            {
+                return false;
+            }
+        };
+
+        Expect::that(fn(): ServerSocket => ServerSocket::listen($this->tempDirectory->path(), $runtime))
+            ->because('a listener throwable MUST not escape the worker protocol seam')
+            ->toThrow(
+                static function (ProtocolError $error) use ($cause): void {
+                    Expect::that($error->getMessage())
+                        ->toBe('Greenlight could not open the orchestrator socket.');
+                    Expect::that($error->getPrevious())
+                        ->because('the protocol error MUST preserve the listener error')
+                        ->toBe($cause);
+                },
+            );
     }
 
     #[Test]
