@@ -21,6 +21,7 @@ final readonly class DataRow
 
     /**
      * @param array<mixed> $arguments
+     * @param non-empty-string|null $label
      *
      * @throws \InvalidArgumentException
      */

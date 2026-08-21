@@ -25,7 +25,7 @@ final class AttributeContractTest
     #[Test]
     public function skipRejectsAnEmptyReason(): void
     {
-        Expect::that(static fn(): Skip => new Skip(''))
+        Expect::that(static fn(): object => new \ReflectionClass(Skip::class)->newInstance(''))
             ->because('skip reasons cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Skip reasons cannot be empty.');
     }
@@ -98,7 +98,7 @@ final class AttributeContractTest
     #[Test]
     public function groupRejectsAnEmptyName(): void
     {
-        Expect::that(static fn(): Group => new Group(''))
+        Expect::that(static fn(): object => new \ReflectionClass(Group::class)->newInstance(''))
             ->because('group names cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
     }

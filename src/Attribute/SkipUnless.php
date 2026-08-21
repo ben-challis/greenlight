@@ -25,6 +25,8 @@ final readonly class SkipUnless
     public array $arguments;
 
     /**
+     * @param class-string<Condition> $condition
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(
@@ -45,13 +47,14 @@ final readonly class SkipUnless
             );
         }
 
+        $this->condition = $condition;
+
         foreach ($arguments as $argument) {
             if (\is_float($argument) && !\is_finite($argument)) {
                 throw new \InvalidArgumentException('SkipUnless arguments MUST use finite floats.');
             }
         }
 
-        $this->condition = $condition;
         $this->arguments = \array_values($arguments);
     }
 }

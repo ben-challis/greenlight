@@ -12,11 +12,22 @@ use Greenlight\Expect\Expect;
 final class RetryTest
 {
     #[Test]
+    public function throwableFiltersDoNotNeedToBeInstantiable(): void
+    {
+        Expect::that(new Retry(1, \Throwable::class)->onlyOn)
+            ->because('the Throwable interface is a valid retry type filter')
+            ->toBe(\Throwable::class);
+        Expect::that(new Retry(1, AbstractRetryFailure::class)->onlyOn)
+            ->because('an abstract throwable is a valid retry type filter')
+            ->toBe(AbstractRetryFailure::class);
+    }
+
+    #[Test]
     #[DataSet('invalidThrowableTypes')]
     public function invalidThrowableTypesAreRejected(string $onlyOn): void
     {
         Expect::that(
-            static fn(): Retry => new Retry(1, onlyOn: $onlyOn),
+            static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, $onlyOn),
         )
             ->because('a retry filter MUST name a Throwable type')
             ->toThrow(
@@ -37,3 +48,5 @@ final class RetryTest
         yield 'unknown class' => ['Example\MissingThrowable'];
     }
 }
+
+abstract class AbstractRetryFailure extends \Exception {}

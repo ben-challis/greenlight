@@ -7,6 +7,7 @@ includes:
 parameters:
     level: max
     checkMissingCallableSignature: true
+    treatPhpDocTypesAsCertain: false
     tmpDir: build/cache/phpstan
     exceptions:
         checkedExceptionClasses:
@@ -48,6 +49,7 @@ parameters:
     excludePaths:
         analyse:
             - tests/Fixture/DataRowsDuplicateInline
+            - tests/Fixture/DataRowsInvalid/EmptyDataRowLabelTest.php
             - tests/Fixture/DiscoveryAttributeArgumentsInvalid
             - tests/Fixture/DiscoveryGroupInvalid
             - tests/Fixture/DiscoveryInvalidMethods

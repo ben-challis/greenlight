@@ -13,6 +13,8 @@ final readonly class Skip
     public string $reason;
 
     /**
+     * @param non-empty-string $reason
+     *
      * @throws \InvalidArgumentException If $reason is empty.
      */
     public function __construct(string $reason)
