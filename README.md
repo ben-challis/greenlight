@@ -30,7 +30,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Test attachments for values, text, bytes, and files
 * Coverage through pcov or Xdebug
 * Plain PHP test classes and PHP configuration
-* First-party Symfony, Laravel, PSR-11, and PHPStan extensions
+* First-party Symfony, Laravel, Hyperf, PSR-11, PSR-15, Tempest, and PHPStan adapters
 * Automated PHPUnit test conversion with a bundled Rector rule
 
 ## Example test

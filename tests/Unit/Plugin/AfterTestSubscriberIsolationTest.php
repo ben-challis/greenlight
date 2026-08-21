@@ -10,9 +10,9 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -24,14 +24,11 @@ final readonly class AfterTestSubscriberIsolationTest
     {
         /** @var \ArrayObject<int, string> $calls */
         $calls = new \ArrayObject();
-        $broken = new readonly class ($calls) implements TestLifecycleSubscriber, Fake {
+        $broken = new readonly class ($calls) implements AfterTestSubscriber, Fake {
             /**
              * @param \ArrayObject<int, string> $calls
              */
             public function __construct(private \ArrayObject $calls) {}
-
-            #[\Override]
-            public function beforeTest(TestContext $context): void {}
 
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
@@ -41,14 +38,11 @@ final readonly class AfterTestSubscriberIsolationTest
                 throw new \RuntimeException('subscriber failed');
             }
         };
-        $observer = new readonly class ($calls) implements TestLifecycleSubscriber, Fake {
+        $observer = new readonly class ($calls) implements AfterTestSubscriber, Fake {
             /**
              * @param \ArrayObject<int, string> $calls
              */
             public function __construct(private \ArrayObject $calls) {}
-
-            #[\Override]
-            public function beforeTest(TestContext $context): void {}
 
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
@@ -61,7 +55,7 @@ final readonly class AfterTestSubscriberIsolationTest
         $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Order';
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
-        $plugins = PluginRegistry::forWorker([$broken, $observer]);
+        $plugins = PluginRegistry::forWorker([$observer, $broken]);
 
         new Worker(DefaultServices::registry($plugins), $plugins)->run($plan, $sink);
 

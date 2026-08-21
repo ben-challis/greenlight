@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\AfterTestSubscriber;
+use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
@@ -23,8 +27,10 @@ final class PluginRegistryTest
     {
         $registry = PluginRegistry::none();
 
-        Expect::that($registry->testSubscribers())
+        Expect::that($registry->beforeTestSubscribers())
             ->because('an empty registry MUST expose no plugin capabilities or harness services')
+            ->toBe([]);
+        Expect::that($registry->afterTestSubscribers())
             ->toBe([]);
         Expect::that($registry->retryDeciders())
             ->toBe([]);
@@ -64,13 +70,40 @@ final class PluginRegistryTest
         $registry = new PluginRegistry([$late, $prioritizedDefault, $unrelated, $default, $early]);
         $expected = [$early, $prioritizedDefault, $default, $late];
 
-        Expect::that($registry->testSubscribers())
+        Expect::that($registry->beforeTestSubscribers())
             ->because('capability accessors filter plugins and keep stable priority order')
             ->toBe($expected);
+        Expect::that($registry->afterTestSubscribers())
+            ->because('after subscribers MUST unwind priority and registration order')
+            ->toBe(\array_reverse($expected));
         Expect::that($registry->retryDeciders())->toBe($expected);
         Expect::that($registry->runSubscribers())->toBe($expected);
         Expect::that($registry->serviceResolvers())->toBe($expected);
         Expect::that($registry->ofType(NamedFakePlugin::class))->toBe([$unrelated]);
+    }
+
+    #[Test]
+    public function testSubscriberCapabilitiesAreIndependent(): void
+    {
+        $before = new readonly class implements BeforeTestSubscriber, Fake {
+            #[\Override]
+            public function beforeTest(TestContext $context): void {}
+        };
+        $after = new readonly class implements AfterTestSubscriber, Fake {
+            #[\Override]
+            public function afterTest(TestContext $context, TestResult $result): TestResult
+            {
+                return $result;
+            }
+        };
+        $registry = new PluginRegistry([$before, $after]);
+
+        Expect::that($registry->beforeTestSubscribers())
+            ->because('a before subscriber MUST NOT require an after callback')
+            ->toBe([$before]);
+        Expect::that($registry->afterTestSubscribers())
+            ->because('an after subscriber MUST NOT require a before callback')
+            ->toBe([$after]);
     }
 
     #[Test]

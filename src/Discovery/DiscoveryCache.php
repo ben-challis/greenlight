@@ -41,14 +41,16 @@ final class DiscoveryCache
     /**
      * @param list<non-empty-string> $directories
      */
-    public static function forDirectories(array $directories): self
+    public static function forDirectories(array $directories, ?string $cacheDirectory = null): self
     {
         $sorted = $directories;
         \sort($sorted);
 
+        $cacheDirectory ??= \sys_get_temp_dir();
+
         return new self(\sprintf(
             '%s/greenlight-discovery-%s.json',
-            \rtrim(\sys_get_temp_dir(), '/'),
+            \rtrim($cacheDirectory, '/'),
             \substr(\sha1(\implode("\n", $sorted)), 0, 12),
         ));
     }
@@ -207,6 +209,17 @@ final class DiscoveryCache
             );
         } catch (\JsonException) {
             return false;
+        }
+
+        $directory = \dirname($this->file);
+        $directoryExists = ErrorTrap::run(static fn() => \is_dir($directory));
+
+        if (!$directoryExists && !ErrorTrap::run(static fn() => \mkdir($directory, 0o700, true))) {
+            $directoryExists = ErrorTrap::run(static fn() => \is_dir($directory));
+
+            if (!$directoryExists) {
+                return false;
+            }
         }
 
         try {

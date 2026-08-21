@@ -9,12 +9,13 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Doubles\Fake;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Plugin\AfterTestSubscriber;
+use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 
-class FakeCapabilityPlugin implements Fake, RetryDecider, RunLifecycleSubscriber, ServiceResolver, TestLifecycleSubscriber
+class FakeCapabilityPlugin implements AfterTestSubscriber, BeforeTestSubscriber, Fake, RetryDecider, RunLifecycleSubscriber, ServiceResolver
 {
     #[\Override]
     public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool

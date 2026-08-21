@@ -152,6 +152,8 @@ final class Orchestrator
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
         private readonly array $resourceLimits = [],
         private readonly InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
+        private readonly ?string $generatedCodeDirectory = null,
+        private readonly ?string $temporaryDirectory = null,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -229,7 +231,7 @@ final class Orchestrator
         $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
 
         $token = \bin2hex(\random_bytes(16));
-        $server = ServerSocket::listen();
+        $server = ServerSocket::listen($this->temporaryDirectory);
 
         try {
             while (true) {
@@ -422,6 +424,8 @@ final class Orchestrator
                             $handle->channelNumber,
                             $this->configFile === '' ? null : $this->configFile,
                             $this->integrationFixtures->forChannel($handle->channelNumber),
+                            $this->generatedCodeDirectory,
+                            $this->temporaryDirectory,
                         ));
                     } catch (ProtocolError) {
                         $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');

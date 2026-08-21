@@ -141,7 +141,12 @@ final readonly class WorkerProcess
                     new TestChannel($message->channel),
                     $message->resources,
                 ));
-                $registry = DefaultServices::registry($plugins, $message->resources);
+                $registry = DefaultServices::registry(
+                    $plugins,
+                    $message->resources,
+                    $message->generatedCodeDirectory,
+                    $message->temporaryDirectory,
+                );
                 $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
 
                 $finalMessage = $plugins->runWorker(fn(): ?Message => HarnessServiceDisposal::runAndClose(

@@ -156,17 +156,16 @@ final readonly class HtmlExporter implements CoverageExporter
             $file->executableLineCount(),
         );
 
-        $covered = \array_fill_keys($file->coveredLines, true);
-        $uncovered = \array_fill_keys($file->uncoveredLines, true);
+        $lineHits = $file->lineHits();
         $source = $this->highlightedLines($file->file);
         $lastLine = $source === null
-            ? \max([0, ...$file->coveredLines, ...$file->uncoveredLines])
+            ? (\array_key_last($lineHits) ?? 0)
             : \count($source);
 
         $body .= '<pre>' . "\n";
 
         for ($line = 1; $line <= $lastLine; ++$line) {
-            $lineClass = isset($covered[$line]) ? 'cov' : (isset($uncovered[$line]) ? 'unc' : '');
+            $lineClass = ($lineHits[$line] ?? null) === 1 ? 'cov' : (isset($lineHits[$line]) ? 'unc' : '');
             $content = \sprintf('<span class="num">%d</span>%s', $line, $source[$line - 1] ?? '');
             // Lines with a class appear as blocks. A final newline adds an
             // empty line box inside the <pre>.

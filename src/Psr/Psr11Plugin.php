@@ -8,9 +8,9 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -20,7 +20,7 @@ use Psr\Container\ContainerInterface;
  * `#[Service]` selects an explicit ID. Tests MUST isolate external resources
  * by `GREENLIGHT_CHANNEL`.
  */
-final class Psr11Plugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 {
     private ?ContainerInterface $activeContainer = null;
 
@@ -130,9 +130,6 @@ final class Psr11Plugin implements HarnessProvider, ServiceResolver, TestLifecyc
 
         return $service;
     }
-
-    #[\Override]
-    public function beforeTest(TestContext $context): void {}
 
     /**
      * @throws Psr11BridgeError

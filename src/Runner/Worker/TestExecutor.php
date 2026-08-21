@@ -222,7 +222,7 @@ final readonly class TestExecutor
             $context = new TestContext($instance, $entry->id, $metadata, $this->scopes, $attachments);
             $instance = null;
 
-            foreach ($this->plugins->testSubscribers() as $subscriber) {
+            foreach ($this->plugins->beforeTestSubscribers() as $subscriber) {
                 try {
                     $subscriber->beforeTest($context);
                 } catch (SkipTest $skip) {
@@ -391,7 +391,7 @@ final readonly class TestExecutor
      */
     private function applyAfterSubscribers(TestContext $context, TestResult $result): TestResult
     {
-        foreach ($this->plugins->testSubscribers() as $subscriber) {
+        foreach ($this->plugins->afterTestSubscribers() as $subscriber) {
             try {
                 $replacement = $subscriber->afterTest($context, $result);
             } catch (\Throwable $threw) {

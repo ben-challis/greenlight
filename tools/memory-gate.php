@@ -83,10 +83,10 @@ declare(strict_types=1);
 namespace MemGate;
 
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 
-final class MemoryProbe implements TestLifecycleSubscriber
+final class MemoryProbe implements AfterTestSubscriber
 {
     private int $count = 0;
 
@@ -100,8 +100,6 @@ final class MemoryProbe implements TestLifecycleSubscriber
         private readonly int $warmupTests,
         private readonly int $totalTests,
     ) {}
-
-    public function beforeTest(TestContext $context): void {}
 
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {
