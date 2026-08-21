@@ -30,9 +30,32 @@ final class TerminalCapabilitiesTest
     }
 
     #[Test]
+    public function ansiFlagEnablesColorWithoutInteractivity(): void
+    {
+        $capabilities = TerminalCapabilities::detect(
+            stdoutIsTty: false,
+            env: ['CI' => 'true'],
+            noAnsiFlag: false,
+            ansiFlag: true,
+        );
+
+        Expect::that($capabilities->interactive)
+            ->because('the ANSI flag MUST NOT enable cursor control')
+            ->toBeFalse();
+        Expect::that($capabilities->color)
+            ->because('the ANSI flag enables color output in CI')
+            ->toBeTrue();
+    }
+
+    #[Test]
     public function theNoAnsiFlagForcesNonInteractive(): void
     {
-        $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: [], noAnsiFlag: true);
+        $capabilities = TerminalCapabilities::detect(
+            stdoutIsTty: true,
+            env: [],
+            noAnsiFlag: true,
+            ansiFlag: true,
+        );
 
         Expect::that($capabilities->interactive)->because('the no ANSI flag forces non interactive')->toBeFalse();
         Expect::that($capabilities->color)->toBeFalse();
@@ -65,7 +88,12 @@ final class TerminalCapabilitiesTest
     #[Test]
     public function noColorStripsColorButKeepsInteractivity(): void
     {
-        $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['NO_COLOR' => '1'], noAnsiFlag: false);
+        $capabilities = TerminalCapabilities::detect(
+            stdoutIsTty: true,
+            env: ['NO_COLOR' => '1'],
+            noAnsiFlag: false,
+            ansiFlag: true,
+        );
 
         Expect::that($capabilities->interactive)->because('no color strips color but keeps interactivity')->toBeTrue();
         Expect::that($capabilities->color)->toBeFalse();

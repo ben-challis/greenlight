@@ -731,6 +731,11 @@ execution.
 
 In interactive output, prints a permanent line for every completed class.
 
+### `--ansi`
+
+Enables colors in append-only reporter output. It does not enable the live
+progress window.
+
 ### `--no-ansi`
 
 Disables colors and the live progress window. Output becomes plain and
@@ -738,7 +743,8 @@ append-only.
 
 A truthy `CI` environment variable has the same effect.
 
-`NO_COLOR` disables colors only.
+`NO_COLOR` disables colors only. `NO_COLOR` and `--no-ansi` have priority over
+`--ansi`.
 
 ### -h, --help
 

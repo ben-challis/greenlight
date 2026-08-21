@@ -333,7 +333,7 @@ jobs:
         if: "matrix.dependencies == 'lowest'"
         env:
           TMPDIR: "${{ runner.temp }}/greenlight-state"
-        run: "composer tests"
+        run: "composer tests -- --ansi"
 
       # The lowest compatible PHPStan version reports false errors for types
       # that later PHPStan 2.2 releases can infer.
@@ -393,7 +393,7 @@ jobs:
         if: "matrix.analytics != true && matrix.dependencies != 'lowest'"
         env:
           TMPDIR: "${{ runner.temp }}/greenlight-state"
-        run: "composer tests"
+        run: "composer tests -- --ansi"
 
       - name: "Tests with JUnit output"
         id: "tests_analytics"
@@ -455,6 +455,7 @@ jobs:
         shell: "bash"
         run: |
           php bin/greenlight run \
+            --ansi \
             --filter=CpuCoresTest \
             --filter=InterruptionTest \
             --filter=ReporterSmokeTest \
@@ -505,6 +506,7 @@ jobs:
         shell: "bash"
         run: |
           XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.tempest-coverage.php \
+            --ansi \
             --filter='*Tempest*Test::*'
 
       - name: "Upload Tempest coverage to Codecov"
@@ -552,7 +554,7 @@ jobs:
       - name: "Tests"
         id: "compatibility-tests"
         continue-on-error: true # Allow failures until PHP 8.6 is stable.
-        run: "composer tests"
+        run: "composer tests -- --ansi"
 
       - name: "Report compatibility failure"
         if: "steps.compatibility-tests.outcome == 'failure'"
@@ -620,7 +622,7 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the suite with coverage"
-        run: "composer tests:coverage"
+        run: "composer tests:coverage -- --ansi"
 
       - name: "Upload coverage to Codecov"
         continue-on-error: true
@@ -663,7 +665,7 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Collect and export coverage with PCOV"
-        run: "php bin/greenlight run --filter='Greenlight\\Tests\\Acceptance\\CoverageRunTest::collectsAndExportsCoverageThroughTheProcessPool'"
+        run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Acceptance\\CoverageRunTest::collectsAndExportsCoverageThroughTheProcessPool'"
 
   benchmark-harness:
     name: "Benchmark harness smoke (numbers not published)"

@@ -156,6 +156,7 @@ final readonly class Application
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
           --verbose          Print a permanent line per completed class in
                              interactive output
+          --ansi             Enable colors in append-only reporter output.
           --no-ansi          Disable colors and the live progress window.
                              Use plain append-only output.
           --fail-on-deprecation  Fail passed tests that captured a deprecation
@@ -894,12 +895,13 @@ final readonly class Application
             Terminal::isTty($this->stdout),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $arguments->has('no-ansi'),
+            $arguments->has('ansi'),
         );
 
         $names = $arguments->values('reporter');
 
         if ($names === []) {
-            $names = [$capabilities->interactive ? 'tty' : 'plain'];
+            $names = [$capabilities->interactive || $capabilities->color ? 'tty' : 'plain'];
         }
 
         $prefix = \rtrim($workingDirectory, '/') . '/';
@@ -1092,6 +1094,7 @@ final readonly class Application
             Terminal::isTty($this->stdout),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
             $arguments->has('no-ansi'),
+            $arguments->has('ansi'),
         )->color));
 
         if ($report === '') {
@@ -1357,6 +1360,7 @@ final readonly class Application
             new OptionSpec('watch'),
             new OptionSpec('detect-leaks'),
             new OptionSpec('dry-run'),
+            new OptionSpec('ansi'),
             new OptionSpec('no-ansi'),
             new OptionSpec('verbose'),
             new OptionSpec('profile'),
