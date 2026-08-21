@@ -76,10 +76,12 @@ final class PriceTest
 
     <section class="execution-story section-shell">
       <div class="execution-heading">
-        <div class="execution-heading-copy">
-          <p class="eyebrow">Run the suite</p>
-          <h2>Greenlight manages the worker pool for you.</h2>
-        </div>
+        <p class="eyebrow">Run the suite</p>
+        <h2>Greenlight manages the worker pool for you.</h2>
+        <p>
+          The runner discovers the suite once, keeps the available workers busy,
+          and returns one ordered result.
+        </p>
       </div>
       <ol class="execution-steps">
         <li>
@@ -165,29 +167,19 @@ final class PriceTest
 
     <section class="closing-cta">
       <div class="closing-cta-intro">
-        <p class="eyebrow">Try one test class</p>
-        <h2>Go from installation to your first run.</h2>
+        <p class="eyebrow">Run Greenlight</p>
+        <h2>Put every available core to work.</h2>
+        <p>
+          Start with a complete configuration and one small test class, or move an
+          existing PHPUnit class when you are ready.
+        </p>
       </div>
-      <ol class="setup-steps">
-        <li>
-          <span>01</span>
-          <h3>Install Greenlight</h3>
-          <code>composer require --dev greenlight/greenlight</code>
-        </li>
-        <li>
-          <span>02</span>
-          <h3>Add <code>greenlight.php</code></h3>
-          <code>&lt;?php return GreenlightConfig::create();</code>
-        </li>
-        <li>
-          <span>03</span>
-          <h3>Run one class</h3>
-          <code>vendor/bin/greenlight run --filter=PriceTest</code>
-        </li>
-      </ol>
-      <div class="hero-actions">
+      <div class="closing-cta-actions">
         <a class="button primary" href={sitePath('docs/getting-started/')}>
-          Read the Start with Greenlight guide
+          Start with Greenlight
+        </a>
+        <a class="button secondary" href={sitePath('docs/migrating-from-phpunit/')}>
+          Move from PHPUnit
         </a>
       </div>
     </section>
