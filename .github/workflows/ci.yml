@@ -316,10 +316,23 @@ jobs:
         env:
           SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
 
+      - name: "Prepare Greenlight run-state directory"
+        run: 'mkdir -p "${RUNNER_TEMP}/greenlight-state"'
+
+      - name: "Restore Greenlight run state"
+        uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: "${{ runner.temp }}/greenlight-state/greenlight-state-*.json"
+          key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
+          restore-keys: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-"
+
       # Lowest Rector uses the lowest PHPStan API in the test suite.
       # Run the tests before the PHPStan update.
       - name: "Tests"
+        id: "tests_lowest"
         if: "matrix.dependencies == 'lowest'"
+        env:
+          TMPDIR: "${{ runner.temp }}/greenlight-state"
         run: "composer tests"
 
       # The lowest compatible PHPStan version reports false errors for types
@@ -376,15 +389,28 @@ jobs:
           key: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ steps.analysis_cache.outputs.content_hash }}-${{ github.run_id }}"
 
       - name: "Tests"
+        id: "tests_standard"
         if: "matrix.analytics != true && matrix.dependencies != 'lowest'"
+        env:
+          TMPDIR: "${{ runner.temp }}/greenlight-state"
         run: "composer tests"
 
       - name: "Tests with JUnit output"
+        id: "tests_analytics"
         if: "matrix.analytics == true"
         shell: "bash"
+        env:
+          TMPDIR: "${{ runner.temp }}/greenlight-state"
         run: |
           mkdir -p build/test-results
           php bin/greenlight run --reporter=junit > build/test-results/greenlight.junit.xml
+
+      - name: "Save Greenlight run state"
+        if: "${{ !cancelled() && (steps.tests_lowest.outcome != 'skipped' || steps.tests_standard.outcome != 'skipped' || steps.tests_analytics.outcome != 'skipped') }}"
+        uses: "actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: "${{ runner.temp }}/greenlight-state/greenlight-state-*.json"
+          key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
 
       - name: "Upload test results to Codecov"
         if: "${{ !cancelled() && matrix.analytics == true }}"

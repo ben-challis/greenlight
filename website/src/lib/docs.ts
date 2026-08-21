@@ -27,6 +27,11 @@ export const docSections = [
         description: 'This reference explains configuration for suites, workers, resource limits, coverage, and the CLI.',
       },
       {
+        id: 'github-actions',
+        title: 'GitHub Actions',
+        description: 'This guide explains how to reuse Greenlight run state between GitHub Actions runs.',
+      },
+      {
         id: 'attributes',
         title: 'Attributes',
         description: 'This reference explains attributes for tests, hooks, data sets, and execution.',
