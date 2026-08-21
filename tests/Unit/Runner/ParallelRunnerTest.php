@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Runner;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Runner\ParallelRunner;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
@@ -19,8 +20,13 @@ final readonly class ParallelRunnerTest
     #[Test]
     public function runSubscribersObserveTheCompleteParallelEventStream(): void
     {
-        $subscriber = new RecordingRunSubscriber();
-        $configuration = GreenlightConfig::create()->plugins($subscriber)->build();
+        $subscriber = null;
+        $configuration = GreenlightConfig::create()->plugins(new PluginDefinition(
+            RecordingRunSubscriber::class,
+            static function () use (&$subscriber): RecordingRunSubscriber {
+                return $subscriber = new RecordingRunSubscriber();
+            },
+        ))->build();
         $sink = new CollectingEventSink();
         $root = \dirname(__DIR__, 3);
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
@@ -35,11 +41,11 @@ final readonly class ParallelRunnerTest
             workerCount: 2,
         );
 
-        Expect::that($subscriber->events)
+        Expect::that($subscriber?->events)
             ->because('parallel run subscribers observe the configured sink event stream')
             ->toBe($sink->events);
 
-        Expect::that($subscriber->sequence())
+        Expect::that($subscriber?->sequence())
             ->because('the parallel subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');

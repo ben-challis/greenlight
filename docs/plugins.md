@@ -1,9 +1,9 @@
 # Plugins
 
-Plugins implement one or more capability interfaces. Pass each plugin to
-`GreenlightConfig::plugins()` in `greenlight.php`. Greenlight identifies the
-plugin capabilities from the interfaces. One plugin can implement more than one
-interface.
+Plugins implement one or more capability interfaces. Pass a `PluginDefinition`
+for each plugin to `GreenlightConfig::plugins()` in `greenlight.php`. The
+definition contains the plugin class and a factory. The factory MUST return a
+new instance on each call.
 
 Plugin capabilities run either in the orchestrator or in workers. Each
 capability section below names its side.
@@ -12,21 +12,41 @@ capability section below names its side.
 ```php
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new FlakyQuarantine(), new SlackNotifier());
+    ->plugins(
+        new Greenlight\Plugin\PluginDefinition(
+            FlakyQuarantine::class,
+            static fn(): FlakyQuarantine => new FlakyQuarantine(),
+        ),
+        new Greenlight\Plugin\PluginDefinition(
+            SlackNotifier::class,
+            static fn(): SlackNotifier => new SlackNotifier(),
+        ),
+    );
 ```
 
-## How plugins reach workers
+## Plugin instances and ownership
 
-Parallel tests run in worker processes. A process cannot send live PHP objects
-across a process boundary. Each parallel worker loads `greenlight.php` and
-creates its own plugin instances.
+Greenlight creates plugin instances only on a side that uses one of their
+capabilities. It creates one orchestrator instance for each definition that has
+an orchestrator capability. It creates one worker instance for each definition
+that has a worker capability and for each physical worker.
 
-The orchestrator also loads `greenlight.php`, so plugin constructors run there
-and once per parallel worker. Plugin properties do not cross that boundary.
+A plugin that has capabilities on both sides gets one instance on each side.
+The instances are separate with one in-process worker and with parallel
+workers. Capabilities on the same side use the same instance. Priority applies
+independently to each capability.
 
-With one in-process worker, orchestrator and worker capabilities use the same
-configured plugin instances. Do not use plugin properties to transfer fixture
-resources. Use integration resources in both runner modes.
+Each repeat iteration and watch rerun creates a new orchestrator instance and
+new worker instances. A replacement parallel worker also gets a new instance.
+Assignments and retries in one physical worker use its existing instance.
+Greenlight calls the configured factory for each instance. It does not clone a
+plugin object.
+
+Plugin properties do not cross the orchestrator and worker seam. Do not use a
+property to transfer fixture data. An `IntegrationFixtureProvider` MUST expose
+data through integration resources. Tests can inject `IntegrationResources`.
+A `WorkerBootstrapSubscriber` can also read the resources and configure other
+worker capabilities on its worker-local instance.
 
 ## Capability interfaces
 
@@ -482,8 +502,10 @@ Multiple configuration files supply the union of their matchers. Analysis fails
 if the same matcher name has different signatures. One analysis run can use
 only one signature for a matcher name.
 
-When PHPStan first loads the matcher map, it runs plugin constructors in its
-process. Each worker also runs the plugin constructors.
+When PHPStan first loads the matcher map, it creates one instance of each
+configured expectation extension in its process. A worker creates and installs
+its own expectation extension instance when the worker starts. The extension
+instance stays installed for the physical worker lifetime.
 
 ## Plugin order and error policy
 

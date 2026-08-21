@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 
 final readonly class PluginCompositionTest
@@ -14,8 +15,14 @@ final readonly class PluginCompositionTest
     #[Test]
     public function repeatedPluginCallsAppendInConfigurationOrder(): void
     {
-        $first = new NamedFakePlugin();
-        $second = new NamedFakePlugin();
+        $first = new PluginDefinition(
+            NamedFakePlugin::class,
+            static fn(): NamedFakePlugin => new NamedFakePlugin(),
+        );
+        $second = new PluginDefinition(
+            NamedFakePlugin::class,
+            static fn(): NamedFakePlugin => new NamedFakePlugin(),
+        );
 
         $plugins = GreenlightConfig::create()
             ->plugins($first)

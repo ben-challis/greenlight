@@ -173,4 +173,5 @@ final readonly class PluginRegistry
 
         return $subscribers;
     }
+
 }

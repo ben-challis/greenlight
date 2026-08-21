@@ -11,6 +11,7 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Runner\InProcessRunner;
@@ -30,8 +31,13 @@ final readonly class InProcessRunnerTest
     #[Test]
     public function runSubscribersObserveTheCompleteInProcessEventStream(): void
     {
-        $subscriber = new RecordingRunSubscriber();
-        $configuration = GreenlightConfig::create()->plugins($subscriber)->build();
+        $subscriber = null;
+        $configuration = GreenlightConfig::create()->plugins(new PluginDefinition(
+            RecordingRunSubscriber::class,
+            static function () use (&$subscriber): RecordingRunSubscriber {
+                return $subscriber = new RecordingRunSubscriber();
+            },
+        ))->build();
         $sink = new CollectingEventSink();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
@@ -41,11 +47,11 @@ final readonly class InProcessRunnerTest
             $sink,
         );
 
-        Expect::that($subscriber->events)
+        Expect::that($subscriber?->events)
             ->because('run subscribers observe the same event stream as the configured sink')
             ->toBe($sink->events);
 
-        Expect::that($subscriber->sequence())
+        Expect::that($subscriber?->sequence())
             ->because('the subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
@@ -140,16 +146,10 @@ final readonly class InProcessRunnerTest
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
         $failure = new \RuntimeException('worker bootstrap exploded');
-        $plugin = new readonly class ($failure) implements WorkerBootstrapSubscriber, Fake {
-            public function __construct(private \RuntimeException $failure) {}
-
-            #[\Override]
-            public function onWorkerBootstrap(WorkerBootstrapContext $context): void
-            {
-                throw $this->failure;
-            }
-        };
-        $configuration = GreenlightConfig::create()->plugins($plugin)->build();
+        $configuration = GreenlightConfig::create()->plugins(new PluginDefinition(
+            FailingWorkerBootstrapPlugin::class,
+            static fn(): FailingWorkerBootstrapPlugin => new FailingWorkerBootstrapPlugin($failure),
+        ))->build();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
         Expect::that(fn() => new InProcessRunner($this->tempDirectory->path())->run(
@@ -187,5 +187,16 @@ final readonly class InProcessRunnerTest
             static fn(TestResult $result): string => (string) $result->id,
             $sink->results(),
         );
+    }
+}
+
+final readonly class FailingWorkerBootstrapPlugin implements WorkerBootstrapSubscriber, Fake
+{
+    public function __construct(private \RuntimeException $failure) {}
+
+    #[\Override]
+    public function onWorkerBootstrap(WorkerBootstrapContext $context): void
+    {
+        throw $this->failure;
     }
 }

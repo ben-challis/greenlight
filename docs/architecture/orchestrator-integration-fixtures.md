@@ -11,6 +11,11 @@ Greenlight provisions them in the orchestrator after discovery, selection, and
 sharding. Provisioning finishes before `RunStarted` and before Greenlight spawns
 workers.
 
+The provider instance belongs to the orchestrator. If the same plugin class has
+worker capabilities, those capabilities use a separate instance in each
+worker. Plugin properties do not cross this seam. The provider MUST use
+`IntegrationFixtureContext::expose()` to transfer supported fixture data.
+
 Greenlight provisions one fixture graph per selected run. Each repeat iteration
 and watch rerun gets a fresh graph. CI shards provision independently because
 Greenlight does not coordinate them across machines.
@@ -54,8 +59,9 @@ stderr. A worker receives only its own channel overlay.
 
 After a worker sends `hello`, the orchestrator replies with a `bootstrap`
 message that contains the channel, config path, and resources. The worker loads
-its plugins, calls `WorkerBootstrapSubscriber`, builds the harness registry, and
-then replies with `ready`.
+its plugin definitions, creates its worker-side instances, calls
+`WorkerBootstrapSubscriber`, builds the harness registry, and then replies with
+`ready`.
 
 When a configured plugin implements `WorkerBootstrapSubscriber`, the
 orchestrator waits for every initial worker to report `ready` before it assigns

@@ -97,9 +97,10 @@ parallel methods use the same execution behavior.
 
 Plugins use capability interfaces to add lifecycle subscribers, integration
 fixtures, retry decisions, harness providers, and expectation extensions.
-Orchestrator-side capabilities control run-wide work. Each worker loads its
-own plugin instances for worker-side capabilities. Plugins **SHOULD NOT**
-depend on orchestrator classes or protocol implementation classes.
+Orchestrator-side capabilities control run-wide work. Greenlight creates
+separate orchestrator-side and worker-side instances from immutable plugin
+definitions. Plugins **SHOULD NOT** depend on orchestrator classes or protocol
+implementation classes.
 
 ### Output
 

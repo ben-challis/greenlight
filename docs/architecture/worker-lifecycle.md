@@ -114,10 +114,18 @@ uses a safe resource-capacity bound. It starts fewer initial workers when the
 queued scheduling units and their resource limits prove that more workers
 cannot run concurrently. This bound does not remove achievable concurrency.
 
-Workers build their plugins and harness registries during `bootstrap` and reuse
-them for later assignments. Per-run harness services therefore live for the
-physical worker's lifetime. Workers rebuild per-class reflection, hooks, and
-data sets for each class.
+Workers build their plugin instances and harness registries during `bootstrap`.
+They reuse them for later assignments. One physical worker constructs each
+configured worker-side plugin one time. A replacement worker constructs new
+instances. Per-run harness services therefore live for the physical worker's
+lifetime. Workers rebuild per-class reflection, hooks, and data sets for each
+class.
+
+The orchestrator constructs one instance of each configured orchestrator-side
+plugin for each selected run. The in-process runner also constructs separate
+worker-side instances. Thus, plugin properties cannot transfer data between
+the two sides in any worker mode. A repeat iteration and a watch rerun are new
+selected runs and construct new instances.
 
 The default scheduling unit contains the selected non-isolated tests from one
 class. `#[AllowParallel]` changes each selected test or data set into a pooled

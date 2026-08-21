@@ -99,6 +99,36 @@ final readonly class IntegrationFixtureRunTest
     }
 
     #[Test]
+    #[DataSet('runnerWorkerCounts')]
+    public function mutablePluginPropertiesCannotCrossTheOrchestratorWorkerSeam(int $workers): void
+    {
+        $project = $this->writePluginSeamProject('plugin-seam-' . $workers, $workers);
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
+
+        Expect::that($result->exitCode)
+            ->because('plugin seam run failed: ' . $result->output())
+            ->toBe(0);
+        Expect::that($result->output())->toContain('2 tests, 2 passed');
+        Expect::that($this->lines($project->path('markers/constructed.log')))
+            ->because('one orchestrator instance and one instance for each physical worker MUST be constructed')
+            ->toHaveCount($workers + 1);
+    }
+
+    #[Test]
+    public function repeatIterationsConstructFreshPluginInstances(): void
+    {
+        $project = $this->writePluginSeamProject('plugin-seam-repeat', 1);
+        $result = GreenlightCli::run($project->directory, ['run', '--repeat=2', '--reporter=plain']);
+
+        Expect::that($result->exitCode)
+            ->because('plugin seam repeat run failed: ' . $result->output())
+            ->toBe(0);
+        Expect::that($this->lines($project->path('markers/constructed.log')))
+            ->because('each repeat iteration MUST construct one orchestrator instance and one worker instance')
+            ->toHaveCount(4);
+    }
+
+    #[Test]
     public function partialProvisioningFailureCleansAndFailsBeforeTestsStart(): void
     {
         $project = $this->writeProject('provisioning-failure', workers: 2, failProvisioning: true);
@@ -339,6 +369,7 @@ final readonly class IntegrationFixtureRunTest
             declare(strict_types=1);
 
             use Greenlight\\Config\\GreenlightConfig;
+            use Greenlight\\Plugin\\PluginDefinition;
             use Greenlight\\Tests\\Fixture\\Plugins\\IntegrationProbePlugin;
 
             {$requires}
@@ -346,11 +377,84 @@ final readonly class IntegrationFixtureRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers({$workers}{$recycle})
-                ->plugins(new IntegrationProbePlugin(
-                    {$markerDirectory},
-                    failProvisioning: {$failProvisioningValue},
-                    failCleanup: {$failCleanupValue},
-                    failBootstrapChannel: {$failBootstrapChannelValue},
+                ->plugins(new PluginDefinition(
+                    IntegrationProbePlugin::class,
+                    static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(
+                        {$markerDirectory},
+                        failProvisioning: {$failProvisioningValue},
+                        failCleanup: {$failCleanupValue},
+                        failBootstrapChannel: {$failBootstrapChannelValue},
+                    ),
+                ));
+            PHP);
+
+        return $project;
+    }
+
+    private function writePluginSeamProject(string $name, int $workers): AcceptanceProject
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'integration-fixtures-' . $name);
+        $project->writeFile('markers/.gitkeep', '');
+        $markerDirectory = \var_export($project->path('markers'), true);
+
+        $test = <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace PluginSeamProbe;
+
+            use Greenlight\Attribute\Test;
+            use Greenlight\Expect\Expect;
+            use Greenlight\Tests\Fixture\Plugins\PluginSeamProbe;
+
+            final readonly class %sTest
+            {
+                public function __construct(private PluginSeamProbe $probe) {}
+
+                #[Test]
+                public function usesOnlyTheSupportedTransferMechanism(): void
+                {
+                    Expect::that($this->probe->workerProperty)
+                        ->because('mutable plugin properties MUST not cross the orchestrator and worker seam')
+                        ->toBe('worker-fresh');
+                    Expect::that($this->probe->integrationResource)
+                        ->because('integration resources MUST transfer orchestrator fixture data to workers')
+                        ->toBe('integration-resource');
+                }
+            }
+            PHP;
+
+        $files = [];
+
+        foreach (['Alpha', 'Bravo'] as $class) {
+            $relative = 'tests/' . $class . 'Test.php';
+            $project->writeFile($relative, \sprintf($test, $class));
+            $files[] = $relative;
+        }
+
+        $requires = \implode("\n", \array_map(
+            static fn(string $file): string => "require_once __DIR__ . '/{$file}';",
+            $files,
+        ));
+
+        $project->writeFile('greenlight.php', <<<PHP
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+            use Greenlight\Plugin\PluginDefinition;
+            use Greenlight\Tests\Fixture\Plugins\PluginSeamProbePlugin;
+
+            {$requires}
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers({$workers})
+                ->plugins(new PluginDefinition(
+                    PluginSeamProbePlugin::class,
+                    static fn(): PluginSeamProbePlugin => new PluginSeamProbePlugin({$markerDirectory}),
                 ));
             PHP);
 

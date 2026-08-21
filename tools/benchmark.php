@@ -480,7 +480,7 @@ function benchmarkWriteConfiguration(string $project, string $shape): void
         }
 
         PHP;
-        $chain = "\n    ->plugins(new BenchmarkBootstrapPlugin())";
+        $chain = "\n    ->plugins(new PluginDefinition(BenchmarkBootstrapPlugin::class, static fn(): BenchmarkBootstrapPlugin => new BenchmarkBootstrapPlugin()))";
     }
 
     \file_put_contents($project . '/greenlight.php', \sprintf(<<<'PHP'
@@ -490,6 +490,7 @@ function benchmarkWriteConfiguration(string $project, string $shape): void
 
         use Greenlight\Config\CoverageBuilder;
         use Greenlight\Config\GreenlightConfig;
+        use Greenlight\Plugin\PluginDefinition;
         use Greenlight\Plugin\WorkerBootstrapContext;
         use Greenlight\Plugin\WorkerBootstrapSubscriber;
         %s

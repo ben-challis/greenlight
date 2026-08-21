@@ -226,6 +226,7 @@ final readonly class AttachmentRunTest
             use Greenlight\Harness\Scope;
             use Greenlight\Harness\ServiceDefinition;
             use Greenlight\Plugin\HarnessProvider;
+            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\RetryDecider;
             use Greenlight\Plugin\TestContext;
             use Greenlight\Plugin\TestLifecycleSubscriber;
@@ -234,7 +235,8 @@ final readonly class AttachmentRunTest
             require_once __DIR__ . '/tests/AttachmentProbeTest.php';
             require_once __DIR__ . '/tests/TeardownAttachmentTest.php';
 
-            $plugin = new class implements TestLifecycleSubscriber {
+            final class AttachmentSubscriber implements TestLifecycleSubscriber
+            {
                 public function beforeTest(TestContext $context): void {}
 
                 public function afterTest(TestContext $context, TestResult $result): TestResult
@@ -245,9 +247,10 @@ final readonly class AttachmentRunTest
 
                     return $result;
                 }
-            };
+            }
 
-            $retryDecider = new class implements RetryDecider {
+            final class AttachmentRetryDecider implements RetryDecider
+            {
                 public function shouldRetry(
                     TestMetadata $metadata,
                     TestResult $result,
@@ -260,9 +263,10 @@ final readonly class AttachmentRunTest
 
                     return false;
                 }
-            };
+            }
 
-            $harness = new class implements HarnessProvider {
+            final class AttachmentHarness implements HarnessProvider
+            {
                 public function services(): array
                 {
                     return [
@@ -273,11 +277,24 @@ final readonly class AttachmentRunTest
                         ),
                     ];
                 }
-            };
+            }
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->plugins($plugin, $retryDecider, $harness)
+                ->plugins(
+                    new PluginDefinition(
+                        AttachmentSubscriber::class,
+                        static fn(): AttachmentSubscriber => new AttachmentSubscriber(),
+                    ),
+                    new PluginDefinition(
+                        AttachmentRetryDecider::class,
+                        static fn(): AttachmentRetryDecider => new AttachmentRetryDecider(),
+                    ),
+                    new PluginDefinition(
+                        AttachmentHarness::class,
+                        static fn(): AttachmentHarness => new AttachmentHarness(),
+                    ),
+                )
                 ->artifacts(fn(ArtifactBuilder $artifacts) => $artifacts
                     ->directory(__DIR__ . '/artifacts'));
             PHP);

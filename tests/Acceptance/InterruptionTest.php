@@ -230,6 +230,7 @@ final readonly class InterruptionTest
             declare(strict_types=1);
 
             use Greenlight\\Config\\GreenlightConfig;
+            use Greenlight\\Plugin\\PluginDefinition;
             use Greenlight\\Tests\\Fixture\\Plugins\\IntegrationProbePlugin;
 
             {$requires}
@@ -237,9 +238,12 @@ final readonly class InterruptionTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new IntegrationProbePlugin(
-                    {$markerDirectory},
-                    failCleanup: {$failCleanupValue},
+                ->plugins(new PluginDefinition(
+                    IntegrationProbePlugin::class,
+                    static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(
+                        {$markerDirectory},
+                        failCleanup: {$failCleanupValue},
+                    ),
                 ));
             PHP);
 

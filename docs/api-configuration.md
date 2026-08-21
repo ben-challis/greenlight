@@ -323,7 +323,7 @@ PHPDoc:
 ### `plugins()`
 
 ```php
-public function plugins(Plugin ...$plugins): self
+public function plugins(PluginDefinition ...$plugins): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L320)

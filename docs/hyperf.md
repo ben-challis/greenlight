@@ -22,10 +22,14 @@ Register the plugin in `greenlight.php`:
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Hyperf\HyperfPlugin;
+use Greenlight\Plugin\PluginDefinition;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new HyperfPlugin(dirname(__DIR__)));
+    ->plugins(new PluginDefinition(
+        HyperfPlugin::class,
+        static fn(): HyperfPlugin => new HyperfPlugin(dirname(__DIR__)),
+    ));
 ```
 
 Pass the application root directory to the plugin. The directory MUST contain

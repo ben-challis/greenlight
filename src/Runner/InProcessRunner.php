@@ -17,7 +17,6 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\PublishingEventSink;
@@ -81,8 +80,7 @@ final readonly class InProcessRunner
         $channelEnvironment = null;
 
         try {
-            $plugins = PluginRegistry::forWorker($configuration->plugins);
-            $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
+            $orchestratorSide = PluginInstances::forOrchestrator($configuration->plugins);
 
             if ($orchestratorSide->runSubscribers() !== []) {
                 $sink = new PluginEventSink($orchestratorSide, $sink);
@@ -119,6 +117,7 @@ final readonly class InProcessRunner
                 \putenv('GREENLIGHT_CHANNEL=1');
 
                 $resources = $fixtures->forChannel(1);
+                $plugins = PluginInstances::forWorker($configuration->plugins);
 
                 try {
                     $plugins->bootstrapWorker(new WorkerBootstrapContext(

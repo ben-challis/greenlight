@@ -15,6 +15,7 @@ use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
 use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 
 final class GreenlightConfigTest
@@ -55,10 +56,10 @@ final class GreenlightConfigTest
     #[Test]
     public function buildsAFullyConfiguredRun(): void
     {
-        $plugin = new class implements RunLifecycleSubscriber {
-            #[\Override]
-            public function onRunEvent(Event $event): void {}
-        };
+        $plugin = new PluginDefinition(
+            ConfigRunSubscriber::class,
+            static fn(): ConfigRunSubscriber => new ConfigRunSubscriber(),
+        );
 
         $configuration = GreenlightConfig::create()
             ->paths(['tests/Unit', 'tests/Integration'])
@@ -487,4 +488,10 @@ final class GreenlightConfigTest
             'Artifact count per run must be at least 1.',
         ];
     }
+}
+
+final class ConfigRunSubscriber implements RunLifecycleSubscriber
+{
+    #[\Override]
+    public function onRunEvent(Event $event): void {}
 }

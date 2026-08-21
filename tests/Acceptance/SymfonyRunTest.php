@@ -145,6 +145,7 @@ final readonly class SymfonyRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
+            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Symfony\SymfonyPlugin;
 
             require_once __DIR__ . '/probe.php';
@@ -156,7 +157,10 @@ final readonly class SymfonyRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new SymfonyPlugin(\SymfonyProbe\ProbeKernel::class));
+                ->plugins(new PluginDefinition(
+                    SymfonyPlugin::class,
+                    static fn(): SymfonyPlugin => new SymfonyPlugin(\SymfonyProbe\ProbeKernel::class),
+                ));
             PHP);
 
         return $project;

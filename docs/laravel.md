@@ -16,10 +16,14 @@ Register the plugin in `greenlight.php` with your application bootstrap file:
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Laravel\LaravelPlugin;
+use Greenlight\Plugin\PluginDefinition;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new LaravelPlugin(__DIR__ . '/bootstrap/app.php'));
+    ->plugins(new PluginDefinition(
+        LaravelPlugin::class,
+        static fn(): LaravelPlugin => new LaravelPlugin(__DIR__ . '/bootstrap/app.php'),
+    ));
 ```
 
 The bootstrap file is the standard Laravel entry point. It returns the result

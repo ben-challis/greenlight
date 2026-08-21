@@ -6,7 +6,7 @@ namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Test\ResourceName;
-use Greenlight\Plugin\Plugin;
+use Greenlight\Plugin\PluginDefinition;
 
 /** Collects the configuration that `greenlight.php` returns. */
 final class GreenlightConfig
@@ -44,7 +44,7 @@ final class GreenlightConfig
     private ?ArtifactBuilder $artifacts = null;
 
     /**
-     * @var list<Plugin>
+     * @var list<PluginDefinition>
      */
     private array $plugins = [];
 
@@ -317,7 +317,7 @@ final class GreenlightConfig
         return $this;
     }
 
-    public function plugins(Plugin ...$plugins): self
+    public function plugins(PluginDefinition ...$plugins): self
     {
         foreach ($plugins as $plugin) {
             $this->plugins[] = $plugin;

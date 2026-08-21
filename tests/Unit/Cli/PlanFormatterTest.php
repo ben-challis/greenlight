@@ -16,6 +16,7 @@ use Greenlight\Config\WatchConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 
 final class PlanFormatterTest
@@ -69,7 +70,10 @@ final class PlanFormatterTest
     {
         $configuration = GreenlightConfig::create()
             ->randomizeOrder()
-            ->plugins(new NamedFakePlugin())
+            ->plugins(new PluginDefinition(
+                NamedFakePlugin::class,
+                static fn(): NamedFakePlugin => new NamedFakePlugin(),
+            ))
             ->build();
 
         $formatted = PlanFormatter::format($configuration, '/project/greenlight.php');
@@ -99,7 +103,10 @@ final class PlanFormatterTest
             recycleAboveMemoryBytes: 256 * 1024 * 1024,
             coverage: null,
             watch: new WatchConfiguration(),
-            plugins: [new NamedFakePlugin()],
+            plugins: [new PluginDefinition(
+                NamedFakePlugin::class,
+                static fn(): NamedFakePlugin => new NamedFakePlugin(),
+            )],
             policy: new ResultPolicy(),
             stopAfterFailures: $failureLimit,
             randomizeOrder: true,

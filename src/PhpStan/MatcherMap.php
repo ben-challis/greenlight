@@ -49,11 +49,17 @@ final readonly class MatcherMap
                 $file = \getcwd() . '/' . $file;
             }
 
-            $plugins = $loader->loadFile($file)->build()->plugins;
+            $definitions = $loader->loadFile($file)->build()->plugins;
 
-            foreach ($plugins as $plugin) {
-                if (!$plugin instanceof ExpectationExtension) {
+            foreach ($definitions as $definition) {
+                if (!$definition->supports(ExpectationExtension::class)) {
                     continue;
+                }
+
+                $plugin = $definition->create();
+
+                if (!$plugin instanceof ExpectationExtension) {
+                    throw new \LogicException('The plugin definition capability check returned an invalid result.');
                 }
 
                 foreach ($plugin->matchers() as $name => $matcher) {

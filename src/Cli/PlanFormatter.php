@@ -65,7 +65,7 @@ final class PlanFormatter
         $plugins = [];
 
         foreach ($configuration->plugins as $plugin) {
-            $plugins[] = $plugin::class;
+            $plugins[] = $plugin->pluginClass;
         }
 
         $lines[] = '  plugins: ' . ($plugins === [] ? '(none)' : \implode(', ', $plugins));

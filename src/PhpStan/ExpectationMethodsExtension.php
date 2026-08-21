@@ -20,8 +20,7 @@ use PHPStan\Reflection\MethodsClassReflectionExtension;
  * name cause an analysis error.
  *
  * PHPStan and workers use the same procedure to load configuration files.
- * PHPStan loads the files in the PHPStan process. Thus, plugin constructors
- * run in that process.
+ * PHPStan creates configured expectation extensions in the PHPStan process.
  *
  * @internal
  */

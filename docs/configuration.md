@@ -271,14 +271,15 @@ Each `eventually()` or `consistently()` matcher counts once.
 
 Also available as `--fail-on-risky`.
 
-### `plugins(Plugin ...$plugins): self`
+### `plugins(PluginDefinition ...$plugins): self`
 
 Default: none.
 
-Registers Greenlight plugin instances. Each plugin implements one or more
-capability interfaces.
+Registers immutable plugin definitions. Each definition names a plugin class
+and supplies a factory. The factory MUST return a new plugin instance on each
+call.
 
-The method is repeatable and instances accumulate.
+The method is repeatable and definitions accumulate.
 
 ### `artifacts(callable $configurator): self`
 

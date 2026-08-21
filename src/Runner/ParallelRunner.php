@@ -13,7 +13,6 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
@@ -82,14 +81,14 @@ final readonly class ParallelRunner
         $artifactStore = ArtifactStore::open($artifactConfiguration, $this->workingDirectory, $runId);
 
         try {
-            $orchestratorSide = PluginRegistry::orchestratorSide($configuration->plugins);
+            $orchestratorSide = PluginInstances::forOrchestrator($configuration->plugins);
 
             if ($orchestratorSide->runSubscribers() !== []) {
                 $sink = new PluginEventSink($orchestratorSide, $sink);
             }
 
             $fixtures = new ProvisionedIntegrationFixtures();
-            $initialWorkerAssignment = $orchestratorSide->hasWorkerBootstrapSubscribers()
+            $initialWorkerAssignment = PluginInstances::hasWorkerBootstrapSubscribers($configuration->plugins)
                 ? InitialWorkerAssignment::AfterAllReady
                 : InitialWorkerAssignment::Progressive;
 

@@ -22,13 +22,17 @@ Register `Psr15Plugin` with a request-handler factory:
 <!-- php-example {"example":"psr15-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Psr15\Psr15Plugin;
 use Psr\Http\Server\RequestHandlerInterface;
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/tests'])
-    ->plugins(new Psr15Plugin(
-        static fn(): RequestHandlerInterface => require __DIR__ . '/bootstrap/http.php',
+    ->plugins(new PluginDefinition(
+        Psr15Plugin::class,
+        static fn(): Psr15Plugin => new Psr15Plugin(
+            static fn(): RequestHandlerInterface => require __DIR__ . '/bootstrap/http.php',
+        ),
     ));
 ```
 

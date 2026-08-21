@@ -22,6 +22,7 @@ use Greenlight\Runner\ChannelEnvironment;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
+use Greenlight\Runner\PluginInstances;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
@@ -132,10 +133,10 @@ final readonly class WorkerProcess
                     throw ProtocolError::bootstrapChannelMismatch();
                 }
 
-                $userPlugins = $message->configFile === null
+                $pluginDefinitions = $message->configFile === null
                     ? []
                     : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
-                $plugins = PluginRegistry::forWorker($userPlugins);
+                $plugins = PluginInstances::forWorker($pluginDefinitions);
                 $plugins->bootstrapWorker(new WorkerBootstrapContext(
                     $workerId,
                     new TestChannel($message->channel),
