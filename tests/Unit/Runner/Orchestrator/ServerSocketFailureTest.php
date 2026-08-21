@@ -38,8 +38,8 @@ final readonly class ServerSocketFailureTest
     public function listenerThrowableBecomesAProtocolError(): void
     {
         $cause = new \RuntimeException('The fixture listener failed.');
-        $runtime = new class ($cause) implements ServerSocketRuntime {
-            public function __construct(private readonly \Throwable $cause) {}
+        $runtime = new readonly class ($cause) implements ServerSocketRuntime {
+            public function __construct(private \Throwable $cause) {}
 
             #[\Override]
             public function listen(string $address, ?string &$errorMessage): never
