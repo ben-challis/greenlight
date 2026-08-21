@@ -109,6 +109,11 @@ final readonly class PluginRegistry
         }
     }
 
+    public function hasWorkerBootstrapSubscribers(): bool
+    {
+        return $this->ofType(WorkerBootstrapSubscriber::class) !== [];
+    }
+
     /**
      * @return list<ServiceDefinition>
      */

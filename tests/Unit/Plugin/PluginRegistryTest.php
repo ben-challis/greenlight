@@ -9,6 +9,8 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
 use Greenlight\Tests\Fixture\Plugins\FakeCapabilityPlugin;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
@@ -34,6 +36,21 @@ final class PluginRegistryTest
             ->toBe([]);
         Expect::that($registry->runWorker(static fn(): string => 'worker result'))
             ->toBe('worker result');
+        Expect::that($registry->hasWorkerBootstrapSubscribers())
+            ->toBeFalse();
+    }
+
+    #[Test]
+    public function registryReportsWorkerBootstrapSubscribers(): void
+    {
+        $subscriber = new readonly class implements Fake, WorkerBootstrapSubscriber {
+            #[\Override]
+            public function onWorkerBootstrap(WorkerBootstrapContext $context): void {}
+        };
+
+        Expect::that(new PluginRegistry([$subscriber])->hasWorkerBootstrapSubscribers())
+            ->because('worker bootstrap subscribers require the initial ready barrier')
+            ->toBeTrue();
     }
 
     #[Test]

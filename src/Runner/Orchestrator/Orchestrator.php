@@ -115,9 +115,15 @@ final class Orchestrator
 
     private ?ChannelAllocator $channels = null;
 
-    private int $initialWorkerTarget = 0;
+    /** @var positive-int */
+    private int $initialWorkerTarget = 1;
 
     private bool $initialBarrierPassed = false;
+
+    /**
+     * @var array<non-empty-string, true> initial workers that have not received their first assignment
+     */
+    private array $initialAssignmentsPending = [];
 
     /**
      * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
@@ -145,6 +151,7 @@ final class Orchestrator
         private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
         private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
         private readonly array $resourceLimits = [],
+        private readonly InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
     ) {
         $this->summary = new ResultSummary();
     }
@@ -216,7 +223,8 @@ final class Orchestrator
             return $this->summary;
         }
 
-        $this->initialWorkerTarget = \min($workerCount, $this->pendingUnits());
+        $this->initialWorkerTarget = $this->resourceScheduler()->initialWorkerTarget($workerCount);
+        $this->initialBarrierPassed = $this->initialWorkerAssignment === InitialWorkerAssignment::Progressive;
 
         $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
 
@@ -230,7 +238,7 @@ final class Orchestrator
                 }
 
                 $this->reapRetiringHandles();
-                $this->spawnUpTo($workerCount, $server->address, $token, $sink, $spawnBudget);
+                $this->spawnUpTo($this->initialWorkerTarget, $server->address, $token, $sink, $spawnBudget);
 
                 if ($this->finished()) {
                     break;
@@ -251,26 +259,26 @@ final class Orchestrator
     }
 
     /**
-     * @param positive-int $workerCount
+     * @param positive-int $workerTarget
      * @param non-empty-string $address
      * @param non-empty-string $token
      * @throws ProtocolError
      */
     private function spawnUpTo(
-        int $workerCount,
+        int $workerTarget,
         string $address,
         string $token,
         EventSink $sink,
         WorkerSpawnBudget $spawnBudget,
     ): void {
         // Isolated and reused workers use the same worker pool. The active
-        // count below limits live workers to the worker count. Thus, the
+        // count below limits live workers to the worker target. Thus, the
         // allocator has a channel for each possible live worker.
-        $channels = $this->channels ??= new ChannelAllocator($workerCount);
+        $channels = $this->channels ??= new ChannelAllocator($workerTarget);
 
         while (!$this->draining
             && $this->pendingUnits() > $this->unassignedActiveCount()
-            && \count($this->handles) < $workerCount
+            && \count($this->handles) < $workerTarget
         ) {
             $workerId = $spawnBudget->nextWorkerId();
 
@@ -303,6 +311,10 @@ final class Orchestrator
 
             $handle = new WorkerHandle($workerId, $channelNumber, $process, $pipes[1], $pipes[2]);
             $this->handles[$workerId] = $handle;
+
+            if (\count($this->handles) <= $this->initialWorkerTarget) {
+                $this->initialAssignmentsPending[$workerId] = true;
+            }
 
             $status = \proc_get_status($process);
             $sink->emit(new WorkerSpawned($workerId, \max(1, $status['pid']), \microtime(true)));
@@ -448,6 +460,12 @@ final class Orchestrator
             return;
         }
 
+        if (!$handle->isFresh() && $this->initialAssignmentsPending !== []) {
+            $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $this->monotonicTime());
+
+            return;
+        }
+
         $decision = $this->draining
             ? DispatchDecision::drain()
             : $this->resourceScheduler()->dispatch($handle->isFresh());
@@ -481,6 +499,11 @@ final class Orchestrator
         }
 
         $handle->beginAssignment($lease);
+
+        if (isset($this->initialAssignmentsPending[$handle->workerId])) {
+            unset($this->initialAssignmentsPending[$handle->workerId]);
+            $this->retryWaitingWorkers = true;
+        }
 
         try {
             $channel->send(new Assign(
@@ -545,9 +568,8 @@ final class Orchestrator
                         $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
                         $this->openInitialBarrier($sink);
                     } else {
-                        // A replacement worker can start as soon as its own
-                        // bootstrap completes. The all-ready barrier applies
-                        // only to the initial pool.
+                        // Progressive initial workers and replacements can
+                        // start as soon as their own bootstrap completes.
                         $this->assignNext($handle, $sink);
                     }
                 } elseif ($message instanceof Recycling) {
@@ -1053,6 +1075,11 @@ final class Orchestrator
 
     private function finishHandle(WorkerHandle $handle): void
     {
+        if (isset($this->initialAssignmentsPending[$handle->workerId])) {
+            unset($this->initialAssignmentsPending[$handle->workerId]);
+            $this->retryWaitingWorkers = true;
+        }
+
         $handle->retire($this->monotonicTime(), self::WORKER_EXIT_GRACE_SECONDS);
     }
 

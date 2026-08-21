@@ -57,9 +57,15 @@ message that contains the channel, config path, and resources. The worker loads
 its plugins, calls `WorkerBootstrapSubscriber`, builds the harness registry, and
 then replies with `ready`.
 
-The orchestrator waits for every initial worker to report `ready` before it
-assigns a test. A replacement worker waits only for its own bootstrap because
-the rest of the pool can still run tests.
+When a configured plugin implements `WorkerBootstrapSubscriber`, the
+orchestrator waits for every initial worker to report `ready` before it assigns
+a test. This barrier preserves the run-wide bootstrap lifecycle guarantee. A
+replacement worker waits only for its own bootstrap because the rest of the
+pool can still run tests.
+
+Without this subscriber, each initial worker can receive its first assignment
+after its own bootstrap. Integration fixture provisioning still finishes before
+Greenlight starts any worker.
 
 Tests can inject `IntegrationResources` directly. A plugin can instead read the
 resources in `WorkerBootstrapSubscriber` and expose an application-specific

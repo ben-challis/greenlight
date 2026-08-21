@@ -92,6 +92,40 @@ final class ResourceScheduler
         return \count($this->pooled) + \count($this->isolated);
     }
 
+    /**
+     * Returns a safe upper bound for useful concurrent initial workers.
+     *
+     * Each constrained unit consumes at least one slot from the resource
+     * union. Unconstrained units add one possible assignment each. This bound
+     * can start more workers than necessary when units require several
+     * resources, but it cannot remove achievable concurrency.
+     *
+     * @param positive-int $ceiling
+     *
+     * @return positive-int
+     */
+    public function initialWorkerTarget(int $ceiling): int
+    {
+        $unconstrained = 0;
+        $capacities = [];
+
+        foreach ([...$this->pooled, ...$this->isolated] as $unit) {
+            if ($unit->resources === []) {
+                ++$unconstrained;
+
+                continue;
+            }
+
+            foreach ($unit->resources as $resource) {
+                $capacities[$resource] = $this->limit($resource);
+            }
+        }
+
+        $capacityBound = $unconstrained + \array_sum($capacities);
+
+        return \max(1, \min($ceiling, $this->pendingCount(), $capacityBound));
+    }
+
     public function clearPending(): void
     {
         $this->pooled = [];

@@ -13,6 +13,38 @@ use Greenlight\Tests\Support\SchedulingFixture;
 final class ResourceSchedulerTest
 {
     #[Test]
+    public function sharedResourceCapacityReducesTheInitialWorkerTarget(): void
+    {
+        $scheduler = new ResourceScheduler([
+            SchedulingFixture::unit('FirstTest', ['database']),
+            SchedulingFixture::unit('SecondTest', ['database']),
+            SchedulingFixture::unit('ThirdTest', ['database']),
+        ], [], ['database' => 2]);
+
+        Expect::that($scheduler->initialWorkerTarget(8))
+            ->because('the initial target MUST use the shared resource capacity')
+            ->toBe(2);
+    }
+
+    #[Test]
+    public function initialWorkerTargetKeepsAllAchievableParallelism(): void
+    {
+        $scheduler = new ResourceScheduler([
+            SchedulingFixture::unit('UnconstrainedTest'),
+            SchedulingFixture::unit('DatabaseTest', ['database']),
+            SchedulingFixture::unit('ApiTest', ['api']),
+            SchedulingFixture::unit('CombinedTest', ['database', 'api']),
+        ], [], ['database' => 2, 'api' => 1]);
+
+        Expect::that($scheduler->initialWorkerTarget(8))
+            ->because('the initial target MUST keep unconstrained and separate resource capacity')
+            ->toBe(4);
+        Expect::that($scheduler->initialWorkerTarget(2))
+            ->because('the configured worker count MUST remain the concurrency ceiling')
+            ->toBe(2);
+    }
+
+    #[Test]
     public function unconfiguredResourcesAreExclusive(): void
     {
         $scheduler = new ResourceScheduler([
