@@ -25,7 +25,7 @@ final readonly class WorkerCaptureCleanupTest
                 public static int $cleanups = 0;
 
                 public function __construct(
-                    private Greenlight\Core\Test\Cleanup $cleanup,
+                    private Greenlight\Test\Cleanup $cleanup,
                     private Greenlight\Tests\Fixture\Harness\RecordingDisposable $disposable,
                 ) {}
 
