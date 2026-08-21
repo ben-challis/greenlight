@@ -46,10 +46,8 @@ final readonly class Retry
      */
     private function validatedOnlyOn(?string $onlyOn): ?string
     {
-        if ($onlyOn !== null
-            && (!\is_a($onlyOn, \Throwable::class, true) || !new \ReflectionClass($onlyOn)->isInstantiable())
-        ) {
-            throw new \InvalidArgumentException('Retry onlyOn MUST name an instantiable Throwable class.');
+        if ($onlyOn !== null && !\is_a($onlyOn, \Throwable::class, true)) {
+            throw new \InvalidArgumentException('Retry onlyOn MUST name a Throwable type.');
         }
 
         return $onlyOn;

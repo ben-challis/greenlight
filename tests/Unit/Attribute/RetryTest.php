@@ -12,16 +12,14 @@ use Greenlight\Expect\Expect;
 final class RetryTest
 {
     #[Test]
-    public function abstractThrowableTypesAreRejected(): void
+    public function throwableFiltersDoNotNeedToBeInstantiable(): void
     {
-        Expect::that(
-            static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, AbstractRetryFailure::class),
-        )
-            ->because('a retry filter MUST name an instantiable Throwable class')
-            ->toThrow(
-                \InvalidArgumentException::class,
-                message: 'Retry onlyOn MUST name an instantiable Throwable class.',
-            );
+        Expect::that(new Retry(1, \Throwable::class)->onlyOn)
+            ->because('the Throwable interface is a valid retry type filter')
+            ->toBe(\Throwable::class);
+        Expect::that(new Retry(1, AbstractRetryFailure::class)->onlyOn)
+            ->because('an abstract throwable is a valid retry type filter')
+            ->toBe(AbstractRetryFailure::class);
     }
 
     #[Test]
@@ -31,10 +29,10 @@ final class RetryTest
         Expect::that(
             static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, $onlyOn),
         )
-            ->because('a retry filter MUST name an instantiable Throwable class')
+            ->because('a retry filter MUST name a Throwable type')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Retry onlyOn MUST name an instantiable Throwable class.',
+                message: 'Retry onlyOn MUST name a Throwable type.',
             );
     }
 

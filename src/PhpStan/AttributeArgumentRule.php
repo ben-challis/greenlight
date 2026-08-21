@@ -129,10 +129,10 @@ final readonly class AttributeArgumentRule implements Rule
 
         if ($onlyOn instanceof Node\Expr
             && !$scope->getType($onlyOn)->isNull()->yes()
-            && !$this->isInstantiableClass($onlyOn, $scope, \Throwable::class)
+            && !$this->isClass($onlyOn, $scope, \Throwable::class)
         ) {
             $errors[] = $this->error(
-                '#[Retry] onlyOn must name an instantiable Throwable class.',
+                '#[Retry] onlyOn must name a Throwable type.',
                 'retry',
                 $onlyOn->getStartLine(),
             );
@@ -212,12 +212,28 @@ final readonly class AttributeArgumentRule implements Rule
 
         $class = $classes[0]->getValue();
 
-        if (!$this->reflectionProvider->hasClass($class)) {
+        if (!$this->isClass($argument, $scope, $parent)) {
             return false;
         }
 
-        return new ObjectType($parent)->isSuperTypeOf(new ObjectType($class))->yes()
-            && $this->reflectionProvider->getClass($class)->getNativeReflection()->isInstantiable();
+        return $this->reflectionProvider->getClass($class)->getNativeReflection()->isInstantiable();
+    }
+
+    /**
+     * @param class-string $parent
+     */
+    private function isClass(Node\Expr $argument, Scope $scope, string $parent): bool
+    {
+        $classes = $scope->getType($argument)->getConstantStrings();
+
+        if (\count($classes) !== 1) {
+            return true;
+        }
+
+        $class = $classes[0]->getValue();
+
+        return $this->reflectionProvider->hasClass($class)
+            && new ObjectType($parent)->isSuperTypeOf(new ObjectType($class))->yes();
     }
 
     /**

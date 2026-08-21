@@ -37,6 +37,8 @@ final readonly class PhpStanAttributeArgumentRuleTest
             use Greenlight\Attribute\Timeout;
             use Greenlight\Condition\EnvironmentVariableEquals;
 
+            abstract class GoodAbstractRetryFailure extends \RuntimeException {}
+
             #[Group('analysis')]
             #[RequiresResource('postgres.primary')]
             #[Retry(1, \RuntimeException::class)]
@@ -49,6 +51,12 @@ final readonly class PhpStanAttributeArgumentRuleTest
                 #[DataRow([], label: null)]
                 public function acceptsAnUnlabeledDataRow(): void {}
             }
+
+            #[Retry(1, \Throwable::class)]
+            final class GoodThrowableInterfaceRetryProbe {}
+
+            #[Retry(1, GoodAbstractRetryFailure::class)]
+            final class GoodAbstractRetryProbe {}
             PHP,
             <<<'PHP'
             <?php
@@ -67,8 +75,6 @@ final readonly class PhpStanAttributeArgumentRuleTest
             use Greenlight\Attribute\Timeout;
             use Greenlight\Condition\EnvironmentVariableSet;
             use Greenlight\Core\Condition;
-
-            abstract class AbstractRetryFailure extends \RuntimeException {}
 
             abstract class AbstractCondition implements Condition {}
 
@@ -102,9 +108,6 @@ final readonly class PhpStanAttributeArgumentRuleTest
             #[Retry(1, \stdClass::class)]
             final class BadRetryTypeProbe {}
 
-            #[Retry(1, AbstractRetryFailure::class)]
-            final class BadAbstractRetryTypeProbe {}
-
             #[SkipUnless(\stdClass::class)]
             final class BadConditionTypeProbe {}
 
@@ -126,10 +129,10 @@ final readonly class PhpStanAttributeArgumentRuleTest
 
         Expect::that($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBeGreaterThan(9);
+        Expect::that(\count($probe->errors))->toBe(20);
         Expect::that($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
             ->toContain('#[Retry] times must be at least 1')
-            ->toContain('#[Retry] onlyOn must name an instantiable Throwable class')
+            ->toContain('#[Retry] onlyOn must name a Throwable type')
             ->toContain('#[SkipUnless] condition must name an instantiable Condition class')
             ->toContain('#[SkipUnless] argument 1 must be a scalar or null')
             ->toContain('#[SkipUnless] argument 1 must be a finite float')
