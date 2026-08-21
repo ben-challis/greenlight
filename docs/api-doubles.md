@@ -50,7 +50,11 @@ The description identifies the constraint in failure messages.
 public static function predicate(\Closure $predicate, string $description = 'predicate'): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L34)
+PHPDoc:
+
+- `@param \Closure(mixed): mixed $predicate`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L36)
 
 ### `equals()`
 
@@ -61,7 +65,7 @@ This form states the comparison explicitly.
 public static function equals(mixed $value): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L45)
 
 ### `captor()`
 
@@ -72,7 +76,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L54)
 
 ## `ArgumentCaptor`
 
