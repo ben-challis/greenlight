@@ -131,6 +131,7 @@ for the complete model.
 
 * [Start with Greenlight](docs/getting-started.md)
 * [Configuration reference](docs/configuration.md)
+* [Use Greenlight in GitHub Actions](docs/github-actions.md)
 * [Attribute reference](docs/attributes.md)
 * [Expectations](docs/expectations.md)
 * [Test doubles](docs/test-doubles.md)
