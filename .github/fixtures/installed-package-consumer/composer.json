@@ -3,7 +3,9 @@
     "description": "Tests the installed Greenlight package.",
     "license": "proprietary",
     "require-dev": {
-        "greenlight/greenlight": "1.0.0"
+        "greenlight/greenlight": "1.0.0",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.2"
     },
     "repositories": [
         {
@@ -15,14 +17,17 @@
                     "greenlight/greenlight": "1.0.0"
                 }
             }
-        },
-        {
-            "packagist.org": false
         }
     ],
     "autoload-dev": {
         "psr-4": {
             "Greenlight\\ConsumerSmoke\\": "tests/"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true
     }
 }
