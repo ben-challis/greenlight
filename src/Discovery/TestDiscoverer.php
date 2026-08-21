@@ -250,7 +250,11 @@ final readonly class TestDiscoverer
         $files = [];
 
         foreach ($directories as $directory) {
-            $real = ErrorTrap::run(static fn() => \realpath($directory));
+            $real = ErrorTrap::run(
+                static fn() => \realpath($directory),
+                wrap: static fn(\Throwable $error): DiscoveryError =>
+                    DiscoveryError::directoryNotFound($directory, $error),
+            );
 
             if ($real === false || !\is_dir($real)) {
                 throw DiscoveryError::directoryNotFound($directory);
