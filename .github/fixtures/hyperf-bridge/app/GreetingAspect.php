@@ -9,10 +9,13 @@ use Hyperf\Di\Aop\ProceedingJoinPoint;
 
 final class GreetingAspect extends AbstractAspect
 {
-    public function __construct()
-    {
-        $this->classes = [Greeter::class . '::greet'];
-    }
+    /** @var list<string> */
+    // @phpstan-ignore-next-line property.phpDocType (Hyperf declares the overridden property as an untyped array.)
+    public array $classes = [Greeter::class . '::greet'];
+
+    /** @var list<class-string> */
+    // @phpstan-ignore-next-line property.phpDocType (Hyperf declares the overridden property as an untyped array.)
+    public array $annotations = [];
 
     public function process(ProceedingJoinPoint $proceedingJoinPoint): string
     {
