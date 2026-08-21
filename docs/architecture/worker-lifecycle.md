@@ -58,7 +58,7 @@ sequenceDiagram
     O->>W: bootstrap (channel, config, resources)
     W->>W: load plugins, run worker bootstrap,<br/>build harness registry
     W->>O: ready
-    Note over O,W: initial workers all become ready<br/>before any assignment begins
+    Note over O,W: assignment can begin after ready;<br/>subscriber mode waits for all initial workers
 
     loop until the queue is empty
         opt required resource capacity is unavailable
@@ -93,13 +93,26 @@ transitions. It records these lifecycle phases:
 * observed `done` to the next sent `assign`
 * a retirement request to observed process exit
 
-The orchestrator also attributes idle time to the initial ready barrier,
-resource capacity, or no queued work. It does not add instrumentation to a
-worker test loop or a scheduler polling loop.
+The orchestrator also attributes idle time to initial bootstrap coordination,
+resource capacity, or no queued work. The profile reports first-wave and
+all-ready waits as `Bootstrap barrier` time. It does not add instrumentation to
+a worker test loop or a scheduler polling loop.
 
-The initial ready barrier prevents tests from starting while another initial
-worker is still bootstrapping. A replacement worker created after a crash or
-recycle needs to complete only its own bootstrap.
+Greenlight assigns one scheduling unit to each intended initial worker as that
+worker becomes ready. A worker does not receive a second unit until each
+intended worker has received its first opportunity. Thus, useful work does not
+wait for the slowest bootstrap, and one fast worker cannot consume a short
+queue.
+
+A configured `WorkerBootstrapSubscriber` selects the all-ready mode. In this
+mode, the initial ready barrier prevents tests from starting while another
+initial worker is still bootstrapping. A replacement worker created after a
+crash or recycle needs to complete only its own bootstrap in both modes.
+
+The initial pool does not exceed the configured worker count. Greenlight also
+uses a safe resource-capacity bound. It starts fewer initial workers when the
+queued scheduling units and their resource limits prove that more workers
+cannot run concurrently. This bound does not remove achievable concurrency.
 
 Workers build their plugins and harness registries during `bootstrap` and reuse
 them for later assignments. Per-run harness services therefore live for the

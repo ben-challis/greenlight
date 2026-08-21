@@ -20,7 +20,9 @@ use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\Integration\IntegrationFixtureManager;
 use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Orchestrator\Distributor;
+use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Runner\Orchestrator\Orchestrator;
+use Greenlight\Runner\Orchestrator\ResourceScheduler;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
@@ -87,10 +89,17 @@ final readonly class ParallelRunner
             }
 
             $fixtures = new ProvisionedIntegrationFixtures();
+            $initialWorkerAssignment = $orchestratorSide->hasWorkerBootstrapSubscribers()
+                ? InitialWorkerAssignment::AfterAllReady
+                : InitialWorkerAssignment::Progressive;
 
             if (\count($plan) > 0) {
                 [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $workerCount);
-                $channelCount = \min($workerCount, \count($pooled) + \count($isolated));
+                $channelCount = new ResourceScheduler(
+                    $pooled,
+                    $isolated,
+                    $configuration->resourceLimits,
+                )->initialWorkerTarget($workerCount);
                 $fixtures = IntegrationFixtureManager::provision(
                     $orchestratorSide,
                     $runId,
@@ -125,6 +134,7 @@ final readonly class ParallelRunner
                     $artifactConfiguration,
                     $fixtures,
                     resourceLimits: $configuration->resourceLimits,
+                    initialWorkerAssignment: $initialWorkerAssignment,
                 );
 
                 $summary = $orchestrator->run($plan, $sink, $workerCount, $classSeconds);
