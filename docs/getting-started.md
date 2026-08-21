@@ -204,6 +204,9 @@ Repeat the flag to select more than one reporter:
 vendor/bin/greenlight run --reporter=tty --reporter=junit
 ```
 
+Plugins can register custom reporter factories. See
+[ReporterProvider](plugins.md#reporterprovider).
+
 Tests can retain diagnostic data without output to standard output. Inject
 `Greenlight\Core\Artifact\Attachments`.
 

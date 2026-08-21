@@ -43,15 +43,20 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
+use Greenlight\Plugin\Plugin;
+use Greenlight\Plugin\ReporterProvider;
 use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Reporting\Output\Output;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\ProfileAggregator;
 use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\ReporterDefinition;
+use Greenlight\Reporting\ReporterProviderError;
 use Greenlight\Reporting\ReportingError;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
@@ -149,7 +154,8 @@ final readonly class Application
                              whole classes. They are stable across machines and
                              need no coordination.
           --seed=<n>         Randomize class order with this seed
-          --reporter=<name>  Select tty, plain, junit, jsonl, github, or teamcity.
+          --reporter=<name>  Select a built-in or configured reporter name.
+                             Built-ins: tty, plain, junit, jsonl, github, teamcity.
                              You can repeat this option.
           --artifacts-dir=<path> Persistent directory for retained test attachments
           --watch            Run selected tests at startup and after file changes.
@@ -362,18 +368,30 @@ final readonly class Application
         $workerBin = $this->workerBinPath($binPath);
 
         try {
-            $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $workerBin === false);
+            $reporterCatalog = $this->reporterCatalog(
+                $arguments,
+                $resolved->plugins,
+                $resolved->randomSeed,
+                $configFile,
+                $workingDirectory,
+                workerFallback: $workers > 1 && $workerBin === false,
+            );
+            $reporter = $this->buildReporter($arguments, $reporterCatalog);
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
+        } catch (ReporterProviderError $error) {
+            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+            return self::EXIT_FAILURE;
         }
 
         $shutdown = new GracefulShutdown();
         SignalHandlers::install($shutdown);
 
         if ($arguments->has('watch')) {
-            return $this->watchCommand($arguments, $workingDirectory, $workerBin, $resolved, $configFile, $shutdown);
+            return $this->watchCommand($arguments, $workingDirectory, $workerBin, $resolved, $configFile, $shutdown, $reporterCatalog, $reporter);
         }
 
         $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
@@ -437,11 +455,15 @@ final readonly class Application
 
             if ($iteration > 1) {
                 try {
-                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $workerBin === false);
+                    $reporter = $this->buildReporter($arguments, $reporterCatalog);
                 } catch (CliError $error) {
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                     return self::EXIT_USAGE;
+                } catch (ReporterProviderError $error) {
+                    $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+                    return self::EXIT_FAILURE;
                 }
             }
 
@@ -680,6 +702,8 @@ final readonly class Application
         Configuration $resolved,
         string $configFile,
         GracefulShutdown $shutdown,
+        ReporterCatalog $reporterCatalog,
+        Reporter $initialReporter,
     ): int {
         $directories = $this->directories($resolved, $workingDirectory);
         $watched = $directories;
@@ -697,21 +721,17 @@ final readonly class Application
         $detectLeaks = $arguments->has('detect-leaks');
         $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
         $this->warnWhenLeakDetectionIsUnreliable($detectLeaks, $arguments->has('no-ansi'));
+        $nextReporter = $initialReporter;
 
         $runOnce =
-            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown, $storage): array {
+            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown, $storage, $reporterCatalog, &$nextReporter): array {
                 $priorityClasses = \array_values(\array_filter(
                     $priorityClasses,
                     static fn(mixed $class): bool => \is_string($class) && $class !== '',
                 ));
 
-                try {
-                    $reporter = $this->buildReporter($arguments, $resolved->randomSeed, $configFile, $workingDirectory, workerFallback: $workers > 1 && $workerBin === false);
-                } catch (CliError $error) {
-                    $this->printError($error->getMessage(), $arguments->has('no-ansi'));
-
-                    return $priorityClasses;
-                }
+                $reporter = $nextReporter ?? $this->buildReporter($arguments, $reporterCatalog);
+                $nextReporter = null;
 
                 $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
 
@@ -750,6 +770,10 @@ final readonly class Application
                 $this->out,
                 $shutdown,
             )->run($runOnce);
+        } catch (ReporterProviderError $error) {
+            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+            return self::EXIT_FAILURE;
         } finally {
             $keys->restore();
         }
@@ -891,11 +915,18 @@ final readonly class Application
     }
 
     /**
-     * @throws CliError
+     * @param list<Plugin> $plugins
+     *
+     * @throws ReporterProviderError
      */
-    private function buildReporter(ParsedArguments $arguments, ?int $seed, string $configFile, string $workingDirectory, bool $workerFallback = false): Reporter
-    {
-        $output = new StreamOutput($this->stdout);
+    private function reporterCatalog(
+        ParsedArguments $arguments,
+        array $plugins,
+        ?int $seed,
+        string $configFile,
+        string $workingDirectory,
+        bool $workerFallback = false,
+    ): ReporterCatalog {
         $capabilities = TerminalCapabilities::detect(
             Terminal::isTty($this->stdout),
             ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
@@ -903,21 +934,14 @@ final readonly class Application
             $arguments->has('ansi'),
         );
 
-        $names = $arguments->values('reporter');
-
-        if ($names === []) {
-            $names = [$capabilities->interactive || $capabilities->color ? 'tty' : 'plain'];
-        }
-
         $prefix = \rtrim($workingDirectory, '/') . '/';
         $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
         $header = new RunHeader(self::VERSION, $displayedConfig, $seed, workerFallback: $workerFallback);
         $profile = $arguments->has('profile');
-        $reporters = [];
-
-        foreach ($names as $name) {
-            $reporters[] = match ($name) {
-                'tty' => new TtyReporter(
+        $definitions = [
+            new ReporterDefinition(
+                'tty',
+                static fn(Output $output): Reporter => new TtyReporter(
                     $output,
                     $capabilities->color,
                     $capabilities->interactive,
@@ -926,16 +950,70 @@ final readonly class Application
                     verbose: $arguments->has('verbose'),
                     terminalRows: TerminalRowsResolver::resolve(),
                 ),
-                'plain' => new PlainReporter($output, $header, extendedSlowTests: $profile),
-                'junit' => new JUnitReporter($output),
-                'jsonl' => new JsonLinesReporter($output),
-                'github' => new GithubReporter($output),
-                'teamcity' => new TeamCityReporter($output),
-                default => throw CliError::unknownReporter($name),
-            };
+            ),
+            new ReporterDefinition(
+                'plain',
+                static fn(Output $output): Reporter => new PlainReporter($output, $header, extendedSlowTests: $profile),
+            ),
+            new ReporterDefinition('junit', static fn(Output $output): Reporter => new JUnitReporter($output)),
+            new ReporterDefinition('jsonl', static fn(Output $output): Reporter => new JsonLinesReporter($output)),
+            new ReporterDefinition('github', static fn(Output $output): Reporter => new GithubReporter($output)),
+            new ReporterDefinition('teamcity', static fn(Output $output): Reporter => new TeamCityReporter($output)),
+        ];
+
+        foreach ($plugins as $plugin) {
+            if (!$plugin instanceof ReporterProvider) {
+                continue;
+            }
+
+            try {
+                $provided = $plugin->reporters();
+            } catch (\Throwable $error) {
+                throw ReporterProviderError::providerFailed($plugin::class, $error);
+            }
+
+            $position = 0;
+
+            foreach ($provided as $definition) {
+                ++$position;
+
+                if (!$definition instanceof ReporterDefinition) {
+                    throw ReporterProviderError::invalidDefinition($plugin::class, $position);
+                }
+
+                $definitions[] = $definition;
+            }
         }
 
-        if ($profile) {
+        return new ReporterCatalog($definitions);
+    }
+
+    /**
+     * @throws CliError
+     * @throws ReporterProviderError
+     */
+    private function buildReporter(ParsedArguments $arguments, ReporterCatalog $catalog): Reporter
+    {
+        $output = new StreamOutput($this->stdout);
+        $capabilities = TerminalCapabilities::detect(
+            Terminal::isTty($this->stdout),
+            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+            $arguments->has('no-ansi'),
+            $arguments->has('ansi'),
+        );
+        $names = $arguments->values('reporter');
+
+        if ($names === []) {
+            $names = [$capabilities->interactive || $capabilities->color ? 'tty' : 'plain'];
+        }
+
+        $reporters = [];
+
+        foreach ($names as $name) {
+            $reporters[] = $catalog->create($name, $output);
+        }
+
+        if ($arguments->has('profile')) {
             $reporters[] = new ProfileReporter($output, new Style($capabilities->color));
         }
 
