@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\MemorySize;
+use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
 
 /** @internal */
@@ -16,64 +16,64 @@ final class PlanFormatter
     private function __construct() {}
 
     public static function format(
-        Configuration $configuration,
+        ResolvedConfiguration $configuration,
         string $configFile,
         string $workingDirectory,
     ): string {
         $lines = [];
         $lines[] = 'Run plan';
         $lines[] = '  configuration file: ' . $configFile;
-        $lines[] = '  test paths: ' . \implode(', ', $configuration->paths);
+        $lines[] = '  test paths: ' . \implode(', ', $configuration->discovery->paths);
 
-        if ($configuration->suites === []) {
+        if ($configuration->discovery->suites === []) {
             $lines[] = '  suites: (none)';
         } else {
-            foreach ($configuration->suites as $suite) {
+            foreach ($configuration->discovery->suites as $suite) {
                 $tags = $suite->tags === [] ? '' : ' [tags: ' . \implode(', ', $suite->tags) . ']';
                 $lines[] = \sprintf('  suite %s: %s%s', $suite->name, \implode(', ', $suite->paths), $tags);
             }
         }
 
-        $lines[] = '  workers: ' . $configuration->workers->describe();
+        $lines[] = '  workers: ' . $configuration->workers->count->describe();
         $resourceLimits = [];
 
-        foreach ($configuration->resourceLimits as $name => $limit) {
+        foreach ($configuration->workers->resourceLimits as $name => $limit) {
             $resourceLimits[] = $name . '=' . $limit;
         }
 
         $lines[] = '  resource limits: ' . ($resourceLimits === [] ? '(default 1 per required resource)' : \implode(', ', $resourceLimits));
-        $lines[] = $configuration->recycleAfterTests === null
-            ? \sprintf('  recycle: above %s memory', MemorySize::format($configuration->recycleAboveMemoryBytes))
+        $lines[] = $configuration->workers->recycleAfterTests === null
+            ? \sprintf('  recycle: above %s memory', MemorySize::format($configuration->workers->recycleAboveMemoryBytes))
             : \sprintf(
                 '  recycle: after %d tests or above %s memory',
-                $configuration->recycleAfterTests,
-                MemorySize::format($configuration->recycleAboveMemoryBytes),
+                $configuration->workers->recycleAfterTests,
+                MemorySize::format($configuration->workers->recycleAboveMemoryBytes),
             );
 
         $lines[] = '  stop after: ' . match (true) {
-            $configuration->stopAfterFailures === null => 'never',
-            $configuration->stopAfterFailures === 1 => '1 failure',
-            default => $configuration->stopAfterFailures . ' failures',
+            $configuration->execution->stopAfterFailures === null => 'never',
+            $configuration->execution->stopAfterFailures === 1 => '1 failure',
+            default => $configuration->execution->stopAfterFailures . ' failures',
         };
 
-        if (!$configuration->randomizeOrder) {
+        $seed = $configuration->order->seed;
+
+        if ($seed === null) {
             $lines[] = '  order: declared';
-        } elseif ($configuration->randomSeed !== null) {
-            $lines[] = \sprintf('  order: random (seed %d)', $configuration->randomSeed);
         } else {
-            $lines[] = '  order: random (seed chosen at run time)';
+            $lines[] = \sprintf('  order: random (seed %d)', $seed);
         }
 
-        $lines[] = '  groups: ' . ($configuration->groups === [] ? '(all)' : \implode(', ', $configuration->groups));
+        $lines[] = '  groups: ' . ($configuration->selection->include->groups === [] ? '(all)' : \implode(', ', $configuration->selection->include->groups));
 
         $plugins = [];
 
-        foreach ($configuration->plugins as $plugin) {
+        foreach ($configuration->execution->plugins as $plugin) {
             $plugins[] = $plugin->pluginClass;
         }
 
         $lines[] = '  plugins: ' . ($plugins === [] ? '(none)' : \implode(', ', $plugins));
-        $lines[] = '  artifacts: ' . $configuration->artifacts->directory;
+        $lines[] = '  artifacts: ' . $configuration->execution->artifacts->directory;
         $storage = StorageLayout::resolve($configuration->storage, $workingDirectory);
         $lines[] = '  storage state: ' . $storage->runStateFile;
         $lines[] = '  storage cache: ' . $storage->cacheDirectory;

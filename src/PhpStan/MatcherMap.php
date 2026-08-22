@@ -49,7 +49,7 @@ final readonly class MatcherMap
                 $file = \getcwd() . '/' . $file;
             }
 
-            $definitions = $loader->loadFile($file)->build()->plugins;
+            $definitions = $loader->loadFile($file)->build()->execution->plugins;
 
             foreach ($definitions as $definition) {
                 if (!$definition->supports(ExpectationExtension::class)) {

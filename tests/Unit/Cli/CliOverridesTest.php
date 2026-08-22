@@ -19,19 +19,19 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, []));
 
-        Expect::that($overrides->workers)->because('absent flags mean no overrides')->toBe(null);
-        Expect::that($overrides->stopAfterFailures)->because('absent flags mean no overrides')->toBe(null);
-        Expect::that($overrides->groups)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->execution->workers)->because('absent flags mean no overrides')->toBe(null);
+        Expect::that($overrides->execution->stopAfterFailures)->because('absent flags mean no overrides')->toBe(null);
+        Expect::that($overrides->selection->include->groups)->because('absent flags mean no overrides')->toBe([]);
         Expect::that($overrides->seed)->because('absent flags mean no overrides')->toBe(null);
-        Expect::that($overrides->testIds)->because('absent flags mean no overrides')->toBe([]);
-        Expect::that($overrides->excludeGroups)->because('absent flags mean no overrides')->toBe([]);
-        Expect::that($overrides->excludeClasses)->because('absent flags mean no overrides')->toBe([]);
-        Expect::that($overrides->excludeMethods)->because('absent flags mean no overrides')->toBe([]);
-        Expect::that($overrides->excludePaths)->because('absent flags mean no overrides')->toBe([]);
-        Expect::that($overrides->repeat)->because('absent flags mean no overrides')->toBe(null);
-        Expect::that($overrides->repeatUntilFailure)->because('absent flags mean no overrides')->toBe(false);
-        Expect::that($overrides->artifactsDirectory)->because('absent flags mean no overrides')->toBe(null);
-        Expect::that($overrides->resourceLimits)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->selection->include->exactIds)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->selection->exclude->groups)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->selection->exclude->classes)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->selection->exclude->methods)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->selection->exclude->paths)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->repeat->count)->because('absent flags mean no overrides')->toBe(null);
+        Expect::that($overrides->repeat->untilFailure)->because('absent flags mean no overrides')->toBe(false);
+        Expect::that($overrides->execution->artifactsDirectory)->because('absent flags mean no overrides')->toBe(null);
+        Expect::that($overrides->execution->resourceLimits)->because('absent flags mean no overrides')->toBe([]);
     }
 
     #[Test]
@@ -44,10 +44,10 @@ final class CliOverridesTest
             'exclude-path' => ['tests/Legacy'],
         ]));
 
-        Expect::that($overrides->excludeGroups)->because('extracts exclusion lists')->toBe(['slow', 'io']);
-        Expect::that($overrides->excludeClasses)->because('extracts exclusion lists')->toBe(['Alpha*']);
-        Expect::that($overrides->excludeMethods)->because('extracts exclusion lists')->toBe(['two', 'craw?s']);
-        Expect::that($overrides->excludePaths)->because('extracts exclusion lists')->toBe(['tests/Legacy']);
+        Expect::that($overrides->selection->exclude->groups)->because('extracts exclusion lists')->toBe(['slow', 'io']);
+        Expect::that($overrides->selection->exclude->classes)->because('extracts exclusion lists')->toBe(['Alpha*']);
+        Expect::that($overrides->selection->exclude->methods)->because('extracts exclusion lists')->toBe(['two', 'craw?s']);
+        Expect::that($overrides->selection->exclude->paths)->because('extracts exclusion lists')->toBe(['tests/Legacy']);
     }
 
     #[Test]
@@ -62,22 +62,22 @@ final class CliOverridesTest
             'exclude-path' => ['0'],
         ]));
 
-        Expect::that($overrides->groups)
+        Expect::that($overrides->selection->include->groups)
             ->because('a zero string MUST remain a group selection')
             ->toBe(['0']);
-        Expect::that($overrides->filters)
+        Expect::that($overrides->selection->include->idPatterns)
             ->because('a zero string MUST remain a filter selection')
             ->toBe(['0']);
-        Expect::that($overrides->excludeGroups)
+        Expect::that($overrides->selection->exclude->groups)
             ->because('a zero string MUST remain an excluded group selection')
             ->toBe(['0']);
-        Expect::that($overrides->excludeClasses)
+        Expect::that($overrides->selection->exclude->classes)
             ->because('a zero string MUST remain an excluded class selection')
             ->toBe(['0']);
-        Expect::that($overrides->excludeMethods)
+        Expect::that($overrides->selection->exclude->methods)
             ->because('a zero string MUST remain an excluded method selection')
             ->toBe(['0']);
-        Expect::that($overrides->excludePaths)
+        Expect::that($overrides->selection->exclude->paths)
             ->because('a zero string MUST remain an excluded path selection')
             ->toBe(['0']);
     }
@@ -87,13 +87,13 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments('run', ['repeat' => ['3']]));
 
-        Expect::that($overrides->repeat)->because('extracts repeat options')->toBe(3);
-        Expect::that($overrides->repeatUntilFailure)->because('extracts repeat options')->toBe(false);
+        Expect::that($overrides->repeat->count)->because('extracts repeat options')->toBe(3);
+        Expect::that($overrides->repeat->untilFailure)->because('extracts repeat options')->toBe(false);
 
         $overrides = CliOverrides::fromArguments(new ParsedArguments('run', ['repeat-until-failure' => [null]]));
 
-        Expect::that($overrides->repeat)->because('extracts repeat options')->toBe(null);
-        Expect::that($overrides->repeatUntilFailure)->because('extracts repeat options')->toBe(true);
+        Expect::that($overrides->repeat->count)->because('extracts repeat options')->toBe(null);
+        Expect::that($overrides->repeat->untilFailure)->because('extracts repeat options')->toBe(true);
     }
 
     #[Test]
@@ -109,13 +109,13 @@ final class CliOverridesTest
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
         ]));
 
-        Expect::that($overrides->workers?->fixed)->because('extracts typed values')->toBe(4);
-        Expect::that($overrides->stopAfterFailures)->because('extracts typed values')->toBe(3);
-        Expect::that($overrides->groups)->because('extracts typed values')->toBe(['slow', 'io']);
+        Expect::that($overrides->execution->workers?->fixed)->because('extracts typed values')->toBe(4);
+        Expect::that($overrides->execution->stopAfterFailures)->because('extracts typed values')->toBe(3);
+        Expect::that($overrides->selection->include->groups)->because('extracts typed values')->toBe(['slow', 'io']);
         Expect::that($overrides->seed)->because('extracts typed values')->toBe(0);
-        Expect::that($overrides->testIds)->because('extracts typed values')->toBe(['App\ExampleTest::one', 'App\ExampleTest::two']);
-        Expect::that($overrides->artifactsDirectory)->because('extracts typed values')->toBe('build/evidence');
-        Expect::that($overrides->resourceLimits)->because('extracts typed values')->toBe([
+        Expect::that($overrides->selection->include->exactIds)->because('extracts typed values')->toBe(['App\ExampleTest::one', 'App\ExampleTest::two']);
+        Expect::that($overrides->execution->artifactsDirectory)->because('extracts typed values')->toBe('build/evidence');
+        Expect::that($overrides->execution->resourceLimits)->because('extracts typed values')->toBe([
             'postgres' => 3,
             'payments-sandbox' => 1,
             'cache.primary_1' => 2,
@@ -127,7 +127,7 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['bail' => [null]]));
 
-        Expect::that($overrides->stopAfterFailures)->because('bail without a value means stop after the first failure')->toBe(1);
+        Expect::that($overrides->execution->stopAfterFailures)->because('bail without a value means stop after the first failure')->toBe(1);
     }
 
     #[Test]
@@ -145,8 +145,8 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['workers' => ['auto']]));
 
-        Expect::that($overrides->workers)->because('workers auto is kept as the auto marker')->toBeInstanceOf(WorkerCount::class);
-        Expect::that($overrides->workers->isAuto())->because('workers auto is kept as the auto marker')->toBeTrue();
+        Expect::that($overrides->execution->workers)->because('workers auto is kept as the auto marker')->toBeInstanceOf(WorkerCount::class);
+        Expect::that($overrides->execution->workers->isAuto())->because('workers auto is kept as the auto marker')->toBeTrue();
     }
 
     #[Test]
@@ -154,7 +154,7 @@ final class CliOverridesTest
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['shard' => ['2/3']]));
 
-        Expect::that($overrides->shard)
+        Expect::that($overrides->selection->shard)
             ->because('--shard MUST keep the selected index before the total count')
             ->toBe([2, 3]);
     }

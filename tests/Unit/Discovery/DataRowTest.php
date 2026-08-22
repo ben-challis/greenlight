@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\TestInclusions;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Discovery\DataSetExpander;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Discovery\Filter;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DataRows\InlineRowsTest;
@@ -35,7 +36,7 @@ final class DataRowTest
     {
         $plan = new TestDiscoverer()->discover(
             [FixturePath::get('DataRowsZeroLabel')],
-            Filter::all(),
+            new TestSelection(),
         );
         $ids = \array_map(static fn($entry): string => (string) $entry->id, $plan->entries);
 
@@ -126,7 +127,7 @@ final class DataRowTest
     {
         $plan = new TestDiscoverer()->discover(
             [FixturePath::get('DataRows')],
-            new Filter(includeMethods: ['addsUp']),
+            new TestSelection(include: new TestInclusions(methods: ['addsUp'])),
         );
 
         $ids = \array_map(static fn($entry): string => (string) $entry->id, $plan->entries);

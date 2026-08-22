@@ -6,6 +6,7 @@ namespace Greenlight\Discovery;
 
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Test\TestId;
+use Greenlight\Core\Test\TestSelection;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 
@@ -44,9 +45,9 @@ final readonly class TestDiscoverer
      *
      * @throws DiscoveryError
      */
-    public function discover(array $directories, ?Filter $filter = null, ?int $seed = null, ?DiscoveryCache $cache = null): ExecutionPlan
+    public function discover(array $directories, ?TestSelection $selection = null, ?int $seed = null, ?DiscoveryCache $cache = null): ExecutionPlan
     {
-        $filter ??= Filter::all();
+        $selection ??= new TestSelection();
         $entriesByClass = [];
         $classOrder = [];
 
@@ -58,7 +59,7 @@ final readonly class TestDiscoverer
                 $cache?->store($file, $unfiltered);
             }
 
-            $entries = $this->filtered($unfiltered, $filter, $file);
+            $entries = $this->filtered($unfiltered, $selection, $file);
 
             if ($entries === []) {
                 continue;
@@ -161,16 +162,16 @@ final readonly class TestDiscoverer
      *
      * @return list<PlanEntry>
      */
-    private function filtered(array $entries, Filter $filter, string $file): array
+    private function filtered(array $entries, TestSelection $selection, string $file): array
     {
         return \array_values(\array_filter(
             $entries,
-            static fn(PlanEntry $entry): bool => $filter->accepts(
+            static fn(PlanEntry $entry): bool => $selection->accepts(
                 $entry->metadata->class,
                 $entry->metadata->method,
                 $entry->metadata->groups,
                 $file,
-            ) && $filter->acceptsId((string) $entry->id),
+            ) && $selection->acceptsId((string) $entry->id),
         ));
     }
 

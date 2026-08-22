@@ -130,9 +130,9 @@ final readonly class AcceptanceProjectTest
             ->toBeString();
 
         Expect::that(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond');
-        Expect::that($configuration->paths)->toBe([$testsDirectory]);
-        Expect::that($configuration->workers->fixed)->toBe(3);
-        Expect::that($configuration->randomizeOrder)->toBeFalse();
+        Expect::that($configuration->discovery->paths)->toBe([$testsDirectory]);
+        Expect::that($configuration->workers->count->fixed)->toBe(3);
+        Expect::that($configuration->order->randomized)->toBeFalse();
     }
 
     #[Test]
@@ -165,7 +165,7 @@ final readonly class AcceptanceProjectTest
             ))
             ->toBeInstanceOf(GreenlightConfig::class);
 
-        Expect::that($builder->build()->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
+        Expect::that($builder->build()->discovery->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
             \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic',
         ]);
     }

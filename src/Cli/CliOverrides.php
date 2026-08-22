@@ -7,51 +7,25 @@ namespace Greenlight\Cli;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Core\DecimalInteger;
+use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Test\ResourceName;
+use Greenlight\Core\Test\TestExclusions;
+use Greenlight\Core\Test\TestInclusions;
+use Greenlight\Core\Test\TestSelection;
 
 /**
- * Contains validated typed settings that the command line can override.
- *
- * A null field or empty group list means that the flag was absent. The value
- * from the configuration file remains in effect.
+ * Contains validated command-line values grouped by their consumer.
  *
  * @internal
  */
 final readonly class CliOverrides
 {
-    /**
-     * @param positive-int|null $stopAfterFailures
-     * @param list<non-empty-string> $groups
-     * @param int<0, max>|null $seed
-     * @param list<non-empty-string> $filters
-     * @param list<non-empty-string> $testIds
-     * @param array{int, int}|null $shard
-     * @param list<non-empty-string> $excludeGroups
-     * @param list<non-empty-string> $excludeClasses
-     * @param list<non-empty-string> $excludeMethods
-     * @param list<non-empty-string> $excludePaths
-     * @param positive-int|null $repeat
-     * @param array<non-empty-string, positive-int> $resourceLimits
-     */
+    /** @param int<0, max>|null $seed */
     public function __construct(
-        public ?WorkerCount $workers = null,
-        public ?int $stopAfterFailures = null,
-        public array $groups = [],
+        public ExecutionOverrides $execution = new ExecutionOverrides(),
+        public TestSelection $selection = new TestSelection(),
         public ?int $seed = null,
-        public array $filters = [],
-        public array $testIds = [],
-        public ?array $shard = null,
-        public bool $failOnDeprecation = false,
-        public bool $failOnNotice = false,
-        public bool $failOnRisky = false,
-        public array $excludeGroups = [],
-        public array $excludeClasses = [],
-        public array $excludeMethods = [],
-        public array $excludePaths = [],
-        public ?int $repeat = null,
-        public bool $repeatUntilFailure = false,
-        public ?string $artifactsDirectory = null,
-        public array $resourceLimits = [],
+        public RepeatConfiguration $repeat = new RepeatConfiguration(),
     ) {}
 
     /**
@@ -184,24 +158,24 @@ final readonly class CliOverrides
         }
 
         return new self(
-            workers: $workers,
-            stopAfterFailures: $stopAfterFailures,
-            groups: $groups,
+            execution: new ExecutionOverrides(
+                workers: $workers,
+                stopAfterFailures: $stopAfterFailures,
+                policy: new ResultPolicy(
+                    failOnDeprecation: $arguments->has('fail-on-deprecation'),
+                    failOnNotice: $arguments->has('fail-on-notice'),
+                    failOnRisky: $arguments->has('fail-on-risky'),
+                ),
+                artifactsDirectory: $artifactsDirectory,
+                resourceLimits: $resourceLimits,
+            ),
+            selection: new TestSelection(
+                include: new TestInclusions(groups: $groups, idPatterns: $filters, exactIds: $testIds),
+                exclude: new TestExclusions($excludeGroups, $excludeClasses, $excludeMethods, $excludePaths),
+                shard: $shard,
+            ),
             seed: $seed,
-            filters: $filters,
-            testIds: $testIds,
-            shard: $shard,
-            failOnDeprecation: $arguments->has('fail-on-deprecation'),
-            failOnNotice: $arguments->has('fail-on-notice'),
-            failOnRisky: $arguments->has('fail-on-risky'),
-            excludeGroups: $excludeGroups,
-            excludeClasses: $excludeClasses,
-            excludeMethods: $excludeMethods,
-            excludePaths: $excludePaths,
-            repeat: $repeat,
-            repeatUntilFailure: $repeatUntilFailure,
-            artifactsDirectory: $artifactsDirectory,
-            resourceLimits: $resourceLimits,
+            repeat: new RepeatConfiguration($repeat, $repeatUntilFailure),
         );
     }
 

@@ -135,7 +135,7 @@ final readonly class WorkerProcess
 
                 $pluginDefinitions = $message->configFile === null
                     ? []
-                    : new ConfigLoader()->loadFile($message->configFile)->build()->plugins;
+                    : new ConfigLoader()->loadFile($message->configFile)->build()->execution->plugins;
                 $plugins = PluginInstances::forWorker($pluginDefinitions);
                 $plugins->bootstrapWorker(new WorkerBootstrapContext(
                     $workerId,

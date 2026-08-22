@@ -8,8 +8,13 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CliOverrides;
 use Greenlight\Cli\ConfigurationResolver;
-use Greenlight\Config\Configuration;
+use Greenlight\Cli\ExecutionOverrides;
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Config\ResolvedConfiguration;
+use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Core\Test\TestExclusions;
+use Greenlight\Core\Test\TestInclusions;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
 
 final readonly class ConfigurationResolverSelectionTest
@@ -18,34 +23,32 @@ final readonly class ConfigurationResolverSelectionTest
     public function selectionOverridesAreForwardedWithoutCrossWiring(): void
     {
         $resolved = $this->resolve(new CliOverrides(
-            filters: ['Acme\\*'],
-            testIds: ['Acme\\SelectedTest::runs'],
-            shard: [2, 3],
-            excludeGroups: ['slow'],
-            excludeClasses: ['Acme\\Legacy*'],
-            excludeMethods: ['flaky*'],
-            excludePaths: ['tests/Legacy'],
+            selection: new TestSelection(
+                include: new TestInclusions(idPatterns: ['Acme\\*'], exactIds: ['Acme\\SelectedTest::runs']),
+                exclude: new TestExclusions(['slow'], ['Acme\\Legacy*'], ['flaky*'], ['tests/Legacy']),
+                shard: [2, 3],
+            ),
         ));
 
-        Expect::that($resolved->filters)
+        Expect::that($resolved->selection->include->idPatterns)
             ->because('the filter override MUST set the filters field')
             ->toBe(['Acme\\*']);
-        Expect::that($resolved->onlyTests)
+        Expect::that($resolved->selection->include->exactIds)
             ->because('the test ID override MUST set the onlyTests field')
             ->toBe(['Acme\\SelectedTest::runs']);
-        Expect::that($resolved->shard)
+        Expect::that($resolved->selection->shard)
             ->because('the shard override MUST set the shard field')
             ->toBe([2, 3]);
-        Expect::that($resolved->excludeGroups)
+        Expect::that($resolved->selection->exclude->groups)
             ->because('the group exclusion override MUST set the excludeGroups field')
             ->toBe(['slow']);
-        Expect::that($resolved->excludeClasses)
+        Expect::that($resolved->selection->exclude->classes)
             ->because('the class exclusion override MUST set the excludeClasses field')
             ->toBe(['Acme\\Legacy*']);
-        Expect::that($resolved->excludeMethods)
+        Expect::that($resolved->selection->exclude->methods)
             ->because('the method exclusion override MUST set the excludeMethods field')
             ->toBe(['flaky*']);
-        Expect::that($resolved->excludePaths)
+        Expect::that($resolved->selection->exclude->paths)
             ->because('the path exclusion override MUST set the excludePaths field')
             ->toBe(['tests/Legacy']);
     }
@@ -59,7 +62,7 @@ final readonly class ConfigurationResolverSelectionTest
         CliOverrides $overrides,
         array $expected,
     ): void {
-        $policy = $this->resolve($overrides)->policy;
+        $policy = $this->resolve($overrides)->execution->policy;
 
         Expect::that($policy->failOnDeprecation)
             ->because('the deprecation policy flag MUST map to failOnDeprecation')
@@ -78,20 +81,20 @@ final readonly class ConfigurationResolverSelectionTest
     public static function failurePolicyOverrides(): iterable
     {
         yield 'deprecation' => [
-            new CliOverrides(failOnDeprecation: true),
+            new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnDeprecation: true))),
             [true, false, false],
         ];
         yield 'notice' => [
-            new CliOverrides(failOnNotice: true),
+            new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnNotice: true))),
             [false, true, false],
         ];
         yield 'risky' => [
-            new CliOverrides(failOnRisky: true),
+            new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnRisky: true))),
             [false, false, true],
         ];
     }
 
-    private function resolve(CliOverrides $overrides): Configuration
+    private function resolve(CliOverrides $overrides): ResolvedConfiguration
     {
         return ConfigurationResolver::resolve(
             GreenlightConfig::create()->build(),
