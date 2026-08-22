@@ -74,16 +74,12 @@ final class Utf8
             return $value;
         }
 
-        $encoded = \json_encode($value, \JSON_INVALID_UTF8_SUBSTITUTE);
+        $encoded = \json_encode(
+            $value,
+            \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR,
+        );
+        $decoded = \json_decode($encoded, flags: \JSON_THROW_ON_ERROR);
 
-        if (\is_string($encoded)) {
-            $decoded = \json_decode($encoded);
-
-            if (\is_string($decoded)) {
-                return $decoded;
-            }
-        }
-
-        return '(unrepresentable binary string)';
+        return \is_string($decoded) ? $decoded : '(unrepresentable binary string)';
     }
 }

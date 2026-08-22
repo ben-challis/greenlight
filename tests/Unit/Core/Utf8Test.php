@@ -27,9 +27,9 @@ final class Utf8Test
     {
         $scrubbed = Utf8::scrub("bad \xB1\x31 bytes");
 
-        Expect::that($scrubbed)->because('invalid bytes are substituted')->toMatch('//u');
-        Expect::that($scrubbed)->because('invalid bytes are substituted')->toContain('bad');
-        Expect::that($scrubbed)->because('invalid bytes are substituted')->toContain('1 bytes');
+        Expect::that($scrubbed)
+            ->because('each invalid UTF-8 sequence MUST become a replacement character')
+            ->toBe("bad \u{FFFD}1 bytes");
     }
 
     #[Test]
