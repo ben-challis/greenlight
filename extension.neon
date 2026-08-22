@@ -25,6 +25,10 @@ rules:
     - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:
+    greenlight.argumentTypeCombinationReturnTypeExtension:
+        class: Greenlight\PhpStan\ArgumentTypeCombinationReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicStaticMethodReturnTypeExtension
     greenlight.captureArgumentReturnTypeExtension:
         class: Greenlight\PhpStan\CaptureArgumentReturnTypeExtension
         tags:

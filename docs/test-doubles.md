@@ -145,10 +145,29 @@ Available matchers are:
 
 * `Argument::any()`
 * `Argument::type(string $type)`
+* `Argument::intersection(string $first, string $second, string ...$rest)`
+* `Argument::union(string $first, string $second, string ...$rest)`
 * `Argument::predicate(Closure $predicate, string $description = 'predicate')`
 * `Argument::equals(mixed $value)`
 * `Argument::allOf(ArgumentMatcher $first, ArgumentMatcher $second, ArgumentMatcher ...$rest)`
 * `Argument::captor()`
+
+Use `Argument::intersection()` when a value must have every specified type.
+Use `Argument::union()` when a value can have one or more specified types:
+
+<!-- php-example {"example":"test-doubles-type-combinations","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Doubles\Argument;
+
+$plan->expects('save')->with(
+    Argument::intersection(Entity::class, Persistable::class),
+    Argument::union('string', Stringable::class),
+);
+```
+
+The bundled PHPStan extension preserves the combined value type in each
+`ArgumentMatcher` generic type. Other type names use `mixed`, as they do for
+`Argument::type()`.
 
 Use `Argument::allOf()` to apply two or more constraints to one argument:
 

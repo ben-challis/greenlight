@@ -44,6 +44,36 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L59)
 
+### `intersection()`
+
+This matcher accepts values that have every specified type.
+
+```php
+public static function intersection(string $first, string $second, string ...$rest): ArgumentMatcher
+```
+
+PHPDoc:
+
+- `@return ArgumentMatcher<mixed>`
+- `@throws InvalidDoubleUsage`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L70)
+
+### `union()`
+
+This matcher accepts values that have one or more specified types.
+
+```php
+public static function union(string $first, string $second, string ...$rest): ArgumentMatcher
+```
+
+PHPDoc:
+
+- `@return ArgumentMatcher<mixed>`
+- `@throws InvalidDoubleUsage`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L81)
+
 ### `predicate()`
 
 This matcher accepts the value when the closure returns true.
@@ -59,7 +89,7 @@ PHPDoc:
 - `@param \Closure(T): mixed $predicate`
 - `@return ArgumentMatcher<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L96)
 
 ### `equals()`
 
@@ -76,7 +106,7 @@ PHPDoc:
 - `@param T $value`
 - `@return ArgumentMatcher<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L89)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L111)
 
 ### `allOf()`
 
@@ -100,7 +130,7 @@ PHPDoc:
 - `@return ArgumentMatcher<T>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L107)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L129)
 
 ### `captor()`
 
@@ -111,7 +141,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L147)
 
 ## `ArgumentCaptor`
 
@@ -715,13 +745,21 @@ public static function invalidArgumentType(): self
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L298)
 
+### `invalidArgumentTypeCombination()`
+
+```php
+public static function invalidArgumentTypeCombination(string $factory): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L303)
+
 ### `compositeArgumentCaptor()`
 
 ```php
 public static function compositeArgumentCaptor(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L303)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L311)
 
 ## `MethodExpectation`
 

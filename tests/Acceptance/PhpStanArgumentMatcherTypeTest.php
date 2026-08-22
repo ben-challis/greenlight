@@ -84,6 +84,81 @@ final readonly class PhpStanArgumentMatcherTypeTest
     }
 
     #[Test]
+    public function typeCombinationsPreserveUnionAndIntersectionTypes(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Doubles\Argument;
+            use Greenlight\Doubles\ArgumentMatcher;
+
+            interface FirstCombinedArgumentType {}
+            interface SecondCombinedArgumentType {}
+
+            /**
+             * @template T of object
+             * @param class-string<T> $type
+             * @return ArgumentMatcher<T|string>
+             */
+            function greenlightDynamicCombinedArgumentMatcherType(string $type): ArgumentMatcher
+            {
+                return Argument::union($type, 'string');
+            }
+
+            /**
+             * @return array{
+             *     ArgumentMatcher<FirstCombinedArgumentType&SecondCombinedArgumentType>,
+             *     ArgumentMatcher<FirstCombinedArgumentType|SecondCombinedArgumentType>,
+             *     ArgumentMatcher<int|string>,
+             *     ArgumentMatcher<FirstCombinedArgumentType>,
+             *     ArgumentMatcher<mixed>,
+             * }
+             */
+            function greenlightCombinedArgumentMatcherTypes(): array
+            {
+                return [
+                    Argument::intersection(FirstCombinedArgumentType::class, SecondCombinedArgumentType::class),
+                    Argument::union(FirstCombinedArgumentType::class, SecondCombinedArgumentType::class),
+                    Argument::union('int', 'string'),
+                    Argument::intersection(FirstCombinedArgumentType::class, 'resource (stream)'),
+                    Argument::union(FirstCombinedArgumentType::class, 'resource (stream)'),
+                ];
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Doubles\Argument;
+            use Greenlight\Doubles\ArgumentMatcher;
+
+            interface FirstWrongCombinedArgumentType {}
+            interface SecondWrongCombinedArgumentType {}
+
+            /** @return ArgumentMatcher<FirstWrongCombinedArgumentType> */
+            function greenlightWrongCombinedArgumentMatcherType(): ArgumentMatcher
+            {
+                return Argument::union(
+                    FirstWrongCombinedArgumentType::class,
+                    SecondWrongCombinedArgumentType::class,
+                );
+            }
+            PHP,
+        );
+
+        Expect::that($probe->exitCode)->because('PHPStan MUST preserve combined argument matcher types')->toBe(1);
+        Expect::that($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
+        Expect::that(\count($probe->errors))->toBe(1);
+        Expect::that($probe->messages())
+            ->toContain('ArgumentMatcher<FirstWrongCombinedArgumentType|SecondWrongCombinedArgumentType>');
+    }
+
+    #[Test]
     public function allOfPreservesTheTypesOfItsMatchers(): void
     {
         $probe = PhpStanProbe::analyze(
