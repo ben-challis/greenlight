@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\CoverageJson;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class CoverageIgnoreRunTest
@@ -47,7 +48,6 @@ final readonly class CoverageIgnoreRunTest
 
     private function writeProject(): AcceptanceProject
     {
-        $root = \dirname(__DIR__, 2);
         $project = AcceptanceProject::create($this->tempDirectory, 'coverage-ignore');
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
@@ -64,8 +64,8 @@ final readonly class CoverageIgnoreRunTest
                     ->export('json', 'coverage-out/coverage.json'));
 
             PHP,
-            \var_export($root . '/tests/Fixture/CoverageIgnoreSuite', true),
-            \var_export($root . '/tests/Fixture/CoverageIgnoreLib', true),
+            \var_export(FixturePath::get('CoverageIgnoreSuite'), true),
+            \var_export(FixturePath::get('CoverageIgnoreLib'), true),
         ));
 
         return $project;

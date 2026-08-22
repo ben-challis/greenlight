@@ -12,6 +12,7 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\FilesystemRestriction;
+use Greenlight\Tests\Support\FixturePath;
 
 final class ConfigLoaderTest
 {
@@ -117,6 +118,6 @@ final class ConfigLoaderTest
 
     private static function fixtureDir(string $name): string
     {
-        return \dirname(__DIR__, 2) . '/Fixture/ConfigFiles/' . $name;
+        return FixturePath::get('ConfigFiles/' . $name);
     }
 }

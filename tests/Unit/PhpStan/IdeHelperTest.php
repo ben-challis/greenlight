@@ -8,13 +8,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
+use Greenlight\Tests\Support\FixturePath;
 
 final class IdeHelperTest
 {
     #[Test]
     public function rendersOneMethodAnnotationPerMatcherWithReflectedSignatures(): void
     {
-        $map = MatcherMap::fromConfigFiles([\dirname(__DIR__, 2) . '/Fixture/PhpStanExtension/greenlight.php']);
+        $map = MatcherMap::fromConfigFiles([FixturePath::get('PhpStanExtension/greenlight.php')]);
 
         $rendered = IdeHelper::render($map);
 
@@ -31,7 +32,7 @@ final class IdeHelperTest
     #[Test]
     public function preservesParenthesesAroundIntersectionsInsideUnions(): void
     {
-        $map = MatcherMap::fromConfigFiles([\dirname(__DIR__, 2) . '/Fixture/PhpStanIdeHelperDnf/greenlight.php']);
+        $map = MatcherMap::fromConfigFiles([FixturePath::get('PhpStanIdeHelperDnf/greenlight.php')]);
 
         Expect::that(IdeHelper::render($map))
             ->because('generated matcher annotations preserve disjunctive normal form types')

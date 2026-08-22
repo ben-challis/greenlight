@@ -25,6 +25,7 @@ use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Condition\ThrowingCondition;
 use Greenlight\Tests\Fixture\Lifecycle\ConditionArguments\ConditionArgumentsTest;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class ConditionEvaluationTest
 {
@@ -121,7 +122,7 @@ final readonly class ConditionEvaluationTest
      */
     private function runFixture(string $case): array
     {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/' . $case;
+        $directory = FixturePath::get('Lifecycle/' . $case);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 

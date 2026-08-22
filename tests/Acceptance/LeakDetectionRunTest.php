@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
@@ -50,6 +51,6 @@ final readonly class LeakDetectionRunTest
      */
     private function run(array $arguments, array $env = []): ProcessResult
     {
-        return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/LeakConfig', $arguments, $env);
+        return GreenlightCli::run(FixturePath::get('LeakConfig'), $arguments, $env);
     }
 }

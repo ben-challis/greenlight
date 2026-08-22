@@ -9,6 +9,7 @@ use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpStanProbe;
 
 #[AllowParallel]
@@ -161,7 +162,7 @@ final readonly class PhpStanMatcherSignatureTest
                     ->toReturnText();
             }
             PHP,
-            \dirname(__DIR__) . '/Fixture/PhpStanMatcherReturn/probe.neon',
+            FixturePath::get('PhpStanMatcherReturn/probe.neon'),
         );
 
         Expect::that($probe->exitCode)->because('declared matcher return types must be boolean')->toBe(1);

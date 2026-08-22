@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class SuitePathDiscoveryTest
@@ -18,8 +19,8 @@ final readonly class SuitePathDiscoveryTest
     public function namedSuitePathsParticipateInTestDiscovery(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'suite-path-discovery');
-        $topLevel = \dirname(__DIR__) . '/Fixture/DiscoveryBasic';
-        $suite = \dirname(__DIR__) . '/Fixture/Lifecycle/Bail';
+        $topLevel = FixturePath::get('DiscoveryBasic');
+        $suite = FixturePath::get('Lifecycle/Bail');
 
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'

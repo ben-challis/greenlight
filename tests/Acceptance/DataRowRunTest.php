@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
@@ -45,6 +46,6 @@ final class DataRowRunTest
 
     private function run(string ...$flags): ProcessResult
     {
-        return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/DataRows', ['run', '--reporter=jsonl', ...\array_values($flags)]);
+        return GreenlightCli::run(FixturePath::get('DataRows'), ['run', '--reporter=jsonl', ...\array_values($flags)]);
     }
 }

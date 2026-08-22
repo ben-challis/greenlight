@@ -15,6 +15,7 @@ use Greenlight\Plugin\RetryDecider;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class RetryDeciderOrderTest
 {
@@ -59,7 +60,7 @@ final readonly class RetryDeciderOrderTest
                 return false;
             }
         };
-        $directory = \dirname(__DIR__, 2) . '/Fixture/RunFailingSuite';
+        $directory = FixturePath::get('RunFailingSuite');
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
         $plugins = PluginRegistry::forWorker([$first, $second]);

@@ -10,6 +10,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class CommandErrorsTest
@@ -156,7 +157,7 @@ final readonly class CommandErrorsTest
         // A configuration without matchers does not write a file.
         // IdeHelperTest verifies that path. This test uses PhpStanExtension,
         // which has matchers that the helper can render.
-        $fixture = \dirname(__DIR__) . '/Fixture/PhpStanExtension';
+        $fixture = FixturePath::get('PhpStanExtension');
         $readOnlyDirectory = $this->tempDirectory->subdirectory('ide-helper-read-only');
         \chmod($readOnlyDirectory, 0o555);
         $outputPath = $readOnlyDirectory . '/helper.php';
