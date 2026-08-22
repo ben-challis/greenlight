@@ -23,8 +23,8 @@ use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Artifact\ArtifactStore;
 
 /**
- * Greenlight assigns a class-scope teardown failure to the last test in that
- * class. This test causes the class scope to close.
+ * Greenlight assigns class-scope disposal failures to the last executed test
+ * in that class. This test causes the class scope to close.
  *
  * run() stops early in these conditions:
  *
@@ -51,6 +51,8 @@ final readonly class Worker
     /**
      * @param \Closure(): bool|null $drainRequested polled between tests
      * @param \Closure(TestId, positive-int): void|null $attemptStarted reports retry progress for crash containment
+     *
+     * @throws WorkerError
      */
     public function run(
         ExecutionPlan $plan,
@@ -114,12 +116,19 @@ final readonly class Worker
                     );
                 }
 
-                if ($index === $lastIndex) {
-                    $result = $this->applyScopeTeardown($result, $scopes->closeClass());
+                ++$executed;
+                $candidateSummary = $summary->add($result->outcome);
+                $failureLimitReached = $stopAfterFailures !== null
+                    && $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
+                $countLimitReached = $budget instanceof WorkerBudget && $budget->exhaustedByCount($executed);
+                $memoryLimitReached = $budget instanceof WorkerBudget && $budget->exhaustedByMemory();
+                $drainReached = $drainRequested instanceof \Closure && $drainRequested();
+
+                if ($index === $lastIndex || $failureLimitReached || $countLimitReached || $memoryLimitReached || $drainReached) {
+                    $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
                 }
 
                 $summary = $summary->add($result->outcome);
-                ++$executed;
                 $sink->emit(new TestFinished($result, \microtime(true)));
 
                 if ($this->leakDetector instanceof LeakDetector) {
@@ -128,9 +137,9 @@ final readonly class Worker
 
                 $stopReached = match (true) {
                     $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
-                    $budget instanceof WorkerBudget && $budget->exhaustedByCount($executed) => 'count',
-                    $budget instanceof WorkerBudget && $budget->exhaustedByMemory() => 'memory',
-                    $drainRequested instanceof \Closure && $drainRequested() => 'drain',
+                    $countLimitReached => 'count',
+                    $memoryLimitReached => 'memory',
+                    $drainReached => 'drain',
                     default => null,
                 };
 
@@ -144,7 +153,6 @@ final readonly class Worker
                     $drained = $stopReached === 'drain' || $stopReached === 'bail';
 
                     if ($index !== $lastIndex) {
-                        $scopes->closeClass();
                         $remaining = \array_map(
                             static fn(PlanEntry $unexecuted): TestId => $unexecuted->id,
                             \array_slice($entries, $index + 1),
@@ -158,24 +166,12 @@ final readonly class Worker
             $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
         }
 
-        if ($ownScopes) {
-            $scopes->closeWorker();
+        $outcome = new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained, $leaks);
+
+        if (!$ownScopes) {
+            return $outcome;
         }
 
-        return new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained, $leaks);
-    }
-
-    /**
-     * @param list<\Throwable> $teardownFailures
-     */
-    private function applyScopeTeardown(TestResult $result, array $teardownFailures): TestResult
-    {
-        if ($teardownFailures === [] || !$result->outcome->isSuccessful()) {
-            return $result;
-        }
-
-        return $result->erroredBy(
-            ThrowableDetail::fromThrowable($teardownFailures[0]),
-        );
+        return HarnessServiceDisposal::runAndClose($scopes, static fn(): WorkerRunOutcome => $outcome);
     }
 }

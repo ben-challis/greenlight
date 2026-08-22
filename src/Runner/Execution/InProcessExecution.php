@@ -19,6 +19,7 @@ use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Runner\Worker\WorkerError;
 
 /**
  * Executes a plan in the orchestrator process.
@@ -80,25 +81,37 @@ final readonly class InProcessExecution implements ExecutionAdapter
             $collector?->start();
 
             try {
-                $outcome = $plugins->runWorker(fn() => new Worker(
-                    DefaultServices::registry(
+                try {
+                    $outcome = $plugins->runWorker(fn() => new Worker(
+                        DefaultServices::registry(
+                            $plugins,
+                            $resources,
+                            $context->storage->generatedCodeDirectory,
+                            $context->storage->temporaryDirectory,
+                        ),
                         $plugins,
-                        $resources,
-                        $context->storage->generatedCodeDirectory,
-                        $context->storage->temporaryDirectory,
-                    ),
-                    $plugins,
-                    $this->detectLeaks ? new LeakDetector() : null,
-                    'in-process',
-                    $execution->policy->isNoOp() ? null : $execution->policy,
-                    $context->artifacts,
-                )->run(
-                    $plan,
-                    new PublishingEventSink($context->artifacts, $sink),
-                    $execution->stopAfterFailures,
-                    null,
-                    $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
-                ));
+                        $this->detectLeaks ? new LeakDetector() : null,
+                        'in-process',
+                        $execution->policy->isNoOp() ? null : $execution->policy,
+                        $context->artifacts,
+                    )->run(
+                        $plan,
+                        new PublishingEventSink($context->artifacts, $sink),
+                        $execution->stopAfterFailures,
+                        null,
+                        $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
+                    ));
+                } catch (WorkerError $failure) {
+                    $detail = ThrowableDetail::fromThrowable($failure);
+
+                    throw ProtocolError::workerFatal(
+                        'in-process',
+                        $detail->message,
+                        $detail->file,
+                        $detail->line,
+                        $failure,
+                    );
+                }
 
                 $collectingCoverage = false;
                 $coverage = $collector?->stop();

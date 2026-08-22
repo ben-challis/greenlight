@@ -23,6 +23,8 @@ final class WorkerState
 
     public bool $retiring = false;
 
+    public bool $stopRequested = false;
+
     public ?ExecutionPlan $assigned = null;
 
     public bool $isolatedAssignment = false;
@@ -90,6 +92,11 @@ final class WorkerState
     public function isActive(): bool
     {
         return !$this->retiring;
+    }
+
+    public function requestStop(): void
+    {
+        $this->stopRequested = true;
     }
 
     /** @return list<TestId> */

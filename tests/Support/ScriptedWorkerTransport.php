@@ -9,6 +9,7 @@ use Greenlight\Runner\Orchestrator\WorkerTransport;
 use Greenlight\Runner\Orchestrator\WorkerTransportEvent;
 use Greenlight\Runner\Orchestrator\WorkerTransportEventKind;
 use Greenlight\Runner\Protocol\Message;
+use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\ProtocolError;
 
@@ -30,6 +31,9 @@ final class ScriptedWorkerTransport implements Fake, WorkerTransport
 
     /** @var array<string, true> */
     private array $live = [];
+
+    /** @var array<string, true> */
+    private array $disconnectQueued = [];
 
     /** @var list<array{workerId: string, message: Message}> */
     public array $sent = [];
@@ -130,6 +134,11 @@ final class ScriptedWorkerTransport implements Fake, WorkerTransport
         }
 
         $this->sent[] = ['workerId' => $workerId, 'message' => $message];
+
+        if ($message instanceof Drain && !isset($this->disconnectQueued[$workerId])) {
+            $this->disconnectQueued[$workerId] = true;
+            $this->events[] = WorkerTransportEvent::workerDisconnected($workerId);
+        }
     }
 
     #[\Override]

@@ -347,6 +347,12 @@ final class Orchestrator
                 $handle = $this->handles[$event->workerId] ?? null;
 
                 if ($handle instanceof WorkerState && $handle->isActive()) {
+                    if ($handle->stopRequested && !$handle->assigned instanceof ExecutionPlan) {
+                        $this->finishHandle($handle);
+
+                        continue;
+                    }
+
                     $reason = $handle->connected
                         ? 'the worker process exited unexpectedly'
                         : 'the worker exited before connecting';
@@ -444,6 +450,10 @@ final class Orchestrator
         }
 
         if ($decision->kind === DispatchKind::Drain) {
+            if ($handle->stopRequested) {
+                return;
+            }
+
             $at = $this->monotonicTime();
             $handle->timing->wait(WorkerIdleReason::NoQueuedWork, $at);
             $handle->timing->retirementRequested($at);
@@ -454,7 +464,7 @@ final class Orchestrator
                 // Crash detection processes a worker that is already gone.
             }
 
-            $this->finishHandle($handle);
+            $handle->requestStop();
 
             return;
         }
@@ -566,7 +576,7 @@ final class Orchestrator
                     // The worker is already gone after Done. No drain is necessary.
                 }
 
-                $this->finishHandle($handle);
+                $handle->requestStop();
 
                 return;
             }
@@ -696,7 +706,7 @@ final class Orchestrator
         $this->resourceScheduler()->clearPending();
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->connected) {
+            if ($handle->isActive() && $handle->connected && !$handle->stopRequested) {
                 $handle->timing->retirementRequested($this->monotonicTime());
                 try {
                     $this->transport->send($handle->workerId, new Drain());
@@ -704,9 +714,7 @@ final class Orchestrator
                     // Crash detection processes a worker that is already gone.
                 }
 
-                if ($handle->assigned === null) {
-                    $this->finishHandle($handle);
-                }
+                $handle->requestStop();
             }
         }
     }

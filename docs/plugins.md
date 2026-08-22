@@ -464,6 +464,15 @@ If disposal throws `ExpectationFailed`, the test fails with diffs. This
 mechanism gives services automatic verification. The built-in Greenlight
 doubles use this mechanism.
 
+A per-test disposal failure applies to its test. A per-class disposal failure
+applies to the last executed test in that class. Greenlight keeps an earlier
+test failure as the primary failure. It reports each later disposal failure as
+secondary evidence.
+
+A per-worker disposal failure applies to the worker runtime. It makes a passing
+run unsuccessful. If the worker runtime already failed, Greenlight keeps that
+failure and adds each disposal failure to the diagnostic.
+
 ### ServiceResolver
 
 In `Greenlight\Harness`.
