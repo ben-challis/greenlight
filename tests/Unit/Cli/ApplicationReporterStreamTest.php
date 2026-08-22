@@ -48,7 +48,7 @@ final readonly class ApplicationReporterStreamTest
             ->toBe(0);
         Expect::that($output)
             ->because('the configured output stream MUST receive the complete run report')
-            ->toContain('Greenlight dev-main')
+            ->toContain('Greenlight ' . Application::VERSION)
             ->toContain('7 tests, 7 passed');
         Expect::that($errors)
             ->toBe('');

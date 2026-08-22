@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Cli\Application;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -66,7 +67,7 @@ final readonly class CliTest
 
         $result = $this->runCli(['--version']);
         Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);
-        Expect::that($result->outputLines())->toContain('Greenlight dev-main');
+        Expect::that($result->outputLines())->toContain('Greenlight ' . Application::VERSION);
     }
 
     #[Test]
