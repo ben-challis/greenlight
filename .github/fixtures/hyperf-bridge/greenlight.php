@@ -6,6 +6,7 @@ use App\DisposalProbe;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
+use Greenlight\Plugin\PluginDefinition;
 use Psr\Container\ContainerInterface;
 
 $configuredLifetime = \getenv('GREENLIGHT_HYPERF_CONTAINER_LIFETIME');
@@ -37,15 +38,18 @@ $record = static function (ContainerInterface $container) use ($marker, $probe):
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/tests/' . \ucfirst($mode)])
     ->workers(1)
-    ->plugins(new HyperfPlugin(
-        __DIR__,
-        containerLifetime: $lifetime,
-        reset: static function (ContainerInterface $container) use ($probe, $record): void {
-            $probe($container)->reset();
-            $record($container);
-        },
-        dispose: static function (ContainerInterface $container) use ($probe, $record): void {
-            $probe($container)->dispose();
-            $record($container);
-        },
+    ->plugins(new PluginDefinition(
+        HyperfPlugin::class,
+        static fn(): HyperfPlugin => new HyperfPlugin(
+            __DIR__,
+            containerLifetime: $lifetime,
+            reset: static function (ContainerInterface $container) use ($probe, $record): void {
+                $probe($container)->reset();
+                $record($container);
+            },
+            dispose: static function (ContainerInterface $container) use ($probe, $record): void {
+                $probe($container)->dispose();
+                $record($container);
+            },
+        ),
     ));
