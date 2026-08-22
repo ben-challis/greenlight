@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Event\Event;
+use Greenlight\Event\EventSink;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Runner\Worker\EventSink;
 
 /**
  * Records failed test IDs and class durations while it forwards the stream.

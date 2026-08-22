@@ -54,8 +54,8 @@ final readonly class PhpStanCheckedExceptionTest
             use Greenlight\Harness\UnresolvableService;
             use Greenlight\Reporting\ReportGenerationFailed;
             use Greenlight\IntegrationFixture\IntegrationFixtureError;
-            use Greenlight\Runner\Protocol\ProtocolError;
-            use Greenlight\Runner\Worker\WorkerError;
+            use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
+            use Greenlight\Execution\Worker\WorkerError;
 
             final class ProbeWireCommunicationFailed extends WireCommunicationFailed {}
             final class ProbeServiceResolutionFailed extends ServiceResolutionFailed {}
@@ -147,7 +147,7 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Sandbox\\TemporaryDirectoryError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Runner\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Execution\\ProcessPool\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Probe\\ProbeWireCommunicationFailed but it\'s missing from the PHPDoc @throws tag.',
@@ -156,7 +156,7 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Runner\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\Execution\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',
         );
     }
 

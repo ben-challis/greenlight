@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Execution\Worker;
+
+use Greenlight\Result\ResultSummary;
+use Greenlight\Test\TestId;
+
+/** @internal */
+final readonly class WorkerRunOutcome
+{
+    /**
+     * @param list<TestId> $remaining unexecuted entries, in plan order
+     * @param list<TestId> $leaks tests whose instances survived their test, leak detection only
+     */
+    public function __construct(
+        public ResultSummary $summary,
+        public array $remaining = [],
+        public bool $drained = false,
+        public array $leaks = [],
+    ) {}
+}

@@ -121,10 +121,38 @@ deptrac:
       collectors:
         - type: directory
           value: src/Reporting/.*
-    - name: Runner
+    - name: Execution
       collectors:
         - type: directory
-          value: src/Runner/.*
+          value: src/Execution/[^/]+\.php
+    - name: ExecutionAdapter
+      collectors:
+        - type: directory
+          value: src/Execution/Adapter/.*
+    - name: ExecutionArtifact
+      collectors:
+        - type: directory
+          value: src/Execution/Artifact/.*
+    - name: ExecutionPlugin
+      collectors:
+        - type: directory
+          value: src/Execution/Plugin/.*
+    - name: ExecutionWorker
+      collectors:
+        - type: directory
+          value: src/Execution/Worker/.*
+    - name: ExecutionProcessProtocol
+      collectors:
+        - type: directory
+          value: src/Execution/ProcessPool/Protocol/.*
+    - name: ExecutionProcessWorker
+      collectors:
+        - type: directory
+          value: src/Execution/ProcessPool/Worker/.*
+    - name: ExecutionProcessOrchestrator
+      collectors:
+        - type: directory
+          value: src/Execution/ProcessPool/Orchestrator/.*
     - name: Cli
       collectors:
         - type: directory
@@ -244,8 +272,15 @@ deptrac:
     CoverageRelay: [Coverage, CoverageCollection, CoverageExport, InternalPhp]
     Plugin: [Artifact, Event, Harness, IntegrationFixture, Reporting, Result, Test]
     Reporting: [Artifact, Event, InternalPhp, Result, Test, Wire]
-    Runner: [Artifact, Attribute, Capture, Condition, Config, Coverage, CoverageCollection, Discovery, Doubles, Event, Expect, Harness, IntegrationFixture, InternalPhp, InternalProcess, InternalText, Plugin, Reporting, Result, Sandbox, Test, Wire, CpuCoreCounter]
-    Cli: [Artifact, Config, Coverage, CoverageCollection, CoverageDiff, CoverageExport, CoverageIgnore, CoverageRelay, Discovery, Event, IntegrationFixture, InternalFilesystem, InternalPhp, InternalProcess, InternalText, PhpStan, Plugin, Reporting, Result, Runner, Test, Wire]
+    Execution: [Artifact, Config, Coverage, Discovery, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, IntegrationFixture, Plugin, Reporting, Result, Test, Wire]
+    ExecutionAdapter: [Artifact, Config, CoverageCollection, Discovery, Event, Execution, ExecutionArtifact, ExecutionPlugin, ExecutionProcessOrchestrator, ExecutionProcessProtocol, ExecutionWorker, InternalProcess, Plugin, Reporting, Result, Test, Wire]
+    ExecutionArtifact: [Artifact, Attribute, Config, Event, InternalPhp, InternalText, Result, Test, Wire]
+    ExecutionPlugin: [Event, Expect, Harness, IntegrationFixture, Plugin]
+    ExecutionWorker: [Artifact, Attribute, Capture, Condition, Discovery, Doubles, Event, ExecutionArtifact, Expect, Harness, IntegrationFixture, InternalText, Plugin, Result, Sandbox, Test]
+    ExecutionProcessProtocol: [Attribute, Config, Coverage, Discovery, Event, ExecutionArtifact, IntegrationFixture, InternalPhp, Result, Test, Wire]
+    ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, Plugin, Result, Test, Wire]
+    ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, Discovery, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Result, Test, Wire]
+    Cli: [Artifact, Attribute, Config, Coverage, CoverageCollection, CoverageDiff, CoverageExport, CoverageIgnore, CoverageRelay, CpuCoreCounter, Discovery, Event, Execution, ExecutionAdapter, ExecutionProcessProtocol, ExecutionProcessWorker, ExecutionWorker, IntegrationFixture, InternalFilesystem, InternalPhp, InternalProcess, InternalText, PhpStan, Plugin, Reporting, Result, Test, Wire]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []

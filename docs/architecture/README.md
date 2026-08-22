@@ -77,13 +77,19 @@ public.
 | `Coverage/Ignore` | Source ignore directives and filtering | `Coverage` and internal PHP utilities |
 | `Coverage/Relay` | Coverage transfer from child CLI processes | Coverage modules and internal PHP utilities |
 | `Reporting` | Event consumers and output formats | Public contracts and internal PHP utilities |
-| `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
+| `Execution/Artifact` | Private attachment staging, publication, recovery, quotas, and cleanup | Artifact, configuration, event, result, test, wire, and internal utilities |
+| `Execution/Plugin` | Orchestrator and worker plugin instances and event delivery | Plugin capability modules |
+| `Execution/Worker` | In-process test execution and worker-owned lifecycle | Test execution modules and execution artifacts |
+| `Execution/ProcessPool/Protocol` | Internal worker messages, frames, and socket channels | Wire values and message payload modules |
+| `Execution/ProcessPool/Worker` | Hidden worker command and protocol event delivery | Worker, protocol, plugin, and coverage modules |
+| `Execution/ProcessPool/Orchestrator` | Process scheduling, resource capacity, containment, and transport | Protocol, worker, artifact, event, result, and coverage modules |
+| `Execution` and `Execution/Adapter` | Run coordination and the in-process and process-pool adapters | Execution implementation modules and engine modules |
 | `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
 | `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
 Dependencies point from modules near the bottom of the table to modules near
-the top. Modules near the top do not depend on the `Runner` or `Cli` modules.
+the top. Modules near the top do not depend on the `Execution` or `Cli` modules.
 Public contract modules **MUST NOT** know about discovery, reporters, or integrations.
 Internal utility modules **MUST NOT** depend on public contract modules.
 Reporters **MUST NOT** control execution. Optional integrations **MUST NOT**

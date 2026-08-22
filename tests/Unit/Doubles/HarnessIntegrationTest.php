@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\Condition;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
+use Greenlight\Event\EventSink;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
@@ -16,7 +17,6 @@ use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Wire\WireSerializable;
 
