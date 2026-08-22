@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestFinished;
@@ -14,10 +12,8 @@ use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Event\WorkerTiming;
-use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -29,10 +25,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Reporting\ReportingError;
-use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
-use Greenlight\Runner\CoverageSettings;
-use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
@@ -45,7 +38,6 @@ use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
-use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\WorkerError;
 
@@ -69,19 +61,15 @@ final class Orchestrator
     // A worker usually starts in less than one second. This deadline stops the
     // complete run. Thus, it permits slow starts on a loaded computer with
     // debug extensions.
-    private const float CONNECT_DEADLINE_SECONDS = 30.0;
     // These periods usually take milliseconds. They occur between assignment
     // receipt and the first TestStarted or between tests. This deadline stops
     // the complete run, so it permits longer periods.
-    private const float PROGRESS_DEADLINE_SECONDS = 60.0;
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
-    private const float WORKER_EXIT_GRACE_SECONDS = 2.0;
-
     private ?ResourceScheduler $scheduler = null;
 
     /**
-     * @var array<string, WorkerHandle>
+     * @var array<string, WorkerState>
      */
     private array $handles = [];
 
@@ -91,7 +79,7 @@ final class Orchestrator
     private array $reapedWorkerTimings = [];
 
     /**
-     * @var list<array{SocketChannel, float}> connected but not yet authenticated
+     * @var array<int, float> accepted connection time by transport connection ID
      */
     private array $awaitingHello = [];
 
@@ -125,33 +113,9 @@ final class Orchestrator
      */
     private array $initialAssignmentsPending = [];
 
-    /**
-     * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
-     * @param positive-int|null $recycleAfterTests
-     * @param positive-int|null $recycleAboveMemoryBytes
-     * @param float $connectDeadlineSeconds Maximum seconds for a new worker to complete the hello handshake.
-     * @param float $progressDeadlineSeconds Maximum seconds that a connected worker can stay silent when no test is in flight.
-     * @param array<non-empty-string, positive-int> $resourceLimits
-     */
     public function __construct(
-        private readonly array $workerCommand,
-        private readonly string $workingDirectory,
-        private readonly ?int $recycleAfterTests = null,
-        private readonly ?int $recycleAboveMemoryBytes = null,
-        private readonly ?int $stopAfterFailures = null,
-        private readonly ?CoverageSettings $coverageSettings = null,
-        private readonly ?string $configFile = null,
-        private readonly bool $detectLeaks = false,
-        private readonly ?ResultPolicy $policy = null,
-        private readonly ?GracefulShutdown $shutdown = null,
-        private readonly ?Ticking $ticker = null,
-        private readonly ?ArtifactStore $artifactStore = null,
-        private readonly ?ArtifactConfiguration $artifactConfiguration = null,
-        private readonly ProvisionedIntegrationFixtures $integrationFixtures = new ProvisionedIntegrationFixtures(),
-        private readonly float $connectDeadlineSeconds = self::CONNECT_DEADLINE_SECONDS,
-        private readonly float $progressDeadlineSeconds = self::PROGRESS_DEADLINE_SECONDS,
-        private readonly array $resourceLimits = [],
-        private readonly InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
+        private readonly WorkerTransport $transport,
+        private readonly OrchestratorConfiguration $configuration = new OrchestratorConfiguration(),
     ) {
         $this->summary = new ResultSummary();
     }
@@ -217,42 +181,36 @@ final class Orchestrator
         }
 
         [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $workerCount);
-        $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->resourceLimits);
+        $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->configuration->resourceLimits);
 
         if ($this->scheduler->pendingCount() === 0) {
+            $this->transport->close();
+
             return $this->summary;
         }
 
         $this->initialWorkerTarget = $this->resourceScheduler()->initialWorkerTarget($workerCount);
-        $this->initialBarrierPassed = $this->initialWorkerAssignment === InitialWorkerAssignment::Progressive;
+        $this->initialBarrierPassed = $this->configuration->initialWorkerAssignment === InitialWorkerAssignment::Progressive;
 
         $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
 
-        $token = \bin2hex(\random_bytes(16));
-        $server = ServerSocket::listen();
-
         try {
             while (true) {
-                if (!$this->draining && $this->shutdown?->requested() === true) {
+                if (!$this->draining && $this->configuration->shutdown?->requested() === true) {
                     $this->drainAll();
                 }
 
-                $this->reapRetiringHandles();
-                $this->spawnUpTo($this->initialWorkerTarget, $server->address, $token, $sink, $spawnBudget);
+                $this->spawnUpTo($this->initialWorkerTarget, $sink, $spawnBudget);
 
                 if ($this->finished()) {
                     break;
                 }
 
-                $this->tick($server->stream(), $token, $sink);
-                $this->ticker?->tick(\microtime(true));
+                $this->tick($sink);
+                $this->configuration->ticker?->tick(\microtime(true));
             }
         } finally {
-            foreach ($this->handles as $handle) {
-                $handle->terminate();
-            }
-
-            $server->close();
+            $this->transport->close();
         }
 
         return $this->summary;
@@ -260,14 +218,10 @@ final class Orchestrator
 
     /**
      * @param positive-int $workerTarget
-     * @param non-empty-string $address
-     * @param non-empty-string $token
      * @throws ProtocolError
      */
     private function spawnUpTo(
         int $workerTarget,
-        string $address,
-        string $token,
         EventSink $sink,
         WorkerSpawnBudget $spawnBudget,
     ): void {
@@ -282,42 +236,23 @@ final class Orchestrator
         ) {
             $workerId = $spawnBudget->nextWorkerId();
 
-            $command = [...$this->workerCommand, '__worker', $address, $workerId, $token];
-            $descriptors = [
-                0 => ['pipe', 'r'],
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ];
-
             $channelNumber = $channels->allocate();
-            // The env parameter of proc_open replaces the complete
-            // environment. Add the channel to the parent environment.
-            $environment = \getenv();
-            $environment['GREENLIGHT_CHANNEL'] = (string) $channelNumber;
-
-            $process = ErrorTrap::run(function () use ($command, $descriptors, &$pipes, $environment) {
-                return \proc_open($command, $descriptors, $pipes, $this->workingDirectory, $environment);
-            }, $warning);
-
-            if (!\is_resource($process)) {
+            try {
+                $pid = $this->transport->start($workerId, $channelNumber);
+            } catch (\Throwable $error) {
                 $channels->release($channelNumber);
 
-                throw ProtocolError::malformedFrame('Greenlight did not start a worker process', $warning);
+                throw $error;
             }
 
-            \assert(isset($pipes[0], $pipes[1], $pipes[2]));
-
-            \fclose($pipes[0]);
-
-            $handle = new WorkerHandle($workerId, $channelNumber, $process, $pipes[1], $pipes[2]);
+            $handle = new WorkerState($workerId, $channelNumber, $this->monotonicTime());
             $this->handles[$workerId] = $handle;
 
             if (\count($this->handles) <= $this->initialWorkerTarget) {
                 $this->initialAssignmentsPending[$workerId] = true;
             }
 
-            $status = \proc_get_status($process);
-            $sink->emit(new WorkerSpawned($workerId, \max(1, $status['pid']), \microtime(true)));
+            $sink->emit(new WorkerSpawned($workerId, $pid, \microtime(true)));
         }
     }
 
@@ -354,95 +289,131 @@ final class Orchestrator
     }
 
     /**
-     * @param resource $server
-     * @param non-empty-string $token
      * @throws AttachmentError
      * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws WireError
      */
-    private function tick(mixed $server, string $token, EventSink $sink): void
+    private function tick(EventSink $sink): void
     {
-        $read = [$server];
-        $waitMicroseconds = $this->hasRetiringHandles() ? 10_000 : 200_000;
-
-        foreach ($this->awaitingHello as [$channel]) {
-            $read[] = $channel->stream();
-        }
-
-        foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->channel !== null) {
-                $read[] = $handle->channel->stream();
-            }
-        }
-
-        $connection = ErrorTrap::run(static function () use ($server, $read, $waitMicroseconds) {
-            $write = null;
-            $except = null;
-            \stream_select($read, $write, $except, 0, $waitMicroseconds);
-
-            return \stream_socket_accept($server, 0);
-        });
-
-        if (\is_resource($connection)) {
-            $this->awaitingHello[] = [new SocketChannel($connection), $this->monotonicTime()];
-        }
-
-        $this->processHellos($token, $sink);
-        $this->pumpChannels($sink);
-        $this->detectCrashes($sink);
+        $this->processTransportEvents($this->transport->poll(), $sink);
+        $this->expireConnections();
+        $this->detectCrashes();
         $this->enforceTimeouts($sink);
         $this->assignWaiting($sink);
-        $this->reapRetiringHandles();
     }
 
     /**
-     * @param non-empty-string $token
-     * @throws InvalidWirePayload
+     * @param list<WorkerTransportEvent> $events
      * @throws AttachmentError
+     * @throws InvalidWirePayload
      * @throws ProtocolError
      * @throws WireError
      */
-    private function processHellos(string $token, EventSink $sink): void
+    private function processTransportEvents(array $events, EventSink $sink): void
     {
-        $still = [];
-
-        foreach ($this->awaitingHello as [$channel, $since]) {
-            $message = $channel->poll();
-
-            if ($message instanceof Hello && $message->token === $token) {
-                $handle = $this->handles[$message->workerId] ?? null;
-
-                if ($handle !== null && $handle->channel === null) {
-                    $handle->channel = $channel;
-                    $handle->lastProgressAt = $this->monotonicTime();
-                    $handle->timing->hello($handle->lastProgressAt);
-                    try {
-                        $channel->send(new Bootstrap(
-                            $handle->channelNumber,
-                            $this->configFile === '' ? null : $this->configFile,
-                            $this->integrationFixtures->forChannel($handle->channelNumber),
-                        ));
-                    } catch (ProtocolError) {
-                        $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');
-                    }
-
-                    continue;
-                }
-            }
-
-            if ($message instanceof Message || $this->monotonicTime() - $since > self::HELLO_DEADLINE_SECONDS || $channel->isEof()) {
-                // Close a connection for an incorrect token, unknown worker,
-                // or authentication timeout.
-                $channel->close();
+        foreach ($events as $event) {
+            if ($event->kind === WorkerTransportEventKind::ConnectionAccepted) {
+                \assert($event->connectionId !== null);
+                $this->awaitingHello[$event->connectionId] = $this->monotonicTime();
 
                 continue;
             }
 
-            $still[] = [$channel, $since];
+            if ($event->kind === WorkerTransportEventKind::ConnectionClosed) {
+                \assert($event->connectionId !== null);
+                unset($this->awaitingHello[$event->connectionId]);
+
+                continue;
+            }
+
+            if ($event->kind === WorkerTransportEventKind::ConnectionMessage) {
+                \assert($event->connectionId !== null && $event->message instanceof Message);
+                $this->processHello($event->connectionId, $event->message, $sink);
+
+                continue;
+            }
+
+            if ($event->kind === WorkerTransportEventKind::WorkerMessage) {
+                \assert($event->workerId !== null && $event->message instanceof Message);
+                $handle = $this->handles[$event->workerId] ?? null;
+
+                if ($handle instanceof WorkerState && $handle->isActive()) {
+                    $handle->lastProgressAt = $this->monotonicTime();
+                    $this->processWorkerMessage($handle, $event->message, $sink);
+                }
+
+                continue;
+            }
+
+            if ($event->kind === WorkerTransportEventKind::WorkerDisconnected) {
+                \assert($event->workerId !== null);
+                $handle = $this->handles[$event->workerId] ?? null;
+
+                if ($handle instanceof WorkerState && $handle->isActive()) {
+                    $reason = $handle->connected
+                        ? 'the worker process exited unexpectedly'
+                        : 'the worker exited before connecting';
+                    $this->containCrash($handle, $sink, $reason);
+                }
+
+                continue;
+            }
+
+            if ($event->kind === WorkerTransportEventKind::WorkerRetired) {
+                \assert($event->workerId !== null);
+                $this->completeRetirement($event->workerId);
+            }
+        }
+    }
+
+    /** @throws AttachmentError */
+    private function processHello(int $connectionId, Message $message, EventSink $sink): void
+    {
+        unset($this->awaitingHello[$connectionId]);
+
+        if (!$message instanceof Hello || $message->token !== $this->transport->token()) {
+            $this->transport->resolveConnection($connectionId, null);
+
+            return;
         }
 
-        $this->awaitingHello = $still;
+        $handle = $this->handles[$message->workerId] ?? null;
+
+        if (!$handle instanceof WorkerState || $handle->connected || !$handle->isActive()) {
+            $this->transport->resolveConnection($connectionId, null);
+
+            return;
+        }
+
+        $this->transport->resolveConnection($connectionId, $handle->workerId);
+        $handle->connected = true;
+        $handle->lastProgressAt = $this->monotonicTime();
+        $handle->timing->hello($handle->lastProgressAt);
+
+        try {
+            $this->transport->send($handle->workerId, new Bootstrap(
+                $handle->channelNumber,
+                $this->configuration->configFile === '' ? null : $this->configuration->configFile,
+                $this->configuration->integrationFixtures->forChannel($handle->channelNumber),
+            ));
+        } catch (ProtocolError) {
+            $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');
+        }
+    }
+
+    private function expireConnections(): void
+    {
+        $now = $this->monotonicTime();
+
+        foreach ($this->awaitingHello as $connectionId => $since) {
+            if ($now - $since <= self::HELLO_DEADLINE_SECONDS) {
+                continue;
+            }
+
+            $this->transport->resolveConnection($connectionId, null);
+            unset($this->awaitingHello[$connectionId]);
+        }
     }
 
     /**
@@ -452,11 +423,9 @@ final class Orchestrator
      * connected without an assignment while a resource lease is unavailable.
      * @throws AttachmentError
      */
-    private function assignNext(WorkerHandle $handle, EventSink $sink): void
+    private function assignNext(WorkerState $handle, EventSink $sink): void
     {
-        $channel = $handle->channel;
-
-        if (!$channel instanceof SocketChannel || !$handle->ready) {
+        if (!$handle->connected || !$handle->ready) {
             return;
         }
 
@@ -482,7 +451,7 @@ final class Orchestrator
             $handle->timing->retirementRequested($at);
 
             try {
-                $channel->send(new Drain());
+                $this->transport->send($handle->workerId, new Drain());
             } catch (ProtocolError) {
                 // Crash detection processes a worker that is already gone.
             }
@@ -506,16 +475,16 @@ final class Orchestrator
         }
 
         try {
-            $channel->send(new Assign(
+            $this->transport->send($handle->workerId, new Assign(
                 $lease->unit->plan,
-                $this->recycleAfterTests,
-                $this->recycleAboveMemoryBytes,
-                $this->coverageSettings?->includePaths,
-                $this->coverageSettings?->driver,
-                $this->detectLeaks,
-                $this->policy,
-                $this->artifactStore?->session(),
-                $this->artifactConfiguration,
+                $this->configuration->recycleAfterTests,
+                $this->configuration->recycleAboveMemoryBytes,
+                $this->configuration->coverageSettings?->includePaths,
+                $this->configuration->coverageSettings?->driver,
+                $this->configuration->detectLeaks,
+                $this->configuration->policy,
+                $this->configuration->artifactStore?->session(),
+                $this->configuration->artifactConfiguration,
                 $this->remainingFailureAllowance(),
             ));
             $handle->lastProgressAt = $this->monotonicTime();
@@ -534,106 +503,87 @@ final class Orchestrator
      * @throws ProtocolError
      * @throws WireError
      */
-    private function pumpChannels(EventSink $sink): void
+    private function processWorkerMessage(WorkerState $handle, Message $message, EventSink $sink): void
     {
-        foreach ($this->handles as $handle) {
-            $channel = $handle->channel;
-
-            if (!$handle->isActive() || $channel === null) {
-                continue;
+        if ($message instanceof EventEnvelope) {
+            $this->onEvent($handle, $message->event, $sink);
+        } elseif ($message instanceof AttemptStarted) {
+            $this->onAttemptStarted($handle, $message);
+        } elseif ($message instanceof Ready) {
+            if ($handle->ready) {
+                throw ProtocolError::malformedFrame(\sprintf(
+                    'worker "%s" reported ready more than once',
+                    $handle->workerId,
+                ));
             }
 
-            $handle->drainPipes();
+            $handle->ready = true;
+            $readyAt = $this->monotonicTime();
+            $handle->timing->ready($readyAt);
 
-            while (($message = $channel->poll()) !== null) {
-                $handle->lastProgressAt = $this->monotonicTime();
+            if (!$this->initialBarrierPassed) {
+                $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
+                $this->openInitialBarrier($sink);
+            } else {
+                // Progressive initial workers and replacements can
+                // start as soon as their own bootstrap completes.
+                $this->assignNext($handle, $sink);
+            }
+        } elseif ($message instanceof Recycling) {
+            $at = $this->monotonicTime();
+            $handle->timing->assignmentFinished($at);
+            $handle->timing->retirementRequested($at);
+            $this->crossCheck($handle, $message->summary);
+            $this->assertRemainder($handle, $message->remaining);
+            $this->mergeCoverage($message->coverage);
+            $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
+            $this->releaseAssignment($handle);
+            $this->finishHandle($handle);
+            $this->enqueueRemainder($message->remaining);
 
-                if ($message instanceof EventEnvelope) {
-                    $this->onEvent($handle, $message->event, $sink);
-                } elseif ($message instanceof AttemptStarted) {
-                    $this->onAttemptStarted($handle, $message);
-                } elseif ($message instanceof Ready) {
-                    if ($handle->ready) {
-                        throw ProtocolError::malformedFrame(\sprintf(
-                            'worker "%s" reported ready more than once',
-                            $handle->workerId,
-                        ));
-                    }
+        } elseif ($message instanceof Done) {
+            $at = $this->monotonicTime();
+            $handle->timing->assignmentFinished($at);
+            $this->crossCheck($handle, $message->summary);
+            $this->mergeCoverage($message->coverage);
+            $this->leaks = [...$this->leaks, ...$message->leaks];
+            $isolatedAssignment = $handle->isolatedAssignment;
+            $this->releaseAssignment($handle);
 
-                    $handle->ready = true;
-                    $readyAt = $this->monotonicTime();
-                    $handle->timing->ready($readyAt);
+            if ($message->wantsRecycle instanceof RecycleReason) {
+                // The worker has used its cumulative budget. It exits
+                // after Done, and a replacement worker processes the
+                // queue.
+                $sink->emit(new WorkerRecycled($handle->workerId, $message->wantsRecycle, \microtime(true)));
+                $handle->timing->retirementRequested($at);
+                $this->finishHandle($handle);
 
-                    if (!$this->initialBarrierPassed) {
-                        $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
-                        $this->openInitialBarrier($sink);
-                    } else {
-                        // Progressive initial workers and replacements can
-                        // start as soon as their own bootstrap completes.
-                        $this->assignNext($handle, $sink);
-                    }
-                } elseif ($message instanceof Recycling) {
-                    $at = $this->monotonicTime();
-                    $handle->timing->assignmentFinished($at);
-                    $handle->timing->retirementRequested($at);
-                    $this->crossCheck($handle, $message->summary);
-                    $this->assertRemainder($handle, $message->remaining);
-                    $this->mergeCoverage($message->coverage);
-                    $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
-                    $this->releaseAssignment($handle);
-                    $this->finishHandle($handle);
-                    $this->enqueueRemainder($message->remaining);
+                return;
+            }
 
-                    break;
-                } elseif ($message instanceof Done) {
-                    $at = $this->monotonicTime();
-                    $handle->timing->assignmentFinished($at);
-                    $this->crossCheck($handle, $message->summary);
-                    $this->mergeCoverage($message->coverage);
-                    $this->leaks = [...$this->leaks, ...$message->leaks];
-                    $isolatedAssignment = $handle->isolatedAssignment;
-                    $this->releaseAssignment($handle);
-
-                    if ($message->wantsRecycle instanceof RecycleReason) {
-                        // The worker has used its cumulative budget. It exits
-                        // after Done, and a replacement worker processes the
-                        // queue.
-                        $sink->emit(new WorkerRecycled($handle->workerId, $message->wantsRecycle, \microtime(true)));
-                        $handle->timing->retirementRequested($at);
-                        $this->finishHandle($handle);
-
-                        break;
-                    }
-
-                    if ($this->draining || $isolatedAssignment) {
-                        $handle->timing->retirementRequested($this->monotonicTime());
-                        try {
-                            $channel->send(new Drain());
-                        } catch (ProtocolError) {
-                            // The worker is already gone after Done. No drain is necessary.
-                        }
-
-                        $this->finishHandle($handle);
-
-                        break;
-                    }
-
-                    $this->assignNext($handle, $sink);
-
-                    if (!$handle->isActive()) {
-                        break;
-                    }
-                } elseif ($message instanceof Fatal) {
-                    throw ProtocolError::workerFatal(
-                        $handle->workerId,
-                        $message->detail->message,
-                        $message->detail->file,
-                        $message->detail->line,
-                    );
+            if ($this->draining || $isolatedAssignment) {
+                $handle->timing->retirementRequested($this->monotonicTime());
+                try {
+                    $this->transport->send($handle->workerId, new Drain());
+                } catch (ProtocolError) {
+                    // The worker is already gone after Done. No drain is necessary.
                 }
-            }
-        }
 
+                $this->finishHandle($handle);
+
+                return;
+            }
+
+            $this->assignNext($handle, $sink);
+
+        } elseif ($message instanceof Fatal) {
+            throw ProtocolError::workerFatal(
+                $handle->workerId,
+                $message->detail->message,
+                $message->detail->file,
+                $message->detail->line,
+            );
+        }
     }
 
     /**
@@ -667,11 +617,11 @@ final class Orchestrator
     /**
      * @throws AttachmentError
      */
-    private function onEvent(WorkerHandle $handle, Event $event, EventSink $sink): void
+    private function onEvent(WorkerState $handle, Event $event, EventSink $sink): void
     {
-        if ($event instanceof TestFinished && $this->artifactStore instanceof ArtifactStore) {
+        if ($event instanceof TestFinished && $this->configuration->artifactStore instanceof ArtifactStore) {
             $event = new TestFinished(
-                $this->artifactStore->publish($event->result),
+                $this->configuration->artifactStore->publish($event->result),
                 $event->occurredAt,
             );
         }
@@ -696,9 +646,9 @@ final class Orchestrator
         $sink->emit($event);
 
         if ($event instanceof TestFinished
-            && $this->stopAfterFailures !== null
+            && $this->configuration->stopAfterFailures !== null
             && !$this->draining
-            && $this->summary->failed + $this->summary->errored >= $this->stopAfterFailures
+            && $this->summary->failed + $this->summary->errored >= $this->configuration->stopAfterFailures
         ) {
             $this->drainAll();
         }
@@ -707,7 +657,7 @@ final class Orchestrator
     /**
      * @throws ProtocolError
      */
-    private function onAttemptStarted(WorkerHandle $handle, AttemptStarted $message): void
+    private function onAttemptStarted(WorkerState $handle, AttemptStarted $message): void
     {
         $inFlight = $handle->inFlight;
         $expectedAttempt = $handle->inFlightAttempt + 1;
@@ -733,11 +683,14 @@ final class Orchestrator
      */
     private function remainingFailureAllowance(): ?int
     {
-        if ($this->stopAfterFailures === null) {
+        if ($this->configuration->stopAfterFailures === null) {
             return null;
         }
 
-        return \max(1, $this->stopAfterFailures - $this->summary->failed - $this->summary->errored);
+        return \max(
+            1,
+            $this->configuration->stopAfterFailures - $this->summary->failed - $this->summary->errored,
+        );
     }
 
     private function drainAll(): void
@@ -746,10 +699,10 @@ final class Orchestrator
         $this->resourceScheduler()->clearPending();
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->channel !== null) {
+            if ($handle->isActive() && $handle->connected) {
                 $handle->timing->retirementRequested($this->monotonicTime());
                 try {
-                    $handle->channel->send(new Drain());
+                    $this->transport->send($handle->workerId, new Drain());
                 } catch (ProtocolError) {
                     // Crash detection processes a worker that is already gone.
                 }
@@ -762,54 +715,35 @@ final class Orchestrator
     }
 
     /**
-     * @throws AttachmentError
      * @throws ProtocolError
      */
-    private function detectCrashes(EventSink $sink): void
+    private function detectCrashes(): void
     {
         foreach ($this->handles as $handle) {
             if (!$handle->isActive()) {
                 continue;
             }
 
-            if ($handle->channel === null) {
-                // This worker stopped before connection and had no assignment.
-                // Crash containment collects the handle. The start loop
-                // supplies a replacement worker for queued work.
-                if (!$handle->isRunning()) {
-                    $this->containCrash($handle, $sink, 'the worker exited before connecting');
-
-                    continue;
-                }
-
+            if (!$handle->connected) {
                 // This process is alive but did not connect before the
                 // deadline. Crash containment cannot detect an active process.
                 // The hello deadline starts only after connection acceptance.
                 // On a computer without sufficient resources, a replacement
                 // can stop in the same way. Thus, this condition fails the run
                 // and does not use the replacement budget.
-                if ($this->monotonicTime() - $handle->spawnedAt > $this->connectDeadlineSeconds) {
-                    $handle->drainPipes();
-                    $handle->terminate();
+                if ($this->monotonicTime() - $handle->spawnedAt > $this->configuration->connectDeadlineSeconds) {
+                    $diagnostics = $this->transport->diagnostics($handle->workerId);
+                    $this->transport->retire($handle->workerId, true);
 
                     throw ProtocolError::workerNeverConnected(
                         $handle->workerId,
-                        $this->connectDeadlineSeconds,
-                        Utf8::tailBytes(\trim($handle->diagnostics), 2_048),
+                        $this->configuration->connectDeadlineSeconds,
+                        Utf8::tailBytes(\trim($diagnostics), 2_048),
                     );
                 }
 
                 continue;
             }
-
-            // pumpChannels already drained the channel, so the EOF state is
-            // current. Do not poll here because another poll discards a
-            // returned message.
-            if (!$handle->channel->isEof()) {
-                continue;
-            }
-
-            $this->containCrash($handle, $sink, 'the worker process exited unexpectedly');
         }
     }
 
@@ -835,16 +769,16 @@ final class Orchestrator
                 // stop after assignment receipt or between tests without a
                 // test timeout. A replacement worker can stop in the same way.
                 // Fail the run instead of use crash containment.
-                if ($handle->channel !== null
-                    && $this->monotonicTime() - $handle->lastProgressAt > $this->progressDeadlineSeconds
+                if ($handle->connected
+                    && $this->monotonicTime() - $handle->lastProgressAt > $this->configuration->progressDeadlineSeconds
                 ) {
-                    $handle->drainPipes();
-                    $handle->terminate();
+                    $diagnostics = $this->transport->diagnostics($handle->workerId);
+                    $this->transport->retire($handle->workerId, true);
 
                     throw ProtocolError::workerStalled(
                         $handle->workerId,
-                        $this->progressDeadlineSeconds,
-                        Utf8::tailBytes(\trim($handle->diagnostics), 2_048),
+                        $this->configuration->progressDeadlineSeconds,
+                        Utf8::tailBytes(\trim($diagnostics), 2_048),
                     );
                 }
 
@@ -869,7 +803,7 @@ final class Orchestrator
     /**
      * @throws AttachmentError
      */
-    private function containTimeout(WorkerHandle $handle, EventSink $sink, float $budget): void
+    private function containTimeout(WorkerState $handle, EventSink $sink, float $budget): void
     {
         $inFlight = $handle->inFlight;
 
@@ -881,7 +815,7 @@ final class Orchestrator
                 $handle->workerId,
                 $duration,
             );
-            $diagnostics = \trim($handle->diagnostics);
+            $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
 
             if ($diagnostics !== '') {
                 $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
@@ -902,13 +836,12 @@ final class Orchestrator
     /**
      * @throws AttachmentError
      */
-    private function containCrash(WorkerHandle $handle, EventSink $sink, string $reason): void
+    private function containCrash(WorkerState $handle, EventSink $sink, string $reason): void
     {
-        $handle->drainPipes();
         $inFlight = $handle->inFlight;
 
         if ($inFlight instanceof TestId) {
-            $diagnostics = \trim($handle->diagnostics);
+            $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
 
             $this->recordSyntheticResult($handle, $sink, new TestResult(
                 $inFlight,
@@ -929,12 +862,12 @@ final class Orchestrator
     /**
      * @throws AttachmentError
      */
-    private function recordSyntheticResult(WorkerHandle $handle, EventSink $sink, TestResult $result): void
+    private function recordSyntheticResult(WorkerState $handle, EventSink $sink, TestResult $result): void
     {
         $result = $result->withAttempts(\max($result->attempts, $handle->inFlightAttempt));
 
-        if ($this->artifactStore instanceof ArtifactStore) {
-            $result = $this->artifactStore->recover($result);
+        if ($this->configuration->artifactStore instanceof ArtifactStore) {
+            $result = $this->configuration->artifactStore->recover($result);
         }
 
         $handle->inFlight = null;
@@ -944,16 +877,12 @@ final class Orchestrator
         $sink->emit(new TestFinished($result, \microtime(true)));
     }
 
-    private function retireFailedWorker(WorkerHandle $handle, EventSink $sink, bool $kill = false): void
+    private function retireFailedWorker(WorkerState $handle, EventSink $sink, bool $kill = false): void
     {
         $remainder = $handle->unfinished();
         $sink->emit(new WorkerRecycled($handle->workerId, RecycleReason::Crash, \microtime(true)));
         $this->releaseAssignment($handle);
-        if ($kill) {
-            $handle->kill($this->monotonicTime());
-        } else {
-            $this->finishHandle($handle);
-        }
+        $this->finishHandle($handle, $kill);
         $this->enqueueRemainder($remainder);
     }
 
@@ -993,7 +922,7 @@ final class Orchestrator
      * @param list<TestId> $reported
      * @throws ProtocolError
      */
-    private function assertRemainder(WorkerHandle $handle, array $reported): void
+    private function assertRemainder(WorkerState $handle, array $reported): void
     {
         $expected = $this->renderIds($handle->unfinished());
         $actual = $this->renderIds($reported);
@@ -1017,7 +946,7 @@ final class Orchestrator
         return \array_map(static fn(TestId $id): string => (string) $id, $ids);
     }
 
-    private function releaseAssignment(WorkerHandle $handle): void
+    private function releaseAssignment(WorkerState $handle): void
     {
         $lease = $handle->lease;
 
@@ -1042,7 +971,7 @@ final class Orchestrator
         $this->retryWaitingWorkers = false;
 
         foreach ($this->handles as $handle) {
-            if (!$handle->isActive() || $handle->channel === null || $handle->assigned !== null) {
+            if (!$handle->isActive() || !$handle->connected || $handle->assigned !== null) {
                 continue;
             }
 
@@ -1062,7 +991,7 @@ final class Orchestrator
     /**
      * @throws ProtocolError
      */
-    private function crossCheck(WorkerHandle $handle, ResultSummary $reported): void
+    private function crossCheck(WorkerState $handle, ResultSummary $reported): void
     {
         if ($handle->tally->toWire() !== $reported->toWire()) {
             throw ProtocolError::summaryMismatch(
@@ -1073,39 +1002,34 @@ final class Orchestrator
         }
     }
 
-    private function finishHandle(WorkerHandle $handle): void
+    private function finishHandle(WorkerState $handle, bool $force = false): void
     {
         if (isset($this->initialAssignmentsPending[$handle->workerId])) {
             unset($this->initialAssignmentsPending[$handle->workerId]);
             $this->retryWaitingWorkers = true;
         }
 
-        $handle->retire($this->monotonicTime(), self::WORKER_EXIT_GRACE_SECONDS);
+        $handle->retiring = true;
+        $this->transport->retire($handle->workerId, $force);
     }
 
-    private function reapRetiringHandles(): void
+    /** @param non-empty-string $workerId */
+    private function completeRetirement(string $workerId): void
     {
-        $now = $this->monotonicTime();
+        $handle = $this->handles[$workerId] ?? null;
 
-        foreach ($this->handles as $workerId => $handle) {
-            if (!$handle->reap($now)) {
-                continue;
-            }
-
-            $handle->timing->exitObserved($this->monotonicTime());
-            $this->reapedWorkerTimings[$handle->workerId] = $handle->timing->snapshot($handle->workerId);
-            $this->channels?->release($handle->channelNumber);
-            unset($this->handles[$workerId]);
+        if (!$handle instanceof WorkerState) {
+            return;
         }
-    }
 
-    private function hasRetiringHandles(): bool
-    {
-        return \array_any($this->handles, static fn(WorkerHandle $handle): bool => $handle->isRetiring());
+        $handle->timing->exitObserved($this->monotonicTime());
+        $this->reapedWorkerTimings[$handle->workerId] = $handle->timing->snapshot($handle->workerId);
+        $this->channels?->release($handle->channelNumber);
+        unset($this->handles[$workerId]);
     }
 
     private function monotonicTime(): float
     {
-        return \hrtime(true) / 1_000_000_000;
+        return $this->transport->now();
     }
 }

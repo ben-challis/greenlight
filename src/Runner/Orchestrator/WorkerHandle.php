@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\Utf8;
-use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Runner\Protocol\SocketChannel;
 
 /**
- * Contains assignment state for crash attribution, resource release,
- * progress deadlines, and summary validation.
+ * Owns one native worker process, its protocol channel, and diagnostics.
  *
  * @internal
  */
@@ -22,32 +18,6 @@ final class WorkerHandle
     private const int MAX_DIAGNOSTIC_BYTES = 65_536;
 
     public ?SocketChannel $channel = null;
-
-    public bool $ready = false;
-
-    public ?ExecutionPlan $assigned = null;
-
-    public bool $isolatedAssignment = false;
-
-    public ?ResourceLease $lease = null;
-
-    private bool $hasRunAssignment = false;
-
-    public ResultSummary $tally;
-
-    /**
-     * @var array<string, true> finished test ids, keyed by string form
-     */
-    public array $finished = [];
-
-    public ?TestId $inFlight = null;
-
-    public float $inFlightSince = 0.0;
-
-    /**
-     * @var non-negative-int
-     */
-    public int $inFlightAttempt = 0;
 
     public WorkerLifecycle $lifecycle = WorkerLifecycle::Active;
 
@@ -59,10 +29,6 @@ final class WorkerHandle
     private array $diagnosticCarry = ['', ''];
 
     public readonly float $spawnedAt;
-
-    public readonly WorkerTimingRecorder $timing;
-
-    public float $lastProgressAt;
 
     /**
      * @param non-empty-string $workerId
@@ -78,36 +44,7 @@ final class WorkerHandle
         public readonly mixed $stdout,
         public readonly mixed $stderr,
     ) {
-        $this->tally = new ResultSummary();
         $this->spawnedAt = \hrtime(true) / 1_000_000_000;
-        $this->lastProgressAt = $this->spawnedAt;
-        $this->timing = new WorkerTimingRecorder($this->spawnedAt);
-    }
-
-    public function beginAssignment(ResourceLease $lease): void
-    {
-        $this->lease = $lease;
-        $this->assigned = $lease->unit->plan;
-        $this->isolatedAssignment = $lease->unit->isolated;
-        $this->tally = new ResultSummary();
-        $this->finished = [];
-        $this->inFlight = null;
-        $this->inFlightAttempt = 0;
-    }
-
-    public function finishAssignment(): void
-    {
-        $this->hasRunAssignment = true;
-        $this->lease = null;
-        $this->assigned = null;
-        $this->isolatedAssignment = false;
-        $this->inFlight = null;
-        $this->inFlightAttempt = 0;
-    }
-
-    public function isFresh(): bool
-    {
-        return !$this->hasRunAssignment;
     }
 
     public function isRunning(): bool
@@ -322,38 +259,4 @@ final class WorkerHandle
         $this->lifecycle = WorkerLifecycle::Reaped;
     }
 
-    /**
-     * Returns incomplete entries in the current assignment.
-     *
-     * The result excludes the active entry. Crash reassignment uses this
-     * result because Greenlight does not automatically retry a crashed test.
-     *
-     * @return list<TestId>
-     */
-    public function unfinished(): array
-    {
-        $assigned = $this->assigned;
-
-        if (!$assigned instanceof ExecutionPlan) {
-            return [];
-        }
-
-        $remaining = [];
-
-        foreach ($assigned->entries as $entry) {
-            $key = (string) $entry->id;
-
-            if (isset($this->finished[$key])) {
-                continue;
-            }
-
-            if ($this->inFlight instanceof TestId && $entry->id->equals($this->inFlight)) {
-                continue;
-            }
-
-            $remaining[] = $entry->id;
-        }
-
-        return $remaining;
-    }
 }

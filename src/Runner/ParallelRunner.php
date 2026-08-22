@@ -21,7 +21,9 @@ use Greenlight\Runner\Integration\IntegrationFixtureManager;
 use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
+use Greenlight\Runner\Orchestrator\NativeWorkerTransport;
 use Greenlight\Runner\Orchestrator\Orchestrator;
+use Greenlight\Runner\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -119,22 +121,23 @@ final readonly class ParallelRunner
                 ));
 
                 $orchestrator = new Orchestrator(
-                    $this->workerCommand,
-                    $this->workingDirectory,
-                    $configuration->recycleAfterTests,
-                    $configuration->recycleAboveMemoryBytes,
-                    $configuration->stopAfterFailures,
-                    $coverageSettings,
-                    $configFile,
-                    $detectLeaks,
-                    $configuration->policy->isNoOp() ? null : $configuration->policy,
-                    $shutdown,
-                    $ticker,
-                    $artifactStore,
-                    $artifactConfiguration,
-                    $fixtures,
-                    resourceLimits: $configuration->resourceLimits,
-                    initialWorkerAssignment: $initialWorkerAssignment,
+                    NativeWorkerTransport::listen($this->workerCommand, $this->workingDirectory),
+                    new OrchestratorConfiguration(
+                        recycleAfterTests: $configuration->recycleAfterTests,
+                        recycleAboveMemoryBytes: $configuration->recycleAboveMemoryBytes,
+                        stopAfterFailures: $configuration->stopAfterFailures,
+                        coverageSettings: $coverageSettings,
+                        configFile: $configFile,
+                        detectLeaks: $detectLeaks,
+                        policy: $configuration->policy->isNoOp() ? null : $configuration->policy,
+                        shutdown: $shutdown,
+                        ticker: $ticker,
+                        artifactStore: $artifactStore,
+                        artifactConfiguration: $artifactConfiguration,
+                        integrationFixtures: $fixtures,
+                        resourceLimits: $configuration->resourceLimits,
+                        initialWorkerAssignment: $initialWorkerAssignment,
+                    ),
                 );
 
                 $summary = $orchestrator->run($plan, $sink, $workerCount, $classSeconds);

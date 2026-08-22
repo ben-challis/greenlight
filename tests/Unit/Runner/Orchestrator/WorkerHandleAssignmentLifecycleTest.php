@@ -11,24 +11,15 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
-use Greenlight\Runner\Orchestrator\WorkerHandle;
-use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Support\MemoryStream;
+use Greenlight\Runner\Orchestrator\WorkerState;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class WorkerHandleAssignmentLifecycleTest
 {
-    public function __construct(private Cleanup $cleanup) {}
-
     #[Test]
     public function assignmentLifecycleTransfersResetsAndClearsWorkerState(): void
     {
-        $process = MemoryStream::open();
-        $stdout = MemoryStream::open();
-        $stderr = MemoryStream::open();
-        $this->cleanup->defer(static fn() => MemoryStream::close($process, $stdout, $stderr));
-
-        $handle = new WorkerHandle('worker-1', 1, $process, $stdout, $stderr);
+        $handle = new WorkerState('worker-1', 1, 1.0);
 
         Expect::that($handle->isFresh())
             ->because('a worker MUST be fresh before its first assignment completes')
