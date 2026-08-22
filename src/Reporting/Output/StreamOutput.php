@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Reporting\Output;
 
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 
 /**
  * Writes reporter text to an open stream resource.
@@ -28,11 +28,11 @@ final class StreamOutput implements Output
         while ($text !== '') {
             $written = ErrorTrap::run(
                 fn() => \fwrite($this->stream, $text),
-                wrap: static fn(\Throwable $error): ReportingError => ReportingError::writeFailed($error),
+                wrap: static fn(\Throwable $error): ReportGenerationFailed => ReportGenerationFailed::writeFailed($error),
             );
 
             if ($written === false || $written === 0) {
-                throw ReportingError::writeFailed();
+                throw ReportGenerationFailed::writeFailed();
             }
 
             $text = \substr($text, $written);

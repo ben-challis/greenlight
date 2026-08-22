@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Reporting\Output\StreamOutput;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 
@@ -19,7 +19,7 @@ final readonly class StreamOutputDiagnosticTest
     public function __construct(private StreamWrappers $streamWrappers) {}
 
     #[Test]
-    public function aStreamWriteDiagnosticIsContainedByTheReportingError(): void
+    public function aStreamWriteDiagnosticIsContainedByTheReportGenerationFailed(): void
     {
         $this->streamWrappers->register(self::SCHEME, PartialWriteStream::class);
         $stream = \fopen(self::SCHEME . '://warning', 'wb');
@@ -41,7 +41,7 @@ final readonly class StreamOutputDiagnosticTest
             Expect::that(static fn() => $output->write('cannot be written'))
                 ->because('a stream diagnostic becomes only a reporting error')
                 ->toThrow(
-                    ReportingError::class,
+                    ReportGenerationFailed::class,
                     message: 'Greenlight did not write reporter output to the stream.',
                 );
         } finally {

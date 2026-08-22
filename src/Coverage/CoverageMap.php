@@ -6,6 +6,7 @@ namespace Greenlight\Coverage;
 
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
@@ -181,7 +182,7 @@ final readonly class CoverageMap implements WireSerializable
 
     /**
      * @return list<int>
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     private static function lineList(mixed $value): array
     {

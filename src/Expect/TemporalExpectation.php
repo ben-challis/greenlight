@@ -12,8 +12,6 @@ use Greenlight\Core\Test\ExpectationCounter;
  * Contains the matcher dispatch and probe operations for eventual and
  * consistent expectations.
  *
- * @internal
- *
  * @template T
  * @mixin Expectation<T>
  */
@@ -25,6 +23,8 @@ abstract class TemporalExpectation
     private ?string $reason = null;
 
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */

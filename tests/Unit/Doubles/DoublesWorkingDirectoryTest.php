@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
@@ -39,7 +39,7 @@ final readonly class DoublesWorkingDirectoryTest
         Expect::that(static fn(): Doubles => new Doubles())
             ->because('the default proxy directory needs a current working directory')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Doubles could not resolve the working directory. Pass a proxy directory explicitly.',
             );
     }

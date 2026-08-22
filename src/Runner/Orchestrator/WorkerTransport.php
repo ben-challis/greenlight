@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\ProtocolError;
 
@@ -34,9 +33,8 @@ interface WorkerTransport
 
     /**
      * @return list<WorkerTransportEvent>
-     * @throws InvalidWirePayload
      * @throws ProtocolError
-     * @throws WireError
+     * @throws WireCommunicationFailed
      */
     public function poll(): array;
 

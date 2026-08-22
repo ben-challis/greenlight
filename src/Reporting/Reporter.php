@@ -16,7 +16,7 @@ use Greenlight\Core\Event\Event;
 interface Reporter
 {
     /**
-     * @throws ReportingError when the event cannot be rendered or delivered
+     * @throws ReportGenerationFailed when the event cannot be rendered or delivered
      */
     public function onEvent(Event $event): void;
 
@@ -24,7 +24,7 @@ interface Reporter
      * Greenlight calls this method exactly one time after the final event.
      * Reporters with buffers write their buffered text here.
      *
-     * @throws ReportingError when the output cannot be rendered or delivered
+     * @throws ReportGenerationFailed when the output cannot be rendered or delivered
      */
     public function finish(): void;
 }

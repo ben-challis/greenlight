@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\SuiteStarted;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginRegistry;
@@ -57,7 +57,7 @@ final class PluginEventSinkTest
             ]),
             $inner,
         );
-        $event = new SuiteStarted('unit', 1.0);
+        $event = new RunStarted('run-1', 1, 1, 1.0);
 
         $sink->emit($event);
 
@@ -88,7 +88,7 @@ final class PluginEventSinkTest
             PluginRegistry::orchestratorSide([$subscriber]),
             $inner,
         );
-        $event = new SuiteStarted('unit', 1.0);
+        $event = new RunStarted('run-1', 1, 1, 1.0);
 
         Expect::that(static function () use ($sink, $event): void {
             $sink->emit($event);

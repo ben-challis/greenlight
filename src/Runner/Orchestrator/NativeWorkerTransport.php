@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Orchestrator;
 
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
@@ -103,9 +102,8 @@ final class NativeWorkerTransport implements WorkerTransport
     }
 
     /**
-     * @throws InvalidWirePayload
      * @throws ProtocolError
-     * @throws WireError
+     * @throws WireCommunicationFailed
      */
     #[\Override]
     public function poll(): array

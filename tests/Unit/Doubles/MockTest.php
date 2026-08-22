@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
@@ -28,7 +28,7 @@ final class MockTest
         Expect::that(static fn(): int => $calculator->add(1, 2))
             ->because('value-returning mock calls require a configured answer')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'The mock call "' . Calculator::class . '::add()" has no configured answer. '
                     . 'Configure each returned value with andReturns() or andThrows().',
             );
@@ -147,7 +147,7 @@ final class MockTest
             },
         ))
             ->because('invalid mock cardinalities are rejected')
-            ->toThrow(DoublesError::class, message: $message);
+            ->toThrow(InvalidDoubleUsage::class, message: $message);
     }
 
     /**

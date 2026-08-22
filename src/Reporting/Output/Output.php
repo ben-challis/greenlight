@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting\Output;
 
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 
 /**
  * A destination for reporter text.
@@ -15,7 +15,7 @@ use Greenlight\Reporting\ReportingError;
 interface Output
 {
     /**
-     * @throws ReportingError when the destination cannot accept the text
+     * @throws ReportGenerationFailed when the destination cannot accept the text
      */
     public function write(string $text): void;
 }

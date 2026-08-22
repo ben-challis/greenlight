@@ -140,9 +140,12 @@ queued scheduling units and their resource limits prove that more workers
 cannot run concurrently. This bound does not remove achievable concurrency.
 
 Workers build their plugins and harness registries during `bootstrap` and reuse
-them for later assignments. Per-run harness services therefore live for the
+them for later assignments. Per-worker harness services therefore live for the
 physical worker's lifetime. Workers rebuild per-class reflection, hooks, and
 data sets for each class.
+
+Configured suites add named paths and descriptive tags to discovery. They do
+not add boundaries to the execution plan or event stream.
 
 The default scheduling unit contains the selected non-isolated tests from one
 class. `#[AllowParallel]` changes each selected test or data set into a pooled

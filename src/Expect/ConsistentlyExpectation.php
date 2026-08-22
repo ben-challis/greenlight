@@ -18,6 +18,8 @@ use Greenlight\Core\Test\ExpectationCounter;
 final class ConsistentlyExpectation extends TemporalExpectation
 {
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */

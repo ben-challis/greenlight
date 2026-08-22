@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Tempest;
 
-use Greenlight\Harness\ServiceResolutionError;
+use Greenlight\Harness\ServiceResolutionFailed;
 
 /**
  * Reports a Tempest bridge configuration or run-time failure.
  *
  * @internal
  */
-final class TempestBridgeError extends ServiceResolutionError
+final class TempestBridgeError extends ServiceResolutionFailed
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {

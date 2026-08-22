@@ -28,7 +28,7 @@ final readonly class MockPlan
     /**
      * Returns the `with()` wildcard that accepts all values in its position.
      */
-    public static function any(): Any
+    public static function any(): ArgumentMatcher
     {
         return new Any();
     }
@@ -39,7 +39,7 @@ final readonly class MockPlan
      * @param TMethod $method
      *
      * @return MethodExpectation<TTarget, TMethod>
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function expects(string $method): MethodExpectation
     {
@@ -57,28 +57,28 @@ final readonly class MockPlan
      * @param TMethod $method
      *
      * @return MethodCallContract<TTarget, TMethod>
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function assertPlannable(string $method): MethodCallContract
     {
         $reflection = new \ReflectionClass($this->target);
 
         if (!$reflection->hasMethod($method)) {
-            throw DoublesError::noSuchMethod($this->state->type, $method);
+            throw InvalidDoubleUsage::noSuchMethod($this->state->type, $method);
         }
 
         $declared = $reflection->getMethod($method);
 
         if ($declared->isStatic()) {
-            throw DoublesError::staticMethod($this->state->type, $method);
+            throw InvalidDoubleUsage::staticMethod($this->state->type, $method);
         }
 
         if (!$declared->isPublic()) {
-            throw DoublesError::methodNotPublic($this->state->type, $method);
+            throw InvalidDoubleUsage::methodNotPublic($this->state->type, $method);
         }
 
         if ($declared->isFinal()) {
-            throw DoublesError::finalMethod($this->state->type, $method);
+            throw InvalidDoubleUsage::finalMethod($this->state->type, $method);
         }
 
         return MethodCallContract::fromReflection($this->target, $method, $declared);

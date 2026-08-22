@@ -18,13 +18,12 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Utf8;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
@@ -170,9 +169,8 @@ final class Orchestrator
      *
      * @throws ProtocolError
      * @throws AttachmentError
-     * @throws InvalidWirePayload
-     * @throws ReportingError
-     * @throws WireError
+     * @throws WireCommunicationFailed
+     * @throws ReportGenerationFailed
      */
     public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount, array $classSeconds = []): ResultSummary
     {
@@ -290,9 +288,8 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      * @throws ProtocolError
-     * @throws WireError
      */
     private function tick(EventSink $sink): void
     {
@@ -305,10 +302,9 @@ final class Orchestrator
 
     /**
      * @param list<WorkerTransportEvent> $events
+     * @throws WireCommunicationFailed
      * @throws AttachmentError
-     * @throws InvalidWirePayload
      * @throws ProtocolError
-     * @throws WireError
      */
     private function processTransportEvents(array $events, EventSink $sink): void
     {
@@ -501,9 +497,8 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      * @throws ProtocolError
-     * @throws WireError
      */
     private function processWorkerMessage(WorkerState $handle, Message $message, EventSink $sink): void
     {

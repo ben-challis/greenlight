@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol\Messages;
 
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Runner\Protocol\EventRegistry;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\ProtocolError;
@@ -37,8 +36,7 @@ final readonly class EventEnvelope implements Message
 
     /**
      * @throws ProtocolError
-     * @throws InvalidWirePayload
-     * @throws WireError
+     * @throws WireCommunicationFailed
      */
     #[\Override]
     public static function fromWire(array $payload): static

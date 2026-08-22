@@ -60,8 +60,9 @@ Declares a named suite. Greenlight gives a `SuiteBuilder` to the configurator.
 The configurator must add at least one path. Greenlight ignores its return
 value. Thus, you can use an arrow function.
 
-Each run includes every named suite. Suite names and tags are descriptive. The
-`--dry-run` and `--list-suites` options print them.
+Each run includes every named suite. Suite names and tags are descriptive. A
+suite does not create a selection or execution boundary. It does not cause
+lifecycle events. The `--dry-run` and `--list-suites` options print suites.
 
 A second declaration with the same suite name causes an error.
 
@@ -379,6 +380,10 @@ The loader calls this method. User configuration does not call it.
 
 Return the builder from `greenlight.php`. Do not call `build()`.
 
+Configuration builders throw `InvalidConfiguration` for invalid values or
+invalid combinations. Catch this public type when an integration adds
+configuration before Greenlight starts the run.
+
 ## Channels and resource limits
 
 Every worker process runs in a channel: a stable slot numbered from 1 to the
@@ -467,6 +472,8 @@ format and path rules.
 ### profile:report
 
 Renders a run profile from a saved JSONL event stream.
+
+The command accepts JSONL versions 2 and 3.
 
 Requires:
 

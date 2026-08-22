@@ -10,7 +10,7 @@ These signatures are the public API.
 
 Namespace: `Greenlight\Core\Event`
 
-Add new event types only. Do not replace or remove an event type.
+Defines an event that can occur in the run lifecycle.
 
 ```php
 interface Event extends WireSerializable
@@ -250,126 +250,6 @@ public static function fromWire(array $payload): static
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L75)
-
-## `SuiteFinished`
-
-Namespace: `Greenlight\Core\Event`
-
-```php
-final readonly class SuiteFinished implements Event
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L9)
-
-### `$suite`
-
-```php
-public string $suite;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L14)
-
-### `$occurredAt`
-
-```php
-public float $occurredAt
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L19)
-
-### `__construct()`
-
-```php
-public function __construct(string $suite, public float $occurredAt)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L19)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L32)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteFinished.php#L41)
-
-## `SuiteStarted`
-
-Namespace: `Greenlight\Core\Event`
-
-```php
-final readonly class SuiteStarted implements Event
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L9)
-
-### `$suite`
-
-```php
-public string $suite;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L14)
-
-### `$occurredAt`
-
-```php
-public float $occurredAt
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L19)
-
-### `__construct()`
-
-```php
-public function __construct(string $suite, public float $occurredAt)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L19)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L32)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/SuiteStarted.php#L41)
 
 ## `TestClassFinished`
 

@@ -17,7 +17,7 @@ final readonly class IntegrationResourcesWireShapeTest
      */
     #[Test]
     #[DataSet('invalidFixtureEntries')]
-    public function invalidFixtureEntriesRemainWireErrors(array $fixtures, string $message): void
+    public function invalidFixtureEntriesRemainWireCommunicationFaileds(array $fixtures, string $message): void
     {
         Expect::that(static fn(): IntegrationResources => IntegrationResources::fromWire([
             'fixtures' => $fixtures,

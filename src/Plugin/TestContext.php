@@ -10,7 +10,7 @@ use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Harness\HarnessScopes;
-use Greenlight\Harness\ServiceResolutionError;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
 
 /**
@@ -22,6 +22,7 @@ final readonly class TestContext
 {
     public Attachments $attachments;
 
+    /** @internal Greenlight constructs the test context. */
     public function __construct(
         public object $instance,
         public TestId $id,
@@ -39,8 +40,7 @@ final readonly class TestContext
      *
      * @return T
      *
-     * @throws ServiceResolutionError when a service resolver cannot supply a valid service
-     * @throws UnresolvableService
+     * @throws ServiceResolutionFailed when a service resolver cannot supply a valid service
      */
     public function service(string $type): object
     {

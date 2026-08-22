@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\SuiteStarted;
+use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\SocketChannel;
@@ -26,7 +26,7 @@ final readonly class SocketEventSinkTest
         $this->cleanup->defer($receiver->close(...));
         $this->cleanup->defer($sender->close(...));
         $sink = new SocketEventSink($sender);
-        $event = new SuiteStarted('unit', 1.0);
+        $event = new TestClassStarted('Acme\\ExampleTest', 1.0, 'worker-1');
 
         $sink->emit($event);
         $message = $receiver->poll();

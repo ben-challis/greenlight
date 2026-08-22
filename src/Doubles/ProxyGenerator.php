@@ -35,7 +35,7 @@ final readonly class ProxyGenerator
      * @param class-string $type
      *
      * @return class-string
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function proxyClass(string $type): string
     {
@@ -58,12 +58,12 @@ final readonly class ProxyGenerator
                 static function () use ($file) {
                     require $file;
                 },
-                wrap: static fn(\Throwable $failure): DoublesError =>
-                    DoublesError::proxyFileNotLoaded($file, $failure),
+                wrap: static fn(\Throwable $failure): InvalidDoubleUsage =>
+                    InvalidDoubleUsage::proxyFileNotLoaded($file, $failure),
             );
 
             if (!\class_exists($proxyClass, false)) {
-                throw DoublesError::proxyFileNotLoaded($file);
+                throw InvalidDoubleUsage::proxyFileNotLoaded($file);
             }
         }
 
@@ -74,7 +74,7 @@ final readonly class ProxyGenerator
      * @param class-string $type
      *
      * @return \ReflectionClass<object>
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function reflectDoubleable(string $type): \ReflectionClass
     {
@@ -83,28 +83,28 @@ final readonly class ProxyGenerator
         }
 
         if (\enum_exists($type)) {
-            throw DoublesError::cannotDoubleEnum($type);
+            throw InvalidDoubleUsage::cannotDoubleEnum($type);
         }
 
         if (\class_exists($type)) {
             $reflection = new \ReflectionClass($type);
 
             if ($reflection->isReadOnly()) {
-                throw DoublesError::cannotDoubleReadonly($type);
+                throw InvalidDoubleUsage::cannotDoubleReadonly($type);
             }
 
             if ($reflection->isFinal()) {
-                throw DoublesError::cannotDoubleFinal($type);
+                throw InvalidDoubleUsage::cannotDoubleFinal($type);
             }
 
             return $reflection;
         }
 
         if (\trait_exists($type)) {
-            throw DoublesError::cannotDoubleTrait($type);
+            throw InvalidDoubleUsage::cannotDoubleTrait($type);
         }
 
-        throw DoublesError::notDoubleable($type);
+        throw InvalidDoubleUsage::notDoubleable($type);
     }
 
     /**
@@ -125,7 +125,7 @@ final readonly class ProxyGenerator
 
     /**
      * @param \ReflectionClass<object> $reflection
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderBody(\ReflectionClass $reflection): string
     {
@@ -133,7 +133,7 @@ final readonly class ProxyGenerator
             $property = $reflection->getProperty(self::HANDLER_PROPERTY);
 
             if (!$property->isPrivate()) {
-                throw DoublesError::handlerPropertyCollision($property->getDeclaringClass()->name);
+                throw InvalidDoubleUsage::handlerPropertyCollision($property->getDeclaringClass()->name);
             }
         }
 
@@ -182,7 +182,7 @@ final readonly class ProxyGenerator
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderProperty(\ReflectionProperty $property): string
     {
@@ -194,7 +194,7 @@ final readonly class ProxyGenerator
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderMethod(\ReflectionMethod $method): ?string
     {
@@ -209,7 +209,7 @@ final readonly class ProxyGenerator
         }
 
         if ($name === '__greenlightattachhandler') {
-            throw DoublesError::attachHandlerCollision($method->getDeclaringClass()->name);
+            throw InvalidDoubleUsage::attachHandlerCollision($method->getDeclaringClass()->name);
         }
 
         if ($method->isFinal()
@@ -226,7 +226,7 @@ final readonly class ProxyGenerator
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderInstanceMethod(\ReflectionMethod $method): string
     {
@@ -246,7 +246,7 @@ final readonly class ProxyGenerator
         } elseif ($returnName === 'never') {
             $body = '        ' . $invoke . "\n"
                 . \sprintf(
-                    "        throw \\Greenlight\\Doubles\\DoublesError::neverMethodRequiresThrow('%s', '%s');\n",
+                    "        throw \\Greenlight\\Doubles\\InvalidDoubleUsage::neverMethodRequiresThrow('%s', '%s');\n",
                     $method->getDeclaringClass()->name,
                     $method->name,
                 );
@@ -288,12 +288,12 @@ final readonly class ProxyGenerator
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderStaticStub(\ReflectionMethod $method): string
     {
         $body = \sprintf(
-            "        throw \\Greenlight\\Doubles\\DoublesError::staticMethod('%s', '%s');\n",
+            "        throw \\Greenlight\\Doubles\\InvalidDoubleUsage::staticMethod('%s', '%s');\n",
             $method->getDeclaringClass()->name,
             $method->name,
         );
@@ -306,7 +306,7 @@ final readonly class ProxyGenerator
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderSignature(\ReflectionMethod $method, ?\ReflectionType $returnType, bool $static = false): string
     {
@@ -330,7 +330,7 @@ final readonly class ProxyGenerator
 
     /**
      * @param \ReflectionClass<object> $context
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderParameter(\ReflectionParameter $parameter, \ReflectionClass $context): string
     {
@@ -356,19 +356,19 @@ final readonly class ProxyGenerator
 
     /**
      * @param \ReflectionClass<object> $context
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function renderDefault(\ReflectionParameter $parameter, \ReflectionClass $context): string
     {
         if (!$parameter->isDefaultValueAvailable()) {
-            throw DoublesError::defaultValueNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
+            throw InvalidDoubleUsage::defaultValueNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         if ($parameter->isDefaultValueConstant()) {
             $constant = $parameter->getDefaultValueConstantName();
 
             if ($constant === null) {
-                throw DoublesError::defaultConstantUnresolvable($parameter->name);
+                throw InvalidDoubleUsage::defaultConstantUnresolvable($parameter->name);
             }
 
             if (\str_starts_with($constant, 'self::')) {
@@ -379,7 +379,7 @@ final readonly class ProxyGenerator
                 $parent = $context->getParentClass();
 
                 if ($parent === false) {
-                    throw DoublesError::parentTypeWithoutParent($context->name);
+                    throw InvalidDoubleUsage::parentTypeWithoutParent($context->name);
                 }
 
                 return '\\' . $parent->name . '::' . \substr($constant, 8);
@@ -391,14 +391,14 @@ final readonly class ProxyGenerator
         $value = $parameter->getDefaultValue();
 
         if (\is_object($value) && !$value instanceof \UnitEnum) {
-            throw DoublesError::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
+            throw InvalidDoubleUsage::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         return \var_export($value, true);
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function write(string $file, string $source): void
     {
@@ -410,14 +410,14 @@ final readonly class ProxyGenerator
             $directoryExists = ErrorTrap::run(static fn() => \is_dir($directory));
 
             if (!$directoryExists) {
-                throw DoublesError::proxyDirectoryNotCreated($directory, $warning);
+                throw InvalidDoubleUsage::proxyDirectoryNotCreated($directory, $warning);
             }
         }
 
         try {
             AtomicFile::write($file, $source);
         } catch (AtomicFileError $error) {
-            throw DoublesError::proxyFileNotWritten($file, $error);
+            throw InvalidDoubleUsage::proxyFileNotWritten($file, $error);
         }
     }
 }

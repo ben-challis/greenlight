@@ -61,12 +61,12 @@ final readonly class MethodCallContract
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function assertPlannedArgumentCount(string $selector, int $count): void
     {
         if ($count < $this->requiredArguments) {
-            throw DoublesError::tooFewPlannedArguments(
+            throw InvalidDoubleUsage::tooFewPlannedArguments(
                 $selector,
                 $this->type,
                 $this->requestedMethod,
@@ -76,7 +76,7 @@ final readonly class MethodCallContract
         }
 
         if ($this->maximumArguments !== null && $count > $this->maximumArguments) {
-            throw DoublesError::tooManyPlannedArguments(
+            throw InvalidDoubleUsage::tooManyPlannedArguments(
                 $selector,
                 $this->type,
                 $this->requestedMethod,
@@ -87,12 +87,12 @@ final readonly class MethodCallContract
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function assertCallArgumentCount(int $count): void
     {
         if ($count < $this->requiredArguments) {
-            throw DoublesError::tooFewCallArguments(
+            throw InvalidDoubleUsage::tooFewCallArguments(
                 $this->type,
                 $this->method,
                 $count,
@@ -101,7 +101,7 @@ final readonly class MethodCallContract
         }
 
         if ($this->maximumArguments !== null && $count > $this->maximumArguments) {
-            throw DoublesError::tooManyCallArguments(
+            throw InvalidDoubleUsage::tooManyCallArguments(
                 $this->type,
                 $this->method,
                 $count,

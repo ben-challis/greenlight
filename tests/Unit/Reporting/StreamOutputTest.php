@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Output\StreamOutput;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
@@ -43,7 +43,7 @@ final readonly class StreamOutputTest
     }
 
     #[Test]
-    public function aStreamWriteFailureBecomesAReportingError(): void
+    public function aStreamWriteFailureBecomesAReportGenerationFailed(): void
     {
         $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r'));
 
@@ -60,13 +60,13 @@ final readonly class StreamOutputTest
         })
             ->because('a stream write failure becomes a reporting error')
             ->toThrow(
-                ReportingError::class,
+                ReportGenerationFailed::class,
                 message: 'Greenlight did not write reporter output to the stream.',
             );
     }
 
     #[Test]
-    public function aClosedStreamThrowableBecomesAReportingError(): void
+    public function aClosedStreamThrowableBecomesAReportGenerationFailed(): void
     {
         $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r+'));
 
@@ -81,7 +81,7 @@ final readonly class StreamOutputTest
         Expect::that(static fn() => $output->write('cannot be written'))
             ->because('a native stream throwable MUST not escape the reporting seam')
             ->toThrow(
-                static function (ReportingError $error): void {
+                static function (ReportGenerationFailed $error): void {
                     Expect::that($error->getPrevious())
                         ->because('the reporting error MUST preserve the native stream error')
                         ->toBeInstanceOf(\TypeError::class);
@@ -102,7 +102,7 @@ final readonly class StreamOutputTest
     }
 
     #[Test]
-    public function aStalledPartialWriteBecomesAReportingError(): void
+    public function aStalledPartialWriteBecomesAReportGenerationFailed(): void
     {
         $stream = $this->openPartialWriteStream('stalled');
 
@@ -111,7 +111,7 @@ final readonly class StreamOutputTest
         Expect::that(static fn() => $output->write('cannot make progress'))
             ->because('a zero-byte write MUST stop instead of retrying without a limit')
             ->toThrow(
-                ReportingError::class,
+                ReportGenerationFailed::class,
                 message: 'Greenlight did not write reporter output to the stream.',
             );
     }

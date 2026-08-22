@@ -57,7 +57,7 @@ final class Psr15PluginTest
     }
 
     #[Test]
-    public function aPerRunScopeReusesOneHarnessAndHandler(): void
+    public function aPerWorkerScopeReusesOneHarnessAndHandler(): void
     {
         $created = 0;
         $plugin = new Psr15Plugin(
@@ -72,7 +72,7 @@ final class Psr15PluginTest
                     }
                 };
             },
-            Scope::PerRun,
+            Scope::PerWorker,
         );
         $scopes = $this->scopes($plugin);
 
@@ -87,7 +87,7 @@ final class Psr15PluginTest
 
         Expect::that($second)->toBe($first);
         Expect::that($created)->toBe(1);
-        Expect::that($scopes->closeRun())->toBe([]);
+        Expect::that($scopes->closeWorker())->toBe([]);
     }
 
     #[Test]
