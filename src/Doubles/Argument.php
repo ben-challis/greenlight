@@ -21,11 +21,39 @@ final class Argument
      * This matcher accepts instances of the specified class or interface.
      * It also accepts values when `get_debug_type()` returns `$type`.
      *
-     * @template T of object
+     * @template TType of string
      *
-     * @param class-string<T>|string $type
+     * @param TType $type
      *
-     * @return ($type is class-string<T> ? ArgumentMatcher<T> : ArgumentMatcher<mixed>)
+     * @return (
+     *     $type is 'array'
+     *         ? ArgumentMatcher<array<array-key, mixed>>
+     *         : (
+     *             $type is 'bool'
+     *                 ? ArgumentMatcher<bool>
+     *                 : (
+     *                     $type is 'float'
+     *                         ? ArgumentMatcher<float>
+     *                         : (
+     *                             $type is 'int'
+     *                                 ? ArgumentMatcher<int>
+     *                                 : (
+     *                                     $type is 'null'
+     *                                         ? ArgumentMatcher<null>
+     *                                         : (
+     *                                             $type is 'string'
+     *                                                 ? ArgumentMatcher<string>
+     *                                                 : (
+     *                                                     $type is class-string
+     *                                                         ? ArgumentMatcher<new<TType>>
+     *                                                         : ArgumentMatcher<mixed>
+     *                                                 )
+     *                                         )
+     *                                 )
+     *                         )
+     *                 )
+     *         )
+     * )
      * @throws InvalidDoubleUsage
      */
     public static function type(string $type): ArgumentMatcher

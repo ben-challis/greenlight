@@ -37,12 +37,12 @@ public static function type(string $type): ArgumentMatcher
 
 PHPDoc:
 
-- `@template T of object`
-- `@param class-string<T>|string $type`
-- `@return ($type is class-string<T> ? ArgumentMatcher<T> : ArgumentMatcher<mixed>)`
+- `@template TType of string`
+- `@param TType $type`
+- `@return ( $type is 'array' ? ArgumentMatcher<array<array-key, mixed>> : ( $type is 'bool' ? ArgumentMatcher<bool> : ( $type is 'float' ? ArgumentMatcher<float> : ( $type is 'int' ? ArgumentMatcher<int> : ( $type is 'null' ? ArgumentMatcher<null> : ( $type is 'string' ? ArgumentMatcher<string> : ( $type is class-string ? ArgumentMatcher<new<TType>> : ArgumentMatcher<mixed> ) ) ) ) ) ) )`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L59)
 
 ### `predicate()`
 
@@ -59,7 +59,7 @@ PHPDoc:
 - `@param \Closure(T): mixed $predicate`
 - `@return ArgumentMatcher<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L74)
 
 ### `equals()`
 
@@ -76,7 +76,7 @@ PHPDoc:
 - `@param T $value`
 - `@return ArgumentMatcher<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L89)
 
 ### `allOf()`
 
@@ -100,7 +100,7 @@ PHPDoc:
 - `@return ArgumentMatcher<T>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L79)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L107)
 
 ### `captor()`
 
@@ -111,7 +111,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L97)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L125)
 
 ## `ArgumentCaptor`
 
