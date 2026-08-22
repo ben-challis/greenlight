@@ -37,7 +37,7 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                 GreenlightConfig::create()
                     ->paths(['tests'])
                     ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests')->tag('fast'))
-                    ->workers(count: 2, recycleAfterTests: 100, recycleAboveMemory: '256M')
+                    ->workers(count: 2)
                     ->resourceLimit('database', 1)
                     ->ignoreDeprecationsMatching('vendor *')
                     ->coverage(static fn(CoverageBuilder $coverage) => $coverage
@@ -77,8 +77,6 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                 GreenlightConfig::create()->paths([]);
                 GreenlightConfig::create()->suite('', static fn(SuiteBuilder $suite) => $suite->in('tests'));
                 GreenlightConfig::create()->workers(count: 0);
-                GreenlightConfig::create()->workers(recycleAfterTests: 0);
-                GreenlightConfig::create()->workers(recycleAboveMemory: '');
                 GreenlightConfig::create()->resourceLimit('', 1);
                 GreenlightConfig::create()->resourceLimit('database', 0);
                 GreenlightConfig::create()->ignoreDeprecationsMatching('');
@@ -108,7 +106,7 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             ->because('PHPStan rejects configuration values that cannot pass runtime validation')
             ->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(26);
+        Expect::that(\count($probe->errors))->toBe(24);
         Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
         Expect::that($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
         Expect::that($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');

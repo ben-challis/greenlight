@@ -40,19 +40,13 @@ final class SummaryFormat
         return \implode(', ', $parts);
     }
 
-    public static function workers(int $spawned, int $recycled, string $recycledSuffix = ''): ?string
+    public static function workers(int $spawned): ?string
     {
         if ($spawned === 0) {
             return null;
         }
 
-        $line = \sprintf('Workers: %d spawned', $spawned);
-
-        if ($recycled > 0) {
-            $line .= \sprintf(', %d recycled%s', $recycled, $recycledSuffix);
-        }
-
-        return $line;
+        return \sprintf('Workers: %d spawned', $spawned);
     }
 
     /**

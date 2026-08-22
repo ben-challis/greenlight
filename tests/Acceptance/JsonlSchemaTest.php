@@ -23,7 +23,6 @@ final readonly class JsonlSchemaTest
         'test-started',
         'test-finished',
         'worker-spawned',
-        'worker-recycled',
     ];
 
     #[Test]
@@ -127,7 +126,6 @@ final readonly class JsonlSchemaTest
             }
             PHP);
 
-        // recycleAfterTests: 1 adds worker-recycled events to the stream.
         $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
@@ -139,7 +137,7 @@ final readonly class JsonlSchemaTest
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->workers(2, recycleAfterTests: 1);
+                ->workers(2);
 
             PHP);
 

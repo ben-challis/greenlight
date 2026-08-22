@@ -10,7 +10,6 @@ use Greenlight\Core\Artifact\AttachmentKind;
 use Greenlight\Core\Artifact\AttachmentRetention;
 use Greenlight\Core\Artifact\StagedAttachment;
 use Greenlight\Core\Event\EventTags;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Core\Result\Diagnostic;
@@ -50,7 +49,6 @@ use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Tests\Unit\Reporting\CannedStream;
 use JsonSchema\Validator;
 
@@ -225,8 +223,6 @@ final class WorkerProtocolSchemaTest
             'ready' => new Ready(),
             'assign' => new Assign(
                 new ExecutionPlan([$entry], 17),
-                10,
-                256 * 1024 * 1024,
                 ['/project/src'],
                 'pcov',
                 true,
@@ -238,18 +234,11 @@ final class WorkerProtocolSchemaTest
             'drain' => new Drain(),
             'event' => new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             'attempt-started' => new AttemptStarted($id, 2),
-            'recycling' => new Recycling(
-                RecycleReason::Memory,
-                [$id],
-                new ResultSummary(passed: 2),
-                $coverage,
-            ),
             'done' => new Done(
                 new ResultSummary(passed: 2, failed: 1),
                 123_456,
                 $coverage,
                 [$id],
-                RecycleReason::TestCount,
             ),
             'fatal' => new Fatal($detail),
         ];

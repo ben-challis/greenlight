@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\FailureDetail;
@@ -116,7 +114,6 @@ final class CannedStream
             new TestStarted($retries, $at + 0.17),
             new TestFinished(new TestResult($retries, Outcome::Passed, 0.15, 512, attempts: 3, expectations: 3), $at + 0.18),
             new TestClassFinished($network, $at + 0.19),
-            new WorkerRecycled('w-1', RecycleReason::Memory, $at + 0.2),
             new RunFinished(
                 'run-1',
                 new ResultSummary(passed: 3, failed: 1, errored: 1, skipped: 1),

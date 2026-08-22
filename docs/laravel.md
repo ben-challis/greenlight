@@ -156,7 +156,7 @@ similar resources.
 
 The application must create and migrate databases for each channel. Use a loop
 in the test bootstrap, a Makefile target, or another project-level setup step.
-Channel numbers remain stable after a worker recycle. Thus, these schemas can
+Channel numbers remain stable after a worker crash. Thus, these schemas can
 remain for the complete test run.
 
 If a service cannot be split per channel, mark the classes that use it with

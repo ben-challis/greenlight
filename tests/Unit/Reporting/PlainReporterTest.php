@@ -44,7 +44,7 @@ final class PlainReporterTest
 
             6 tests, 3 passed, 1 failed, 1 errored, 1 skipped, 11 expectations
             Time: 1.234s
-            Workers: 2 spawned, 1 recycled (memory: 1)
+            Workers: 2 spawned
 
             Skipped:
               Acme\NetworkTest::pings (Requires ext-redis.)

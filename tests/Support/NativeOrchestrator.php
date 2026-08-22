@@ -23,15 +23,11 @@ final readonly class NativeOrchestrator
 {
     /**
      * @param non-empty-list<non-empty-string> $workerCommand
-     * @param positive-int|null $recycleAfterTests
-     * @param positive-int|null $recycleAboveMemoryBytes
      * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public static function create(
         array $workerCommand,
         string $workingDirectory,
-        ?int $recycleAfterTests = null,
-        ?int $recycleAboveMemoryBytes = null,
         ?int $stopAfterFailures = null,
         ?CoverageSettings $coverageSettings = null,
         ?string $configFile = null,
@@ -52,8 +48,6 @@ final readonly class NativeOrchestrator
         return new Orchestrator(
             NativeWorkerTransport::listen($workerCommand, $workingDirectory, $temporaryDirectory),
             new OrchestratorConfiguration(
-                $recycleAfterTests,
-                $recycleAboveMemoryBytes,
                 $stopAfterFailures,
                 $coverageSettings,
                 $configFile,

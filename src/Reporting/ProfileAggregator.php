@@ -9,7 +9,6 @@ use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Event\WorkerTiming;
 
@@ -60,12 +59,6 @@ final class ProfileAggregator
             return;
         }
 
-        if ($event instanceof WorkerRecycled) {
-            ++$this->worker($event->workerId)->recycled;
-
-            return;
-        }
-
         if ($event instanceof TestClassStarted && $event->workerId !== '') {
             $this->worker($event->workerId)->classStarted($event->occurredAt, $event->isolated);
 
@@ -102,8 +95,6 @@ final class ProfileAggregator
         $lines = ["\nProfile:"];
         $spawned = \count(\array_filter($this->workers, static fn(WorkerProfile $worker): bool => $worker->spawnedAt !== null));
         $isolated = \count(\array_filter($this->workers, static fn(WorkerProfile $worker): bool => $worker->isolated));
-        $recycled = \array_sum(\array_column($this->workers, 'recycled'));
-
         $workerSummary = \sprintf(
             '  Workers: %d requested, %d spawned',
             $this->runStarted instanceof RunStarted ? $this->runStarted->workers : 0,
@@ -114,7 +105,7 @@ final class ProfileAggregator
             $workerSummary .= \sprintf(', %d isolated', $isolated);
         }
 
-        $lines[] = $workerSummary . \sprintf(', %d recycled', $recycled);
+        $lines[] = $workerSummary;
 
         if ($this->runFinished->workerTimings !== []) {
             foreach ($this->timingLines($this->runFinished->workerTimings) as $line) {

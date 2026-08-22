@@ -68,7 +68,6 @@ The common benchmark shapes are:
 The Greenlight-specific benchmark shapes are:
 
 * `many-isolated`: Many isolated tests that each require a new worker
-* `recycle-one`: Workers that Greenlight replaces after one test
 * `resource-constrained`: Work that one resource slot serializes
 * `skewed-bootstrap`: Worker bootstrap delays that increase with the channel number
 * `chatty-diagnostics`: Many notices that workers capture and send

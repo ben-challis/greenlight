@@ -98,7 +98,6 @@ final readonly class InProcessExecution implements ExecutionAdapter
                         $plan,
                         new PublishingEventSink($context->artifacts, $sink),
                         $execution->stopAfterFailures,
-                        null,
                         $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
                     ));
                 } catch (WorkerError $failure) {

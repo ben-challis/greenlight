@@ -12,10 +12,6 @@ use Greenlight\Plugin\PluginDefinition;
 /** Collects the configuration that `greenlight.php` returns. */
 final class GreenlightConfig
 {
-    private const string DEFAULT_RECYCLE_ABOVE_MEMORY = '256M';
-
-    private const int DEFAULT_RECYCLE_ABOVE_MEMORY_BYTES = 256 * 1024 * 1024;
-
     /**
      * @var non-empty-list<non-empty-string>
      */
@@ -27,16 +23,6 @@ final class GreenlightConfig
     private array $suites = [];
 
     private WorkerCount $workers;
-
-    /**
-     * @var positive-int|null
-     */
-    private ?int $recycleAfterTests = null;
-
-    /**
-     * @var positive-int
-     */
-    private int $recycleAboveMemoryBytes = self::DEFAULT_RECYCLE_ABOVE_MEMORY_BYTES;
 
     private ?CoverageBuilder $coverage = null;
 
@@ -166,33 +152,15 @@ final class GreenlightConfig
     }
 
     /**
-     * Greenlight replaces a worker after the specified number of tests only
-     * when `$recycleAfterTests` has a value. Use this option for state that the
-     * memory limit cannot control.
+     * Sets the number of worker processes.
      *
      * @param positive-int|'auto' $count
-     * @param positive-int|null $recycleAfterTests A null value disables test-count
-     *   worker replacement.
-     * @param non-empty-string $recycleAboveMemory
      *
      * @throws InvalidConfiguration
      */
-    public function workers(
-        int|string $count = 'auto',
-        ?int $recycleAfterTests = null,
-        string $recycleAboveMemory = self::DEFAULT_RECYCLE_ABOVE_MEMORY,
-    ): self {
-        $workers = $this->workerCount($count);
-
-        if ($recycleAfterTests !== null && $recycleAfterTests < 1) {
-            throw new InvalidConfiguration(\sprintf('recycleAfterTests must be at least 1, got %d.', $recycleAfterTests));
-        }
-
-        $recycleAboveMemoryBytes = MemorySize::parseToBytes($recycleAboveMemory);
-
-        $this->workers = $workers;
-        $this->recycleAfterTests = $recycleAfterTests;
-        $this->recycleAboveMemoryBytes = $recycleAboveMemoryBytes;
+    public function workers(int|string $count = 'auto'): self
+    {
+        $this->workers = $this->workerCount($count);
 
         return $this;
     }
@@ -414,8 +382,6 @@ final class GreenlightConfig
             ),
             workers: new WorkerConfiguration(
                 count: $this->workers,
-                recycleAfterTests: $this->recycleAfterTests,
-                recycleAboveMemoryBytes: $this->recycleAboveMemoryBytes,
                 resourceLimits: $this->resourceLimits,
             ),
             execution: new ExecutionConfiguration(

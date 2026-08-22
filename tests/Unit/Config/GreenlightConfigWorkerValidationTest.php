@@ -43,12 +43,5 @@ final class GreenlightConfigWorkerValidationTest
             },
             'Worker count must be a positive integer or "auto", got "several".',
         ];
-
-        yield 'negative recycle limit' => [
-            static function (): void {
-                GreenlightConfig::create()->workers(recycleAfterTests: -4); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
-            },
-            'recycleAfterTests must be at least 1, got -4.',
-        ];
     }
 }

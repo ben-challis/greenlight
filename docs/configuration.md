@@ -77,10 +77,9 @@ A second declaration with the same suite name causes an error.
 * `in(string ...$paths): self` adds directories to the suite. Required.
 * `tag(string ...$tags): self` adds tags to the suite. Optional.
 
-### `workers(int|string $count = 'auto', ?int $recycleAfterTests = null, string $recycleAboveMemory = '256M'): self`
+### `workers(int|string $count = 'auto'): self`
 
-Default: `'auto'` workers, a `256M` memory recycle limit, and no test-count
-recycle limit.
+Default: `'auto'` workers.
 
 A worker requests one class at a time. When the worker finishes that class, it
 requests the next class.
@@ -105,17 +104,9 @@ worker placement or completion-event order.
 one worker per CPU core. Install the suggested `fidry/cpu-core-counter` package
 for CPU detection that respects cgroup limits in containers.
 
-Greenlight recycles a worker when one of these conditions is true:
-
-* it has run `$recycleAfterTests` tests
-* its memory usage exceeds `$recycleAboveMemory`
-
-`$recycleAboveMemory` is a size string such as `'256M'` or `'1G'`.
-
-Test-count recycle is optional because each recycle requires a complete worker
-boot. The worker channel is idle during the boot. Use this limit for suites
-that collect per-process state that memory checks cannot detect. Examples
-include connections and file handles.
+A worker remains active until the queue is empty or the worker fails.
+Greenlight does not hide memory growth or state leaks by replacing a healthy
+worker.
 
 ### `resourceLimit(string $name, int $limit = 1): self`
 
@@ -403,8 +394,7 @@ It does not assign a resource instance to an assignment.
 
 Two concurrent tests do not share a channel. Channel numbers are from 1 through
 the worker count. The number of worker processes during the run does not change
-this range. After a worker recycle or crash, its replacement reuses the freed
-slot.
+this range. After a worker crash, its replacement reuses the freed slot.
 
 A `--workers=1` run executes in-process on channel 1.
 
@@ -420,7 +410,7 @@ Greenlight makes the channel available in two ways:
 `TestChannel->label()` returns `gl-<number>` for resource names.
 
 Because Greenlight uses channel slots again, channel resources can persist
-after a worker recycle. A replacement worker on channel 2 can access resources
+after a worker crash. A replacement worker on channel 2 can access resources
 from the previous channel-2 worker.
 
 This design reduces the cost of one-resource-per-channel setups. For example,
@@ -770,7 +760,6 @@ The profile includes:
 
 * workers requested
 * workers spawned
-* workers recycled
 * average spawn-to-hello time
 * average hello-to-ready bootstrap time
 * average ready-to-first-assignment time

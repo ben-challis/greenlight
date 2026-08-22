@@ -10,7 +10,6 @@ use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
@@ -69,8 +68,6 @@ final class TtyReporter implements Reporter, Ticking
     private int $spinnerFrame = 0;
 
     private int $workersSpawned = 0;
-
-    private int $workersRecycled = 0;
 
     /**
      * @var non-negative-int
@@ -223,12 +220,6 @@ final class TtyReporter implements Reporter, Ticking
             return;
         }
 
-        if ($event instanceof WorkerRecycled) {
-            ++$this->workersRecycled;
-
-            return;
-        }
-
         if ($event instanceof RunFinished) {
             $this->runFinished = $event;
         }
@@ -277,7 +268,7 @@ final class TtyReporter implements Reporter, Ticking
             ));
         }
 
-        $workers = SummaryFormat::workers($this->workersSpawned, $this->workersRecycled);
+        $workers = SummaryFormat::workers($this->workersSpawned);
 
         if ($workers !== null) {
             $this->output->write($workers . "\n");

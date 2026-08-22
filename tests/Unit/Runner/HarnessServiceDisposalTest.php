@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
@@ -18,7 +17,6 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Runner\Worker\HarnessServiceDisposal;
 use Greenlight\Runner\Worker\Worker;
-use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Runner\Worker\WorkerRunOutcome;
 use Greenlight\Tests\Fixture\HarnessDisposalMatrix\FailingHarnessService;
@@ -132,16 +130,12 @@ final readonly class HarnessServiceDisposalTest
     }
 
     #[Test]
-    #[DataSet('earlyClassEndings')]
-    public function earlyClassCloseErrorsAPassingTest(string $ending): void
+    public function drainClosesTheClassAndErrorsAPassingTest(): void
     {
-        $budget = $ending === 'recycle' ? new WorkerBudget(maxTests: 1) : null;
-        $drain = $ending === 'drain' ? static fn(): bool => true : null;
         [$threw, $sink, $outcome] = $this->run(
             Scope::PerClass,
             ['passesBeforeDisposal', 'errorsBeforeDisposal'],
-            budget: $budget,
-            drainRequested: $drain,
+            drainRequested: static fn(): bool => true,
         );
         $result = $sink->results()[0];
 
@@ -151,19 +145,7 @@ final readonly class HarnessServiceDisposalTest
             ->toBe(Outcome::Errored);
         Expect::that($result->error?->message)->toBe('harness service disposal broke');
         Expect::that($outcome?->remaining)->toHaveCount(1);
-        Expect::that($outcome?->recycleReason)->toBe(
-            $ending === 'recycle' ? RecycleReason::TestCount : null,
-        );
-        Expect::that($outcome?->drained)->toBe($ending === 'drain');
-    }
-
-    /**
-     * @return iterable<string, array{non-empty-string}>
-     */
-    public static function earlyClassEndings(): iterable
-    {
-        yield 'recycle' => ['recycle'];
-        yield 'drain' => ['drain'];
+        Expect::that($outcome?->drained)->toBeTrue();
     }
 
     /** @param non-empty-string $method */
@@ -207,7 +189,6 @@ final readonly class HarnessServiceDisposalTest
         Scope $scope,
         array $methods,
         ?int $stopAfterFailures = null,
-        ?WorkerBudget $budget = null,
         ?\Closure $drainRequested = null,
     ): array {
         $entries = [];
@@ -232,7 +213,6 @@ final readonly class HarnessServiceDisposalTest
                 new ExecutionPlan($entries),
                 $sink,
                 $stopAfterFailures,
-                $budget,
                 $drainRequested,
             );
         } catch (\Throwable $failure) {

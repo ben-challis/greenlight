@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RecycleReason;
+use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Expect\Expect;
@@ -184,9 +184,9 @@ final class WireTest
     #[Test]
     public function readsBackedEnumValues(): void
     {
-        Expect::that(Wire::enum(['reason' => 'crash'], 'reason', RecycleReason::class))
+        Expect::that(Wire::enum(['outcome' => 'passed'], 'outcome', Outcome::class))
             ->because('wire enum values MUST resolve to their backed enum case')
-            ->toBe(RecycleReason::Crash);
+            ->toBe(Outcome::Passed);
     }
 
     #[Test]
@@ -194,7 +194,7 @@ final class WireTest
     public function rejectsInvalidBackedEnumValues(string $value, string $expected): void
     {
         Expect::that(
-            static fn(): \BackedEnum => Wire::enum(['reason' => $value], 'reason', RecycleReason::class),
+            static fn(): \BackedEnum => Wire::enum(['outcome' => $value], 'outcome', Outcome::class),
         )
             ->because('invalid wire enum values MUST identify the field constraint')
             ->toThrow(
@@ -265,11 +265,11 @@ final class WireTest
     {
         yield 'empty value' => [
             '',
-            'Wire payload key "reason" must be a non-empty string, got string.',
+            'Wire payload key "outcome" must be a non-empty string, got string.',
         ];
         yield 'unknown value' => [
             'unknown',
-            'Wire payload key "reason" must be a Greenlight\Core\Event\RecycleReason value, got string.',
+            'Wire payload key "outcome" must be a Greenlight\Core\Result\Outcome value, got string.',
         ];
     }
 }

@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Core\Result\Outcome;
@@ -36,7 +35,6 @@ use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 
 final class ProtocolTest
@@ -66,15 +64,10 @@ final class ProtocolTest
                 ),
             ])),
             new Ready(),
-            new Assign(new ExecutionPlan([$entry], 7), 500, 256 * 1024 * 1024),
+            new Assign(new ExecutionPlan([$entry], 7)),
             new Drain(),
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             new AttemptStarted(new TestId('App\FooTest', 'bar'), 2),
-            new Recycling(
-                RecycleReason::Memory,
-                [new TestId('App\FooTest', 'bar')],
-                new ResultSummary(passed: 2),
-            ),
             new Done(new ResultSummary(passed: 3, failed: 1), 12345),
             new Fatal(ThrowableDetail::fromThrowable(new \RuntimeException('boom'))),
         ];
@@ -123,15 +116,12 @@ final class ProtocolTest
 
         $assign = Assign::fromWire(new Assign(
             new ExecutionPlan([$entry], 42),
-            10,
             artifactSession: new ArtifactSession('/tmp/staging', 'build/artifacts/run-1'),
             artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
             stopAfterFailures: 2,
         )->toWire());
 
         Expect::that($assign->slice->seed)->because('assign carries the plan intact')->toBe(42);
-        Expect::that($assign->recycleAfterTests)->toBe(10);
-        Expect::that($assign->recycleAboveMemoryBytes)->toBeNull();
         Expect::that($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging');
         Expect::that($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1');
         Expect::that($assign->artifactConfiguration?->maxRunAttachments)->toBe(123);

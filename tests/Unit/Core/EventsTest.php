@@ -7,14 +7,12 @@ namespace Greenlight\Tests\Unit\Core;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\Outcome;
@@ -42,7 +40,6 @@ final class EventsTest
             new TestStarted($id, $at),
             new TestFinished($result, $at),
             new WorkerSpawned('w-1', 4242, $at),
-            new WorkerRecycled('w-1', RecycleReason::Memory, $at),
         ];
 
         foreach ($events as $event) {

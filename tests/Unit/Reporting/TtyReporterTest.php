@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
@@ -182,7 +180,7 @@ final class TtyReporterTest
     }
 
     #[Test]
-    public function workersLineOmitsZeroRecycledAndDisappearsWhenNoneSpawned(): void
+    public function workersLineDisappearsWhenNoneSpawned(): void
     {
         $spawned = new BufferOutput();
         $reporter = new TtyReporter($spawned, color: false, cursor: false);
@@ -190,30 +188,14 @@ final class TtyReporterTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($spawned->buffer())->because('workers line omits zero recycled and disappears when none spawned')->toContain("Workers: 1 spawned\n")
-            ->not()->toContain('recycled');
+        Expect::that($spawned->buffer())->because('workers line reports spawned workers')->toContain("Workers: 1 spawned\n");
 
         $inProcess = new BufferOutput();
         $reporter = new TtyReporter($inProcess, color: false, cursor: false);
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($inProcess->buffer())->because('workers line omits zero recycled and disappears when none spawned')->not()->toContain('Workers:');
-    }
-
-    #[Test]
-    public function workersLineIncludesTheRecycledCount(): void
-    {
-        $output = new BufferOutput();
-        $reporter = new TtyReporter($output, color: false, cursor: false);
-        $reporter->onEvent(new WorkerSpawned('w-1', 101, 1.0));
-        $reporter->onEvent(new WorkerRecycled('w-1', RecycleReason::Memory, 1.1));
-        $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.2));
-        $reporter->finish();
-
-        Expect::that($output->buffer())
-            ->because('the TTY summary reports worker recycling')
-            ->toContain("Workers: 1 spawned, 1 recycled\n");
+        Expect::that($inProcess->buffer())->because('workers line disappears when none spawned')->not()->toContain('Workers:');
     }
 
     #[Test]

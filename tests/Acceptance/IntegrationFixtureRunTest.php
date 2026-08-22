@@ -16,9 +16,9 @@ final readonly class IntegrationFixtureRunTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function parallelWorkersReceiveChannelResourcesAndCleanupAfterRecycling(): void
+    public function parallelWorkersReceiveChannelResourcesAndCleanup(): void
     {
-        $project = $this->writeProject('parallel', workers: 2, recycleAfterTests: 1);
+        $project = $this->writeProject('parallel', workers: 2);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         $bootstrapped = $this->lines($project->path('markers/bootstrapped.log'));
@@ -28,7 +28,7 @@ final readonly class IntegrationFixtureRunTest
         Expect::that($result->output())
             ->toContain('4 tests, 4 passed')
             ->not()->toContain('fixture-secret');
-        Expect::that(\count($bootstrapped))->toBeGreaterThan(2);
+        Expect::that($bootstrapped)->toHaveCount(2);
         Expect::that($resources)->toBe([]);
         Expect::that($this->lines($project->path('markers/provisioned.log')))->toHaveCount(1);
         Expect::that($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
@@ -293,7 +293,6 @@ final readonly class IntegrationFixtureRunTest
     private function writeProject(
         string $name,
         int $workers,
-        ?int $recycleAfterTests = null,
         bool $failing = false,
         bool $failProvisioning = false,
         bool $failCleanup = false,
@@ -356,9 +355,6 @@ final readonly class IntegrationFixtureRunTest
             static fn(string $file): string => "require_once __DIR__ . '/{$file}';",
             $files,
         ));
-        $recycle = $recycleAfterTests === null
-            ? ''
-            : ', recycleAfterTests: ' . $recycleAfterTests;
         $failProvisioningValue = $failProvisioning ? 'true' : 'false';
         $failCleanupValue = $failCleanup ? 'true' : 'false';
         $failBootstrapChannelValue = $failBootstrapChannel === null ? 'null' : (string) $failBootstrapChannel;
@@ -375,7 +371,7 @@ final readonly class IntegrationFixtureRunTest
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->workers({$workers}{$recycle})
+                ->workers({$workers})
                 ->plugins(
                     static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(
                         {$markerDirectory},

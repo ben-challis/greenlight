@@ -16,7 +16,6 @@ use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 
 final class MessageTagsTest
 {
@@ -43,7 +42,6 @@ final class MessageTagsTest
         yield 'drain' => [Drain::class, 'drain'];
         yield 'event' => [EventEnvelope::class, 'event'];
         yield 'attempt started' => [AttemptStarted::class, 'attempt-started'];
-        yield 'recycling' => [Recycling::class, 'recycling'];
         yield 'done' => [Done::class, 'done'];
         yield 'fatal' => [Fatal::class, 'fatal'];
     }

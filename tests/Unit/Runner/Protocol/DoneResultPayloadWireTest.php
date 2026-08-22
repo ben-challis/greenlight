@@ -27,7 +27,6 @@ final readonly class DoneResultPayloadWireTest
                 'method' => 'retainsItself',
                 'dataSetKey' => 'first',
             ]],
-            'wantsRecycle' => null,
         ];
 
         $done = Done::fromWire($payload);

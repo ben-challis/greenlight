@@ -7,14 +7,12 @@ namespace Greenlight\Tests\Unit\Core;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
@@ -54,6 +52,5 @@ final readonly class EventTimestampValidationTest
         yield 'test started' => [static fn(float $at): Event => new TestStarted($id, $at)];
         yield 'test finished' => [static fn(float $at): Event => new TestFinished($result, $at)];
         yield 'worker spawned' => [static fn(float $at): Event => new WorkerSpawned('w-1', 1, $at)];
-        yield 'worker recycled' => [static fn(float $at): Event => new WorkerRecycled('w-1', RecycleReason::TestCount, $at)];
     }
 }

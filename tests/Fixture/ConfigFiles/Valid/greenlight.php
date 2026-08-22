@@ -9,7 +9,7 @@ return GreenlightConfig::create()
     ->paths(['tests/Unit', 'tests/Acceptance'])
     ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit'))
     ->suite('integration', static fn(SuiteBuilder $suite) => $suite->in('tests/Integration')->tag('io'))
-    ->workers(count: 4, recycleAfterTests: 100, recycleAboveMemory: '128M')
+    ->workers(count: 4)
     ->resourceLimit('postgres', 3)
     ->failFast(true)
     ->randomizeOrder(seed: 4242);

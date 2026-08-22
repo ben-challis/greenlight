@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Wire\Wire;
@@ -16,9 +15,6 @@ use Greenlight\Runner\Protocol\Message;
  *
  * The orchestrator compares the summary to the event stream. A difference
  * fails the run.
- *
- * A worker requests replacement when it uses its cumulative budget. It exits
- * after it sends this message and does not receive another assignment.
  *
  * @internal
  */
@@ -39,7 +35,6 @@ final readonly class Done implements Message
         int $peakMemoryBytes,
         public ?CoverageMap $coverage = null,
         public array $leaks = [],
-        public ?RecycleReason $wantsRecycle = null,
     ) {
         if ($peakMemoryBytes < 0) {
             throw new \InvalidArgumentException(\sprintf(
@@ -65,7 +60,6 @@ final readonly class Done implements Message
             'peakMemoryBytes' => $this->peakMemoryBytes,
             'coverage' => $this->coverage?->toWire(),
             'leaks' => \array_map(static fn(TestId $id): array => $id->toWire(), $this->leaks),
-            'wantsRecycle' => $this->wantsRecycle?->value,
         ];
     }
 
@@ -73,16 +67,11 @@ final readonly class Done implements Message
     public static function fromWire(array $payload): static
     {
         $coverage = Wire::nullableMap($payload, 'coverage');
-        $reason = Wire::nullableString($payload, 'wantsRecycle');
-
         return new self(
             ResultSummary::fromWire(Wire::map($payload, 'summary')),
             \max(0, Wire::int($payload, 'peakMemoryBytes')),
             $coverage === null ? null : CoverageMap::fromWire($coverage),
             \array_map(TestId::fromWire(...), Wire::listOfMaps($payload, 'leaks')),
-            $reason === null || $reason === ''
-                ? null
-                : Wire::enum($payload, 'wantsRecycle', RecycleReason::class),
         );
     }
 }

@@ -106,7 +106,7 @@ final readonly class BenchmarkTest
     {
         yield 'unknown shape' => [
             ['shape' => 'unknown'],
-            'Unknown benchmark shape "unknown". Use one of: many-fast, few-slow, giant-dataset, mixed, many-isolated, recycle-one, resource-constrained, skewed-bootstrap, chatty-diagnostics, coverage-heavy.',
+            'Unknown benchmark shape "unknown". Use one of: many-fast, few-slow, giant-dataset, mixed, many-isolated, resource-constrained, skewed-bootstrap, chatty-diagnostics, coverage-heavy.',
         ];
         yield 'invalid run count' => [
             ['runs' => '0'],
@@ -151,7 +151,6 @@ final readonly class BenchmarkTest
     public static function specializedShapes(): iterable
     {
         yield 'many isolated tests' => ['many-isolated', 'tests/gl/ManyIsolated0000Test.php', '#[Isolated]'];
-        yield 'recycle after one test' => ['recycle-one', 'greenlight.php', 'recycleAfterTests: 1'];
         yield 'resource constrained work' => ['resource-constrained', 'greenlight.php', "resourceLimit('database')"];
         yield 'skewed worker bootstrap' => ['skewed-bootstrap', 'greenlight.php', 'BenchmarkBootstrapPlugin'];
         yield 'chatty worker diagnostics' => ['chatty-diagnostics', 'tests/gl/ChattyDiagnostics0000Test.php', 'Benchmark diagnostic.'];

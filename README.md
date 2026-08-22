@@ -23,7 +23,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Parallel test execution with a dynamic schedule
 * Run-scoped integration fixtures with per-channel resources
 * Resource limits for shared databases and services
-* Worker recycle, leak detection, crash recovery, timeouts, and process isolation
+* Leak detection, crash recovery, timeouts, and process isolation
 * Strict mocks, stubs, and spies with automatic verification
 * Typed expectations with clear differences
 * Stable CI shards and deterministic reports

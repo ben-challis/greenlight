@@ -298,7 +298,7 @@ boundary. Greenlight calls it after worker bootstrap and before it reports that
 the worker is ready.
 
 Call the callback once and return its value. Use `finally` to close the runtime
-when the worker drains, recycles, disconnects, or throws. Worker-scope harness
+when the worker drains, disconnects, or throws. Worker-scope harness
 services close before the callback returns.
 
 Greenlight nests multiple runtime boundaries in priority order. A boundary

@@ -31,7 +31,6 @@ const BENCHMARK_SHAPES = [
     'giant-dataset',
     'mixed',
     'many-isolated',
-    'recycle-one',
     'resource-constrained',
     'skewed-bootstrap',
     'chatty-diagnostics',
@@ -648,8 +647,6 @@ function benchmarkGenerateShape(string $shape, int $scale, string $project): int
             + \benchmarkWriteGiantDataSet($project, 40 * $scale),
         // Measures fresh-worker creation for isolated scheduling units.
         'many-isolated' => \benchmarkWriteClasses($project, 'ManyIsolated', 4 * $scale, 1, attribute: "#[Isolated]\n"),
-        // Measures worker replacement after each test.
-        'recycle-one' => \benchmarkWriteClasses($project, 'RecycleOne', 4 * $scale, 2),
         // Measures work that a resource limit serializes.
         'resource-constrained' => \benchmarkWriteClasses(
             $project,
@@ -715,9 +712,7 @@ function benchmarkWriteConfiguration(string $project, string $shape): void
     $definitions = '';
     $chain = '';
 
-    if ($shape === 'recycle-one') {
-        $chain = "\n    ->workers(recycleAfterTests: 1)";
-    } elseif ($shape === 'resource-constrained') {
+    if ($shape === 'resource-constrained') {
         $chain = "\n    ->resourceLimit('database')";
     } elseif ($shape === 'coverage-heavy') {
         $chain = "\n    ->coverage(fn(CoverageBuilder \$coverage) => \$coverage->include(__DIR__ . '/tests/gl'))";

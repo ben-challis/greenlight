@@ -59,12 +59,6 @@
                 "event": {"enum": ["worker-spawned"]},
                 "data": {"$ref": "#/definitions/workerSpawned"}
             }
-        },
-        {
-            "properties": {
-                "event": {"enum": ["worker-recycled"]},
-                "data": {"$ref": "#/definitions/workerRecycled"}
-            }
         }
     ],
     "definitions": {
@@ -139,15 +133,6 @@
             "properties": {
                 "workerId": {"type": "string", "minLength": 1},
                 "pid": {"type": "integer", "minimum": 1},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
-            }
-        },
-        "workerRecycled": {
-            "type": "object",
-            "required": ["workerId", "reason", "occurredAt"],
-            "properties": {
-                "workerId": {"type": "string", "minLength": 1},
-                "reason": {"enum": ["test-count", "memory", "crash"]},
                 "occurredAt": {"$ref": "#/definitions/occurredAt"}
             }
         },

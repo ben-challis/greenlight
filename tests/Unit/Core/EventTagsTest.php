@@ -12,7 +12,6 @@ use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 
@@ -33,7 +32,6 @@ final class EventTagsTest
                 'test-started' => TestStarted::class,
                 'test-finished' => TestFinished::class,
                 'worker-spawned' => WorkerSpawned::class,
-                'worker-recycled' => WorkerRecycled::class,
             ]);
     }
 }

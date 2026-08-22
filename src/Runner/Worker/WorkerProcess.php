@@ -7,7 +7,6 @@ namespace Greenlight\Runner\Worker;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Core\Test\TestId;
@@ -32,7 +31,6 @@ use Greenlight\Runner\Protocol\Messages\Drain;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
 
@@ -191,7 +189,6 @@ final readonly class WorkerProcess
         HarnessScopes $scopes,
         string $workerId,
     ): ?Message {
-        $executedTotal = 0;
         $artifactStore = null;
 
         $channel->send(new Ready());
@@ -256,7 +253,6 @@ final readonly class WorkerProcess
                 $message->slice,
                 new SocketEventSink($channel),
                 $message->stopAfterFailures,
-                new WorkerBudget($message->recycleAfterTests, $message->recycleAboveMemoryBytes),
                 static fn(): bool => $channel->poll() instanceof Drain,
                 $scopes,
                 static function (TestId $id, int $attempt) use ($channel): void {
@@ -266,33 +262,14 @@ final readonly class WorkerProcess
 
             $coverage = $collector?->stop();
 
-            if ($outcome->recycleReason instanceof RecycleReason) {
-                return new Recycling(
-                    $outcome->recycleReason,
-                    $outcome->remaining,
-                    $outcome->summary,
-                    $coverage,
-                );
-            }
-
-            $executedTotal += $outcome->summary->total();
-            $wantsRecycle = null;
-
-            if ($message->recycleAfterTests !== null && $executedTotal >= $message->recycleAfterTests) {
-                $wantsRecycle = RecycleReason::TestCount;
-            } elseif ($message->recycleAboveMemoryBytes !== null && \memory_get_usage(true) >= $message->recycleAboveMemoryBytes) {
-                $wantsRecycle = RecycleReason::Memory;
-            }
-
             $done = new Done(
                 $outcome->summary,
                 \memory_get_peak_usage(true),
                 $coverage,
                 $outcome->leaks,
-                $wantsRecycle,
             );
 
-            if ($outcome->drained || $wantsRecycle instanceof RecycleReason) {
+            if ($outcome->drained) {
                 return $done;
             }
 

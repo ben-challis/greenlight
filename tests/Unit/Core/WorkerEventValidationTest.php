@@ -6,26 +6,17 @@ namespace Greenlight\Tests\Unit\Core;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RecycleReason;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
 
 final readonly class WorkerEventValidationTest
 {
-    /**
-     * @param \Closure(): (WorkerSpawned|WorkerRecycled) $create
-     */
     #[Test]
-    #[DataSet('validWorkerEvents')]
-    public function workerEventsRetainAZeroWorkerId(\Closure $create): void
+    public function workerEventsRetainAZeroWorkerId(): void
     {
-        $event = $create();
-        $decoded = match ($event::class) {
-            WorkerSpawned::class => WorkerSpawned::fromWire(JsonWire::roundTrip($event->toWire())),
-            WorkerRecycled::class => WorkerRecycled::fromWire(JsonWire::roundTrip($event->toWire())),
-        };
+        $event = new WorkerSpawned('0', 1, 1.0);
+        $decoded = WorkerSpawned::fromWire(JsonWire::roundTrip($event->toWire()));
 
         Expect::that($event->workerId)
             ->because('a worker event MUST retain each non-empty worker ID')
@@ -40,12 +31,6 @@ final readonly class WorkerEventValidationTest
     {
         Expect::that(static fn(): WorkerSpawned => new WorkerSpawned('', 1, 1.0))
             ->because('a spawned-worker event MUST identify its worker')
-            ->toThrow(
-                \InvalidArgumentException::class,
-                message: 'Worker ID MUST NOT be empty.',
-            );
-        Expect::that(static fn(): WorkerRecycled => new WorkerRecycled('', RecycleReason::TestCount, 1.0))
-            ->because('a recycled-worker event MUST identify its worker')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Worker ID MUST NOT be empty.',
@@ -78,20 +63,6 @@ final readonly class WorkerEventValidationTest
                 \InvalidArgumentException::class,
                 message: 'Worker PID MUST be greater than zero.',
             );
-    }
-
-    /**
-     * @return iterable<string, array{\Closure(): (WorkerSpawned|WorkerRecycled)}>
-     */
-    public static function validWorkerEvents(): iterable
-    {
-        yield 'spawned' => [
-            static fn(): WorkerSpawned => new WorkerSpawned('0', 1, 1.0),
-        ];
-
-        yield 'recycled' => [
-            static fn(): WorkerRecycled => new WorkerRecycled('0', RecycleReason::TestCount, 1.0),
-        ];
     }
 
     /**
