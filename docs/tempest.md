@@ -34,7 +34,7 @@ return GreenlightConfig::create()
     ->plugins(static fn(): TempestPlugin => new TempestPlugin(__DIR__));
 ```
 
-The root directory MUST contain the application `composer.json` file and the
+Use the directory that contains the application `composer.json` file and the
 `vendor` directory. Tempest reads the Composer metadata during discovery.
 
 The bridge sets `ENVIRONMENT` to `testing` while Tempest is active for a test.
@@ -103,8 +103,8 @@ public function __construct(
 ) {}
 ```
 
-The bridge passes the tag to the Tempest container. The resolved service MUST
-have the declared parameter type.
+The bridge passes the tag to the Tempest container. The resolved service has
+the declared parameter type.
 
 ### Kernel and container services
 

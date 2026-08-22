@@ -1,9 +1,9 @@
 # Plugins
 
 Plugins implement one or more capability interfaces. Pass one factory for each
-plugin to `GreenlightConfig::plugins()` in `greenlight.php`. Each factory MUST
-declare its concrete plugin class as its return type. The factory MUST return a
-new instance on each call.
+plugin to `GreenlightConfig::plugins()` in `greenlight.php`. Give each factory
+its concrete plugin class as the return type. Return a new instance each time
+Greenlight calls the factory.
 
 Plugin capabilities run either in the orchestrator or in workers. Each
 capability section below names its side.
@@ -39,8 +39,8 @@ Greenlight calls the configured factory for each instance. It does not clone a
 plugin object.
 
 Plugin properties do not cross the orchestrator and worker seam. Do not use a
-property to transfer fixture data. An `IntegrationFixtureProvider` MUST expose
-data through integration resources. Tests can inject `IntegrationResources`.
+property to transfer fixture data. Expose data from an
+`IntegrationFixtureProvider` through integration resources. Tests can inject `IntegrationResources`.
 A `WorkerBootstrapSubscriber` can also read the resources and configure other
 worker capabilities on its worker-local instance.
 
@@ -87,15 +87,15 @@ vendor/bin/greenlight run --reporter=company-json
 A reporter name starts with a lowercase ASCII letter. It contains only
 lowercase ASCII letters, digits, and hyphens.
 
-Built-in and custom names share one registry. Each name MUST be unique. A
-duplicate name stops the command before the test run starts.
+Built-in and custom names share one registry. Choose a unique name. A duplicate
+name stops the command before the test run starts.
 
 Greenlight calls `reporters()` one time for each command. It calls a selected
 factory for each standard, repeat, or watch run. A repeated selection calls the
 factory one time for each occurrence.
 
-Each factory MUST return a new `Reporter`. Greenlight supplies the `Output` and
-owns it. A reporter MUST NOT close the output.
+Return a new `Reporter` each time Greenlight calls the factory. Greenlight
+supplies and owns the `Output`. Do not close this output from a reporter.
 
 Multiple selected reporters receive events in `--reporter` order. Greenlight
 also calls `finish()` in that order. It calls `finish()` one time after the
@@ -255,7 +255,7 @@ serializable resource data into worker-local services:
 ```php
 final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 {
-    private ?FixtureResource $broker = null;
+    private FixtureResource $broker;
 
     public function onWorkerBootstrap(WorkerBootstrapContext $context): void
     {
@@ -264,8 +264,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 
     public function services(): array
     {
-        $broker = $this->broker
-            ?? throw new \LogicException('Broker resources were not bootstrapped.');
+        $broker = $this->broker;
 
         return [
             new ServiceDefinition(

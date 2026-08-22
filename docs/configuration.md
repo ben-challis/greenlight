@@ -276,9 +276,9 @@ Also available as `--fail-on-risky`.
 
 Default: none.
 
-Registers plugin factories. Each factory MUST declare one non-null concrete
-plugin class return type. The factory MUST return a new plugin instance on each
-call.
+Registers plugin factories. Give each factory one non-null concrete plugin
+class return type. Return a new plugin instance each time Greenlight calls the
+factory.
 
 The method is repeatable and factories accumulate.
 
@@ -691,9 +691,9 @@ Repeatable. Multiple reporters write concurrently.
 order. A repeated name creates a separate reporter for each occurrence.
 
 All selected reporters use the same Greenlight-owned standard output. A custom
-reporter MUST NOT close this output.
+reporter does not close this output.
 
-Reporter names MUST be unique across built-ins and plugins. A duplicate name
+Choose unique reporter names across built-ins and plugins. A duplicate name
 stops the command before test execution.
 
 Shell completions suggest built-in names. Configured names remain valid.
