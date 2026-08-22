@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v2.schema.json",
-    "title": "Greenlight worker protocol envelope (version 2)",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v3.schema.json",
+    "title": "Greenlight worker protocol envelope (version 3)",
     "description": "The JSON body of one length-prefixed worker protocol frame.",
     "type": "object",
     "additionalProperties": false,
     "required": ["v", "t", "p"],
     "properties": {
-        "v": {"enum": [2]},
+        "v": {"enum": [3]},
         "t": {"type": "string", "minLength": 1},
         "p": {"type": ["object", "array"]}
     },
@@ -230,27 +230,24 @@
         "planEntry": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["id", "metadata"],
+            "required": ["definition", "dataSetKey"],
             "properties": {
-                "id": {"$ref": "#/definitions/testId"},
-                "metadata": {"$ref": "#/definitions/testMetadata"}
+                "definition": {"$ref": "#/definitions/testDefinition"},
+                "dataSetKey": {"type": ["string", "null"]}
             }
         },
-        "testMetadata": {
+        "testDefinition": {
             "type": "object",
             "additionalProperties": false,
             "required": [
                 "class",
                 "method",
                 "groups",
-                "skipReason",
-                "skipUnlessCondition",
-                "retryTimes",
-                "retryOnlyOn",
-                "timeoutSeconds",
-                "isolated",
-                "dataSetProvider",
-                "capture"
+                "skip",
+                "retry",
+                "dataProvider",
+                "execution",
+                "scheduling"
             ],
             "properties": {
                 "class": {"type": "string", "minLength": 1},
@@ -259,20 +256,60 @@
                     "type": "array",
                     "items": {"type": "string", "minLength": 1}
                 },
-                "skipReason": {"type": ["string", "null"], "minLength": 1},
-                "skipUnlessCondition": {"type": ["string", "null"], "minLength": 1},
-                "skipUnlessArguments": {
+                "skip": {"$ref": "#/definitions/skipPolicy"},
+                "retry": {"$ref": "#/definitions/retryPolicy"},
+                "dataProvider": {"$ref": "#/definitions/dataProvider"},
+                "execution": {"$ref": "#/definitions/executionPolicy"},
+                "scheduling": {"$ref": "#/definitions/schedulingPolicy"}
+            }
+        },
+        "skipPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["reason", "condition", "arguments"],
+            "properties": {
+                "reason": {"type": ["string", "null"], "minLength": 1},
+                "condition": {"type": ["string", "null"], "minLength": 1},
+                "arguments": {
                     "type": "array",
                     "items": {"type": ["string", "number", "boolean", "null"]}
-                },
-                "retryTimes": {"type": ["integer", "null"], "minimum": 1},
-                "retryOnlyOn": {"type": ["string", "null"], "minLength": 1},
+                }
+            }
+        },
+        "retryPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["times", "onlyOn"],
+            "properties": {
+                "times": {"type": ["integer", "null"], "minimum": 1},
+                "onlyOn": {"type": ["string", "null"], "minLength": 1}
+            }
+        },
+        "dataProvider": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["method", "class"],
+            "properties": {
+                "method": {"type": ["string", "null"], "minLength": 1},
+                "class": {"type": ["string", "null"], "minLength": 1}
+            }
+        },
+        "executionPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["timeoutSeconds", "capture", "noExpectations"],
+            "properties": {
                 "timeoutSeconds": {"type": ["number", "null"], "minimum": 0, "exclusiveMinimum": true},
-                "isolated": {"type": "boolean"},
-                "dataSetProvider": {"type": ["string", "null"], "minLength": 1},
-                "dataSetProviderClass": {"type": ["string", "null"], "minLength": 1},
                 "capture": {"type": "boolean"},
-                "noExpectations": {"type": "boolean"},
+                "noExpectations": {"type": "boolean"}
+            }
+        },
+        "schedulingPolicy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["isolated", "resources", "allowParallel"],
+            "properties": {
+                "isolated": {"type": "boolean"},
                 "resources": {
                     "type": "array",
                     "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"}

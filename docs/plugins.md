@@ -339,7 +339,7 @@ final class FlakyQuarantine implements AfterTestSubscriber
 {
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {
-        if ($result->outcome->isSuccessful() || !\in_array('quarantined', $context->metadata->groups, true)) {
+        if ($result->outcome->isSuccessful() || !\in_array('quarantined', $context->definition->groups, true)) {
             return $result;
         }
 
@@ -356,8 +356,11 @@ plugin that changed the result. If a plugin changes the outcome without a
 transformation-log entry, Greenlight reports an error and names the plugin.
 
 `TestContext` contains the live test `instance`, the `TestId`, the
-`TestMetadata`, and `attachments`. Its `service(SomeType::class)` method
-resolves services from the active harness scopes.
+`TestDefinition`, and `attachments`. The `definition` property contains the
+declaration identity, groups, and test policies.
+
+The `service(SomeType::class)` method resolves services from the active harness
+scopes.
 
 `$context->attachments` is the same attempt-owned
 `Greenlight\Core\Artifact\Attachments` object a test can receive through
@@ -396,12 +399,15 @@ Worker-side.
 
 <!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
-public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool;
+public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
 
 After an unsuccessful attempt, Greenlight asks retry deciders until one returns
 `true`. Greenlight then starts a new attempt with a new test instance and
 scope.
+
+The decider receives only the retry policy for the test definition. The result
+contains the complete test ID.
 
 The result contains metadata for the attachments from that attempt. A decider
 can inspect names, kinds, sizes, and media types. It cannot read the attachment

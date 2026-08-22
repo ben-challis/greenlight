@@ -222,7 +222,7 @@ final readonly class AttachmentRunTest
             use Greenlight\Config\ArtifactBuilder;
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Core\Result\TestResult;
-            use Greenlight\Core\Test\TestMetadata;
+            use Greenlight\Core\Test\RetryPolicy;
             use Greenlight\Harness\Scope;
             use Greenlight\Harness\ServiceDefinition;
             use Greenlight\Plugin\AfterTestSubscriber;
@@ -249,12 +249,12 @@ final readonly class AttachmentRunTest
             final class AttachmentRetryDecider implements RetryDecider
             {
                 public function shouldRetry(
-                    TestMetadata $metadata,
+                    RetryPolicy $policy,
                     TestResult $result,
                     int $attempt,
                     ?\Throwable $cause,
                 ): bool {
-                    if ($metadata->method === 'retryDeciderThrows') {
+                    if ($result->id->method === 'retryDeciderThrows') {
                         throw new \RuntimeException('retry decider failed');
                     }
 

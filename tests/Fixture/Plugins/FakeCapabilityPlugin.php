@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Fixture\Plugins;
 
 use Greenlight\Core\Event\Event;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Doubles\Fake;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -18,7 +18,7 @@ use Greenlight\Plugin\TestContext;
 class FakeCapabilityPlugin implements AfterTestSubscriber, BeforeTestSubscriber, Fake, RetryDecider, RunLifecycleSubscriber, ServiceResolver
 {
     #[\Override]
-    public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool
+    public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool
     {
         return false;
     }

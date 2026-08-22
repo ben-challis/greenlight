@@ -80,11 +80,10 @@ final readonly class WorkerArtifactSessionTest
             $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                 new Greenlight\Discovery\ExecutionPlan([
                     new Greenlight\Discovery\PlanEntry(
-                        $id,
-                        new Greenlight\Core\Test\TestMetadata(
+                        new Greenlight\Core\Test\TestDefinition(
                             $class,
                             'recordsEvidence',
-                            noExpectations: true,
+                            execution: new Greenlight\Core\Test\ExecutionPolicy(noExpectations: true),
                         ),
                     ),
                 ]),

@@ -15,7 +15,7 @@ final readonly class QuarantinePlugin implements AfterTestSubscriber, Fake
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {
-        if ($result->outcome->isSuccessful() || !\in_array('quarantined', $context->metadata->groups, true)) {
+        if ($result->outcome->isSuccessful() || !\in_array('quarantined', $context->definition->groups, true)) {
             return $result;
         }
 

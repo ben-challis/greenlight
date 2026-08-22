@@ -10,8 +10,9 @@ use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
@@ -48,7 +49,11 @@ final class WorkerTest
     {
         $id = new TestId(OptionalConstructorProbe::class, 'usesDeclaredDefault');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method, isolated: true)),
+            new PlanEntry(new TestDefinition(
+                $id->class,
+                $id->method,
+                scheduling: new SchedulingPolicy(isolated: true),
+            )),
         ]);
         $sink = new CollectingEventSink();
 
@@ -284,7 +289,7 @@ final class WorkerTest
     {
         $id = new TestId(OptionalConstructorProbe::class, 'usesDeclaredDefault');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
         $sink = new CollectingEventSink();
 
@@ -304,7 +309,7 @@ final class WorkerTest
     {
         $id = new TestId(UnsupportedConstructorProbe::class, 'neverRuns');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
         $sink = new CollectingEventSink();
 
@@ -328,7 +333,7 @@ final class WorkerTest
     {
         $id = new TestId('Missing\ExampleTest', 'neverRuns');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
         $sink = new CollectingEventSink();
 
@@ -400,7 +405,11 @@ final class WorkerTest
     {
         $id = new TestId(ServicesTest::class, 'firstTouch');
         $plan = new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method, allowParallel: true)),
+            new PlanEntry(new TestDefinition(
+                $id->class,
+                $id->method,
+                scheduling: new SchedulingPolicy(allowParallel: true),
+            )),
         ]);
         $registry = $this->registry();
         $registry->register(new ServiceDefinition(

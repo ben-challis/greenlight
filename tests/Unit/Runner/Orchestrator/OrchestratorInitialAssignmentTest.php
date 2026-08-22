@@ -157,7 +157,7 @@ final readonly class OrchestratorInitialAssignmentTest
                 };
 
                 $send([
-                    'v' => 2,
+                    'v' => 3,
                     't' => 'hello',
                     'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()],
                 ]);
@@ -168,7 +168,7 @@ final readonly class OrchestratorInitialAssignmentTest
                     file_put_contents($directory . '/slow-ready', (string) microtime(true));
                 }
 
-                $send(['v' => 2, 't' => 'ready', 'p' => []]);
+                $send(['v' => 3, 't' => 'ready', 'p' => []]);
 
                 while (true) {
                     $message = $receive();
@@ -177,14 +177,14 @@ final readonly class OrchestratorInitialAssignmentTest
                         exit(0);
                     }
 
-                    $class = $message['p']['slice']['entries'][0]['id']['class'];
+                    $class = $message['p']['slice']['entries'][0]['definition']['class'];
                     file_put_contents(
                         $directory . '/' . $workerId . '.jsonl',
                         json_encode(['class' => $class, 'at' => microtime(true)], JSON_THROW_ON_ERROR) . "\n",
                         FILE_APPEND,
                     );
                     $send([
-                        'v' => 2,
+                        'v' => 3,
                         't' => 'done',
                         'p' => [
                             'summary' => ['passed' => 0, 'failed' => 0, 'errored' => 0, 'skipped' => 0],

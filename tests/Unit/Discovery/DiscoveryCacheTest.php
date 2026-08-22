@@ -97,7 +97,7 @@ final readonly class DiscoveryCacheTest
                 ->because('an invalid cache document becomes a cache miss')
                 ->toBe(2);
             Expect::that($rewritten)
-                ->toContain('"version":3')
+                ->toContain('"version":4')
                 ->toContain($className . '.php');
         } finally {
             @\unlink($cacheFile);
@@ -112,10 +112,10 @@ final readonly class DiscoveryCacheTest
     public static function structurallyInvalidCacheDocuments(): iterable
     {
         yield 'scalar document' => ['null'];
-        yield 'wrong version' => ['{"version":2,"files":{}}'];
-        yield 'files is not a map' => ['{"version":3,"files":"invalid"}'];
-        yield 'file path is not a string' => ['{"version":3,"files":{"0":{}}}'];
-        yield 'file entry is not a map' => ['{"version":3,"files":{"/project/Test.php":"invalid"}}'];
+        yield 'wrong version' => ['{"version":3,"files":{}}'];
+        yield 'files is not a map' => ['{"version":4,"files":"invalid"}'];
+        yield 'file path is not a string' => ['{"version":4,"files":{"0":{}}}'];
+        yield 'file entry is not a map' => ['{"version":4,"files":{"/project/Test.php":"invalid"}}'];
     }
 
     #[Test]
@@ -149,7 +149,7 @@ final readonly class DiscoveryCacheTest
                 ->toBeInt();
 
             \file_put_contents($cacheFile, \json_encode([
-                'version' => 3,
+                'version' => 4,
                 'files' => [
                     $source => [
                         'mtime' => $mtime,
@@ -444,8 +444,7 @@ final readonly class DiscoveryCacheTest
         if (!\is_string($cachedPath)
             || !\is_array($cachedFile)
             || !\is_array($planted)
-            || !\is_array($planted['id'] ?? null)
-            || !\is_array($planted['metadata'] ?? null)
+            || !\is_array($planted['definition'] ?? null)
         ) {
             Fail::because(\sprintf(
                 'Expected the discovery cache fixture to contain an entry for "%s".',
@@ -453,8 +452,7 @@ final readonly class DiscoveryCacheTest
             ));
         }
 
-        $planted['id']['method'] = 'plantedFromCache';
-        $planted['metadata']['method'] = 'plantedFromCache';
+        $planted['definition']['method'] = 'plantedFromCache';
         $cachedFile['entries'][] = $planted;
         $decoded['files'][$cachedPath] = $cachedFile;
 

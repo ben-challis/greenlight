@@ -14,8 +14,9 @@ use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -93,7 +94,7 @@ final class OrchestratorTest
                 [, , $address, $workerId, $token] = $argv;
                 $socket = stream_socket_client($address);
                 $json = json_encode([
-                    'v' => 2,
+                    'v' => 3,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -173,7 +174,7 @@ final class OrchestratorTest
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
-            $json = json_encode(['v' => 2, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
+            $json = json_encode(['v' => 3, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
             fwrite($socket, pack('N', strlen($json)) . $json);
             fflush($socket);
             sleep(60);
@@ -526,7 +527,7 @@ final class OrchestratorTest
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
 
         return new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
     }
 
@@ -546,7 +547,7 @@ final class OrchestratorTest
         $id = new TestId(CleanTest::class, 'passesAndIsCollectable');
 
         return new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
     }
 
@@ -556,8 +557,16 @@ final class OrchestratorTest
         $waiting = new TestId(WaitingResourceTest::class, 'runsAfterTheWait');
 
         return new ExecutionPlan([
-            new PlanEntry($slow, new TestMetadata($slow->class, $slow->method, resources: ['database'])),
-            new PlanEntry($waiting, new TestMetadata($waiting->class, $waiting->method, resources: ['database'])),
+            new PlanEntry(new TestDefinition(
+                $slow->class,
+                $slow->method,
+                scheduling: new SchedulingPolicy(resources: ['database']),
+            )),
+            new PlanEntry(new TestDefinition(
+                $waiting->class,
+                $waiting->method,
+                scheduling: new SchedulingPolicy(resources: ['database']),
+            )),
         ]);
     }
 
@@ -567,8 +576,8 @@ final class OrchestratorTest
         $waiting = new TestId(WaitingResourceTest::class, 'runsAfterTheWait');
 
         return new ExecutionPlan([
-            new PlanEntry($clean, new TestMetadata($clean->class, $clean->method)),
-            new PlanEntry($waiting, new TestMetadata($waiting->class, $waiting->method)),
+            new PlanEntry(new TestDefinition($clean->class, $clean->method)),
+            new PlanEntry(new TestDefinition($waiting->class, $waiting->method)),
         ]);
     }
 
@@ -578,8 +587,8 @@ final class OrchestratorTest
         $passing = new TestId(BbTest::class, 'wouldAlsoPass');
 
         return new ExecutionPlan([
-            new PlanEntry($failing, new TestMetadata($failing->class, $failing->method)),
-            new PlanEntry($passing, new TestMetadata($passing->class, $passing->method)),
+            new PlanEntry(new TestDefinition($failing->class, $failing->method)),
+            new PlanEntry(new TestDefinition($passing->class, $passing->method)),
         ]);
     }
 
@@ -588,7 +597,7 @@ final class OrchestratorTest
         $id = new TestId(CrashDiagnosticsTest::class, 'writesDiagnosticsThenExits');
 
         return new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
     }
 
@@ -598,8 +607,8 @@ final class OrchestratorTest
         $passing = new TestId(CleanTest::class, 'passesAndIsCollectable');
 
         return new ExecutionPlan([
-            new PlanEntry($crash, new TestMetadata($crash->class, $crash->method)),
-            new PlanEntry($passing, new TestMetadata($passing->class, $passing->method)),
+            new PlanEntry(new TestDefinition($crash->class, $crash->method)),
+            new PlanEntry(new TestDefinition($passing->class, $passing->method)),
         ]);
     }
 
@@ -608,7 +617,7 @@ final class OrchestratorTest
         $id = new TestId(CrashUnicodeDiagnosticsTest::class, 'writesUnicodeDiagnosticsThenExits');
 
         return new ExecutionPlan([
-            new PlanEntry($id, new TestMetadata($id->class, $id->method)),
+            new PlanEntry(new TestDefinition($id->class, $id->method)),
         ]);
     }
 }

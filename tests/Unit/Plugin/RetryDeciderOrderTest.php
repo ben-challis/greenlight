@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
@@ -31,7 +31,7 @@ final readonly class RetryDeciderOrderTest
 
             #[\Override]
             public function shouldRetry(
-                TestMetadata $metadata,
+                RetryPolicy $policy,
                 TestResult $result,
                 int $attempt,
                 ?\Throwable $cause,
@@ -49,7 +49,7 @@ final readonly class RetryDeciderOrderTest
 
             #[\Override]
             public function shouldRetry(
-                TestMetadata $metadata,
+                RetryPolicy $policy,
                 TestResult $result,
                 int $attempt,
                 ?\Throwable $cause,

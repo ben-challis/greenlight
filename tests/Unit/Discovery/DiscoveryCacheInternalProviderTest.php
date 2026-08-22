@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\DataProvider;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -38,12 +38,10 @@ final readonly class DiscoveryCacheInternalProviderTest
         require_once $providerSource;
 
         $entry = new PlanEntry(
-            new TestId('Fixture\\ProbeTest', 'probe'),
-            new TestMetadata(
+            new TestDefinition(
                 'Fixture\\ProbeTest',
                 'probe',
-                dataSetProvider: 'listAbbreviations',
-                dataSetProviderClass: $providerClass,
+                dataProvider: new DataProvider('listAbbreviations', $providerClass),
             ),
         );
 

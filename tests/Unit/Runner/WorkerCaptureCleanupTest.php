@@ -42,11 +42,10 @@ final readonly class WorkerCaptureCleanupTest
             $id = new Greenlight\Core\Test\TestId(CaptureCleanupProbe::class, 'leavesNonRemovableBuffer');
             $plan = new Greenlight\Discovery\ExecutionPlan([
                 new Greenlight\Discovery\PlanEntry(
-                    $id,
-                    new Greenlight\Core\Test\TestMetadata(
+                    new Greenlight\Core\Test\TestDefinition(
                         $id->class,
                         $id->method,
-                        timeoutSeconds: 1.0,
+                        execution: new Greenlight\Core\Test\ExecutionPolicy(timeoutSeconds: 1.0),
                     ),
                 ),
             ]);

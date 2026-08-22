@@ -54,7 +54,7 @@ final class MessageTagsTest
         Expect::that(MessageRegistry::envelope(new Drain()))
             ->because('the published worker-protocol envelope MUST remain compatible')
             ->toBe([
-                'v' => 2,
+                'v' => 3,
                 't' => 'drain',
                 'p' => [],
             ]);

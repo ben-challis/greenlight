@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\DataProvider;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -42,13 +43,12 @@ final class DiscoveryCacheRuntimeProviderTest
 
         $id = new TestId('RuntimeProviderTest', 'probe', 'one');
         $entry = new PlanEntry(
-            $id,
-            new TestMetadata(
+            new TestDefinition(
                 $id->class,
                 $id->method,
-                dataSetProvider: 'rows',
-                dataSetProviderClass: $provider,
+                dataProvider: new DataProvider('rows', $provider),
             ),
+            $id->dataSetKey,
         );
 
         try {

@@ -1378,7 +1378,7 @@ final readonly class Application
         $counts = [];
 
         foreach ($plan->entries as $entry) {
-            foreach ($entry->metadata->groups as $group) {
+            foreach ($entry->definition->groups as $group) {
                 $counts[$group] = ($counts[$group] ?? 0) + 1;
             }
         }

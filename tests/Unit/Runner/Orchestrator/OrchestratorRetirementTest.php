@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Doubles\Fake;
@@ -145,7 +146,9 @@ final readonly class OrchestratorRetirementTest
         for ($index = 1; $index <= 12; ++$index) {
             $class = 'Greenlight\\Tests\\Fixture\\MissingIsolated' . $index;
             $id = new TestId($class, 'doesNotExist');
-            $entries[] = new PlanEntry($id, new TestMetadata($class, $id->method, isolated: true));
+            $entries[] = new PlanEntry(
+                new TestDefinition($class, $id->method, scheduling: new SchedulingPolicy(isolated: true)),
+            );
         }
 
         $summary = $orchestrator->run(new ExecutionPlan($entries), new CollectingEventSink(), 1);

@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Runner\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
@@ -40,7 +40,7 @@ final readonly class RetryDeciderAttachmentTest
             public array $results = [];
 
             public function shouldRetry(
-                TestMetadata $metadata,
+                RetryPolicy $policy,
                 TestResult $result,
                 int $attempt,
                 ?\Throwable $cause,

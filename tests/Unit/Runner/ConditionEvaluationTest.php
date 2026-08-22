@@ -10,8 +10,9 @@ use Greenlight\Core\Condition;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\SkipPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
@@ -66,11 +67,10 @@ final readonly class ConditionEvaluationTest
         $id = new TestId(ConditionArgumentsTest::class, 'runsWhenTheVersionIsSatisfied');
         $plan = new ExecutionPlan([
             new PlanEntry(
-                $id,
-                new TestMetadata(
+                new TestDefinition(
                     $id->class,
                     $id->method,
-                    skipUnlessCondition: $conditionClass,
+                    skip: new SkipPolicy(condition: $conditionClass),
                 ),
             ),
         ]);

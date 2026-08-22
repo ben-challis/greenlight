@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Test\SkipTest;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
@@ -108,7 +108,7 @@ final class TestContextTest
         return new TestContext(
             new \stdClass(),
             new TestId('Fixture\\PluginTest', 'probe'),
-            new TestMetadata('Fixture\\PluginTest', 'probe'),
+            new TestDefinition('Fixture\\PluginTest', 'probe'),
             $scopes,
         );
     }

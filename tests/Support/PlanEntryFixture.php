@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Discovery\PlanEntry;
 
-/** Creates a plan entry with matching identifier and metadata fields. */
+/** Creates a plan entry from one test definition and optional data-set key. */
 final class PlanEntryFixture
 {
     private function __construct() {}
@@ -28,14 +28,12 @@ final class PlanEntryFixture
         bool $allowParallel = false,
     ): PlanEntry {
         return new PlanEntry(
-            new TestId($class, $method, $dataSetKey),
-            new TestMetadata(
+            new TestDefinition(
                 $class,
                 $method,
-                isolated: $isolated,
-                resources: $resources,
-                allowParallel: $allowParallel,
+                scheduling: new SchedulingPolicy($isolated, $resources, $allowParallel),
             ),
+            $dataSetKey,
         );
     }
 }

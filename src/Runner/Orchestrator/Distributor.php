@@ -39,10 +39,10 @@ final readonly class Distributor
             $hasUnbatchableEntry = false;
 
             foreach ($entries as $entry) {
-                if ($entry->metadata->isolated) {
+                if ($entry->definition->scheduling->isolated) {
                     $hasUnbatchableEntry = true;
                     $isolated[] = new SchedulingUnit(new ExecutionPlan([$entry], $plan->seed), true);
-                } elseif ($entry->metadata->allowParallel) {
+                } elseif ($entry->definition->scheduling->allowParallel) {
                     $hasUnbatchableEntry = true;
                     $pooled[] = new SchedulingUnit(new ExecutionPlan([$entry], $plan->seed), false);
                 } else {

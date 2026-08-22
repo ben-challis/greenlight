@@ -8,8 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RetryPlugin;
 
@@ -36,15 +36,10 @@ final class RetryPluginTest
             0.1,
             0,
         );
-        $filtered = new TestMetadata(
-            'Example\RetryTest',
-            'retries',
-            retryTimes: $times,
-            retryOnlyOn: $onlyOn,
-        );
+        $policy = new RetryPolicy($times, $onlyOn);
 
         Expect::that($plugin->shouldRetry(
-            $filtered,
+            $policy,
             $result,
             $attempt,
             $cause,
