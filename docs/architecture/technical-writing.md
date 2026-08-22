@@ -102,6 +102,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | benchmark shape | Technical noun | A generated test-suite structure that one benchmark measures |
 | binding | Technical noun | A container rule that maps an ID to a value or construction method |
 | boot latency | Technical noun | The time from worker-process creation to the start of its first test class |
+| breaking change | Technical noun | A change that makes at least one valid documented use invalid |
 | builder | Technical noun | A mutable object that collects configuration for one part of a run |
 | capability interface | Technical noun | A plugin interface that adds one defined type of behavior |
 | captor | Technical noun | An object that stores argument values from matched mock calls |
@@ -131,7 +132,9 @@ and meaning. Use the singular form unless the context requires a plural.
 | execution plan | Technical noun | The ordered test metadata that discovery sends for execution |
 | expectation | Technical noun | A required condition for a test value |
 | extension matcher | Technical noun | A matcher that an expectation extension supplies |
+| feature | Technical noun | A documented user capability that keeps all valid documented uses valid |
 | fixture | Technical noun | Test support code or data with a controlled purpose |
+| fix | Technical noun | A change that corrects a defect in public behavior |
 | filter | Technical noun | A set of rules that selects tests or coverage paths |
 | flat memory | Technical noun | Memory use that does not increase with the number of completed tests |
 | frame | Technical noun | One length-prefixed worker-protocol message |
@@ -153,6 +156,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | orchestrator | Technical noun | The process that plans and controls a run |
 | output capture | Technical noun | The collection of test output and PHP diagnostics for one result |
 | payload | Technical noun | The data that an event envelope contains |
+| performance change | Technical noun | A change that reduces resource use without a compatibility change |
 | poll | Technical noun | One observation of a probe value |
 | poll | Technical verb | To observe a probe until a condition or deadline stops the operation |
 | probe | Technical noun | A callable that supplies values to a temporal expectation |
@@ -165,7 +169,10 @@ and meaning. Use the singular form unless the context requires a plural.
 | PSR-15 request handler | Technical noun | An object that accepts a PSR-7 server request and returns a PSR-7 response |
 | proxy class | Technical noun | A generated class that implements or extends a doubled type |
 | proxy object | Technical noun | An instance of a proxy class that acts as a double |
+| public behavior | Technical noun | A documented result or effect of a public interface |
+| public interface | Technical noun | A documented way that a user or external tool interacts with Greenlight |
 | reporter | Technical noun | A component that converts run events to output |
+| release impact | Technical noun | The effect of a change on the next version and changelog |
 | resource lease | Technical noun | A temporary grant of resource capacity to one scheduling unit |
 | resource limit | Technical noun | A limit on concurrent access to a named resource |
 | result policy | Technical noun | A rule that can change a test result after execution |
