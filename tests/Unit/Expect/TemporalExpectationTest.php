@@ -41,6 +41,35 @@ final readonly class TemporalExpectationTest
     }
 
     #[Test]
+    public function temporalNativeMatchersPreserveNamedAndVariadicArguments(): void
+    {
+        $clock = new FakePollingClock();
+
+        ExpectationRuntime::withClock($clock, static function (): void {
+            Expect::eventually(static fn(): float => 10.1)
+                ->within(0.100)
+                ->toBeWithin(delta: 0.2, of: 10.0);
+            Expect::consistently(static fn(): string => 'greenlight')
+                ->for(0.001)
+                ->toBeOneOf(other: 'red', expected: 'greenlight');
+        });
+
+        Expect::that($clock->sleeps)
+            ->because('native matcher dispatch MUST preserve named and variadic arguments')
+            ->toBe([0.001]);
+    }
+
+    #[Test]
+    public function temporalFailureLocationPointsAtTheMatcherCall(): void
+    {
+        $line = __LINE__ + 1;
+        $detail = FailureProbe::detailOf(static fn() => Expect::eventually(static fn(): int => 1)->within(0.001)->toBe(2));
+
+        Expect::that($detail->location?->file)->toBe(__FILE__);
+        Expect::that($detail->location?->line)->toBe($line);
+    }
+
+    #[Test]
     public function eventuallyReusesAOneShotIterableAcrossRetries(): void
     {
         $clock = new FakePollingClock();
@@ -458,7 +487,7 @@ final readonly class TemporalExpectationTest
                 return static function (): void {};
             })
                 ->within(0.100);
-            $eventually->__call('toThrow', [\RuntimeException::class, '/x/', 'x']);
+            $eventually->toThrow(\RuntimeException::class, matching: '/x/', message: 'x'); // @phpstan-ignore greenlight.toThrow.messageConstraint (deliberately invalid: tests runtime validation)
         })->because('polling durations and exception types are validated')->toThrow(
             ExpectationFailed::class,
             matching: '/^Specify matching: or message: for toThrow\(\)\. Do not specify both\./',

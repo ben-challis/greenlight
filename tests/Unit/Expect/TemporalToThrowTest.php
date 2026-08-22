@@ -92,12 +92,10 @@ final class TemporalToThrowTest
         })->within(0.100);
 
         $detail = FailureProbe::detailOf(
-            static function () use ($eventually): void {
-                $eventually->__call('toThrow', [
-                    'throwable' => static function (\RuntimeException $error): void {},
-                    'message' => 'boom',
-                ]);
-            },
+            static fn() => $eventually->toThrow( // @phpstan-ignore greenlight.toThrow.callbackConstraint (deliberately invalid: tests runtime validation)
+                static function (\RuntimeException $error): void {},
+                message: 'boom',
+            ),
         );
 
         Expect::that($detail->message)->toBe(
@@ -118,12 +116,10 @@ final class TemporalToThrowTest
         })->within(0.100);
 
         $detail = FailureProbe::detailOf(
-            static function () use ($eventually, $failure): void {
-                $eventually->__call('toThrow', [
-                    'throwable' => $failure,
-                    'matching' => '/boom/',
-                ]);
-            },
+            static fn() => $eventually->toThrow( // @phpstan-ignore greenlight.toThrow.instanceConstraint (deliberately invalid: tests runtime validation)
+                $failure,
+                matching: '/boom/',
+            ),
         );
 
         Expect::that($detail->message)->toBe(

@@ -10,7 +10,8 @@ use Greenlight\Expect\TemporalExpectation;
 
 /**
  * IDE indexers do not run PHPStan plugins. Thus, the helper copies the
- * Expectation declaration. It adds configured matchers as @method annotations.
+ * expectation declarations. It adds configured matchers as @method annotations.
+ * It also adds native matcher annotations to the temporal declaration.
  *
  * An IDE indexes the generated file but does not execute or load it. When
  * matchers change, generate the file again. The PHPStan extension and this
@@ -25,7 +26,7 @@ final readonly class IdeHelper
 
     public static function render(MatcherMap $map): string
     {
-        $annotations = [];
+        $extensionAnnotations = [];
 
         foreach ($map->names() as $name) {
             $parameters = \array_map(
@@ -33,11 +34,41 @@ final readonly class IdeHelper
                 $map->parameters($name),
             );
 
-            $annotations[] = \sprintf(' * @method self %s(%s)', $name, \implode(', ', $parameters));
+            $extensionAnnotations[] = \sprintf(' * @method self %s(%s)', $name, \implode(', ', $parameters));
         }
 
         $expectation = new \ReflectionClass(Expectation::class);
         $temporal = new \ReflectionClass(TemporalExpectation::class);
+        $temporalAnnotations = [];
+
+        foreach ($expectation->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if (!\str_starts_with($method->getName(), 'to')) {
+                continue;
+            }
+
+            $parameters = \array_map(
+                static fn(\ReflectionParameter $parameter): string => MatcherMap::parameterSignature($parameter, 'null'),
+                $method->getParameters(),
+            );
+
+            $temporalAnnotations[] = \sprintf(
+                ' * @method Expectation<T> %s(%s)',
+                $method->getName(),
+                \implode(', ', $parameters),
+            );
+        }
+
+        foreach ($map->names() as $index => $name) {
+            if ($expectation->hasMethod($name)) {
+                continue;
+            }
+
+            $temporalAnnotations[] = \str_replace(
+                '@method self',
+                '@method Expectation<T>',
+                $extensionAnnotations[$index],
+            );
+        }
 
         return \sprintf(
             <<<'PHP'
@@ -59,16 +90,17 @@ final readonly class IdeHelper
                 final class %s {}
 
                 /**
-                 * @mixin Expectation
+                 * @template T
+                 *
                 %s
                  */
                 abstract class %s {}
 
                 PHP,
             $expectation->getNamespaceName(),
-            \implode("\n", $annotations),
+            \implode("\n", $extensionAnnotations),
             $expectation->getShortName(),
-            \implode("\n", $annotations),
+            \implode("\n", $temporalAnnotations),
             $temporal->getShortName(),
         );
     }

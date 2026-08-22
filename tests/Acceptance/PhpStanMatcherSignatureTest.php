@@ -77,6 +77,12 @@ final readonly class PhpStanMatcherSignatureTest
                 Expect::consistently(static fn(): string => 'c0ffee')
                     ->for(0.1)
                     ->toBeHexadecimal();
+                Expect::eventually(static fn(): float => 1.0)
+                    ->within(1.0)
+                    ->toBeWithin(of: 1.0, delta: 0.1);
+                Expect::consistently(static fn(): string => 'greenlight')
+                    ->for(0.1)
+                    ->toBeOneOf(other: 'red', expected: 'greenlight');
             }
             PHP,
             <<<'PHP'
@@ -94,14 +100,21 @@ final readonly class PhpStanMatcherSignatureTest
                 Expect::consistently(static fn(): string => 'c0ffee')
                     ->for(0.1)
                     ->toBeHexadecimal(123);
+                Expect::eventually(static fn(): float => 1.0)
+                    ->within(1.0)
+                    ->toBeWithin(delta: 'close', of: 1.0);
+                Expect::consistently(static fn(): bool => true)
+                    ->for(0.1)
+                    ->toBeTrue(123);
             }
             PHP,
         );
 
         Expect::that($probe->exitCode)->because('temporal matcher signatures are enforced')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
+        Expect::that(\count($probe->errors))->toBe(5);
         Expect::that($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
+            ->toContain('toBeWithin() expects float, string given')
             ->toContain('invoked with 1 parameter, 0 required');
     }
 
