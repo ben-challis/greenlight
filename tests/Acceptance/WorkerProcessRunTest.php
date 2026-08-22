@@ -40,15 +40,6 @@ final readonly class WorkerProcessRunTest
         Expect::that($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
     }
 
-    #[Test]
-    public function workerRecyclingKeepsResultsIntact(): void
-    {
-        $result = $this->runIn('RecycleConfig', ['run']);
-
-        Expect::that($result->exitCode)->because('worker recycling keeps results intact')->toBe(0);
-        Expect::that($this->summaryLine($result->output()))->toBe('7 tests, 7 passed, 0 expectations');
-    }
-
     /** @param list<string> $arguments */
     #[Test]
     #[DataSet('workerDisposalModes')]
@@ -73,7 +64,6 @@ final readonly class WorkerProcessRunTest
     {
         yield 'in-process' => [['run', '--workers=1']];
         yield 'parallel drain' => [['run', '--workers=2']];
-        yield 'parallel recycle' => [['run', '--config=greenlight.recycle.php']];
     }
 
     /**

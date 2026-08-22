@@ -28,40 +28,6 @@ public float $occurredAt { get; }
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/Event.php#L15)
 
-## `RecycleReason`
-
-Namespace: `Greenlight\Core\Event`
-
-```php
-enum RecycleReason: string
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RecycleReason.php#L7)
-
-### `TestCount`
-
-```php
-case TestCount = 'test-count';
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RecycleReason.php#L9)
-
-### `Memory`
-
-```php
-case Memory = 'memory';
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RecycleReason.php#L10)
-
-### `Crash`
-
-```php
-case Crash = 'crash';
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RecycleReason.php#L11)
-
 ## `RunFinished`
 
 Namespace: `Greenlight\Core\Event`
@@ -509,78 +475,6 @@ public static function fromWire(array $payload): static
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L28)
-
-## `WorkerRecycled`
-
-Namespace: `Greenlight\Core\Event`
-
-```php
-final readonly class WorkerRecycled implements Event
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L9)
-
-### `$workerId`
-
-```php
-public string $workerId;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L14)
-
-### `$reason`
-
-```php
-public RecycleReason $reason
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L21)
-
-### `$occurredAt`
-
-```php
-public float $occurredAt
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L22)
-
-### `__construct()`
-
-```php
-public function __construct(
-    string $workerId,
-    public RecycleReason $reason,
-    public float $occurredAt,
-)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L19)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L35)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerRecycled.php#L45)
 
 ## `WorkerSpawned`
 

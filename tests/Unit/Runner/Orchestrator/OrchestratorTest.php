@@ -7,14 +7,11 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\SchedulingPolicy;
 use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
@@ -26,7 +23,6 @@ use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Ready;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Tests\Fixture\CrashDiagnostics\CrashDiagnosticsTest;
@@ -34,8 +30,6 @@ use Greenlight\Tests\Fixture\CrashUnicodeDiagnostics\CrashUnicodeDiagnosticsTest
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
-use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
-use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\DisconnectBeforeAssignmentWorker;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
@@ -252,115 +246,6 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
-    public function aRecyclingWorkerWithAMismatchedSummaryFailsTheRun(): void
-    {
-        $orchestrator = $this->recyclingWorker([], new ResultSummary(passed: 1));
-
-        Expect::that(
-            fn(): ResultSummary => $orchestrator->run(
-                $this->plan(),
-                new CollectingEventSink(),
-                1,
-            ),
-        )
-            ->because('a recycling worker with a mismatched summary fails the run')
-            ->toThrow(ProtocolError::class, '/reported a summary .* but its event stream totals/');
-    }
-
-    /**
-     * @param list<TestId> $remaining
-     */
-    #[Test]
-    #[DataSet('invalidRecyclingRemainders')]
-    #[Timeout(30.0)]
-    public function aRecyclingWorkerMustReportItsExactRemainder(
-        array $remaining,
-        string $reported,
-    ): void {
-        $orchestrator = $this->recyclingWorker($remaining, new ResultSummary());
-
-        Expect::that(
-            fn(): ResultSummary => $orchestrator->run(
-                $this->plan(),
-                new CollectingEventSink(),
-                1,
-            ),
-        )
-            ->because('a worker MUST report the exact unfinished assignment')
-            ->toThrow(
-                ProtocolError::class,
-                message: 'Worker "w-1" reported remaining tests ' . $reported . '. '
-                    . 'Greenlight expected [Example\NeverExecutedTest::irrelevant] from its active assignment.',
-            );
-    }
-
-    /**
-     * @return iterable<string, array{
-     *     list<TestId>,
-     *     string
-     * }>
-     */
-    public static function invalidRecyclingRemainders(): iterable
-    {
-        yield 'unknown replacement' => [
-            [new TestId('Example\UnknownTest', 'neverPlanned')],
-            '[Example\UnknownTest::neverPlanned]',
-        ];
-        yield 'omitted assignment' => [[], '[]'];
-    }
-
-    #[Test]
-    #[Timeout(30.0)]
-    public function resourceWaitStartsANewProgressWindowBeforeAssignment(): void
-    {
-        $root = \dirname(__DIR__, 4);
-        $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
-            workingDirectory: $root,
-            recycleAfterTests: 1,
-            progressDeadlineSeconds: 0.5,
-            resourceLimits: ['database' => 1],
-        );
-
-        $summary = $orchestrator->run($this->resourcePlan(), new CollectingEventSink(), 2);
-
-        Expect::that($summary->passed)->because('resource wait starts a new progress window before assignment')->toBe(2);
-        Expect::that($summary->isSuccessful())->because('resource wait starts a new progress window before assignment')->toBeTrue();
-    }
-
-    #[Test]
-    #[Timeout(30.0)]
-    public function cumulativeTestCountRecyclesAWorkerAfterSeparateAssignments(): void
-    {
-        $root = \dirname(__DIR__, 4);
-        $sink = new CollectingEventSink();
-        $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
-            workingDirectory: $root,
-            recycleAfterTests: 2,
-        );
-
-        $summary = $orchestrator->run($this->twoClassPassingPlan(), $sink, 1);
-        $recycled = [];
-
-        foreach ($sink->events as $event) {
-            if ($event instanceof WorkerRecycled) {
-                $recycled[] = $event;
-            }
-        }
-
-        Expect::that($summary->passed)
-            ->because('the worker completes both assignments before it reaches its cumulative test budget')
-            ->toBe(2);
-        Expect::that($recycled)
-            ->because('the cumulative test budget recycles the worker after its second assignment')
-            ->toHaveCount(1);
-        Expect::that($recycled[0]->reason)
-            ->toBe(RecycleReason::TestCount);
-    }
-
-    #[Test]
-    #[Timeout(30.0)]
     public function failureLimitDrainsRemainingBatchedClasses(): void
     {
         $root = \dirname(__DIR__, 4);
@@ -391,42 +276,6 @@ final class OrchestratorTest
             ->toHaveCount(1);
         Expect::that((string) $results[0]->id)
             ->toBe(AaTest::class . '::fails');
-    }
-
-    #[Test]
-    #[Timeout(30.0)]
-    public function workerRecyclingPreservesABatchedRemainder(): void
-    {
-        $root = \dirname(__DIR__, 4);
-        $sink = new CollectingEventSink();
-        $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
-            workingDirectory: $root,
-            recycleAfterTests: 1,
-        );
-
-        $summary = $orchestrator->run(
-            $this->twoClassPassingPlan(),
-            $sink,
-            1,
-            [
-                CleanTest::class => 0.001,
-                WaitingResourceTest::class => 0.001,
-            ],
-        );
-
-        Expect::that($summary->passed)
-            ->because('a replacement worker MUST complete the remainder of a batched assignment')
-            ->toBe(2);
-        Expect::that(\array_map(
-            static fn(TestResult $result): string => (string) $result->id,
-            $sink->results(),
-        ))
-            ->because('worker recycling MUST preserve class and test order')
-            ->toBe([
-                CleanTest::class . '::passesAndIsCollectable',
-                WaitingResourceTest::class . '::runsAfterTheWait',
-            ]);
     }
 
     #[Test]
@@ -531,53 +380,12 @@ final class OrchestratorTest
         ]);
     }
 
-    /** @param list<TestId> $remaining */
-    private function recyclingWorker(array $remaining, ResultSummary $summary): Orchestrator
-    {
-        $transport = new ScriptedWorkerTransport([[
-            new Ready(),
-            new Recycling(RecycleReason::TestCount, $remaining, $summary),
-        ]]);
-
-        return new Orchestrator($transport);
-    }
-
     private function passingPlan(): ExecutionPlan
     {
         $id = new TestId(CleanTest::class, 'passesAndIsCollectable');
 
         return new ExecutionPlan([
             new PlanEntry(new TestDefinition($id->class, $id->method)),
-        ]);
-    }
-
-    private function resourcePlan(): ExecutionPlan
-    {
-        $slow = new TestId(SlowResourceTest::class, 'holdsTheResource');
-        $waiting = new TestId(WaitingResourceTest::class, 'runsAfterTheWait');
-
-        return new ExecutionPlan([
-            new PlanEntry(new TestDefinition(
-                $slow->class,
-                $slow->method,
-                scheduling: new SchedulingPolicy(resources: ['database']),
-            )),
-            new PlanEntry(new TestDefinition(
-                $waiting->class,
-                $waiting->method,
-                scheduling: new SchedulingPolicy(resources: ['database']),
-            )),
-        ]);
-    }
-
-    private function twoClassPassingPlan(): ExecutionPlan
-    {
-        $clean = new TestId(CleanTest::class, 'passesAndIsCollectable');
-        $waiting = new TestId(WaitingResourceTest::class, 'runsAfterTheWait');
-
-        return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($clean->class, $clean->method)),
-            new PlanEntry(new TestDefinition($waiting->class, $waiting->method)),
         ]);
     }
 

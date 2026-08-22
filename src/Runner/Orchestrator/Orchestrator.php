@@ -6,10 +6,8 @@ namespace Greenlight\Runner\Orchestrator;
 
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestFinished;
 use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\FailureDetail;
@@ -35,7 +33,6 @@ use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\WorkerError;
@@ -485,8 +482,6 @@ final class Orchestrator
         try {
             $this->transport->send($handle->workerId, new Assign(
                 $lease->unit->plan,
-                $this->configuration->recycleAfterTests,
-                $this->configuration->recycleAboveMemoryBytes,
                 $this->configuration->coverageSettings?->includePaths,
                 $this->configuration->coverageSettings?->driver,
                 $this->configuration->detectLeaks,
@@ -536,18 +531,6 @@ final class Orchestrator
                 // start as soon as their own bootstrap completes.
                 $this->assignNext($handle, $sink);
             }
-        } elseif ($message instanceof Recycling) {
-            $at = $this->monotonicTime();
-            $handle->timing->assignmentFinished($at);
-            $handle->timing->retirementRequested($at);
-            $this->crossCheck($handle, $message->summary);
-            $this->assertRemainder($handle, $message->remaining);
-            $this->mergeCoverage($message->coverage);
-            $sink->emit(new WorkerRecycled($handle->workerId, $message->reason, \microtime(true)));
-            $this->releaseAssignment($handle);
-            $this->finishHandle($handle);
-            $this->enqueueRemainder($message->remaining);
-
         } elseif ($message instanceof Done) {
             $at = $this->monotonicTime();
             $handle->timing->assignmentFinished($at);
@@ -556,17 +539,6 @@ final class Orchestrator
             $this->leaks = [...$this->leaks, ...$message->leaks];
             $isolatedAssignment = $handle->isolatedAssignment;
             $this->releaseAssignment($handle);
-
-            if ($message->wantsRecycle instanceof RecycleReason) {
-                // The worker has used its cumulative budget. It exits
-                // after Done, and a replacement worker processes the
-                // queue.
-                $sink->emit(new WorkerRecycled($handle->workerId, $message->wantsRecycle, \microtime(true)));
-                $handle->timing->retirementRequested($at);
-                $this->finishHandle($handle);
-
-                return;
-            }
 
             if ($this->draining || $isolatedAssignment) {
                 $handle->timing->retirementRequested($this->monotonicTime());
@@ -835,7 +807,7 @@ final class Orchestrator
             ));
         }
 
-        $this->retireFailedWorker($handle, $sink, true);
+        $this->retireFailedWorker($handle, true);
     }
 
     /**
@@ -861,7 +833,7 @@ final class Orchestrator
             ));
         }
 
-        $this->retireFailedWorker($handle, $sink);
+        $this->retireFailedWorker($handle);
     }
 
     /**
@@ -882,10 +854,9 @@ final class Orchestrator
         $sink->emit(new TestFinished($result, \microtime(true)));
     }
 
-    private function retireFailedWorker(WorkerState $handle, EventSink $sink, bool $kill = false): void
+    private function retireFailedWorker(WorkerState $handle, bool $kill = false): void
     {
         $remainder = $handle->unfinished();
-        $sink->emit(new WorkerRecycled($handle->workerId, RecycleReason::Crash, \microtime(true)));
         $this->releaseAssignment($handle);
         $this->finishHandle($handle, $kill);
         $this->enqueueRemainder($remainder);
@@ -921,34 +892,6 @@ final class Orchestrator
         foreach ($byClass as $entries) {
             $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan($entries), false));
         }
-    }
-
-    /**
-     * @param list<TestId> $reported
-     * @throws ProtocolError
-     */
-    private function assertRemainder(WorkerState $handle, array $reported): void
-    {
-        $expected = $this->renderIds($handle->unfinished());
-        $actual = $this->renderIds($reported);
-
-        if ($actual !== $expected) {
-            throw ProtocolError::remainderMismatch(
-                $handle->workerId,
-                '[' . \implode(', ', $expected) . ']',
-                '[' . \implode(', ', $actual) . ']',
-            );
-        }
-    }
-
-    /**
-     * @param list<TestId> $ids
-     *
-     * @return list<string>
-     */
-    private function renderIds(array $ids): array
-    {
-        return \array_map(static fn(TestId $id): string => (string) $id, $ids);
     }
 
     private function releaseAssignment(WorkerState $handle): void

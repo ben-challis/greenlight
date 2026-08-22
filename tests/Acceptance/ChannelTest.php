@@ -41,21 +41,6 @@ final readonly class ChannelTest
         Expect::that(\array_values(\array_unique($channels)))->toBe([1]);
     }
 
-    #[Test]
-    public function recycledWorkersReuseFreedChannels(): void
-    {
-        // Replacement after each test starts more workers than channels. The
-        // set of occupied channels remains within {1, 2}.
-        $project = $this->writeProject(recycleAfterTests: 1);
-        $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        $events = JsonlEvents::from($result);
-        $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('recycled workers reuse freed channels')->toBe(0);
-        Expect::that(\count(JsonlEvents::spawnedWorkerIds($events)))->toBeGreaterThan(2);
-        Expect::that(\count($channels))->toBe(4);
-        Expect::that(\array_values(\array_unique($channels)))->toBe([1, 2]);
-    }
-
     /**
      * @param list<Event> $events
      *
@@ -82,7 +67,7 @@ final readonly class ChannelTest
         return $channels;
     }
 
-    private function writeProject(?int $recycleAfterTests = null, int $expectedChannels = 2): AcceptanceProject
+    private function writeProject(int $expectedChannels = 2): AcceptanceProject
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'channel');
         $project->writeFile('markers/.gitkeep', '');
@@ -151,10 +136,6 @@ final readonly class ChannelTest
             ));
         }
 
-        $workers = $recycleAfterTests === null
-            ? "->workers(2)"
-            : \sprintf("->workers(2, recycleAfterTests: %d)", $recycleAfterTests);
-
         $project->writeFile('greenlight.php', <<<PHP
             <?php
 
@@ -166,7 +147,7 @@ final readonly class ChannelTest
                 require_once \$file;
             }
 
-            return GreenlightConfig::create()->paths([__DIR__ . '/tests']){$workers};
+            return GreenlightConfig::create()->paths([__DIR__ . '/tests'])->workers(2);
             PHP);
 
         return $project;

@@ -29,7 +29,6 @@ final readonly class CliTest
             ->toContain('  suite integration: tests/Integration [tags: io]')
             ->toContain('  workers: 4')
             ->toContain('  resource limits: postgres=3')
-            ->toContain('  recycle: after 100 tests or above 128M memory')
             ->toContain('  stop after: 1 failure')
             ->toContain('  order: random (seed 4242)')
             ->toContain('  groups: (all)');

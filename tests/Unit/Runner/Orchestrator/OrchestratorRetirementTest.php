@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Test\SchedulingPolicy;
 use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
@@ -19,11 +18,8 @@ use Greenlight\Reporting\Ticking;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
-use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\LoggedWorkerProcess;
-use Greenlight\Tests\Fixture\Runner\Orchestrator\RecycleUntilProgressWorker;
-use Greenlight\Tests\Fixture\Runner\Orchestrator\RetirementProgressTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PlanEntryFixture;
@@ -86,48 +82,6 @@ final readonly class OrchestratorRetirementTest
         Expect::that($ticksDuringExit)
             ->because('reporter ticks MUST continue while workers exit')
             ->not()->toBe([]);
-    }
-
-    #[Test]
-    #[Timeout(10.0)]
-    public function delayedRetirementDoesNotBlockAssignmentsToAnotherWorker(): void
-    {
-        $log = $this->tempDirectory->path() . '/progress.log';
-        $marker = $this->tempDirectory->path() . '/progress.marker';
-        $this->environment->set('GREENLIGHT_RETIREMENT_LOG', $log);
-        $this->environment->set('GREENLIGHT_RETIREMENT_PROGRESS_MARKER', $marker);
-        $sink = new CollectingEventSink();
-        $orchestrator = NativeOrchestrator::create(
-            workerCommand: $this->workerCommand(RecycleUntilProgressWorker::class),
-            workingDirectory: $this->repositoryRoot(),
-        );
-        $plan = new ExecutionPlan([
-            PlanEntryFixture::create(CleanTest::class, 'passesAndIsCollectable'),
-            PlanEntryFixture::create(SlowResourceTest::class, 'holdsTheResource'),
-            PlanEntryFixture::create(RetirementProgressTest::class, 'recordsProgress'),
-        ]);
-
-        $summary = $orchestrator->run($plan, $sink, 2);
-        $workers = [];
-
-        foreach ($sink->events as $event) {
-            if ($event instanceof TestClassStarted) {
-                $workers[] = $event->workerId;
-            }
-        }
-
-        Expect::that($summary->passed)
-            ->because('the worker pool MUST complete all assignments while the first worker exits')
-            ->toBe(3);
-        Expect::that(\trim((string) \file_get_contents($log)))
-            ->because('the delayed worker MUST observe progress before it exits')
-            ->toBe('progress-observed');
-        Expect::that(\array_slice($workers, 0, 2))
-            ->because('the active worker MUST receive queued work while the first worker exits')
-            ->toBe(['w-2', 'w-2']);
-        Expect::that($workers[2])
-            ->because('the active worker or its bootstrapped replacement MAY receive requeued work')
-            ->toBeOneOf('w-2', 'w-3');
     }
 
     #[Test]

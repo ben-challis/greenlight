@@ -56,12 +56,6 @@
         },
         {
             "properties": {
-                "t": {"enum": ["recycling"]},
-                "p": {"$ref": "#/definitions/recycling"}
-            }
-        },
-        {
-            "properties": {
                 "t": {"enum": ["done"]},
                 "p": {"$ref": "#/definitions/done"}
             }
@@ -169,8 +163,6 @@
             "additionalProperties": false,
             "required": [
                 "slice",
-                "recycleAfterTests",
-                "recycleAboveMemoryBytes",
                 "coverageInclude",
                 "coverageDriver",
                 "detectLeaks",
@@ -178,8 +170,6 @@
             ],
             "properties": {
                 "slice": {"$ref": "#/definitions/executionPlan"},
-                "recycleAfterTests": {"type": ["integer", "null"], "minimum": 1},
-                "recycleAboveMemoryBytes": {"type": ["integer", "null"], "minimum": 1},
                 "coverageInclude": {
                     "oneOf": [
                         {"type": "null"},
@@ -369,29 +359,10 @@
                 "attempt": {"type": "integer", "minimum": 1}
             }
         },
-        "recycling": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["reason", "remaining", "summary", "coverage"],
-            "properties": {
-                "reason": {"$ref": "#/definitions/recycleReason"},
-                "remaining": {
-                    "type": "array",
-                    "items": {"$ref": "#/definitions/testId"}
-                },
-                "summary": {"$ref": "#/definitions/resultSummary"},
-                "coverage": {
-                    "oneOf": [
-                        {"type": "null"},
-                        {"$ref": "#/definitions/coverageMap"}
-                    ]
-                }
-            }
-        },
         "done": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["summary", "peakMemoryBytes", "coverage", "leaks", "wantsRecycle"],
+            "required": ["summary", "peakMemoryBytes", "coverage", "leaks"],
             "properties": {
                 "summary": {"$ref": "#/definitions/resultSummary"},
                 "peakMemoryBytes": {"type": "integer", "minimum": 0},
@@ -404,17 +375,8 @@
                 "leaks": {
                     "type": "array",
                     "items": {"$ref": "#/definitions/testId"}
-                },
-                "wantsRecycle": {
-                    "oneOf": [
-                        {"type": "null"},
-                        {"$ref": "#/definitions/recycleReason"}
-                    ]
                 }
             }
-        },
-        "recycleReason": {
-            "enum": ["test-count", "memory", "crash"]
         },
         "coverageMap": {
             "type": "object",
@@ -499,12 +461,6 @@
                         "event": {"enum": ["worker-spawned"]},
                         "data": {"$ref": "#/definitions/workerSpawned"}
                     }
-                },
-                {
-                    "properties": {
-                        "event": {"enum": ["worker-recycled"]},
-                        "data": {"$ref": "#/definitions/workerRecycled"}
-                    }
                 }
             ]
         },
@@ -581,16 +537,6 @@
             "properties": {
                 "workerId": {"type": "string", "minLength": 1},
                 "pid": {"type": "integer", "minimum": 1},
-                "occurredAt": {"type": "number"}
-            }
-        },
-        "workerRecycled": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["workerId", "reason", "occurredAt"],
-            "properties": {
-                "workerId": {"type": "string", "minLength": 1},
-                "reason": {"$ref": "#/definitions/recycleReason"},
                 "occurredAt": {"type": "number"}
             }
         },

@@ -52,18 +52,17 @@ travel over stdio, so test output cannot corrupt the protocol.
 
 ## The messages
 
-Ten message types cross the socket:
+Nine message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
 | `hello` | worker to orchestrator | worker ID, shared token, process ID |
 | `bootstrap` | orchestrator to worker | stable channel, config file path, that channel's integration resources |
 | `ready` | worker to orchestrator | bootstrap acknowledgement |
-| `assign` | orchestrator to worker | a plan slice (test classes to run), recycle budgets, remaining failure allowance, coverage settings, leak detection flag, result policy, artifact session and limits |
+| `assign` | orchestrator to worker | a plan slice (test classes to run), remaining failure allowance, coverage settings, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `attempt-started` | worker to orchestrator | active test ID and attempt number for a crash report |
-| `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks, optional recycle request |
-| `recycling` | worker to orchestrator | recycle reason, tests that did not run, result summary, partial coverage |
+| `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks |
 | `drain` | orchestrator to worker | no payload (request for a clean worker exit) |
 | `fatal` | worker to orchestrator | details of a throwable that the worker could not contain |
 
@@ -149,7 +148,7 @@ queue.
 A configured `WorkerBootstrapSubscriber` selects the all-ready mode. In this
 mode, the initial ready barrier prevents tests from starting while another
 initial worker is still bootstrapping. A replacement worker created after a
-crash or recycle needs to complete only its own bootstrap in both modes.
+crash needs to complete only its own bootstrap in both modes.
 
 The initial pool does not exceed the configured worker count. Greenlight also
 uses a safe resource-capacity bound. It starts fewer initial workers when the
@@ -247,7 +246,7 @@ identical. It does not batch a class that contains an isolated or
 Before it sends `assign`, the orchestrator claims one slot from each required
 resource in one atomic operation. A resource without a configured limit has one
 slot. The assignment retains its slots until it finishes. The orchestrator also
-releases the slots if the worker recycles, crashes, reaches a timeout, or does
+releases the slots if the worker crashes, reaches a timeout, or does
 not receive the assignment. Retries remain in the same assignment and retain
 the slots.
 
@@ -293,27 +292,13 @@ stateDiagram-v2
     Running --> Running: done, next assign
     Running --> Waiting: done, next assignment blocked
     Running --> Drained: done, queue empty (drain)
-    Running --> Recycled: budget exhausted (recycling / done + wantsRecycle)
     Running --> Crashed: process dies mid-assignment
     Running --> Killed: test exceeds timeout grace
     Running --> RunFailed: silent 60s with nothing in flight
-    Recycled --> [*]: remainder re-queued, replacement spawned
     Crashed --> [*]: test errored, remainder re-queued, replacement spawned
     Killed --> [*]: test failed as timeout, replacement spawned
     Drained --> [*]: channel slot released
 ```
-
-### Recycling
-
-Recycle budgets travel inside `assign`, and the worker checks them after every
-test. A budget may limit the test count, memory use, or both. When a budget runs
-out mid-assignment, the worker sends `recycling` with the tests it did not reach
-and then exits. At an assignment boundary, it sets a recycle flag on `done`
-instead.
-
-The orchestrator re-queues unfinished tests, spawns a replacement, and emits a
-`WorkerRecycled` event. The default memory limit is 256M. Greenlight does not
-apply a test-count limit by default.
 
 ### Crashes
 

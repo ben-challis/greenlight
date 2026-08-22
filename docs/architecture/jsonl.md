@@ -58,16 +58,15 @@ guarantees, and incomplete-output behavior.
 
 ## Event tags
 
-| Tag               | Event                                | Payload keys                                                           |
-| ----------------- | ------------------------------------ | ---------------------------------------------------------------------- |
-| `run-started`     | Run begins                           | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
-| `run-finished`    | Run ends                             | `runId`, `summary`, `durationSeconds`, `occurredAt`, `workerTimings`   |
-| `class-started`   | Test class begins                    | `class`, `occurredAt`, `workerId`, `isolated`                          |
-| `class-finished`  | Test class ends                      | `class`, `occurredAt`, `workerId`                                      |
-| `test-started`    | Test begins                          | `id`, `occurredAt`                                                     |
-| `test-finished`   | Test ends                            | `result`, `occurredAt`                                                 |
-| `worker-spawned`  | Worker process starts                | `workerId`, `pid`, `occurredAt`                                        |
-| `worker-recycled` | Greenlight replaces a worker process | `workerId`, `reason`, `occurredAt`                                     |
+| Tag              | Event                 | Payload keys                                                           |
+| ---------------- | --------------------- | ---------------------------------------------------------------------- |
+| `run-started`    | Run begins            | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
+| `run-finished`   | Run ends              | `runId`, `summary`, `durationSeconds`, `occurredAt`, `workerTimings`   |
+| `class-started`  | Test class begins     | `class`, `occurredAt`, `workerId`, `isolated`                          |
+| `class-finished` | Test class ends       | `class`, `occurredAt`, `workerId`                                      |
+| `test-started`   | Test begins           | `id`, `occurredAt`                                                     |
+| `test-finished`  | Test ends             | `result`, `occurredAt`                                                 |
+| `worker-spawned` | Worker process starts | `workerId`, `pid`, `occurredAt`                                        |
 
 `run-finished.summary` contains the passed, failed, errored, and skipped totals.
 
@@ -104,12 +103,6 @@ data-set key.
 ran the class.
 
 `class-started.isolated` is true when the worker runs an isolated test.
-
-`worker-recycled.reason` has one of these values:
-
-* `test-count`
-* `memory`
-* `crash`
 
 `occurredAt` is a Unix timestamp with microsecond precision. Consumers
 **SHOULD** accept a JSON number with decimals or an integer. Some JSON round

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
 
@@ -18,7 +17,6 @@ final readonly class WorkerRunOutcome
     public function __construct(
         public ResultSummary $summary,
         public array $remaining = [],
-        public ?RecycleReason $recycleReason = null,
         public bool $drained = false,
         public array $leaks = [],
     ) {}

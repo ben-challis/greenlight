@@ -82,8 +82,6 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                 $context->storage->temporaryDirectory,
             ),
             new OrchestratorConfiguration(
-                recycleAfterTests: $this->workers->recycleAfterTests,
-                recycleAboveMemoryBytes: $this->workers->recycleAboveMemoryBytes,
                 stopAfterFailures: $execution->stopAfterFailures,
                 coverageSettings: $this->coverageSettings,
                 configFile: $this->configFile,

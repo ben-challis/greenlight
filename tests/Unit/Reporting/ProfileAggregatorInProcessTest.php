@@ -35,7 +35,7 @@ final class ProfileAggregatorInProcessTest
             ->because('in-process class events MUST NOT invent a worker profile')
             ->toBe(
                 "\nProfile:\n"
-                . "  Workers: 1 requested, 0 spawned, 0 recycled\n",
+                . "  Workers: 1 requested, 0 spawned\n",
             );
     }
 }

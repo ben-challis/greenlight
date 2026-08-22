@@ -7,12 +7,10 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Core\Result\ResultSummary;
@@ -34,7 +32,7 @@ final class ProfileAggregatorTest
         $expected = <<<'TEXT'
 
             Profile:
-              Workers: 2 requested, 2 spawned, 1 recycled
+              Workers: 2 requested, 2 spawned
               Boot latency: 0.750s average (spawn to first class, 2 workers)
 
               Worker  Classes    Busy  Util
@@ -153,7 +151,7 @@ final class ProfileAggregatorTest
 
         Expect::that($aggregator->render(new Style(ansi: false)))
             ->because('isolated workers MUST be distinct from worker pool processes')
-            ->toContain("Workers: 2 requested, 2 spawned, 1 isolated, 0 recycled\n")
+            ->toContain("Workers: 2 requested, 2 spawned, 1 isolated\n")
             ->toContain("  Worker  Classes    Busy  Util  Isolated\n")
             ->toContain("  w-1           1  0.500s  100%\n")
             ->toContain("  w-2           1  0.500s        yes\n");
@@ -234,7 +232,7 @@ final class ProfileAggregatorTest
 
         Expect::that($aggregator->render(new Style(ansi: false)))
             ->because('the summary counts every spawned worker')
-            ->toContain('Workers: 2 requested, 2 spawned, 0 recycled');
+            ->toContain('Workers: 2 requested, 2 spawned');
         Expect::that($aggregator->render(new Style(ansi: false)))
             ->because('an idle worker has no class statistics to report')
             ->toContain("\n  active        1  0.500s")
@@ -307,7 +305,6 @@ final class ProfileAggregatorTest
             new TestClassFinished('Acme\GammaTest', 102.0, 'w-2'),
             new TestClassFinished('Acme\AlphaTest', 103.0, 'w-1'),
             new TestClassStarted('Acme\BetaTest', 103.5, 'w-1'),
-            new WorkerRecycled('w-2', RecycleReason::TestCount, 103.5),
             new TestClassFinished('Acme\BetaTest', 104.5, 'w-1'),
             new RunFinished('run-1', new ResultSummary(passed: 10), 4.5, 104.5),
         ];

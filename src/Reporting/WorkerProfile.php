@@ -19,8 +19,6 @@ final class WorkerProfile
 
     public ?float $lastFinishAt = null;
 
-    public int $recycled = 0;
-
     public bool $isolated = false;
 
     public function spawned(float $at): void

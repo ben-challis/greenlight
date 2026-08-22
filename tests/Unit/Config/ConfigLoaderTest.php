@@ -23,8 +23,6 @@ final class ConfigLoaderTest
 
         Expect::that($configuration->discovery->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
         Expect::that($configuration->workers->count->fixed)->because('loads a valid configuration file from a directory')->toBe(4);
-        Expect::that($configuration->workers->recycleAfterTests)->because('loads a valid configuration file from a directory')->toBe(100);
-        Expect::that($configuration->workers->recycleAboveMemoryBytes)->because('loads a valid configuration file from a directory')->toBe(134217728);
         Expect::that($configuration->execution->stopAfterFailures)->because('loads a valid configuration file from a directory')->toBe(1);
         Expect::that($configuration->order->seed)->because('loads a valid configuration file from a directory')->toBe(4242);
         Expect::that($configuration->discovery->suites)->because('loads a valid configuration file from a directory')->toHaveCount(2);

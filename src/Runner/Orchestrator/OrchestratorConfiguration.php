@@ -23,13 +23,9 @@ final readonly class OrchestratorConfiguration
     public const float DEFAULT_PROGRESS_DEADLINE_SECONDS = 60.0;
 
     /**
-     * @param positive-int|null $recycleAfterTests
-     * @param positive-int|null $recycleAboveMemoryBytes
      * @param array<non-empty-string, positive-int> $resourceLimits
      */
     public function __construct(
-        public ?int $recycleAfterTests = null,
-        public ?int $recycleAboveMemoryBytes = null,
         public ?int $stopAfterFailures = null,
         public ?CoverageSettings $coverageSettings = null,
         public ?string $configFile = null,

@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Event\WorkerSpawned;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
@@ -20,7 +18,7 @@ use Greenlight\Reporting\Output\Output;
  *
  * onEvent() writes one line for each completed test when its event arrives.
  * After the run, finish() writes failure and error details. It then writes a
- * final summary with worker replacement counts and skipped-test reasons.
+ * final summary with worker process counts and skipped-test reasons.
  *
  * The reporter does not use color or cursor control. Identical event streams
  * produce identical bytes. If a header is available, the reporter writes it
@@ -51,11 +49,6 @@ final class PlainReporter implements Reporter
      * @var non-negative-int
      */
     private int $expectations = 0;
-
-    /**
-     * @var array<string, int>
-     */
-    private array $recycleCounts = [];
 
     private ?RunFinished $runFinished = null;
 
@@ -129,13 +122,6 @@ final class PlainReporter implements Reporter
             return;
         }
 
-        if ($event instanceof WorkerRecycled) {
-            $reason = $event->reason->value;
-            $this->recycleCounts[$reason] = ($this->recycleCounts[$reason] ?? 0) + 1;
-
-            return;
-        }
-
         if ($event instanceof RunFinished) {
             $this->runFinished = $event;
         }
@@ -163,11 +149,7 @@ final class PlainReporter implements Reporter
             ));
         }
 
-        $workers = SummaryFormat::workers(
-            $this->workersSpawned,
-            \array_sum($this->recycleCounts),
-            $this->recycleBreakdown(),
-        );
+        $workers = SummaryFormat::workers($this->workersSpawned);
 
         if ($workers !== null) {
             $this->output->write($workers . "\n");
@@ -187,22 +169,4 @@ final class PlainReporter implements Reporter
         }
     }
 
-    private function recycleBreakdown(): string
-    {
-        $parts = [];
-
-        foreach (RecycleReason::cases() as $reason) {
-            $count = $this->recycleCounts[$reason->value] ?? 0;
-
-            if ($count > 0) {
-                $parts[] = \sprintf('%s: %d', $reason->value, $count);
-            }
-        }
-
-        if ($parts === []) {
-            return '';
-        }
-
-        return ' (' . \implode(', ', $parts) . ')';
-    }
 }

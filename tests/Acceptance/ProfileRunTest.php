@@ -32,7 +32,7 @@ final readonly class ProfileRunTest
 
         Expect::that($result->exitCode)->because('live profile and offline report agree')->toBe(0);
         Expect::that($live)->toContain('Profile:')
-            ->toContain('spawned, 0 recycled')
+            ->toContain('spawned')
             ->toContain('Startup phases:')
             ->toContain('Spawn to hello:')
             ->toContain('Hello to ready (bootstrap):')

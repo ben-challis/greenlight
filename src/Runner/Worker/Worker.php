@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -29,11 +28,9 @@ use Greenlight\Runner\Artifact\ArtifactStore;
  * run() stops early in these conditions:
  *
  * - The run reaches the failure limit.
- * - The worker uses its replacement budget.
  * - The orchestrator requests a drain between tests.
  *
- * Greenlight checks the replacement budget after each test. run() reports
- * incomplete entries in plan order.
+ * run() reports incomplete entries in plan order.
  *
  * @internal
  */
@@ -58,7 +55,6 @@ final readonly class Worker
         ExecutionPlan $plan,
         EventSink $sink,
         ?int $stopAfterFailures = null,
-        ?WorkerBudget $budget = null,
         ?\Closure $drainRequested = null,
         ?HarnessScopes $scopes = null,
         ?\Closure $attemptStarted = null,
@@ -69,8 +65,6 @@ final readonly class Worker
         $ownScopes = !$scopes instanceof HarnessScopes;
         $scopes ??= new HarnessScopes($this->registry, $this->plugins->serviceResolvers());
         $summary = new ResultSummary();
-        $executed = 0;
-        $recycleReason = null;
         $drained = false;
         $stopped = false;
         $remaining = [];
@@ -116,15 +110,12 @@ final readonly class Worker
                     );
                 }
 
-                ++$executed;
                 $candidateSummary = $summary->add($result->outcome);
                 $failureLimitReached = $stopAfterFailures !== null
                     && $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
-                $countLimitReached = $budget instanceof WorkerBudget && $budget->exhaustedByCount($executed);
-                $memoryLimitReached = $budget instanceof WorkerBudget && $budget->exhaustedByMemory();
                 $drainReached = $drainRequested instanceof \Closure && $drainRequested();
 
-                if ($index === $lastIndex || $failureLimitReached || $countLimitReached || $memoryLimitReached || $drainReached) {
+                if ($index === $lastIndex || $failureLimitReached || $drainReached) {
                     $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
                 }
 
@@ -137,20 +128,13 @@ final readonly class Worker
 
                 $stopReached = match (true) {
                     $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
-                    $countLimitReached => 'count',
-                    $memoryLimitReached => 'memory',
                     $drainReached => 'drain',
                     default => null,
                 };
 
                 if ($stopReached !== null) {
                     $stopped = true;
-                    $recycleReason = match ($stopReached) {
-                        'count' => RecycleReason::TestCount,
-                        'memory' => RecycleReason::Memory,
-                        default => null,
-                    };
-                    $drained = $stopReached === 'drain' || $stopReached === 'bail';
+                    $drained = true;
 
                     if ($index !== $lastIndex) {
                         $remaining = \array_map(
@@ -166,7 +150,7 @@ final readonly class Worker
             $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
         }
 
-        $outcome = new WorkerRunOutcome($summary, $remaining, $recycleReason, $drained, $leaks);
+        $outcome = new WorkerRunOutcome($summary, $remaining, $drained, $leaks);
 
         if (!$ownScopes) {
             return $outcome;

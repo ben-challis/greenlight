@@ -20,9 +20,8 @@ Greenlight provisions one fixture graph per selected run. Each repeat iteration
 and watch rerun gets a fresh graph. CI shards provision independently because
 Greenlight does not coordinate them across machines.
 
-Recycling or replacing a worker does not re-provision the graph. Retries,
-isolated tests, and replacement workers reuse the resources assigned to their
-channel.
+Replacing a worker does not provision the graph again. Retries, isolated
+tests, and replacement workers reuse the resources assigned to their channel.
 
 ## Provisioning
 

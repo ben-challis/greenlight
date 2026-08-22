@@ -192,48 +192,6 @@ final readonly class WorkerProcessTest
 
     #[Test]
     #[Timeout(5.0)]
-    public function memoryThresholdRecyclesAWorkerAfterAnEmptyAssignment(): void
-    {
-        [$workerExit, $serverExit] = $this->runScenario('empty-assignment-memory-recycles');
-
-        Expect::that($workerExit)
-            ->because('a worker above its memory threshold MUST exit cleanly')
-            ->toBe(0);
-        Expect::that($serverExit)
-            ->because('the protocol fixture MUST receive the memory recycle request')
-            ->toBe(0);
-    }
-
-    #[Test]
-    #[Timeout(5.0)]
-    public function aPassingAssignmentReportsTestCountRecycling(): void
-    {
-        [$workerExit, $serverExit] = $this->runScenario('passing-assignment-recycles');
-
-        Expect::that($workerExit)
-            ->because('a worker that reaches its test-count budget MUST exit cleanly')
-            ->toBe(0);
-        Expect::that($serverExit)
-            ->because('the protocol fixture MUST receive the completed result and recycle reason')
-            ->toBe(0);
-    }
-
-    #[Test]
-    #[Timeout(5.0)]
-    public function completedAssignmentsAccumulateTowardTestCountRecycling(): void
-    {
-        [$workerExit, $serverExit] = $this->runScenario('completed-assignments-recycle');
-
-        Expect::that($workerExit)
-            ->because('a worker that reaches its cumulative test-count budget MUST exit cleanly')
-            ->toBe(0);
-        Expect::that($serverExit)
-            ->because('the protocol fixture MUST receive both completions before recycling')
-            ->toBe(0);
-    }
-
-    #[Test]
-    #[Timeout(5.0)]
     #[DataSet('cleanControlChannelEndings')]
     public function controlChannelEndingsStopTheWorkerCleanly(string $scenario): void
     {
@@ -392,85 +350,6 @@ final readonly class WorkerProcessTest
                 exit(0);
             }
 
-            if ($scenario === 'passing-assignment-recycles') {
-                $class = Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::class;
-                $id = new Greenlight\Core\Test\TestId($class, 'one');
-                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
-                    new Greenlight\Discovery\ExecutionPlan([
-                        new Greenlight\Discovery\PlanEntry(
-                            new Greenlight\Core\Test\TestDefinition($class, 'one'),
-                        ),
-                    ]),
-                    recycleAfterTests: 1,
-                ));
-
-                do {
-                    $recycling = $channel->receive(2.0);
-                } while ($recycling instanceof Greenlight\Runner\Protocol\Message
-                    && !$recycling instanceof Greenlight\Runner\Protocol\Messages\Recycling);
-
-                if (!$recycling instanceof Greenlight\Runner\Protocol\Messages\Recycling
-                    || $recycling->reason !== Greenlight\Core\Event\RecycleReason::TestCount
-                    || $recycling->summary->passed !== 1
-                    || $recycling->remaining !== []
-                ) {
-                    exit(6);
-                }
-
-                exit(0);
-            }
-
-            if ($scenario === 'completed-assignments-recycle') {
-                $class = Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::class;
-
-                foreach (['one', 'two'] as $index => $method) {
-                    $id = new Greenlight\Core\Test\TestId($class, $method);
-                    $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
-                        new Greenlight\Discovery\ExecutionPlan([
-                            new Greenlight\Discovery\PlanEntry(
-                                new Greenlight\Core\Test\TestDefinition($class, $method),
-                            ),
-                        ]),
-                        recycleAfterTests: 2,
-                    ));
-
-                    do {
-                        $done = $channel->receive(2.0);
-                    } while ($done instanceof Greenlight\Runner\Protocol\Message
-                        && !$done instanceof Greenlight\Runner\Protocol\Messages\Done);
-
-                    $expectedRecycle = $index === 1
-                        ? Greenlight\Core\Event\RecycleReason::TestCount
-                        : null;
-
-                    if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
-                        || $done->summary->passed !== 1
-                        || $done->wantsRecycle !== $expectedRecycle
-                    ) {
-                        exit(7);
-                    }
-                }
-
-                exit(0);
-            }
-
-            if ($scenario === 'empty-assignment-memory-recycles') {
-                $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
-                    new Greenlight\Discovery\ExecutionPlan([]),
-                    recycleAboveMemoryBytes: 1,
-                ));
-                $done = $channel->receive(2.0);
-
-                if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
-                    || $done->summary->total() !== 0
-                    || $done->wantsRecycle !== Greenlight\Core\Event\RecycleReason::Memory
-                ) {
-                    exit(9);
-                }
-
-                exit(0);
-            }
-
             if ($scenario === 'empty-assignment') {
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                     new Greenlight\Discovery\ExecutionPlan([]),
@@ -479,7 +358,6 @@ final readonly class WorkerProcessTest
 
                 if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
                     || $done->summary->total() !== 0
-                    || $done->wantsRecycle !== null
                 ) {
                     exit(8);
                 }

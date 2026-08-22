@@ -6,10 +6,8 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
@@ -56,45 +54,18 @@ final class WorkerMessageWireTest
     }
 
     #[Test]
-    public function doneNormalizesMemoryAndDecodesRecycleIntent(): void
+    public function doneNormalizesMemory(): void
     {
         $summary = new ResultSummary();
-        $withoutRecycle = Done::fromWire([
+        $done = Done::fromWire([
             'summary' => $summary->toWire(),
             'peakMemoryBytes' => -100,
             'coverage' => null,
             'leaks' => [],
-            'wantsRecycle' => '',
-        ]);
-        $withRecycle = Done::fromWire([
-            'summary' => $summary->toWire(),
-            'peakMemoryBytes' => 2048,
-            'coverage' => null,
-            'leaks' => [],
-            'wantsRecycle' => RecycleReason::TestCount->value,
         ]);
 
-        Expect::that($withoutRecycle->peakMemoryBytes)
+        Expect::that($done->peakMemoryBytes)
             ->because('decoded peak memory MUST NOT be negative')
             ->toBe(0);
-        Expect::that($withoutRecycle->wantsRecycle)->toBeNull();
-        Expect::that($withRecycle->peakMemoryBytes)
-            ->because('valid Done fields MUST survive decoding')
-            ->toBe(2048);
-        Expect::that($withRecycle->wantsRecycle)->toBe(RecycleReason::TestCount);
-    }
-
-    #[Test]
-    public function doneRejectsAnUnknownRecycleReasonAsAProtocolError(): void
-    {
-        $payload = new Done(new ResultSummary(), 2048)->toWire();
-        $payload['wantsRecycle'] = 'unknown';
-
-        Expect::that(static fn(): Done => Done::fromWire($payload))
-            ->because('unknown worker recycle reasons MUST be protocol errors')
-            ->toThrow(
-                InvalidWirePayload::class,
-                message: 'Wire payload key "wantsRecycle" must be a Greenlight\Core\Event\RecycleReason value, got string.',
-            );
     }
 }

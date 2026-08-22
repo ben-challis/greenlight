@@ -191,7 +191,6 @@ final readonly class OrchestratorInitialAssignmentTest
                             'peakMemoryBytes' => 0,
                             'coverage' => null,
                             'leaks' => [],
-                            'wantsRecycle' => null,
                         ],
                     ]);
                 }

@@ -16,7 +16,6 @@ use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
-use Greenlight\Runner\Protocol\Messages\Recycling;
 
 /**
  * Encodes worker-protocol messages as envelopes with a version, type tag, and payload.
@@ -41,7 +40,6 @@ final class MessageRegistry
         'drain' => Drain::class,
         'event' => EventEnvelope::class,
         'attempt-started' => AttemptStarted::class,
-        'recycling' => Recycling::class,
         'done' => Done::class,
         'fatal' => Fatal::class,
     ];

@@ -40,8 +40,6 @@ final class ConfigurationResolver
             discovery: $configuration->discovery,
             workers: new WorkerConfiguration(
                 count: $executionOverrides->workers ?? $configuration->workers->count,
-                recycleAfterTests: $configuration->workers->recycleAfterTests,
-                recycleAboveMemoryBytes: $configuration->workers->recycleAboveMemoryBytes,
                 resourceLimits: \array_replace($configuration->workers->resourceLimits, $executionOverrides->resourceLimits),
             ),
             execution: new ExecutionConfiguration(

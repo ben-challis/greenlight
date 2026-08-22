@@ -27,8 +27,6 @@ final class GreenlightConfigTest
         Expect::that($configuration->discovery->paths)->because('builds documented defaults')->toBe(['tests']);
         Expect::that($configuration->discovery->suites)->because('builds documented defaults')->toBe([]);
         Expect::that($configuration->workers->count->isAuto())->because('builds documented defaults')->toBeTrue();
-        Expect::that($configuration->workers->recycleAfterTests)->because('builds documented defaults')->toBe(null);
-        Expect::that($configuration->workers->recycleAboveMemoryBytes)->because('builds documented defaults')->toBe(268435456);
         Expect::that($configuration->coverage)->because('builds documented defaults')->toBe(null);
         Expect::that($configuration->execution->plugins)->because('builds documented defaults')->toBe([]);
         Expect::that($configuration->execution->stopAfterFailures)->because('builds documented defaults')->toBe(null);
@@ -60,7 +58,7 @@ final class GreenlightConfigTest
             ->paths(['tests/Unit', 'tests/Integration'])
             ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit'))
             ->suite('integration', static fn(SuiteBuilder $suite) => $suite->in('tests/Integration')->tag('io', 'slow'))
-            ->workers(count: 8, recycleAfterTests: 250, recycleAboveMemory: '1G')
+            ->workers(count: 8)
             ->resourceLimit('postgres', 3)
             ->resourceLimit('payments-sandbox')
             ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
@@ -82,8 +80,6 @@ final class GreenlightConfigTest
         Expect::that($configuration->discovery->suites[1]->paths)->because('builds a fully configured run')->toBe(['tests/Integration']);
         Expect::that($configuration->discovery->suites[1]->tags)->because('builds a fully configured run')->toBe(['io', 'slow']);
         Expect::that($configuration->workers->count->fixed)->because('builds a fully configured run')->toBe(8);
-        Expect::that($configuration->workers->recycleAfterTests)->because('builds a fully configured run')->toBe(250);
-        Expect::that($configuration->workers->recycleAboveMemoryBytes)->because('builds a fully configured run')->toBe(1073741824);
         $coverage = $configuration->coverage;
 
         Expect::that($coverage)
@@ -135,32 +131,13 @@ final class GreenlightConfigTest
     #[Test]
     public function rejectedWorkerConfigurationsDoNotPartiallyChangeTheBuilder(): void
     {
-        $builder = GreenlightConfig::create()->workers(
-            count: 2,
-            recycleAfterTests: 10,
-            recycleAboveMemory: '64M',
-        );
+        $builder = GreenlightConfig::create()->workers(count: 2);
 
-        Expect::that(static fn(): GreenlightConfig => $builder->workers(
-            count: 8,
-            recycleAfterTests: 0, // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
-            recycleAboveMemory: '128M',
-        ))
+        Expect::that(static fn(): GreenlightConfig => $builder->workers(count: 0)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected worker configuration does not partially change the builder')
             ->toThrow(
                 InvalidConfiguration::class,
-                message: 'recycleAfterTests must be at least 1, got 0.',
-            );
-
-        Expect::that(static fn(): GreenlightConfig => $builder->workers(
-            count: 16,
-            recycleAfterTests: 20,
-            recycleAboveMemory: 'lots',
-        ))
-            ->because('an invalid memory limit does not partially change the builder')
-            ->toThrow(
-                InvalidConfiguration::class,
-                message: 'Invalid memory size "lots". Use a positive byte count or a K, M, or G suffix, for example "256M".',
+                message: 'Worker count must be at least 1, got 0.',
             );
 
         $configuration = $builder->build();
@@ -168,12 +145,6 @@ final class GreenlightConfigTest
         Expect::that($configuration->workers->count->fixed)
             ->because('a rejected worker configuration retains the prior worker count')
             ->toBe(2);
-        Expect::that($configuration->workers->recycleAfterTests)
-            ->because('a rejected worker configuration retains the prior test limit')
-            ->toBe(10);
-        Expect::that($configuration->workers->recycleAboveMemoryBytes)
-            ->because('a rejected worker configuration retains the prior memory limit')
-            ->toBe(64 * 1024 * 1024);
     }
 
     #[Test]
@@ -407,14 +378,6 @@ final class GreenlightConfigTest
             // runtime guard.
             new \ReflectionMethod(GreenlightConfig::class, 'workers')
                 ->invoke(GreenlightConfig::create(), 'many');
-        }];
-
-        yield 'zero recycleAfterTests' => [static function (): void {
-            GreenlightConfig::create()->workers(recycleAfterTests: 0); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
-        }];
-
-        yield 'bad memory string' => [static function (): void {
-            GreenlightConfig::create()->workers(recycleAboveMemory: 'lots');
         }];
 
         yield 'empty artifact directory' => [static function (): void {

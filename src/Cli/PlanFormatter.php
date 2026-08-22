@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\CoverageConfiguration;
-use Greenlight\Config\MemorySize;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
 
@@ -42,14 +41,6 @@ final class PlanFormatter
         }
 
         $lines[] = '  resource limits: ' . ($resourceLimits === [] ? '(default 1 per required resource)' : \implode(', ', $resourceLimits));
-        $lines[] = $configuration->workers->recycleAfterTests === null
-            ? \sprintf('  recycle: above %s memory', MemorySize::format($configuration->workers->recycleAboveMemoryBytes))
-            : \sprintf(
-                '  recycle: after %d tests or above %s memory',
-                $configuration->workers->recycleAfterTests,
-                MemorySize::format($configuration->workers->recycleAboveMemoryBytes),
-            );
-
         $lines[] = '  stop after: ' . match (true) {
             $configuration->execution->stopAfterFailures === null => 'never',
             $configuration->execution->stopAfterFailures === 1 => '1 failure',

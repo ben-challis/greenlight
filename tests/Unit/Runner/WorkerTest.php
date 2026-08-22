@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
@@ -24,7 +23,6 @@ use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
-use Greenlight\Runner\Worker\WorkerBudget;
 use Greenlight\Tests\Fixture\LeakSuite\LeakyTest;
 use Greenlight\Tests\Fixture\Lifecycle\CleanupCallbacks\CleanupOrderProbe;
 use Greenlight\Tests\Fixture\Lifecycle\CleanupRetries\CleanupRetriesTest;
@@ -533,46 +531,6 @@ final class WorkerTest
     }
 
     #[Test]
-    public function testCountBudgetStopsTheWorkerAndReportsTheRemainder(): void
-    {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
-        $plan = new TestDiscoverer()->discover([$directory]);
-        $sink = new CollectingEventSink();
-
-        $outcome = new Worker($this->registry())->run(
-            $plan,
-            $sink,
-            budget: new WorkerBudget(maxTests: 1),
-        );
-
-        Expect::that($outcome->recycleReason)->because('test count budget stops the worker and reports the remainder')->toBe(RecycleReason::TestCount);
-        Expect::that($outcome->summary->total())->toBe(1);
-        Expect::that(\count($outcome->remaining))->toBe(2);
-        Expect::that((string) $outcome->remaining[0])->toContain('AaTest::wouldPass');
-    }
-
-    #[Test]
-    public function memoryBudgetStopsTheWorkerAndReportsTheRemainder(): void
-    {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
-        $plan = new TestDiscoverer()->discover([$directory]);
-        $sink = new CollectingEventSink();
-
-        $outcome = new Worker($this->registry())->run(
-            $plan,
-            $sink,
-            budget: new WorkerBudget(maxMemoryBytes: 1),
-        );
-
-        Expect::that($outcome->recycleReason)
-            ->because('memory budget stops the worker and reports the remainder')
-            ->toBe(RecycleReason::Memory);
-        Expect::that($outcome->summary->total())->toBe(1);
-        Expect::that(\count($outcome->remaining))->toBe(2);
-        Expect::that((string) $outcome->remaining[0])->toContain('AaTest::wouldPass');
-    }
-
-    #[Test]
     public function drainRequestStopsBetweenTests(): void
     {
         $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
@@ -587,7 +545,6 @@ final class WorkerTest
 
         Expect::that($outcome->drained)->because('drain request stops between tests')->toBeTrue();
         Expect::that($outcome->summary->total())->toBe(1);
-        Expect::that($outcome->recycleReason)->toBeNull();
     }
 
     #[Test]

@@ -129,16 +129,13 @@ final class PrecedenceMatrixTest
     public function settingsWithoutFlagsAlwaysComeFromTheConfigFile(): void
     {
         $resolved = $this->resolve(config: static fn(GreenlightConfig $c) => $c
-            ->paths(['tests/Only'])
-            ->workers(recycleAfterTests: 42, recycleAboveMemory: '64M'), cli: new CliOverrides(
+            ->paths(['tests/Only']), cli: new CliOverrides(
                 execution: new ExecutionOverrides(workers: WorkerCount::auto(), stopAfterFailures: 1),
                 selection: new TestSelection(include: new TestInclusions(groups: ['g'])),
                 seed: 1,
             ));
 
         Expect::that($resolved->discovery->paths)->because('settings without flags use the configuration file')->toBe(['tests/Only']);
-        Expect::that($resolved->workers->recycleAfterTests)->because('settings without flags use the configuration file')->toBe(42);
-        Expect::that($resolved->workers->recycleAboveMemoryBytes)->because('settings without flags use the configuration file')->toBe(67108864);
     }
 
     /**

@@ -25,7 +25,6 @@ final class EventTags
         'test-started' => TestStarted::class,
         'test-finished' => TestFinished::class,
         'worker-spawned' => WorkerSpawned::class,
-        'worker-recycled' => WorkerRecycled::class,
     ];
 
     /** @codeCoverageIgnore */

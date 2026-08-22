@@ -43,7 +43,7 @@ final class ProfileReporterTest
             ->because('reporter completion MUST write the aggregated run profile')
             ->toBe(
                 "\nProfile:\n"
-                . "  Workers: 1 requested, 1 spawned, 0 recycled\n"
+                . "  Workers: 1 requested, 1 spawned\n"
                 . "  Boot latency: 0.100s average (spawn to first class, 1 worker)\n"
                 . "\n"
                 . "  Worker    Classes    Busy  Util\n"

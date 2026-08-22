@@ -247,11 +247,8 @@ Tests run in parallel worker processes by default.
 `--workers=4` specifies four workers. `--workers=1` uses one in-process runner.
 The last mode is usually the simplest choice for debug work.
 
-Greenlight replaces a worker after its memory use exceeds 256M. This behavior
-prevents unlimited memory growth during long runs.
-
-Greenlight can also replace a worker after a specified number of tests. Use
-`workers()` in `greenlight.php` to configure both limits.
+A worker remains active until it has no more tests or the worker fails.
+This behavior makes memory growth and state leaks visible in the suite.
 
 Parallel suites need separate resources for workers or a limit for one shared
 dependency. Greenlight supports both methods.
@@ -264,7 +261,7 @@ the `GREENLIGHT_CHANNEL` environment variable.
 
 A plugin can also provision real infrastructure in the orchestrator and expose
 typed connection data through `Greenlight\Harness\IntegrationResources`.
-That keeps setup and teardown alive even when a worker crashes or is recycled.
+That keeps setup and teardown active when a worker crashes.
 See [Writing plugins](plugins.md#integrationfixtureprovider).
 
 <!-- php-example {"example":"getting-started-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->

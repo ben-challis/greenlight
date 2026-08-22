@@ -25,7 +25,6 @@ final class PlanFormatterTest
     {
         $configuration = ConfigurationResolver::resolve(
             GreenlightConfig::create()
-                ->workers(recycleAboveMemory: '128M')
                 ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                     ->include('src')
                     ->driver('xdebug')
@@ -45,7 +44,6 @@ final class PlanFormatterTest
                   suites: (none)
                   workers: auto
                   resource limits: (default 1 per required resource)
-                  recycle: above 128M memory
                   stop after: never
                   order: declared
                   groups: (all)
@@ -94,7 +92,7 @@ final class PlanFormatterTest
             GreenlightConfig::create()
                 ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests/Unit')->tag('fast'))
                 ->suite('acceptance', static fn(SuiteBuilder $suite) => $suite->in('tests/Acceptance'))
-                ->workers(count: 3, recycleAfterTests: 25)
+                ->workers(count: 3)
                 ->resourceLimit('database', 2)
                 ->resourceLimit('redis')
                 ->plugins(static fn(): NamedFakePlugin => new NamedFakePlugin())
@@ -120,7 +118,6 @@ final class PlanFormatterTest
                       suite acceptance: tests/Acceptance
                       workers: 3
                       resource limits: database=2, redis=1
-                      recycle: after 25 tests or above 256M memory
                       stop after: {$expectedFailureLimit}
                       order: random (seed 4242)
                       groups: smoke, unit
