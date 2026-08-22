@@ -28,6 +28,32 @@ final readonly class CommandErrorsTest
     }
 
     #[Test]
+    public function aListOptionDoesNotReplaceAnUnknownCommand(): void
+    {
+        $result = GreenlightCli::run(\dirname(__DIR__, 2), ['bogus-command', '--list-tests', '--no-ansi']);
+
+        Expect::that($result->exitCode)
+            ->because('a list option MUST not replace an explicit unknown command')
+            ->toBe(64);
+        Expect::that($result->stderr)
+            ->toBe("greenlight: Unknown command 'bogus-command'. Use greenlight --help to list commands.");
+        Expect::that($result->stdout)->toBe('');
+    }
+
+    #[Test]
+    public function aListOptionDoesNotReplaceAnotherKnownCommand(): void
+    {
+        $result = GreenlightCli::run(\dirname(__DIR__, 2), ['coverage:diff', '--list-tests', '--no-ansi']);
+
+        Expect::that($result->exitCode)
+            ->because('a list option MUST not replace an explicit known command')
+            ->toBe(64);
+        Expect::that($result->stderr)
+            ->toBe('coverage:diff requires --baseline=<path> and --current=<path>.');
+        Expect::that($result->stdout)->toBe('');
+    }
+
+    #[Test]
     public function anInvalidRunOverrideExitsWithAUsageError(): void
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), [

@@ -40,27 +40,6 @@ final readonly class RepeatOutputCompatibilityTest
     }
 
     #[Test]
-    public function oneRequestedRunKeepsJUnitOutputAvailable(): void
-    {
-        $project = $this->writeProject('single-junit');
-        $result = GreenlightCli::run($project->directory, [
-            'run',
-            '--reporter=junit',
-            '--workers=1',
-            '--no-ansi',
-            '--repeat=1',
-        ]);
-
-        Expect::that($result->exitCode)
-            ->because('--repeat=1 is one run and MUST keep JUnit output available')
-            ->toBe(0);
-        Expect::that(\substr_count($result->stdout, '<?xml version="1.0" encoding="UTF-8"?>'))
-            ->because('one requested run MUST write one JUnit document')
-            ->toBe(1);
-        Expect::that($result->stderr)->toBe('');
-    }
-
-    #[Test]
     public function repeatRejectsAFileJUnitReporterBeforeItCreatesTheFile(): void
     {
         $project = $this->writeProject('repeat-file-junit');
@@ -80,6 +59,27 @@ final readonly class RepeatOutputCompatibilityTest
         Expect::that(\file_exists($report))
             ->because('Greenlight MUST validate repeat output before it creates the report file')
             ->toBeFalse();
+    }
+
+    #[Test]
+    public function oneRequestedRunKeepsJUnitOutputAvailable(): void
+    {
+        $project = $this->writeProject('single-junit');
+        $result = GreenlightCli::run($project->directory, [
+            'run',
+            '--reporter=junit',
+            '--workers=1',
+            '--no-ansi',
+            '--repeat=1',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('--repeat=1 is one run and MUST keep JUnit output available')
+            ->toBe(0);
+        Expect::that(\substr_count($result->stdout, '<?xml version="1.0" encoding="UTF-8"?>'))
+            ->because('one requested run MUST write one JUnit document')
+            ->toBe(1);
+        Expect::that($result->stderr)->toBe('');
     }
 
     #[Test]

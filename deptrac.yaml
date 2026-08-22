@@ -156,7 +156,55 @@ deptrac:
     - name: Cli
       collectors:
         - type: directory
-          value: src/Cli/.*
+          value: src/Cli/[^/]+\.php
+    - name: CliInput
+      collectors:
+        - type: directory
+          value: src/Cli/Input/.*
+    - name: CliConfiguration
+      collectors:
+        - type: directory
+          value: src/Cli/Configuration/.*
+    - name: CliDiscovery
+      collectors:
+        - type: directory
+          value: src/Cli/Discovery/.*
+    - name: CliOutput
+      collectors:
+        - type: directory
+          value: src/Cli/Output/.*
+    - name: CliReporting
+      collectors:
+        - type: directory
+          value: src/Cli/Reporting/.*
+    - name: CliCoverage
+      collectors:
+        - type: directory
+          value: src/Cli/Coverage/.*
+    - name: CliSignal
+      collectors:
+        - type: directory
+          value: src/Cli/Signal/.*
+    - name: CliState
+      collectors:
+        - type: directory
+          value: src/Cli/State/.*
+    - name: CliWatch
+      collectors:
+        - type: directory
+          value: src/Cli/Watch/.*
+    - name: CliWorkerCapacity
+      collectors:
+        - type: directory
+          value: src/Cli/WorkerCapacity/.*
+    - name: CliCommand
+      collectors:
+        - type: directory
+          value: src/Cli/Command/.*
+    - name: CliRun
+      collectors:
+        - type: directory
+          value: src/Cli/Run/.*
     - name: PhpStan
       collectors:
         - type: directory
@@ -280,7 +328,19 @@ deptrac:
     ExecutionProcessProtocol: [Attribute, Config, Coverage, Discovery, Event, ExecutionArtifact, IntegrationFixture, InternalPhp, Result, Test, Wire]
     ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, Plugin, Result, Test, Wire]
     ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, Discovery, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Result, Test, Wire]
-    Cli: [Artifact, Attribute, Config, Coverage, CoverageCollection, CoverageDiff, CoverageExport, CoverageIgnore, CoverageRelay, CpuCoreCounter, Discovery, Event, Execution, ExecutionAdapter, ExecutionProcessProtocol, ExecutionProcessWorker, ExecutionWorker, IntegrationFixture, InternalFilesystem, InternalPhp, InternalProcess, InternalText, PhpStan, Plugin, Reporting, Result, Test, Wire]
+    Cli: [CliCommand, CliOutput, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, Reporting, Wire]
+    CliInput: []
+    CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
+    CliDiscovery: [CliConfiguration, Config, Discovery]
+    CliOutput: [InternalPhp, InternalText, Reporting]
+    CliReporting: [CliInput, CliOutput, Event, InternalPhp, Plugin, Reporting]
+    CliCoverage: [CliConfiguration, CliOutput, Config, Coverage, CoverageCollection, CoverageExport, CoverageRelay, InternalFilesystem, InternalPhp, Reporting]
+    CliSignal: [InternalProcess]
+    CliState: [InternalFilesystem, InternalPhp]
+    CliWatch: [CliOutput, Event, InternalPhp, InternalProcess]
+    CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
+    CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, Event, InternalFilesystem, InternalPhp, PhpStan, Reporting, Wire]
+    CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalProcess, Reporting, Test, Wire]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []

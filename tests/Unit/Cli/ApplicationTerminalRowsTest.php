@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\TerminalRowsResolver;
+use Greenlight\Cli\Output\TerminalRowsResolver;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
 

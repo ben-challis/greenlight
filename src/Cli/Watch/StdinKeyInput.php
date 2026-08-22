@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
-use Greenlight\Cli\Terminal;
+use Greenlight\Cli\Output\Terminal;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**

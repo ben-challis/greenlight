@@ -84,7 +84,12 @@ public.
 | `Execution/ProcessPool/Worker` | Hidden worker command and protocol event delivery | Worker, protocol, plugin, and coverage modules |
 | `Execution/ProcessPool/Orchestrator` | Process scheduling, resource capacity, containment, and transport | Protocol, worker, artifact, event, result, and coverage modules |
 | `Execution` and `Execution/Adapter` | Run coordination and the in-process and process-pool adapters | Execution implementation modules and engine modules |
-| `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
+| `Cli` | Public command entry point and hidden worker routing | `Cli/Command`, `Cli/Output`, coverage relay, and worker execution |
+| `Cli/Input`, `Cli/Configuration` | Argument definition and configuration loading | Configuration values and focused internal utilities |
+| `Cli/Discovery` | Selection-plan discovery, sharding, and unmatched exclude-path diagnostics | `Cli/Configuration`, configuration values, and `Discovery` |
+| `Cli/Output`, `Cli/Reporting`, `Cli/Coverage` | Console output, reporter construction and destinations, and coverage sessions and exports | Their engine modules and focused CLI values |
+| `Cli/Signal`, `Cli/State`, `Cli/Watch`, `Cli/WorkerCapacity` | Local runtime adapters and persisted run policy | Focused internal utilities |
+| `Cli/Command`, `Cli/Run` | Closed command dispatch and run lifecycle orchestration | Lower CLI modules and engine modules |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
 | `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 

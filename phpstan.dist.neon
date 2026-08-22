@@ -14,7 +14,7 @@ parameters:
     exceptions:
         checkedExceptionClasses:
             - Greenlight\Capture\CaptureError
-            - Greenlight\Cli\CliError
+            - Greenlight\Cli\Input\CliError
             - Greenlight\Config\ConfigFileError
             - Greenlight\Config\InvalidConfiguration
             - Greenlight\Artifact\AttachmentError

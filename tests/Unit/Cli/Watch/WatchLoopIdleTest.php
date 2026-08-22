@@ -11,7 +11,7 @@ use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Fixture\Cli\FakeWatchClock;
+use Greenlight\Tests\Fixture\Cli\Watch\FakeWatchClock;
 
 final class WatchLoopIdleTest
 {

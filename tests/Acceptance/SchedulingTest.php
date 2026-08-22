@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\RunState;
+use Greenlight\Cli\State\RunState;
 use Greenlight\Event\Event;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
