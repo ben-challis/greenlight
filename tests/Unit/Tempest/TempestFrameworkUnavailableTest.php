@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Tempest;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\SourceOnlyPhp;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class TempestFrameworkUnavailableTest
@@ -15,27 +16,9 @@ final readonly class TempestFrameworkUnavailableTest
     {
         $root = \dirname(__DIR__, 3);
 
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
-            '-n',
-            '-r',
+        $result = Subprocess::run($root, SourceOnlyPhp::command(
+            $root . '/src',
             <<<'PHP'
-            $source = $argv[1];
-
-            spl_autoload_register(static function (string $class) use ($source): void {
-                $prefix = 'Greenlight\\';
-
-                if (!str_starts_with($class, $prefix)) {
-                    return;
-                }
-
-                $path = $source . '/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-
-                if (is_file($path)) {
-                    require $path;
-                }
-            });
-
             if (class_exists(\Tempest\Core\FrameworkKernel::class)) {
                 exit(2);
             }
@@ -49,8 +32,7 @@ final readonly class TempestFrameworkUnavailableTest
 
             exit(3);
             PHP,
-            $root . '/src',
-        ]);
+        ));
 
         Expect::that($result->exitCode)
             ->because('the public framework probe MUST reject an installation without Tempest')

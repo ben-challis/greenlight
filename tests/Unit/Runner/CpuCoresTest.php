@@ -18,6 +18,7 @@ use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Runner\FakeCpuCoreCounter;
 use Greenlight\Tests\Fixture\Runner\FakeNumberOfCpuCoreNotFound;
 use Greenlight\Tests\Support\ProcessResult;
+use Greenlight\Tests\Support\SourceOnlyPhp;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class CpuCoresTest
@@ -119,34 +120,15 @@ final readonly class CpuCoresTest
     {
         $root = \dirname(__DIR__, 3);
 
-        return Subprocess::run($root, [
-            \PHP_BINARY,
-            '-n',
-            '-r',
+        return Subprocess::run($root, SourceOnlyPhp::command(
+            $root . '/src',
             <<<'PHP'
-            $source = $argv[1];
-
-            spl_autoload_register(static function (string $class) use ($source): void {
-                $prefix = 'Greenlight\\';
-
-                if (!str_starts_with($class, $prefix)) {
-                    return;
-                }
-
-                $path = $source . '/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-
-                if (is_file($path)) {
-                    require $path;
-                }
-            });
-
             if (class_exists(\Fidry\CpuCoreCounter\CpuCoreCounter::class)) {
                 exit(2);
             }
 
             echo \Greenlight\Runner\CpuCores::count();
             PHP,
-            $root . '/src',
-        ], $environment);
+        ), $environment);
     }
 }

@@ -19,6 +19,7 @@ use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
 use Greenlight\Tests\Support\CoverageJson;
+use Greenlight\Tests\Support\SourceOnlyPhp;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessCoverageTest
@@ -60,30 +61,10 @@ final readonly class SubprocessCoverageTest
             ->toBe(7);
 
         $root = \dirname(__DIR__, 3);
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
-            '-n',
-            '-d',
-            'sys_temp_dir=' . $blocker,
-            '-r',
+        $result = Subprocess::run($root, SourceOnlyPhp::command(
+            $root . '/src',
             <<<'PHP'
-            $source = $argv[1];
-
-            spl_autoload_register(static function (string $class) use ($source): void {
-                $prefix = 'Greenlight\\';
-
-                if (!str_starts_with($class, $prefix)) {
-                    return;
-                }
-
-                $path = $source . '/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-
-                if (is_file($path)) {
-                    require $path;
-                }
-            });
-
-            $blocker = $argv[2];
+            $blocker = $argv[1];
             $message = '/^Failed to create shared coverage directory "'
                 . preg_quote($blocker, '/')
                 . '\/greenlight-coverage-[0-9a-f]{12}": mkdir\(\): Not a directory\.$/D';
@@ -97,9 +78,9 @@ final readonly class SubprocessCoverageTest
 
             fwrite(STDOUT, 'matched');
             PHP,
-            $root . '/src',
-            $blocker,
-        ]);
+            phpOptions: ['-d', 'sys_temp_dir=' . $blocker],
+            arguments: [$blocker],
+        ));
 
         Expect::that($result->exitCode)
             ->because('coverage setup MUST fail before it exports a nonexistent relay directory')
