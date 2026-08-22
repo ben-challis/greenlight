@@ -41,19 +41,22 @@ final readonly class ApplicationCoverageCleanupTest
             use Greenlight\Plugin\RunLifecycleSubscriber;
             use Greenlight\Reporting\ReportGenerationFailed;
 
-            $failure = new class implements RunLifecycleSubscriber {
+            final class FailingRunSubscriber implements RunLifecycleSubscriber
+            {
                 #[\Override]
                 public function onRunEvent(Event $event): never
                 {
                     throw ReportGenerationFailed::writeFailed();
                 }
-            };
+            }
 
             return GreenlightConfig::create()
                 ->paths([%s])
                 ->workers(1)
                 ->coverage(fn($coverage) => $coverage->include(%s))
-                ->plugins($failure);
+                ->plugins(
+                    static fn(): FailingRunSubscriber => new FailingRunSubscriber(),
+                );
 
             PHP,
             \var_export($fixtureDirectory, true),

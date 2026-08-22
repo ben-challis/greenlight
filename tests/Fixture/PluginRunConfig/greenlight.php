@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../PluginRunSuite'])
-    ->plugins(new QuarantinePlugin());
+    ->plugins(static fn(): QuarantinePlugin => new QuarantinePlugin());

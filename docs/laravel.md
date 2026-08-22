@@ -19,7 +19,7 @@ use Greenlight\Laravel\LaravelPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new LaravelPlugin(__DIR__ . '/bootstrap/app.php'));
+    ->plugins(static fn(): LaravelPlugin => new LaravelPlugin(__DIR__ . '/bootstrap/app.php'));
 ```
 
 The bootstrap file is the standard Laravel entry point. It returns the result

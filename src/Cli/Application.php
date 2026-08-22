@@ -43,7 +43,7 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
-use Greenlight\Plugin\Plugin;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\ReporterProvider;
 use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\GithubReporter;
@@ -1017,7 +1017,7 @@ final readonly class Application
     }
 
     /**
-     * @param list<Plugin> $plugins
+     * @param list<PluginDefinition> $plugins
      *
      * @throws ReporterProviderError
      */
@@ -1063,15 +1063,21 @@ final readonly class Application
             new ReporterDefinition('teamcity', static fn(Output $output): Reporter => new TeamCityReporter($output)),
         ];
 
-        foreach ($plugins as $plugin) {
-            if (!$plugin instanceof ReporterProvider) {
+        foreach ($plugins as $pluginDefinition) {
+            if (!$pluginDefinition->supports(ReporterProvider::class)) {
                 continue;
             }
 
             try {
+                $plugin = $pluginDefinition->create();
+
+                if (!$plugin instanceof ReporterProvider) {
+                    throw new \LogicException('The reporter provider definition created an incompatible plugin.');
+                }
+
                 $provided = $plugin->reporters();
             } catch (\Throwable $error) {
-                throw ReporterProviderError::providerFailed($plugin::class, $error);
+                throw ReporterProviderError::providerFailed($pluginDefinition->pluginClass, $error);
             }
 
             $position = 0;

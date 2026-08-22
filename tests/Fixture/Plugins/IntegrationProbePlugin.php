@@ -23,7 +23,9 @@ final class IntegrationProbePlugin implements IntegrationFixtureProvider, Worker
         private readonly bool $failProvisioning = false,
         private readonly bool $failCleanup = false,
         private readonly ?int $failBootstrapChannel = null,
-    ) {}
+    ) {
+        \file_put_contents($this->markerDirectory . '/constructed.log', "constructed\n", \FILE_APPEND);
+    }
 
     #[\Override]
     public function integrationFixtures(): array

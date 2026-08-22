@@ -146,7 +146,9 @@ final readonly class LaravelRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new LaravelPlugin(__DIR__ . '/bootstrap/app.php'));
+                ->plugins(
+                    static fn(): LaravelPlugin => new LaravelPlugin(__DIR__ . '/bootstrap/app.php'),
+                );
             PHP);
 
         return $project;

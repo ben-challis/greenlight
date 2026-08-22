@@ -257,7 +257,9 @@ final readonly class SchedulingTest
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->plugins(new OverheadPlugin());
+                ->plugins(
+                    static fn(): OverheadPlugin => new OverheadPlugin(),
+                );
             PHP);
 
         return $project;

@@ -31,7 +31,7 @@ use Greenlight\Tempest\TempestPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new TempestPlugin(__DIR__));
+    ->plugins(static fn(): TempestPlugin => new TempestPlugin(__DIR__));
 ```
 
 The root directory MUST contain the application `composer.json` file and the

@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension;
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../DiscoveryBasic'])
-    ->plugins(new EvenNumbersExtension());
+    ->plugins(static fn(): EvenNumbersExtension => new EvenNumbersExtension());

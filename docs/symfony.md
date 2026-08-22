@@ -19,7 +19,7 @@ use Greenlight\Symfony\SymfonyPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new SymfonyPlugin(App\Kernel::class, env: 'test', debug: false));
+    ->plugins(static fn(): SymfonyPlugin => new SymfonyPlugin(App\Kernel::class, env: 'test', debug: false));
 ```
 
 Use a closure when the kernel needs custom construction:

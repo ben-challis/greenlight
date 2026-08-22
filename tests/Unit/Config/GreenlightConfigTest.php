@@ -55,10 +55,7 @@ final class GreenlightConfigTest
     #[Test]
     public function buildsAFullyConfiguredRun(): void
     {
-        $plugin = new class implements RunLifecycleSubscriber {
-            #[\Override]
-            public function onRunEvent(Event $event): void {}
-        };
+        $plugin = static fn(): ConfigRunSubscriber => new ConfigRunSubscriber();
 
         $configuration = GreenlightConfig::create()
             ->paths(['tests/Unit', 'tests/Integration'])
@@ -98,7 +95,8 @@ final class GreenlightConfigTest
         Expect::that($coverage->driver)->because('builds a fully configured run')->toBe('pcov');
         Expect::that($coverage->exports[0]->format)->because('builds a fully configured run')->toBe('lcov');
         Expect::that($coverage->exports[0]->target)->because('builds a fully configured run')->toBe('coverage/lcov.info');
-        Expect::that($configuration->plugins)->because('builds a fully configured run')->toBe([$plugin]);
+        Expect::that($configuration->plugins)->because('builds a fully configured run')->toHaveCount(1);
+        Expect::that($configuration->plugins[0]->pluginClass)->because('builds a fully configured run')->toBe(ConfigRunSubscriber::class);
         Expect::that($configuration->stopAfterFailures)->because('builds a fully configured run')->toBe(1);
         Expect::that($configuration->randomizeOrder)->because('builds a fully configured run')->toBe(true);
         Expect::that($configuration->randomSeed)->because('builds a fully configured run')->toBe(99);
@@ -487,4 +485,10 @@ final class GreenlightConfigTest
             'Artifact count per run must be at least 1.',
         ];
     }
+}
+
+final class ConfigRunSubscriber implements RunLifecycleSubscriber
+{
+    #[\Override]
+    public function onRunEvent(Event $event): void {}
 }

@@ -19,7 +19,7 @@ use Psr\Container\ContainerInterface;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new Psr11Plugin(
+    ->plugins(static fn(): Psr11Plugin => new Psr11Plugin(
         static fn(): ContainerInterface => require __DIR__ . '/config/container.php',
     ));
 ```

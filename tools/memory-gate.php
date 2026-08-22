@@ -145,7 +145,9 @@ spl_autoload_register(static function (string \$class): void {
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/suite'])
     ->workers(count: 1)
-    ->plugins(new MemGate\MemoryProbe('{$samplesFile}', {WARMUP}, {TOTAL}));
+    ->plugins(
+        static fn(): MemGate\MemoryProbe => new MemGate\MemoryProbe('{$samplesFile}', {WARMUP}, {TOTAL}),
+    );
 
 PHP);
 

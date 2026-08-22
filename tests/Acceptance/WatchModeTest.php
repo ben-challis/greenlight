@@ -47,10 +47,14 @@ final readonly class WatchModeTest
         $result = $process->wait(10.0);
         $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
         $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
+        $constructed = \file($project->path('markers/constructed.log'), \FILE_IGNORE_NEW_LINES);
 
         Expect::that($result->exitCode)->toBe(0);
         Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
         Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
+        Expect::that(\is_array($constructed) ? $constructed : [])
+            ->because('each watch run MUST construct a new orchestrator instance and worker instance')
+            ->toHaveCount(4);
     }
 
     #[Test]
@@ -181,7 +185,9 @@ final readonly class WatchModeTest
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)%s
                 ->watch(fn($watch) => $watch->debounceMilliseconds(50))
-                ->plugins(new IntegrationProbePlugin(%s, failCleanup: %s));
+                ->plugins(
+                    static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(%s, failCleanup: %s),
+                );
             PHP,
             $coverage,
             $markerDirectory,

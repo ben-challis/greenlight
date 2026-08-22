@@ -158,7 +158,9 @@ final readonly class TestAttemptRunnerRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new RuntimePlugin());
+                ->plugins(
+                    static fn(): RuntimePlugin => new RuntimePlugin(),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
@@ -214,7 +216,9 @@ final readonly class TestAttemptRunnerRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new FailingRuntimePlugin());
+                ->plugins(
+                    static fn(): FailingRuntimePlugin => new FailingRuntimePlugin(),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);

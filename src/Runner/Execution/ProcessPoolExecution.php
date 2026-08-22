@@ -18,6 +18,7 @@ use Greenlight\Runner\Orchestrator\NativeWorkerTransport;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
+use Greenlight\Runner\PluginInstances;
 use Greenlight\Runner\Worker\EventSink;
 
 /**
@@ -94,7 +95,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                 artifactConfiguration: $configuration->artifacts,
                 integrationFixtures: $context->fixtures,
                 resourceLimits: $configuration->resourceLimits,
-                initialWorkerAssignment: $context->orchestratorPlugins->hasWorkerBootstrapSubscribers()
+                initialWorkerAssignment: PluginInstances::hasWorkerBootstrapSubscribers($configuration->plugins)
                     ? InitialWorkerAssignment::AfterAllReady
                     : InitialWorkerAssignment::Progressive,
                 generatedCodeDirectory: $context->storage->generatedCodeDirectory,

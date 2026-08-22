@@ -26,7 +26,7 @@ use Greenlight\Hyperf\HyperfPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new HyperfPlugin(dirname(__DIR__)));
+    ->plugins(static fn(): HyperfPlugin => new HyperfPlugin(dirname(__DIR__)));
 ```
 
 Pass the application root directory to the plugin. The directory MUST contain

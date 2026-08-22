@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Plugin\Plugin;
+use Greenlight\Plugin\PluginDefinition;
 
 /** @internal */
 final readonly class Configuration
@@ -16,7 +16,7 @@ final readonly class Configuration
      * @param positive-int|null $recycleAfterTests A null value disables
      *   test-count worker replacement.
      * @param positive-int $recycleAboveMemoryBytes
-     * @param list<Plugin> $plugins
+     * @param list<PluginDefinition> $plugins
      * @param positive-int|null $stopAfterFailures A null value runs all tests
      *   regardless of failures.
      * @param list<non-empty-string> $groups An empty list disables the group

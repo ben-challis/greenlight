@@ -37,15 +37,17 @@ $record = static function (ContainerInterface $container) use ($marker, $probe):
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/tests/' . \ucfirst($mode)])
     ->workers(1)
-    ->plugins(new HyperfPlugin(
-        __DIR__,
-        containerLifetime: $lifetime,
-        reset: static function (ContainerInterface $container) use ($probe, $record): void {
-            $probe($container)->reset();
-            $record($container);
-        },
-        dispose: static function (ContainerInterface $container) use ($probe, $record): void {
-            $probe($container)->dispose();
-            $record($container);
-        },
-    ));
+    ->plugins(
+        static fn(): HyperfPlugin => new HyperfPlugin(
+            __DIR__,
+            containerLifetime: $lifetime,
+            reset: static function (ContainerInterface $container) use ($probe, $record): void {
+                $probe($container)->reset();
+                $record($container);
+            },
+            dispose: static function (ContainerInterface $container) use ($probe, $record): void {
+                $probe($container)->dispose();
+                $record($container);
+            },
+        ),
+    );

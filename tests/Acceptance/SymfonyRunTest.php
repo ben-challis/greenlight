@@ -156,7 +156,9 @@ final readonly class SymfonyRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new SymfonyPlugin(\SymfonyProbe\ProbeKernel::class));
+                ->plugins(
+                    static fn(): SymfonyPlugin => new SymfonyPlugin(\SymfonyProbe\ProbeKernel::class),
+                );
             PHP);
 
         return $project;

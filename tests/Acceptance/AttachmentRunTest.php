@@ -234,7 +234,8 @@ final readonly class AttachmentRunTest
             require_once __DIR__ . '/tests/AttachmentProbeTest.php';
             require_once __DIR__ . '/tests/TeardownAttachmentTest.php';
 
-            $plugin = new class implements AfterTestSubscriber {
+            final class AttachmentSubscriber implements AfterTestSubscriber
+            {
                 public function afterTest(TestContext $context, TestResult $result): TestResult
                 {
                     if (!$result->outcome->isSuccessful()) {
@@ -243,9 +244,10 @@ final readonly class AttachmentRunTest
 
                     return $result;
                 }
-            };
+            }
 
-            $retryDecider = new class implements RetryDecider {
+            final class AttachmentRetryDecider implements RetryDecider
+            {
                 public function shouldRetry(
                     TestMetadata $metadata,
                     TestResult $result,
@@ -258,9 +260,10 @@ final readonly class AttachmentRunTest
 
                     return false;
                 }
-            };
+            }
 
-            $harness = new class implements HarnessProvider {
+            final class AttachmentHarness implements HarnessProvider
+            {
                 public function services(): array
                 {
                     return [
@@ -271,11 +274,15 @@ final readonly class AttachmentRunTest
                         ),
                     ];
                 }
-            };
+            }
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->plugins($plugin, $retryDecider, $harness)
+                ->plugins(
+                    static fn(): AttachmentSubscriber => new AttachmentSubscriber(),
+                    static fn(): AttachmentRetryDecider => new AttachmentRetryDecider(),
+                    static fn(): AttachmentHarness => new AttachmentHarness(),
+                )
                 ->artifacts(fn(ArtifactBuilder $artifacts) => $artifacts
                     ->directory(__DIR__ . '/artifacts'));
             PHP);

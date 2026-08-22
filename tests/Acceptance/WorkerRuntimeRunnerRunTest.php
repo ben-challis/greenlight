@@ -79,7 +79,9 @@ final readonly class WorkerRuntimeRunnerRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new RuntimePlugin(__DIR__ . '/worker-runtime.marker'));
+                ->plugins(
+                    static fn(): RuntimePlugin => new RuntimePlugin(__DIR__ . '/worker-runtime.marker'),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);

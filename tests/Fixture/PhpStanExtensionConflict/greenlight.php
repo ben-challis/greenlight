@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\PhpStanExtensionConflict\ConflictingDigestExtension
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../DiscoveryBasic'])
-    ->plugins(new ConflictingDigestExtension());
+    ->plugins(static fn(): ConflictingDigestExtension => new ConflictingDigestExtension());

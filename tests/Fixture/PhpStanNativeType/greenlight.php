@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\PhpStanNativeType\NativeTypeExtension;
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../DiscoveryBasic'])
-    ->plugins(new NativeTypeExtension());
+    ->plugins(static fn(): NativeTypeExtension => new NativeTypeExtension());

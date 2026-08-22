@@ -42,8 +42,12 @@ final readonly class RunCoordinatorTest
     #[Test]
     public function runSubscribersObserveTheCompleteInProcessEventStream(): void
     {
-        $subscriber = new RecordingRunSubscriber();
-        $configuration = GreenlightConfig::create()->plugins($subscriber)->build();
+        $subscriber = null;
+        $configuration = GreenlightConfig::create()->plugins(
+            static function () use (&$subscriber): RecordingRunSubscriber {
+                return $subscriber = new RecordingRunSubscriber();
+            },
+        )->build();
         $sink = new CollectingEventSink();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
@@ -54,10 +58,10 @@ final readonly class RunCoordinatorTest
             new InProcessExecution(),
         );
 
-        Expect::that($subscriber->events)
+        Expect::that($subscriber?->events)
             ->because('run subscribers observe the same event stream as the configured sink')
             ->toBe($sink->events);
-        Expect::that($subscriber->sequence())
+        Expect::that($subscriber?->sequence())
             ->because('the subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
@@ -67,8 +71,12 @@ final readonly class RunCoordinatorTest
     #[Test]
     public function runSubscribersObserveTheCompleteProcessPoolEventStream(): void
     {
-        $subscriber = new RecordingRunSubscriber();
-        $configuration = GreenlightConfig::create()->plugins($subscriber)->build();
+        $subscriber = null;
+        $configuration = GreenlightConfig::create()->plugins(
+            static function () use (&$subscriber): RecordingRunSubscriber {
+                return $subscriber = new RecordingRunSubscriber();
+            },
+        )->build();
         $sink = new CollectingEventSink();
         $root = \dirname(__DIR__, 3);
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
@@ -84,10 +92,10 @@ final readonly class RunCoordinatorTest
             ),
         );
 
-        Expect::that($subscriber->events)
+        Expect::that($subscriber?->events)
             ->because('process-pool run subscribers observe the configured sink event stream')
             ->toBe($sink->events);
-        Expect::that($subscriber->sequence())
+        Expect::that($subscriber?->sequence())
             ->because('the process-pool subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
@@ -229,16 +237,9 @@ final readonly class RunCoordinatorTest
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
         $failure = new \RuntimeException('worker bootstrap exploded');
-        $plugin = new readonly class ($failure) implements WorkerBootstrapSubscriber, Fake {
-            public function __construct(private \RuntimeException $failure) {}
-
-            #[\Override]
-            public function onWorkerBootstrap(WorkerBootstrapContext $context): void
-            {
-                throw $this->failure;
-            }
-        };
-        $configuration = GreenlightConfig::create()->plugins($plugin)->build();
+        $configuration = GreenlightConfig::create()->plugins(
+            static fn(): FailingWorkerBootstrapPlugin => new FailingWorkerBootstrapPlugin($failure),
+        )->build();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
         Expect::that(fn() => $this->coordinator()->run(
@@ -280,5 +281,16 @@ final readonly class RunCoordinatorTest
             static fn(TestResult $result): string => (string) $result->id,
             $sink->results(),
         );
+    }
+}
+
+final readonly class FailingWorkerBootstrapPlugin implements WorkerBootstrapSubscriber, Fake
+{
+    public function __construct(private \RuntimeException $failure) {}
+
+    #[\Override]
+    public function onWorkerBootstrap(WorkerBootstrapContext $context): void
+    {
+        throw $this->failure;
     }
 }

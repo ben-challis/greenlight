@@ -15,7 +15,6 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Execution\ExecutionAdapter;
@@ -75,7 +74,7 @@ final readonly class RunCoordinator
         );
 
         try {
-            $orchestratorPlugins = PluginRegistry::orchestratorSide($configuration->plugins);
+            $orchestratorPlugins = PluginInstances::forOrchestrator($configuration->plugins);
 
             if ($orchestratorPlugins->runSubscribers() !== []) {
                 $sink = new PluginEventSink($orchestratorPlugins, $sink);

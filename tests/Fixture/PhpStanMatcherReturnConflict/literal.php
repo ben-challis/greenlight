@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\PhpStanMatcherReturnConflict\LiteralReturnExtension
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../DiscoveryBasic'])
-    ->plugins(new LiteralReturnExtension());
+    ->plugins(static fn(): LiteralReturnExtension => new LiteralReturnExtension());
