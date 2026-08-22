@@ -17,6 +17,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
+use Greenlight\Tests\Support\ClassFile;
 
 final readonly class TeamCityReporterTest
 {
@@ -164,7 +165,7 @@ final readonly class TeamCityReporterTest
         $reporter = new TeamCityReporter($output);
 
         $class = AlphaTest::class;
-        $file = (string) new \ReflectionClass($class)->getFileName();
+        $file = ClassFile::of($class);
 
         $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
         $reporter->onEvent(new TestStarted(new TestId($class, 'one'), 1.1));
