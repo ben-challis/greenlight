@@ -127,7 +127,7 @@ final class TeamCityReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function onTestFinished(TestResult $result): void
     {
@@ -180,7 +180,7 @@ final class TeamCityReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function writeFailed(TestResult $result, string $name, string $flowId): void
     {
@@ -232,7 +232,7 @@ final class TeamCityReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function writeErrored(TestResult $result, string $name, string $flowId): void
     {
@@ -304,7 +304,7 @@ final class TeamCityReporter implements Reporter
 
     /**
      * @param array<non-empty-string, string> $attributes
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function message(string $name, array $attributes): void
     {

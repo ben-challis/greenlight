@@ -66,7 +66,7 @@ final class GithubReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function writeFailures(TestResult $result): void
     {
@@ -106,7 +106,7 @@ final class GithubReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function writeError(TestResult $result): void
     {
@@ -134,7 +134,7 @@ final class GithubReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function write(?string $file, ?int $line, string $message): void
     {

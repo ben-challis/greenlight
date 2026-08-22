@@ -25,7 +25,7 @@ use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
@@ -57,7 +57,7 @@ use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 use Greenlight\Reporting\ReporterProviderError;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\SummaryFormat;
@@ -224,8 +224,8 @@ final readonly class Application
      * @param list<string> $argv the arguments after the script name
      * @throws CoverageError
      * @throws ProtocolError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
@@ -261,8 +261,8 @@ final readonly class Application
     /**
      * @param list<string> $argv the arguments after the script name
      * @throws CoverageError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     private function dispatch(array $argv, string $workingDirectory, ?string $binPath): int
     {
@@ -322,8 +322,8 @@ final readonly class Application
 
     /**
      * @throws CoverageError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
     {
@@ -522,8 +522,8 @@ final readonly class Application
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
      * @throws CoverageError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     private function executeRun(
         ParsedArguments $arguments,
@@ -656,8 +656,8 @@ final readonly class Application
      * @throws DiscoveryError
      * @throws IntegrationFixtureError
      * @throws ProtocolError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     private function coordinateRun(
         Configuration $configuration,
@@ -1190,7 +1190,7 @@ final readonly class Application
 
     /**
      * Creates a run profile from a saved JSONL event stream.
-     * @throws WireError
+     * @throws WireCommunicationFailed
      */
     private function profileReportCommand(ParsedArguments $arguments, string $workingDirectory): int
     {

@@ -88,7 +88,7 @@ final event, or after a contained run error.
 If a provider or factory throws, Greenlight reports the name and stops the
 command. An invalid factory result also stops the command before test execution.
 
-If a reporter callback throws `ReportingError`, Greenlight stops that callback.
+If a reporter callback throws `ReportGenerationFailed`, Greenlight stops that callback.
 Later reporters do not receive the event or finish signal from that callback.
 
 Shell completions suggest the built-in names. A configured name remains valid

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Hyperf;
 
 use Composer\InstalledVersions;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Di\ClassLoader;
 
@@ -19,7 +20,7 @@ final class HyperfFrameworkRequirement
      * The isolated Hyperf acceptance job exercises this environment adapter.
      *
      * @codeCoverageIgnore
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     public static function check(): void
     {
@@ -33,7 +34,7 @@ final class HyperfFrameworkRequirement
         );
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     public static function checkEnvironment(
         bool $frameworkAvailable,
         ?string $frameworkVersion,
@@ -52,7 +53,7 @@ final class HyperfFrameworkRequirement
         }
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     public static function checkFrameworkVersion(?string $version): void
     {
         if ($version === null) {
@@ -64,7 +65,7 @@ final class HyperfFrameworkRequirement
         }
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     public static function checkSwooleVersion(string|false $version): void
     {
         if ($version === false) {

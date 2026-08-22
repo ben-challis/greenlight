@@ -456,7 +456,7 @@ public Attachments $attachments;
 public object $instance
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
 
 ### `$id`
 
@@ -464,7 +464,7 @@ public object $instance
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
 
 ### `$metadata`
 
@@ -472,21 +472,7 @@ public TestId $id
 public TestMetadata $metadata
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
-
-### `__construct()`
-
-```php
-public function __construct(
-    public object $instance,
-    public TestId $id,
-    public TestMetadata $metadata,
-    private HarnessScopes $scopes,
-    ?Attachments $attachments = null,
-)
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
 
 ### `service()`
 
@@ -499,8 +485,7 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
-- `@throws ServiceResolutionError when a service resolver cannot supply a valid service`
-- `@throws UnresolvableService`
+- `@throws ServiceResolutionFailed when a service resolver cannot supply a valid service`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L45)
 

@@ -6,8 +6,8 @@ namespace Greenlight\Discovery;
 
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Core\Wire\WireSerializable;
 
 /** @internal */
@@ -42,7 +42,7 @@ final readonly class PlanEntry implements WireSerializable
 
     /**
      * @throws \InvalidArgumentException when the id does not match the metadata
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     #[\Override]
     public static function fromWire(array $payload): static

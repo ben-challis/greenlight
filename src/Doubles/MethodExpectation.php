@@ -11,11 +11,11 @@ use Greenlight\Expect\ValueRenderer;
  * Defines one planned call pattern for a method of a double. The plan
  * specifies the accepted arguments, cardinality, and result.
  *
- * MockPlan::expects() creates this object. Its fluent plan methods are the
- * public interface. The call handler and verifier use the members marked
- * @internal
+ * `MockPlan::expects()` creates this object. Its fluent plan methods are the
+ * public interface. The call handler and verifier use members that have the
+ * `@internal` tag.
  *
- * Argument values compare with the same deep equality as Expect's toEqual().
+ * Argument values compare with the same deep equality as `Expect::toEqual()`.
  *
  * @template TTarget of object = object
  * @template TMethod of non-empty-string = non-empty-string
@@ -69,7 +69,7 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function withNoArguments(): self
     {
@@ -77,7 +77,7 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function with(mixed $first, mixed ...$rest): self
     {
@@ -86,7 +86,7 @@ final class MethodExpectation
 
     /**
      * @param list<mixed> $arguments
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function withArguments(array $arguments, string $selector): self
     {
@@ -105,12 +105,12 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function times(int $count): self
     {
         if ($count < 0) {
-            throw DoublesError::invalidTimes($count);
+            throw InvalidDoubleUsage::invalidTimes($count);
         }
 
         $this->minimumCalls = $count;
@@ -120,12 +120,12 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function atLeast(int $count): self
     {
         if ($count < 1) {
-            throw DoublesError::invalidAtLeast($count);
+            throw InvalidDoubleUsage::invalidAtLeast($count);
         }
 
         $this->minimumCalls = $count;
@@ -143,7 +143,7 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function andReturns(mixed $value): self
     {
@@ -158,7 +158,7 @@ final class MethodExpectation
     /**
      * Each accepted call consumes the next value. A call after the last value
      * causes an error in the test code.
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function andReturnsSequence(mixed ...$values): self
     {
@@ -167,7 +167,7 @@ final class MethodExpectation
         $sequence = \array_values($values);
 
         if ($sequence === []) {
-            throw DoublesError::emptySequence($this->method);
+            throw InvalidDoubleUsage::emptySequence($this->method);
         }
 
         $this->sequence = $sequence;
@@ -178,7 +178,7 @@ final class MethodExpectation
     /**
      * The closure receives the call arguments. The call returns the value
      * from the closure.
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function andReturnsUsing(\Closure $answer): self // @phpstan-ignore missingType.callable (The doubled method determines the answer signature.)
     {
@@ -190,7 +190,7 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function andThrows(\Throwable $throwable): self
     {
@@ -202,18 +202,18 @@ final class MethodExpectation
     }
 
     /**
-     * Records the argument at $position each time Greenlight selects this
+     * Records the argument at `$position` each time Greenlight selects this
      * expectation for a call. The method returns the captor and ends the
      * fluent chain. Before you call this method, configure the cardinality. If
      * the doubled method returns a value, configure its result first.
      *
      * @return ArgumentCaptor<mixed>
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function captureArgument(int $position = 0): ArgumentCaptor
     {
         if ($position < 0) {
-            throw DoublesError::invalidCaptorPosition($position);
+            throw InvalidDoubleUsage::invalidCaptorPosition($position);
         }
 
         $captor = new ArgumentCaptor();
@@ -324,12 +324,12 @@ final class MethodExpectation
 
     /**
      * @internal Only the call handler calls this method.
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function consumeSequenceValue(): mixed
     {
         if ($this->sequence === null || !\array_key_exists($this->sequenceIndex, $this->sequence)) {
-            throw DoublesError::sequenceExhausted($this->method, \count($this->sequence ?? []));
+            throw InvalidDoubleUsage::sequenceExhausted($this->method, \count($this->sequence ?? []));
         }
 
         return $this->sequence[$this->sequenceIndex++];
@@ -418,12 +418,12 @@ final class MethodExpectation
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function assertNoAnswerConfigured(): void
     {
         if ($this->hasReturnValue || $this->sequence !== null || $this->callback instanceof \Closure || $this->throwable instanceof \Throwable) {
-            throw DoublesError::conflictingAnswers($this->method);
+            throw InvalidDoubleUsage::conflictingAnswers($this->method);
         }
     }
 }

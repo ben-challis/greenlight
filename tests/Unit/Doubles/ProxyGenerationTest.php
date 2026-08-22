@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -167,7 +167,7 @@ final readonly class ProxyGenerationTest
         Expect::that(fn(): object => $this->doubles->stub(\ReflectionClass::class))
             ->because('an unavailable internal default cannot produce a valid proxy signature')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Doubles cannot reproduce the default value of parameter $default '
                     . 'from ReflectionClass::getStaticPropertyValue() in a proxy.',
             );
@@ -204,7 +204,7 @@ final readonly class ProxyGenerationTest
 
         Expect::that(static fn() => $wide->returnsNever())->because('a never returning method requires andThrows()')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Wide::returnsNever() declares never. '
                     . 'Configure it with andThrows().',
             );
@@ -218,7 +218,7 @@ final readonly class ProxyGenerationTest
 
         Expect::that(static fn(): string => $proxyClass::lookup())
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: StaticMethodFixture::class . '::lookup() is static. '
                     . 'Doubles cannot intercept static methods.',
             );

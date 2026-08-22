@@ -7,9 +7,9 @@ namespace Greenlight\Runner\Execution;
 use Greenlight\Config\Configuration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\GracefulShutdown;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Orchestrator\Distributor;
@@ -62,8 +62,8 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
 
     /**
      * @throws AttachmentError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     #[\Override]
     public function execute(

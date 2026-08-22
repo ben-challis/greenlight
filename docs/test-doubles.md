@@ -37,6 +37,9 @@ final class CheckoutServiceTest
 
 Greenlight verifies mocks when the test ends.
 
+Incorrect use of the doubles API throws `InvalidDoubleUsage`. This exception
+identifies incorrect test code. It is not an expectation failure.
+
 ## Double selection
 
 * If the test expects specific calls and responses, use

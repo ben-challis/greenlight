@@ -23,7 +23,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function string(array $payload, string $key): string
     {
@@ -41,7 +41,7 @@ final class Wire
      *
      * @return non-empty-string
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function nonEmptyString(array $payload, string $key): string
     {
@@ -57,7 +57,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function nullableString(array $payload, string $key): ?string
     {
@@ -73,7 +73,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function nullableInt(array $payload, string $key): ?int
     {
@@ -89,7 +89,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function nullableFloat(array $payload, string $key): ?float
     {
@@ -113,7 +113,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function int(array $payload, string $key): int
     {
@@ -129,7 +129,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function float(array $payload, string $key): float
     {
@@ -149,7 +149,7 @@ final class Wire
     /**
      * @param array<string, mixed> $payload
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function bool(array $payload, string $key): bool
     {
@@ -170,7 +170,7 @@ final class Wire
      *
      * @return T
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function enum(array $payload, string $key, string $enum): \BackedEnum
     {
@@ -189,7 +189,7 @@ final class Wire
      *
      * @return array<string, mixed>
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function map(array $payload, string $key): array
     {
@@ -217,7 +217,7 @@ final class Wire
      *
      * @return array<string, mixed>|null
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function nullableMap(array $payload, string $key): ?array
     {
@@ -235,7 +235,7 @@ final class Wire
      *
      * @return list<string>
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function listOfStrings(array $payload, string $key): array
     {
@@ -263,7 +263,7 @@ final class Wire
      *
      * @return list<string>|null
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function nullableListOfStrings(array $payload, string $key): ?array
     {
@@ -281,7 +281,7 @@ final class Wire
      *
      * @return list<array<string, mixed>>
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     public static function listOfMaps(array $payload, string $key): array
     {
@@ -316,7 +316,7 @@ final class Wire
 
     /**
      * @param array<string, mixed> $payload
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     private static function require(array $payload, string $key): mixed
     {

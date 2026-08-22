@@ -29,7 +29,7 @@ public function write(string $text): void;
 
 PHPDoc:
 
-- `@throws ReportingError when the destination cannot accept the text`
+- `@throws ReportGenerationFailed when the destination cannot accept the text`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Output/Output.php#L20)
 
@@ -57,7 +57,7 @@ public function onEvent(Event $event): void;
 
 PHPDoc:
 
-- `@throws ReportingError when the event cannot be rendered or delivered`
+- `@throws ReportGenerationFailed when the event cannot be rendered or delivered`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Reporter.php#L21)
 
@@ -72,7 +72,7 @@ public function finish(): void;
 
 PHPDoc:
 
-- `@throws ReportingError when the output cannot be rendered or delivered`
+- `@throws ReportGenerationFailed when the output cannot be rendered or delivered`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Reporter.php#L29)
 
@@ -122,3 +122,43 @@ PHPDoc:
 - `@param \Closure(Output): Reporter $factory The factory MUST return a new reporter for each call. Greenlight owns the supplied output.`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)
+
+## `ReportGenerationFailed`
+
+Namespace: `Greenlight\Reporting`
+
+A reporter could not render or deliver its required output.
+
+```php
+final class ReportGenerationFailed extends \RuntimeException
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L10)
+
+### `writeFailed()`
+
+```php
+public static function writeFailed(?\Throwable $previous = null): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L17)
+
+### `unmappedEvent()`
+
+```php
+public static function unmappedEvent(string $eventClass): self
+```
+
+PHPDoc:
+
+- `@param class-string $eventClass`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L25)
+
+### `xmlUnavailable()`
+
+```php
+public static function xmlUnavailable(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L30)

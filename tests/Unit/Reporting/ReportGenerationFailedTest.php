@@ -6,21 +6,21 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 
-final class ReportingErrorTest
+final class ReportGenerationFailedTest
 {
     #[Test]
     public function reportsWriteFailureExactly(): void
     {
-        Expect::that(ReportingError::writeFailed()->getMessage())
+        Expect::that(ReportGenerationFailed::writeFailed()->getMessage())
             ->toBe('Greenlight did not write reporter output to the stream.');
     }
 
     #[Test]
     public function reportsAnUnmappedEventExactly(): void
     {
-        Expect::that(ReportingError::unmappedEvent(self::class)->getMessage())
+        Expect::that(ReportGenerationFailed::unmappedEvent(self::class)->getMessage())
             ->toBe(\sprintf(
                 'Event "%s" has no stable tag. Add the event to the tag map before Greenlight writes it.',
                 self::class,
@@ -30,7 +30,7 @@ final class ReportingErrorTest
     #[Test]
     public function reportsTheMissingXmlWriterExtensionExactly(): void
     {
-        Expect::that(ReportingError::xmlUnavailable()->getMessage())
+        Expect::that(ReportGenerationFailed::xmlUnavailable()->getMessage())
             ->because('JUnit output names the required PHP extension')
             ->toBe('The XMLWriter extension is required for JUnit output. Enable ext-xmlwriter.');
     }

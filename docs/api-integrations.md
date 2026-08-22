@@ -53,7 +53,7 @@ resources by `GREENLIGHT_CHANNEL`.
 final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L39)
 
 ### `__construct()`
 
@@ -72,7 +72,7 @@ PHPDoc:
 - `@param null|\Closure(ContainerInterface): void $reset Resets project-owned request state after each test attempt. The callback runs inside the test coroutine.`
 - `@param null|\Closure(ContainerInterface): void $dispose Releases project-owned resources when the selected container lifetime ends. The callback runs inside a coroutine.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L62)
 
 ### `services()`
 
@@ -85,7 +85,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L74)
 
 ### `resolve()`
 
@@ -98,9 +98,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws HyperfBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L87)
 
 ### `onWorkerBootstrap()`
 
@@ -111,9 +111,9 @@ public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 
 PHPDoc:
 
-- `@throws HyperfBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L117)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L118)
 
 ### `runWorker()`
 
@@ -127,9 +127,9 @@ PHPDoc:
 - `@template T`
 - `@param \Closure(): T $worker`
 - `@return T`
-- `@throws HyperfBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L174)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L175)
 
 ### `runTestAttempt()`
 
@@ -143,9 +143,9 @@ PHPDoc:
 - `@template T`
 - `@param \Closure(): T $attempt`
 - `@return T`
-- `@throws HyperfBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L218)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L219)
 
 ## `Hyperf\Service`
 
@@ -197,7 +197,7 @@ resources by `GREENLIGHT_CHANNEL`.
 final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L26)
 
 ### `__construct()`
 
@@ -215,7 +215,7 @@ PHPDoc:
 - `@param non-empty-string $env`
 - `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L48)
 
 ### `services()`
 
@@ -228,7 +228,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L68)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L69)
 
 ### `resolve()`
 
@@ -241,9 +241,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws LaravelBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L85)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L86)
 
 ### `afterTest()`
 
@@ -252,7 +252,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L116)
 
 ## `Laravel\Service`
 
@@ -306,7 +306,7 @@ by `GREENLIGHT_CHANNEL`.
 final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L24)
 
 ### `__construct()`
 
@@ -324,7 +324,7 @@ PHPDoc:
 - `@param bool $refreshBetweenTests Set to false only when the reset callback removes all container state, or when services do not keep state.`
 - `@param (\Closure(ContainerInterface): void)|null $reset An optional callback that resets the active container after each test.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L37)
 
 ### `services()`
 
@@ -337,7 +337,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L46)
 
 ### `resolve()`
 
@@ -350,9 +350,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws Psr11BridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L93)
 
 ### `afterTest()`
 
@@ -363,9 +363,9 @@ public function afterTest(TestContext $context, TestResult $result): TestResult
 
 PHPDoc:
 
-- `@throws Psr11BridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L137)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L138)
 
 ## `Psr\Service`
 
@@ -682,7 +682,7 @@ external resources with `GREENLIGHT_CHANNEL`.
 final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L30)
 
 ### `__construct()`
 
@@ -701,7 +701,7 @@ PHPDoc:
 - `@param non-empty-string $env`
 - `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L53)
 
 ### `services()`
 
@@ -714,7 +714,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L72)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L73)
 
 ### `resolve()`
 
@@ -727,9 +727,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws SymfonyBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L85)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L86)
 
 ### `afterTest()`
 
@@ -738,7 +738,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L116)
 
 ## `TempestPlugin`
 
@@ -756,7 +756,7 @@ resources by `GREENLIGHT_CHANNEL`.
 final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceResolver, WorkerBootstrapSubscriber
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L37)
 
 ### `__construct()`
 
@@ -774,7 +774,7 @@ PHPDoc:
 - `@param list<DiscoveryLocation> $discoveryLocations Additional locations for Tempest discovery.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L50)
 
 ### `onWorkerBootstrap()`
 
@@ -783,7 +783,7 @@ PHPDoc:
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L64)
 
 ### `services()`
 
@@ -796,7 +796,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L72)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L73)
 
 ### `resolve()`
 
@@ -809,9 +809,9 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws TempestBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L87)
 
 ### `beforeTest()`
 
@@ -820,7 +820,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L112)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L113)
 
 ### `afterTest()`
 
@@ -831,6 +831,6 @@ public function afterTest(TestContext $context, TestResult $result): TestResult
 
 PHPDoc:
 
-- `@throws TempestBridgeError`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L126)

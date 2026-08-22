@@ -11,7 +11,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Tests\Fixture\Reporting\UnavailableXmlWriterRuntime;
 
 final readonly class JUnitXmlWriterRequirementTest
@@ -24,7 +24,7 @@ final readonly class JUnitXmlWriterRequirementTest
         Expect::that(static fn() => $reporter->finish())
             ->because('finishing JUnit output MUST require XMLWriter')
             ->toThrow(
-                ReportingError::class,
+                ReportGenerationFailed::class,
                 message: 'The XMLWriter extension is required for JUnit output. Enable ext-xmlwriter.',
             );
     }
@@ -43,7 +43,7 @@ final readonly class JUnitXmlWriterRequirementTest
         Expect::that(static fn() => $reporter->onEvent(new TestFinished($result, 1.0)))
             ->because('rendering a JUnit test case MUST require XMLWriter')
             ->toThrow(
-                ReportingError::class,
+                ReportGenerationFailed::class,
                 message: 'The XMLWriter extension is required for JUnit output. Enable ext-xmlwriter.',
             );
     }

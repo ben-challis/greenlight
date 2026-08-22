@@ -11,7 +11,7 @@ use Greenlight\Core\Event\SuiteStarted;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Reporter;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 
 final class ReporterSinkTest
 {
@@ -42,9 +42,9 @@ final class ReporterSinkTest
     #[Test]
     public function reporterFailuresPropagateToTheEmitter(): void
     {
-        $failure = ReportingError::writeFailed();
+        $failure = ReportGenerationFailed::writeFailed();
         $reporter = new readonly class ($failure) implements Reporter, Fake {
-            public function __construct(private ReportingError $failure) {}
+            public function __construct(private ReportGenerationFailed $failure) {}
 
             #[\Override]
             public function onEvent(Event $event): never

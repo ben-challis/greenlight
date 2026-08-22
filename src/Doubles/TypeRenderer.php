@@ -24,7 +24,7 @@ final class TypeRenderer
 
     /**
      * @param \ReflectionClass<object> $context Class that declares the member.
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public static function render(\ReflectionType $type, \ReflectionClass $context): string
     {
@@ -58,12 +58,12 @@ final class TypeRenderer
             return self::renderIntersection($type, $context);
         }
 
-        throw DoublesError::unsupportedReflectionType($type::class);
+        throw InvalidDoubleUsage::unsupportedReflectionType($type::class);
     }
 
     /**
      * @param \ReflectionClass<object> $context
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private static function renderIntersection(\ReflectionIntersectionType $type, \ReflectionClass $context): string
     {
@@ -75,7 +75,7 @@ final class TypeRenderer
 
     /**
      * @param \ReflectionClass<object> $context
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private static function renderNamed(\ReflectionNamedType $type, \ReflectionClass $context): string
     {
@@ -93,7 +93,7 @@ final class TypeRenderer
             $parent = $context->getParentClass();
 
             if ($parent === false) {
-                throw DoublesError::parentTypeWithoutParent($context->name);
+                throw InvalidDoubleUsage::parentTypeWithoutParent($context->name);
             }
 
             return '\\' . $parent->name;
@@ -103,12 +103,12 @@ final class TypeRenderer
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private static function expectNamed(\ReflectionType $type): \ReflectionNamedType
     {
         if (!$type instanceof \ReflectionNamedType) {
-            throw DoublesError::unsupportedNestedReflectionType($type::class);
+            throw InvalidDoubleUsage::unsupportedNestedReflectionType($type::class);
         }
 
         return $type;
