@@ -61,6 +61,28 @@ final readonly class RepeatOutputCompatibilityTest
     }
 
     #[Test]
+    public function repeatRejectsAFileJUnitReporterBeforeItCreatesTheFile(): void
+    {
+        $project = $this->writeProject('repeat-file-junit');
+        $report = $project->path('reports/junit.xml');
+        $result = GreenlightCli::run($project->directory, [
+            'run',
+            '--reporter=junit=reports/junit.xml',
+            '--workers=1',
+            '--no-ansi',
+            '--repeat=2',
+        ]);
+
+        Expect::that($result->exitCode)->toBe(64);
+        Expect::that($result->stderr)
+            ->toContain('Do not use --repeat or --repeat-until-failure with JUnit output.');
+        Expect::that($result->stdout)->toBe('');
+        Expect::that(\file_exists($report))
+            ->because('Greenlight MUST validate repeat output before it creates the report file')
+            ->toBeFalse();
+    }
+
+    #[Test]
     #[DataSet('coverageConfigurations')]
     public function repeatRejectsEnabledCoverage(string $coverageConfiguration, string $repeatOption): void
     {
@@ -133,6 +155,36 @@ final readonly class RepeatOutputCompatibilityTest
         Expect::that($result->stderr)
             ->because('repeat status MUST not invalidate JSONL on standard output')
             ->toContain('Repeat: 2 iterations, all passed');
+    }
+
+    #[Test]
+    public function repeatKeepsAValidJsonlFileAndStatusOnStandardOutput(): void
+    {
+        $project = $this->writeProject('repeat-file-jsonl');
+        $report = $project->path('reports/events.jsonl');
+        $result = GreenlightCli::run($project->directory, [
+            'run',
+            '--reporter=jsonl=reports/events.jsonl',
+            '--workers=1',
+            '--no-ansi',
+            '--repeat=2',
+        ]);
+        $lines = \file($report, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
+        $events = [];
+
+        foreach ($lines === false ? [] : $lines as $line) {
+            /** @var array{event: string} $envelope */
+            $envelope = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
+            $events[] = $envelope['event'];
+        }
+
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
+        Expect::that(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
+        Expect::that($result->stdout)
+            ->because('the JSONL file leaves standard output available for repeat status')
+            ->toContain('Repeat: 2 iterations, all passed');
+        Expect::that($result->stderr)->toBe('');
     }
 
     /**

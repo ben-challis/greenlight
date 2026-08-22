@@ -119,4 +119,17 @@ final class CliError extends \RuntimeException
             \implode(' or ', $outputs),
         ));
     }
+
+    public static function malformedReporterSelection(string $value): self
+    {
+        return new self(\sprintf(
+            '--reporter requires <name> or <name>=<file>. Received "%s".',
+            $value,
+        ));
+    }
+
+    public static function duplicateReporterOutput(string $path): self
+    {
+        return new self(\sprintf('Write reporter output to file "%s" only once.', $path));
+    }
 }

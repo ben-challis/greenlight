@@ -207,6 +207,14 @@ Repeat the flag to select more than one reporter:
 vendor/bin/greenlight run --reporter=tty --reporter=junit
 ```
 
+Add a file to keep a reporter separate from standard output:
+
+```sh
+vendor/bin/greenlight run --reporter=tty --reporter=junit=reports/junit.xml
+```
+
+Greenlight creates missing parent directories. It replaces an existing file.
+
 Plugins can register custom reporter factories. See
 [ReporterProvider](plugins.md#reporterprovider).
 

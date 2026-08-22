@@ -161,7 +161,9 @@ final readonly class Application
                              whole classes. They are stable across machines and
                              need no coordination.
           --seed=<n>         Randomize class order with this seed
-          --reporter=<name>  Select a built-in or configured reporter name.
+          --reporter=<name>[=<file>]
+                             Select a built-in or configured reporter name.
+                             Write to the file when one is specified.
                              Built-ins: tty, plain, junit, jsonl, github, teamcity.
                              You can repeat this option.
           --artifacts-dir=<path> Persistent directory for retained test attachments
@@ -374,6 +376,8 @@ final readonly class Application
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
         $workerBin = $this->workerBinPath($binPath);
 
+        $reporterOutputs = null;
+
         try {
             $reporterCatalog = $this->reporterCatalog(
                 $arguments,
@@ -383,143 +387,170 @@ final readonly class Application
                 $workingDirectory,
                 workerFallback: $workers > 1 && $workerBin === false,
             );
-            $reporter = $this->buildReporter($arguments, $reporterCatalog);
             $this->assertRepeatOutputsAreCompatible($arguments, $overrides->repeat, $resolved->coverage);
+            $standardCapabilities = TerminalCapabilities::detect(
+                Terminal::isTty($this->stdout),
+                ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+                $arguments->has('no-ansi'),
+                $arguments->has('ansi'),
+            );
+            $fileCapabilities = TerminalCapabilities::detect(
+                false,
+                ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
+                $arguments->has('no-ansi'),
+                $arguments->has('ansi'),
+            );
+            $reporterOutputs = ReporterOutputPlan::create(
+                $arguments->values('reporter'),
+                $standardCapabilities->interactive || $standardCapabilities->color ? 'tty' : 'plain',
+                $reporterCatalog,
+                $this->stdout,
+                $workingDirectory,
+                $standardCapabilities,
+                $fileCapabilities,
+            );
+            $reporter = $this->buildReporter($arguments, $reporterCatalog, $reporterOutputs);
         } catch (CliError $error) {
+            $reporterOutputs?->close();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
-        } catch (ReporterProviderError $error) {
+        } catch (ReporterOutputError|ReporterProviderError $error) {
+            $reporterOutputs?->close();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_FAILURE;
         }
 
-        $shutdown = new GracefulShutdown();
-        SignalHandlers::install($shutdown);
+        try {
+            $shutdown = new GracefulShutdown();
+            SignalHandlers::install($shutdown);
 
-        if ($arguments->has('watch')) {
-            return $this->watchCommand($arguments, $workingDirectory, $workerBin, $resolved, $configFile, $shutdown, $reporterCatalog, $reporter);
-        }
-
-        $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
-        $state = RunState::forFile($storage->runStateFile);
-        $previousFailures = $state->failedTests();
-
-        if ($arguments->has('failed')) {
-            if ($previousFailures === null) {
-                $this->printError('--failed requires state from a previous run. Run Greenlight once without --failed.', $arguments->has('no-ansi'));
-
-                return self::EXIT_USAGE;
+            if ($arguments->has('watch')) {
+                return $this->watchCommand($arguments, $workingDirectory, $workerBin, $resolved, $configFile, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
             }
 
-            if ($previousFailures === []) {
-                ($this->out)("No tests failed in the previous run. There are no tests to run again.\n");
+            $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
+            $state = RunState::forFile($storage->runStateFile);
+            $previousFailures = $state->failedTests();
+
+            if ($arguments->has('failed')) {
+                if ($previousFailures === null) {
+                    $this->printError('--failed requires state from a previous run. Run Greenlight once without --failed.', $arguments->has('no-ansi'));
+
+                    return self::EXIT_USAGE;
+                }
+
+                if ($previousFailures === []) {
+                    ($this->out)("No tests failed in the previous run. There are no tests to run again.\n");
+
+                    return self::EXIT_OK;
+                }
+
+                $selection = $resolved->selection->withExactIds($previousFailures);
+            } else {
+                $selection = $resolved->selection;
+            }
+
+            $priorityClasses = [];
+            $priorityClassSet = [];
+
+            if (!$resolved->order->isRandomized() && \is_array($previousFailures)) {
+                foreach ($previousFailures as $id) {
+                    $class = \strstr($id, '::', true);
+
+                    if (\is_string($class) && $class !== '' && !isset($priorityClassSet[$class])) {
+                        $priorityClassSet[$class] = true;
+                        $priorityClasses[] = $class;
+                    }
+                }
+            }
+
+            $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
+            $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
+
+            // --repeat=1 specifies one standard run. Show the loop, banners, and
+            // summary only when more than one iteration is possible.
+            if (($overrides->repeat->count === null || $overrides->repeat->count === 1) && !$overrides->repeat->untilFailure) {
+                $failedTap = new FailedTestsTap(new ReporterSink($reporter));
+
+                return $this->executeRun($arguments, $resolved, $selection, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+            }
+
+            // Without an explicit --repeat, --repeat-until-failure has a limit of
+            // 100 iterations.
+            $limit = $overrides->repeat->count ?? 100;
+            $bounded = $overrides->repeat->count !== null;
+            $failedIterations = [];
+            $failedTests = [];
+            $failedTestSet = [];
+            $lastClassSeconds = [];
+            $repeatOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
+                ? $this->err
+                : $this->out;
+
+            for ($iteration = 1; $iteration <= $limit; $iteration++) {
+                $repeatOutput($bounded
+                    ? \sprintf("Repeat: iteration %d of %d\n", $iteration, $limit)
+                    : \sprintf("Repeat: iteration %d of at most %d\n", $iteration, $limit));
+
+                if ($iteration > 1) {
+                    try {
+                        $reporter = $this->buildReporter($arguments, $reporterCatalog, $reporterOutputs);
+                    } catch (CliError $error) {
+                        $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+                        return self::EXIT_USAGE;
+                    } catch (ReporterProviderError $error) {
+                        $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+
+                        return self::EXIT_FAILURE;
+                    }
+                }
+
+                $failedTap = new FailedTestsTap(new ReporterSink($reporter));
+                $exit = $this->executeRun($arguments, $resolved, $selection, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+
+                foreach ($failedTap->failedTests() as $id) {
+                    if (!isset($failedTestSet[$id])) {
+                        $failedTestSet[$id] = true;
+                        $failedTests[] = $id;
+                    }
+                }
+
+                $lastClassSeconds = $failedTap->classSeconds();
+
+                $interruptExit = $shutdown->exitCode();
+
+                if ($interruptExit !== null) {
+                    return $interruptExit;
+                }
+
+                if ($exit !== self::EXIT_OK) {
+                    $failedIterations[] = $iteration;
+
+                    if ($overrides->repeat->untilFailure) {
+                        break;
+                    }
+                }
+            }
+
+            if ($failedIterations === []) {
+                $repeatOutput(\sprintf("Repeat: %d iterations, all passed\n", $limit));
 
                 return self::EXIT_OK;
             }
 
-            $selection = $resolved->selection->withExactIds($previousFailures);
-        } else {
-            $selection = $resolved->selection;
+            // Record each test that fails in an iteration. Thus, a later --failed
+            // run includes it even if it passes in another iteration.
+            $this->persistRunState($state, $failedTests, $lastClassSeconds);
+
+            $repeatOutput(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
+
+            return self::EXIT_FAILURE;
+        } finally {
+            $reporterOutputs->close();
         }
-
-        $priorityClasses = [];
-        $priorityClassSet = [];
-
-        if (!$resolved->order->isRandomized() && \is_array($previousFailures)) {
-            foreach ($previousFailures as $id) {
-                $class = \strstr($id, '::', true);
-
-                if (\is_string($class) && $class !== '' && !isset($priorityClassSet[$class])) {
-                    $priorityClassSet[$class] = true;
-                    $priorityClasses[] = $class;
-                }
-            }
-        }
-
-        $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
-        $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
-
-        // --repeat=1 specifies one standard run. Show the loop, banners, and
-        // summary only when more than one iteration is possible.
-        if (($overrides->repeat->count === null || $overrides->repeat->count === 1) && !$overrides->repeat->untilFailure) {
-            $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-
-            return $this->executeRun($arguments, $resolved, $selection, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
-        }
-
-        // Without an explicit --repeat, --repeat-until-failure has a limit of
-        // 100 iterations.
-        $limit = $overrides->repeat->count ?? 100;
-        $bounded = $overrides->repeat->count !== null;
-        $failedIterations = [];
-        $failedTests = [];
-        $failedTestSet = [];
-        $lastClassSeconds = [];
-        $repeatOutput = \in_array('jsonl', $arguments->values('reporter'), true)
-            ? $this->err
-            : $this->out;
-
-        for ($iteration = 1; $iteration <= $limit; $iteration++) {
-            $repeatOutput($bounded
-                ? \sprintf("Repeat: iteration %d of %d\n", $iteration, $limit)
-                : \sprintf("Repeat: iteration %d of at most %d\n", $iteration, $limit));
-
-            if ($iteration > 1) {
-                try {
-                    $reporter = $this->buildReporter($arguments, $reporterCatalog);
-                } catch (CliError $error) {
-                    $this->printError($error->getMessage(), $arguments->has('no-ansi'));
-
-                    return self::EXIT_USAGE;
-                } catch (ReporterProviderError $error) {
-                    $this->printError($error->getMessage(), $arguments->has('no-ansi'));
-
-                    return self::EXIT_FAILURE;
-                }
-            }
-
-            $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-            $exit = $this->executeRun($arguments, $resolved, $selection, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
-
-            foreach ($failedTap->failedTests() as $id) {
-                if (!isset($failedTestSet[$id])) {
-                    $failedTestSet[$id] = true;
-                    $failedTests[] = $id;
-                }
-            }
-
-            $lastClassSeconds = $failedTap->classSeconds();
-
-            $interruptExit = $shutdown->exitCode();
-
-            if ($interruptExit !== null) {
-                return $interruptExit;
-            }
-
-            if ($exit !== self::EXIT_OK) {
-                $failedIterations[] = $iteration;
-
-                if ($overrides->repeat->untilFailure) {
-                    break;
-                }
-            }
-        }
-
-        if ($failedIterations === []) {
-            $repeatOutput(\sprintf("Repeat: %d iterations, all passed\n", $limit));
-
-            return self::EXIT_OK;
-        }
-
-        // Record each test that fails in an iteration. Thus, a later --failed
-        // run includes it even if it passes in another iteration.
-        $this->persistRunState($state, $failedTests, $lastClassSeconds);
-
-        $repeatOutput(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
-
-        return self::EXIT_FAILURE;
     }
 
     /**
@@ -536,7 +567,7 @@ final readonly class Application
 
         $outputs = [];
 
-        if (\in_array('junit', $arguments->values('reporter'), true)) {
+        if (ReporterOutputPlan::selects($arguments->values('reporter'), 'junit')) {
             $outputs[] = 'JUnit output';
         }
 
@@ -838,6 +869,7 @@ final readonly class Application
         string $configFile,
         GracefulShutdown $shutdown,
         ReporterCatalog $reporterCatalog,
+        ReporterOutputPlan $reporterOutputs,
         Reporter $initialReporter,
     ): int {
         $directories = $this->directories($resolved, $workingDirectory);
@@ -859,13 +891,13 @@ final readonly class Application
         $nextReporter = $initialReporter;
 
         $runOnce =
-            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown, $storage, $reporterCatalog, &$nextReporter): array {
+            function (array $priorityClasses) use ($arguments, $resolved, $directories, $workers, $workerBin, $workingDirectory, $coverageSettings, $configFile, $detectLeaks, $shutdown, $storage, $reporterCatalog, $reporterOutputs, &$nextReporter): array {
                 $priorityClasses = \array_values(\array_filter(
                     $priorityClasses,
                     static fn(mixed $class): bool => \is_string($class) && $class !== '',
                 ));
 
-                $reporter = $nextReporter ?? $this->buildReporter($arguments, $reporterCatalog);
+                $reporter = $nextReporter ?? $this->buildReporter($arguments, $reporterCatalog, $reporterOutputs);
                 $nextReporter = null;
 
                 $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
@@ -1085,15 +1117,19 @@ final readonly class Application
         $definitions = [
             new ReporterDefinition(
                 'tty',
-                static fn(Output $output): Reporter => new TtyReporter(
-                    $output,
-                    $capabilities->color,
-                    $capabilities->interactive,
-                    $header,
-                    extendedSlowTests: $profile,
-                    verbose: $arguments->has('verbose'),
-                    terminalRows: TerminalRowsResolver::resolve(),
-                ),
+                static function (Output $output) use ($capabilities, $header, $profile, $arguments): Reporter {
+                    $selectedCapabilities = $output instanceof ReporterOutput ? $output->capabilities : $capabilities;
+
+                    return new TtyReporter(
+                        $output,
+                        $selectedCapabilities->color,
+                        $selectedCapabilities->interactive,
+                        $header,
+                        extendedSlowTests: $profile,
+                        verbose: $arguments->has('verbose'),
+                        terminalRows: TerminalRowsResolver::resolve(),
+                    );
+                },
             ),
             new ReporterDefinition(
                 'plain',
@@ -1142,29 +1178,18 @@ final readonly class Application
      * @throws CliError
      * @throws ReporterProviderError
      */
-    private function buildReporter(ParsedArguments $arguments, ReporterCatalog $catalog): Reporter
-    {
-        $output = new StreamOutput($this->stdout);
-        $capabilities = TerminalCapabilities::detect(
-            Terminal::isTty($this->stdout),
-            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
-            $arguments->has('no-ansi'),
-            $arguments->has('ansi'),
-        );
-        $names = $arguments->values('reporter');
-
-        if ($names === []) {
-            $names = [$capabilities->interactive || $capabilities->color ? 'tty' : 'plain'];
-        }
-
-        $reporters = [];
-
-        foreach ($names as $name) {
-            $reporters[] = $catalog->create($name, $output);
-        }
+    private function buildReporter(
+        ParsedArguments $arguments,
+        ReporterCatalog $catalog,
+        ReporterOutputPlan $outputs,
+    ): Reporter {
+        $reporters = $outputs->createReporters($catalog);
 
         if ($arguments->has('profile')) {
-            $reporters[] = new ProfileReporter($output, new Style($capabilities->color));
+            $reporters[] = new ProfileReporter(
+                $outputs->standardOutput,
+                new Style($outputs->standardOutput->capabilities->color),
+            );
         }
 
         return \count($reporters) === 1 ? $reporters[0] : new CompositeReporter($reporters);
