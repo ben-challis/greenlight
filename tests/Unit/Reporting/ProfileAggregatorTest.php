@@ -6,17 +6,17 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Event\WorkerTiming;
-use Greenlight\Core\Result\ResultSummary;
+use Greenlight\Event\Event;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\WorkerSpawned;
+use Greenlight\Event\WorkerTiming;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ProfileAggregator;
 use Greenlight\Reporting\Style;
+use Greenlight\Result\ResultSummary;
 
 final class ProfileAggregatorTest
 {

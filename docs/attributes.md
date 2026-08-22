@@ -254,7 +254,7 @@ mixed ...$arguments
 ```
 
 Use `$condition` to name an instantiable class that implements
-`Greenlight\Core\Condition`.
+`Greenlight\Condition\Condition`.
 
 Skips the test if the condition is false.
 

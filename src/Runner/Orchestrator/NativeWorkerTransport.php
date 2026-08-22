@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Owns native worker processes, sockets, diagnostics, poll operations, and retirement.

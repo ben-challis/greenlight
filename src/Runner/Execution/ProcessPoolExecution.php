@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\WorkerConfiguration;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\GracefulShutdown;
-use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\CoverageSettings;
@@ -20,6 +19,7 @@ use Greenlight\Runner\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
 use Greenlight\Runner\PluginInstances;
 use Greenlight\Runner\Worker\EventSink;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Executes a plan with the orchestrator process pool.

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ValueRenderer;
 use Greenlight\Harness\Disposable;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Test\ExpectationCounter;
 
 /**
  * Mocks are strict. A call without a planned expectation fails the test

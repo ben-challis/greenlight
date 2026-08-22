@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol\Messages;
 
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Core\Wire\Wire;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Result\ResultPolicy;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\Message;
+use Greenlight\Wire\Wire;
 
 /**
  * Sends an execution-plan part, limits, and settings to a worker.

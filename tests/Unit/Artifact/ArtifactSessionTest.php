@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Artifact;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Artifact\ArtifactSession;
+use Greenlight\Wire\InvalidWirePayload;
 
 final readonly class ArtifactSessionTest
 {

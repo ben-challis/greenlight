@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Harness;
 
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireSerializable;
 
 /**
  * JSON-safe information exposed by one orchestrator-owned integration fixture.

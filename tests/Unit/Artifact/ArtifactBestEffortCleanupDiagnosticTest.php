@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Artifact\DirectoryCreatingFileCopier;
 
 final readonly class ArtifactBestEffortCleanupDiagnosticTest

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
@@ -114,8 +114,8 @@ final readonly class AttachmentRunTest
 
             use Greenlight\Attribute\Retry;
             use Greenlight\Attribute\Test;
-            use Greenlight\Core\Artifact\AttachmentRetention;
-            use Greenlight\Core\Artifact\Attachments;
+            use Greenlight\Artifact\AttachmentRetention;
+            use Greenlight\Artifact\Attachments;
             use Greenlight\Expect\Expect;
 
             final readonly class AttachmentProbeTest
@@ -184,7 +184,7 @@ final readonly class AttachmentRunTest
             namespace AttachmentProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Core\Artifact\Attachments;
+            use Greenlight\Artifact\Attachments;
             use Greenlight\Expect\Expect;
             use Greenlight\Harness\Disposable;
 
@@ -221,8 +221,8 @@ final readonly class AttachmentRunTest
 
             use Greenlight\Config\ArtifactBuilder;
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Core\Result\TestResult;
-            use Greenlight\Core\Test\RetryPolicy;
+            use Greenlight\Result\TestResult;
+            use Greenlight\Test\RetryPolicy;
             use Greenlight\Harness\Scope;
             use Greenlight\Harness\ServiceDefinition;
             use Greenlight\Plugin\AfterTestSubscriber;

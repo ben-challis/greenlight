@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Event\Event;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\WorkerSpawned;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 
 /**
  * Shows a bounded live window for active test classes. It updates the window no

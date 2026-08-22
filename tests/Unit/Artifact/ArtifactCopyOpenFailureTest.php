@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\Artifact\NativeFileCopier;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;

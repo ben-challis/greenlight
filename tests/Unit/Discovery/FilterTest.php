@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestExclusions;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestExclusions;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Support\FixturePath;
 
 final class FilterTest

@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\ClassFailureTap;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final class ClassFailureTapSkippedTest

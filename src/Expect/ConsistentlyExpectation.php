@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\SourceLocation;
-use Greenlight\Core\Test\ExpectationCounter;
+use Greenlight\Result\SourceLocation;
+use Greenlight\Test\ExpectationCounter;
 
 /**
  * Checks each probe value for a fixed period and fails on the first mismatch.

@@ -6,13 +6,13 @@ text, bytes, or files that already exist.
 
 ## Attachment creation
 
-Ask for `Greenlight\Core\Artifact\Attachments` through constructor injection:
+Ask for `Greenlight\Artifact\Attachments` through constructor injection:
 
 <!-- php-example {"example":"attachments-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\AttachmentRetention;
-use Greenlight\Core\Artifact\Attachments;
+use Greenlight\Artifact\AttachmentRetention;
+use Greenlight\Artifact\Attachments;
 
 final readonly class CheckoutTest
 {

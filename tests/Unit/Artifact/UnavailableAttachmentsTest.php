@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Artifact\UnavailableAttachments;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Artifact\UnavailableAttachments;
 use Greenlight\Expect\Expect;
 
 final class UnavailableAttachmentsTest

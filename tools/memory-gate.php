@@ -82,7 +82,7 @@ declare(strict_types=1);
 
 namespace MemGate;
 
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Result\TestResult;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\TestContext;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Sends framed messages through one stream socket.

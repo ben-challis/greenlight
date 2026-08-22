@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Message;
+use Greenlight\Test\TestId;
+use Greenlight\Wire\Wire;
 
 /**
  * Tells the orchestrator that a worker started a new attempt for the active test.

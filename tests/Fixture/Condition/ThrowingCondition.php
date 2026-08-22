@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Condition;
 
-use Greenlight\Core\Condition;
+use Greenlight\Condition\Condition;
 use Greenlight\Doubles\Fake;
 
 final class ThrowingCondition implements Condition, Fake

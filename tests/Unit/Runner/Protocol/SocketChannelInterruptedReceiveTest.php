@@ -7,10 +7,10 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 
 final readonly class SocketChannelInterruptedReceiveTest

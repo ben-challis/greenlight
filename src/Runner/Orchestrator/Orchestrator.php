@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Event\WorkerTiming;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\Utf8;
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Event\Event;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\TestStarted;
+use Greenlight\Event\WorkerSpawned;
+use Greenlight\Event\WorkerTiming;
 use Greenlight\Reporting\ReportGenerationFailed;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\Messages\Assign;
@@ -36,6 +33,9 @@ use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\WorkerError;
+use Greenlight\Test\TestId;
+use Greenlight\Wire\Utf8;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Workers request test classes when required. Isolated entries use new

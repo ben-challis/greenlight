@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Export;
 
-use Greenlight\Core\Wire\Utf8;
+use Greenlight\Wire\Utf8;
 
 /**
  * Escapes file-system paths for XML 1.0 attributes.

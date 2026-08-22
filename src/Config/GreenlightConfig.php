@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Core\Test\ResourceName;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
+use Greenlight\Result\ResultPolicy;
+use Greenlight\Test\ResourceName;
 
 /** Collects the configuration that `greenlight.php` returns. */
 final class GreenlightConfig

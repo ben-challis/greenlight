@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 
 /**
  * Observes the orchestrator event stream.

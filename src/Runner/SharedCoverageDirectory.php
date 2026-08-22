@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Exports a temporary coverage directory. drain() restores the previous

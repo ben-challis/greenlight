@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\Event;
 use Greenlight\Doubles\Fake;
+use Greenlight\Event\Event;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\EventRegistry;
 use Greenlight\Runner\Protocol\ProtocolError;

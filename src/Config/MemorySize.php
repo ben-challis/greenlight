@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Core\DecimalInteger;
+use Greenlight\Internal\Text\DecimalInteger;
 
 /**
  * Converts memory-size text to bytes.

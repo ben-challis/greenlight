@@ -15,13 +15,13 @@ use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\DataProvider;
-use Greenlight\Core\Test\ExecutionPolicy;
-use Greenlight\Core\Test\RetryPolicy;
-use Greenlight\Core\Test\SchedulingPolicy;
-use Greenlight\Core\Test\SkipPolicy;
-use Greenlight\Core\Test\TestDefinition;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Test\DataProvider;
+use Greenlight\Test\ExecutionPolicy;
+use Greenlight\Test\RetryPolicy;
+use Greenlight\Test\SchedulingPolicy;
+use Greenlight\Test\SkipPolicy;
+use Greenlight\Test\TestDefinition;
 
 /**
  * Merges class attributes into each method. A method value has priority in a

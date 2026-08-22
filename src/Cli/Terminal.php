@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Checks whether a stream connects to an interactive terminal. The probe does

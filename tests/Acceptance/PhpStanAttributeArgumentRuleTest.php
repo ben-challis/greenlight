@@ -74,7 +74,7 @@ final readonly class PhpStanAttributeArgumentRuleTest
             use Greenlight\Attribute\Test;
             use Greenlight\Attribute\Timeout;
             use Greenlight\Condition\EnvironmentVariableSet;
-            use Greenlight\Core\Condition;
+            use Greenlight\Condition\Condition;
 
             abstract class AbstractCondition implements Condition {}
 

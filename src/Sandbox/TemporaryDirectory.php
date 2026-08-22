@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Sandbox;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Disposable;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Creates one root directory on first use. A path inside it cannot escape the

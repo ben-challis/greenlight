@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Wire\WireSerializable;
 
 /**
  * Each message contains a stable short type tag. Class names do not occur on

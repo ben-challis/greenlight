@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\TtyReporter;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\TerminalEmulator;
 
 final class TtyReporterTest

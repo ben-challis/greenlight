@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Core\DecimalInteger;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Text\DecimalInteger;
 
 /**
  * Uses LINES, then tput, then 24.

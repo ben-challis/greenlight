@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Wire\Utf8;
+use Greenlight\Event\Event;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestFinished;
 use Greenlight\Reporting\Output\Output;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
+use Greenlight\Wire\Utf8;
 
 /**
  * Writes GitHub Actions workflow commands for test failures and errors.

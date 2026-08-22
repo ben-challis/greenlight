@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Runner\Artifact\StreamWriter;

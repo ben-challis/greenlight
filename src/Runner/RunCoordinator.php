@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestSelection;
-use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\RunStarted;
 use Greenlight\Reporting\ReportGenerationFailed;
+use Greenlight\Result\ResultSummary;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Execution\ExecutionAdapter;
 use Greenlight\Runner\Execution\ExecutionContext;
@@ -24,6 +22,8 @@ use Greenlight\Runner\Integration\IntegrationFixtureError;
 use Greenlight\Runner\Integration\IntegrationFixtureManager;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
+use Greenlight\Test\TestSelection;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Coordinates discovery, run-wide resources, lifecycle events, and execution.

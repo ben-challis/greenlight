@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Core\Test\SkipTest;
+use Greenlight\Test\SkipTest;
 
 /**
  * Lets a plugin act before each test attempt in a worker.

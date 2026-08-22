@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\SourceLocation;
 
 final class ExpectationFailedSingleDetailTest
 {

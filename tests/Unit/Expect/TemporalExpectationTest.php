@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Expect\PendingEventually;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\ExpectationCounter;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
 use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
 use Greenlight\Tests\Fixture\Expect\TransientProbeFailure;

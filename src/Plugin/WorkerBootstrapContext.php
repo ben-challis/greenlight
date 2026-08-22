@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Core\Test\TestChannel;
 use Greenlight\Harness\IntegrationResources;
+use Greenlight\Test\TestChannel;
 
 /**
  * Worker-local view of orchestrator-provisioned integration resources.

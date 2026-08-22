@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Worker\LeakDetector;
+use Greenlight\Test\TestId;
 
 final class LeakDetectorTest
 {

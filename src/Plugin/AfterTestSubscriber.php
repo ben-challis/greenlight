@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Result\TestResult;
 
 /**
  * Lets a plugin act after each test attempt in a worker.

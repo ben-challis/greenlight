@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\CpuCores;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Support\FilesystemRestriction;

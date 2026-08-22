@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Test\TestId;
+use Greenlight\Test\TestId;
 
 /**
  * In debug mode, verifies that PHP can collect test instances.

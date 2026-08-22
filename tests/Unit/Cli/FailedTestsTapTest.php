@@ -7,15 +7,15 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\FailedTestsTap;
 use Greenlight\Cli\RunState;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
 
 final readonly class FailedTestsTapTest

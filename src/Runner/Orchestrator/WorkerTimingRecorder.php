@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\Event\WorkerTiming;
+use Greenlight\Event\WorkerTiming;
 
 /**
  * Records orchestrator protocol transitions for one worker process.

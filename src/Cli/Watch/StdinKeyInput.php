@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Watch;
 
 use Greenlight\Cli\Terminal;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Reads available single keys from standard input.

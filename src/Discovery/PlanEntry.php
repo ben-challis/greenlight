@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Greenlight\Core\Test\TestDefinition;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireCommunicationFailed;
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Wire\WireSerializable;
 
 /** @internal */
 final readonly class PlanEntry implements WireSerializable

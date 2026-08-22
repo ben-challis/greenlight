@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Internal\Process;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Expect\Expect;
+use Greenlight\Internal\Process\GracefulShutdown;
+
+final class GracefulShutdownTest
+{
+    #[Test]
+    public function startsWithNothingRequested(): void
+    {
+        $shutdown = new GracefulShutdown();
+
+        Expect::that($shutdown->requested())->because('starts with nothing requested')->toBeFalse();
+        Expect::that($shutdown->exitCode())->because('starts with nothing requested')->toBe(null);
+    }
+
+    #[Test]
+    public function mapsSignalsToConventionalExitCodes(): void
+    {
+        $sigint = new GracefulShutdown();
+        $sigint->request(2);
+
+        Expect::that($sigint->requested())->because('maps signals to conventional exit codes')->toBeTrue();
+        Expect::that($sigint->exitCode())->because('maps signals to conventional exit codes')->toBe(130);
+
+        $sigterm = new GracefulShutdown();
+        $sigterm->request(15);
+
+        Expect::that($sigterm->exitCode())->because('maps signals to conventional exit codes')->toBe(143);
+    }
+
+    #[Test]
+    public function keepsTheFirstSignal(): void
+    {
+        $shutdown = new GracefulShutdown();
+        $shutdown->request(15);
+        $shutdown->request(2);
+
+        Expect::that($shutdown->exitCode())->because('keeps the first signal')->toBe(143);
+    }
+}

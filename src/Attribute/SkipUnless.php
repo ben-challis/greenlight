@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
-use Greenlight\Core\Condition;
+use Greenlight\Condition\Condition;
 
 /**
  * A worker evaluates the condition. Because the worker protocol transfers the

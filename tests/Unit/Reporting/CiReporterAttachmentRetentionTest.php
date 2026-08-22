@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Reporting;
 
+use Greenlight\Artifact\Attachment;
+use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\Attachment;
-use Greenlight\Core\Artifact\AttachmentKind;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestId;
 
 final class CiReporterAttachmentRetentionTest
 {

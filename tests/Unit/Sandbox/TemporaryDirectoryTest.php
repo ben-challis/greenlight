@@ -7,12 +7,12 @@ namespace Greenlight\Tests\Unit\Sandbox;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Sandbox\TemporaryDirectoryError;
+use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\Subprocess;
 

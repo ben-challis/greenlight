@@ -499,7 +499,7 @@ Namespace: `Greenlight\Condition`
 final readonly class ClassAvailable implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L7)
 
 ### `__construct()`
 
@@ -511,7 +511,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L20)
 
 ### `isSatisfied()`
 
@@ -520,7 +520,31 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L29)
+
+## `Condition`
+
+Namespace: `Greenlight\Condition`
+
+A runtime condition that `#[SkipUnless]` references.
+
+Implementations can receive constructor arguments from `#[SkipUnless]`.
+Constructors must only store these arguments. `isSatisfied()` evaluates the
+condition and must not cause other changes.
+
+```php
+interface Condition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/Condition.php#L14)
+
+### `isSatisfied()`
+
+```php
+public function isSatisfied(): bool;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/Condition.php#L16)
 
 ## `EnvironmentVariableEquals`
 
@@ -530,7 +554,7 @@ Namespace: `Greenlight\Condition`
 final readonly class EnvironmentVariableEquals implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L9)
 
 ### `__construct()`
 
@@ -542,7 +566,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L19)
 
 ### `isSatisfied()`
 
@@ -551,7 +575,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L26)
 
 ## `EnvironmentVariableSet`
 
@@ -561,7 +585,7 @@ Namespace: `Greenlight\Condition`
 final readonly class EnvironmentVariableSet implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L9)
 
 ### `__construct()`
 
@@ -573,7 +597,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L19)
 
 ### `isSatisfied()`
 
@@ -582,7 +606,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L26)
 
 ## `ExtensionLoaded`
 
@@ -592,7 +616,7 @@ Namespace: `Greenlight\Condition`
 final readonly class ExtensionLoaded implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L7)
 
 ### `__construct()`
 
@@ -604,7 +628,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L17)
 
 ### `isSatisfied()`
 
@@ -613,7 +637,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L26)
 
 ## `ExtensionMissing`
 
@@ -623,7 +647,7 @@ Namespace: `Greenlight\Condition`
 final readonly class ExtensionMissing implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L7)
 
 ### `__construct()`
 
@@ -635,7 +659,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L17)
 
 ### `isSatisfied()`
 
@@ -644,7 +668,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L26)
 
 ## `FunctionAvailable`
 
@@ -654,7 +678,7 @@ Namespace: `Greenlight\Condition`
 final readonly class FunctionAvailable implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L7)
 
 ### `__construct()`
 
@@ -666,7 +690,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L17)
 
 ### `isSatisfied()`
 
@@ -675,7 +699,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L26)
 
 ## `OperatingSystemFamily`
 
@@ -687,7 +711,7 @@ Compares the value to `PHP_OS_FAMILY` without case sensitivity.
 final readonly class OperatingSystemFamily implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L8)
 
 ### `__construct()`
 
@@ -699,7 +723,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L18)
 
 ### `isSatisfied()`
 
@@ -708,7 +732,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L27)
 
 ## `PhpVersionAtLeast`
 
@@ -718,7 +742,7 @@ Namespace: `Greenlight\Condition`
 final readonly class PhpVersionAtLeast implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L7)
 
 ### `__construct()`
 
@@ -730,7 +754,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L17)
 
 ### `isSatisfied()`
 
@@ -739,7 +763,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L26)
 
 ## `PhpVersionLessThan`
 
@@ -749,7 +773,7 @@ Namespace: `Greenlight\Condition`
 final readonly class PhpVersionLessThan implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L7)
 
 ### `__construct()`
 
@@ -761,7 +785,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L17)
 
 ### `isSatisfied()`
 
@@ -770,4 +794,4 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L26)

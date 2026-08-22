@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RetryDecider;
+use Greenlight\Result\TestResult;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
+use Greenlight\Test\RetryPolicy;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
 

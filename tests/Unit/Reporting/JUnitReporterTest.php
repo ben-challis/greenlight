@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Result\SourceLocation;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Result\SourceLocation;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\SimpleXml;
 
 final class JUnitReporterTest

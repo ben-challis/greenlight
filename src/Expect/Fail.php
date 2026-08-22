@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Test\ExpectationCounter;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Test\ExpectationCounter;
 
 final class Fail
 {

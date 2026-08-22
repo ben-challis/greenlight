@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Greenlight\Core\AtomicFile;
-use Greenlight\Core\AtomicFileError;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Filesystem\AtomicFile;
+use Greenlight\Internal\Filesystem\AtomicFileError;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Stores one discovery cache entry for each file. The path, modification time,

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Plugins;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\RetryPolicy;
+use Greenlight\Event\Event;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\RetryPolicy;
 use Greenlight\Doubles\Fake;
 use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolver;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Result\FailureDetail;
 
 /**
  * Records the result of one poll attempt.

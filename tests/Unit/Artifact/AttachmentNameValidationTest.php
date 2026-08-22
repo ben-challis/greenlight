@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Artifact\StagedAttachment;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\TestId;
 
 final readonly class AttachmentNameValidationTest
 {

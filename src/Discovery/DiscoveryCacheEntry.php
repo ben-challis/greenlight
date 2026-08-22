@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * fromDecoded() examines input JSON. It returns null if a part has an

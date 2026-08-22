@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\ExpectationCounter;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\Fail;
+use Greenlight\Test\ExpectationCounter;
 
 final class FailTest
 {

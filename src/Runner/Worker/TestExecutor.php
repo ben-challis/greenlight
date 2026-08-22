@@ -4,20 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Artifact\Attachments;
+use Greenlight\Artifact\UnavailableAttachments;
 use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Artifact\Attachments;
-use Greenlight\Core\Artifact\UnavailableAttachments;
-use Greenlight\Core\Condition;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\ExpectationCounter;
-use Greenlight\Core\Test\SkipTest;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Condition\Condition;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
@@ -26,10 +18,18 @@ use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\StagedAttachments;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\ExpectationCounter;
+use Greenlight\Test\SkipTest;
+use Greenlight\Test\TestId;
 
 /**
  * Each test attempt can have these operations, in this order:

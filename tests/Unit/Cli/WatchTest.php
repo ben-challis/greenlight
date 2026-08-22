@@ -11,10 +11,10 @@ use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
-use Greenlight\Core\GracefulShutdown;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Cli\FakeWatchClock;
 

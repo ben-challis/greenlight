@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\ReporterSink;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RunStarted;
 use Greenlight\Doubles\Fake;
+use Greenlight\Event\Event;
+use Greenlight\Event\RunStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;

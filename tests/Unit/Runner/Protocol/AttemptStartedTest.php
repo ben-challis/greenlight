@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
+use Greenlight\Test\TestId;
 
 final class AttemptStartedTest
 {

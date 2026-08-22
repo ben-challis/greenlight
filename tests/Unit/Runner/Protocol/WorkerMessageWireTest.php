@@ -6,12 +6,12 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\ResultSummary;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Done;
 use Greenlight\Runner\Protocol\Messages\Hello;
+use Greenlight\Test\TestId;
 
 final class WorkerMessageWireTest
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 
 /**
  * A destination for execution events.

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\DataProvider;
-use Greenlight\Core\Test\TestDefinition;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\DataProvider;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 use Greenlight\Tests\Support\PlanEntryFixture;
 

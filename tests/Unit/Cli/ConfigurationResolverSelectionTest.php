@@ -11,11 +11,11 @@ use Greenlight\Cli\ConfigurationResolver;
 use Greenlight\Cli\ExecutionOverrides;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\ResolvedConfiguration;
-use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Core\Test\TestExclusions;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\ResultPolicy;
+use Greenlight\Test\TestExclusions;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 
 final readonly class ConfigurationResolverSelectionTest
 {

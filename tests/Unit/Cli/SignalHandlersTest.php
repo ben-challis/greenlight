@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\SignalHandlers;
-use Greenlight\Core\GracefulShutdown;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Tests\Fixture\Cli\RecordingSignalOperations;
 
 final class SignalHandlersTest

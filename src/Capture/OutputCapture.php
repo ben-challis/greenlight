@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Capture;
 
-use Greenlight\Core\ErrorHandlerStack;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\CapturedOutput;
-use Greenlight\Core\Result\Diagnostic;
-use Greenlight\Core\Result\DiagnosticSeverity;
-use Greenlight\Core\Wire\Utf8;
+use Greenlight\Internal\Php\ErrorHandlerStack;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Result\CapturedOutput;
+use Greenlight\Result\Diagnostic;
+use Greenlight\Result\DiagnosticSeverity;
+use Greenlight\Wire\Utf8;
 
 /**
  * Direct writes to stream resources bypass output capture. Examples include

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireCommunicationFailed;
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Wire\WireSerializable;
 
 /**
  * Identifies the private attachment staging area of a run for a worker.

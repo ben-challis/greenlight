@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Worker\EventSink;
 

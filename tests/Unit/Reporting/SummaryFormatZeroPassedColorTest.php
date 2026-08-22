@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\SummaryFormat;
+use Greenlight\Result\ResultSummary;
 
 final class SummaryFormatZeroPassedColorTest
 {

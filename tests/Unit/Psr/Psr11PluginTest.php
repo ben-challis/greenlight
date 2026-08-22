@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Psr;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
@@ -16,6 +15,7 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Psr\Psr11BridgeError;
 use Greenlight\Psr\Psr11Plugin;
 use Greenlight\Psr\Service;
+use Greenlight\Result\TestResult;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\Psr\ArrayContainer;
 use Greenlight\Tests\Support\Psr\Greeter;

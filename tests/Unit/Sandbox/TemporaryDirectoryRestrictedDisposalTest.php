@@ -31,7 +31,7 @@ final readonly class TemporaryDirectoryRestrictedDisposalTest
                 }
 
                 try {
-                    Greenlight\Core\ErrorTrap::run(
+                    Greenlight\Internal\Php\ErrorTrap::run(
                         static function () use ($directory) {
                             $directory->dispose();
                         },

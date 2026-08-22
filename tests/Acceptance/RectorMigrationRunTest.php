@@ -180,7 +180,7 @@ final readonly class RectorMigrationRunTest
             ->toContain('\Greenlight\Expect\Expect::that($this->rates)->not()->toBeNull();')
             ->toContain('\Greenlight\Expect\Expect::that(0.1 + 0.2)->toBeWithin(0.001, 0.3);')
             ->toContain("\Greenlight\Expect\Expect::that(fn() => \$this->divide(-1))->toThrow(\InvalidArgumentException::class, matching: '/negative/');")
-            ->toContain("throw new \Greenlight\Core\Test\SkipTest('no smtp server');")
+            ->toContain("throw new \Greenlight\Test\SkipTest('no smtp server');")
             ->toContain("\Greenlight\Expect\Fail::because('unsupported platform');")
             ->not()->toContain('#[CoversClass')
             ->not()->toContain('expectNotToPerformAssertions');

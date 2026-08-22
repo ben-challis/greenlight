@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Condition;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Condition\Condition;
+use Greenlight\Result\Outcome;
+use Greenlight\Test\TestId;
 
 /**
  * A worker cannot complete an assigned test or plugin lifecycle operation.

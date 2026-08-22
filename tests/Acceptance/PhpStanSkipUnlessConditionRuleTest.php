@@ -28,7 +28,7 @@ final readonly class PhpStanSkipUnlessConditionRuleTest
             namespace GreenlightSkipUnlessConditionProbe;
 
             use Greenlight\Attribute\SkipUnless;
-            use Greenlight\Core\Condition;
+            use Greenlight\Condition\Condition;
 
             final readonly class GoodCondition implements Condition
             {
@@ -51,7 +51,7 @@ final readonly class PhpStanSkipUnlessConditionRuleTest
             namespace GreenlightSkipUnlessConditionProbe;
 
             use Greenlight\Attribute\SkipUnless;
-            use Greenlight\Core\Condition;
+            use Greenlight\Condition\Condition;
 
             final readonly class TwoArgumentsCondition implements Condition
             {

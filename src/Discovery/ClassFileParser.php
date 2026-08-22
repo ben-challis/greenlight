@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 use Greenlight\Attribute\CoverageIgnore;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Uses the tokenizer to get class-like declarations from a PHP file.

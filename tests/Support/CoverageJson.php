@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Php\ErrorTrap;
 
 final class CoverageJson
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Test\TestId;
 
 /** @internal */
 final readonly class WorkerRunOutcome

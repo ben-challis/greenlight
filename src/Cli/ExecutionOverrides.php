@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\WorkerCount;
-use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Result\ResultPolicy;
 
 /**
  * Contains command-line values that override execution settings.

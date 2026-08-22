@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
-use Greenlight\Core\GracefulShutdown;
+use Greenlight\Internal\Process\GracefulShutdown;
 
 /**
  * Controls watch mode. It starts with one run and then runs after groups of file changes.

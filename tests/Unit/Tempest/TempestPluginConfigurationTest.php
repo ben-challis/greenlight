@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Tempest;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Result\TestResult;
 use Greenlight\Tempest\TempestPlugin;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Tempest\Container\Container;

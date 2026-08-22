@@ -8,7 +8,7 @@ These signatures are the public API.
 
 ## `CapturedOutput`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 When output is too long, Greenlight keeps the first part. This part usually
 identifies the cause. The last part usually contains repeated information.
@@ -19,7 +19,7 @@ Greenlight converts standard output to valid UTF-8 before it crosses the wire.
 final readonly class CapturedOutput implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L17)
 
 ### `$diagnostics`
 
@@ -31,7 +31,7 @@ PHPDoc:
 
 - `@var list<Diagnostic>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L22)
 
 ### `$stdout`
 
@@ -39,7 +39,7 @@ PHPDoc:
 public string $stdout
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L30)
 
 ### `$stdoutTruncated`
 
@@ -47,7 +47,7 @@ public string $stdout
 public bool $stdoutTruncated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L32)
 
 ### `$diagnosticsTruncated`
 
@@ -55,7 +55,7 @@ public bool $stdoutTruncated
 public bool $diagnosticsTruncated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L33)
 
 ### `__construct()`
 
@@ -73,7 +73,7 @@ PHPDoc:
 - `@param array<mixed> $diagnostics`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L29)
 
 ### `toWire()`
 
@@ -82,7 +82,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L50)
 
 ### `fromWire()`
 
@@ -91,11 +91,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/CapturedOutput.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L64)
 
 ## `Diagnostic`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 Greenlight converts the message and file to valid UTF-8 before the
 diagnostic crosses the wire. These values originate in user code.
@@ -105,7 +105,7 @@ The line number is greater than zero.
 final readonly class Diagnostic implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L16)
 
 ### `$line`
 
@@ -117,7 +117,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L21)
 
 ### `$severity`
 
@@ -125,7 +125,7 @@ PHPDoc:
 public DiagnosticSeverity $severity
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L27)
 
 ### `$message`
 
@@ -133,7 +133,7 @@ public DiagnosticSeverity $severity
 public string $message
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L28)
 
 ### `$file`
 
@@ -141,7 +141,7 @@ public string $message
 public string $file
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L29)
 
 ### `__construct()`
 
@@ -158,7 +158,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L26)
 
 ### `toWire()`
 
@@ -167,7 +167,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L39)
 
 ### `fromWire()`
 
@@ -176,11 +176,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Diagnostic.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L50)
 
 ## `DiagnosticSeverity`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 Greenlight captures only notices, warnings, and deprecations. PHP uses its
 default behavior for all other error levels.
@@ -189,7 +189,7 @@ default behavior for all other error levels.
 enum DiagnosticSeverity: string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/DiagnosticSeverity.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/DiagnosticSeverity.php#L11)
 
 ### `Notice`
 
@@ -197,7 +197,7 @@ enum DiagnosticSeverity: string
 case Notice = 'notice';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/DiagnosticSeverity.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/DiagnosticSeverity.php#L13)
 
 ### `Warning`
 
@@ -205,7 +205,7 @@ case Notice = 'notice';
 case Warning = 'warning';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/DiagnosticSeverity.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/DiagnosticSeverity.php#L14)
 
 ### `Deprecation`
 
@@ -213,7 +213,7 @@ case Warning = 'warning';
 case Deprecation = 'deprecation';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/DiagnosticSeverity.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/DiagnosticSeverity.php#L15)
 
 ### `fromErrorLevel()`
 
@@ -225,11 +225,11 @@ Returns null if Greenlight cannot capture the diagnostic.
 public static function fromErrorLevel(int $level): ?self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/DiagnosticSeverity.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/DiagnosticSeverity.php#L22)
 
 ## `FailureDetail`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 Expected and actual are strings that the worker renders. Live values never
 cross the process boundary.
@@ -238,7 +238,7 @@ cross the process boundary.
 final readonly class FailureDetail implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L14)
 
 ### `$message`
 
@@ -250,7 +250,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L19)
 
 ### `$expected`
 
@@ -258,7 +258,7 @@ PHPDoc:
 public ?string $expected
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L26)
 
 ### `$actual`
 
@@ -266,7 +266,7 @@ public ?string $expected
 public ?string $actual
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L27)
 
 ### `$location`
 
@@ -274,7 +274,7 @@ public ?string $actual
 public ?SourceLocation $location
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L28)
 
 ### `__construct()`
 
@@ -291,7 +291,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L24)
 
 ### `toWire()`
 
@@ -300,7 +300,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L37)
 
 ### `fromWire()`
 
@@ -309,11 +309,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/FailureDetail.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L48)
 
 ## `Outcome`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 A retried test has exactly one of these final outcomes. `TestResult` contains
 the attempt count.
@@ -322,7 +322,7 @@ the attempt count.
 enum Outcome: string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Outcome.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Outcome.php#L11)
 
 ### `Passed`
 
@@ -330,7 +330,7 @@ enum Outcome: string
 case Passed = 'passed';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Outcome.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Outcome.php#L13)
 
 ### `Failed`
 
@@ -338,7 +338,7 @@ case Passed = 'passed';
 case Failed = 'failed';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Outcome.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Outcome.php#L14)
 
 ### `Errored`
 
@@ -346,7 +346,7 @@ case Failed = 'failed';
 case Errored = 'errored';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Outcome.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Outcome.php#L15)
 
 ### `Skipped`
 
@@ -354,7 +354,7 @@ case Errored = 'errored';
 case Skipped = 'skipped';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Outcome.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Outcome.php#L16)
 
 ### `isSuccessful()`
 
@@ -362,11 +362,11 @@ case Skipped = 'skipped';
 public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/Outcome.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Outcome.php#L18)
 
 ## `OutcomeTransformation`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 Records the source of a plugin change to a test outcome.
 
@@ -374,7 +374,7 @@ Records the source of a plugin change to a test outcome.
 final readonly class OutcomeTransformation implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L11)
 
 ### `$transformedBy`
 
@@ -386,7 +386,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L16)
 
 ### `$from`
 
@@ -394,7 +394,7 @@ PHPDoc:
 public Outcome $from
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L23)
 
 ### `$to`
 
@@ -402,7 +402,7 @@ public Outcome $from
 public Outcome $to
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L24)
 
 ### `__construct()`
 
@@ -418,7 +418,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L21)
 
 ### `toWire()`
 
@@ -427,7 +427,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L33)
 
 ### `fromWire()`
 
@@ -436,11 +436,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/OutcomeTransformation.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L43)
 
 ## `ResultSummary`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 Aggregate outcome counts for a run.
 
@@ -448,7 +448,7 @@ Aggregate outcome counts for a run.
 final readonly class ResultSummary implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L11)
 
 ### `$passed`
 
@@ -460,7 +460,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L16)
 
 ### `$failed`
 
@@ -472,7 +472,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L21)
 
 ### `$errored`
 
@@ -484,7 +484,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L26)
 
 ### `$skipped`
 
@@ -496,7 +496,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L31)
 
 ### `__construct()`
 
@@ -513,7 +513,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L36)
 
 ### `add()`
 
@@ -521,7 +521,7 @@ PHPDoc:
 public function add(Outcome $outcome): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L64)
 
 ### `total()`
 
@@ -533,7 +533,7 @@ PHPDoc:
 
 - `@return non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L77)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L77)
 
 ### `isSuccessful()`
 
@@ -541,7 +541,7 @@ PHPDoc:
 public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L82)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L82)
 
 ### `toWire()`
 
@@ -550,7 +550,7 @@ public function isSuccessful(): bool
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L107)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L107)
 
 ### `fromWire()`
 
@@ -559,17 +559,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ResultSummary.php#L118)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L118)
 
 ## `SourceLocation`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 ```php
 final readonly class SourceLocation implements WireSerializable, \Stringable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L10)
 
 ### `$file`
 
@@ -581,7 +581,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L15)
 
 ### `$line`
 
@@ -593,7 +593,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L20)
 
 ### `__construct()`
 
@@ -605,7 +605,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L25)
 
 ### `__toString()`
 
@@ -614,7 +614,7 @@ PHPDoc:
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L39)
 
 ### `toWire()`
 
@@ -623,7 +623,7 @@ public function __toString(): string
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L45)
 
 ### `fromWire()`
 
@@ -632,11 +632,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/SourceLocation.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L54)
 
 ## `TestResult`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 A plugin does not change a result object. It uses `withOutcome()` to produce
 a replacement and record the source of the change.
@@ -650,7 +650,7 @@ Old wire payloads without this field decode to zero.
 final readonly class TestResult implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L22)
 
 ### `$attempts`
 
@@ -662,7 +662,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L27)
 
 ### `$expectations`
 
@@ -674,7 +674,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L32)
 
 ### `$id`
 
@@ -682,7 +682,7 @@ PHPDoc:
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L42)
 
 ### `$outcome`
 
@@ -690,7 +690,7 @@ public TestId $id
 public Outcome $outcome
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L43)
 
 ### `$durationSeconds`
 
@@ -698,7 +698,7 @@ public Outcome $outcome
 public float $durationSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L44)
 
 ### `$memoryDeltaBytes`
 
@@ -706,7 +706,7 @@ public float $durationSeconds
 public int $memoryDeltaBytes
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L45)
 
 ### `$failures`
 
@@ -714,7 +714,7 @@ public int $memoryDeltaBytes
 public array $failures
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L47)
 
 ### `$error`
 
@@ -722,7 +722,7 @@ public array $failures
 public ?ThrowableDetail $error
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L48)
 
 ### `$skipReason`
 
@@ -730,7 +730,7 @@ public ?ThrowableDetail $error
 public ?string $skipReason
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L49)
 
 ### `$transformations`
 
@@ -738,7 +738,7 @@ public ?string $skipReason
 public array $transformations
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L50)
 
 ### `$output`
 
@@ -746,7 +746,7 @@ public array $transformations
 public ?CapturedOutput $output
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L51)
 
 ### `$risky`
 
@@ -754,7 +754,7 @@ public ?CapturedOutput $output
 public bool $risky
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L52)
 
 ### `$attachments`
 
@@ -762,7 +762,7 @@ public bool $risky
 public array $attachments
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L54)
 
 ### `__construct()`
 
@@ -791,7 +791,7 @@ PHPDoc:
 - `@param list<Attachment> $attachments`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L41)
 
 ### `withOutcome()`
 
@@ -803,7 +803,7 @@ PHPDoc:
 
 - `@param non-empty-string $transformedBy`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L75)
 
 ### `toWire()`
 
@@ -812,7 +812,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L216)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L216)
 
 ### `fromWire()`
 
@@ -821,11 +821,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/TestResult.php#L242)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L242)
 
 ## `ThrowableDetail`
 
-Namespace: `Greenlight\Core\Result`
+Namespace: `Greenlight\Result`
 
 Limits stack frames so a deep trace cannot make the wire payload too large.
 
@@ -833,7 +833,7 @@ Limits stack frames so a deep trace cannot make the wire payload too large.
 final readonly class ThrowableDetail implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L12)
 
 ### `$class`
 
@@ -845,7 +845,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L19)
 
 ### `$file`
 
@@ -857,7 +857,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L24)
 
 ### `$line`
 
@@ -869,7 +869,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L29)
 
 ### `$message`
 
@@ -877,7 +877,7 @@ PHPDoc:
 public string $message
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L38)
 
 ### `$stackFrames`
 
@@ -885,7 +885,7 @@ public string $message
 public array $stackFrames
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L41)
 
 ### `__construct()`
 
@@ -904,7 +904,7 @@ PHPDoc:
 - `@param list<string> $stackFrames`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L36)
 
 ### `fromThrowable()`
 
@@ -912,7 +912,7 @@ PHPDoc:
 public static function fromThrowable(\Throwable $throwable): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L60)
 
 ### `toWire()`
 
@@ -921,7 +921,7 @@ public static function fromThrowable(\Throwable $throwable): self
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L94)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L94)
 
 ### `fromWire()`
 
@@ -930,4 +930,4 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Result/ThrowableDetail.php#L106)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L106)

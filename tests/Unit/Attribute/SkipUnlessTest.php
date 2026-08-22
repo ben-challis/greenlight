@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\Condition;
 use Greenlight\Condition\EnvironmentVariableSet;
-use Greenlight\Core\Condition;
 use Greenlight\Expect\Expect;
 
 final class SkipUnlessTest

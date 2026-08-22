@@ -38,7 +38,7 @@ final readonly class ApplicationCoverageCleanupTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Core\Event\Event;
+            use Greenlight\Event\Event;
             use Greenlight\Plugin\RunLifecycleSubscriber;
             use Greenlight\Reporting\ReportGenerationFailed;
 

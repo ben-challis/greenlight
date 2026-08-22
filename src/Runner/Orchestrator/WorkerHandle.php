@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Wire\Utf8;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Wire\Utf8;
 
 /**
  * Owns one native worker process, its protocol channel, and diagnostics.

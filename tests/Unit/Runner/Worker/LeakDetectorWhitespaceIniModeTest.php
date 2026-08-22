@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class LeakDetectorWhitespaceIniModeTest

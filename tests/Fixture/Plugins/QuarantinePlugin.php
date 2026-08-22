@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Plugins;
 
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\TestContext;

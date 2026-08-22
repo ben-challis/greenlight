@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Result\FailureDetail;
 
 /**
  * Represents one matcher call that a temporal expectation repeats.

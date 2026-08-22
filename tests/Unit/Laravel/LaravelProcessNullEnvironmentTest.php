@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Laravel;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Process\EnvironmentBackup;
 use Greenlight\Laravel\LaravelProcessState;
 use Illuminate\Foundation\Application as LaravelApplication;
 

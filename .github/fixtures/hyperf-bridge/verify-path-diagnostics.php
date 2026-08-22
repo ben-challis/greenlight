@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Greenlight\Core\Test\TestChannel;
+use Greenlight\Test\TestChannel;
 use Greenlight\Harness\IntegrationResources;
 use Greenlight\Hyperf\HyperfBridgeError;
 use Greenlight\Hyperf\HyperfPlugin;

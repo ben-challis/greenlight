@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\RetryPolicy;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RetryPlugin;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\RetryPolicy;
+use Greenlight\Test\TestId;
 
 final class RetryPluginInheritanceTest
 {

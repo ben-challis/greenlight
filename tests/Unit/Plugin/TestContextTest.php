@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Plugin;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Test\SkipTest;
-use Greenlight\Core\Test\TestDefinition;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
@@ -16,6 +13,9 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Test\SkipTest;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 
 final class TestContextTest
 {

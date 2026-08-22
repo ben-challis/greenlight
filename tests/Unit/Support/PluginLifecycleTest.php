@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\Outcome;
 use Greenlight\Tests\Support\PluginLifecycle;
 
 final readonly class PluginLifecycleTest

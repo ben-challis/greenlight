@@ -6,12 +6,12 @@ namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\SkipTest;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Driver\XdebugDriver;
 use Greenlight\Coverage\PathFilter;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Fixture\Coverage\Adder;
 use Greenlight\Tests\Fixture\Coverage\FakeXdebugRuntime;
 use Greenlight\Tests\Support\ClassFile;

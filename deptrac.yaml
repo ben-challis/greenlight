@@ -13,10 +13,38 @@ deptrac:
       - function_superglobal
 
   layers:
-    - name: Core
+    - name: Wire
       collectors:
         - type: directory
-          value: src/Core/.*
+          value: src/Wire/.*
+    - name: InternalFilesystem
+      collectors:
+        - type: directory
+          value: src/Internal/Filesystem/.*
+    - name: InternalText
+      collectors:
+        - type: directory
+          value: src/Internal/Text/.*
+    - name: InternalProcess
+      collectors:
+        - type: directory
+          value: src/Internal/Process/.*
+    - name: InternalPhp
+      collectors:
+        - type: directory
+          value: src/Internal/Php/.*
+    - name: Artifact
+      collectors:
+        - type: directory
+          value: src/Artifact/.*
+    - name: Result
+      collectors:
+        - type: directory
+          value: src/Result/.*
+    - name: Event
+      collectors:
+        - type: directory
+          value: src/Event/.*
     - name: Attribute
       collectors:
         - type: directory
@@ -165,31 +193,38 @@ deptrac:
           value: /^Symplify\\RuleDocGenerator\\/
 
   ruleset:
-    Core: []
-    Attribute: [Core]
-    Condition: [Core]
-    Test: []
-    Config: [Core, Plugin]
-    Discovery: [Core, Attribute]
-    Expect: [Core, Plugin]
-    Capture: [Core]
-    Harness: [Core]
-    Doubles: [Core, Expect, Harness]
-    Sandbox: [Core, Harness]
-    Coverage: [Core]
-    Plugin: [Core, Harness, Reporting]
-    Reporting: [Core]
-    Runner: [Core, Attribute, Test, Config, Discovery, Expect, Capture, Harness, Doubles, Sandbox, Coverage, Plugin, Reporting, CpuCoreCounter]
-    Cli: [Core, Config, Coverage, Discovery, Plugin, Reporting, Runner, PhpStan]
-    PhpStan: [Core, Attribute, Config, Doubles, Expect, PhpStanFramework, PhpParserFramework]
-    Rector: [Core, Attribute, Condition, Expect, PhpParserFramework, RectorFramework]
+    Wire: []
+    InternalFilesystem: [InternalPhp]
+    InternalText: []
+    InternalProcess: []
+    InternalPhp: []
+    Artifact: [Wire]
+    Test: [InternalText, Wire]
+    Condition: [InternalProcess]
+    Result: [Artifact, InternalText, Test, Wire]
+    Event: [Result, Test, Wire]
+    Attribute: [Condition, Test]
+    Config: [InternalPhp, InternalText, Plugin, Result, Test, Wire]
+    Discovery: [Attribute, InternalFilesystem, InternalPhp, Test, Wire]
+    Expect: [InternalPhp, Plugin, Result, Test, Wire]
+    Capture: [InternalPhp, Result, Wire]
+    Harness: [Wire]
+    Doubles: [Expect, Harness, InternalFilesystem, InternalPhp, Result, Test]
+    Sandbox: [Harness, InternalPhp, InternalProcess]
+    Coverage: [InternalPhp, Wire]
+    Plugin: [Artifact, Event, Harness, Reporting, Result, Test]
+    Reporting: [Artifact, Event, InternalPhp, Result, Test, Wire]
+    Runner: [Artifact, Attribute, Capture, Condition, Config, Coverage, Discovery, Doubles, Event, Expect, Harness, InternalPhp, InternalProcess, InternalText, Plugin, Reporting, Result, Sandbox, Test, Wire, CpuCoreCounter]
+    Cli: [Artifact, Config, Coverage, Discovery, Event, InternalFilesystem, InternalPhp, InternalProcess, InternalText, PhpStan, Plugin, Reporting, Result, Runner, Test, Wire]
+    PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
+    Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []
-    Symfony: [Core, Harness, Plugin, SymfonyFramework]
-    Laravel: [Core, Harness, Plugin, LaravelFramework]
-    Hyperf: [Core, Harness, Plugin, HyperfFramework, PsrFramework, SwooleFramework, ComposerRuntime]
-    Psr: [Core, Harness, Plugin, PsrFramework]
+    Symfony: [Harness, Plugin, Result, SymfonyFramework]
+    Laravel: [Harness, InternalPhp, InternalProcess, Plugin, Result, LaravelFramework]
+    Hyperf: [Harness, InternalPhp, Plugin, HyperfFramework, PsrFramework, SwooleFramework, ComposerRuntime]
+    Psr: [Harness, Plugin, Result, PsrFramework]
     Psr15: [Harness, Plugin, PsrHttpFramework]
-    Tempest: [Core, Harness, Plugin, TempestFramework]
+    Tempest: [Harness, InternalProcess, Plugin, Result, Test, TempestFramework]
     PhpStanFramework: []
     SymfonyFramework: []
     LaravelFramework: []

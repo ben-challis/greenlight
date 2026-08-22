@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Core\EnvironmentBackup;
-use Greenlight\Core\GracefulShutdown;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\TestChannel;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Internal\Process\EnvironmentBackup;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\PublishingEventSink;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
@@ -20,6 +19,7 @@ use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerError;
+use Greenlight\Test\TestChannel;
 
 /**
  * Executes a plan in the orchestrator process.

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Reporting;
 
-use Greenlight\Core\Event\Event;
 use Greenlight\Doubles\Fake;
+use Greenlight\Event\Event;
 use Greenlight\Reporting\Reporter;
 
 final class RecordingReporter implements Reporter, Fake

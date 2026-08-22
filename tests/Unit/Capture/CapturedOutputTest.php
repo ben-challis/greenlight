@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Capture;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\CapturedOutput;
-use Greenlight\Core\Result\Diagnostic;
-use Greenlight\Core\Result\DiagnosticSeverity;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\CapturedOutput;
+use Greenlight\Result\Diagnostic;
+use Greenlight\Result\DiagnosticSeverity;
 use Greenlight\Tests\Support\JsonWire;
+use Greenlight\Wire\InvalidWirePayload;
 
 final class CapturedOutputTest
 {

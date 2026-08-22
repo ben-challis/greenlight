@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Export;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Uses the PHP tokenizer to keep multiline constructs valid in highlighted

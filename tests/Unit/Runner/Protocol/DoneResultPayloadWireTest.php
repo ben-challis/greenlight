@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\ResultSummary;
 use Greenlight\Runner\Protocol\Messages\Done;
 
 final readonly class DoneResultPayloadWireTest

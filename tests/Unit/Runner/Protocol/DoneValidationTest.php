@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\ResultSummary;
 use Greenlight\Runner\Protocol\Messages\Done;
 
 final readonly class DoneValidationTest

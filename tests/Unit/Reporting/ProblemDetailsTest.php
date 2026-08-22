@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Reporting;
 
+use Greenlight\Artifact\Attachment;
+use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Artifact\Attachment;
-use Greenlight\Core\Artifact\AttachmentKind;
-use Greenlight\Core\Result\CapturedOutput;
-use Greenlight\Core\Result\Diagnostic;
-use Greenlight\Core\Result\DiagnosticSeverity;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\OutcomeTransformation;
-use Greenlight\Core\Result\SourceLocation;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ProblemDetails;
+use Greenlight\Result\CapturedOutput;
+use Greenlight\Result\Diagnostic;
+use Greenlight\Result\DiagnosticSeverity;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\OutcomeTransformation;
+use Greenlight\Result\SourceLocation;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
+use Greenlight\Test\TestId;
 
 final class ProblemDetailsTest
 {

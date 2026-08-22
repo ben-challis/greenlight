@@ -6,15 +6,12 @@ namespace Greenlight\Runner\Worker;
 
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Config\ConfigLoader;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\TestChannel;
-use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\ChannelEnvironment;
@@ -33,6 +30,9 @@ use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;
+use Greenlight\Test\TestChannel;
+use Greenlight\Test\TestId;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * The hidden __worker command has no compatibility guarantee.

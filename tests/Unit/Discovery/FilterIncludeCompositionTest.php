@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 
 final class FilterIncludeCompositionTest
 {

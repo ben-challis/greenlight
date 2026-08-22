@@ -6,12 +6,12 @@ namespace Greenlight\Cli;
 
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\WorkerCount;
-use Greenlight\Core\DecimalInteger;
-use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Core\Test\ResourceName;
-use Greenlight\Core\Test\TestExclusions;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
+use Greenlight\Internal\Text\DecimalInteger;
+use Greenlight\Result\ResultPolicy;
+use Greenlight\Test\ResourceName;
+use Greenlight\Test\TestExclusions;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 
 /**
  * Contains validated command-line values grouped by their consumer.

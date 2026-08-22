@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\Fail;
+use Greenlight\Result\FailureDetail;
 
 final class FailureProbe
 {

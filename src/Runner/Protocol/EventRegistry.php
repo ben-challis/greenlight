@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 use Greenlight\Attribute\CoverageIgnore;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\EventTags;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Event\Event;
+use Greenlight\Event\EventTags;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /** @internal */
 final class EventRegistry

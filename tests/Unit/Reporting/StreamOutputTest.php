@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Sandbox\StreamWrappers;

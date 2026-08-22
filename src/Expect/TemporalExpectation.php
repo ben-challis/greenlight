@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\SourceLocation;
-use Greenlight\Core\Test\ExpectationCounter;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\SourceLocation;
+use Greenlight\Test\ExpectationCounter;
 
 /**
  * Contains the matcher dispatch and probe operations for eventual and

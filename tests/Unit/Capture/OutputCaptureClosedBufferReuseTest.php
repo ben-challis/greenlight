@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Capture\OutputCapture;
-use Greenlight\Core\Result\CapturedOutput;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\CapturedOutput;
 
 final readonly class OutputCaptureClosedBufferReuseTest
 {

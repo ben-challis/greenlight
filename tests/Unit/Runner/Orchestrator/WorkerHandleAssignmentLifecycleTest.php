@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\ResultSummary;
 use Greenlight\Runner\Orchestrator\ResourceLease;
 use Greenlight\Runner\Orchestrator\SchedulingUnit;
 use Greenlight\Runner\Orchestrator\WorkerState;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class WorkerHandleAssignmentLifecycleTest

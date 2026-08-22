@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RunStarted;
 use Greenlight\Doubles\Fake;
+use Greenlight\Event\Event;
+use Greenlight\Event\RunStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RunLifecycleSubscriber;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Artifact\Attachment;
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Artifact\Attachment;
+use Greenlight\Result\TestResult;
 
 /**
  * Produces bounded attachment metadata text for reporters.

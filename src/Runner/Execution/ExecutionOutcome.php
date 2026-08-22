@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Core\Event\WorkerTiming;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Event\WorkerTiming;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Test\TestId;
 
 /**
  * Contains the execution data that the run coordinator publishes and returns.

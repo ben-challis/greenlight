@@ -8,8 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Capture\CaptureError;
 use Greenlight\Capture\OutputCapture;
-use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\DiagnosticSeverity;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\Subprocess;
 

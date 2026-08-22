@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Fixture\Lifecycle\CleanupFailures;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Test\Cleanup;
-use Greenlight\Core\Test\SkipTest;
+use Greenlight\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 
