@@ -9,7 +9,6 @@ use Greenlight\Core\Result\Diagnostic;
 use Greenlight\Core\Result\DiagnosticSeverity;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Wire\Utf8;
-use Greenlight\Core\Wire\Utf8Error;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
 
@@ -31,30 +30,6 @@ final class Utf8Test
         Expect::that($scrubbed)
             ->because('each invalid UTF-8 sequence MUST become a replacement character')
             ->toBe("bad \u{FFFD}1 bytes");
-    }
-
-    #[Test]
-    public function jsonConversionErrorsPreserveTheirCause(): void
-    {
-        $cause = new \JsonException('JSON operation failed');
-        $error = Utf8Error::jsonConversionFailed($cause);
-
-        Expect::that($error->getMessage())
-            ->because('the conversion error MUST explain the JSON failure')
-            ->toBe('Cannot convert the string to valid UTF-8: JSON operation failed.');
-        Expect::that($error->getPrevious())
-            ->because('the conversion error MUST preserve the JSON failure')
-            ->toBe($cause);
-    }
-
-    #[Test]
-    public function unexpectedJsonTypesProduceAConversionError(): void
-    {
-        $error = Utf8Error::unexpectedDecodedType(null);
-
-        Expect::that($error->getMessage())
-            ->because('the conversion error MUST identify an unexpected JSON result type')
-            ->toBe('Cannot convert the string to valid UTF-8: JSON returned null instead of a string.');
     }
 
     #[Test]

@@ -18,9 +18,6 @@ final class Utf8
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    /**
-     * @throws Utf8Error
-     */
     public static function headBytes(string $value, int $maxBytes): string
     {
         if ($maxBytes < 0) {
@@ -46,9 +43,6 @@ final class Utf8
         return $bounded;
     }
 
-    /**
-     * @throws Utf8Error
-     */
     public static function tailBytes(string $value, int $maxBytes): string
     {
         if ($maxBytes < 0) {
@@ -74,29 +68,18 @@ final class Utf8
         return $bounded;
     }
 
-    /**
-     * @throws Utf8Error
-     */
     public static function scrub(string $value): string
     {
         if (\preg_match('//u', $value) === 1) {
             return $value;
         }
 
-        try {
-            $encoded = \json_encode(
-                $value,
-                \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR,
-            );
-            $decoded = \json_decode($encoded, flags: \JSON_THROW_ON_ERROR);
-        } catch (\JsonException $error) {
-            throw Utf8Error::jsonConversionFailed($error);
-        }
+        $encoded = \json_encode(
+            $value,
+            \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR,
+        );
+        $decoded = \json_decode($encoded, flags: \JSON_THROW_ON_ERROR);
 
-        if (!\is_string($decoded)) {
-            throw Utf8Error::unexpectedDecodedType($decoded);
-        }
-
-        return $decoded;
+        return \is_string($decoded) ? $decoded : '(unrepresentable binary string)';
     }
 }
