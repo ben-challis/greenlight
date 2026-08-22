@@ -177,7 +177,9 @@ final readonly class Psr15RunTest
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->plugins(new Psr15Plugin(MezzioHandlerFactory::create(...)));
+                ->plugins(
+                    static fn(): Psr15Plugin => new Psr15Plugin(MezzioHandlerFactory::create(...)),
+                );
 
             PHP);
 

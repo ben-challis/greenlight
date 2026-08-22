@@ -220,7 +220,9 @@ final readonly class TempestRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new TempestPlugin(__DIR__));
+                ->plugins(
+                    static fn(): TempestPlugin => new TempestPlugin(__DIR__),
+                );
             PHP);
 
         return $project;

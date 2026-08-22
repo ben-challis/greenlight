@@ -14,9 +14,9 @@ use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Config\WatchConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\Plugin;
+use Greenlight\Plugin\PluginDefinition;
+use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 
 final class ConfigurationCopyStateTest
 {
@@ -75,7 +75,9 @@ final class ConfigurationCopyStateTest
 
     private function configuration(): Configuration
     {
-        $plugin = new class implements Plugin, Fake {};
+        $plugin = PluginDefinition::fromFactory(
+            static fn(): NamedFakePlugin => new NamedFakePlugin(),
+        );
 
         return new Configuration(
             paths: ['/project/tests'],

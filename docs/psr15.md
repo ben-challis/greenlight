@@ -27,7 +27,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/tests'])
-    ->plugins(new Psr15Plugin(
+    ->plugins(static fn(): Psr15Plugin => new Psr15Plugin(
         static fn(): RequestHandlerInterface => require __DIR__ . '/bootstrap/http.php',
     ));
 ```

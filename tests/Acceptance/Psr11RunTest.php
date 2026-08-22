@@ -123,13 +123,15 @@ final readonly class Psr11RunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new Psr11Plugin(
-                    static fn(): ContainerInterface => new ArrayContainer([
-                        Greeter::class => new Greeter('Hello'),
-                        'probe.named_greeter' => new Greeter('Welcome'),
-                        VisitCounter::class => new VisitCounter(),
-                    ]),
-                ));
+                ->plugins(
+                    static fn(): Psr11Plugin => new Psr11Plugin(
+                        static fn(): ContainerInterface => new ArrayContainer([
+                            Greeter::class => new Greeter('Hello'),
+                            'probe.named_greeter' => new Greeter('Welcome'),
+                            VisitCounter::class => new VisitCounter(),
+                        ]),
+                    ),
+                );
 
             PHP);
 

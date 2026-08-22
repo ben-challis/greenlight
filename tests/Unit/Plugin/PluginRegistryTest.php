@@ -10,15 +10,19 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
+use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
+use Greenlight\Runner\PluginInstances;
 use Greenlight\Tests\Fixture\Plugins\FakeCapabilityPlugin;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 use Greenlight\Tests\Fixture\Plugins\PrioritizedFakeCapabilityPlugin;
+use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
+use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 
 final class PluginRegistryTest
 {
@@ -57,6 +61,58 @@ final class PluginRegistryTest
         Expect::that(new PluginRegistry([$subscriber])->hasWorkerBootstrapSubscribers())
             ->because('worker bootstrap subscribers require the initial ready barrier')
             ->toBeTrue();
+    }
+
+    #[Test]
+    public function definitionsCreateOnlyOwnedSideInstancesAndSeparateMixedCapabilities(): void
+    {
+        $mixedInstances = [];
+        $orchestratorConstructions = 0;
+        $workerConstructions = 0;
+        $definitions = [
+            PluginDefinition::fromFactory(
+                static function () use (&$mixedInstances): FakeCapabilityPlugin {
+                    $plugin = new FakeCapabilityPlugin();
+                    $mixedInstances[] = $plugin;
+
+                    return $plugin;
+                },
+            ),
+            PluginDefinition::fromFactory(
+                static function () use (&$orchestratorConstructions): RecordingRunSubscriber {
+                    ++$orchestratorConstructions;
+
+                    return new RecordingRunSubscriber();
+                },
+            ),
+            PluginDefinition::fromFactory(
+                static function () use (&$workerConstructions): QuarantinePlugin {
+                    ++$workerConstructions;
+
+                    return new QuarantinePlugin();
+                },
+            ),
+        ];
+
+        $orchestrator = PluginInstances::forOrchestrator($definitions);
+        $worker = PluginInstances::forWorker($definitions);
+
+        Expect::that($orchestrator->runSubscribers())->toHaveCount(2);
+        Expect::that($orchestrator->ofType(QuarantinePlugin::class))
+            ->because('the orchestrator registry MUST not construct worker-only plugins')
+            ->toBe([]);
+        Expect::that($worker->beforeTestSubscribers())->toHaveCount(1);
+        Expect::that($worker->afterTestSubscribers())->toHaveCount(2);
+        Expect::that($worker->ofType(RecordingRunSubscriber::class))
+            ->because('the worker registry MUST not construct orchestrator-only plugins')
+            ->toBe([]);
+        Expect::that($orchestratorConstructions)->toBe(1);
+        Expect::that($workerConstructions)->toBe(1);
+        Expect::that($mixedInstances)->toHaveCount(2);
+        Expect::that($mixedInstances[1])
+            ->because('mixed-capability plugins MUST use a separate instance on each side')
+            ->not()
+            ->toBe($mixedInstances[0]);
     }
 
     #[Test]

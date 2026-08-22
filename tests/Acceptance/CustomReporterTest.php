@@ -32,7 +32,8 @@ final readonly class CustomReporterTest
 
             require_once __DIR__ . '/tests/ProbeTest.php';
 
-            $provider = new class implements ReporterProvider {
+            final class OrderedReporterProvider implements ReporterProvider
+            {
                 private int $created = 0;
 
                 public function reporters(): array
@@ -70,12 +71,14 @@ final readonly class CustomReporterTest
                         ),
                     ];
                 }
-            };
+            }
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins($provider);
+                ->plugins(
+                    static fn(): OrderedReporterProvider => new OrderedReporterProvider(),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, [
@@ -112,18 +115,23 @@ final readonly class CustomReporterTest
 
             require_once __DIR__ . '/tests/ProbeTest.php';
 
+            final class DuplicateBuiltInReporterProvider implements ReporterProvider
+            {
+                public function reporters(): array
+                {
+                    return [new ReporterDefinition(
+                        'plain',
+                        static fn(Output $output): Reporter => new PlainReporter($output),
+                    )];
+                }
+            }
+
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new class implements ReporterProvider {
-                    public function reporters(): array
-                    {
-                        return [new ReporterDefinition(
-                            'plain',
-                            static fn(Output $output): Reporter => new PlainReporter($output),
-                        )];
-                    }
-                });
+                ->plugins(
+                    static fn(): DuplicateBuiltInReporterProvider => new DuplicateBuiltInReporterProvider(),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--no-ansi']);
@@ -153,18 +161,23 @@ final readonly class CustomReporterTest
 
             require_once __DIR__ . '/tests/ProbeTest.php';
 
+            final class FailingReporterFactoryProvider implements ReporterProvider
+            {
+                public function reporters(): array
+                {
+                    return [new ReporterDefinition(
+                        'broken',
+                        static fn(Output $output): Reporter => throw new RuntimeException('Connection failed'),
+                    )];
+                }
+            }
+
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new class implements ReporterProvider {
-                    public function reporters(): array
-                    {
-                        return [new ReporterDefinition(
-                            'broken',
-                            static fn(Output $output): Reporter => throw new RuntimeException('Connection failed'),
-                        )];
-                    }
-                });
+                ->plugins(
+                    static fn(): FailingReporterFactoryProvider => new FailingReporterFactoryProvider(),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=broken', '--no-ansi']);
@@ -191,22 +204,27 @@ final readonly class CustomReporterTest
 
             require_once __DIR__ . '/tests/ProbeTest.php';
 
+            final class FailingReporterProvider implements ReporterProvider
+            {
+                public function reporters(): array
+                {
+                    throw new RuntimeException('Configuration failed');
+                }
+            }
+
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new class implements ReporterProvider {
-                    public function reporters(): array
-                    {
-                        throw new RuntimeException('Configuration failed');
-                    }
-                });
+                ->plugins(
+                    static fn(): FailingReporterProvider => new FailingReporterProvider(),
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--no-ansi']);
 
         Expect::that($result->exitCode)->toBe(1);
         Expect::that($result->stderr)
-            ->toBe('greenlight: Reporter provider "Greenlight\\Plugin\\ReporterProvider@anonymous" failed: Configuration failed.');
+            ->toBe('greenlight: Reporter provider "FailingReporterProvider" failed: Configuration failed.');
         Expect::that($result->stdout)
             ->because('a reporter provider failure MUST stop before the test starts')
             ->toBe('');

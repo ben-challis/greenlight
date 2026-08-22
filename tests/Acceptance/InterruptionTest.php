@@ -237,10 +237,12 @@ final readonly class InterruptionTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new IntegrationProbePlugin(
-                    {$markerDirectory},
-                    failCleanup: {$failCleanupValue},
-                ));
+                ->plugins(
+                    static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(
+                        {$markerDirectory},
+                        failCleanup: {$failCleanupValue},
+                    ),
+                );
             PHP);
 
         return $project;

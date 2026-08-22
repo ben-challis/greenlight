@@ -733,7 +733,7 @@ function benchmarkWriteConfiguration(string $project, string $shape): void
         }
 
         PHP;
-        $chain = "\n    ->plugins(new BenchmarkBootstrapPlugin())";
+        $chain = "\n    ->plugins(static fn(): BenchmarkBootstrapPlugin => new BenchmarkBootstrapPlugin())";
     }
 
     \file_put_contents($project . '/greenlight.php', \sprintf(<<<'PHP'

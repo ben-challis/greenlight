@@ -10,12 +10,12 @@ use Greenlight\Core\GracefulShutdown;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Runner\Artifact\PublishingEventSink;
 use Greenlight\Runner\CoverageCollector;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
+use Greenlight\Runner\PluginInstances;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
@@ -52,7 +52,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
         ExecutionContext $context,
     ): ExecutionOutcome {
         $configuration = $context->configuration;
-        $plugins = PluginRegistry::forWorker($configuration->plugins);
+        $plugins = PluginInstances::forWorker($configuration->plugins);
         $resources = $context->fixtures->forChannel(1);
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');

@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\PhpStanMatcherReturnConflict\EquivalentBooleanRetur
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../DiscoveryBasic'])
-    ->plugins(new EquivalentBooleanReturnExtension());
+    ->plugins(static fn(): EquivalentBooleanReturnExtension => new EquivalentBooleanReturnExtension());

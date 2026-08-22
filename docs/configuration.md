@@ -272,14 +272,15 @@ Each `eventually()` or `consistently()` matcher counts once.
 
 Also available as `--fail-on-risky`.
 
-### `plugins(Plugin ...$plugins): self`
+### `plugins(Closure ...$plugins): self`
 
 Default: none.
 
-Registers Greenlight plugin instances. Each plugin implements one or more
-capability interfaces.
+Registers plugin factories. Each factory MUST declare one non-null concrete
+plugin class return type. The factory MUST return a new plugin instance on each
+call.
 
-The method is repeatable and instances accumulate.
+The method is repeatable and factories accumulate.
 
 A `ReporterProvider` plugin registers custom names for `--reporter`. See
 [plugins](plugins.md#reporterprovider).
