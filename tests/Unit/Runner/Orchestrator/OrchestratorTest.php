@@ -9,15 +9,23 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Event\WorkerRecycled;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
+use Greenlight\Runner\Protocol\Message;
+use Greenlight\Runner\Protocol\Messages\AttemptStarted;
+use Greenlight\Runner\Protocol\Messages\EventEnvelope;
+use Greenlight\Runner\Protocol\Messages\Fatal;
+use Greenlight\Runner\Protocol\Messages\Ready;
+use Greenlight\Runner\Protocol\Messages\Recycling;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\WorkerError;
 use Greenlight\Tests\Fixture\CrashDiagnostics\CrashDiagnosticsTest;
@@ -29,6 +37,8 @@ use Greenlight\Tests\Fixture\ResourceScheduling\SlowResourceTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\DisconnectBeforeAssignmentWorker;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\NativeOrchestrator;
+use Greenlight\Tests\Support\ScriptedWorkerTransport;
 
 final class OrchestratorTest
 {
@@ -39,7 +49,7 @@ final class OrchestratorTest
         // This process remains active but does not connect to the orchestrator
         // socket. It represents a worker that cannot complete interpreter
         // startup on a machine without available resources.
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, '-r', 'fwrite(STDERR, "booting, honest"); sleep(60);'],
             workingDirectory: \sys_get_temp_dir(),
             connectDeadlineSeconds: 0.5,
@@ -54,7 +64,7 @@ final class OrchestratorTest
     {
         $missingDirectory = \sys_get_temp_dir()
             . '/greenlight-missing-' . \bin2hex(\random_bytes(8));
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, 'bin/greenlight'],
             workingDirectory: $missingDirectory,
         );
@@ -101,7 +111,7 @@ final class OrchestratorTest
                 PHP,
             \var_export($root . '/vendor/autoload.php', true),
         );
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, '-r', $script],
             workingDirectory: $root,
         );
@@ -129,7 +139,7 @@ final class OrchestratorTest
             \var_export($root . '/vendor/autoload.php', true),
             DisconnectBeforeAssignmentWorker::class,
         );
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, '-r', $bootstrap],
             workingDirectory: $root,
         );
@@ -169,7 +179,7 @@ final class OrchestratorTest
             sleep(60);
             PHP;
 
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, '-r', $script],
             workingDirectory: \sys_get_temp_dir(),
             progressDeadlineSeconds: 0.5,
@@ -179,70 +189,14 @@ final class OrchestratorTest
             ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
     }
 
-    /**
-     * @param list<array<string, mixed>> $messages
-     */
+    /** @param list<Message> $messages */
     #[Test]
     #[DataSet('unexpectedAttempts')]
     #[Timeout(30.0)]
     public function unexpectedAttemptMessagesNameTheProtocolDrift(array $messages, string $expectedDiagnostic): void
     {
-        $encodedMessages = \var_export($messages, true);
-        $script = \sprintf(
-            <<<'PHP'
-                [, , $address, $workerId, $token] = $argv;
-                $socket = stream_socket_client($address);
-
-                $send = static function (array $message) use ($socket): void {
-                    $json = json_encode($message, JSON_THROW_ON_ERROR);
-                    fwrite($socket, pack('N', strlen($json)) . $json);
-                    fflush($socket);
-                };
-
-                $read = static function (int $length) use ($socket): string {
-                    $bytes = '';
-
-                    while (strlen($bytes) < $length) {
-                        $chunk = fread($socket, $length - strlen($bytes));
-
-                        if ($chunk === false || $chunk === '') {
-                            exit(1);
-                        }
-
-                        $bytes .= $chunk;
-                    }
-
-                    return $bytes;
-                };
-
-                $send([
-                    'v' => 2,
-                    't' => 'hello',
-                    'p' => [
-                        'workerId' => $workerId,
-                        'token' => $token,
-                        'pid' => getmypid(),
-                    ],
-                ]);
-                $length = unpack('Nlength', $read(4))['length'];
-                $read($length);
-                $send(['v' => 2, 't' => 'ready', 'p' => []]);
-                $length = unpack('Nlength', $read(4))['length'];
-                $read($length);
-
-                foreach (%s as $message) {
-                    $send($message);
-                }
-
-                sleep(60);
-                PHP,
-            $encodedMessages,
-        );
-
-        $orchestrator = new Orchestrator(
-            workerCommand: [\PHP_BINARY, '-r', $script],
-            workingDirectory: \sys_get_temp_dir(),
-        );
+        $transport = new ScriptedWorkerTransport([[new Ready(), ...$messages]]);
+        $orchestrator = new Orchestrator($transport);
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('unexpected attempt messages name the protocol drift')
             ->toThrow(
@@ -252,41 +206,22 @@ final class OrchestratorTest
     }
 
     /**
-     * @return iterable<string, array{list<array<string, mixed>>, string}>
+     * @return iterable<string, array{list<Message>, string}>
      */
     public static function unexpectedAttempts(): iterable
     {
-        $id = [
-            'class' => 'Example\\NeverExecutedTest',
-            'method' => 'irrelevant',
-            'dataSetKey' => null,
-        ];
+        $id = new TestId('Example\\NeverExecutedTest', 'irrelevant');
 
         yield 'no active test' => [
-            [[
-                'v' => 2,
-                't' => 'attempt-started',
-                'p' => ['id' => $id, 'attempt' => 1],
-            ]],
+            [new AttemptStarted($id, 1)],
             'reported attempt 1 for "Example\\NeverExecutedTest::irrelevant". '
             . 'Greenlight expected attempt 1. Active test: none.',
         ];
 
         yield 'attempt number jumps' => [
             [
-                [
-                    'v' => 2,
-                    't' => 'event',
-                    'p' => [
-                        'event' => 'test-started',
-                        'data' => ['id' => $id, 'occurredAt' => 1.0],
-                    ],
-                ],
-                [
-                    'v' => 2,
-                    't' => 'attempt-started',
-                    'p' => ['id' => $id, 'attempt' => 2],
-                ],
+                new EventEnvelope(new TestStarted($id, 1.0)),
+                new AttemptStarted($id, 2),
             ],
             'reported attempt 2 for "Example\\NeverExecutedTest::irrelevant". '
             . 'Greenlight expected attempt 1. Active test: "Example\\NeverExecutedTest::irrelevant".',
@@ -297,63 +232,15 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aWorkerFatalMessageFailsTheRunWithItsDiagnostic(): void
     {
-        $script = <<<'PHP'
-            [, , $address, $workerId, $token] = $argv;
-            $socket = stream_socket_client($address);
-
-            $send = static function (array $message) use ($socket): void {
-                $json = json_encode($message, JSON_THROW_ON_ERROR);
-                fwrite($socket, pack('N', strlen($json)) . $json);
-                fflush($socket);
-            };
-
-            $read = static function (int $length) use ($socket): string {
-                $bytes = '';
-
-                while (strlen($bytes) < $length) {
-                    $chunk = fread($socket, $length - strlen($bytes));
-
-                    if ($chunk === false || $chunk === '') {
-                        exit(1);
-                    }
-
-                    $bytes .= $chunk;
-                }
-
-                return $bytes;
-            };
-
-            $send([
-                'v' => 2,
-                't' => 'hello',
-                'p' => [
-                    'workerId' => $workerId,
-                    'token' => $token,
-                    'pid' => getmypid(),
-                ],
-            ]);
-            $length = unpack('Nlength', $read(4))['length'];
-            $read($length);
-            $send([
-                'v' => 2,
-                't' => 'fatal',
-                'p' => [
-                    'detail' => [
-                        'class' => 'RuntimeException',
-                        'message' => 'fixture worker failed',
-                        'file' => '/fixture/worker.php',
-                        'line' => 42,
-                        'stackFrames' => [],
-                    ],
-                ],
-            ]);
-            sleep(60);
-            PHP;
-
-        $orchestrator = new Orchestrator(
-            workerCommand: [\PHP_BINARY, '-r', $script],
-            workingDirectory: \sys_get_temp_dir(),
-        );
+        $transport = new ScriptedWorkerTransport([[
+            new Fatal(new ThrowableDetail(
+                \RuntimeException::class,
+                'fixture worker failed',
+                '/fixture/worker.php',
+                42,
+            )),
+        ]]);
+        $orchestrator = new Orchestrator($transport);
 
         Expect::that(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a worker fatal message fails the run with its diagnostic')
             ->toThrow(
@@ -366,12 +253,7 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aRecyclingWorkerWithAMismatchedSummaryFailsTheRun(): void
     {
-        $orchestrator = $this->recyclingWorker([
-            'reason' => 'test-count',
-            'remaining' => [],
-            'summary' => ['passed' => 1, 'failed' => 0, 'errored' => 0, 'skipped' => 0],
-            'coverage' => null,
-        ]);
+        $orchestrator = $this->recyclingWorker([], new ResultSummary(passed: 1));
 
         Expect::that(
             fn(): ResultSummary => $orchestrator->run(
@@ -385,7 +267,7 @@ final class OrchestratorTest
     }
 
     /**
-     * @param list<array{class: string, method: string, dataSetKey: ?string}> $remaining
+     * @param list<TestId> $remaining
      */
     #[Test]
     #[DataSet('invalidRecyclingRemainders')]
@@ -394,12 +276,7 @@ final class OrchestratorTest
         array $remaining,
         string $reported,
     ): void {
-        $orchestrator = $this->recyclingWorker([
-            'reason' => 'test-count',
-            'remaining' => $remaining,
-            'summary' => ['passed' => 0, 'failed' => 0, 'errored' => 0, 'skipped' => 0],
-            'coverage' => null,
-        ]);
+        $orchestrator = $this->recyclingWorker($remaining, new ResultSummary());
 
         Expect::that(
             fn(): ResultSummary => $orchestrator->run(
@@ -418,18 +295,14 @@ final class OrchestratorTest
 
     /**
      * @return iterable<string, array{
-     *     list<array{class: string, method: string, dataSetKey: ?string}>,
+     *     list<TestId>,
      *     string
      * }>
      */
     public static function invalidRecyclingRemainders(): iterable
     {
         yield 'unknown replacement' => [
-            [[
-                'class' => 'Example\UnknownTest',
-                'method' => 'neverPlanned',
-                'dataSetKey' => null,
-            ]],
+            [new TestId('Example\UnknownTest', 'neverPlanned')],
             '[Example\UnknownTest::neverPlanned]',
         ];
         yield 'omitted assignment' => [[], '[]'];
@@ -440,7 +313,7 @@ final class OrchestratorTest
     public function resourceWaitStartsANewProgressWindowBeforeAssignment(): void
     {
         $root = \dirname(__DIR__, 4);
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
             recycleAfterTests: 1,
@@ -460,7 +333,7 @@ final class OrchestratorTest
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
             recycleAfterTests: 2,
@@ -491,7 +364,7 @@ final class OrchestratorTest
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
             stopAfterFailures: 1,
@@ -525,7 +398,7 @@ final class OrchestratorTest
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
             recycleAfterTests: 1,
@@ -561,7 +434,7 @@ final class OrchestratorTest
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
         );
@@ -589,7 +462,7 @@ final class OrchestratorTest
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
         );
@@ -625,7 +498,7 @@ final class OrchestratorTest
     {
         $root = \dirname(__DIR__, 4);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
             workingDirectory: $root,
         );
@@ -657,71 +530,15 @@ final class OrchestratorTest
         ]);
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    private function recyclingWorker(array $payload): Orchestrator
+    /** @param list<TestId> $remaining */
+    private function recyclingWorker(array $remaining, ResultSummary $summary): Orchestrator
     {
-        $encoded = \base64_encode(\json_encode($payload, \JSON_THROW_ON_ERROR));
-        $script = \sprintf(
-            <<<'PHP'
-                [, , $address, $workerId, $token] = $argv;
-                $socket = stream_socket_client($address);
+        $transport = new ScriptedWorkerTransport([[
+            new Ready(),
+            new Recycling(RecycleReason::TestCount, $remaining, $summary),
+        ]]);
 
-                $send = static function (array $message) use ($socket): void {
-                    $json = json_encode($message, JSON_THROW_ON_ERROR);
-                    fwrite($socket, pack('N', strlen($json)) . $json);
-                    fflush($socket);
-                };
-
-                $read = static function (int $length) use ($socket): string {
-                    $bytes = '';
-
-                    while (strlen($bytes) < $length) {
-                        $chunk = fread($socket, $length - strlen($bytes));
-
-                        if ($chunk === false || $chunk === '') {
-                            exit(1);
-                        }
-
-                        $bytes .= $chunk;
-                    }
-
-                    return $bytes;
-                };
-
-                $send([
-                    'v' => 2,
-                    't' => 'hello',
-                    'p' => [
-                        'workerId' => $workerId,
-                        'token' => $token,
-                        'pid' => getmypid(),
-                    ],
-                ]);
-                $length = unpack('Nlength', $read(4))['length'];
-                $read($length);
-                $send(['v' => 2, 't' => 'ready', 'p' => []]);
-                $length = unpack('Nlength', $read(4))['length'];
-                $read($length);
-                $send([
-                    'v' => 2,
-                    't' => 'recycling',
-                    'p' => json_decode(
-                        base64_decode(%s),
-                        true,
-                        flags: JSON_THROW_ON_ERROR,
-                    ),
-                ]);
-                stream_get_contents($socket);
-                PHP,
-            \var_export($encoded, true),
-        );
-
-        return new Orchestrator(
-            workerCommand: [\PHP_BINARY, '-r', $script],
-            workingDirectory: \sys_get_temp_dir(),
-        );
+        return new Orchestrator($transport);
     }
 
     private function passingPlan(): ExecutionPlan
