@@ -28,6 +28,7 @@ final readonly class PhpStanDoublePlanRuleTest
             use Greenlight\Doubles\Argument;
             use Greenlight\Doubles\Doubles;
             use Greenlight\Doubles\MockPlan;
+            use Greenlight\Tests\Fixture\Doubles\Marker;
             use Greenlight\Tests\Fixture\Doubles\Wide;
 
             /** @param non-empty-string $method */
@@ -37,6 +38,8 @@ final readonly class PhpStanDoublePlanRuleTest
                     $plan->expects('withDefaults')->withNoArguments();
                     $plan->expects('unionType')->with(1);
                     $plan->expects('unionType')->with(Argument::any());
+                    $plan->expects('unionType')->with(Argument::union('int', 'string'));
+                    $plan->expects('intersectionType')->with(Argument::intersection(Marker::class, Countable::class));
                     $plan->expects('variadic')->with('head', 1, 2);
                     $plan->expects($method)->withNoArguments();
                 });
@@ -47,8 +50,10 @@ final readonly class PhpStanDoublePlanRuleTest
 
             declare(strict_types=1);
 
+            use Greenlight\Doubles\Argument;
             use Greenlight\Doubles\Doubles;
             use Greenlight\Doubles\MockPlan;
+            use Greenlight\Tests\Fixture\Doubles\Marker;
             use Greenlight\Tests\Fixture\Doubles\Wide;
 
             function greenlightBadDoublePlanProbe(Doubles $doubles): void
@@ -60,6 +65,8 @@ final readonly class PhpStanDoublePlanRuleTest
                     $plan->expects('withDefaults')->with('eleven');
                     $plan->expects('variadic')->with('head', 'not-an-int');
                     $plan->expects('withDefaults')->with();
+                    $plan->expects('unionType')->with(Argument::intersection(Marker::class, Countable::class));
+                    $plan->expects('intersectionType')->with(Argument::union('int', 'string'));
                 });
             }
             PHP,
@@ -67,12 +74,18 @@ final readonly class PhpStanDoublePlanRuleTest
 
         Expect::that($probe->exitCode)->because('mock plans must satisfy their doubled methods')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(6);
+        Expect::that(\count($probe->errors))->toBe(8);
         Expect::that($probe->messages())
             ->toContain('Mock plan method Greenlight\\Tests\\Fixture\\Doubles\\Wide::missing() does not exist');
         Expect::that($probe->messages())->toContain('withNoArguments() supplies 0 arguments');
         Expect::that($probe->messages())->toContain('with() supplies 1 argument');
         Expect::that($probe->messages())->toContain('parameter $limit has type string, but the parameter requires int');
         Expect::that($probe->messages())->toContain('parameter $rest has type string, but the parameter requires int');
+        Expect::that($probe->messages())
+            ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::unionType() accepts '
+                . 'Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker, but parameter $value requires int|string');
+        Expect::that($probe->messages())
+            ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::intersectionType() accepts int|string, '
+                . 'but parameter $value requires Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker');
     }
 }

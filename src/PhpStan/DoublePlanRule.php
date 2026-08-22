@@ -20,10 +20,13 @@ use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\CallableType;
+use PHPStan\Type\ErrorType;
 use PHPStan\Type\MixedType;
+use PHPStan\Type\NeverType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\StaticType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -172,8 +175,37 @@ final readonly class DoublePlanRule implements Rule
         foreach (\array_values($arguments) as $index => $argument) {
             $parameter = $parameters[\min($index, \count($parameters) - 1)];
             $argumentType = $scope->getType($argument->value);
+            $matcherRelation = $matcher->isSuperTypeOf($argumentType);
 
-            if (!$matcher->isSuperTypeOf($argumentType)->no()
+            if ($matcherRelation->yes()) {
+                $matchedType = $argumentType->getTemplateType(ArgumentMatcher::class, 'TValue');
+
+                if ($matchedType instanceof ErrorType
+                    || $matchedType instanceof MixedType
+                    || !(TypeCombinator::intersect($parameter->getType(), $matchedType) instanceof NeverType)
+                ) {
+                    continue;
+                }
+
+                $errors[] = $this->error(
+                    \sprintf(
+                        '%s() argument #%d matcher for %s::%s() accepts %s, but parameter $%s requires %s.',
+                        $selector,
+                        $index + 1,
+                        $target->getDisplayName(),
+                        $method,
+                        $matchedType->describe(VerbosityLevel::typeOnly()),
+                        $parameter->getName(),
+                        $parameter->getType()->describe(VerbosityLevel::typeOnly()),
+                    ),
+                    'argument',
+                    $argument->getStartLine(),
+                );
+
+                continue;
+            }
+
+            if (!$matcherRelation->no()
                 || !$parameter->getType()->accepts($argumentType, $scope->isDeclareStrictTypes())->no()
             ) {
                 continue;

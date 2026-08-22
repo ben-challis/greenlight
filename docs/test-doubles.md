@@ -166,8 +166,9 @@ $plan->expects('save')->with(
 ```
 
 The bundled PHPStan extension preserves the combined value type in each
-`ArgumentMatcher` generic type. Other type names use `mixed`, as they do for
-`Argument::type()`.
+`ArgumentMatcher` generic type. It reports a matcher in `with()` when its type
+cannot match the selected method parameter. Other type names use `mixed`, as
+they do for `Argument::type()`.
 
 Use `Argument::allOf()` to apply two or more constraints to one argument:
 
