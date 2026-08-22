@@ -64,14 +64,19 @@ use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Reporting\TtyReporter;
+use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\CpuCores;
-use Greenlight\Runner\InProcessRunner;
+use Greenlight\Runner\Execution\ExecutionAdapter;
+use Greenlight\Runner\Execution\InProcessExecution;
+use Greenlight\Runner\Execution\ProcessPoolExecution;
 use Greenlight\Runner\Integration\IntegrationFixtureError;
-use Greenlight\Runner\ParallelRunner;
 use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Runner\RunCoordinator;
+use Greenlight\Runner\RunResult;
 use Greenlight\Runner\SelectionFilter;
 use Greenlight\Runner\SubprocessCoverage;
+use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
 
@@ -318,6 +323,7 @@ final readonly class Application
     /**
      * @throws CoverageError
      * @throws ReportingError
+     * @throws WireError
      */
     private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
     {
@@ -517,6 +523,7 @@ final readonly class Application
      * @param array<string, float> $classSeconds
      * @throws CoverageError
      * @throws ReportingError
+     * @throws WireError
      */
     private function executeRun(
         ParsedArguments $arguments,
@@ -546,13 +553,21 @@ final readonly class Application
 
         try {
             try {
-                if ($workers === 1 || $workerBin === false) {
-                    $run = new InProcessRunner($workingDirectory)
-                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
-                } else {
-                    $run = new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
-                        ->run($resolved, $this->directories($resolved, $workingDirectory), $failedTap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
-                }
+                $run = $this->coordinateRun(
+                    $resolved,
+                    $this->directories($resolved, $workingDirectory),
+                    $failedTap,
+                    $workers,
+                    $workerBin,
+                    $workingDirectory,
+                    $coverageSettings,
+                    $configFile,
+                    $detectLeaks,
+                    $priorityClasses,
+                    $classSeconds,
+                    $shutdown,
+                    $reporter,
+                );
             } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
                 $reporter->finish();
                 $this->printError($error->getMessage(), $arguments->has('no-ansi'));
@@ -629,6 +644,85 @@ final readonly class Application
         if (!$state->record($failedTests, $classSeconds)) {
             ($this->err)("Greenlight did not save run state. On the next run, --failed and longest-first scheduling have no prior data.\n");
         }
+    }
+
+    /**
+     * @param list<non-empty-string> $directories
+     * @param positive-int $workers
+     * @param non-empty-string|false $workerBin
+     * @param list<non-empty-string> $priorityClasses
+     * @param array<string, float> $classSeconds
+     * @throws AttachmentError
+     * @throws DiscoveryError
+     * @throws IntegrationFixtureError
+     * @throws ProtocolError
+     * @throws ReportingError
+     * @throws WireError
+     */
+    private function coordinateRun(
+        Configuration $configuration,
+        array $directories,
+        EventSink $sink,
+        int $workers,
+        string|false $workerBin,
+        string $workingDirectory,
+        ?CoverageSettings $coverageSettings,
+        string $configFile,
+        bool $detectLeaks,
+        array $priorityClasses,
+        array $classSeconds,
+        GracefulShutdown $shutdown,
+        Reporter $reporter,
+    ): RunResult {
+        $execution = $this->executionAdapter(
+            $workers,
+            $workerBin,
+            $workingDirectory,
+            $coverageSettings,
+            $configFile,
+            $detectLeaks,
+            $shutdown,
+            $reporter,
+        );
+
+        return new RunCoordinator($workingDirectory)->run(
+            $configuration,
+            $directories,
+            $sink,
+            $execution,
+            $priorityClasses,
+            $classSeconds,
+        );
+    }
+
+    /**
+     * @param positive-int $workers
+     * @param non-empty-string|false $workerBin
+     */
+    private function executionAdapter(
+        int $workers,
+        string|false $workerBin,
+        string $workingDirectory,
+        ?CoverageSettings $coverageSettings,
+        string $configFile,
+        bool $detectLeaks,
+        GracefulShutdown $shutdown,
+        Reporter $reporter,
+    ): ExecutionAdapter {
+        if ($workers === 1 || $workerBin === false) {
+            return new InProcessExecution($coverageSettings, $detectLeaks, $shutdown);
+        }
+
+        return new ProcessPoolExecution(
+            [\PHP_BINARY, $workerBin],
+            $workingDirectory,
+            $workers,
+            $coverageSettings,
+            $configFile,
+            $detectLeaks,
+            $shutdown,
+            $reporter instanceof Ticking ? $reporter : null,
+        );
     }
 
     /**
@@ -739,13 +833,21 @@ final readonly class Application
                 $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
 
                 try {
-                    if ($workers === 1 || $workerBin === false) {
-                        new InProcessRunner($workingDirectory)
-                            ->run($resolved, $directories, $tap, $coverageSettings, $detectLeaks, $priorityClasses, $classSeconds, $shutdown);
-                    } else {
-                        new ParallelRunner([\PHP_BINARY, $workerBin], $workingDirectory)
-                            ->run($resolved, $directories, $tap, $workers, $coverageSettings, $configFile, $detectLeaks, $priorityClasses, $classSeconds, $shutdown, $reporter instanceof Ticking ? $reporter : null);
-                    }
+                    $this->coordinateRun(
+                        $resolved,
+                        $directories,
+                        $tap,
+                        $workers,
+                        $workerBin,
+                        $workingDirectory,
+                        $coverageSettings,
+                        $configFile,
+                        $detectLeaks,
+                        $priorityClasses,
+                        $classSeconds,
+                        $shutdown,
+                        $reporter,
+                    );
                 } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
                     $reporter->finish();
                     $this->printError($error->getMessage(), $arguments->has('no-ansi'));
