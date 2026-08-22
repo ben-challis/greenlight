@@ -11,6 +11,7 @@ use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\StorageBuilder;
 use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
 use Greenlight\Core\Event\Event;
@@ -148,6 +149,22 @@ final class GreenlightConfigTest
     }
 
     #[Test]
+    public function rejectedCoverageConfigurationDoesNotEnableCoverage(): void
+    {
+        $builder = GreenlightConfig::create();
+
+        Expect::that(static fn(): GreenlightConfig => $builder->coverage(
+            static fn(CoverageBuilder $coverage) => $coverage->include(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        ))
+            ->because('a rejected coverage configuration does not enable coverage')
+            ->toThrow(InvalidConfiguration::class);
+
+        Expect::that($builder->build()->coverage)
+            ->because('coverage stays off when its configurator fails')
+            ->toBe(null);
+    }
+
+    #[Test]
     public function rejectedNestedConfigurationsDoNotPartiallyChangeTheBuilder(): void
     {
         $builder = GreenlightConfig::create()
@@ -155,7 +172,8 @@ final class GreenlightConfigTest
                 ->include('src')
                 ->driver('pcov'))
             ->watch(static fn(WatchBuilder $watch) => $watch->debounceMilliseconds(500))
-            ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/original'));
+            ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/original'))
+            ->storage(static fn(StorageBuilder $storage) => $storage->cacheDirectory('build/original-cache'));
 
         Expect::that(static fn(): GreenlightConfig => $builder->coverage(
             static fn(CoverageBuilder $coverage) => $coverage
@@ -181,6 +199,14 @@ final class GreenlightConfigTest
             ->because('a rejected artifact configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
+        Expect::that(static fn(): GreenlightConfig => $builder->storage(
+            static fn(StorageBuilder $storage) => $storage
+                ->cacheDirectory('build/changed-cache')
+                ->temporaryDirectory(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        ))
+            ->because('a rejected storage configuration does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class);
+
         $configuration = $builder->build();
 
         Expect::that($configuration->coverage?->includePaths)
@@ -195,6 +221,9 @@ final class GreenlightConfigTest
         Expect::that($configuration->execution->artifacts->directory)
             ->because('a rejected artifact configuration retains the prior directory')
             ->toBe('build/original');
+        Expect::that($configuration->storage->cacheDirectory)
+            ->because('a rejected storage configuration retains the prior cache directory')
+            ->toBe('build/original-cache');
     }
 
     #[Test]
