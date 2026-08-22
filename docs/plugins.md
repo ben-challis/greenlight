@@ -30,8 +30,69 @@ resources. Use integration resources in both runner modes.
 
 ## Capability interfaces
 
-The `plugins()` method does not accept `Greenlight\Reporting\Reporter`. Use
-`--reporter` to select a built-in reporter.
+### ReporterProvider
+
+Orchestrator-side.
+
+A `ReporterProvider` adds named reporter factories to `--reporter`. Return one
+`ReporterDefinition` for each name.
+
+<!-- php-example {"example":"plugins-example-reporter-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\ReporterProvider;
+use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\ReporterDefinition;
+
+final class CompanyReporters implements ReporterProvider
+{
+    public function reporters(): array
+    {
+        return [
+            new ReporterDefinition(
+                'company-json',
+                static fn (Output $output): Reporter => new CompanyJsonReporter($output),
+            ),
+        ];
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(new CompanyReporters());
+```
+
+Select the reporter by name:
+
+```sh
+vendor/bin/greenlight run --reporter=company-json
+```
+
+A reporter name starts with a lowercase ASCII letter. It contains only
+lowercase ASCII letters, digits, and hyphens.
+
+Built-in and custom names share one registry. Each name MUST be unique. A
+duplicate name stops the command before the test run starts.
+
+Greenlight calls `reporters()` one time for each command. It calls a selected
+factory for each standard, repeat, or watch run. A repeated selection calls the
+factory one time for each occurrence.
+
+Each factory MUST return a new `Reporter`. Greenlight supplies the `Output` and
+owns it. A reporter MUST NOT close the output.
+
+Multiple selected reporters receive events in `--reporter` order. Greenlight
+also calls `finish()` in that order. It calls `finish()` one time after the
+final event, or after a contained run error.
+
+If a provider or factory throws, Greenlight reports the name and stops the
+command. An invalid factory result also stops the command before test execution.
+
+If a reporter callback throws `ReportingError`, Greenlight stops that callback.
+Later reporters do not receive the event or finish signal from that callback.
+
+Shell completions suggest the built-in names. A configured name remains valid
+when it does not occur in the suggestions.
 
 ### IntegrationFixtureProvider
 
@@ -232,28 +293,13 @@ all runtime boundaries close successfully.
 The Hyperf bridge uses this capability for its long-running root Swoole
 runtime. See [Hyperf applications](hyperf.md).
 
-### TestLifecycleSubscriber
+### BeforeTestSubscriber
 
 Worker-side.
 
-<!-- php-example {"example":"plugins-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
-use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
-
-final class FlakyQuarantine implements TestLifecycleSubscriber
-{
-    public function beforeTest(TestContext $context): void {}
-
-    public function afterTest(TestContext $context, TestResult $result): TestResult
-    {
-        if ($result->outcome->isSuccessful() || !\in_array('quarantined', $context->metadata->groups, true)) {
-            return $result;
-        }
-
-        return $result->withOutcome(Outcome::Skipped, self::class);
-    }
-}
+public function beforeTest(TestContext $context): void;
 ```
 
 `beforeTest()` runs after Greenlight constructs the test instance. It runs once
@@ -264,6 +310,28 @@ skipped. The method has the type `never`, so code after the call does not run.
 It throws `Greenlight\Core\Test\SkipTest`. The interface declares this
 exception. A direct throw of this exception has the same effect. A different
 throwable causes an error result that names the plugin.
+
+### AfterTestSubscriber
+
+Worker-side.
+
+<!-- php-example {"example":"plugins-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Plugin\TestContext;
+use Greenlight\Plugin\AfterTestSubscriber;
+
+final class FlakyQuarantine implements AfterTestSubscriber
+{
+    public function afterTest(TestContext $context, TestResult $result): TestResult
+    {
+        if ($result->outcome->isSuccessful() || !\in_array('quarantined', $context->metadata->groups, true)) {
+            return $result;
+        }
+
+        return $result->withOutcome(Outcome::Skipped, self::class);
+    }
+}
+```
 
 `afterTest()` receives the finished result and must return a result, either the
 same one or a replacement.
@@ -503,7 +571,8 @@ Priority applies to these capabilities:
 * `WorkerBootstrapSubscriber`
 * `WorkerRuntimeRunner`
 * `TestAttemptRunner`
-* `TestLifecycleSubscriber`
+* `BeforeTestSubscriber`
+* `AfterTestSubscriber`
 * `RetryDecider`
 * `RunLifecycleSubscriber`
 * `HarnessProvider`
@@ -513,6 +582,17 @@ Priority applies to these capabilities:
 
 For attempt runners, the lower-priority runner is the outer boundary. Each
 runner must call the next callback one time.
+
+Before-test subscribers run from low priority to high priority. Subscribers
+with the same priority run in registration order. A skip or failure stops the
+remaining before-test subscribers.
+
+After-test subscribers run from high priority to low priority. Subscribers
+with the same priority run in reverse registration order. Plugins that
+implement both capabilities run their callbacks in the exact reverse order.
+
+Greenlight runs all after-test subscribers. It also runs them when a
+before-test subscriber stops the attempt.
 
 Greenlight reports all plugin failures. A worker-side failure causes an error
 for the affected test and names the plugin. An orchestrator-side failure causes

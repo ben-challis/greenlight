@@ -23,6 +23,8 @@ final readonly class Bootstrap implements Message
         public int $channel,
         public ?string $configFile,
         public IntegrationResources $resources,
+        public ?string $generatedCodeDirectory = null,
+        public ?string $temporaryDirectory = null,
     ) {}
 
     #[\Override]
@@ -38,6 +40,8 @@ final readonly class Bootstrap implements Message
             'channel' => $this->channel,
             'configFile' => $this->configFile,
             'resources' => $this->resources->toWire(),
+            'generatedCodeDirectory' => $this->generatedCodeDirectory,
+            'temporaryDirectory' => $this->temporaryDirectory,
         ];
     }
 
@@ -50,6 +54,12 @@ final readonly class Bootstrap implements Message
             \max(1, Wire::int($payload, 'channel')),
             $configFile === '' ? null : $configFile,
             IntegrationResources::fromWire(Wire::map($payload, 'resources')),
+            ($generatedCode = \array_key_exists('generatedCodeDirectory', $payload)
+                ? Wire::nullableString($payload, 'generatedCodeDirectory')
+                : null) === '' ? null : $generatedCode,
+            ($temporary = \array_key_exists('temporaryDirectory', $payload)
+                ? Wire::nullableString($payload, 'temporaryDirectory')
+                : null) === '' ? null : $temporary,
         );
     }
 }

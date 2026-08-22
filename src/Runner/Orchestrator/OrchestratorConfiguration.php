@@ -44,5 +44,7 @@ final readonly class OrchestratorConfiguration
         public float $progressDeadlineSeconds = self::DEFAULT_PROGRESS_DEADLINE_SECONDS,
         public array $resourceLimits = [],
         public InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
+        public ?string $generatedCodeDirectory = null,
+        public ?string $temporaryDirectory = null,
     ) {}
 }

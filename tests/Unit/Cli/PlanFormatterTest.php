@@ -42,8 +42,11 @@ final class PlanFormatterTest
             randomSeed: null,
         );
 
-        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php'))->toBe(
-            <<<'PLAN'
+        $temporary = \rtrim(\sys_get_temp_dir(), '/');
+        $projectKey = \substr(\sha1('/project'), 0, 12);
+
+        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))->toBe(
+            <<<PLAN
                 Run plan
                   configuration file: /project/greenlight.php
                   test paths: tests
@@ -56,6 +59,10 @@ final class PlanFormatterTest
                   groups: (all)
                   plugins: (none)
                   artifacts: build/greenlight-artifacts
+                  storage state: {$temporary}/greenlight-state-{$projectKey}.json
+                  storage cache: {$temporary}
+                  storage generated code: {$temporary}/greenlight-proxies-{$projectKey}
+                  storage temporary: {$temporary}
                   coverage include paths: src
                   coverage driver: xdebug
                   coverage exports: json -> build/coverage.json
@@ -72,7 +79,7 @@ final class PlanFormatterTest
             ->plugins(new NamedFakePlugin())
             ->build();
 
-        $formatted = PlanFormatter::format($configuration, '/project/greenlight.php');
+        $formatted = PlanFormatter::format($configuration, '/project/greenlight.php', '/project');
 
         Expect::that($formatted)
             ->because('the plan names runtime seed selection and configured plugins')
@@ -108,7 +115,10 @@ final class PlanFormatterTest
             resourceLimits: ['database' => 2, 'redis' => 1],
         );
 
-        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php'))
+        $temporary = \rtrim(\sys_get_temp_dir(), '/');
+        $projectKey = \substr(\sha1('/project'), 0, 12);
+
+        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
             ->because('the run plan MUST show each configured execution detail')
             ->toBe(
                 <<<PLAN
@@ -125,6 +135,10 @@ final class PlanFormatterTest
                       groups: smoke, unit
                       plugins: Greenlight\Tests\Fixture\Plugins\NamedFakePlugin
                       artifacts: build/greenlight-artifacts
+                      storage state: {$temporary}/greenlight-state-{$projectKey}.json
+                      storage cache: {$temporary}
+                      storage generated code: {$temporary}/greenlight-proxies-{$projectKey}
+                      storage temporary: {$temporary}
                       coverage: (off)
 
                     PLAN,

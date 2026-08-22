@@ -1,7 +1,7 @@
 # Laravel applications
 
-The Laravel bridge supplies Laravel container services and built-in Greenlight
-harness services to test constructors.
+The [Laravel](https://laravel.com/) bridge supplies Laravel container services
+and built-in Greenlight harness services to test constructors.
 
 The bridge boots a fresh application for each test that uses it. Register the
 plugin to activate the bridge. The bridge uses the Laravel package that the

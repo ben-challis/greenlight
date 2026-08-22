@@ -18,13 +18,14 @@ use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Plugin\AfterTestSubscriber;
+use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Runner\Worker\WorkerError;
@@ -91,10 +92,7 @@ final readonly class PluginTest
     #[Test]
     public function unattributedOutcomeChangesErrorTheTestNamingThePlugin(): void
     {
-        $rogue = new class implements TestLifecycleSubscriber, Fake {
-            #[\Override]
-            public function beforeTest(TestContext $context): void {}
-
+        $rogue = new class implements AfterTestSubscriber, Fake {
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
@@ -122,10 +120,7 @@ final readonly class PluginTest
     #[Test]
     public function afterTestCannotReplaceTheTestIdentity(): void
     {
-        $rogue = new class implements TestLifecycleSubscriber, Fake {
-            #[\Override]
-            public function beforeTest(TestContext $context): void {}
-
+        $rogue = new class implements AfterTestSubscriber, Fake {
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
@@ -159,17 +154,11 @@ final readonly class PluginTest
     #[Test]
     public function throwingBeforeTestErrorsTheTestNamingThePlugin(): void
     {
-        $broken = new class implements TestLifecycleSubscriber, Fake {
+        $broken = new class implements BeforeTestSubscriber, Fake {
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
                 throw new \RuntimeException('plugin exploded');
-            }
-
-            #[\Override]
-            public function afterTest(TestContext $context, TestResult $result): TestResult
-            {
-                return $result;
             }
         };
 
@@ -190,10 +179,7 @@ final readonly class PluginTest
     #[Test]
     public function throwingAfterTestKeepsTheOutcomeAndRecordsThePluginFailure(): void
     {
-        $broken = new class implements Fake, TestLifecycleSubscriber {
-            #[\Override]
-            public function beforeTest(TestContext $context): void {}
-
+        $broken = new class implements AfterTestSubscriber, Fake {
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
@@ -285,17 +271,11 @@ final readonly class PluginTest
     #[Test]
     public function contextSkipFromBeforeTestSkipsTheTest(): void
     {
-        $skipper = new class implements TestLifecycleSubscriber {
+        $skipper = new class implements BeforeTestSubscriber {
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
                 $context->skip('flaky on this platform');
-            }
-
-            #[\Override]
-            public function afterTest(TestContext $context, TestResult $result): TestResult
-            {
-                return $result;
             }
         };
 
@@ -310,7 +290,7 @@ final readonly class PluginTest
     {
         TraceLog::drain();
 
-        $skipper = new class implements TestLifecycleSubscriber, Fake {
+        $skipper = new class implements AfterTestSubscriber, BeforeTestSubscriber, Fake {
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
@@ -339,17 +319,11 @@ final readonly class PluginTest
     #[Test]
     public function skipSignalFromBeforeTestSkipsTheTest(): void
     {
-        $skipper = new class implements TestLifecycleSubscriber {
+        $skipper = new class implements BeforeTestSubscriber {
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
                 throw new SkipTest('quarantined environment');
-            }
-
-            #[\Override]
-            public function afterTest(TestContext $context, TestResult $result): TestResult
-            {
-                return $result;
             }
         };
 
@@ -360,11 +334,11 @@ final readonly class PluginTest
     }
 
     #[Test]
-    public function subscribersRunInPriorityOrder(): void
+    public function subscribersRunInPriorityOrderAndUnwindInReverse(): void
     {
         TraceLog::drain();
 
-        $late = new class implements TestLifecycleSubscriber, Prioritized {
+        $late = new class implements AfterTestSubscriber, BeforeTestSubscriber, Prioritized {
             #[\Override]
             public function priority(): int
             {
@@ -374,17 +348,19 @@ final readonly class PluginTest
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
-                TraceLog::add('late');
+                TraceLog::add('late:before');
             }
 
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
+                TraceLog::add('late:after');
+
                 return $result;
             }
         };
 
-        $early = new class implements TestLifecycleSubscriber, Prioritized {
+        $early = new class implements AfterTestSubscriber, BeforeTestSubscriber, Prioritized {
             #[\Override]
             public function priority(): int
             {
@@ -394,21 +370,34 @@ final readonly class PluginTest
             #[\Override]
             public function beforeTest(TestContext $context): void
             {
-                TraceLog::add('early');
+                TraceLog::add('early:before');
             }
 
             #[\Override]
             public function afterTest(TestContext $context, TestResult $result): TestResult
             {
+                TraceLog::add('early:after');
+
                 return $result;
             }
         };
 
         $this->runSuite('Lifecycle/Order', [$late, $early]);
 
-        // Construction occurs before beforeTest(). Thus, the first entry comes
-        // from the fixture.
-        Expect::that(\array_slice(TraceLog::drain(), 1, 2))->because('subscribers run in priority order')->toBe(['early', 'late']);
+        Expect::that(TraceLog::drain())
+            ->because('test subscribers MUST enter by priority and unwind in reverse')
+            ->toBe([
+                'construct',
+                'early:before',
+                'late:before',
+                'before1',
+                'before2',
+                'test',
+                'after2',
+                'after1',
+                'late:after',
+                'early:after',
+            ]);
     }
 
     #[Test]

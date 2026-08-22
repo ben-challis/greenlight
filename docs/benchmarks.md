@@ -1,137 +1,135 @@
 # Benchmarks
 
-Run the full benchmark with:
+The benchmark compares complete command run times for generated test suites.
+It does not measure test-body time in isolation.
+
+Save all samples from the full comparison:
 
 ```sh
-php tools/benchmark.php --with-phpunit
+php tools/benchmark.php --with-comparisons --format=json > benchmark.json
 ```
 
-The script generates the test suites and installs the comparison tools in a
-temporary project. The `coverage-heavy` shape requires PCOV or Xdebug.
+Run a Greenlight-only benchmark with the default table report:
 
-The default parameters use one warm-up round and three sample rounds. The
-script discards warm-up times. Each round runs each selected configuration once.
+```sh
+php tools/benchmark.php
+```
 
-The seed creates the first configuration order. The script reverses that order
-in the next round. It rotates the first order after each pair of rounds.
-Thus, one configuration does not always run before another configuration.
+The `coverage-heavy` benchmark shape requires PCOV or Xdebug.
 
-The report gives these values for each configuration:
+## Measurement controls
 
-* Minimum wall time
-* Median wall time
-* Maximum wall time
-* Observed spread, as `(maximum - minimum) / median`
+The harness applies these controls before and during each measurement:
 
-Use `--seed` to reproduce the order. Use `--warmups` to change the warm-up count.
-Record both values with results. A large spread identifies results that require
-more samples or a quieter machine.
+* It generates equivalent Greenlight, PHPUnit, and Pest fixtures.
+* A verification run creates one unique proof file for each test.
+* The harness stops if a configuration does not execute all generated tests.
+* Two warmups run before the measured samples.
+* The harness discards all warmup times.
+* Twelve sample rounds put each comparison configuration in each position twice.
+* A seed makes the configuration order reproducible.
+* A 100 ms pause separates command executions.
+* One temporary project supplies all configurations for a benchmark shape.
 
-PHPUnit and ParaTest run only the four common comparison shapes. The
-runner-specific shapes do not have equivalent scheduler configuration in those
-tools.
+The timer includes process start, autoload, discovery, report creation, and execution.
+It measures the complete command that a user runs.
 
-## Benchmark shapes
+Output modes are not identical because the tools have different reporter
+interfaces. Each tool creates its default noninteractive output.
+Greenlight selects its plain reporter explicitly. The harness discards all output.
 
-The common comparison shapes are:
+Each comparison configuration has a separate cache directory.
+One tool cannot warm or change the cache of another tool.
 
-* `many-fast`: many test classes with short test bodies
-* `few-slow`: a small number of test classes with 25 ms test bodies
-* `giant-dataset`: one test class with one large data set
-* `mixed`: fast tests, slow tests, and one large data set
+Use the JSON report to inspect each exact command.
 
-The runner-specific shapes are:
+## Comparison tools
 
-* `many-isolated`: many isolated tests that each require a new worker
-* `recycle-one`: workers that Greenlight replaces after one test
-* `resource-constrained`: work that one resource slot serializes
-* `skewed-bootstrap`: worker bootstrap delays that increase with the channel
-  number
-* `chatty-diagnostics`: many notices that workers capture and send
-* `coverage-heavy`: assignments with large coverage maps
+Use `--with-comparisons` to add these pinned tools:
 
-## Setup
+* PHPUnit 13.3.0
+* ParaTest 7.24.0
+* Pest 5.1.1
 
-* Machine: Apple Silicon, 11 logical cores, macOS, local SSD
-* PHP: 8.4.14 NTS, with default CLI opcache settings
-* Greenlight:
-  [`305f833ab5d3`](https://github.com/ben-challis/greenlight/commit/305f833ab5d3fc8c046b04182a9d0989e6b072aa)
-  (2026-07-12)
-* PHPUnit: 13.2.3
-* ParaTest: 7.23.0
-* Parameters: `--scale=10 --workers=4 --runs=3`, which were the defaults
+The harness installs the tools in each temporary project.
+Pest uses its closure-style test syntax.
+The Pest comparison includes serial and parallel configurations.
 
-Wall-clock time includes process start, autoload, discovery, and execution.
-Greenlight uses plain output, PHPUnit disables output, and ParaTest uses its
-default output. The measurements include these output-mode differences.
+The comparison tools run only the four common benchmark shapes.
+The other shapes use Greenlight features that do not have equivalent configurations.
 
-These published results predate warm-up rounds, alternate configuration order,
-and distribution output. This change does not replace them because it did not
-run the full benchmark on an idle machine.
+The common benchmark shapes are:
 
-## Results
+* `many-fast`: Many test files with short test bodies
+* `few-slow`: A small number of test files with 25 ms test bodies
+* `giant-dataset`: One test file with one large data set
+* `mixed`: Fast tests, slow tests, and one large data set
 
-### `many-fast`
+The Greenlight-specific benchmark shapes are:
 
-This shape has 400 classes with trivial bodies and 2,000 tests:
+* `many-isolated`: Many isolated tests that each require a new worker
+* `recycle-one`: Workers that Greenlight replaces after one test
+* `resource-constrained`: Work that one resource slot serializes
+* `skewed-bootstrap`: Worker bootstrap delays that increase with the channel number
+* `chatty-diagnostics`: Many notices that workers capture and send
+* `coverage-heavy`: Assignments with large coverage maps
 
-* Greenlight, 4 workers: 0.490s
-* Greenlight, 1 worker: 0.257s
-* PHPUnit: 1.910s
-* ParaTest, 4 processes: 4.810s
+## Reports
 
-### `few-slow`
+The table report gives these robust statistics:
 
-This shape has 8 classes, 25ms for each test, and 32 tests:
+* First quartile (`q1`)
+* Median
+* Third quartile (`q3`)
+* Relative median absolute deviation (`rMAD`)
 
-* Greenlight, 4 workers: 0.529s
-* Greenlight, 1 worker: 1.064s
-* PHPUnit: 1.326s
-* ParaTest, 4 processes: 0.840s
+The harness does not report the fastest sample as the result.
+A low `rMAD` shows that samples stay close to the median.
+A wide quartile interval or high `rMAD` identifies unstable measurements.
 
-### `giant-dataset`
+The JSON report also contains these items:
 
-This shape has 1 class and 1,000 provider rows:
+* Every raw sample in sample-round order for each configuration
+* The exact command for each configuration
+* All benchmark parameters
+* The source revision
+* The source-tree status
+* The PHP version and binary path
+* The platform description
+* Loaded measurement extensions, such as Xdebug or `ddtrace`
+* All resolved comparison package versions
 
-* Greenlight, 4 workers: 0.442s
-* Greenlight, 1 worker: 0.165s
-* PHPUnit: 1.016s
-* ParaTest, 4 processes: 1.190s
+Use `--seed` to reproduce the order.
+Use `--warmups` and `--runs` to change the sample plan.
+Use `--pause-ms` to change the pause between commands.
 
-### `mixed`
+## Publication procedure
 
-This shape combines fast tests, slow tests, and a data set. It has 1,416 tests:
+Use an idle machine with a stable power source and power mode.
+Stop scheduled work and other variable workloads before the benchmark.
+Record the processor model and power mode with the JSON report.
 
-* Greenlight, 4 workers: 0.617s
-* Greenlight, 1 worker: 0.708s
-* PHPUnit: 1.855s
-* ParaTest, 4 processes: 2.920s
+Choose the benchmark parameters before you inspect the results.
+Commit all source changes before a publication run.
+Publish all raw samples from the chosen run.
+Do not select the fastest sample or the fastest run.
 
-## Results analysis
+Do not publish results when `sourceTreeDirty` is `true`.
 
-In this run, Greenlight's fastest configuration is faster on each generated
-shape than PHPUnit's fastest configuration. Runner overhead for each test and
-class causes most of the difference. Parallelism is not the only cause.
+If the distribution is unstable, do not publish a performance claim.
+Find the cause and execute the complete benchmark again.
 
-Parallelism is not always faster. On trivial suites such as `many-fast` and
-`giant-dataset`, four Greenlight workers are slower than one worker. Worker
-startup and socket communication cost more time than the trivial test bodies
-save.
+Do not compare results from different benchmark shapes, parameters, machines,
+PHP versions, source revisions, or comparison-tool versions.
 
-Parallel execution helps once tests do enough work. In `few-slow`, four workers
-reduce the run from 1.064s to 0.529s.
+Synthetic benchmark results do not predict all real test suites.
+Use representative application suites before you make a general performance claim.
 
-The `giant-dataset` shape is one class. Thus, the Greenlight class-level
-schedule cannot split it across workers. Extra workers add overhead but do not
-add parallelism.
+## Published results
 
-A similar overhead pattern has a larger effect on small ParaTest work units. In the
-`many-fast` shape, ParaTest is slower than plain PHPUnit. Process-level
-parallelism adds overhead for each process.
-
-These synthetic benchmarks are from one machine. They help compare runner
-overhead for known shapes, but they do not predict every real suite. Suites with
-large I/O waits can have a much larger benefit from parallel execution.
+The project does not currently publish benchmark numbers.
+The previous numbers used three unbalanced samples and different output modes.
+They do not meet the current publication procedure.
 
 ## Maintenance
 
@@ -139,13 +137,11 @@ CI runs a small benchmark to check the harness:
 
 ```sh
 php tools/benchmark.php --shape=many-fast --scale=1 --workers=2 \
-  --warmups=1 --runs=1 --seed=20260821
+  --warmups=1 --runs=1 --pause-ms=0 --seed=20260821
 ```
 
-The project does not publish CI numbers because shared runners do not give
-stable comparisons.
+The project does not publish CI numbers.
+Shared runners do not give stable performance comparisons.
 
-When the runner changes materially, run the full benchmark on an idle machine.
-Record the Greenlight commit and run date with the results. The
-`tools/benchmark.php` file pins comparison-tool versions. Update the constants
-and this page in the same change.
+When the runner changes materially, execute the full benchmark on an idle machine.
+Update the pinned comparison-tool constants and this page in the same change.

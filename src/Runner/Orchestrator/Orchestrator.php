@@ -396,6 +396,8 @@ final class Orchestrator
                 $handle->channelNumber,
                 $this->configuration->configFile === '' ? null : $this->configuration->configFile,
                 $this->configuration->integrationFixtures->forChannel($handle->channelNumber),
+                $this->configuration->generatedCodeDirectory,
+                $this->configuration->temporaryDirectory,
             ));
         } catch (ProtocolError) {
             $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');

@@ -46,12 +46,15 @@ final class NativeWorkerTransport implements WorkerTransport
      * @param non-empty-list<non-empty-string> $workerCommand
      * @throws ProtocolError
      */
-    public static function listen(array $workerCommand, string $workingDirectory): self
-    {
+    public static function listen(
+        array $workerCommand,
+        string $workingDirectory,
+        ?string $temporaryDirectory = null,
+    ): self {
         return new self(
             $workerCommand,
             $workingDirectory,
-            ServerSocket::listen(),
+            ServerSocket::listen($temporaryDirectory),
             \bin2hex(\random_bytes(16)),
         );
     }

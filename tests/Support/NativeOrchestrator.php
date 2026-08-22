@@ -46,9 +46,11 @@ final readonly class NativeOrchestrator
         float $progressDeadlineSeconds = OrchestratorConfiguration::DEFAULT_PROGRESS_DEADLINE_SECONDS,
         array $resourceLimits = [],
         InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
+        ?string $generatedCodeDirectory = null,
+        ?string $temporaryDirectory = null,
     ): Orchestrator {
         return new Orchestrator(
-            NativeWorkerTransport::listen($workerCommand, $workingDirectory),
+            NativeWorkerTransport::listen($workerCommand, $workingDirectory, $temporaryDirectory),
             new OrchestratorConfiguration(
                 $recycleAfterTests,
                 $recycleAboveMemoryBytes,
@@ -66,6 +68,8 @@ final readonly class NativeOrchestrator
                 $progressDeadlineSeconds,
                 $resourceLimits,
                 $initialWorkerAssignment,
+                $generatedCodeDirectory,
+                $temporaryDirectory,
             ),
         );
     }

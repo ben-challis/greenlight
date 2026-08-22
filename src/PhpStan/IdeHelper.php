@@ -59,6 +59,7 @@ final readonly class IdeHelper
                 final class %s {}
 
                 /**
+                 * @mixin Expectation
                 %s
                  */
                 abstract class %s {}

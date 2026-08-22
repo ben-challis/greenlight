@@ -36,7 +36,7 @@ final class TemporaryDirectory implements Disposable
             $resolvedTemporaryRoot = ErrorTrap::run(static fn() => \realpath($systemTemporaryRoot));
             $temporaryRoot = $resolvedTemporaryRoot === false ? $systemTemporaryRoot : $resolvedTemporaryRoot;
             $path = $temporaryRoot . '/greenlight-' . \bin2hex(\random_bytes(8));
-            $created = ErrorTrap::run(static fn() => \mkdir($path, 0700), $warning);
+            $created = ErrorTrap::run(static fn() => \mkdir($path, 0700, true), $warning);
 
             if (!$created) {
                 throw TemporaryDirectoryError::rootCreationFailed($path, $warning);

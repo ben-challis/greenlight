@@ -28,8 +28,11 @@ final class CoverageSession
     /**
      * @throws CoverageError
      */
-    public static function open(?CoverageSettings $settings, bool $collectProcess): self
-    {
+    public static function open(
+        ?CoverageSettings $settings,
+        bool $collectProcess,
+        ?string $temporaryDirectory = null,
+    ): self {
         $session = new self();
 
         if (!$settings instanceof CoverageSettings) {
@@ -46,7 +49,7 @@ final class CoverageSession
                 }
             }
 
-            $session->shared = SharedCoverageDirectory::open($settings);
+            $session->shared = SharedCoverageDirectory::open($settings, $temporaryDirectory);
         } catch (\Throwable $failure) {
             $session->close();
 

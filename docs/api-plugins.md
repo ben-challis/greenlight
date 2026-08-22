@@ -6,6 +6,66 @@ This reference lists plugin capabilities and lifecycle callback contracts.
 
 These signatures are the public API.
 
+## `AfterTestSubscriber`
+
+Namespace: `Greenlight\Plugin`
+
+Lets a plugin act after each test attempt in a worker.
+
+Greenlight runs higher priorities first. It uses reverse registration order
+for equal priorities. Plugins that implement both subscriber capabilities
+run their after callbacks in the exact reverse order. Greenlight runs all
+after subscribers even when a before subscriber stops the attempt.
+
+The method receives and returns the result. A plugin can return the same
+result or a replacement. Use `TestResult::withOutcome()` for outcome changes
+so that the result records their source.
+
+```php
+interface AfterTestSubscriber extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AfterTestSubscriber.php#L21)
+
+### `afterTest()`
+
+```php
+public function afterTest(TestContext $context, TestResult $result): TestResult;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AfterTestSubscriber.php#L23)
+
+## `BeforeTestSubscriber`
+
+Namespace: `Greenlight\Plugin`
+
+Lets a plugin act before each test attempt in a worker.
+
+Greenlight runs lower priorities first. It uses registration order for equal
+priorities. A skip or failure stops the remaining before subscribers.
+
+```php
+interface BeforeTestSubscriber extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/BeforeTestSubscriber.php#L15)
+
+### `beforeTest()`
+
+Greenlight calls this method after it constructs the test instance and
+before the before hooks. `$context->skip()` or `SkipTest` reports a
+skipped test. Other throwables cause errors that name the plugin.
+
+```php
+public function beforeTest(TestContext $context): void;
+```
+
+PHPDoc:
+
+- `@throws SkipTest`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/BeforeTestSubscriber.php#L24)
+
 ## `HarnessProvider`
 
 Namespace: `Greenlight\Plugin`
@@ -226,9 +286,9 @@ Namespace: `Greenlight\Plugin`
 Identifies an object as a Greenlight plugin.
 
 Plugins implement one or more capability interfaces such as
-`WorkerRuntimeRunner`, `TestAttemptRunner`, `TestLifecycleSubscriber`,
-`RunLifecycleSubscriber`, `RetryDecider`, `HarnessProvider`, or
-`ExpectationExtension`.
+`WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
+`AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
+`HarnessProvider`, `ReporterProvider`, or `ExpectationExtension`.
 
 ```php
 interface Plugin
@@ -242,14 +302,16 @@ This type does not declare public members.
 
 Namespace: `Greenlight\Plugin`
 
-Controls order within each plugin capability. Lower values run earlier.
-The default value is zero. Equal values keep their original order.
+Controls order within each plugin capability. Capability interfaces define
+whether callbacks use or reverse this order. The default value is zero.
+The base order puts lower values first and keeps registration order for
+equal values.
 
 ```php
 interface Prioritized
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L13)
 
 ### `priority()`
 
@@ -257,7 +319,37 @@ interface Prioritized
 public function priority(): int;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L15)
+
+## `ReporterProvider`
+
+Namespace: `Greenlight\Plugin`
+
+Supplies named reporter factories to the command-line reporter registry.
+
+Greenlight calls `reporters()` one time for a command. It calls a selected
+factory for each run, including each repeat or watch run.
+
+```php
+interface ReporterProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L15)
+
+### `reporters()`
+
+A factory MUST return a new reporter for each call. It MUST NOT close the
+supplied output because Greenlight owns that output.
+
+```php
+public function reporters(): array;
+```
+
+PHPDoc:
+
+- `@return list<ReporterDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L23)
 
 ## `RetryDecider`
 
@@ -427,47 +519,6 @@ PHPDoc:
 - `@throws SkipTest`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
-
-## `TestLifecycleSubscriber`
-
-Namespace: `Greenlight\Plugin`
-
-Lets a plugin act before and after each test attempt in a worker.
-
-`afterTest()` receives and returns the result. A plugin can return an
-unchanged result or a replacement result. Use `TestResult::withOutcome()` for
-outcome changes so that the result records their source.
-
-```php
-interface TestLifecycleSubscriber extends Plugin
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestLifecycleSubscriber.php#L17)
-
-### `beforeTest()`
-
-Greenlight calls `beforeTest()` after it constructs the test instance and
-before the before hooks. `$context->skip()` or `SkipTest` reports a skipped
-test. Greenlight reports other throwables as errors and names this
-plugin in each error.
-
-```php
-public function beforeTest(TestContext $context): void;
-```
-
-PHPDoc:
-
-- `@throws SkipTest`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestLifecycleSubscriber.php#L27)
-
-### `afterTest()`
-
-```php
-public function afterTest(TestContext $context, TestResult $result): TestResult;
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestLifecycleSubscriber.php#L29)
 
 ## `WorkerBootstrapContext`
 

@@ -1,6 +1,7 @@
 # Tempest applications
 
-The Tempest bridge supplies Tempest container services to test constructors.
+The [Tempest](https://tempestphp.com/) bridge supplies Tempest container
+services to test constructors.
 
 The bridge boots a Tempest kernel when a test first requests a Tempest service.
 The kernel stays active for the worker lifetime. Tempest controls discovery,
