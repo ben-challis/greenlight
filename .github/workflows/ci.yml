@@ -391,10 +391,7 @@ jobs:
       - name: "Tests with JUnit output"
         id: "tests_analytics"
         if: "matrix.analytics == true"
-        shell: "bash"
-        run: |
-          mkdir -p build/test-results
-          php bin/greenlight run --reporter=junit > build/test-results/greenlight.junit.xml
+        run: "php bin/greenlight run --reporter=junit=build/test-results/greenlight.junit.xml"
 
       - name: "Save Greenlight run state"
         if: "${{ !cancelled() && (steps.tests_lowest.outcome != 'skipped' || steps.tests_standard.outcome != 'skipped' || steps.tests_analytics.outcome != 'skipped') }}"
