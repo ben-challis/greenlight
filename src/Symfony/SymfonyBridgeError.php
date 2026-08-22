@@ -6,12 +6,16 @@ namespace Greenlight\Symfony;
 
 use Greenlight\Harness\ServiceResolutionFailed;
 
-/** @internal */
+/**
+ * Reports a Symfony bridge configuration or runtime failure.
+ *
+ * @internal
+ */
 final class SymfonyBridgeError extends ServiceResolutionFailed
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
     public static function testContainerUnavailable(string $environment): self
@@ -64,5 +68,17 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
             . 'SymfonyPlugin cannot use this class as a kernel.',
             $class,
         ));
+    }
+
+    public static function serviceResolutionFailed(string $id, string $type, \Throwable $previous): self
+    {
+        return new self(
+            \sprintf(
+                'The Symfony container failed when it resolved service "%s" for parameter type "%s".',
+                $id,
+                $type,
+            ),
+            previous: $previous,
+        );
     }
 }

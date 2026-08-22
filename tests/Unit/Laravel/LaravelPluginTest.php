@@ -14,7 +14,11 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
+use Greenlight\Harness\HarnessRegistry;
+use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
+use Greenlight\Harness\ServiceResolution;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Laravel\LaravelBridgeError;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
 use Greenlight\Laravel\LaravelPlugin;
@@ -27,6 +31,7 @@ use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\PluginLifecycle;
+use Greenlight\Tests\Support\ServiceResolverProbe;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Foundation\Application;
@@ -63,7 +68,7 @@ final class LaravelPluginTest
     #[Test]
     public function resolvesContainerServicesByType(): void
     {
-        $greeter = $this->plugin()->resolve(Greeter::class, []);
+        $greeter = $this->plugin()->resolve(Greeter::class, [])->value();
 
         Expect::that($greeter)
             ->because('LaravelPlugin::resolve() MUST return Greeter.')
@@ -77,14 +82,14 @@ final class LaravelPluginTest
     {
         $plugin = $this->plugin();
 
-        Expect::that($plugin->resolve(VisitCounter::class, []))
-            ->toBe($plugin->resolve(VisitCounter::class, []));
+        Expect::that($plugin->resolve(VisitCounter::class, [])->value())
+            ->toBe($plugin->resolve(VisitCounter::class, [])->value());
     }
 
     #[Test]
     public function theServiceAttributeResolvesByExplicitId(): void
     {
-        $named = $this->plugin()->resolve(NamedGreeter::class, [new Service('fixture.named_greeter')]);
+        $named = $this->plugin()->resolve(NamedGreeter::class, [new Service('fixture.named_greeter')])->value();
 
         Expect::that($named)->toBeInstanceOf(NamedGreeter::class);
     }
@@ -92,7 +97,7 @@ final class LaravelPluginTest
     #[Test]
     public function aTypeWithoutTheAttributeMissesIdOnlyServices(): void
     {
-        Expect::that($this->plugin()->resolve(NamedGreeter::class, []))->toBeNull();
+        Expect::that($this->plugin()->resolve(NamedGreeter::class, [])->value())->toBeNull();
     }
 
     #[Test]
@@ -100,7 +105,36 @@ final class LaravelPluginTest
     {
         // Laravel could construct ArrayObject through implicit resolution.
         // The bridge only serves explicit bindings.
-        Expect::that($this->plugin()->resolve(\ArrayObject::class, []))->toBeNull();
+        Expect::that($this->plugin()->resolve(\ArrayObject::class, [])->value())->toBeNull();
+    }
+
+    #[Test]
+    public function anUnboundTypeFallsThroughToTheNextResolver(): void
+    {
+        $answer = new \ArrayObject();
+        $later = new ServiceResolverProbe(ServiceResolution::resolved($answer));
+        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+
+        Expect::that($scopes->resolve(\ArrayObject::class, 'test'))
+            ->because('an unbound Laravel type MUST fall through to the next resolver')
+            ->toBe($answer);
+        Expect::that($later->calls)->toBe(1);
+    }
+
+    #[Test]
+    public function anUnknownExplicitBindingStopsTheResolverChain(): void
+    {
+        $later = new ServiceResolverProbe(ServiceResolution::resolved(new Greeter()));
+        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+
+        Expect::that(static fn(): object => $scopes->resolve(
+            Greeter::class,
+            'test',
+            [new Service('fixture.missing')],
+        ))
+            ->because('an explicit Laravel binding failure MUST stop the resolver chain')
+            ->toThrow(ServiceResolutionFailed::class, matching: '/no binding "fixture\.missing"/');
+        Expect::that($later->calls)->toBe(0);
     }
 
     #[Test]
@@ -109,7 +143,7 @@ final class LaravelPluginTest
         $plugin = $this->plugin();
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, [new Service('fixture.missing')]);
+            $plugin->resolve(Greeter::class, [new Service('fixture.missing')])->value();
         })->toThrow(LaravelBridgeError::class, matching: '/no binding "fixture\.missing".*Check the id for typos/s');
     }
 
@@ -119,7 +153,7 @@ final class LaravelPluginTest
         $plugin = $this->plugin();
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(VisitCounter::class, [new Service('fixture.named_greeter')]);
+            $plugin->resolve(VisitCounter::class, [new Service('fixture.named_greeter')])->value();
         })->toThrow(LaravelBridgeError::class, matching: '/is an instance of .* but the parameter declares/');
     }
 
@@ -130,7 +164,7 @@ final class LaravelPluginTest
         $plugin = $this->track(new LaravelPlugin($this->fixtureDir() . '/missing-bootstrap.php'));
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, []);
+            $plugin->resolve(Greeter::class, [])->value();
         })->toThrow(LaravelBridgeError::class, matching: '/does not exist.*bootstrap\/app\.php/s');
         Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
         Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
@@ -149,7 +183,7 @@ final class LaravelPluginTest
         Expect::that(
             static function () use ($plugin, &$warning): void {
                 ErrorTrap::run(
-                    static fn() => $plugin->resolve(Greeter::class, []),
+                    static fn() => $plugin->resolve(Greeter::class, [])->value(),
                     $warning,
                 );
             },
@@ -188,7 +222,7 @@ final class LaravelPluginTest
         $plugin = $this->track(new LaravelPlugin($this->fixtureDir() . '/bootstrap-invalid.php'));
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, []);
+            $plugin->resolve(Greeter::class, [])->value();
         })->toThrow(LaravelBridgeError::class, matching: '/returned "stdClass".*Application::configure/s');
     }
 
@@ -200,7 +234,7 @@ final class LaravelPluginTest
         ));
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, []);
+            $plugin->resolve(Greeter::class, [])->value();
         })->toThrow(LaravelBridgeError::class, matching: '/no console kernel binding/');
     }
 
@@ -215,7 +249,7 @@ final class LaravelPluginTest
         }));
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, []);
+            $plugin->resolve(Greeter::class, [])->value();
         })->toThrow(LaravelBridgeError::class, matching: '/contains "stdClass" instead of/');
     }
 
@@ -235,9 +269,19 @@ final class LaravelPluginTest
             return $app;
         }));
 
-        Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, []);
-        })->toThrow($failure);
+        $error = null;
+
+        try {
+            $plugin->resolve(Greeter::class, [])->value();
+        } catch (LaravelBridgeError $caught) {
+            $error = $caught;
+        }
+        Expect::that($error)
+            ->because('the failed kernel bootstrap MUST cause a Laravel bridge error')
+            ->toBeInstanceOf(LaravelBridgeError::class);
+        Expect::that($error->getPrevious())
+            ->because('the resolution failure MUST keep the container cause')
+            ->toBe($failure);
         Expect::that(Container::getInstance())->toBe($container);
         Expect::that(\getenv('APP_ENV'))->toBe('before-laravel');
         Expect::that($_ENV['APP_ENV'] ?? null)->toBe('before-laravel');
@@ -281,13 +325,13 @@ final class LaravelPluginTest
             static fn(): Application => FixtureApplication::create(),
         ));
 
-        Expect::that($plugin->resolve(Greeter::class, []))->toBeInstanceOf(Greeter::class);
+        Expect::that($plugin->resolve(Greeter::class, [])->value())->toBeInstanceOf(Greeter::class);
     }
 
     #[Test]
     public function theApplicationEnvironmentComesFromTheEnvParameter(): void
     {
-        $app = $this->plugin()->resolve(Application::class, []);
+        $app = $this->plugin()->resolve(Application::class, [])->value();
 
         Expect::that($app)
             ->because('LaravelPlugin::resolve() MUST return the application.')
@@ -302,14 +346,14 @@ final class LaravelPluginTest
         $plugin = $this->plugin();
         $app = ($plugin->services()[0]->factory)();
 
-        Expect::that($plugin->resolve(LaravelApplication::class, []))->toBe($app);
+        Expect::that($plugin->resolve(LaravelApplication::class, [])->value())->toBe($app);
     }
 
     #[Test]
     public function afterTestBootsAFreshApplicationForTheNextTest(): void
     {
         $plugin = $this->plugin();
-        $counter = $plugin->resolve(VisitCounter::class, []);
+        $counter = $plugin->resolve(VisitCounter::class, [])->value();
 
         Expect::that($counter)
             ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
@@ -318,7 +362,7 @@ final class LaravelPluginTest
         $counter->record();
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
-        $second = $plugin->resolve(VisitCounter::class, []);
+        $second = $plugin->resolve(VisitCounter::class, [])->value();
 
         Expect::that($second)
             ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
@@ -337,7 +381,7 @@ final class LaravelPluginTest
             $this->fixtureDir() . '/bootstrap.php',
             refreshBetweenTests: false,
         ));
-        $counter = $plugin->resolve(VisitCounter::class, []);
+        $counter = $plugin->resolve(VisitCounter::class, [])->value();
 
         Expect::that($counter)
             ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
@@ -347,7 +391,7 @@ final class LaravelPluginTest
         $plugin->afterTest($this->context(), $this->result());
 
         Expect::that($counter->count())->toBe(1);
-        Expect::that($plugin->resolve(VisitCounter::class, []))->toBe($counter);
+        Expect::that($plugin->resolve(VisitCounter::class, [])->value())->toBe($counter);
     }
 
     #[Test]
@@ -393,7 +437,7 @@ final class LaravelPluginTest
         $this->environment->unset('APP_ENV');
         $plugin = $this->plugin();
 
-        $plugin->resolve(Greeter::class, []);
+        $plugin->resolve(Greeter::class, [])->value();
 
         Expect::that(\getenv('APP_ENV'))
             ->because('Laravel boot MUST set the configured application environment')
@@ -423,7 +467,7 @@ final class LaravelPluginTest
         \restore_exception_handler();
         $reportingBefore = \error_reporting();
 
-        $this->plugin()->resolve(Greeter::class, []);
+        $this->plugin()->resolve(Greeter::class, [])->value();
 
         $errorAfter = \set_error_handler(null);
         \restore_error_handler();
@@ -475,7 +519,7 @@ final class LaravelPluginTest
 
     private function refreshApplication(LaravelPlugin $plugin): void
     {
-        $plugin->resolve(Greeter::class, []);
+        $plugin->resolve(Greeter::class, [])->value();
         $plugin->afterTest($this->context(), $this->result());
     }
 

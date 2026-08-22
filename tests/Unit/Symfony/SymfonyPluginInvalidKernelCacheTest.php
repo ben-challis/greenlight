@@ -23,7 +23,7 @@ final class SymfonyPluginInvalidKernelCacheTest
 
             return BareKernel::withoutTestContainer();
         });
-        $resolve = static fn(): ?object => $plugin->resolve(Greeter::class, []);
+        $resolve = static fn(): ?object => $plugin->resolve(Greeter::class, [])->value();
 
         Expect::that($resolve)
             ->because('the first invalid kernel fails validation')

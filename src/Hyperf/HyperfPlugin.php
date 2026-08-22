@@ -7,6 +7,7 @@ namespace Greenlight\Hyperf;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\HarnessProvider;
@@ -82,10 +83,9 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ?object
+    public function resolve(string $type, array $attributes): ServiceResolution
     {
         $id = $type;
 
@@ -95,23 +95,29 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
             }
         }
 
-        $container = $this->container();
+        try {
+            $container = $this->container();
 
-        if (!$container->has($id)) {
-            if ($id !== $type) {
-                throw HyperfBridgeError::unknownServiceId($id, $type);
+            if (!$container->has($id)) {
+                return $id !== $type
+                    ? ServiceResolution::failed(HyperfBridgeError::unknownServiceId($id, $type))
+                    : ServiceResolution::unhandled();
             }
 
-            return null;
+            $service = $container->get($id);
+
+            if (!$service instanceof $type) {
+                return ServiceResolution::failed(
+                    HyperfBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
+                );
+            }
+
+            return ServiceResolution::resolved($service);
+        } catch (ServiceResolutionFailed $error) {
+            return ServiceResolution::failed($error);
+        } catch (\Throwable $cause) {
+            return ServiceResolution::failed(HyperfBridgeError::serviceResolutionFailed($id, $type, $cause));
         }
-
-        $service = $container->get($id);
-
-        if (!$service instanceof $type) {
-            throw HyperfBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
-        }
-
-        return $service;
     }
 
     /** @throws ServiceResolutionFailed */

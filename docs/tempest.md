@@ -83,8 +83,9 @@ final class RegistrationTest
 ```
 
 Greenlight first resolves constructor parameters from its harness. It then asks
-the Tempest container to resolve the type. Greenlight harness services take
-precedence over Tempest services.
+fallback-capable service resolvers. Finally, it asks the Tempest container to
+resolve the type. Greenlight always places the terminal Tempest resolver last.
+Registration order and plugin priority do not change this rule.
 
 Tempest can use discovered initializers and automatic constructor injection. If
 Tempest cannot resolve the type, Greenlight throws `ServiceResolutionFailed`.

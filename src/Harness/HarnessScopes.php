@@ -27,6 +27,16 @@ final class HarnessScopes
         private readonly HarnessRegistry $registry,
         private readonly array $resolvers = [],
     ) {
+        $terminalSeen = false;
+
+        foreach ($resolvers as $resolver) {
+            if ($terminalSeen) {
+                throw new \InvalidArgumentException('A terminal service resolver MUST be the final resolver.');
+            }
+
+            $terminalSeen = $resolver instanceof TerminalServiceResolver;
+        }
+
         $this->worker = new ScopeContainer();
     }
 
@@ -61,11 +71,24 @@ final class HarnessScopes
         }
 
         foreach ($this->resolvers as $resolver) {
-            $service = $resolver->resolve($type, $attributes);
+            $resolution = $resolver->resolve($type, $attributes);
 
-            if ($service === null) {
+            if ($resolution->isUnhandled()) {
+                if ($resolver instanceof TerminalServiceResolver) {
+                    throw new \LogicException(\sprintf(
+                        'Terminal service resolver "%s" returned an unhandled result.',
+                        $resolver::class,
+                    ));
+                }
+
                 continue;
             }
+
+            if ($resolution->isFailed()) {
+                throw $resolution->error();
+            }
+
+            $service = $resolution->service();
 
             if (!$service instanceof $type) {
                 throw UnresolvableService::resolverTypeMismatch($type, $consumer, $resolver::class, $service::class);

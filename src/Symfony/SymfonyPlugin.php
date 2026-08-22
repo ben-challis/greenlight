@@ -7,6 +7,7 @@ namespace Greenlight\Symfony;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -81,10 +82,9 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ?object
+    public function resolve(string $type, array $attributes): ServiceResolution
     {
         $id = $type;
 
@@ -94,23 +94,29 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             }
         }
 
-        $container = $this->container();
+        try {
+            $container = $this->container();
 
-        if (!$container->has($id)) {
-            if ($id !== $type) {
-                throw SymfonyBridgeError::unknownServiceId($id, $type);
+            if (!$container->has($id)) {
+                return $id !== $type
+                    ? ServiceResolution::failed(SymfonyBridgeError::unknownServiceId($id, $type))
+                    : ServiceResolution::unhandled();
             }
 
-            return null;
+            $service = $container->get($id);
+
+            if (!$service instanceof $type) {
+                return ServiceResolution::failed(
+                    SymfonyBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
+                );
+            }
+
+            return ServiceResolution::resolved($service);
+        } catch (ServiceResolutionFailed $error) {
+            return ServiceResolution::failed($error);
+        } catch (\Throwable $cause) {
+            return ServiceResolution::failed(SymfonyBridgeError::serviceResolutionFailed($id, $type, $cause));
         }
-
-        $service = $container->get($id);
-
-        if (!$service instanceof $type) {
-            throw SymfonyBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
-        }
-
-        return $service;
     }
 
     #[\Override]
