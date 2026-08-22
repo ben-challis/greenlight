@@ -35,14 +35,14 @@ jobs:
           token: "${{ steps.release-token.outputs.token }}"
 
       - name: "Checkout release pull request"
-        if: "steps.release.outputs.prs_created == 'true'"
+        if: "steps.release.outputs.pr != ''"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
         with:
           ref: "${{ fromJSON(steps.release.outputs.pr).headBranchName }}"
           persist-credentials: false
 
       - name: "Set up PHP"
-        if: "steps.release.outputs.prs_created == 'true'"
+        if: "steps.release.outputs.pr != ''"
         uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2
         with:
           php-version: "8.4"
@@ -50,14 +50,14 @@ jobs:
           tools: "composer:2.9"
 
       - name: "Refresh the Composer lock file"
-        if: "steps.release.outputs.prs_created == 'true'"
+        if: "steps.release.outputs.pr != ''"
         run: "composer update --lock --no-install --no-interaction --no-progress --no-audit --no-plugins --no-scripts"
 
       - name: "Commit the Composer lock file"
-        if: "steps.release.outputs.prs_created == 'true'"
+        if: "steps.release.outputs.pr != ''"
         env:
           GH_TOKEN: "${{ steps.release-token.outputs.token }}"
-          RELEASE_BRANCH: "${{ fromJSON(steps.release.outputs.pr).headBranchName }}"
+          RELEASE_PR: "${{ steps.release.outputs.pr }}"
         shell: "bash"
         run: |
           set -euo pipefail
@@ -66,6 +66,7 @@ jobs:
             exit 0
           fi
 
+          RELEASE_BRANCH="$(jq --exit-status --raw-output '.headBranchName' <<< "${RELEASE_PR}")"
           git config user.name "greenlight-beacon[bot]"
           git config user.email "319914495+greenlight-beacon[bot]@users.noreply.github.com"
           git add composer.lock
