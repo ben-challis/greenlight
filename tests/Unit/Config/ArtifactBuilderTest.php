@@ -45,28 +45,28 @@ final class ArtifactBuilderTest
     {
         yield 'zero per test' => [
             static function (ArtifactBuilder $builder): void {
-                $builder->maxAttachmentsPerTest(0);
+                $builder->maxAttachmentsPerTest(0); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'Artifact count per test must be at least 1.',
         ];
 
         yield 'negative per test' => [
             static function (ArtifactBuilder $builder): void {
-                $builder->maxAttachmentsPerTest(-1);
+                $builder->maxAttachmentsPerTest(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'Artifact count per test must be at least 1.',
         ];
 
         yield 'zero per run' => [
             static function (ArtifactBuilder $builder): void {
-                $builder->maxRunAttachments(0);
+                $builder->maxRunAttachments(0); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'Artifact count per run must be at least 1.',
         ];
 
         yield 'negative per run' => [
             static function (ArtifactBuilder $builder): void {
-                $builder->maxRunAttachments(-1);
+                $builder->maxRunAttachments(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'Artifact count per run must be at least 1.',
         ];

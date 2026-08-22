@@ -37,11 +37,11 @@ final class SuiteBuilderTest
             ->in('tests/Existing')
             ->tag('existing');
 
-        Expect::that(static fn(): SuiteBuilder => $builder->in('tests/Added', ''))
+        Expect::that(static fn(): SuiteBuilder => $builder->in('tests/Added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected path call does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::that(static fn(): SuiteBuilder => $builder->tag('added', ''))
+        Expect::that(static fn(): SuiteBuilder => $builder->tag('added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected tag call does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
@@ -69,8 +69,8 @@ final class SuiteBuilderTest
     }
 
     /**
-     * @param list<string> $paths
-     * @param list<string> $tags
+     * @param list<non-empty-string> $paths
+     * @param list<non-empty-string> $tags
      */
     #[Test]
     #[DataSet('zeroStringValues')]

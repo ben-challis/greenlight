@@ -87,7 +87,7 @@ final class GreenlightConfig
      * Sets the top-level test-discovery directories. Greenlight combines these
      * paths with the paths from all named suites.
      *
-     * @param list<string> $tests
+     * @param non-empty-list<non-empty-string> $tests
      *
      * @throws InvalidConfiguration
      */
@@ -143,6 +143,7 @@ final class GreenlightConfig
      * with `in()`. Greenlight ignores its return value, which permits short
      * arrow functions.
      *
+     * @param non-empty-string $name
      * @param callable(SuiteBuilder): mixed $configurator
      *
      * @throws InvalidConfiguration
@@ -169,9 +170,10 @@ final class GreenlightConfig
      * when `$recycleAfterTests` has a value. Use this option for state that the
      * memory limit cannot control.
      *
-     * @param int|'auto' $count
-     * @param int|null $recycleAfterTests A null value disables test-count
+     * @param positive-int|'auto' $count
+     * @param positive-int|null $recycleAfterTests A null value disables test-count
      *   worker replacement.
+     * @param non-empty-string $recycleAboveMemory
      *
      * @throws InvalidConfiguration
      */
@@ -200,6 +202,9 @@ final class GreenlightConfig
      * named resource.
      *
      * A resource without an explicit resource limit has a limit of one.
+     *
+     * @param non-empty-string $name
+     * @param positive-int $limit
      *
      * @throws InvalidConfiguration
      */
@@ -316,6 +321,9 @@ final class GreenlightConfig
      * Exempts deprecation messages from `failOnDeprecation()`. A pattern matches
      * part of a message without case sensitivity. A pattern that contains "*"
      * or "?" matches the complete message. Multiple calls add patterns.
+     *
+     * @param non-empty-string ...$patterns
+     *
      * @throws InvalidConfiguration
      */
     public function ignoreDeprecationsMatching(string ...$patterns): self

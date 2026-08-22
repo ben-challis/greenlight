@@ -23,6 +23,8 @@ final class SuiteBuilder
     public function __construct(private readonly string $name) {}
 
     /**
+     * @param non-empty-string ...$paths
+     *
      * @throws InvalidConfiguration
      */
     public function in(string ...$paths): self
@@ -47,6 +49,8 @@ final class SuiteBuilder
     }
 
     /**
+     * @param non-empty-string ...$tags
+     *
      * @throws InvalidConfiguration
      */
     public function tag(string ...$tags): self

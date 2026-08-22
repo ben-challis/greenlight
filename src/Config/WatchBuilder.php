@@ -15,6 +15,8 @@ final class WatchBuilder
      * Sets the quiet period before a new run. The period restarts after each
      * change. Thus, multiple consecutive saves cause one run.
      *
+     * @param positive-int $milliseconds
+     *
      * @throws InvalidConfiguration
      */
     public function debounceMilliseconds(int $milliseconds): self

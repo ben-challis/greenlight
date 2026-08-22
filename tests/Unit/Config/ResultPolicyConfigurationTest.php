@@ -118,7 +118,7 @@ final class ResultPolicyConfigurationTest
     {
         Expect::that(
             static fn(): GreenlightConfig => GreenlightConfig::create()
-                ->ignoreDeprecationsMatching(...$patterns),
+                ->ignoreDeprecationsMatching(...$patterns), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         )
             ->because('empty deprecation ignore patterns are invalid')
             ->toThrow(

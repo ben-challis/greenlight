@@ -51,7 +51,7 @@ final readonly class StorageBuilderTest
     public static function invalidDirectories(): iterable
     {
         yield 'empty root' => [
-            static fn(StorageBuilder $storage): StorageBuilder => $storage->rootDirectory(''),
+            static fn(StorageBuilder $storage): StorageBuilder => $storage->rootDirectory(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             'Storage root directory cannot be empty.',
         ];
         yield 'state null byte' => [
@@ -59,7 +59,7 @@ final readonly class StorageBuilderTest
             'State directory cannot contain a null byte.',
         ];
         yield 'empty cache' => [
-            static fn(StorageBuilder $storage): StorageBuilder => $storage->cacheDirectory(''),
+            static fn(StorageBuilder $storage): StorageBuilder => $storage->cacheDirectory(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             'Cache directory cannot be empty.',
         ];
         yield 'generated code null byte' => [
@@ -67,7 +67,7 @@ final readonly class StorageBuilderTest
             'Generated-code directory cannot contain a null byte.',
         ];
         yield 'empty temporary' => [
-            static fn(StorageBuilder $storage): StorageBuilder => $storage->temporaryDirectory(''),
+            static fn(StorageBuilder $storage): StorageBuilder => $storage->temporaryDirectory(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             'Temporary directory cannot be empty.',
         ];
     }

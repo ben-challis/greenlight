@@ -32,7 +32,7 @@ final class WatchBuilderTest
     public function theDebounceMustBePositive(int $milliseconds): void
     {
         Expect::that(static function () use ($milliseconds): void {
-            new WatchBuilder()->debounceMilliseconds($milliseconds);
+            new WatchBuilder()->debounceMilliseconds($milliseconds); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('the watch debounce must be positive')
             ->toThrow(
