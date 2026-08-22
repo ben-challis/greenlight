@@ -7,4 +7,4 @@ use Greenlight\Tests\Fixture\HarnessDisposalRun\FailingRunServicePlugin;
 
 return GreenlightConfig::create()
     ->paths([__DIR__ . '/../HarnessDisposalMatrix'])
-    ->plugins(new FailingRunServicePlugin());
+    ->plugins(static fn(): FailingRunServicePlugin => new FailingRunServicePlugin());
