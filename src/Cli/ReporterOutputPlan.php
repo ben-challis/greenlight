@@ -17,16 +17,16 @@ use Greenlight\Reporting\ReporterProviderError;
  *
  * @internal
  */
-final class ReporterOutputPlan
+final readonly class ReporterOutputPlan
 {
     /**
      * @param list<array{name: non-empty-string, output: ReporterOutput}> $selections
      * @param list<ReporterOutput> $ownedOutputs
      */
     private function __construct(
-        private readonly array $selections,
-        public readonly ReporterOutput $standardOutput,
-        private readonly array $ownedOutputs,
+        private array $selections,
+        public ReporterOutput $standardOutput,
+        private array $ownedOutputs,
     ) {}
 
     /**
@@ -103,13 +103,7 @@ final class ReporterOutputPlan
      */
     public static function selects(array $values, string $name): bool
     {
-        foreach ($values as $value) {
-            if (self::parse($value)[0] === $name) {
-                return true;
-            }
-        }
-
-        return false;
+        return \array_any($values, fn($value) => self::parse($value)[0] === $name);
     }
 
     /**
@@ -138,16 +132,17 @@ final class ReporterOutputPlan
 
     public function writesReporterToStandardOutput(string $name): bool
     {
-        foreach ($this->selections as $selection) {
-            if ($selection['name'] === $name && $selection['output'] === $this->standardOutput) {
-                return true;
-            }
-        }
-
-        return false;
+        return \array_any(
+            $this->selections,
+            fn($selection) => $selection['name'] === $name && $selection['output'] === $this->standardOutput,
+        );
     }
 
-    /** @return array{non-empty-string, ?non-empty-string} */
+    /**
+     * @return array{non-empty-string, ?non-empty-string}
+     *
+     * @throws CliError
+     */
     private static function parse(string $value): array
     {
         $separator = \strpos($value, '=');
@@ -171,11 +166,7 @@ final class ReporterOutputPlan
         return \rtrim($workingDirectory, '/') . '/' . $path;
     }
 
-    /**
-     * @return ReporterOutput
-     *
-     * @throws ReporterOutputError
-     */
+    /** @throws ReporterOutputError */
     private static function openFile(string $path, TerminalCapabilities $capabilities): ReporterOutput
     {
         $directory = \dirname($path);
