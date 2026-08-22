@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tempest;
 
+use Greenlight\Harness\ServiceResolutionFailed;
 use Tempest\Container\Container;
 use Tempest\Container\GenericContainer;
 use Tempest\Core\FrameworkKernel;
@@ -18,7 +19,7 @@ use Tempest\Core\Kernel;
 final class TempestFrameworkRequirement
 {
     /**
-     * @throws TempestBridgeError
+     * @throws ServiceResolutionFailed
      */
     public static function check(): void
     {
@@ -34,7 +35,7 @@ final class TempestFrameworkRequirement
     }
 
     /**
-     * @throws TempestBridgeError
+     * @throws ServiceResolutionFailed
      */
     public static function checkVersion(?string $version): void
     {

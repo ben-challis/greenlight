@@ -7,6 +7,7 @@ namespace Greenlight\Symfony;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -73,14 +74,14 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function services(): array
     {
         return [
-            new ServiceDefinition(KernelInterface::class, Scope::PerRun, $this->kernel(...)),
+            new ServiceDefinition(KernelInterface::class, Scope::PerWorker, $this->kernel(...)),
         ];
     }
 
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws SymfonyBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
@@ -125,7 +126,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     /**
      * Greenlight does not cache an invalid kernel. Thus, each use fails before
      * a test runs without isolation.
-     * @throws SymfonyBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function kernel(): KernelInterface
     {
@@ -162,7 +163,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     }
 
     /**
-     * @throws SymfonyBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function container(): ContainerInterface
     {

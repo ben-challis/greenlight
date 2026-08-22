@@ -6,6 +6,7 @@ namespace Greenlight\Runner\Artifact;
 
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
@@ -59,7 +60,7 @@ final readonly class ArtifactSession implements WireSerializable
      * @param 'publicDirectory'|'stagingDirectory' $key
      *
      * @return non-empty-string
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     private static function directoryFromWire(array $payload, string $key): string
     {

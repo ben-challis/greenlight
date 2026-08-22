@@ -17,6 +17,8 @@ final class PendingConsistently
     private float $intervalSeconds = self::DEFAULT_INTERVAL_SECONDS;
 
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */

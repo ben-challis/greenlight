@@ -10,12 +10,12 @@ use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
 use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Execution\ExecutionAdapter;
 use Greenlight\Runner\Execution\ExecutionContext;
@@ -42,8 +42,8 @@ final readonly class RunCoordinator
      * @throws AttachmentError
      * @throws IntegrationFixtureError
      * @throws ProtocolError
-     * @throws ReportingError
-     * @throws WireError
+     * @throws ReportGenerationFailed
+     * @throws WireCommunicationFailed
      */
     public function run(
         Configuration $configuration,

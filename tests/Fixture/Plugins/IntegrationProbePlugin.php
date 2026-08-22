@@ -105,7 +105,7 @@ final class IntegrationProbePlugin implements IntegrationFixtureProvider, Worker
         return [
             new ServiceDefinition(
                 IntegrationProbeService::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): IntegrationProbeService => new IntegrationProbeService(
                     $resource->int('channel'),
                     $resource->string('resourceFile'),

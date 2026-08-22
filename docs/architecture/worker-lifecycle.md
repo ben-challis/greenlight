@@ -117,7 +117,7 @@ cannot run concurrently. This bound does not remove achievable concurrency.
 Workers build their plugin instances and harness registries during `bootstrap`.
 They reuse them for later assignments. One physical worker constructs each
 configured worker-side plugin one time. A replacement worker constructs new
-instances. Per-run harness services therefore live for the physical worker's
+instances. Per-worker harness services therefore live for the physical worker's
 lifetime. Workers rebuild per-class reflection, hooks, and data sets for each
 class.
 
@@ -126,6 +126,9 @@ plugin for each selected run. The in-process runner also constructs separate
 worker-side instances. Thus, plugin properties cannot transfer data between
 the two sides in any worker mode. A repeat iteration and a watch rerun are new
 selected runs and construct new instances.
+
+Configured suites add named paths and descriptive tags to discovery. They do
+not add boundaries to the execution plan or event stream.
 
 The default scheduling unit contains the selected non-isolated tests from one
 class. `#[AllowParallel]` changes each selected test or data set into a pooled

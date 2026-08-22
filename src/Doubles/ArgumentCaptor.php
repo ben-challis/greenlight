@@ -51,12 +51,12 @@ final class ArgumentCaptor implements ArgumentMatcher
 
     /**
      * @return TValue
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function value(): mixed
     {
         if ($this->captured === []) {
-            throw DoublesError::nothingCaptured();
+            throw InvalidDoubleUsage::nothingCaptured();
         }
 
         return $this->captured[\count($this->captured) - 1];

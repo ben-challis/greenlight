@@ -91,8 +91,8 @@ the Tempest container to resolve the type. Greenlight harness services take
 precedence over Tempest services.
 
 Tempest can use discovered initializers and automatic constructor injection. If
-Tempest cannot resolve the type, the test reports a `TempestBridgeError`. The
-error contains the Tempest container error as its cause.
+Tempest cannot resolve the type, Greenlight throws `ServiceResolutionFailed`.
+The exception contains the Tempest container exception as its cause.
 
 ### Tagged services
 
@@ -113,7 +113,7 @@ have the declared parameter type.
 ### Kernel and container services
 
 Greenlight supplies `Tempest\Core\Kernel` and
-`Tempest\Container\Container` as harness services for each run:
+`Tempest\Container\Container` as harness services for each worker:
 
 <!-- php-example {"example":"tempest-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php

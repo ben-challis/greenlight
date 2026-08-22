@@ -381,6 +381,7 @@ final class GreenlightConfig
     }
 
     /**
+     * @internal Greenlight converts the builder to its run configuration.
      * @throws InvalidConfiguration
      */
     public function build(): Configuration

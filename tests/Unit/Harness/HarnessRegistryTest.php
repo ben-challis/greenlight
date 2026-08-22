@@ -17,7 +17,7 @@ final class HarnessRegistryTest
     {
         $registered = new ServiceDefinition(
             \ArrayObject::class,
-            Scope::PerRun,
+            Scope::PerWorker,
             static fn(): \ArrayObject => new \ArrayObject(),
         );
         $duplicate = new ServiceDefinition(

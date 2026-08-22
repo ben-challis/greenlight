@@ -8,8 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\SuiteFinished;
-use Greenlight\Core\Event\SuiteStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -30,8 +28,6 @@ final class EventTagsTest
             ->toBe([
                 'run-started' => RunStarted::class,
                 'run-finished' => RunFinished::class,
-                'suite-started' => SuiteStarted::class,
-                'suite-finished' => SuiteFinished::class,
                 'class-started' => TestClassStarted::class,
                 'class-finished' => TestClassFinished::class,
                 'test-started' => TestStarted::class,

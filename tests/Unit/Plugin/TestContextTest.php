@@ -25,7 +25,7 @@ final class TestContextTest
         $registry = new HarnessRegistry([
             new ServiceDefinition(
                 \ArrayObject::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): \ArrayObject => new \ArrayObject(['ready']),
             ),
         ]);

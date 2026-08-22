@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
@@ -36,7 +36,7 @@ final class DoublesDisposalIsolationTest
         Expect::that(static fn(): array => $doubles->callsTo($calculator, 'add'))
             ->because('disposal MUST revoke access to recordings from the closed verification scope')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'This Doubles factory did not create the ' . $calculator::class . ' instance.',
             );
     }

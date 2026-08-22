@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Laravel;
 
+use Greenlight\Harness\ServiceResolutionFailed;
 use Illuminate\Foundation\Application;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Foundation\Application;
 final class LaravelFrameworkRequirement
 {
     /**
-     * @throws LaravelBridgeError
+     * @throws ServiceResolutionFailed
      */
     public static function check(): void
     {
@@ -23,7 +24,7 @@ final class LaravelFrameworkRequirement
     }
 
     /**
-     * @throws LaravelBridgeError
+     * @throws ServiceResolutionFailed
      */
     public static function checkVersion(?string $version): void
     {

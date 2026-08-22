@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Hyperf;
 
-use Greenlight\Harness\ServiceResolutionError;
+use Greenlight\Harness\ServiceResolutionFailed;
 
 /**
  * Reports a Hyperf bridge configuration or runtime failure.
  *
  * @internal
  */
-final class HyperfBridgeError extends ServiceResolutionError
+final class HyperfBridgeError extends ServiceResolutionFailed
 {
     private function __construct(string $message)
     {

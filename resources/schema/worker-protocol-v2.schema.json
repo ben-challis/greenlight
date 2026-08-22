@@ -435,18 +435,6 @@
                 },
                 {
                     "properties": {
-                        "event": {"enum": ["suite-started"]},
-                        "data": {"$ref": "#/definitions/suiteEvent"}
-                    }
-                },
-                {
-                    "properties": {
-                        "event": {"enum": ["suite-finished"]},
-                        "data": {"$ref": "#/definitions/suiteEvent"}
-                    }
-                },
-                {
-                    "properties": {
                         "event": {"enum": ["class-started"]},
                         "data": {"$ref": "#/definitions/testClassStarted"}
                     }
@@ -508,15 +496,6 @@
                     "type": "array",
                     "items": {"$ref": "#/definitions/workerTiming"}
                 }
-            }
-        },
-        "suiteEvent": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["suite", "occurredAt"],
-            "properties": {
-                "suite": {"type": "string", "minLength": 1},
-                "occurredAt": {"type": "number"}
             }
         },
         "testClassStarted": {

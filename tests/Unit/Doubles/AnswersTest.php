@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
@@ -58,7 +58,7 @@ final readonly class AnswersTest
             ->toBe(5);
         Expect::that(static fn(): int => $calculator->add(0, 0))
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'The return sequence for add() has no value after 1 time. '
                     . 'Add values or use a stricter call count.',
             );
@@ -72,7 +72,7 @@ final readonly class AnswersTest
         }))
             ->because('an empty sequence is rejected')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'andReturnsSequence() on add() requires at least one value.',
             );
     }
@@ -94,7 +94,7 @@ final readonly class AnswersTest
             $plan->expects('add')->andReturns(1)->andReturnsSequence(2, 3);
         }))
             ->because('a second answer kind on one expectation is rejected')
-            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
+            ->toThrow(InvalidDoubleUsage::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -104,7 +104,7 @@ final readonly class AnswersTest
             $plan->expects('add')->andReturns(1)->andReturnsUsing(static fn(): int => 2);
         }))
             ->because('a callback after a return value is rejected')
-            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
+            ->toThrow(InvalidDoubleUsage::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -114,7 +114,7 @@ final readonly class AnswersTest
             $plan->expects('add')->andReturnsSequence(1)->andReturns(2);
         }))
             ->because('a return value after a sequence is rejected')
-            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
+            ->toThrow(InvalidDoubleUsage::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -124,7 +124,7 @@ final readonly class AnswersTest
             $plan->expects('add')->andReturns(1)->andThrows(new \RuntimeException('boom'));
         }))
             ->because('a throwable after a return value is rejected')
-            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
+            ->toThrow(InvalidDoubleUsage::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]
@@ -134,7 +134,7 @@ final readonly class AnswersTest
             $plan->expects('add')->andThrows(new \RuntimeException('boom'))->andReturns(1);
         }))
             ->because('a return value after a throwable is rejected')
-            ->toThrow(DoublesError::class, message: self::CONFLICTING_ANSWER);
+            ->toThrow(InvalidDoubleUsage::class, message: self::CONFLICTING_ANSWER);
     }
 
     #[Test]

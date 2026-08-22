@@ -61,7 +61,7 @@ final class PluginSeamProbePlugin implements IntegrationFixtureProvider, WorkerB
         return [
             new ServiceDefinition(
                 PluginSeamProbe::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 fn(): PluginSeamProbe => new PluginSeamProbe($this->property, $integrationResource),
             ),
         ];

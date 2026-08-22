@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
 use Greenlight\Expect\Expect;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -40,14 +40,14 @@ final readonly class ApplicationCoverageCleanupTest
             use Greenlight\Core\Event\Event;
             use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\RunLifecycleSubscriber;
-            use Greenlight\Reporting\ReportingError;
+            use Greenlight\Reporting\ReportGenerationFailed;
 
             final class FailingRunSubscriber implements RunLifecycleSubscriber
             {
                 #[\Override]
                 public function onRunEvent(Event $event): never
                 {
-                    throw ReportingError::writeFailed();
+                    throw ReportGenerationFailed::writeFailed();
                 }
             }
 
@@ -74,7 +74,7 @@ final readonly class ApplicationCoverageCleanupTest
             $project->directory,
         ))
             ->because('a run event failure MUST propagate after coverage cleanup')
-            ->toThrow(ReportingError::class);
+            ->toThrow(ReportGenerationFailed::class);
 
         Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
             ->because('a failed run MUST restore an absent coverage relay directory')

@@ -90,7 +90,7 @@ final class JUnitReporter implements Reporter
     public function finish(): void
     {
         if (!$this->xmlWriter->isAvailable()) {
-            throw ReportingError::xmlUnavailable();
+            throw ReportGenerationFailed::xmlUnavailable();
         }
 
         $totals = ['tests' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0, 'time' => 0.0];
@@ -143,12 +143,12 @@ final class JUnitReporter implements Reporter
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function renderCase(TestResult $result): string
     {
         if (!$this->xmlWriter->isAvailable()) {
-            throw ReportingError::xmlUnavailable();
+            throw ReportGenerationFailed::xmlUnavailable();
         }
 
         $writer = $this->xmlWriter->create();

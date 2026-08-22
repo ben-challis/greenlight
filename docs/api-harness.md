@@ -271,7 +271,7 @@ Namespace: `Greenlight\Harness`
 
 Defines the lifetime of a harness service.
 
-PerRun matches the worker lifetime.
+PerWorker matches the physical worker lifetime.
 
 ```php
 enum Scope: string
@@ -295,21 +295,13 @@ case PerClass = 'per-class';
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L15)
 
-### `PerSuite`
+### `PerWorker`
 
 ```php
-case PerSuite = 'per-suite';
+case PerWorker = 'per-worker';
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L16)
-
-### `PerRun`
-
-```php
-case PerRun = 'per-run';
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L17)
 
 ## `SensitiveValue`
 
@@ -413,17 +405,17 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L26)
 
-## `ServiceResolutionError`
+## `ServiceResolutionFailed`
 
 Namespace: `Greenlight\Harness`
 
-A harness service resolver cannot supply a valid service.
+Greenlight could not supply a valid service from a harness or container integration.
 
 ```php
-abstract class ServiceResolutionError extends \RuntimeException
+abstract class ServiceResolutionFailed extends \RuntimeException
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolutionError.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolutionFailed.php#L10)
 
 This type does not declare public members.
 
@@ -455,6 +447,6 @@ PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
-- `@throws ServiceResolutionError when the resolver cannot supply a valid service`
+- `@throws ServiceResolutionFailed when the resolver cannot supply a valid service`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L24)

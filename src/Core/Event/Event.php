@@ -6,7 +6,7 @@ namespace Greenlight\Core\Event;
 
 use Greenlight\Core\Wire\WireSerializable;
 
-/** Add new event types only. Do not replace or remove an event type. */
+/** Defines an event that can occur in the run lifecycle. */
 interface Event extends WireSerializable
 {
     /**

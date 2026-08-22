@@ -19,6 +19,8 @@ use Greenlight\Core\Test\ExpectationCounter;
 final class EventuallyExpectation extends TemporalExpectation
 {
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<class-string<\Exception>> $retryOnExceptions
      * @param list<ExpectationExtension> $extensions

@@ -361,17 +361,19 @@ public function randomizeOrder(?int $seed = null): self
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L354)
 
-### `build()`
+## `InvalidConfiguration`
+
+Namespace: `Greenlight\Config`
+
+A configuration builder received an invalid value or an invalid combination.
 
 ```php
-public function build(): Configuration
+final class InvalidConfiguration extends \InvalidArgumentException
 ```
 
-PHPDoc:
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L10)
 
-- `@throws InvalidConfiguration`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L386)
+This type does not declare public members.
 
 ## `StorageBuilder`
 

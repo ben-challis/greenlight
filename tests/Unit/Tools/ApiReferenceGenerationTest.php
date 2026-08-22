@@ -44,8 +44,11 @@ final readonly class ApiReferenceGenerationTest
 
         Expect::that($reference)
             ->because('temporal types MUST document their fluent interface')
+            ->toContain('## `TemporalExpectation`')
             ->toContain('## `EventuallyExpectation`')
             ->toContain('## `ConsistentlyExpectation`')
+            ->toContain('class EventuallyExpectation extends TemporalExpectation')
+            ->toContain('class ConsistentlyExpectation extends TemporalExpectation')
             ->toContain('### `not()`')
             ->toContain('### `because()`')
             ->toContain('### `toBe()`')
@@ -53,10 +56,33 @@ final readonly class ApiReferenceGenerationTest
         Expect::that($reference)
             ->because('temporal construction details MUST stay internal')
             ->not()->toContain('PollingClock')
-            ->not()->toContain('### `__construct()`')
-            ->not()->toContain('class EventuallyExpectation extends TemporalExpectation')
-            ->not()->toContain('class ConsistentlyExpectation extends TemporalExpectation')
-            ->not()->toContain('@extends TemporalExpectation');
+            ->not()->toContain('### `__construct()`');
+    }
+
+    #[Test]
+    public function exceptionContractsUseDescriptivePublicSeamTypes(): void
+    {
+        Expect::that($this->reference('api-configuration.md'))
+            ->toContain('## `InvalidConfiguration`')
+            ->not()->toContain('ConfigurationError');
+        Expect::that($this->reference('api-doubles.md'))
+            ->toContain('## `InvalidDoubleUsage`')
+            ->not()->toContain('DoublesError');
+        Expect::that($this->reference('api-integrations.md'))
+            ->toContain('@throws ServiceResolutionFailed')
+            ->not()->toContain('ServiceResolutionError')
+            ->not()->toContain('HyperfBridgeError')
+            ->not()->toContain('LaravelBridgeError')
+            ->not()->toContain('Psr11BridgeError')
+            ->not()->toContain('SymfonyBridgeError')
+            ->not()->toContain('TempestBridgeError');
+        Expect::that($this->reference('api-test-contracts.md'))
+            ->toContain('## `WireCommunicationFailed`')
+            ->not()->toContain('WireError')
+            ->not()->toContain('InvalidWirePayload');
+        Expect::that($this->reference('api-reporting.md'))
+            ->toContain('## `ReportGenerationFailed`')
+            ->not()->toContain('ReportingError');
     }
 
     private function reference(string $file): string

@@ -161,6 +161,9 @@ public function __construct(
 The bridge checks the returned service type. A different type causes a test
 error.
 
+Bridge setup and service-resolution failures throw `ServiceResolutionFailed`.
+Concrete Hyperf bridge exceptions are internal.
+
 A test can also receive `Psr\Container\ContainerInterface`. This service is
 available only during the current test attempt.
 

@@ -8,6 +8,7 @@ use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -71,7 +72,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
         return [
             new ServiceDefinition(
                 Application::class,
-                $this->refreshBetweenTests ? Scope::PerTest : Scope::PerRun,
+                $this->refreshBetweenTests ? Scope::PerTest : Scope::PerWorker,
                 $this->application(...),
             ),
         ];
@@ -80,7 +81,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws LaravelBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
@@ -126,7 +127,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
 
     /**
      * An invalid application fails before Greenlight supplies a container service.
-     * @throws LaravelBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function application(): Application
     {

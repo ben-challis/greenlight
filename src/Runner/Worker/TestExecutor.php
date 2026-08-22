@@ -22,7 +22,7 @@ use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\HarnessScopes;
-use Greenlight\Harness\ServiceResolutionError;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
@@ -454,7 +454,7 @@ final readonly class TestExecutor
     /**
      * @param non-empty-string $class
      * @throws UnresolvableService
-     * @throws ServiceResolutionError
+     * @throws ServiceResolutionFailed
      */
     private function instantiate(string $class, Attachments $attachments, Cleanup $cleanup): object
     {

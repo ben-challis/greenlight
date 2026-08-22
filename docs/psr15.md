@@ -140,7 +140,7 @@ Greenlight reports a test error and keeps the throwable as its cause.
 
 ### Worker lifetime
 
-If handler state can remain between tests, use `Scope::PerRun`:
+If handler state can remain between tests, use `Scope::PerWorker`:
 
 <!-- php-example {"example":"psr15-example-05","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
@@ -148,11 +148,11 @@ use Greenlight\Harness\Scope;
 
 new Psr15Plugin(
     handler: static fn(): RequestHandlerInterface => createApplication(),
-    scope: Scope::PerRun,
+    scope: Scope::PerWorker,
 );
 ```
 
-The run scope closes after the worker finishes its assignments. Isolate each
+The worker scope closes after the worker finishes its assignments. Isolate each
 external resource with `GREENLIGHT_CHANNEL` in both service scopes.
 
 ## Diagnostics

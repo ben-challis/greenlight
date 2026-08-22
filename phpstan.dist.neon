@@ -20,15 +20,15 @@ parameters:
             - Greenlight\Core\Artifact\AttachmentError
             - Greenlight\Core\AtomicFileError
             - Greenlight\Core\Test\SkipTest
-            - Greenlight\Core\Wire\WireError
+            - Greenlight\Core\Wire\WireCommunicationFailed
             - Greenlight\Coverage\CoverageError
             - Greenlight\Discovery\DiscoveryError
-            - Greenlight\Doubles\DoublesError
+            - Greenlight\Doubles\InvalidDoubleUsage
             - Greenlight\Expect\ExpectationFailed
             - Greenlight\Sandbox\TemporaryDirectoryError
-            - Greenlight\Harness\ServiceResolutionError
+            - Greenlight\Harness\ServiceResolutionFailed
             - Greenlight\PhpStan\MatcherMapError
-            - Greenlight\Reporting\ReportingError
+            - Greenlight\Reporting\ReportGenerationFailed
             - Greenlight\Runner\Integration\IntegrationFixtureError
             - Greenlight\Runner\Worker\WorkerError
         check:

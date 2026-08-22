@@ -19,7 +19,11 @@ use Greenlight\Plugin\TestAttemptRunner;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
 
-/** Creates the plugin instances that one execution side owns. @internal */
+/**
+ * Creates the plugin instances that one execution side owns.
+ *
+ * @internal
+ */
 final readonly class PluginInstances
 {
     /**
