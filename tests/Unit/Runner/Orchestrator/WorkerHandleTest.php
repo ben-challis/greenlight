@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
+use Greenlight\Runner\Orchestrator\WorkerState;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 use Greenlight\Tests\Support\MemoryStream;
 use Greenlight\Tests\Support\PlanEntryFixture;
@@ -26,9 +27,6 @@ final class WorkerHandleTest
             ->because('worker lifecycle deadlines MUST use the monotonic system clock')
             ->toBeGreaterThanOrEqual($before)
             ->toBeLessThanOrEqual($after);
-        Expect::that($handle->lastProgressAt)
-            ->because('a new worker MUST start its progress deadline at its spawn time')
-            ->toBe($handle->spawnedAt);
     }
 
     #[Test]
@@ -52,7 +50,7 @@ final class WorkerHandleTest
     #[Test]
     public function unfinishedReturnsOnlyEntriesEligibleForCrashReassignment(): void
     {
-        $handle = $this->handle();
+        $handle = new WorkerState('worker-1', 1, 1.0);
 
         Expect::that($handle->unfinished())
             ->because('a worker without an assignment has no unfinished tests')

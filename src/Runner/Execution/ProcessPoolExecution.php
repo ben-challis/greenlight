@@ -14,7 +14,9 @@ use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
+use Greenlight\Runner\Orchestrator\NativeWorkerTransport;
 use Greenlight\Runner\Orchestrator\Orchestrator;
+use Greenlight\Runner\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Runner\Orchestrator\ResourceScheduler;
 use Greenlight\Runner\Worker\EventSink;
 
@@ -73,26 +75,31 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
     ): ExecutionOutcome {
         $configuration = $context->configuration;
         $orchestrator = new Orchestrator(
-            $this->workerCommand,
-            $this->workingDirectory,
-            $configuration->recycleAfterTests,
-            $configuration->recycleAboveMemoryBytes,
-            $configuration->stopAfterFailures,
-            $this->coverageSettings,
-            $this->configFile,
-            $this->detectLeaks,
-            $configuration->policy->isNoOp() ? null : $configuration->policy,
-            $this->shutdown,
-            $this->ticker,
-            $context->artifacts,
-            $configuration->artifacts,
-            $context->fixtures,
-            resourceLimits: $configuration->resourceLimits,
-            initialWorkerAssignment: $context->orchestratorPlugins->hasWorkerBootstrapSubscribers()
-                ? InitialWorkerAssignment::AfterAllReady
-                : InitialWorkerAssignment::Progressive,
-            generatedCodeDirectory: $context->storage->generatedCodeDirectory,
-            temporaryDirectory: $context->storage->temporaryDirectory,
+            NativeWorkerTransport::listen(
+                $this->workerCommand,
+                $this->workingDirectory,
+                $context->storage->temporaryDirectory,
+            ),
+            new OrchestratorConfiguration(
+                recycleAfterTests: $configuration->recycleAfterTests,
+                recycleAboveMemoryBytes: $configuration->recycleAboveMemoryBytes,
+                stopAfterFailures: $configuration->stopAfterFailures,
+                coverageSettings: $this->coverageSettings,
+                configFile: $this->configFile,
+                detectLeaks: $this->detectLeaks,
+                policy: $configuration->policy->isNoOp() ? null : $configuration->policy,
+                shutdown: $this->shutdown,
+                ticker: $this->ticker,
+                artifactStore: $context->artifacts,
+                artifactConfiguration: $configuration->artifacts,
+                integrationFixtures: $context->fixtures,
+                resourceLimits: $configuration->resourceLimits,
+                initialWorkerAssignment: $context->orchestratorPlugins->hasWorkerBootstrapSubscribers()
+                    ? InitialWorkerAssignment::AfterAllReady
+                    : InitialWorkerAssignment::Progressive,
+                generatedCodeDirectory: $context->storage->generatedCodeDirectory,
+                temporaryDirectory: $context->storage->temporaryDirectory,
+            ),
         );
 
         $summary = $orchestrator->run($plan, $sink, $this->workerCount, $context->classSeconds);
