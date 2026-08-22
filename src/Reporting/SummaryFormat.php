@@ -68,6 +68,10 @@ final class SummaryFormat
         $lines = ["\n" . $style->warn('Skipped:')];
 
         foreach ($groups as $reason => $results) {
+            if (\count($lines) > 1) {
+                $lines[] = '';
+            }
+
             if (\count($results) === 1) {
                 $lines[] = \sprintf('  %s (%s)', $results[0]->id, $reason);
 

@@ -176,7 +176,7 @@ final class TtyReporterTest
         Expect::that($buffer)->because('skipped tests are unambiguous and listed with reasons')->toContain('− App\GammaTest (1 test, skipped, 0.010s)')
             ->toContain('✓ App\DeltaTest (2 tests, 1 skipped, 0.020s)')
             ->toContain('3 tests, 1 passed, 2 skipped, 0 expectations')
-            ->toContain("Skipped:\n  App\GammaTest::one (xdebug not loaded)\n  App\DeltaTest::two (no reason given)");
+            ->toContain("Skipped:\n  App\GammaTest::one (xdebug not loaded)\n\n  App\DeltaTest::two (no reason given)");
     }
 
     #[Test]
