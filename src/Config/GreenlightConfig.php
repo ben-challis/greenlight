@@ -24,13 +24,15 @@ final class GreenlightConfig
 
     private WorkerCount $workers;
 
-    private ?CoverageBuilder $coverage = null;
+    private CoverageBuilder $coverage;
 
-    private ?WatchBuilder $watch = null;
+    private bool $coverageEnabled = false;
 
-    private ?ArtifactBuilder $artifacts = null;
+    private WatchBuilder $watch;
 
-    private ?StorageBuilder $storage = null;
+    private ArtifactBuilder $artifacts;
+
+    private StorageBuilder $storage;
 
     /**
      * @var list<PluginDefinition>
@@ -62,6 +64,10 @@ final class GreenlightConfig
     private function __construct()
     {
         $this->workers = WorkerCount::auto();
+        $this->coverage = new CoverageBuilder();
+        $this->watch = new WatchBuilder();
+        $this->artifacts = new ArtifactBuilder();
+        $this->storage = new StorageBuilder();
     }
 
     public static function create(): self
@@ -206,9 +212,10 @@ final class GreenlightConfig
      */
     public function coverage(callable $configurator): self
     {
-        $builder = $this->coverage instanceof CoverageBuilder ? clone $this->coverage : new CoverageBuilder();
+        $builder = clone $this->coverage;
         $configurator($builder);
         $this->coverage = clone $builder;
+        $this->coverageEnabled = true;
 
         return $this;
     }
@@ -218,7 +225,7 @@ final class GreenlightConfig
      */
     public function watch(callable $configurator): self
     {
-        $builder = $this->watch instanceof WatchBuilder ? clone $this->watch : new WatchBuilder();
+        $builder = clone $this->watch;
         $configurator($builder);
         $this->watch = clone $builder;
 
@@ -230,7 +237,7 @@ final class GreenlightConfig
      */
     public function artifacts(callable $configurator): self
     {
-        $builder = $this->artifacts instanceof ArtifactBuilder ? clone $this->artifacts : new ArtifactBuilder();
+        $builder = clone $this->artifacts;
         $configurator($builder);
         $this->artifacts = clone $builder;
 
@@ -245,7 +252,7 @@ final class GreenlightConfig
      */
     public function storage(callable $configurator): self
     {
-        $builder = $this->storage instanceof StorageBuilder ? clone $this->storage : new StorageBuilder();
+        $builder = clone $this->storage;
         $configurator($builder);
         $this->storage = clone $builder;
 
@@ -393,12 +400,12 @@ final class GreenlightConfig
                     $this->failOnRisky,
                 ),
                 stopAfterFailures: $this->failFast ? 1 : null,
-                artifacts: $this->artifacts?->toConfiguration() ?? new ArtifactConfiguration(),
+                artifacts: $this->artifacts->toConfiguration(),
             ),
             order: new OrderConfiguration($this->randomizeOrder, $this->randomSeed),
-            coverage: $this->coverage?->toConfiguration(),
-            watch: $this->watch?->toConfiguration() ?? new WatchConfiguration(),
-            storage: $this->storage?->toConfiguration() ?? new StorageConfiguration(),
+            coverage: $this->coverageEnabled ? $this->coverage->toConfiguration() : null,
+            watch: $this->watch->toConfiguration(),
+            storage: $this->storage->toConfiguration(),
         );
     }
 }
