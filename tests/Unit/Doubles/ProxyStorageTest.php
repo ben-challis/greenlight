@@ -160,13 +160,7 @@ final readonly class ProxyStorageTest
 
             $doubles = new \Greenlight\Doubles\Doubles($argv[2]);
             $proxy = $doubles->stub(\Greenlight\Tests\Fixture\Doubles\ProxyStorageContract::class);
-            $file = new \ReflectionClass($proxy)->getFileName();
-
-            if (!is_string($file)) {
-                exit(2);
-            }
-
-            echo basename($file);
+            echo basename(\Greenlight\Tests\Support\ClassFile::of($proxy::class));
             PHP,
             $root . '/vendor/autoload.php',
             $directory,
