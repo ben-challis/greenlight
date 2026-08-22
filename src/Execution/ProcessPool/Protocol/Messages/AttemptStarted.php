@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 
 use Greenlight\Execution\ProcessPool\Protocol\Message;
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\Wire;
 
 /**
  * Tells the orchestrator that a worker started a new attempt for the active test.

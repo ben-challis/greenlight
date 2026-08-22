@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Wire;
+namespace Greenlight\Tests\Unit\Internal\Wire;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Result\Outcome;
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
 
 final class WireTest
 {

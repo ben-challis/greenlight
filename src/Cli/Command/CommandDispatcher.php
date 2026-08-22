@@ -9,8 +9,8 @@ use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Run\RunCommand;
 use Greenlight\Coverage\CoverageError;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Parses CLI input and dispatches each supported command explicitly.

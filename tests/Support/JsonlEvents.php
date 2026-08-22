@@ -8,7 +8,7 @@ use Greenlight\Event\Event;
 use Greenlight\Event\EventTags;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Wire\Wire;
+use Greenlight\Internal\Wire\Wire;
 
 /**
  * Reads JSONL only from standard output. Each line except a final empty line

@@ -8,7 +8,10 @@ const sourceRootArgument = process.argv.find((argument) => argument.startsWith('
 const sourceRoot = sourceRootArgument === undefined
   ? resolve(repositoryRoot, 'src')
   : resolve(sourceRootArgument.slice('--source-root='.length));
-const documentationRoot = resolve(repositoryRoot, 'docs');
+const documentationRootArgument = process.argv.find((argument) => argument.startsWith('--documentation-root='));
+const documentationRoot = documentationRootArgument === undefined
+  ? resolve(repositoryRoot, 'docs')
+  : resolve(documentationRootArgument.slice('--documentation-root='.length));
 
 const sections = [
   {
@@ -44,8 +47,8 @@ const sections = [
   {
     id: 'api-test-contracts',
     title: 'Test contracts API',
-    description: 'This reference lists test definitions, policies, skip signals, and wire contracts.',
-    prefixes: ['Greenlight\\Test\\', 'Greenlight\\Wire\\'],
+    description: 'This reference lists test definitions, policies, and skip signals.',
+    prefixes: ['Greenlight\\Test\\'],
   },
   {
     id: 'api-expectations',
@@ -97,7 +100,7 @@ const sections = [
       'Greenlight\\Hyperf\\',
       'Greenlight\\Laravel\\',
       'Greenlight\\PhpStan\\',
-      'Greenlight\\Psr\\',
+      'Greenlight\\Psr11\\',
       'Greenlight\\Psr15\\',
       'Greenlight\\Rector\\',
       'Greenlight\\Symfony\\',
@@ -433,7 +436,14 @@ function internalContractErrors(types) {
   const errors = [];
 
   for (const type of types.filter((candidate) => !candidate.internal)) {
-    addInternalReferenceErrors(errors, internalTypes, type, type.signature, type.line, `${type.name} declaration`);
+    addInternalReferenceErrors(
+      errors,
+      internalTypes,
+      type,
+      contractTypeSignature(type),
+      type.line,
+      `${type.name} declaration`,
+    );
     addDocReferenceErrors(errors, internalTypes, type, type.doc.tags, type.line, type.name);
 
     for (const member of type.members) {
@@ -1102,10 +1112,101 @@ function renderSection(section, types) {
 function publicTypeSignature(type) {
   const parentName = type.signature.match(/\bextends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
   const parent = referencedType(type, parentName, typesByName);
-
-  return parent?.internal === true
+  const signature = parent?.internal === true
     ? type.signature.replace(/\s+extends\s+[A-Za-z_\\][A-Za-z0-9_\\]*/u, '')
     : type.signature;
+
+  return projectImplementedInterfaces(type, signature);
+}
+
+function contractTypeSignature(type) {
+  return projectImplementedInterfaces(type, type.signature);
+}
+
+function projectImplementedInterfaces(type, signature) {
+  const interfaces = signature.match(/\s+implements\s+([\s\S]+)$/u);
+
+  if (interfaces === null) {
+    return signature;
+  }
+
+  const projected = new Map();
+
+  for (const reference of interfaces[1].split(',').map((name) => name.trim())) {
+    const projection = publicInterfaceProjection(type, reference);
+
+    if (!projection.safe) {
+      projected.set(resolveTypeName(reference, type), reference);
+      continue;
+    }
+
+    for (const interfaceType of projection.types) {
+      projected.set(interfaceType.name, publicTypeReference(type, interfaceType));
+    }
+  }
+
+  const declaration = signature.slice(0, interfaces.index);
+
+  return projected.size === 0
+    ? declaration
+    : `${declaration} implements ${[...projected.values()].join(', ')}`;
+}
+
+function publicInterfaceProjection(owner, reference, active = new Set()) {
+  const interfaceType = typesByName.get(resolveTypeName(reference, owner));
+
+  if (interfaceType === undefined) {
+    const name = resolveTypeName(reference, owner);
+    const separator = name.lastIndexOf('\\');
+
+    return {
+      safe: true,
+      types: [{
+        name,
+        shortName: name.slice(separator + 1),
+        namespace: separator === -1 ? '' : name.slice(0, separator),
+      }],
+    };
+  }
+
+  if (!interfaceType.internal) {
+    return { safe: true, types: [interfaceType] };
+  }
+
+  if (active.has(interfaceType.name)) {
+    throw new Error(`Public API interface inheritance contains a cycle at "${interfaceType.name}".`);
+  }
+
+  const parents = interfaceType.signature.match(/\bextends\s+([\s\S]+)$/u)?.[1];
+
+  if (parents === undefined) {
+    return { safe: false, types: [] };
+  }
+
+  const nextActive = new Set(active).add(interfaceType.name);
+  const paths = parents
+    .split(',')
+    .map((name) => name.trim())
+    .map((name) => publicInterfaceProjection(interfaceType, name, nextActive));
+
+  return {
+    safe: paths.every((path) => path.safe && path.types.length > 0),
+    types: paths.flatMap((path) => path.types),
+  };
+}
+
+function publicTypeReference(owner, referenced) {
+  if (referenced.namespace === owner.namespace) {
+    return referenced.shortName;
+  }
+
+  for (const [alias, name] of owner.imports) {
+    if (name === referenced.name) {
+      return alias;
+    }
+  }
+
+  return `\\${referenced.name}`;
 }
 
 function publicTypeTags(type) {

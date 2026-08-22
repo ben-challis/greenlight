@@ -6,9 +6,9 @@ namespace Greenlight\Result;
 
 use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\StagedAttachment;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
 
 /**
  * A plugin does not change a result object. It uses `withOutcome()` to produce
@@ -19,7 +19,7 @@ use Greenlight\Wire\WireSerializable;
  * count. An unsuccessful result contains the count at the time of the abort.
  * Old wire payloads without this field decode to zero.
  */
-final readonly class TestResult implements WireSerializable
+final readonly class TestResult
 {
     /**
      * @var positive-int
@@ -213,7 +213,11 @@ final readonly class TestResult implements WireSerializable
         );
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -239,7 +243,12 @@ final readonly class TestResult implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $error = Wire::nullableMap($payload, 'error');

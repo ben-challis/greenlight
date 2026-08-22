@@ -8,8 +8,8 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Result\ResultPolicy;
-use Greenlight\Wire\Wire;
 
 /**
  * Sends an execution-plan part, limits, and settings to a worker.

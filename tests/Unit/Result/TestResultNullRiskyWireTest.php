@@ -6,10 +6,10 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\InvalidWirePayload;
 
 final readonly class TestResultNullRiskyWireTest
 {

@@ -8,8 +8,8 @@ use Greenlight\Artifact\AttachmentError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Executes a coordinated plan through one execution method.

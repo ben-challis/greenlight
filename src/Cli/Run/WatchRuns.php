@@ -11,6 +11,7 @@ use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Reporting\ReporterCatalog;
 use Greenlight\Cli\Reporting\ReporterFactory;
 use Greenlight\Cli\Reporting\ReporterOutputPlan;
+use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Cli\State\RunState;
 use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\StatChangeDetector;
@@ -21,7 +22,6 @@ use Greenlight\Config\StorageLayout;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Reporter;
-use Greenlight\Reporting\ReporterProviderError;
 
 /**
  * Repeats run attempts after watched files or input keys change.
@@ -62,7 +62,7 @@ final readonly class WatchRuns
         $keys = new StdinKeyInput();
         try {
             new WatchLoop(new StatChangeDetector($watched), new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
-        } catch (ReporterProviderError $error) {
+        } catch (ReporterSetupFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return 1;
         } finally {

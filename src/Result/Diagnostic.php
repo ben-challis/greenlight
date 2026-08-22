@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Utf8;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Text\Utf8;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Greenlight converts the message and file to valid UTF-8 before the
  * diagnostic crosses the wire. These values originate in user code.
  * The line number is greater than zero.
  */
-final readonly class Diagnostic implements WireSerializable
+final readonly class Diagnostic
 {
     /**
      * @var positive-int
@@ -36,7 +36,11 @@ final readonly class Diagnostic implements WireSerializable
         $this->line = $line;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -47,7 +51,12 @@ final readonly class Diagnostic implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

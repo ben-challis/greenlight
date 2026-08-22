@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Laravel\Service as LaravelService;
-use Greenlight\Psr\Service as PsrService;
+use Greenlight\Psr11\Service as PsrService;
 use Greenlight\Symfony\Service as SymfonyService;
 
 final readonly class ServiceAttributeTest

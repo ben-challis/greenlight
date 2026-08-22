@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Event;
 
-use Greenlight\Wire\Wire;
+use Greenlight\Internal\Wire\Wire;
 
-final readonly class RunStarted implements Event
+final readonly class RunStarted implements WireEvent
 {
     /**
      * @var non-empty-string
@@ -60,6 +60,7 @@ final readonly class RunStarted implements Event
         $this->workers = $workers;
     }
 
+    /** @internal */
     #[\Override]
     public function toWire(): array
     {
@@ -72,6 +73,7 @@ final readonly class RunStarted implements Event
         ];
     }
 
+    /** @internal */
     #[\Override]
     public static function fromWire(array $payload): static
     {

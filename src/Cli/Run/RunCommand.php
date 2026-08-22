@@ -14,8 +14,8 @@ use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Output\Terminal;
 use Greenlight\Cli\Output\TerminalCapabilities;
 use Greenlight\Cli\Reporting\ReporterFactory;
-use Greenlight\Cli\Reporting\ReporterOutputError;
 use Greenlight\Cli\Reporting\ReporterOutputPlan;
+use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Cli\Signal\SignalHandlers;
 use Greenlight\Cli\State\RunState;
 use Greenlight\Cli\WorkerCapacity\CpuCores;
@@ -27,10 +27,9 @@ use Greenlight\Config\StorageLayout;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
-use Greenlight\Reporting\ReporterProviderError;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Style;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Orchestrates one ordinary run command and its repeat policy.
@@ -129,7 +128,7 @@ final readonly class RunCommand
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
-        } catch (ReporterOutputError|ReporterProviderError $error) {
+        } catch (ReporterSetupFailed $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_FAILURE;
@@ -142,13 +141,8 @@ final readonly class RunCommand
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
-        } catch (\Throwable $error) {
+        } catch (ReporterSetupFailed $error) {
             $reporterOutputs->close();
-
-            if (!$error instanceof ReporterProviderError) {
-                throw $error;
-            }
-
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
             return self::EXIT_FAILURE;
@@ -232,11 +226,7 @@ final readonly class RunCommand
                         $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                         return self::EXIT_USAGE;
-                    } catch (\Throwable $error) {
-                        if (!$error instanceof ReporterProviderError) {
-                            throw $error;
-                        }
-
+                    } catch (ReporterSetupFailed $error) {
                         $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
                         return self::EXIT_FAILURE;

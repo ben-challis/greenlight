@@ -6,9 +6,9 @@ namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\Wire;
 
 /**
  * Tells the orchestrator that a worker completed an assignment.

@@ -23,10 +23,10 @@ use Greenlight\Execution\Plugin\PluginInstances;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestSelection;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Coordinates discovery, run-wide resources, lifecycle events, and execution.

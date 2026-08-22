@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Expected and actual are strings that the worker renders. Live values never
  * cross the process boundary.
  */
-final readonly class FailureDetail implements WireSerializable
+final readonly class FailureDetail
 {
     /**
      * @var non-empty-string
@@ -34,7 +34,11 @@ final readonly class FailureDetail implements WireSerializable
         $this->message = $message;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -45,7 +49,12 @@ final readonly class FailureDetail implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $location = Wire::nullableMap($payload, 'location');

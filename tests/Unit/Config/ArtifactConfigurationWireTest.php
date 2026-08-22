@@ -8,8 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Tests\Support\JsonWire;
-use Greenlight\Wire\InvalidWirePayload;
 
 final class ArtifactConfigurationWireTest
 {

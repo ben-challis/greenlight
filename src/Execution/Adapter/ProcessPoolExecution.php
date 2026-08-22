@@ -21,9 +21,9 @@ use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
 use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Ticking;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Executes a plan with the orchestrator process pool.

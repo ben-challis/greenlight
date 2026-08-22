@@ -18,7 +18,6 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
-use Greenlight\Wire\WireSerializable;
 
 final class HarnessIntegrationTest
 {
@@ -56,19 +55,17 @@ final class HarnessIntegrationTest
     }
 
     #[Test]
-    public function everyGreenlightInterfaceCanBeDoubled(): void
+    public function publicHarnessInterfacesCanBeDoubled(): void
     {
         $doubles = new Doubles();
 
         $condition = $doubles->stub(Condition::class);
         $disposable = $doubles->stub(Disposable::class);
         $extension = $doubles->stub(ExpectationExtension::class);
-        $wire = $doubles->stub(WireSerializable::class);
         $events = $doubles->spy(EventSink::class);
 
-        Expect::that($condition)->because('every greenlight interface can be doubled')->toBeInstanceOf(Condition::class);
+        Expect::that($condition)->because('public harness interfaces can be doubled')->toBeInstanceOf(Condition::class);
         Expect::that($disposable)->toBeInstanceOf(Disposable::class);
-        Expect::that($wire)->toBeInstanceOf(WireSerializable::class);
         Expect::that($extension)->toBeInstanceOf(ExpectationExtension::class);
         Expect::that($events)->toBeInstanceOf(EventSink::class);
 

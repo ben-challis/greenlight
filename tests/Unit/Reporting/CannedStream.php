@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Reporting;
 
-use Greenlight\Event\Event;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
+use Greenlight\Event\WireEvent;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
 use Greenlight\Reporting\Reporter;
@@ -39,7 +39,7 @@ final class CannedStream
     }
 
     /**
-     * @return list<Event>
+     * @return list<WireEvent>
      */
     public static function events(): array
     {

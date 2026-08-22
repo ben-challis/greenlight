@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Wire;
+namespace Greenlight\Internal\Wire;
 
 /**
- * Greenlight raises this error when a decoded wire payload has a missing key
- * or an incorrect value type.
+ * Reports a missing key or an incorrect value type in an internal wire
+ * payload.
  *
  * The error always names the applicable key. Thus, its message identifies the
  * protocol error.

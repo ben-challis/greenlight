@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Event;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Contains orchestrator-observed timing data for one worker process.
@@ -14,7 +14,7 @@ use Greenlight\Wire\WireSerializable;
  * endpoints. Idle durations contain only states that the orchestrator can
  * distinguish.
  */
-final readonly class WorkerTiming implements WireSerializable
+final readonly class WorkerTiming
 {
     /** @var non-empty-string */
     public string $workerId;
@@ -64,7 +64,11 @@ final readonly class WorkerTiming implements WireSerializable
         $this->assignmentGaps = $assignmentGaps;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -81,7 +85,12 @@ final readonly class WorkerTiming implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

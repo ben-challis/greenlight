@@ -67,7 +67,7 @@ This factory uses the PSR-11 container to get the Mezzio request handler.
 `Psr15Plugin` does not supply container services to test constructors.
 
 If tests need application services, also register the
-[PSR-11 bridge](psr.md).
+[PSR-11 bridge](psr11.md).
 
 ## Send requests
 

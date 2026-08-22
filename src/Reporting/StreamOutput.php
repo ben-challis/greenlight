@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Reporting\Output;
+namespace Greenlight\Reporting;
 
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Reporting\ReportGenerationFailed;
 
 /**
  * Writes reporter text to an open stream resource.

@@ -6,7 +6,7 @@ namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\IntegrationFixture\IntegrationResources;
-use Greenlight\Wire\Wire;
+use Greenlight\Internal\Wire\Wire;
 
 /**
  * Orchestrator to worker: immutable worker-lifetime configuration.

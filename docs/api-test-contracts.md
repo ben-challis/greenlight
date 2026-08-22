@@ -2,7 +2,7 @@
 
 # Test contracts API
 
-This reference lists test definitions, policies, skip signals, and wire contracts.
+This reference lists test definitions, policies, and skip signals.
 
 These signatures are the public API.
 
@@ -48,10 +48,10 @@ Namespace: `Greenlight\Test`
 Identifies the method and optional external class that supply test data sets.
 
 ```php
-final readonly class DataProvider implements WireSerializable
+final readonly class DataProvider
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L14)
 
 ### `$method`
 
@@ -59,7 +59,7 @@ final readonly class DataProvider implements WireSerializable
 public ?string $method
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L23)
 
 ### `$class`
 
@@ -67,7 +67,7 @@ public ?string $method
 public ?string $class
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L24)
 
 ### `__construct()`
 
@@ -84,29 +84,7 @@ PHPDoc:
 - `@param non-empty-string|null $class`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L23)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L40)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws WireCommunicationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/DataProvider.php#L22)
 
 ## `ExecutionPolicy`
 
@@ -115,10 +93,10 @@ Namespace: `Greenlight\Test`
 Defines timeout, output capture, and expectation rules for one test.
 
 ```php
-final readonly class ExecutionPolicy implements WireSerializable
+final readonly class ExecutionPolicy
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L14)
 
 ### `$timeoutSeconds`
 
@@ -126,7 +104,7 @@ final readonly class ExecutionPolicy implements WireSerializable
 public ?float $timeoutSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L18)
 
 ### `$capture`
 
@@ -134,7 +112,7 @@ public ?float $timeoutSeconds
 public bool $capture
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L19)
 
 ### `$noExpectations`
 
@@ -142,7 +120,7 @@ public bool $capture
 public bool $noExpectations
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L20)
 
 ### `__construct()`
 
@@ -158,29 +136,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L18)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L28)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws WireCommunicationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/ExecutionPolicy.php#L17)
 
 ## `RetryPolicy`
 
@@ -189,10 +145,10 @@ Namespace: `Greenlight\Test`
 Defines the retry limit and the optional throwable filter for a test.
 
 ```php
-final readonly class RetryPolicy implements WireSerializable
+final readonly class RetryPolicy
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L14)
 
 ### `$times`
 
@@ -204,7 +160,7 @@ PHPDoc:
 
 - `@var positive-int|null`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L19)
 
 ### `$onlyOn`
 
@@ -212,7 +168,7 @@ PHPDoc:
 public ?string $onlyOn
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L28)
 
 ### `__construct()`
 
@@ -228,29 +184,7 @@ PHPDoc:
 - `@param non-empty-string|null $onlyOn`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L27)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L42)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws WireCommunicationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/RetryPolicy.php#L26)
 
 ## `SchedulingPolicy`
 
@@ -259,10 +193,10 @@ Namespace: `Greenlight\Test`
 Defines worker assignment and resource rules for one test.
 
 ```php
-final readonly class SchedulingPolicy implements WireSerializable
+final readonly class SchedulingPolicy
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L14)
 
 ### `$resources`
 
@@ -274,7 +208,7 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L19)
 
 ### `$isolated`
 
@@ -282,7 +216,7 @@ PHPDoc:
 public bool $isolated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L27)
 
 ### `$allowParallel`
 
@@ -290,7 +224,7 @@ public bool $isolated
 public bool $allowParallel
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L29)
 
 ### `__construct()`
 
@@ -307,29 +241,7 @@ PHPDoc:
 - `@param list<string> $resources named resources required by this test`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L27)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L42)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws WireCommunicationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SchedulingPolicy.php#L26)
 
 ## `SkipPolicy`
 
@@ -338,10 +250,10 @@ Namespace: `Greenlight\Test`
 Defines the static reason or condition that skips a test.
 
 ```php
-final readonly class SkipPolicy implements WireSerializable
+final readonly class SkipPolicy
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L14)
 
 ### `$arguments`
 
@@ -353,7 +265,7 @@ PHPDoc:
 
 - `@var list<scalar|null>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L19)
 
 ### `$reason`
 
@@ -361,7 +273,7 @@ PHPDoc:
 public ?string $reason
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L29)
 
 ### `$condition`
 
@@ -369,7 +281,7 @@ public ?string $reason
 public ?string $condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L30)
 
 ### `__construct()`
 
@@ -388,29 +300,7 @@ PHPDoc:
 - `@param list<mixed> $arguments validated to scalars or null`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L29)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L62)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws WireCommunicationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/SkipPolicy.php#L28)
 
 ## `SkipTest`
 
@@ -512,10 +402,10 @@ Namespace: `Greenlight\Test`
 Contains one test declaration and its discovery policies.
 
 ```php
-final readonly class TestDefinition implements WireSerializable
+final readonly class TestDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L14)
 
 ### `$class`
 
@@ -527,7 +417,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L19)
 
 ### `$method`
 
@@ -539,7 +429,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L24)
 
 ### `$groups`
 
@@ -551,7 +441,7 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L29)
 
 ### `$skip`
 
@@ -559,7 +449,7 @@ PHPDoc:
 public SkipPolicy $skip
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L40)
 
 ### `$retry`
 
@@ -567,7 +457,7 @@ public SkipPolicy $skip
 public RetryPolicy $retry
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L41)
 
 ### `$dataProvider`
 
@@ -575,7 +465,7 @@ public RetryPolicy $retry
 public DataProvider $dataProvider
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L42)
 
 ### `$execution`
 
@@ -583,7 +473,7 @@ public DataProvider $dataProvider
 public ExecutionPolicy $execution
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L43)
 
 ### `$scheduling`
 
@@ -591,7 +481,7 @@ public ExecutionPolicy $execution
 public SchedulingPolicy $scheduling
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L44)
 
 ### `__construct()`
 
@@ -613,29 +503,7 @@ PHPDoc:
 - `@param list<string> $groups`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L37)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L70)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws WireCommunicationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestDefinition.php#L36)
 
 ## `TestId`
 
@@ -644,10 +512,10 @@ Namespace: `Greenlight\Test`
 Identifies a test across processes for assignment, rerun selection, and the timing cache.
 
 ```php
-final readonly class TestId implements WireSerializable, \Stringable
+final readonly class TestId implements \Stringable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L13)
 
 ### `$class`
 
@@ -659,7 +527,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L18)
 
 ### `$method`
 
@@ -671,7 +539,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L23)
 
 ### `$dataSetKey`
 
@@ -679,7 +547,7 @@ PHPDoc:
 public ?string $dataSetKey
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L31)
 
 ### `__construct()`
 
@@ -695,7 +563,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L28)
 
 ### `equals()`
 
@@ -703,7 +571,7 @@ PHPDoc:
 public function equals(self $other): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L45)
 
 ### `__toString()`
 
@@ -712,83 +580,4 @@ public function equals(self $other): bool
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L53)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L63)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException when the decoded identity is empty`
-- `@throws WireCommunicationFailed when a required field is missing or has the wrong type`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L77)
-
-## `WireCommunicationFailed`
-
-Namespace: `Greenlight\Wire`
-
-A value or frame could not cross the orchestrator-worker wire boundary.
-
-```php
-abstract class WireCommunicationFailed extends \RuntimeException
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Wire/WireCommunicationFailed.php#L10)
-
-This type does not declare public members.
-
-## `WireSerializable`
-
-Namespace: `Greenlight\Wire`
-
-Defines values that cross the boundary between an orchestrator and a worker.
-
-A JSON encode and decode operation must preserve the payload. Keys are
-strings. Values are scalars, null, or nested arrays of these types. Do not
-use PHP `serialize()`.
-
-```php
-interface WireSerializable
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Wire/WireSerializable.php#L14)
-
-### `toWire()`
-
-```php
-public function toWire(): array;
-```
-
-PHPDoc:
-
-- `@return array<string, mixed>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Wire/WireSerializable.php#L19)
-
-### `fromWire()`
-
-```php
-public static function fromWire(array $payload): static;
-```
-
-PHPDoc:
-
-- `@param array<string, mixed> $payload`
-- `@throws \InvalidArgumentException when a decoded value violates a domain invariant`
-- `@throws WireCommunicationFailed when the payload cannot be decoded`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Wire/WireSerializable.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L52)

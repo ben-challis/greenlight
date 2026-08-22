@@ -45,7 +45,6 @@ final readonly class PhpStanCheckedExceptionTest
             namespace Greenlight\Probe;
 
             use Greenlight\Result\FailureDetail;
-            use Greenlight\Wire\WireCommunicationFailed;
             use Greenlight\Coverage\CoverageError;
             use Greenlight\Doubles\InvalidDoubleUsage;
             use Greenlight\Expect\ExpectationFailed;
@@ -57,7 +56,6 @@ final readonly class PhpStanCheckedExceptionTest
             use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
             use Greenlight\Execution\Worker\WorkerError;
 
-            final class ProbeWireCommunicationFailed extends WireCommunicationFailed {}
             final class ProbeServiceResolutionFailed extends ServiceResolutionFailed {}
 
             function undocumentedProductionHelper(): void
@@ -100,11 +98,6 @@ final readonly class PhpStanCheckedExceptionTest
                 throw ProtocolError::malformedFrame('probe');
             }
 
-            function undocumentedWireCommunicationFailedSubtype(): void
-            {
-                throw new ProbeWireCommunicationFailed('Expected wire failure.');
-            }
-
             function undocumentedServiceResolutionFailedSubtype(): void
             {
                 throw new ProbeServiceResolutionFailed('Expected service resolution failure.');
@@ -124,7 +117,7 @@ final readonly class PhpStanCheckedExceptionTest
         Expect::that($probe->goodPassed)
             ->because('PHPStan MUST not require throws tags in test code')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(11);
+        Expect::that($probe->errors)->toHaveCount(10);
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
@@ -148,9 +141,6 @@ final readonly class PhpStanCheckedExceptionTest
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Execution\\ProcessPool\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
-        );
-        Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Probe\\ProbeWireCommunicationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionFailed but it\'s missing from the PHPDoc @throws tag.',

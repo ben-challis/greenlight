@@ -10,9 +10,9 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
-use Greenlight\Reporting\Output\StreamOutput;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Reporting\StreamOutput;
 
 /**
  * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for

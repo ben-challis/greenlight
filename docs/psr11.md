@@ -14,7 +14,7 @@ Register `Psr11Plugin` with a factory that returns the application container:
 <!-- php-example {"example":"psr-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Psr\Psr11Plugin;
+use Greenlight\Psr11\Psr11Plugin;
 use Psr\Container\ContainerInterface;
 
 return GreenlightConfig::create()
@@ -67,7 +67,7 @@ Use `#[Service]` when the container ID differs from the parameter type:
 
 <!-- php-example {"example":"psr-example-03","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Greenlight\Psr\Service;
+use Greenlight\Psr11\Service;
 
 public function __construct(
     #[Service('application.repository.users')]

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Wire;
+namespace Greenlight\Event;
+
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * Defines values that cross the boundary between an orchestrator and a worker.
+ * Adds internal machine-event serialization to built-in run events.
  *
- * A JSON encode and decode operation must preserve the payload. Keys are
- * strings. Values are scalars, null, or nested arrays of these types. Do not
- * use PHP `serialize()`.
+ * @internal
  */
-interface WireSerializable
+interface WireEvent extends Event
 {
     /**
      * @return array<string, mixed>
@@ -20,7 +20,6 @@ interface WireSerializable
 
     /**
      * @param array<string, mixed> $payload
-     *
      * @throws \InvalidArgumentException when a decoded value violates a domain invariant
      * @throws WireCommunicationFailed when the payload cannot be decoded
      */

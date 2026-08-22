@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\ProcessPool\Protocol;
 
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Greenlight raises this error when a frame, envelope, or message violates

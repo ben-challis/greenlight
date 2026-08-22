@@ -14,8 +14,8 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Encodes worker-protocol messages as envelopes with a version, type tag, and payload.

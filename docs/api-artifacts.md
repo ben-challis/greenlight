@@ -13,7 +13,7 @@ Namespace: `Greenlight\Artifact`
 Fixed metadata for one retained test attachment.
 
 ```php
-readonly class Attachment implements WireSerializable
+readonly class Attachment
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L15)
@@ -98,24 +98,6 @@ public function __construct(
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L17)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L39)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L54)
 
 ## `AttachmentError`
 

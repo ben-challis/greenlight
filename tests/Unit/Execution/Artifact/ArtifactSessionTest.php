@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Expect\Expect;
-use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 
 final readonly class ArtifactSessionTest
 {

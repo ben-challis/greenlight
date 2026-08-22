@@ -72,7 +72,7 @@ export const docSections = [
         description: 'This guide explains coroutine test attempts, AOP classes, and persistent or isolated containers.',
       },
       {
-        id: 'psr',
+        id: 'psr11',
         title: 'PSR-11 containers',
         description: 'This guide explains how tests receive services from a PSR-11 container.',
       },

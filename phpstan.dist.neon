@@ -20,7 +20,7 @@ parameters:
             - Greenlight\Artifact\AttachmentError
             - Greenlight\Internal\Filesystem\AtomicFileError
             - Greenlight\Test\SkipTest
-            - Greenlight\Wire\WireCommunicationFailed
+            - Greenlight\Internal\Wire\WireCommunicationFailed
             - Greenlight\Coverage\CoverageError
             - Greenlight\Discovery\DiscoveryError
             - Greenlight\Doubles\InvalidDoubleUsage

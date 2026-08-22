@@ -6,7 +6,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Controls worker processes and carries protocol messages for an orchestrator.

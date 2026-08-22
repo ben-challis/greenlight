@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Output;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 

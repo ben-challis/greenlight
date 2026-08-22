@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Test;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Identifies a test across processes for assignment, rerun selection, and the timing cache.
  */
-final readonly class TestId implements WireSerializable, \Stringable
+final readonly class TestId implements \Stringable
 {
     /**
      * @var non-empty-string
@@ -60,7 +59,11 @@ final readonly class TestId implements WireSerializable, \Stringable
         return \sprintf('%s::%s[%s]', $this->class, $this->method, $this->dataSetKey);
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -71,10 +74,12 @@ final readonly class TestId implements WireSerializable, \Stringable
     }
 
     /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
      * @throws \InvalidArgumentException when the decoded identity is empty
      * @throws WireCommunicationFailed when a required field is missing or has the wrong type
      */
-    #[\Override]
     public static function fromWire(array $payload): static
     {
         return new self(

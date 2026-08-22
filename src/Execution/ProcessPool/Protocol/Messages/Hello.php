@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 
 use Greenlight\Execution\ProcessPool\Protocol\Message;
-use Greenlight\Wire\Wire;
+use Greenlight\Internal\Wire\Wire;
 
 /**
  * The first message from a worker after connection. It authenticates the

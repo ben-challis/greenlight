@@ -9,7 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
-use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 
 final readonly class ClassLifecycleNullWorkerWireTest
 {

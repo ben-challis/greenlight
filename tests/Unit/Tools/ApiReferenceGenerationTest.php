@@ -100,12 +100,25 @@ final readonly class ApiReferenceGenerationTest
             ->not()->toContain('SymfonyBridgeError')
             ->not()->toContain('TempestBridgeError');
         Expect::that($this->reference('api-test-contracts.md'))
-            ->toContain('## `WireCommunicationFailed`')
             ->not()->toContain('WireError')
-            ->not()->toContain('InvalidWirePayload');
+            ->not()->toContain('InvalidWirePayload')
+            ->not()->toContain('WireCommunicationFailed')
+            ->not()->toContain('WireSerializable');
         Expect::that($this->reference('api-reporting.md'))
             ->toContain('## `ReportGenerationFailed`')
             ->not()->toContain('ReportingError');
+    }
+
+    #[Test]
+    public function eventDeclarationsExposeOnlyThePublicEventInterface(): void
+    {
+        Expect::that($this->reference('api-events.md'))
+            ->because('built-in events MUST hide their internal wire interface')
+            ->toContain('final readonly class RunStarted implements Event')
+            ->toContain('final readonly class TestFinished implements Event')
+            ->not()->toContain('WireEvent')
+            ->not()->toContain('toWire()')
+            ->not()->toContain('fromWire(');
     }
 
     private function reference(string $file): string

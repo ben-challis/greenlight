@@ -31,12 +31,12 @@ use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestChannel;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * The hidden __worker command has no compatibility guarantee.

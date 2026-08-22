@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Test;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Defines timeout, output capture, and expectation rules for one test.
  */
-final readonly class ExecutionPolicy implements WireSerializable
+final readonly class ExecutionPolicy
 {
     /** @throws \InvalidArgumentException */
     public function __construct(
@@ -25,7 +24,11 @@ final readonly class ExecutionPolicy implements WireSerializable
         }
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -35,8 +38,12 @@ final readonly class ExecutionPolicy implements WireSerializable
         ];
     }
 
-    /** @throws WireCommunicationFailed */
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $timeoutSeconds = Wire::nullableFloat($payload, 'timeoutSeconds');

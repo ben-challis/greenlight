@@ -15,12 +15,11 @@ use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\JUnitReporter;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Output;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
-use Greenlight\Reporting\ReporterProviderError;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\TeamCityReporter;
@@ -38,7 +37,7 @@ final readonly class ReporterFactory
     /**
      * @param list<PluginDefinition> $plugins
      * @param non-empty-string $version
-     * @throws ReporterProviderError
+     * @throws ReporterSetupFailed
      */
     public function catalog(ParsedArguments $arguments, array $plugins, ?int $seed, string $configFile, string $workingDirectory, bool $workerFallback = false, string $version = '0.0.0'): ReporterCatalog
     {
@@ -79,13 +78,13 @@ final readonly class ReporterFactory
                 }
                 $provided = $plugin->reporters();
             } catch (\Throwable $error) {
-                throw ReporterProviderError::providerFailed($pluginDefinition->pluginClass, $error);
+                throw ReporterSetupFailed::providerFailed($pluginDefinition->pluginClass, $error);
             }
             $position = 0;
             foreach ($provided as $definition) {
                 ++$position;
                 if (!$definition instanceof ReporterDefinition) {
-                    throw ReporterProviderError::invalidDefinition($plugin::class, $position);
+                    throw ReporterSetupFailed::invalidDefinition($plugin::class, $position);
                 }
                 $definitions[] = $definition;
             }
@@ -95,7 +94,7 @@ final readonly class ReporterFactory
 
     /**
      * @throws CliError
-     * @throws ReporterOutputError
+     * @throws ReporterSetupFailed
      */
     public function outputs(ParsedArguments $arguments, ReporterCatalog $catalog, string $workingDirectory): ReporterOutputPlan
     {
@@ -118,7 +117,10 @@ final readonly class ReporterFactory
         );
     }
 
-    /** @throws CliError @throws ReporterProviderError */
+    /**
+     * @throws CliError
+     * @throws ReporterSetupFailed
+     */
     public function create(ParsedArguments $arguments, ReporterCatalog $catalog, ReporterOutputPlan $outputs): Reporter
     {
         $reporters = $outputs->createReporters($catalog);

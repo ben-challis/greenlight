@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Reporting;
+namespace Greenlight\Cli\Reporting;
 
 /**
- * A reporter provider or reporter factory did not supply a valid reporter.
+ * Greenlight could not prepare a selected reporter or its output.
  *
  * @internal
  */
-final class ReporterProviderError extends \RuntimeException
+final class ReporterSetupFailed extends \RuntimeException
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {
@@ -53,6 +53,24 @@ final class ReporterProviderError extends \RuntimeException
     public static function invalidReporter(string $name): self
     {
         return new self(\sprintf('Reporter factory "%s" did not return a Reporter object.', $name));
+    }
+
+    public static function directoryCreationFailed(string $path, ?string $reason, ?\Throwable $previous = null): self
+    {
+        return new self(\sprintf(
+            'Greenlight could not create reporter output directory "%s"%s.',
+            $path,
+            $reason === null ? '' : ': ' . $reason,
+        ), $previous);
+    }
+
+    public static function fileOpenFailed(string $path, ?string $reason, ?\Throwable $previous = null): self
+    {
+        return new self(\sprintf(
+            'Greenlight could not open reporter output file "%s"%s.',
+            $path,
+            $reason === null ? '' : ': ' . $reason,
+        ), $previous);
     }
 
     private static function sentence(string $message): string

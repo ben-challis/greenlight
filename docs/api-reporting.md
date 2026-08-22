@@ -8,7 +8,7 @@ These signatures are the public API.
 
 ## `Output`
 
-Namespace: `Greenlight\Reporting\Output`
+Namespace: `Greenlight\Reporting`
 
 A destination for reporter text.
 
@@ -19,7 +19,7 @@ or buffer text.
 interface Output
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Output/Output.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Output.php#L13)
 
 ### `write()`
 
@@ -31,7 +31,7 @@ PHPDoc:
 
 - `@throws ReportGenerationFailed when the destination cannot accept the text`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Output/Output.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Output.php#L18)
 
 ## `Reporter`
 
@@ -89,7 +89,7 @@ are lowercase ASCII letters, digits, or hyphens.
 final readonly class ReporterDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L13)
 
 ### `$name`
 
@@ -97,7 +97,7 @@ final readonly class ReporterDefinition
 public string $name
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L21)
 
 ### `$factory`
 
@@ -105,7 +105,7 @@ public string $name
 public \Closure $factory
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)
 
 ### `__construct()`
 
@@ -121,7 +121,7 @@ PHPDoc:
 - `@param non-empty-string $name`
 - `@param \Closure(Output): Reporter $factory Return a new reporter for each call. Greenlight owns the supplied output.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L20)
 
 ## `ReportGenerationFailed`
 

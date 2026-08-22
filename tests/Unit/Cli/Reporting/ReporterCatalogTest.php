@@ -7,11 +7,11 @@ namespace Greenlight\Tests\Unit\Cli\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Reporting\ReporterCatalog;
+use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Expect\Expect;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Output;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
-use Greenlight\Reporting\ReporterProviderError;
 use Greenlight\Tests\Unit\Reporting\BufferOutput;
 use Greenlight\Tests\Unit\Reporting\RecordingReporter;
 
@@ -57,7 +57,7 @@ final class ReporterCatalogTest
         );
 
         Expect::that(static fn() => new ReporterCatalog([$definition(), $definition()]))
-            ->toThrow(ReporterProviderError::class, '/Reporter name "plain" is registered more than one time\./');
+            ->toThrow(ReporterSetupFailed::class, '/Reporter name "plain" is registered more than one time\./');
         Expect::that($calls)->toBe(0);
     }
 
@@ -72,7 +72,7 @@ final class ReporterCatalogTest
         ]);
 
         Expect::that(static fn() => $catalog->create('broken', new BufferOutput()))
-            ->toThrow(ReporterProviderError::class, '/Reporter factory "broken" failed: Cannot start\./');
+            ->toThrow(ReporterSetupFailed::class, '/Reporter factory "broken" failed: Cannot start\./');
     }
 
     #[Test]
@@ -90,7 +90,7 @@ final class ReporterCatalogTest
         $catalog = new ReporterCatalog([$definition]);
 
         Expect::that(static fn() => $catalog->create('invalid', new BufferOutput()))
-            ->toThrow(ReporterProviderError::class, '/Reporter factory "invalid" did not return a Reporter object\./');
+            ->toThrow(ReporterSetupFailed::class, '/Reporter factory "invalid" did not return a Reporter object\./');
     }
 
     #[Test]

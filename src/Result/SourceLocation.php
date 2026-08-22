@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
-final readonly class SourceLocation implements WireSerializable, \Stringable
+final readonly class SourceLocation implements \Stringable
 {
     /**
      * @var non-empty-string
@@ -42,7 +42,11 @@ final readonly class SourceLocation implements WireSerializable, \Stringable
         return $this->file . ':' . $this->line;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -51,7 +55,12 @@ final readonly class SourceLocation implements WireSerializable, \Stringable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

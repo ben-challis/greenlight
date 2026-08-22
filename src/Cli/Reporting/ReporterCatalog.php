@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Reporting;
 
 use Greenlight\Cli\Input\CliError;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Output;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
-use Greenlight\Reporting\ReporterProviderError;
 
 /**
  * Stores the reporter factories for one command.
@@ -23,7 +22,7 @@ final readonly class ReporterCatalog
     /**
      * @param list<ReporterDefinition> $definitions
      *
-     * @throws ReporterProviderError
+     * @throws ReporterSetupFailed
      */
     public function __construct(array $definitions)
     {
@@ -31,7 +30,7 @@ final readonly class ReporterCatalog
 
         foreach ($definitions as $definition) {
             if (isset($factories[$definition->name])) {
-                throw ReporterProviderError::duplicateName($definition->name);
+                throw ReporterSetupFailed::duplicateName($definition->name);
             }
 
             $factories[$definition->name] = $definition->factory;
@@ -53,7 +52,7 @@ final readonly class ReporterCatalog
 
     /**
      * @throws CliError
-     * @throws ReporterProviderError
+     * @throws ReporterSetupFailed
      */
     public function create(string $name, Output $output): Reporter
     {
@@ -66,11 +65,11 @@ final readonly class ReporterCatalog
         try {
             $reporter = $factory($output);
         } catch (\Throwable $error) {
-            throw ReporterProviderError::factoryFailed($name, $error);
+            throw ReporterSetupFailed::factoryFailed($name, $error);
         }
 
         if (!$reporter instanceof Reporter) {
-            throw ReporterProviderError::invalidReporter($name);
+            throw ReporterSetupFailed::invalidReporter($name);
         }
 
         return $reporter;

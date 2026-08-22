@@ -15,7 +15,7 @@ namespace Greenlight\Event;
 final class EventTags
 {
     /**
-     * @var array<non-empty-string, class-string<Event>>
+     * @var array<non-empty-string, class-string<WireEvent>>
      */
     private const array TAGS = [
         'run-started' => RunStarted::class,
@@ -33,7 +33,7 @@ final class EventTags
     /**
      * @return non-empty-string|null
      */
-    public static function tagFor(Event $event): ?string
+    public static function tagFor(WireEvent $event): ?string
     {
         $tag = \array_search($event::class, self::TAGS, true);
 
@@ -41,7 +41,7 @@ final class EventTags
     }
 
     /**
-     * @return class-string<Event>|null
+     * @return class-string<WireEvent>|null
      */
     public static function classFor(string $tag): ?string
     {
@@ -49,7 +49,7 @@ final class EventTags
     }
 
     /**
-     * @return array<non-empty-string, class-string<Event>>
+     * @return array<non-empty-string, class-string<WireEvent>>
      */
     public static function all(): array
     {

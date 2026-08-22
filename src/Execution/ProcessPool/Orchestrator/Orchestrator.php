@@ -27,6 +27,8 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\Worker\WorkerError;
+use Greenlight\Internal\Text\Utf8;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -34,8 +36,6 @@ use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\Utf8;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Workers request test classes when required. Isolated entries use new

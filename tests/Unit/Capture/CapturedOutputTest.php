@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Diagnostic;
 use Greenlight\Result\DiagnosticSeverity;
 use Greenlight\Tests\Support\JsonWire;
-use Greenlight\Wire\InvalidWirePayload;
 
 final class CapturedOutputTest
 {
