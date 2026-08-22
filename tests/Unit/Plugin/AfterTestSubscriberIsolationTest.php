@@ -7,14 +7,14 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
+use Greenlight\Execution\Worker\DefaultServices;
+use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
-use Greenlight\Runner\DefaultServices;
-use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
 

@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrapperError;
 use Greenlight\Sandbox\StreamWrappers;
-use Greenlight\Tests\Fixture\Runner\Protocol\UnselectableStream;
+use Greenlight\Tests\Fixture\Execution\ProcessPool\Protocol\UnselectableStream;
 use Greenlight\Tests\Fixture\StreamWrapper\AutoloadableStream;
 
 final readonly class StreamWrappersTest

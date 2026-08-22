@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Event\Event;
+use Greenlight\Event\EventSink;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Runner\Worker\EventSink;
 
 /** @internal */
 final readonly class ReporterSink implements EventSink

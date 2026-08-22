@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Support;
 
 use Greenlight\Doubles\Fake;
 use Greenlight\Event\Event;
+use Greenlight\Event\EventSink;
 use Greenlight\Event\TestFinished;
 use Greenlight\Result\TestResult;
-use Greenlight\Runner\Worker\EventSink;
 
 final class CollectingEventSink implements EventSink, Fake
 {

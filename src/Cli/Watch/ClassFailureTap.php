@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Watch;
 
 use Greenlight\Event\Event;
+use Greenlight\Event\EventSink;
 use Greenlight\Event\TestFinished;
-use Greenlight\Runner\Worker\EventSink;
 
 /** @internal */
 final class ClassFailureTap implements EventSink

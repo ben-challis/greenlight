@@ -173,7 +173,7 @@ final readonly class CoverageRunTest
         $orchestratorFile = null;
 
         foreach ($decoded['files'] as $file => $lines) {
-            if (\str_ends_with($file, 'src/Runner/Orchestrator/Orchestrator.php')) {
+            if (\str_ends_with($file, 'src/Execution/ProcessPool/Orchestrator/Orchestrator.php')) {
                 $orchestratorFile = $lines;
             }
         }
@@ -311,7 +311,7 @@ final readonly class CoverageRunTest
         $root = \dirname(__DIR__, 2);
         $project = AcceptanceProject::create($this->tempDirectory, 'coverage');
         $orchestratorInclude = $includeOrchestrator
-            ? \sprintf("\n        ->include(%s)", \var_export($root . '/src/Runner/Orchestrator', true))
+            ? \sprintf("\n        ->include(%s)", \var_export($root . '/src/Execution/ProcessPool/Orchestrator', true))
             : '';
         $exports = $exportFormat === null
             ? "\n        ->export('json', 'coverage-out/coverage.json')"

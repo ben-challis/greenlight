@@ -30,7 +30,7 @@ parameters:
             - Greenlight\PhpStan\MatcherMapError
             - Greenlight\Reporting\ReportGenerationFailed
             - Greenlight\IntegrationFixture\IntegrationFixtureError
-            - Greenlight\Runner\Worker\WorkerError
+            - Greenlight\Execution\Worker\WorkerError
         check:
             missingCheckedExceptionInThrows: true
             throwTypeCovariance: true

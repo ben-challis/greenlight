@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 use Greenlight\Doubles\Fake;
-use Greenlight\Runner\Orchestrator\WorkerTransport;
-use Greenlight\Runner\Orchestrator\WorkerTransportEvent;
-use Greenlight\Runner\Orchestrator\WorkerTransportEventKind;
-use Greenlight\Runner\Protocol\Message;
-use Greenlight\Runner\Protocol\Messages\Drain;
-use Greenlight\Runner\Protocol\Messages\Hello;
-use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransport;
+use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransportEvent;
+use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransportEventKind;
+use Greenlight\Execution\ProcessPool\Protocol\Message;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
+use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 
 /**
  * Runs deterministic worker scripts through the orchestrator transport seam.

@@ -6,15 +6,15 @@ namespace Greenlight\Tests\Support;
 
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Execution\Artifact\ArtifactStore;
+use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;
+use Greenlight\Execution\ProcessPool\Orchestrator\NativeWorkerTransport;
+use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
+use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\IntegrationFixture\ProvisionedIntegrationFixtures;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Result\ResultPolicy;
-use Greenlight\Runner\Artifact\ArtifactStore;
-use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
-use Greenlight\Runner\Orchestrator\NativeWorkerTransport;
-use Greenlight\Runner\Orchestrator\Orchestrator;
-use Greenlight\Runner\Orchestrator\OrchestratorConfiguration;
 
 /**
  * Creates an orchestrator with the native transport for integration tests.
