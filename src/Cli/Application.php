@@ -89,7 +89,7 @@ use Greenlight\Wire\WireCommunicationFailed;
  */
 final readonly class Application
 {
-    public const string VERSION = '0.0.0'; // x-release-please-version
+    public const string VERSION = '0.0.1'; // x-release-please-version
 
     private const int EXIT_OK = 0;
     private const int EXIT_FAILURE = 1;
