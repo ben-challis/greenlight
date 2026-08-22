@@ -119,7 +119,7 @@ public function __construct(
 PHPDoc:
 
 - `@param non-empty-string $name`
-- `@param \Closure(Output): Reporter $factory The factory MUST return a new reporter for each call. Greenlight owns the supplied output.`
+- `@param \Closure(Output): Reporter $factory Return a new reporter for each call. Greenlight owns the supplied output.`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)
 

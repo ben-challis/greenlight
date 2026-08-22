@@ -16,8 +16,8 @@ final readonly class ReporterDefinition
 {
     /**
      * @param non-empty-string $name
-     * @param \Closure(Output): Reporter $factory The factory MUST return a new
-     *   reporter for each call. Greenlight owns the supplied output.
+     * @param \Closure(Output): Reporter $factory Return a new reporter for each
+     *   call. Greenlight owns the supplied output.
      */
     public function __construct(
         public string $name,

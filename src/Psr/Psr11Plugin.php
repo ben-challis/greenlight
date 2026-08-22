@@ -18,8 +18,8 @@ use Psr\Container\ContainerInterface;
  * Creates a PSR-11 container lazily and resolves its services. By default, the
  * plugin discards the container after each test that uses it.
  *
- * `#[Service]` selects an explicit ID. Tests MUST isolate external resources
- * by `GREENLIGHT_CHANNEL`.
+ * `#[Service]` selects an explicit ID. Isolate external test resources by
+ * `GREENLIGHT_CHANNEL`.
  */
 final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 {

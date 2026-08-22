@@ -46,7 +46,7 @@ Initializes the Hyperf class loader once in each worker. It creates a
 coroutine context for each test attempt.
 
 The default worker container lifetime matches a long-running Hyperf worker.
-`#[Service]` selects an explicit container ID. Tests MUST isolate external
+`#[Service]` selects an explicit container ID. Isolate external test
 resources by `GREENLIGHT_CHANNEL`.
 
 ```php
@@ -190,8 +190,8 @@ PHPDoc:
 Namespace: `Greenlight\Laravel`
 
 Boots one Laravel application lazily for a test and resolves bound services.
-`#[Service]` selects an explicit binding ID. Tests MUST isolate external
-resources by `GREENLIGHT_CHANNEL`.
+`#[Service]` selects an explicit binding ID. Isolate external test resources
+by `GREENLIGHT_CHANNEL`.
 
 ```php
 final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
@@ -299,8 +299,8 @@ Namespace: `Greenlight\Psr`
 Creates a PSR-11 container lazily and resolves its services. By default, the
 plugin discards the container after each test that uses it.
 
-`#[Service]` selects an explicit ID. Tests MUST isolate external resources
-by `GREENLIGHT_CHANNEL`.
+`#[Service]` selects an explicit ID. Isolate external test resources by
+`GREENLIGHT_CHANNEL`.
 
 ```php
 final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
@@ -749,8 +749,8 @@ configuration, container reset, deferred tasks, and shutdown events stay
 under kernel control.
 
 The bridge uses the `testing` environment by default. Native `#[Tag]`
-attributes select tagged Tempest bindings. Tests MUST isolate external
-resources by `GREENLIGHT_CHANNEL`.
+attributes select tagged Tempest bindings. Isolate external test resources
+by `GREENLIGHT_CHANNEL`.
 
 ```php
 final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceResolver, WorkerBootstrapSubscriber

@@ -31,8 +31,8 @@ use Tempest\Http\Request;
  * under kernel control.
  *
  * The bridge uses the `testing` environment by default. Native `#[Tag]`
- * attributes select tagged Tempest bindings. Tests MUST isolate external
- * resources by `GREENLIGHT_CHANNEL`.
+ * attributes select tagged Tempest bindings. Isolate external test resources
+ * by `GREENLIGHT_CHANNEL`.
  */
 final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceResolver, WorkerBootstrapSubscriber
 {

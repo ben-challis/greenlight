@@ -338,8 +338,8 @@ interface ReporterProvider extends Plugin
 
 ### `reporters()`
 
-A factory MUST return a new reporter for each call. It MUST NOT close the
-supplied output because Greenlight owns that output.
+Return a new reporter for each factory call. Do not close the supplied
+output because Greenlight owns it.
 
 ```php
 public function reporters(): array;

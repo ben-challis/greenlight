@@ -57,9 +57,9 @@ services.
 Container creation, reset, and service-resolution failures throw
 `ServiceResolutionFailed`. Concrete PSR-11 bridge exceptions are internal.
 
-For an available service ID, the container MUST return `true` from `has()`.
-The value from `get()` MUST have the declared parameter type. Greenlight
-reports a type mismatch before the test runs.
+For an available service ID, the container returns `true` from `has()`. The
+value from `get()` has the declared parameter type. Greenlight reports a type
+mismatch before the test runs.
 
 ### Services with a different ID
 

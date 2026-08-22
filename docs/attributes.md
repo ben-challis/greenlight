@@ -88,7 +88,7 @@ With one argument, references a public static provider method on the test
 class. With two arguments, the first argument is a provider class. The second
 argument is its public static method:
 
-Provider class and method names MUST NOT be empty.
+Use nonempty provider class and method names.
 
 <!-- php-example {"example":"attributes-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
@@ -253,16 +253,16 @@ string $condition
 mixed ...$arguments
 ```
 
-`$condition` MUST name an instantiable class that implements
+Use `$condition` to name an instantiable class that implements
 `Greenlight\Core\Condition`.
 
 Skips the test if the condition is false.
 
 Greenlight passes the remaining attribute arguments to the condition
-constructor. Arguments MUST be scalars or null because Greenlight sends them to
-parallel workers. Another argument type causes a discovery error. The
-constructor MUST only store the arguments. The `isSatisfied()` method MUST
-evaluate the condition without side effects:
+constructor. Use only scalar values or null because Greenlight sends them to
+parallel workers. Another argument type causes a discovery error. Only store
+the arguments in the constructor. Evaluate the condition without side effects
+in `isSatisfied()`:
 
 <!-- php-example {"example":"attributes-example-14","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
@@ -325,11 +325,10 @@ int $times
 
 Retries a failed test up to `$times` additional attempts.
 
-`$times` MUST be at least 1.
+Use a `$times` value of 1 or more.
 
-When you supply `$onlyOn`, it MUST be a throwable class-string. Greenlight
-retries only failures with that throwable type. It does not retry other
-failures.
+When you supply `$onlyOn`, use a throwable class-string. Greenlight retries
+only failures with that throwable type. It does not retry other failures.
 
 Greenlight gives each attempt a new test instance and a new per-test scope.
 Thus, state does not pass between attempts.
@@ -410,7 +409,7 @@ placement and completion-event order remain load-dependent.
 Each assignment emits one class-started and class-finished event pair. The
 `#[Before]` and `#[After]` hooks still run for each test attempt.
 
-A data provider can run again in each assigned worker. Providers MUST be pure,
+A data provider can run again in each assigned worker. Keep providers pure,
 deterministic, and fast.
 
 `#[AllowParallel]` is incompatible with these features:

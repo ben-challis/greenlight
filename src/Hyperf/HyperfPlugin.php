@@ -33,7 +33,7 @@ use function Hyperf\Coroutine\run;
  * coroutine context for each test attempt.
  *
  * The default worker container lifetime matches a long-running Hyperf worker.
- * `#[Service]` selects an explicit container ID. Tests MUST isolate external
+ * `#[Service]` selects an explicit container ID. Isolate external test
  * resources by `GREENLIGHT_CHANNEL`.
  */
 final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
