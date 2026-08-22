@@ -48,7 +48,7 @@ final readonly class TemporalExpectationTest
         ExpectationRuntime::withClock($clock, static function (): void {
             Expect::eventually(static fn(): float => 10.1)
                 ->within(0.100)
-                ->toBeWithin(of: 10.0, delta: 0.2);
+                ->toBeWithin(delta: 0.2, of: 10.0);
             Expect::consistently(static fn(): string => 'greenlight')
                 ->for(0.001)
                 ->toBeOneOf(other: 'red', expected: 'greenlight');
