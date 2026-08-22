@@ -44,10 +44,10 @@ const files = await filesBelow(root);
 const htmlFiles = files.filter((file) => file.endsWith('.html'));
 const htmlByFile = new Map();
 
-const application = await readFile(resolve('../src/Cli/Application.php'), 'utf8');
+const inputDefinition = await readFile(resolve('../src/Cli/Input/Definition.php'), 'utf8');
 const configurationReference = await readFile(resolve('../docs/configuration.md'), 'utf8');
 const registeredOptions = new Set(
-  [...application.matchAll(/new OptionSpec\('([^']+)'/g)].map((match) => match[1]),
+  [...inputDefinition.matchAll(/new OptionSpec\('([^']+)'/g)].map((match) => match[1]),
 );
 const documentedOptions = new Set(
   [...configurationReference.matchAll(/^### `?(?:-[A-Za-z], )?--([a-z][a-z-]*)(?:[=<[]|`|$)/gm)].map(

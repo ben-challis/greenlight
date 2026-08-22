@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\CliOverrides;
-use Greenlight\Cli\ConfigurationResolver;
+use Greenlight\Cli\Configuration\CliOverrides;
+use Greenlight\Cli\Configuration\ConfigurationResolver;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
