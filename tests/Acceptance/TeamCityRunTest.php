@@ -9,6 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\ClassFile;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class TeamCityRunTest
@@ -25,7 +26,7 @@ final readonly class TeamCityRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=teamcity']);
         $output = $result->output();
         $class = AlphaTest::class;
-        $file = (string) \realpath(\dirname(__DIR__) . '/Fixture/DiscoveryBasic/AlphaTest.php');
+        $file = ClassFile::of($class);
         Expect::that($result->exitCode)->because('parallel run emits location hints and flow IDs')->toBe(0);
         Expect::that($output)->toContain(
             "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']",
