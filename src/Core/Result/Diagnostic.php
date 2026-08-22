@@ -11,7 +11,7 @@ use Greenlight\Core\Wire\WireSerializable;
 /**
  * Greenlight converts the message and file to valid UTF-8 before the
  * diagnostic crosses the wire. These values originate in user code.
- * The line number MUST be greater than zero.
+ * The line number is greater than zero.
  */
 final readonly class Diagnostic implements WireSerializable
 {

@@ -29,12 +29,12 @@ return GreenlightConfig::create()
     ->plugins(static fn(): HyperfPlugin => new HyperfPlugin(dirname(__DIR__)));
 ```
 
-Pass the application root directory to the plugin. The directory MUST contain
-the standard `config/container.php` file.
+Pass the application root directory to the plugin. Include the standard
+`config/container.php` file in this directory.
 
-The container file MUST return a `Psr\Container\ContainerInterface` instance.
-For the test-attempt container lifetime, the file MUST create a new instance.
-The standard Hyperf container file creates a new instance.
+Return a `Psr\Container\ContainerInterface` instance from the container file.
+For the test-attempt container lifetime, create a new instance in this file.
+The standard Hyperf container file does this.
 
 ## Container lifetime
 
@@ -166,8 +166,8 @@ available only during the current test attempt.
 ## Reset and disposal
 
 Hyperf does not supply one reset operation for all application services. The
-application MUST keep request state in coroutine context or reset that state
-after each attempt. See Hyperf's
+application keeps request state in coroutine context or resets that state after
+each attempt. See Hyperf's
 [coroutine guidance](https://hyperf.wiki/3.1/#/en/coroutine).
 
 Use `reset:` to reset project state after each attempt. Use

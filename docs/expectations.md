@@ -127,8 +127,7 @@ Numeric matchers accept integer or float subjects:
 * `toBeWithin(float $delta, float $of)`
 
 `toBeWithin()` passes when the absolute difference between the subject and
-`$of` is no greater than `$delta`. The tolerance MUST be finite and zero or
-more.
+`$of` is no greater than `$delta`. Use a finite tolerance of zero or more.
 
 ### JSON
 
@@ -190,9 +189,8 @@ Expect::that(fn() => $fixtureManager->start())
     );
 ```
 
-The callback MUST declare one named, non-null Throwable parameter type by
-value. It MUST return `void`. The parameter type specifies the expected
-throwable class.
+Declare one named, non-null Throwable parameter type by value. Return `void`
+from the callback. The parameter type specifies the expected throwable class.
 
 The callback can contain ordinary expectations. A failed callback expectation
 keeps its diagnostic. An `eventually()` expectation retries this failure.

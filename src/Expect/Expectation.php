@@ -665,8 +665,7 @@ final class Expectation
 
     /**
      * Passes when the absolute difference between the numeric subject and
-     * `$of` is not more than `$delta`. The tolerance MUST be finite and zero
-     * or more.
+     * `$of` is not more than `$delta`. Use a finite tolerance of zero or more.
      *
      * @return self<T>
      *
