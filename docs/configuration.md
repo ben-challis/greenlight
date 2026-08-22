@@ -670,7 +670,7 @@ Randomizes class order with this seed.
 Seeded runs do not use the timing-cache order. The seed determines the complete
 order.
 
-### `--reporter=<name>[=<file>]`
+### `--reporter=<name>[=<path>]`
 
 Selects the output format.
 

@@ -105,7 +105,7 @@ final readonly class ReporterSelectionTest
         Expect::that($result->exitCode)->toBe(64);
         Expect::that($result->stdout)->toBe('');
         Expect::that($result->stderr)
-            ->toBe('greenlight: --reporter requires <name> or <name>=<file>. Received "junit=".');
+            ->toBe('greenlight: --reporter requires <name> or <name>=<path>. Received "junit=".');
     }
 
     #[Test]

@@ -161,7 +161,7 @@ final readonly class Application
                              whole classes. They are stable across machines and
                              need no coordination.
           --seed=<n>         Randomize class order with this seed
-          --reporter=<name>[=<file>]
+          --reporter=<name>[=<path>]
                              Select a built-in or configured reporter name.
                              Write to the file when one is specified.
                              Built-ins: tty, plain, junit, jsonl, github, teamcity.

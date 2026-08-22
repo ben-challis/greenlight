@@ -98,7 +98,7 @@ final class CliErrorTest
         ];
         yield 'malformed reporter selection' => [
             static fn(): CliError => CliError::malformedReporterSelection('junit='),
-            '--reporter requires <name> or <name>=<file>. Received "junit=".',
+            '--reporter requires <name> or <name>=<path>. Received "junit=".',
         ];
         yield 'duplicate reporter output' => [
             static fn(): CliError => CliError::duplicateReporterOutput('reports/results.xml'),

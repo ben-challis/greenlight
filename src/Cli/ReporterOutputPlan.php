@@ -11,7 +11,7 @@ use Greenlight\Reporting\ReporterProviderError;
 /**
  * Resolves reporter selections and owns their file output streams.
  *
- * A selection has the form <name> or <name>=<file>. Relative file paths use
+ * A selection has the form <name> or <name>=<path>. Relative file paths use
  * the command working directory. The plan reuses each output for all runs in
  * one command.
  *

@@ -123,7 +123,7 @@ final class CliError extends \RuntimeException
     public static function malformedReporterSelection(string $value): self
     {
         return new self(\sprintf(
-            '--reporter requires <name> or <name>=<file>. Received "%s".',
+            '--reporter requires <name> or <name>=<path>. Received "%s".',
             $value,
         ));
     }
