@@ -68,6 +68,37 @@ chore: bump php-cs-fixer to 3.76
 Common types include `feat`, `fix`, `docs`, `refactor`, `test`, and `chore`.
 Add a scope if it gives useful context.
 
+### Release classification
+
+The pull request title controls the release version and changelog. Select the
+type from the effect on users. Do not select it from the changed code location.
+
+| Type | Use |
+| --- | --- |
+| `feat` | Add a documented user capability. Keep all valid uses valid. |
+| `fix` | Correct a defect in current public behavior. |
+| `perf` | Reduce time, memory, or resource use without a compatibility change. |
+| `docs` | Change only prose. Do not change a compatibility promise. |
+| `refactor` | Change internal structure. Do not change public behavior. |
+| `test` | Change only tests or test fixtures. |
+| `ci` | Change only repository automation. |
+| `build` | Change only development or package build tools. |
+| `style` | Change only code format. |
+| `chore` | Make maintenance changes that no other type describes. |
+
+A breaking change makes a valid documented use invalid. Put `!` before the
+colon for each breaking change:
+
+```text
+feat(expect)!: require a timeout for temporal expectations
+```
+
+A change to an `@internal` symbol is not breaking by itself. If that change
+alters public behavior, classify the public behavior.
+
+Read [Compatibility and public interfaces](docs/architecture/compatibility.md#release-impact)
+for the complete rules and version effects.
+
 ## IDE completion for the PHPStan API
 
 The `phpstan/phpstan` development dependency is a PHAR. Editors cannot index

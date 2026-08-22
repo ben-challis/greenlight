@@ -21,6 +21,89 @@ undocumented implementation class does not become public when this marker is
 absent. When Greenlight intends a symbol for users or plugin authors, document
 it in the user guide. Omit `@internal` from that symbol.
 
+## Release impact
+
+A change has release impact when it changes a public interface in this
+document. Assess the public behavior. Do not assess only the source file or
+namespace.
+
+An internal change is not a breaking change when all public interfaces stay
+compatible. This rule includes symbols marked `@internal`, the worker protocol,
+and private files. If an internal change alters public behavior, assess that
+behavior.
+
+### Feature
+
+A feature adds a documented user capability. It keeps all valid documented
+uses valid.
+
+Examples include a new matcher, attribute, optional configuration value,
+reporter, CLI option, or plugin capability. A new internal abstraction is not a
+feature by itself.
+
+Use `feat(scope): description` for a feature.
+
+### Fix
+
+A fix makes Greenlight agree with a current public contract or intended result.
+The defect must affect public behavior.
+
+A fix can correct behavior that the public interfaces do not promise. Such a
+correction is compatible, even when a user has observed the incorrect behavior.
+
+An internal code change can be a fix when it corrects public behavior. A test
+change that only improves coverage is not a fix.
+
+Use `fix(scope): description` for a fix.
+
+### Performance change
+
+A performance change reduces time, memory, or resource use. It does not change
+a documented result or make a valid use invalid.
+
+Use `perf(scope): description` for this change.
+
+### Breaking change
+
+A breaking change makes at least one valid documented use invalid. The changed
+code does not have to be in a public class.
+
+These changes are breaking:
+
+- Remove or rename a public symbol, command, option, key, tag, or event.
+- Add a required argument, method, configuration value, or data field.
+- Make an accepted input invalid.
+- Change a documented default, return meaning, thrown type, lifecycle order,
+  match rule, or exit meaning incompatibly.
+- Change a versioned format without its required version change.
+- Increase the minimum supported PHP version.
+
+A large internal rewrite is not breaking when all public interfaces stay
+compatible. Test size, code size, and implementation difficulty do not
+determine release impact.
+
+Put `!` before the colon in the pull request title. In the pull request body,
+identify the old valid use and its replacement.
+
+For example:
+
+```text
+feat(expect)!: require a timeout for temporal expectations
+```
+
+### Version effect
+
+Greenlight uses pre-major version rules before version `1.0.0`.
+
+| Change | Before `1.0.0` | From `1.0.0` |
+| --- | --- | --- |
+| Fix or performance change | Patch | Patch |
+| Feature | Patch | Minor |
+| Breaking change | Minor | Major |
+
+The `docs`, `refactor`, `test`, `ci`, `build`, `style`, and `chore` types do not
+state release impact. Use them only when the change has no release impact.
+
 ## PHP and CLI changes
 
 Make a compatibility decision before you change a public PHP interface. This
