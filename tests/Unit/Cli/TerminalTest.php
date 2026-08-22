@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Terminal;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
 use Greenlight\Test\Cleanup;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class TerminalTest
 {
@@ -17,16 +17,8 @@ final readonly class TerminalTest
     #[Test]
     public function aNonTtyProbeDoesNotConsumeOrCloseTheStream(): void
     {
-        $stream = \fopen('php://temp', 'w+');
-
-        if ($stream === false) {
-            Fail::because('Expected php://temp to open.');
-        }
-
-        $this->cleanup->defer(static fn(): bool => \fclose($stream));
-
-        \fwrite($stream, 'sentinel');
-        \rewind($stream);
+        $stream = MemoryStream::open('sentinel');
+        $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
         Expect::that(Terminal::isTty($stream))
             ->because('an in-memory stream is not a TTY')

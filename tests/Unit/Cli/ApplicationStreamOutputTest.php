@@ -12,6 +12,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class ApplicationStreamOutputTest
 {
@@ -42,12 +43,8 @@ final readonly class ApplicationStreamOutputTest
             ->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($partial));
 
-        $other = ErrorTrap::run(static fn() => \fopen('php://memory', 'wb'));
-        Expect::that($other)
-            ->because('Greenlight MUST open the comparison CLI test stream.')
-            ->not()
-            ->toBeFalse();
-        $this->cleanup->defer(static fn(): bool => \fclose($other));
+        $other = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($other));
 
         $application = $useStderr
             ? Application::forStreams($other, $partial)

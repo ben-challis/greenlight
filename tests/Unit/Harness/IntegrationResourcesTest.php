@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\FixtureResource;
 use Greenlight\Harness\IntegrationResources;
+use Greenlight\Tests\Support\MemoryStream;
 
 final class IntegrationResourcesTest
 {
@@ -114,8 +115,15 @@ final class IntegrationResourcesTest
     #[Test]
     public function nonJsonValuesAreRejectedBeforeTransport(): void
     {
-        Expect::that(static fn(): FixtureResource => FixtureResource::from(['stream' => \fopen('php://memory', 'rb')]))
-            ->toThrow(\InvalidArgumentException::class, matching: '/JSON-safe/');
+        $stream = MemoryStream::open();
+
+        try {
+            Expect::that(static fn(): FixtureResource => FixtureResource::from(['stream' => $stream]))
+                ->toThrow(\InvalidArgumentException::class, matching: '/JSON-safe/');
+        } finally {
+            MemoryStream::close($stream);
+        }
+
         Expect::that(static fn(): FixtureResource => FixtureResource::from(['number' => \INF]))
             ->toThrow(\InvalidArgumentException::class, matching: '/finite numbers/');
         Expect::that(static fn(): FixtureResource => FixtureResource::from(['text' => "\xB1\x31"]))
