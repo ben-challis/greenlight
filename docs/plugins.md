@@ -95,7 +95,8 @@ factory for each standard, repeat, or watch run. A repeated selection calls the
 factory one time for each occurrence.
 
 Return a new `Reporter` each time Greenlight calls the factory. Greenlight
-supplies and owns the `Output`. Do not close this output from a reporter.
+supplies and owns the `Output`. The selected output can be standard output or a
+file. Do not close this output from a reporter.
 
 Multiple selected reporters receive events in `--reporter` order. Greenlight
 also calls `finish()` in that order. It calls `finish()` one time after the

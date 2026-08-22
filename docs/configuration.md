@@ -670,7 +670,7 @@ Randomizes class order with this seed.
 Seeded runs do not use the timing-cache order. The seed determines the complete
 order.
 
-### `--reporter=<name>`
+### `--reporter=<name>[=<path>]`
 
 Selects the output format.
 
@@ -688,8 +688,18 @@ Repeatable. Multiple reporters write concurrently.
 `ReporterProvider` plugins can add names. Greenlight creates reporters in flag
 order. A repeated name creates a separate reporter for each occurrence.
 
-All selected reporters use the same Greenlight-owned standard output. A custom
-reporter does not close this output.
+Without a file, the reporter writes to standard output. Add a file to keep its
+output separate:
+
+```sh
+vendor/bin/greenlight run --reporter=tty --reporter=junit=reports/junit.xml
+```
+
+Greenlight resolves a relative file path from the command working directory.
+It creates missing parent directories and replaces an existing file. Each file
+can have only one selected reporter.
+
+Greenlight owns each supplied output. A custom reporter does not close it.
 
 Choose unique reporter names across built-ins and plugins. A duplicate name
 stops the command before test execution.
@@ -699,13 +709,13 @@ Shell completions suggest built-in names. Configured names remain valid.
 Default: `tty` on an interactive terminal, otherwise `plain`.
 
 The `jsonl` reporter writes one complete event sequence for each repeat
-iteration. Greenlight writes repeat status to standard error to keep standard
-output valid JSONL.
+iteration. When JSONL uses standard output, Greenlight writes repeat status to
+standard error to keep standard output valid JSONL.
 
-The `tty` reporter supports parallel work. It keeps one live line for each
-active class. Each line has a spinner and a current count. The reporter
-completes the line in place when the class finishes. Multi-worker output does
-not interleave randomly.
+The `tty` reporter supports parallel work. On a terminal, it keeps one live
+line for each active class. Each line has a spinner and a current count. The
+reporter completes the line in place when the class finishes. Multi-worker
+output does not interleave randomly. In a file, it uses append-only output.
 
 The `teamcity` reporter includes IDE navigation metadata: `php_qn://` location
 hints for click-to-source, plus a per-class `flowId` to keep parallel output

@@ -15,7 +15,7 @@ final readonly class CustomReporterTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function configuredReportersUseSelectionOrderAndFreshRepeatState(): void
+    public function configuredReportersUseSelectionOrderFreshRepeatStateAndFileOutputs(): void
     {
         $project = $this->project('custom-reporter');
         $project->writeFile('greenlight.php', <<<'PHP'
@@ -95,6 +95,19 @@ final readonly class CustomReporterTest
             ->toContain("second\nfirst-1\n")
             ->toContain("second\nfirst-2\n");
         Expect::that($result->stderr)->toBe('');
+
+        $fileResult = GreenlightCli::run($project->directory, [
+            'run',
+            '--reporter=second=reports/custom.txt',
+            '--no-ansi',
+        ]);
+
+        Expect::that($fileResult->exitCode)->toBe(0);
+        Expect::that($fileResult->stdout)->toBe('');
+        Expect::that($fileResult->stderr)->toBe('');
+        Expect::that((string) \file_get_contents($project->path('reports/custom.txt')))
+            ->because('configured reporter factories MUST receive their selected file output')
+            ->toBe("second\n");
     }
 
     #[Test]

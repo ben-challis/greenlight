@@ -96,5 +96,13 @@ final class CliErrorTest
             static fn(): CliError => CliError::unknownReporter('verbose', ['plain', 'custom']),
             'Unknown reporter "verbose". Select one of: plain, custom.',
         ];
+        yield 'malformed reporter selection' => [
+            static fn(): CliError => CliError::malformedReporterSelection('junit='),
+            '--reporter requires <name> or <name>=<path>. Received "junit=".',
+        ];
+        yield 'duplicate reporter output' => [
+            static fn(): CliError => CliError::duplicateReporterOutput('reports/results.xml'),
+            'Write reporter output to file "reports/results.xml" only once.',
+        ];
     }
 }

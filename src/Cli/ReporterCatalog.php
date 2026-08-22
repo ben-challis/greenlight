@@ -45,6 +45,11 @@ final readonly class ReporterCatalog
         return \array_keys($this->factories);
     }
 
+    public function has(string $name): bool
+    {
+        return isset($this->factories[$name]);
+    }
+
     /**
      * @throws CliError
      * @throws ReporterProviderError
