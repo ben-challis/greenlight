@@ -6,9 +6,9 @@ namespace Greenlight\Runner\Execution;
 
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\StorageLayout;
+use Greenlight\IntegrationFixture\ProvisionedIntegrationFixtures;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Runner\Artifact\ArtifactStore;
-use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;
 
 /**
  * Supplies run-owned state to one execution adapter.

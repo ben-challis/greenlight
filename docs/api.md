@@ -17,7 +17,8 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 - [Expectations API](api-expectations.md) — This reference lists immediate and temporal expectation types.
 - [Doubles API](api-doubles.md) — This reference lists double factories, argument matchers, captors, and mock plans.
 - [Sandbox API](api-sandboxes.md) — This reference lists the sandboxes that isolate temporary test state.
-- [Harness API](api-harness.md) — This reference lists harness service and integration-resource contracts.
+- [Harness API](api-harness.md) — This reference lists harness service and lifecycle contracts.
+- [Integration fixture API](api-integration-fixtures.md) — This reference lists integration fixture definitions, contexts, resources, and sensitive values.
 - [Plugin API](api-plugins.md) — This reference lists plugin capabilities and lifecycle callback contracts.
 - [Reporter API](api-reporting.md) — This reference lists reporter and output contracts.
 - [Integration API](api-integrations.md) — This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.

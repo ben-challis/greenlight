@@ -6,6 +6,8 @@ namespace Greenlight\Runner\Worker;
 
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Config\ConfigLoader;
+use Greenlight\Coverage\Collection\CoverageCollector;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Internal\Php\ErrorTrap;
@@ -15,8 +17,6 @@ use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\ChannelEnvironment;
-use Greenlight\Runner\CoverageCollector;
-use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\PluginInstances;
 use Greenlight\Runner\Protocol\Message;

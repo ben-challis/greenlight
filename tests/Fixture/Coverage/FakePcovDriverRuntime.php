@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Coverage;
 
-use Greenlight\Coverage\Driver\PcovRuntime;
+use Greenlight\Coverage\Collection\Driver\PcovRuntime;
 use Greenlight\Doubles\Fake;
 
 final class FakePcovDriverRuntime implements Fake, PcovRuntime

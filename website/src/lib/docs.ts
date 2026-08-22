@@ -134,7 +134,7 @@ export const docSections = [
       {
         id: 'api-test-contracts',
         title: 'Test contracts API',
-        description: 'This reference lists test metadata, skip signals, conditions, and wire contracts.',
+        description: 'This reference lists test definitions, policies, skip signals, and wire contracts.',
       },
       {
         id: 'api-expectations',
@@ -154,7 +154,12 @@ export const docSections = [
       {
         id: 'api-harness',
         title: 'Harness API',
-        description: 'This reference lists harness service and integration-resource contracts.',
+        description: 'This reference lists harness service and lifecycle contracts.',
+      },
+      {
+        id: 'api-integration-fixtures',
+        title: 'Integration fixture API',
+        description: 'This reference lists integration fixture definitions, contexts, resources, and sensitive values.',
       },
       {
         id: 'api-plugins',

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
+use Greenlight\Coverage\Collection\CoverageCollector;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Internal\Process\EnvironmentBackup;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\PublishingEventSink;
-use Greenlight\Runner\CoverageCollector;
-use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\PluginInstances;
 use Greenlight\Runner\Protocol\ProtocolError;

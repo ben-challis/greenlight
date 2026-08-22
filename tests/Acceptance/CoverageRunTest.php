@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Expect\Expect;
-use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FixturePath;

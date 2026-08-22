@@ -119,9 +119,9 @@ process, such as a database server, broker, container, or remote test tenant.
 
 <!-- php-example {"example":"plugins-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
-use Greenlight\Harness\FixtureResource;
-use Greenlight\Plugin\IntegrationFixtureContext;
-use Greenlight\Plugin\IntegrationFixtureDefinition;
+use Greenlight\IntegrationFixture\FixtureResource;
+use Greenlight\IntegrationFixture\IntegrationFixtureContext;
+use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\Plugin\IntegrationFixtureProvider;
 
 final class BrokerFixtures implements IntegrationFixtureProvider

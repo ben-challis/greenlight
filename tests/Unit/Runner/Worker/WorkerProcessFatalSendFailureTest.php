@@ -92,7 +92,7 @@ final readonly class WorkerProcessFatalSendFailureTest
             $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
                 1,
                 $config,
-                new Greenlight\Harness\IntegrationResources([]),
+                new Greenlight\IntegrationFixture\IntegrationResources([]),
             ));
             $deadline = microtime(true) + 2.0;
 

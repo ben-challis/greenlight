@@ -52,46 +52,6 @@ final readonly class CoverageMap implements WireSerializable
     }
 
     /**
-     * Converts raw driver output to a coverage map. It removes dead code
-     * lines and files that the path filter rejects. A positive status becomes
-     * covered. A status of minus one becomes uncovered.
-     */
-    public static function fromRaw(RawCoverage $raw, ?PathFilter $filter = null): self
-    {
-        $filter ??= PathFilter::all();
-        $files = [];
-
-        foreach ($raw->lines as $path => $lines) {
-            if ($path === '' || !$filter->accepts($path)) {
-                continue;
-            }
-
-            $covered = [];
-            $uncovered = [];
-
-            foreach ($lines as $line => $status) {
-                if ($line < 1) {
-                    continue;
-                }
-
-                if ($status >= 1) {
-                    $covered[] = $line;
-                } elseif ($status === -1) {
-                    $uncovered[] = $line;
-                }
-            }
-
-            if ($covered === [] && $uncovered === []) {
-                continue;
-            }
-
-            $files[] = new FileCoverage($path, $covered, $uncovered);
-        }
-
-        return new self($files);
-    }
-
-    /**
      * @return array<non-empty-string, FileCoverage> keyed by file path, sorted by path
      */
     public function files(): array

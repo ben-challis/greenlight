@@ -260,7 +260,7 @@ Each worker receives its channel through `Greenlight\Test\TestChannel` and
 the `GREENLIGHT_CHANNEL` environment variable.
 
 A plugin can also provision real infrastructure in the orchestrator and expose
-typed connection data through `Greenlight\Harness\IntegrationResources`.
+typed connection data through `Greenlight\IntegrationFixture\IntegrationResources`.
 That keeps setup and teardown active when a worker crashes.
 See [Writing plugins](plugins.md#integrationfixtureprovider).
 

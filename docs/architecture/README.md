@@ -64,10 +64,18 @@ public.
 | `Attribute` | User test metadata | `Condition`, `Test` |
 | `Config` | Public builders and focused immutable configuration values | Public contracts, internal utilities, `Plugin` |
 | `Expect` | Immediate and temporal expectations | Public contracts, internal PHP utilities, `Plugin` |
-| `Harness`, `Plugin` | Lifecycle scopes and extension interfaces | Public contracts and `Reporting` |
+| `Harness` | Harness service scopes and resolution | Nothing |
+| `IntegrationFixture` | Fixture definitions, resources, provisioning, and cleanup | `Wire` |
+| `Plugin` | Extension interfaces and plugin capability groups | Public contracts, `IntegrationFixture`, and `Reporting` |
 | `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
 | `Discovery` | PHP declaration discovery and execution plans | Public contracts, internal utilities, `Attribute` |
-| `Capture`, `Coverage` | Bounded output capture and line-coverage values | Public contracts and internal utilities |
+| `Capture` | Bounded output capture | Public contracts and internal utilities |
+| `Coverage` | Line-coverage values and errors | `Wire` |
+| `Coverage/Collection` | Coverage drivers and raw coverage collection | `Coverage` |
+| `Coverage/Diff` | Baseline coverage comparison | `Coverage` |
+| `Coverage/Export` | Coverage export formats | `Coverage`, `Wire`, and internal PHP utilities |
+| `Coverage/Ignore` | Source ignore directives and filtering | `Coverage` and internal PHP utilities |
+| `Coverage/Relay` | Coverage transfer from child CLI processes | Coverage modules and internal PHP utilities |
 | `Reporting` | Event consumers and output formats | Public contracts and internal PHP utilities |
 | `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
 | `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Config\CoverageConfiguration;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Runner\CoverageSettings;
 
 /** Resolves CLI coverage configuration into runner settings.
  *

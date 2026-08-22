@@ -77,6 +77,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Harness/.*
+    - name: IntegrationFixture
+      collectors:
+        - type: directory
+          value: src/IntegrationFixture/.*
     - name: Doubles
       collectors:
         - type: directory
@@ -85,10 +89,30 @@ deptrac:
       collectors:
         - type: directory
           value: src/Sandbox/.*
+    - name: CoverageCollection
+      collectors:
+        - type: directory
+          value: src/Coverage/Collection/.*
+    - name: CoverageDiff
+      collectors:
+        - type: directory
+          value: src/Coverage/Diff/.*
+    - name: CoverageExport
+      collectors:
+        - type: directory
+          value: src/Coverage/Export/.*
+    - name: CoverageIgnore
+      collectors:
+        - type: directory
+          value: src/Coverage/Ignore/.*
+    - name: CoverageRelay
+      collectors:
+        - type: directory
+          value: src/Coverage/Relay/.*
     - name: Coverage
       collectors:
         - type: directory
-          value: src/Coverage/.*
+          value: src/Coverage/[^/]+\.php
     - name: Plugin
       collectors:
         - type: directory
@@ -208,14 +232,20 @@ deptrac:
     Discovery: [Attribute, InternalFilesystem, InternalPhp, Test, Wire]
     Expect: [InternalPhp, Plugin, Result, Test, Wire]
     Capture: [InternalPhp, Result, Wire]
-    Harness: [Wire]
+    Harness: []
+    IntegrationFixture: [Wire]
     Doubles: [Expect, Harness, InternalFilesystem, InternalPhp, Result, Test]
     Sandbox: [Harness, InternalPhp, InternalProcess]
-    Coverage: [InternalPhp, Wire]
-    Plugin: [Artifact, Event, Harness, Reporting, Result, Test]
+    Coverage: [Wire]
+    CoverageCollection: [Coverage]
+    CoverageDiff: [Coverage]
+    CoverageExport: [Coverage, InternalPhp, Wire]
+    CoverageIgnore: [Coverage, InternalPhp]
+    CoverageRelay: [Coverage, CoverageCollection, CoverageExport, InternalPhp]
+    Plugin: [Artifact, Event, Harness, IntegrationFixture, Reporting, Result, Test]
     Reporting: [Artifact, Event, InternalPhp, Result, Test, Wire]
-    Runner: [Artifact, Attribute, Capture, Condition, Config, Coverage, Discovery, Doubles, Event, Expect, Harness, InternalPhp, InternalProcess, InternalText, Plugin, Reporting, Result, Sandbox, Test, Wire, CpuCoreCounter]
-    Cli: [Artifact, Config, Coverage, Discovery, Event, InternalFilesystem, InternalPhp, InternalProcess, InternalText, PhpStan, Plugin, Reporting, Result, Runner, Test, Wire]
+    Runner: [Artifact, Attribute, Capture, Condition, Config, Coverage, CoverageCollection, Discovery, Doubles, Event, Expect, Harness, IntegrationFixture, InternalPhp, InternalProcess, InternalText, Plugin, Reporting, Result, Sandbox, Test, Wire, CpuCoreCounter]
+    Cli: [Artifact, Config, Coverage, CoverageCollection, CoverageDiff, CoverageExport, CoverageIgnore, CoverageRelay, Discovery, Event, IntegrationFixture, InternalFilesystem, InternalPhp, InternalProcess, InternalText, PhpStan, Plugin, Reporting, Result, Runner, Test, Wire]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []

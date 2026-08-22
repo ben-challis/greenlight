@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
+use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
+
 /**
  * Supplies orchestrator-owned infrastructure for one test run.
  */

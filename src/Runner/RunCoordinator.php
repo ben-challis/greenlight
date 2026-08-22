@@ -13,13 +13,13 @@ use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
+use Greenlight\IntegrationFixture\IntegrationFixtureError;
+use Greenlight\IntegrationFixture\IntegrationFixtureManager;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Execution\ExecutionAdapter;
 use Greenlight\Runner\Execution\ExecutionContext;
-use Greenlight\Runner\Integration\IntegrationFixtureError;
-use Greenlight\Runner\Integration\IntegrationFixtureManager;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Test\TestSelection;
@@ -96,7 +96,7 @@ final readonly class RunCoordinator
             }
 
             $fixtures = IntegrationFixtureManager::provision(
-                $orchestratorPlugins,
+                IntegrationFixtureProviderAdapter::definitions($orchestratorPlugins),
                 $runId,
                 $topology->workers,
                 $topology->fixtureChannels,

@@ -116,7 +116,7 @@ final readonly class WorkerProcessTest
             $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
                 1,
                 $missingConfig,
-                Greenlight\Harness\IntegrationResources::empty(),
+                Greenlight\IntegrationFixture\IntegrationResources::empty(),
             ));
             $fatal = $channel->receive(2.0);
 
@@ -309,7 +309,7 @@ final readonly class WorkerProcessTest
             $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
                 1,
                 null,
-                Greenlight\Harness\IntegrationResources::empty(),
+                Greenlight\IntegrationFixture\IntegrationResources::empty(),
             ));
 
             $bootstrapResponse = $channel->receive(2.0);
@@ -337,7 +337,7 @@ final readonly class WorkerProcessTest
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
                     1,
                     null,
-                    Greenlight\Harness\IntegrationResources::empty(),
+                    Greenlight\IntegrationFixture\IntegrationResources::empty(),
                 ));
                 $fatal = $channel->receive(2.0);
 

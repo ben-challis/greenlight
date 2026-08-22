@@ -93,168 +93,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L20)
 
-## `IntegrationFixtureContext`
-
-Namespace: `Greenlight\Plugin`
-
-Supplies orchestrator-side operations while Greenlight provisions one
-integration fixture.
-
-```php
-interface IntegrationFixtureContext
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L13)
-
-### `runId()`
-
-```php
-public function runId(): string;
-```
-
-PHPDoc:
-
-- `@return non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L18)
-
-### `configuredWorkers()`
-
-```php
-public function configuredWorkers(): int;
-```
-
-PHPDoc:
-
-- `@return positive-int`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L23)
-
-### `channels()`
-
-The channel numbers that can be live during this execution.
-
-```php
-public function channels(): array;
-```
-
-PHPDoc:
-
-- `@return non-empty-list<positive-int>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L30)
-
-### `shard()`
-
-```php
-public function shard(): ?array;
-```
-
-PHPDoc:
-
-- `@return array{int, int}|null one-based shard index and shard count`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L35)
-
-### `dependency()`
-
-```php
-public function dependency(string $id, ?int $channel = null): FixtureResource;
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L37)
-
-### `defer()`
-
-Register cleanup immediately after the provisioner acquires a resource.
-This makes cleanup available if a later operation fails.
-
-```php
-public function defer(\Closure $cleanup): void;
-```
-
-PHPDoc:
-
-- `@param \Closure(): void $cleanup`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L45)
-
-### `expose()`
-
-Publishes shared data plus optional channel-specific overlays.
-
-```php
-public function expose(FixtureResource $shared, array $channels = []): void;
-```
-
-PHPDoc:
-
-- `@param array<int, FixtureResource> $channels keyed by channel number`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureContext.php#L52)
-
-## `IntegrationFixtureDefinition`
-
-Namespace: `Greenlight\Plugin`
-
-One orchestrator-owned integration fixture and its dependencies. IDs must
-remain string keys in PHP maps.
-
-```php
-final readonly class IntegrationFixtureDefinition
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L11)
-
-### `$id`
-
-```php
-public string $id;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L16)
-
-### `$dependsOn`
-
-```php
-public array $dependsOn;
-```
-
-PHPDoc:
-
-- `@var list<non-empty-string>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L21)
-
-### `$provision`
-
-```php
-public \Closure $provision
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L29)
-
-### `__construct()`
-
-```php
-public function __construct(
-    string $id,
-    public \Closure $provision,
-    array $dependsOn = [],
-)
-```
-
-PHPDoc:
-
-- `@param \Closure(IntegrationFixtureContext): void $provision`
-- `@param list<mixed> $dependsOn`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureDefinition.php#L27)
-
 ## `IntegrationFixtureProvider`
 
 Namespace: `Greenlight\Plugin`
@@ -265,7 +103,7 @@ Supplies orchestrator-owned infrastructure for one test run.
 interface IntegrationFixtureProvider extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L12)
 
 ### `integrationFixtures()`
 
@@ -277,7 +115,7 @@ PHPDoc:
 
 - `@return list<IntegrationFixtureDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L17)
 
 ## `Plugin`
 

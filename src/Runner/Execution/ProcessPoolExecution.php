@@ -6,11 +6,11 @@ namespace Greenlight\Runner\Execution;
 
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\WorkerConfiguration;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Ticking;
-use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Orchestrator\Distributor;
 use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Runner\Orchestrator\NativeWorkerTransport;
