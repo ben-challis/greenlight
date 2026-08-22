@@ -12,6 +12,7 @@ use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+use Greenlight\Tests\Support\SimpleXml;
 
 final readonly class CoverageRunTest
 {
@@ -105,12 +106,12 @@ final readonly class CoverageRunTest
             ->toBeString();
 
         $xml = new \SimpleXMLElement($document);
-        $children = $xml->xpath('/coverage/' . $expectedChild);
+        $children = SimpleXml::xpath($xml, '/coverage/' . $expectedChild);
 
         Expect::that($xml->getName())
             ->because('the configured XML exporter MUST write a coverage document')
             ->toBe('coverage');
-        Expect::that($children === false ? [] : $children)
+        Expect::that($children)
             ->not()
             ->toBe([]);
     }
