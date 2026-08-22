@@ -3,6 +3,7 @@
     "description": "A test framework for PHP 8.4+ with typed attributes, parallel execution, flat memory use, and lifecycle-safe test doubles.",
     "license": "MIT",
     "type": "library",
+    "version": "0.0.0",
     "keywords": [
         "testing",
         "test-framework",
@@ -105,7 +106,7 @@
         "rector:fix": "rector --ansi --no-progress-bar",
         "static-analysis": "@php tools/local-ci-lock.php -- @composer static-analysis:unlocked",
         "static-analysis:unlocked": [
-            "@composer validate --strict",
+            "@composer validate --strict --no-check-version",
             "@composer normalize --dry-run",
             "@lint",
             "@prose:check",

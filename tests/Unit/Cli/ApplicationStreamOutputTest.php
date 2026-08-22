@@ -69,7 +69,7 @@ final readonly class ApplicationStreamOutputTest
         yield 'standard output' => [
             ['--version'],
             0,
-            "Greenlight dev-main\n",
+            'Greenlight ' . Application::VERSION . "\n",
             false,
         ];
 
