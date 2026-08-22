@@ -183,6 +183,9 @@ The command returns a nonzero exit code if an iteration fails.
 Without `--repeat=N`, this mode stops after 100 iterations. Add `--repeat=N`
 to specify a different limit.
 
+Repeat modes do not support JUnit output or enabled coverage. Run a separate
+command for each required report.
+
 ## Read the output
 
 Greenlight uses the `tty` reporter on an interactive terminal. This reporter

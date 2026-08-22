@@ -627,6 +627,12 @@ Repeats fresh runs until an iteration fails.
 On its own, the command stops after 100 successful iterations. Use
 `--repeat=<n>` to set a different limit. Do not use it with `--watch`.
 
+Repeat modes do not support JUnit output or enabled coverage. Run a separate
+command for each required report.
+
+The `tty`, `plain`, `jsonl`, `github`, and `teamcity` reporters support repeat
+modes. The `--profile` output and configured reporters also remain available.
+
 ### `--shard=n/m`
 
 Runs the nth of m disjoint slices of the plan.
@@ -691,6 +697,10 @@ stops the command before test execution.
 Shell completions suggest built-in names. Configured names remain valid.
 
 Default: `tty` on an interactive terminal, otherwise `plain`.
+
+The `jsonl` reporter writes one complete event sequence for each repeat
+iteration. Greenlight writes repeat status to standard error to keep standard
+output valid JSONL.
 
 The `tty` reporter supports parallel work. It keeps one live line for each
 active class. Each line has a spinner and a current count. The reporter

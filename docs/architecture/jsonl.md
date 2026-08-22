@@ -34,6 +34,10 @@ The event `toWire()` method produces this payload.
 
 Each line ends with `\n`.
 
+A stream can contain event sequences for multiple complete runs. Repeat modes
+write one sequence for each iteration. Repeat status goes to standard error
+when the command uses the `jsonl` reporter.
+
 Output uses UTF-8 JSON. Greenlight cleans captured strings that contain invalid
 UTF-8 before they reach the reporter. The encoder replaces invalid sequences
 that remain.
