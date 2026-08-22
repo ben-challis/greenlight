@@ -12,10 +12,8 @@ use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Runner\Protocol\Message;
@@ -33,6 +31,7 @@ use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\DisconnectBeforeAssignmentWorker;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
+use Greenlight\Tests\Support\PlanEntryFixture;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
 
 final class OrchestratorTest
@@ -376,7 +375,7 @@ final class OrchestratorTest
         $id = new TestId('Example\NeverExecutedTest', 'irrelevant');
 
         return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
     }
 
@@ -385,7 +384,7 @@ final class OrchestratorTest
         $id = new TestId(CleanTest::class, 'passesAndIsCollectable');
 
         return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
     }
 
@@ -395,8 +394,8 @@ final class OrchestratorTest
         $passing = new TestId(BbTest::class, 'wouldAlsoPass');
 
         return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($failing->class, $failing->method)),
-            new PlanEntry(new TestDefinition($passing->class, $passing->method)),
+            PlanEntryFixture::create($failing->class, $failing->method),
+            PlanEntryFixture::create($passing->class, $passing->method),
         ]);
     }
 
@@ -405,7 +404,7 @@ final class OrchestratorTest
         $id = new TestId(CrashDiagnosticsTest::class, 'writesDiagnosticsThenExits');
 
         return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
     }
 
@@ -415,8 +414,8 @@ final class OrchestratorTest
         $passing = new TestId(CleanTest::class, 'passesAndIsCollectable');
 
         return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($crash->class, $crash->method)),
-            new PlanEntry(new TestDefinition($passing->class, $passing->method)),
+            PlanEntryFixture::create($crash->class, $crash->method),
+            PlanEntryFixture::create($passing->class, $passing->method),
         ]);
     }
 
@@ -425,7 +424,7 @@ final class OrchestratorTest
         $id = new TestId(CrashUnicodeDiagnosticsTest::class, 'writesUnicodeDiagnosticsThenExits');
 
         return new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
     }
 }
