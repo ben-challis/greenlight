@@ -39,7 +39,7 @@ final readonly class RectorProbe
         $testFile = $testsDirectory . '/ProbeTest.php';
 
         $files->write('tests/ProbeTest.php', $testClassSource);
-        $files->write('rector.php', self::rectorConfig($root, $directory, $configuration));
+        $files->write('rector.php', self::rectorConfig($directory, $configuration));
 
         $result = Subprocess::run(
             $root,
@@ -101,7 +101,7 @@ final readonly class RectorProbe
     /**
      * @param array<string, bool> $configuration
      */
-    private static function rectorConfig(string $root, string $directory, array $configuration): string
+    private static function rectorConfig(string $directory, array $configuration): string
     {
         $rule = $configuration === []
             ? '->withRules([PhpUnitToGreenlightRector::class])'
@@ -127,7 +127,7 @@ final readonly class RectorProbe
                 %s;
 
             PHP,
-            \var_export($root . '/tests/Fixture/RectorMigration/phpunit-10-plus-stubs.php', true),
+            \var_export(FixturePath::get('RectorMigration/phpunit-10-plus-stubs.php'), true),
             \var_export($directory . '/tests', true),
             \var_export($directory . '/rector-cache', true),
             $rule,

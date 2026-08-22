@@ -27,7 +27,7 @@ final readonly class AcceptanceProject
     public static function createWithDiscoveryBasicTests(TemporaryDirectory $workspace, string $name): self
     {
         $project = self::create($workspace, $name);
-        $discoveryBasic = \dirname(__DIR__) . '/Fixture/DiscoveryBasic';
+        $discoveryBasic = FixturePath::get('DiscoveryBasic');
 
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
