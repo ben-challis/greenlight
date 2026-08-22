@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Runner;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Driver\DriverSelector;
-use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -242,13 +241,7 @@ final readonly class SubprocessCoverageTest
             ->because('Subprocess coverage MUST write exactly one JSON dump.')
             ->toHaveCount(1);
 
-        $json = \file_get_contents($dumps[0]);
-
-        Expect::that($json)
-            ->because('The test MUST read the subprocess coverage JSON dump.')
-            ->toBeString();
-
-        $files = JsonExporter::import($json)->files();
+        $files = CoverageJson::read($dumps[0])->files();
 
         Expect::that(\array_keys($files))
             ->because('empty include segments are ignored and the configured path filters the dump')
