@@ -32,9 +32,15 @@ final readonly class PhpStanProbe
         $probeDirectory = $files->directory;
         $goodFile = $probeDirectory . '/GoodProbe.php';
         $badFile = $probeDirectory . '/BadProbe.php';
+        $probeConfigFile = $probeDirectory . '/ProbeConfig.neon';
 
         $files->write('GoodProbe.php', $goodSource);
         $files->write('BadProbe.php', $badSource);
+        $files->write('ProbeConfig.neon', \sprintf(
+            "includes:\n    - %s\n\nparameters:\n    tmpDir: %s\n",
+            self::neonString($configFile),
+            self::neonString($probeDirectory . '/cache'),
+        ));
 
         $result = Subprocess::run(
             $root,
@@ -45,7 +51,7 @@ final readonly class PhpStanProbe
                 '--no-progress',
                 '--error-format=json',
                 '-c',
-                $configFile,
+                $probeConfigFile,
                 $goodFile,
                 $badFile,
             ],
@@ -89,5 +95,10 @@ final readonly class PhpStanProbe
     public function messages(): string
     {
         return \implode("\n", $this->errors);
+    }
+
+    private static function neonString(string $value): string
+    {
+        return '"' . \str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
     }
 }
