@@ -11,7 +11,7 @@ responsibilities, interfaces, invariants, and machine-readable formats.
 
 ```mermaid
 flowchart LR
-    config["greenlight.php<br/>GreenlightConfig"] --> cli["CLI and configuration resolution"]
+    config["greenlight.php<br/>GreenlightConfig"] --> cli["CLI and focused configuration resolution"]
     tests["Test files<br/>attributes and data sets"] --> discovery["Discovery<br/>ExecutionPlan"]
     cli --> coordinator["Run coordinator"]
     coordinator --> discovery
@@ -57,7 +57,7 @@ public.
 | `Core` | Shared immutable values, events, results, and worker-protocol data | Nothing |
 | `Attribute`, `Condition` | User test metadata | `Core` |
 | `Test` | Per-test cleanup controls | Nothing |
-| `Config` | Public builders and resolved internal configuration | `Core`, `Plugin` |
+| `Config` | Public builders and focused immutable configuration values | `Core`, `Plugin` |
 | `Expect` | Immediate and temporal expectations | `Core`, `Plugin` |
 | `Harness`, `Plugin` | Lifecycle scopes and extension interfaces | `Core` |
 | `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
@@ -79,9 +79,15 @@ become runtime package dependencies.
 
 ### Configuration
 
-`GreenlightConfig` and its nested builders are the user interface.
-`Configuration` is the resolved internal value for discovery and the runner.
-The CLI applies overrides once between these two forms.
+`GreenlightConfig` and its nested builders are the user interface. `build()`
+groups validated file settings into discovery, worker, execution, and order
+values. The CLI applies command-line overrides and creates a
+`ResolvedConfiguration` for one command.
+
+The CLI resolves random order to one `RunOrder`. Discovery, reporting, and
+execution use that value. Test selection is a separate value. Discovery uses
+it directly, and the runners receive only the configuration values that they
+use.
 
 ### Test authors
 

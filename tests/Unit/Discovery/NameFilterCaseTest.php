@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\Filter;
+use Greenlight\Core\Test\TestInclusions;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
 
 final readonly class NameFilterCaseTest
@@ -14,8 +15,8 @@ final readonly class NameFilterCaseTest
     #[Test]
     #[DataSet('nameFilters')]
     public function classAndMethodFiltersMatchWithCaseSensitivity(
-        Filter $canonical,
-        Filter $caseOnlyDifference,
+        TestSelection $canonical,
+        TestSelection $caseOnlyDifference,
     ): void {
         $class = 'Acme\\InvoiceTest';
         $method = 'calculatesTotal';
@@ -29,17 +30,17 @@ final readonly class NameFilterCaseTest
     }
 
     /**
-     * @return iterable<string, array{Filter, Filter}>
+     * @return iterable<string, array{TestSelection, TestSelection}>
      */
     public static function nameFilters(): iterable
     {
         yield 'class wildcard' => [
-            new Filter(includeClasses: ['Acme\\*Test']),
-            new Filter(includeClasses: ['acme\\*test']),
+            new TestSelection(include: new TestInclusions(classes: ['Acme\\*Test'])),
+            new TestSelection(include: new TestInclusions(classes: ['acme\\*test'])),
         ];
         yield 'method substring' => [
-            new Filter(includeMethods: ['calculates']),
-            new Filter(includeMethods: ['CALCULATES']),
+            new TestSelection(include: new TestInclusions(methods: ['calculates'])),
+            new TestSelection(include: new TestInclusions(methods: ['CALCULATES'])),
         ];
     }
 }

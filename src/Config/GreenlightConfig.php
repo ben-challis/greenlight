@@ -363,7 +363,7 @@ final class GreenlightConfig
         return $this;
     }
 
-    /** If the seed is null, Greenlight generates and prints a seed at run time. */
+    /** If the seed is null, Greenlight selects and prints a seed when it resolves the command. */
     public function randomizeOrder(?int $seed = null): self
     {
         $this->randomizeOrder = true;
@@ -400,25 +400,30 @@ final class GreenlightConfig
     public function build(): Configuration
     {
         return new Configuration(
-            paths: $this->paths,
-            suites: \array_values($this->suites),
-            workers: $this->workers,
-            recycleAfterTests: $this->recycleAfterTests,
-            recycleAboveMemoryBytes: $this->recycleAboveMemoryBytes,
+            discovery: new DiscoveryConfiguration(
+                paths: $this->paths,
+                suites: \array_values($this->suites),
+            ),
+            workers: new WorkerConfiguration(
+                count: $this->workers,
+                recycleAfterTests: $this->recycleAfterTests,
+                recycleAboveMemoryBytes: $this->recycleAboveMemoryBytes,
+                resourceLimits: $this->resourceLimits,
+            ),
+            execution: new ExecutionConfiguration(
+                plugins: $this->plugins,
+                policy: new ResultPolicy(
+                    $this->failOnDeprecation,
+                    $this->failOnNotice,
+                    $this->ignoreDeprecations,
+                    $this->failOnRisky,
+                ),
+                stopAfterFailures: $this->failFast ? 1 : null,
+                artifacts: $this->artifacts?->toConfiguration() ?? new ArtifactConfiguration(),
+            ),
+            order: new OrderConfiguration($this->randomizeOrder, $this->randomSeed),
             coverage: $this->coverage?->toConfiguration(),
             watch: $this->watch?->toConfiguration() ?? new WatchConfiguration(),
-            plugins: $this->plugins,
-            policy: new ResultPolicy(
-                $this->failOnDeprecation,
-                $this->failOnNotice,
-                $this->ignoreDeprecations,
-                $this->failOnRisky,
-            ),
-            stopAfterFailures: $this->failFast ? 1 : null,
-            randomizeOrder: $this->randomizeOrder,
-            randomSeed: $this->randomSeed,
-            artifacts: $this->artifacts?->toConfiguration() ?? new ArtifactConfiguration(),
-            resourceLimits: $this->resourceLimits,
             storage: $this->storage?->toConfiguration() ?? new StorageConfiguration(),
         );
     }

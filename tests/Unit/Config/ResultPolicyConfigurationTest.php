@@ -26,7 +26,7 @@ final class ResultPolicyConfigurationTest
         $builder = GreenlightConfig::create();
         $configure($builder);
 
-        Expect::that($builder->build()->policy->toWire()[$field])
+        Expect::that($builder->build()->execution->policy->toWire()[$field])
             ->because('the public configuration flag must reach the result policy')
             ->toBe($expected);
     }
@@ -87,6 +87,7 @@ final class ResultPolicyConfigurationTest
             ->ignoreDeprecationsMatching('vendor *', 'legacy?')
             ->ignoreDeprecationsMatching('third-party')
             ->build()
+            ->execution
             ->policy;
 
         Expect::that($policy->ignoreDeprecations)
@@ -100,6 +101,7 @@ final class ResultPolicyConfigurationTest
         $policy = GreenlightConfig::create()
             ->ignoreDeprecationsMatching('0')
             ->build()
+            ->execution
             ->policy;
 
         Expect::that($policy->ignoreDeprecations)

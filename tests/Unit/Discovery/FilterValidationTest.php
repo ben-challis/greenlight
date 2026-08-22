@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\Filter;
+use Greenlight\Core\Test\TestExclusions;
+use Greenlight\Core\Test\TestInclusions;
 use Greenlight\Expect\Expect;
 
 final class FilterValidationTest
@@ -15,13 +16,13 @@ final class FilterValidationTest
     #[DataSet('filterDimensions')]
     public function emptyFilterValuesAreRejected(string $dimension): void
     {
-        Expect::that(static fn(): Filter => self::withValue($dimension, ''))
+        Expect::that(static fn(): TestInclusions|TestExclusions => self::withValue($dimension, ''))
             ->because('an empty filter value MUST NOT broaden or suppress test selection')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: \sprintf(
-                    'Filter "%s" MUST contain only non-empty strings.',
-                    $dimension,
+                    '%s cannot contain an empty string.',
+                    $this->propertyName($dimension),
                 ),
             );
     }
@@ -32,7 +33,9 @@ final class FilterValidationTest
     {
         $filter = self::withValue($dimension, '0');
 
-        Expect::that(\get_object_vars($filter)[$dimension] ?? null)
+        $property = $this->propertyName($dimension);
+
+        Expect::that(\get_object_vars($filter)[$property] ?? null)
             ->because('a non-empty falsey filter value MUST retain its selection meaning')
             ->toBe(['0']);
     }
@@ -54,19 +57,32 @@ final class FilterValidationTest
         yield 'included exact test ID' => ['includeExactIds'];
     }
 
-    private static function withValue(string $dimension, string $value): Filter
+    private static function withValue(string $dimension, string $value): TestInclusions|TestExclusions
     {
         return match ($dimension) {
-            'includeGroups' => new Filter(includeGroups: [$value]),
-            'excludeGroups' => new Filter(excludeGroups: [$value]),
-            'includeClasses' => new Filter(includeClasses: [$value]),
-            'excludeClasses' => new Filter(excludeClasses: [$value]),
-            'includeMethods' => new Filter(includeMethods: [$value]),
-            'excludeMethods' => new Filter(excludeMethods: [$value]),
-            'includePaths' => new Filter(includePaths: [$value]),
-            'excludePaths' => new Filter(excludePaths: [$value]),
-            'includeIds' => new Filter(includeIds: [$value]),
-            'includeExactIds' => new Filter(includeExactIds: [$value]),
+            'includeGroups' => new TestInclusions(groups: [$value]),
+            'excludeGroups' => new TestExclusions(groups: [$value]),
+            'includeClasses' => new TestInclusions(classes: [$value]),
+            'excludeClasses' => new TestExclusions(classes: [$value]),
+            'includeMethods' => new TestInclusions(methods: [$value]),
+            'excludeMethods' => new TestExclusions(methods: [$value]),
+            'includePaths' => new TestInclusions(paths: [$value]),
+            'excludePaths' => new TestExclusions(paths: [$value]),
+            'includeIds' => new TestInclusions(idPatterns: [$value]),
+            'includeExactIds' => new TestInclusions(exactIds: [$value]),
+            default => throw new \LogicException(\sprintf('Unknown filter dimension "%s".', $dimension)),
+        };
+    }
+
+    private function propertyName(string $dimension): string
+    {
+        return match ($dimension) {
+            'includeGroups', 'excludeGroups' => 'groups',
+            'includeClasses', 'excludeClasses' => 'classes',
+            'includeMethods', 'excludeMethods' => 'methods',
+            'includePaths', 'excludePaths' => 'paths',
+            'includeIds' => 'idPatterns',
+            'includeExactIds' => 'exactIds',
             default => throw new \LogicException(\sprintf('Unknown filter dimension "%s".', $dimension)),
         };
     }

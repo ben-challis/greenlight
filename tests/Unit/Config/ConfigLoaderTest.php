@@ -21,13 +21,13 @@ final class ConfigLoaderTest
         $builder = new ConfigLoader()->loadFromDirectory(self::fixtureDir('Valid'));
         $configuration = $builder->build();
 
-        Expect::that($configuration->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
-        Expect::that($configuration->workers->fixed)->because('loads a valid configuration file from a directory')->toBe(4);
-        Expect::that($configuration->recycleAfterTests)->because('loads a valid configuration file from a directory')->toBe(100);
-        Expect::that($configuration->recycleAboveMemoryBytes)->because('loads a valid configuration file from a directory')->toBe(134217728);
-        Expect::that($configuration->stopAfterFailures)->because('loads a valid configuration file from a directory')->toBe(1);
-        Expect::that($configuration->randomSeed)->because('loads a valid configuration file from a directory')->toBe(4242);
-        Expect::that($configuration->suites)->because('loads a valid configuration file from a directory')->toHaveCount(2);
+        Expect::that($configuration->discovery->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
+        Expect::that($configuration->workers->count->fixed)->because('loads a valid configuration file from a directory')->toBe(4);
+        Expect::that($configuration->workers->recycleAfterTests)->because('loads a valid configuration file from a directory')->toBe(100);
+        Expect::that($configuration->workers->recycleAboveMemoryBytes)->because('loads a valid configuration file from a directory')->toBe(134217728);
+        Expect::that($configuration->execution->stopAfterFailures)->because('loads a valid configuration file from a directory')->toBe(1);
+        Expect::that($configuration->order->seed)->because('loads a valid configuration file from a directory')->toBe(4242);
+        Expect::that($configuration->discovery->suites)->because('loads a valid configuration file from a directory')->toHaveCount(2);
     }
 
     #[Test]

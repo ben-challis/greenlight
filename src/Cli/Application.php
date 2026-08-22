@@ -12,17 +12,19 @@ use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
-use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Config\SuiteConfiguration;
+use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\AtomicFile;
 use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Core\Event\EventTags;
 use Greenlight\Core\GracefulShutdown;
+use Greenlight\Core\Test\TestSelection;
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireCommunicationFailed;
@@ -74,7 +76,6 @@ use Greenlight\Runner\PlanShard;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\RunCoordinator;
 use Greenlight\Runner\RunResult;
-use Greenlight\Runner\SelectionFilter;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
@@ -328,8 +329,7 @@ final readonly class Application
     private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
     {
         try {
-            [$resolved, $configFile] = $this->loadConfiguration($arguments, $workingDirectory);
-            $overrides = CliOverrides::fromArguments($arguments);
+            [$resolved, $configFile, $overrides] = $this->loadConfiguration($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -340,7 +340,7 @@ final readonly class Application
             return self::EXIT_FAILURE;
         }
 
-        if ($arguments->has('watch') && ($overrides->repeat !== null || $overrides->repeatUntilFailure)) {
+        if ($arguments->has('watch') && ($overrides->repeat->count !== null || $overrides->repeat->untilFailure)) {
             $this->printError('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;
@@ -370,14 +370,14 @@ final readonly class Application
             return $arguments->has('list-tests') ? $this->printTestList($plan) : $this->printGroupList($plan);
         }
 
-        $workers = $resolved->workers->fixed ?? CpuCores::count();
+        $workers = $resolved->workers->count->fixed ?? CpuCores::count();
         $workerBin = $this->workerBinPath($binPath);
 
         try {
             $reporterCatalog = $this->reporterCatalog(
                 $arguments,
-                $resolved->plugins,
-                $resolved->randomSeed,
+                $resolved->execution->plugins,
+                $resolved->order->seed,
                 $configFile,
                 $workingDirectory,
                 workerFallback: $workers > 1 && $workerBin === false,
@@ -417,13 +417,15 @@ final readonly class Application
                 return self::EXIT_OK;
             }
 
-            $resolved = $resolved->withOnlyTests($previousFailures);
+            $selection = $resolved->selection->withExactIds($previousFailures);
+        } else {
+            $selection = $resolved->selection;
         }
 
         $priorityClasses = [];
         $priorityClassSet = [];
 
-        if (!$resolved->randomizeOrder && \is_array($previousFailures)) {
+        if (!$resolved->order->isRandomized() && \is_array($previousFailures)) {
             foreach ($previousFailures as $id) {
                 $class = \strstr($id, '::', true);
 
@@ -434,21 +436,21 @@ final readonly class Application
             }
         }
 
-        $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
+        $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
         $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
 
         // --repeat=1 specifies one standard run. Show the loop, banners, and
         // summary only when more than one iteration is possible.
-        if (($overrides->repeat === null || $overrides->repeat === 1) && !$overrides->repeatUntilFailure) {
+        if (($overrides->repeat->count === null || $overrides->repeat->count === 1) && !$overrides->repeat->untilFailure) {
             $failedTap = new FailedTestsTap(new ReporterSink($reporter));
 
-            return $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+            return $this->executeRun($arguments, $resolved, $selection, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
         }
 
         // Without an explicit --repeat, --repeat-until-failure has a limit of
         // 100 iterations.
-        $limit = $overrides->repeat ?? 100;
-        $bounded = $overrides->repeat !== null;
+        $limit = $overrides->repeat->count ?? 100;
+        $bounded = $overrides->repeat->count !== null;
         $failedIterations = [];
         $failedTests = [];
         $failedTestSet = [];
@@ -474,7 +476,7 @@ final readonly class Application
             }
 
             $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-            $exit = $this->executeRun($arguments, $resolved, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
+            $exit = $this->executeRun($arguments, $resolved, $selection, $configFile, $workingDirectory, $workerBin, $shutdown, $priorityClasses, $classSeconds, $reporter, $failedTap, $state);
 
             foreach ($failedTap->failedTests() as $id) {
                 if (!isset($failedTestSet[$id])) {
@@ -494,7 +496,7 @@ final readonly class Application
             if ($exit !== self::EXIT_OK) {
                 $failedIterations[] = $iteration;
 
-                if ($overrides->repeatUntilFailure) {
+                if ($overrides->repeat->untilFailure) {
                     break;
                 }
             }
@@ -527,7 +529,8 @@ final readonly class Application
      */
     private function executeRun(
         ParsedArguments $arguments,
-        Configuration $resolved,
+        ResolvedConfiguration $resolved,
+        TestSelection $selection,
         string $configFile,
         string $workingDirectory,
         string|false $workerBin,
@@ -538,7 +541,7 @@ final readonly class Application
         FailedTestsTap $failedTap,
         RunState $state,
     ): int {
-        $workers = $resolved->workers->fixed ?? CpuCores::count();
+        $workers = $resolved->workers->count->fixed ?? CpuCores::count();
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
 
@@ -555,6 +558,7 @@ final readonly class Application
             try {
                 $run = $this->coordinateRun(
                     $resolved,
+                    $selection,
                     $this->directories($resolved, $workingDirectory),
                     $failedTap,
                     $workers,
@@ -660,7 +664,8 @@ final readonly class Application
      * @throws WireCommunicationFailed
      */
     private function coordinateRun(
-        Configuration $configuration,
+        ResolvedConfiguration $configuration,
+        TestSelection $selection,
         array $directories,
         EventSink $sink,
         int $workers,
@@ -675,6 +680,7 @@ final readonly class Application
         Reporter $reporter,
     ): RunResult {
         $execution = $this->executionAdapter(
+            $configuration->workers,
             $workers,
             $workerBin,
             $workingDirectory,
@@ -687,6 +693,7 @@ final readonly class Application
 
         return new RunCoordinator($workingDirectory)->run(
             $configuration,
+            $selection,
             $directories,
             $sink,
             $execution,
@@ -700,6 +707,7 @@ final readonly class Application
      * @param non-empty-string|false $workerBin
      */
     private function executionAdapter(
+        WorkerConfiguration $workerConfiguration,
         int $workers,
         string|false $workerBin,
         string $workingDirectory,
@@ -717,6 +725,7 @@ final readonly class Application
             [\PHP_BINARY, $workerBin],
             $workingDirectory,
             $workers,
+            $workerConfiguration,
             $coverageSettings,
             $configFile,
             $detectLeaks,
@@ -729,9 +738,9 @@ final readonly class Application
      * Gives a warning when an exclude-path prefix matches no discovered test files.
      * Discovery reports enumeration errors separately.
      */
-    private function warnWhenExcludePathsMatchNothing(Configuration $resolved, string $workingDirectory, bool $noAnsiFlag): void
+    private function warnWhenExcludePathsMatchNothing(ResolvedConfiguration $resolved, string $workingDirectory, bool $noAnsiFlag): void
     {
-        if ($resolved->excludePaths === []) {
+        if ($resolved->selection->exclude->paths === []) {
             return;
         }
 
@@ -741,7 +750,7 @@ final readonly class Application
             return;
         }
 
-        foreach ($resolved->excludePaths as $prefix) {
+        foreach ($resolved->selection->exclude->paths as $prefix) {
             if (!\array_any($files, static fn(string $file): bool => \str_starts_with($file, $prefix))) {
                 ($this->err)($this->stderrStyle($noAnsiFlag)->warn(\sprintf('Warning: --exclude-path "%s" did not match a discovered test file.', $prefix)) . "\n");
             }
@@ -793,7 +802,7 @@ final readonly class Application
         ParsedArguments $arguments,
         string $workingDirectory,
         string|false $workerBin,
-        Configuration $resolved,
+        ResolvedConfiguration $resolved,
         string $configFile,
         GracefulShutdown $shutdown,
         ReporterCatalog $reporterCatalog,
@@ -810,7 +819,7 @@ final readonly class Application
             }
         }
 
-        $workers = $resolved->workers->fixed ?? CpuCores::count();
+        $workers = $resolved->workers->count->fixed ?? CpuCores::count();
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $workingDirectory);
         $detectLeaks = $arguments->has('detect-leaks');
         $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
@@ -830,11 +839,12 @@ final readonly class Application
                 $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
 
                 $state = RunState::forFile($storage->runStateFile);
-                $classSeconds = $resolved->randomizeOrder ? [] : $state->classSeconds();
+                $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
 
                 try {
                     $this->coordinateRun(
                         $resolved,
+                        $resolved->selection,
                         $directories,
                         $tap,
                         $workers,
@@ -1332,21 +1342,19 @@ final readonly class Application
      *
      * @throws DiscoveryError
      */
-    private function discoverSelection(Configuration $resolved, string $workingDirectory): ExecutionPlan
+    private function discoverSelection(ResolvedConfiguration $resolved, string $workingDirectory): ExecutionPlan
     {
-        $filter = SelectionFilter::fromConfiguration($resolved);
-
         $directories = $this->directories($resolved, $workingDirectory);
         $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
         $plan = new TestDiscoverer()->discover(
             $directories,
-            $filter,
-            $resolved->randomSeed,
+            $resolved->selection,
+            $resolved->order->seed,
             DiscoveryCache::forDirectories($directories, $storage->cacheDirectory),
         );
 
-        if ($resolved->shard !== null) {
-            return PlanShard::select($plan, \max(1, $resolved->shard[0]), \max(1, $resolved->shard[1]));
+        if ($resolved->selection->shard !== null) {
+            return PlanShard::select($plan, \max(1, $resolved->selection->shard[0]), \max(1, $resolved->selection->shard[1]));
         }
 
         return $plan;
@@ -1386,9 +1394,9 @@ final readonly class Application
         return self::EXIT_OK;
     }
 
-    private function printSuiteList(Configuration $resolved): int
+    private function printSuiteList(ResolvedConfiguration $resolved): int
     {
-        $suites = $resolved->suites;
+        $suites = $resolved->discovery->suites;
         \usort($suites, static fn(SuiteConfiguration $a, SuiteConfiguration $b): int => \strcmp($a->name, $b->name));
 
         foreach ($suites as $suite) {
@@ -1407,7 +1415,7 @@ final readonly class Application
     }
 
     /**
-     * @return array{Configuration, string}
+     * @return array{ResolvedConfiguration, string, CliOverrides}
      *
      * @throws CliError
      * @throws ConfigFileError
@@ -1427,13 +1435,20 @@ final readonly class Application
             $builder = $loader->loadFromDirectory($workingDirectory);
         }
 
-        $resolved = ConfigurationResolver::resolve($builder->build(), $overrides);
+        $selection = $overrides->selection;
 
-        if ($resolved->excludePaths !== []) {
-            $resolved = $resolved->withExcludePaths($this->resolvedPathPrefixes($resolved->excludePaths, $workingDirectory));
+        if ($selection->exclude->paths !== []) {
+            $selection = $selection->withExcludedPaths($this->resolvedPathPrefixes($selection->exclude->paths, $workingDirectory));
         }
 
-        return [$resolved, $configFile];
+        $resolved = ConfigurationResolver::resolve($builder->build(), new CliOverrides(
+            execution: $overrides->execution,
+            selection: $selection,
+            seed: $overrides->seed,
+            repeat: $overrides->repeat,
+        ));
+
+        return [$resolved, $configFile, $overrides];
     }
 
     /**
@@ -1494,11 +1509,11 @@ final readonly class Application
      *
      * @return list<non-empty-string>
      */
-    private function directories(Configuration $configuration, string $workingDirectory): array
+    private function directories(ResolvedConfiguration $configuration, string $workingDirectory): array
     {
-        $paths = $configuration->paths;
+        $paths = $configuration->discovery->paths;
 
-        foreach ($configuration->suites as $suite) {
+        foreach ($configuration->discovery->suites as $suite) {
             $paths = [...$paths, ...$suite->paths];
         }
 

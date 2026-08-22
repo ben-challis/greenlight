@@ -22,6 +22,7 @@ final readonly class PluginCompositionTest
             ->plugins($first)
             ->plugins($second)
             ->build()
+            ->execution
             ->plugins;
 
         Expect::that($plugins)
@@ -43,6 +44,7 @@ final readonly class PluginCompositionTest
                 return new NamedFakePlugin();
             })
             ->build()
+            ->execution
             ->plugins;
 
         Expect::that($plugins[0]->pluginClass)
@@ -67,7 +69,7 @@ final readonly class PluginCompositionTest
                 message: 'A plugin factory must declare one non-null concrete plugin class return type.',
             );
 
-        Expect::that($builder->build()->plugins)
+        Expect::that($builder->build()->execution->plugins)
             ->because('a rejected plugin call MUST not append its earlier valid factories')
             ->toHaveCount(1);
     }
