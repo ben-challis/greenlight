@@ -162,24 +162,18 @@ final readonly class DataSetExpander
 
         $dataSets = [];
 
-        try {
-            foreach ($result as $key => $value) {
-                if (($this->monotonicTime)() - $startedAt > $budgetNanoseconds) {
-                    throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
-                }
-
-                $derived = $this->deriveKey($providerClassName, $provider, $key);
-
-                if (\array_key_exists($derived, $dataSets)) {
-                    throw DiscoveryError::duplicateDataSetKey($testClassName, $testMethod, $derived);
-                }
-
-                $dataSets[$derived] = $value;
+        foreach ($this->providerRows($result, $providerClassName, $provider) as $key => $value) {
+            if (($this->monotonicTime)() - $startedAt > $budgetNanoseconds) {
+                throw DiscoveryError::providerTooSlow($providerClassName, $provider, $budgetSeconds);
             }
-        } catch (DiscoveryError $e) {
-            throw $e;
-        } catch (\Throwable $e) {
-            throw DiscoveryError::providerThrew($providerClassName, $provider, $e);
+
+            $derived = $this->deriveKey($providerClassName, $provider, $key);
+
+            if (\array_key_exists($derived, $dataSets)) {
+                throw DiscoveryError::duplicateDataSetKey($testClassName, $testMethod, $derived);
+            }
+
+            $dataSets[$derived] = $value;
         }
 
         if (($this->monotonicTime)() - $startedAt > $budgetNanoseconds) {
@@ -191,6 +185,24 @@ final readonly class DataSetExpander
         }
 
         return $dataSets;
+    }
+
+    /**
+     * Keeps provider iteration failures separate from expander validation failures.
+     *
+     * @param iterable<mixed, mixed> $rows
+     *
+     * @return iterable<mixed, mixed>
+     *
+     * @throws DiscoveryError
+     */
+    private function providerRows(iterable $rows, string $providerClass, string $provider): iterable
+    {
+        try {
+            yield from $rows;
+        } catch (\Throwable $e) {
+            throw DiscoveryError::providerThrew($providerClass, $provider, $e);
+        }
     }
 
     /**
