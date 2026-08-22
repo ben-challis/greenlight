@@ -48,16 +48,17 @@ final class SummaryFormatTest
     }
 
     #[Test]
-    public function aSingleTestPerReasonStaysInline(): void
+    public function anEmptyLineSeparatesDistinctSkipReasons(): void
     {
         $block = SummaryFormat::skipped([
             $this->skip('App\AlphaTest', 'one', 'needs redis'),
             $this->skip('App\BetaTest', 'two', null),
         ], new Style(ansi: false));
 
-        Expect::that($block)->because('a single test per reason stays inline')->toBe(
+        Expect::that($block)->because('an empty line separates each skip reason')->toBe(
             "\nSkipped:\n"
             . "  App\AlphaTest::one (needs redis)\n"
+            . "\n"
             . "  App\BetaTest::two (no reason given)\n",
         );
     }
