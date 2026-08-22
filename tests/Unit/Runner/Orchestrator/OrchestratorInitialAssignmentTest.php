@@ -14,6 +14,7 @@ use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class OrchestratorInitialAssignmentTest
@@ -199,7 +200,7 @@ final readonly class OrchestratorInitialAssignmentTest
             $delay,
         );
 
-        return new Orchestrator(
+        return NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, '-r', $script],
             workingDirectory: $directory,
             resourceLimits: ['database' => 1],

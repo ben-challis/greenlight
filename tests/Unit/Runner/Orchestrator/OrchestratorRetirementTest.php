@@ -15,7 +15,6 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Reporting\Ticking;
-use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
@@ -25,6 +24,7 @@ use Greenlight\Tests\Fixture\Runner\Orchestrator\LoggedWorkerProcess;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\RecycleUntilProgressWorker;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\RetirementProgressTest;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class OrchestratorRetirementTest
@@ -52,7 +52,7 @@ final readonly class OrchestratorRetirementTest
             }
         };
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: $this->workerCommand(LoggedWorkerProcess::class),
             workingDirectory: $this->repositoryRoot(),
             ticker: $ticker,
@@ -96,7 +96,7 @@ final readonly class OrchestratorRetirementTest
         $this->environment->set('GREENLIGHT_RETIREMENT_LOG', $log);
         $this->environment->set('GREENLIGHT_RETIREMENT_PROGRESS_MARKER', $marker);
         $sink = new CollectingEventSink();
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: $this->workerCommand(RecycleUntilProgressWorker::class),
             workingDirectory: $this->repositoryRoot(),
         );
@@ -136,7 +136,7 @@ final readonly class OrchestratorRetirementTest
         $log = $this->tempDirectory->path() . '/isolated.jsonl';
         $this->environment->set('GREENLIGHT_RETIREMENT_LOG', $log);
         $this->environment->set('GREENLIGHT_RETIREMENT_DELAY_MICROSECONDS', '10000');
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: $this->workerCommand(LoggedWorkerProcess::class),
             workingDirectory: $this->repositoryRoot(),
         );
@@ -170,9 +170,9 @@ final readonly class OrchestratorRetirementTest
                 ->toBeGreaterThanOrEqual($ends[$index - 1]['at']);
         }
 
-        Expect::that(new \ReflectionProperty($orchestrator, 'handles')->getValue($orchestrator))
-            ->because('the orchestrator MUST remove each reaped worker handle')
-            ->toBe([]);
+        Expect::that($orchestrator->workerTimings())
+            ->because('the orchestrator MUST retain one timing record for each reaped worker')
+            ->toHaveCount(12);
     }
 
     /**

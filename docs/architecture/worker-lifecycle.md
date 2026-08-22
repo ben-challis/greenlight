@@ -4,12 +4,37 @@ Greenlight's orchestrator and workers exchange framed JSON messages over a
 local socket. The protocol is internal and may change between releases. Its
 details are useful when debugging parallel runs.
 
-## The transport
+## Transport ownership
 
-The orchestrator first tries to listen on a Unix domain socket in a private
+The orchestrator uses an internal worker transport interface. The orchestrator
+owns these decisions and state:
+
+* schedule and assignment decisions
+* resource leases
+* bail and timeout decisions
+* crash attribution and containment
+* result and artifact aggregation
+
+The native transport adapter owns these system resources and actions:
+
+* listener and worker sockets
+* worker processes and diagnostic pipes
+* socket poll operations
+* process signals and retirement
+
+The adapter reports connection, message, disconnection, and retirement events.
+The orchestrator responds with protocol messages or lifecycle commands.
+
+A scripted in-memory adapter supplies deterministic lifecycle events to
+state-machine tests. These tests do not start processes or open sockets. The
+adapter is an internal test seam and is not a plugin interface.
+
+## The native transport
+
+The native transport first tries to listen on a Unix domain socket in a private
 temporary directory. If that fails, it opens an ephemeral TCP port on
-`127.0.0.1`. Greenlight starts each worker with `proc_open`, and the worker
-connects back as a client.
+`127.0.0.1`. The adapter starts each worker with `proc_open`. The worker then
+connects as a client.
 
 Each message is a length-prefixed JSON frame: a 4-byte big-endian length
 followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
@@ -20,10 +45,10 @@ also rejects unknown versions and tags.
 The [version 2 schema](../../resources/schema/worker-protocol-v2.schema.json)
 specifies each envelope and payload that Greenlight sends.
 
-The socket carries all protocol data. Greenlight closes the worker's stdin after
-spawn and drains stdout and stderr into a small bounded buffer. The orchestrator
-attaches the buffered output to a crash report when something goes wrong. Test
-results never travel over stdio, so test output cannot corrupt the protocol.
+The socket carries all protocol data. The native adapter closes worker stdin
+after process start. It drains stdout and stderr into a small bounded buffer.
+The orchestrator requests this output for a crash report. Test results never
+travel over stdio, so test output cannot corrupt the protocol.
 
 ## The messages
 

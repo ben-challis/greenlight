@@ -10,10 +10,10 @@ use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
-use Greenlight\Runner\Orchestrator\Orchestrator;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\RecycleBeforeIsolatedWorker;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class OrchestratorIsolatedRemainderTest
@@ -28,7 +28,7 @@ final class OrchestratorIsolatedRemainderTest
             \var_export($root . '/vendor/autoload.php', true),
             RecycleBeforeIsolatedWorker::class,
         );
-        $orchestrator = new Orchestrator(
+        $orchestrator = NativeOrchestrator::create(
             workerCommand: [\PHP_BINARY, '-r', $bootstrap],
             workingDirectory: $root,
         );
