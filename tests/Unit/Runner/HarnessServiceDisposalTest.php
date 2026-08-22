@@ -11,9 +11,7 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
@@ -26,6 +24,7 @@ use Greenlight\Runner\Worker\WorkerRunOutcome;
 use Greenlight\Tests\Fixture\HarnessDisposalMatrix\FailingHarnessService;
 use Greenlight\Tests\Fixture\HarnessDisposalMatrix\HarnessDisposalMatrixTest;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class HarnessServiceDisposalTest
 {
@@ -60,6 +59,7 @@ final readonly class HarnessServiceDisposalTest
             ]);
     }
 
+    /** @param non-empty-string $method */
     #[Test]
     #[DataSet('testScopeOutcomes')]
     public function perTestDisposalRetainsThePrimaryResult(string $method, Outcome $outcome): void
@@ -166,6 +166,7 @@ final readonly class HarnessServiceDisposalTest
         yield 'drain' => ['drain'];
     }
 
+    /** @param non-empty-string $method */
     #[Test]
     #[DataSet('workerScopeOutcomes')]
     public function workerDisposalFailsTheRunAndKeepsTheTestResult(string $method, string $primary): void
@@ -197,7 +198,7 @@ final readonly class HarnessServiceDisposalTest
     }
 
     /**
-     * @param non-empty-list<string> $methods
+     * @param non-empty-list<non-empty-string> $methods
      * @param \Closure(): bool|null $drainRequested
      *
      * @return array{?\Throwable, CollectingEventSink, ?WorkerRunOutcome}
@@ -209,14 +210,12 @@ final readonly class HarnessServiceDisposalTest
         ?WorkerBudget $budget = null,
         ?\Closure $drainRequested = null,
     ): array {
-        $entries = \array_map(
-            static function (string $method): PlanEntry {
-                $id = new TestId(HarnessDisposalMatrixTest::class, $method);
+        $entries = [];
 
-                return new PlanEntry($id, new TestMetadata($id->class, $id->method));
-            },
-            $methods,
-        );
+        foreach ($methods as $method) {
+            $entries[] = PlanEntryFixture::create(HarnessDisposalMatrixTest::class, $method);
+        }
+
         $registry = new HarnessRegistry([
             new ServiceDefinition(
                 FailingHarnessService::class,
