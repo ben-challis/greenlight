@@ -255,7 +255,7 @@ serializable resource data into worker-local services:
 ```php
 final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 {
-    private ?FixtureResource $broker = null;
+    private FixtureResource $broker;
 
     public function onWorkerBootstrap(WorkerBootstrapContext $context): void
     {
@@ -264,8 +264,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 
     public function services(): array
     {
-        $broker = $this->broker
-            ?? throw new \LogicException('Broker resources were not bootstrapped.');
+        $broker = $this->broker;
 
         return [
             new ServiceDefinition(
