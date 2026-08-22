@@ -106,12 +106,14 @@ reports an error if a call occurs after the sequence is empty.
 
 ## Argument matches
 
-Bare values passed to `with()` use the same deep equality as `toEqual()`:
+Bare values passed to `with()` use strict comparison (`===`):
 
 <!-- php-example {"example":"test-doubles-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('save')->with($expectedOrder);
 ```
+
+Use `Argument::equals($expectedOrder)` to apply deep equality to a value object.
 
 Use `withNoArguments()` to require a call that supplies no arguments:
 

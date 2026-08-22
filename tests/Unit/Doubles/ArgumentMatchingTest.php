@@ -157,6 +157,34 @@ final readonly class ArgumentMatchingTest
     }
 
     #[Test]
+    public function bareObjectValuesMatchByIdentity(): void
+    {
+        $expected = (object) ['values' => [1, 2]];
+        $recorder = $this->doubles->mock(Recorder::class, static function (MockPlan $plan) use ($expected): void {
+            $plan->expects('record')->with($expected)->once();
+        });
+
+        $recorder->record($expected);
+    }
+
+    #[Test]
+    public function bareObjectValuesRejectEqualCopies(): void
+    {
+        $expected = (object) ['values' => [1, 2]];
+        $actual = (object) ['values' => [1, 2]];
+        $doubles = new Doubles();
+        $recorder = $doubles->mock(Recorder::class, static function (MockPlan $plan) use ($expected): void {
+            $plan->expects('record')->with($expected)->once();
+        });
+
+        Expect::that(static function () use ($recorder, $actual): void {
+            $recorder->record($actual);
+        })
+            ->because('a bare object value in with() MUST match by identity')
+            ->toThrow(ExpectationFailed::class, '/unexpected call/');
+    }
+
+    #[Test]
     public function equalsDiagnosticsRenderTheExpectedValue(): void
     {
         Expect::that(Argument::equals(['a' => [1, 2]])->describe())

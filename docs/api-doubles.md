@@ -58,8 +58,8 @@ PHPDoc:
 
 ### `equals()`
 
-This matcher uses the same deep equality as a value in `with()`.
-This form states the comparison explicitly.
+This matcher uses the same deep equality as `Expect::toEqual()`.
+Use it when `with()` must compare by value instead of identity.
 
 ```php
 public static function equals(mixed $value): ArgumentMatcher
@@ -687,7 +687,8 @@ specifies the accepted arguments, cardinality, and result.
 public interface. The call handler and verifier use members that have the
 `@internal` tag.
 
-Argument values compare with the same deep equality as `Expect::toEqual()`.
+Bare argument values use strict comparison (`===`). Use
+`Argument::equals()` to apply deep equality.
 
 ```php
 final class MethodExpectation

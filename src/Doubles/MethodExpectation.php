@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-use Greenlight\Expect\Equality;
 use Greenlight\Expect\ValueRenderer;
 
 /**
@@ -15,7 +14,8 @@ use Greenlight\Expect\ValueRenderer;
  * public interface. The call handler and verifier use members that have the
  * `@internal` tag.
  *
- * Argument values compare with the same deep equality as `Expect::toEqual()`.
+ * Bare argument values use strict comparison (`===`). Use
+ * `Argument::equals()` to apply deep equality.
  *
  * @template TTarget of object = object
  * @template TMethod of non-empty-string = non-empty-string
@@ -246,7 +246,7 @@ final class MethodExpectation
                 continue;
             }
 
-            if (!Equality::equals($expected, $arguments[$position])) {
+            if ($expected !== $arguments[$position]) {
                 return false;
             }
         }
