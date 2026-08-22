@@ -300,6 +300,14 @@ final class InvalidDoubleUsage extends \LogicException
         return new self('Argument::type() requires a type name that contains a non-space character.');
     }
 
+    public static function invalidArgumentTypeCombination(string $factory): self
+    {
+        return new self(\sprintf(
+            'Argument::%s() requires type names that contain a non-space character.',
+            $factory,
+        ));
+    }
+
     public static function compositeArgumentCaptor(): self
     {
         return new self('Argument::allOf() does not accept a captor. Put the captor directly in with().');

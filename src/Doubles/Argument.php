@@ -62,6 +62,28 @@ final class Argument
     }
 
     /**
+     * This matcher accepts values that have every specified type.
+     *
+     * @return ArgumentMatcher<mixed>
+     * @throws InvalidDoubleUsage
+     */
+    public static function intersection(string $first, string $second, string ...$rest): ArgumentMatcher
+    {
+        return new IntersectionTypeMatcher(self::typeNames('intersection', $first, $second, \array_values($rest)));
+    }
+
+    /**
+     * This matcher accepts values that have one or more specified types.
+     *
+     * @return ArgumentMatcher<mixed>
+     * @throws InvalidDoubleUsage
+     */
+    public static function union(string $first, string $second, string ...$rest): ArgumentMatcher
+    {
+        return new UnionTypeMatcher(self::typeNames('union', $first, $second, \array_values($rest)));
+    }
+
+    /**
      * This matcher accepts the value when the closure returns true.
      * The description identifies the constraint in failure messages.
      *
@@ -125,5 +147,24 @@ final class Argument
     public static function captor(): ArgumentCaptor
     {
         return new ArgumentCaptor();
+    }
+
+    /**
+     * @param list<string> $rest
+     *
+     * @return non-empty-list<string>
+     * @throws InvalidDoubleUsage
+     */
+    private static function typeNames(string $factory, string $first, string $second, array $rest): array
+    {
+        $types = [$first, $second, ...\array_values($rest)];
+
+        foreach ($types as $type) {
+            if (\trim($type) === '') {
+                throw InvalidDoubleUsage::invalidArgumentTypeCombination($factory);
+            }
+        }
+
+        return $types;
     }
 }

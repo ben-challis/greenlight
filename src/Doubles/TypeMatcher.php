@@ -19,15 +19,16 @@ final readonly class TypeMatcher implements ArgumentMatcher
 
     public function matches(mixed $value): bool
     {
-        if ($value instanceof $this->type) {
-            return true;
-        }
-
-        return \get_debug_type($value) === $this->type;
+        return self::matchesType($value, $this->type);
     }
 
     public function describe(): string
     {
         return \sprintf('type(%s)', $this->type);
+    }
+
+    public static function matchesType(mixed $value, string $type): bool
+    {
+        return $value instanceof $type || \get_debug_type($value) === $type;
     }
 }

@@ -114,6 +114,58 @@ final readonly class ArgumentMatchingTest
     }
 
     #[Test]
+    public function typeIntersectionsRequireEveryType(): void
+    {
+        $matcher = Argument::intersection(FirstArgumentType::class, SecondArgumentType::class);
+
+        Expect::that($matcher->matches(new CombinedArgumentType()))
+            ->because('intersection() accepts a value that has every specified type')
+            ->toBeTrue();
+        Expect::that($matcher->matches(new FirstArgumentTypeOnly()))->toBeFalse();
+        Expect::that(Argument::intersection('int', 'int')->matches(42))->toBeTrue();
+        Expect::that(Argument::intersection('int', 'string')->matches(42))->toBeFalse();
+    }
+
+    #[Test]
+    public function typeUnionsRequireOneType(): void
+    {
+        $matcher = Argument::union(FirstArgumentType::class, SecondArgumentType::class);
+
+        Expect::that($matcher->matches(new CombinedArgumentType()))
+            ->because('union() accepts a value that has one or more specified types')
+            ->toBeTrue();
+        Expect::that($matcher->matches(new FirstArgumentTypeOnly()))->toBeTrue();
+        Expect::that($matcher->matches(new \stdClass()))->toBeFalse();
+        Expect::that(Argument::union('int', 'string')->matches('value'))->toBeTrue();
+    }
+
+    #[Test]
+    public function typeCombinationDiagnosticsPreserveTypeOrder(): void
+    {
+        Expect::that(Argument::intersection(FirstArgumentType::class, SecondArgumentType::class)->describe())
+            ->toBe('intersection(Greenlight\\Tests\\Unit\\Doubles\\FirstArgumentType, '
+                . 'Greenlight\\Tests\\Unit\\Doubles\\SecondArgumentType)');
+        Expect::that(Argument::union('int', 'string', \DateTimeInterface::class)->describe())
+            ->toBe('union(int, string, DateTimeInterface)');
+    }
+
+    #[Test]
+    public function typeCombinationsRejectMissingTypeNames(): void
+    {
+        Expect::that(static fn(): ArgumentMatcher => Argument::intersection('int', ''))
+            ->because('type combination matchers MUST identify every type')
+            ->toThrow(
+                InvalidDoubleUsage::class,
+                message: 'Argument::intersection() requires type names that contain a non-space character.',
+            );
+        Expect::that(static fn(): ArgumentMatcher => Argument::union('   ', 'string'))
+            ->toThrow(
+                InvalidDoubleUsage::class,
+                message: 'Argument::union() requires type names that contain a non-space character.',
+            );
+    }
+
+    #[Test]
     public function predicateMatchesWhenTheClosureReturnsTrue(): void
     {
         $calculator = $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
@@ -363,3 +415,11 @@ final readonly class ArgumentMatchingTest
         Expect::that($second->values())->toEqual([20]);
     }
 }
+
+interface FirstArgumentType {}
+
+interface SecondArgumentType {}
+
+final class CombinedArgumentType implements FirstArgumentType, SecondArgumentType {}
+
+final class FirstArgumentTypeOnly implements FirstArgumentType {}
