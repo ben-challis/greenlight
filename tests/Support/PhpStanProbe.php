@@ -27,7 +27,7 @@ final readonly class PhpStanProbe
         ?string $configFile = null,
     ): self {
         $root = \dirname(__DIR__, 2);
-        $configFile ??= $root . '/tests/Fixture/PhpStanExtension/probe.neon';
+        $configFile ??= FixturePath::get('PhpStanExtension/probe.neon');
         $files = ProjectFiles::create($workspace, 'phpstan-probe');
         $probeDirectory = $files->directory;
         $goodFile = $probeDirectory . '/GoodProbe.php';
