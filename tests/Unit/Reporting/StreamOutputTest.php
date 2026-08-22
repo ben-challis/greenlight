@@ -12,6 +12,7 @@ use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class StreamOutputTest
 {
@@ -25,13 +26,8 @@ final readonly class StreamOutputTest
     #[Test]
     public function writesAccumulateOnTheStream(): void
     {
-        $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r+'));
-
-        Expect::that($stream)
-            ->because('Greenlight MUST open the in-memory stream.')
-            ->not()
-            ->toBeFalse();
-        $this->cleanup->defer(static fn(): bool => \fclose($stream));
+        $stream = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
         $output = new StreamOutput($stream);
         $output->write('first ');
@@ -68,13 +64,8 @@ final readonly class StreamOutputTest
     #[Test]
     public function aClosedStreamThrowableBecomesAReportGenerationFailed(): void
     {
-        $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r+'));
-
-        Expect::that($stream)
-            ->because('Greenlight MUST open the in-memory stream.')
-            ->not()
-            ->toBeFalse();
-        \fclose($stream);
+        $stream = MemoryStream::open();
+        MemoryStream::close($stream);
 
         $output = new StreamOutput($stream);
 
