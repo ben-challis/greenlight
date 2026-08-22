@@ -11,6 +11,7 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Tests\Support\SimpleXml;
 
 final class JUnitReporterIncompleteRunTest
 {
@@ -73,7 +74,7 @@ final class JUnitReporterIncompleteRunTest
             ->because('overflow protection MUST preserve a valid JUnit document')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        $suites = $document->xpath('//testsuite');
+        $suites = SimpleXml::xpath($document, '//testsuite');
         $maximum = \sprintf('%.6f', \PHP_FLOAT_MAX);
 
         Expect::that((string) $document['time'])
@@ -83,7 +84,7 @@ final class JUnitReporterIncompleteRunTest
             ->because('the report contains the overflowing class suite')
             ->toHaveCount(1);
 
-        if (!\is_array($suites) || $suites === []) {
+        if ($suites === []) {
             return;
         }
 
