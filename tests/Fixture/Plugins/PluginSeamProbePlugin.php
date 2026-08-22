@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Plugins;
 
-use Greenlight\Harness\FixtureResource;
+use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\HarnessProvider;
-use Greenlight\Plugin\IntegrationFixtureContext;
-use Greenlight\Plugin\IntegrationFixtureDefinition;
+use Greenlight\IntegrationFixture\IntegrationFixtureContext;
+use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;

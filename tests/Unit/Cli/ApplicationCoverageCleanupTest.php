@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
+use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;

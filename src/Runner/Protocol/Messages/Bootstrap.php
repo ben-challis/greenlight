@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Harness\IntegrationResources;
+use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Wire\Wire;
 

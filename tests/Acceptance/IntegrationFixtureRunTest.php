@@ -313,7 +313,7 @@ final readonly class IntegrationFixtureRunTest
             use Greenlight\Attribute\Test;
             use Greenlight\Test\TestChannel;
             use Greenlight\Expect\Expect;
-            use Greenlight\Harness\IntegrationResources;
+            use Greenlight\IntegrationFixture\IntegrationResources;
             use Greenlight\Tests\Fixture\Plugins\IntegrationProbeService;
 
             final class %sTest

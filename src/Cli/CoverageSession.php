@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
+use Greenlight\Coverage\Collection\CoverageCollector;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Runner\CoverageCollector;
-use Greenlight\Runner\CoverageSettings;
-use Greenlight\Runner\SharedCoverageDirectory;
+use Greenlight\Coverage\Relay\SharedCoverageDirectory;
 
 /**
  * Owns and merges the coverage resources for one CLI run.

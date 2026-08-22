@@ -29,7 +29,7 @@ parameters:
             - Greenlight\Harness\ServiceResolutionFailed
             - Greenlight\PhpStan\MatcherMapError
             - Greenlight\Reporting\ReportGenerationFailed
-            - Greenlight\Runner\Integration\IntegrationFixtureError
+            - Greenlight\IntegrationFixture\IntegrationFixtureError
             - Greenlight\Runner\Worker\WorkerError
         check:
             missingCheckedExceptionInThrows: true

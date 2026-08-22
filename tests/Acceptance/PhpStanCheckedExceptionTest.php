@@ -53,7 +53,7 @@ final readonly class PhpStanCheckedExceptionTest
             use Greenlight\Harness\ServiceResolutionFailed;
             use Greenlight\Harness\UnresolvableService;
             use Greenlight\Reporting\ReportGenerationFailed;
-            use Greenlight\Runner\Integration\IntegrationFixtureError;
+            use Greenlight\IntegrationFixture\IntegrationFixtureError;
             use Greenlight\Runner\Protocol\ProtocolError;
             use Greenlight\Runner\Worker\WorkerError;
 
@@ -141,7 +141,7 @@ final readonly class PhpStanCheckedExceptionTest
             'throws checked exception Greenlight\\Reporting\\ReportGenerationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Runner\\Integration\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
+            'throws checked exception Greenlight\\IntegrationFixture\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
         );
         Expect::that($probe->messages())->toContain(
             'throws checked exception Greenlight\\Sandbox\\TemporaryDirectoryError but it\'s missing from the PHPDoc @throws tag.',

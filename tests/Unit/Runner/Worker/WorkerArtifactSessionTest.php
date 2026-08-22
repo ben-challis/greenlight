@@ -63,7 +63,7 @@ final readonly class WorkerArtifactSessionTest
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Bootstrap(
                     1,
                     null,
-                    Greenlight\Harness\IntegrationResources::empty(),
+                    Greenlight\IntegrationFixture\IntegrationResources::empty(),
                 ));
 
                 if (!$channel->receive(2.0) instanceof Greenlight\Runner\Protocol\Messages\Ready) {

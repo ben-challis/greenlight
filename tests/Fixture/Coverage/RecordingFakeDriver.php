@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Coverage;
 
-use Greenlight\Coverage\Driver\CoverageDriver;
-use Greenlight\Coverage\RawCoverage;
+use Greenlight\Coverage\Collection\Driver\CoverageDriver;
+use Greenlight\Coverage\Collection\RawCoverage;
 use Greenlight\Doubles\Fake;
 
 final class RecordingFakeDriver implements CoverageDriver, Fake

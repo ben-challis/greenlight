@@ -1,0 +1,362 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Coverage\Ignore;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Coverage\Ignore\IgnoreScanner;
+use Greenlight\Expect\Expect;
+use Greenlight\Sandbox\TemporaryDirectory;
+
+final readonly class IgnoreScannerTest
+{
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
+
+    #[Test]
+    public function unreadableFileYieldsNoIgnoredLines(): void
+    {
+        Expect::that(new IgnoreScanner()->ignoredLines('/nonexistent/nope.php'))->because('unreadable file yields no ignored lines')->toBe([]);
+    }
+
+    #[Test]
+    public function nullByteFilePathYieldsNoIgnoredLines(): void
+    {
+        Expect::that(new IgnoreScanner()->ignoredLines("/invalid\0path.php"))
+            ->because('null byte file path yields no ignored lines')
+            ->toBe([]);
+    }
+
+    #[Test]
+    public function fileWithoutMarkersYieldsNoIgnoredLines(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function plain(): int
+            {
+                return 1;
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('file without markers yields no ignored lines')->toBe([]);
+    }
+
+    #[Test]
+    public function attributeIgnoresTheWholeMethod(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                public function kept(): int
+                {
+                    return 1;
+                }
+
+                #[CoverageIgnore]
+                public function dropped(): int
+                {
+                    return 2;
+                }
+            }
+            PHP;
+
+        // Lines 10-13 contain the marked declaration from its signature to its
+        // final brace.
+        Expect::that($this->scan($source))->because('attribute ignores the whole method')->toBe([10, 11, 12, 13]);
+    }
+
+    #[Test]
+    public function attributeMatchesQualifiedGroupedAndMultilineForms(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                #[\Greenlight\Attribute\CoverageIgnore]
+                public function qualified(): int
+                {
+                    return 1;
+                }
+
+                #[Deprecated('x'), CoverageIgnore]
+                public function grouped(): int
+                {
+                    return 2;
+                }
+
+                #[
+                    CoverageIgnore,
+                ]
+                public function multiline(): int
+                {
+                    return 3;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('attribute matches qualified grouped and multiline forms')->toBe([5, 6, 7, 8, 11, 12, 13, 14, 19, 20, 21, 22]);
+    }
+
+    #[Test]
+    public function attributeNamesFollowPhpCaseInsensitivity(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                #[\gReEnLiGhT\aTtRiBuTe\cOvErAgEiGnOrE]
+                public function dropped(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))
+            ->because('CoverageIgnore attribute names MUST follow PHP case-insensitive class-name rules')
+            ->toBe([5, 6, 7, 8]);
+    }
+
+    #[Test]
+    public function unrelatedAttributesDoNotIgnore(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                #[Deprecated(reason: 'old', since: [1, 2])]
+                public function kept(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('unrelated attributes do not ignore')->toBe([]);
+    }
+
+    #[Test]
+    public function attributeOnClassIgnoresTheWholeClass(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            #[CoverageIgnore]
+            final class Whole
+            {
+                public function inside(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('attribute on class ignores the whole class')->toBe([3, 4, 5, 6, 7, 8, 9]);
+    }
+
+    #[Test]
+    public function docblockAnnotationIgnoresTheFollowingDeclaration(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                /**
+                 * @codeCoverageIgnore
+                 */
+                private function __construct() {}
+
+                public function kept(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('docblock annotation ignores the following declaration')->toBe([7]);
+    }
+
+    #[Test]
+    public function annotationIgnoresAReferenceReturningDeclaration(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                /** @codeCoverageIgnore */
+                public function &dropped(): int
+                {
+                    static $value = 1;
+
+                    return $value;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))
+            ->because('annotation ignores a reference-returning declaration')
+            ->toBe([5, 6, 7, 8, 9, 10]);
+    }
+
+    #[Test]
+    public function startEndCommentsIgnoreTheEnclosedRange(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function partial(int $value): int
+            {
+                $kept = $value + 1;
+
+                // @codeCoverageIgnoreStart
+                if ($value > 100) {
+                    $kept = 0;
+                }
+                // @codeCoverageIgnoreEnd
+
+                return $kept;
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('start end comments ignore the enclosed range')->toBe([6, 7, 8, 9, 10]);
+    }
+
+    #[Test]
+    public function unmatchedStartIgnoresThroughEndOfFile(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            $a = 1;
+            // @codeCoverageIgnoreStart
+            $b = 2;
+            $c = 3;
+            PHP;
+
+        Expect::that($this->scan($source))->because('unmatched start ignores through end of file')->toBe([3, 4, 5]);
+    }
+
+    #[Test]
+    public function strayEndIsANoOp(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            $a = 1;
+            // @codeCoverageIgnoreEnd
+            $b = 2;
+            PHP;
+
+        Expect::that($this->scan($source))->because('stray end is a no-op')->toBe([]);
+    }
+
+    #[Test]
+    public function trailingCommentIgnoresItsOwnLine(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            function guarded(int $value): int
+            {
+                if ($value < 0) {
+                    return 0; // @codeCoverageIgnore
+                }
+
+                return $value;
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('trailing comment ignores its own line')->toBe([5]);
+    }
+
+    #[Test]
+    public function bracesInStringsAndHeredocsDoNotConfuseRanges(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                #[CoverageIgnore]
+                public function dropped(string $name): string
+                {
+                    $tpl = "closing } and opening { braces {$name}";
+
+                    return <<<TXT
+                        more } braces {
+                        TXT . $tpl;
+                }
+
+                public function kept(): int
+                {
+                    return 1;
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('braces in strings and heredocs do not confuse ranges')->toBe([5, 6, 7, 8, 9, 10, 11, 12]);
+    }
+
+    #[Test]
+    public function nestedAnonymousClassStaysInsideTheIgnoredRange(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            final class A
+            {
+                /** @codeCoverageIgnore */
+                public function dropped(): object
+                {
+                    return new class {
+                        public function inner(): int
+                        {
+                            return 1;
+                        }
+                    };
+                }
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('nested anonymous class stays inside the ignored range')->toBe([5, 6, 7, 8, 9, 10, 11, 12, 13]);
+    }
+
+    #[Test]
+    public function bodylessSignatureIgnoresOnlyTheSignatureLines(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            interface A
+            {
+                /** @codeCoverageIgnore */
+                public function dropped(): int;
+
+                public function kept(): int;
+            }
+            PHP;
+
+        Expect::that($this->scan($source))->because('bodyless signature ignores only the signature lines')->toBe([5]);
+    }
+
+    #[Test]
+    public function annotationWithoutAFollowingDeclarationIgnoresItsOwnLineOnly(): void
+    {
+        $source = <<<'PHP'
+            <?php
+            // @codeCoverageIgnore
+            $closure = static function (): int {
+                return 1;
+            };
+            PHP;
+
+        Expect::that($this->scan($source))->because('annotation without a following declaration ignores its own line only')->toBe([2]);
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function scan(string $source): array
+    {
+        $path = $this->tempDirectory->path() . '/fixture.php';
+        \file_put_contents($path, $source);
+
+        $lines = \array_keys(new IgnoreScanner()->ignoredLines($path));
+        \sort($lines);
+
+        return $lines;
+    }
+}

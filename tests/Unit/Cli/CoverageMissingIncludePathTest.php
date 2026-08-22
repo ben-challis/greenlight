@@ -8,11 +8,11 @@ use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\CoverageSettingsResolver;
 use Greenlight\Config\CoverageConfiguration;
-use Greenlight\Coverage\Driver\DriverSelector;
+use Greenlight\Coverage\Collection\CoverageCollector;
+use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\Collection\Driver\DriverSelector;
 use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Runner\CoverageCollector;
-use Greenlight\Runner\CoverageSettings;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Support\FilesystemRestriction;
 

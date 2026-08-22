@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Coverage;
 
-use Greenlight\Coverage\Driver\XdebugRuntime;
+use Greenlight\Coverage\Collection\Driver\XdebugRuntime;
 use Greenlight\Doubles\Fake;
 
 final class StartFailingXdebugRuntime implements Fake, XdebugRuntime

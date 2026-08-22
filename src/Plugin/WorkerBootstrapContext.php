@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Harness\IntegrationResources;
+use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Test\TestChannel;
 
 /**

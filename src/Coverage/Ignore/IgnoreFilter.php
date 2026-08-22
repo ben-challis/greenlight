@@ -12,7 +12,7 @@ use Greenlight\Coverage\FileCoverage;
  *
  * apply() examines each file one time. It removes ignored lines from the
  * covered and uncovered sets. Thus, ignored code does not change totals.
- * The method removes files with no executable lines. CoverageMap::fromRaw()
+ * The method removes files with no executable lines. Raw coverage conversion
  * also removes these files.
  *
  * @internal

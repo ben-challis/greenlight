@@ -38,6 +38,29 @@ final readonly class ApiReferenceGenerationTest
     }
 
     #[Test]
+    public function integrationFixtureTypesHaveAStableSection(): void
+    {
+        $reference = $this->reference('api-integration-fixtures.md');
+
+        Expect::that($reference)
+            ->because('the integration fixture API MUST contain each public fixture type')
+            ->toContain('## `FixtureResource`')
+            ->toContain('## `IntegrationResources`')
+            ->toContain('## `SensitiveValue`')
+            ->toContain('## `IntegrationFixtureContext`')
+            ->toContain('## `IntegrationFixtureDefinition`');
+        Expect::that($this->reference('api-harness.md'))
+            ->because('the harness API MUST contain only harness types')
+            ->not()->toContain('## `FixtureResource`')
+            ->not()->toContain('## `IntegrationResources`')
+            ->not()->toContain('## `SensitiveValue`');
+        Expect::that($this->reference('api-plugins.md'))
+            ->because('the plugin API MUST contain only plugin types')
+            ->not()->toContain('## `IntegrationFixtureContext`')
+            ->not()->toContain('## `IntegrationFixtureDefinition`');
+    }
+
+    #[Test]
     public function temporalTypesShowTheirFluentInterfaceWithoutConstructionDetails(): void
     {
         $reference = $this->reference('api-expectations.md');

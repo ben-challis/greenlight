@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Plugins;
 
 use Greenlight\Doubles\Fake;
-use Greenlight\Plugin\IntegrationFixtureDefinition;
+use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\Plugin\IntegrationFixtureProvider;
 
 final class FakeIntegrationFixtureProvider implements Fake, IntegrationFixtureProvider

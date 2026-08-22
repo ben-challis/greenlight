@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\IntegrationResources;
+use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\Bootstrap;
 
