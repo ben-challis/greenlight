@@ -7,14 +7,18 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ValueRenderer;
+use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Expect\Credentials;
 use Greenlight\Tests\Fixture\Expect\Holder;
 use Greenlight\Tests\Fixture\Expect\HookedProperties;
 use Greenlight\Tests\Fixture\Expect\LateInit;
 use Greenlight\Tests\Fixture\Expect\Signal;
+use Greenlight\Tests\Support\MemoryStream;
 
-final class ValueRendererTest
+final readonly class ValueRendererTest
 {
+    public function __construct(private Cleanup $cleanup) {}
+
     #[Test]
     public function rendersScalarsAndNull(): void
     {
@@ -161,14 +165,11 @@ final class ValueRendererTest
     public function fallsBackToDebugTypeForUnrenderableValues(): void
     {
         $renderer = new ValueRenderer();
-        $stream = \fopen('php://memory', 'r');
+        $stream = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
         Expect::that($renderer->render(static fn(): int => 1))->because('the renderer uses the debug type for unrenderable values')->toBe('Closure (unrendered)');
         Expect::that($renderer->render($stream))->because('the renderer uses the debug type for unrenderable values')->toBe('resource (stream) (unrendered)');
-
-        if (\is_resource($stream)) {
-            \fclose($stream);
-        }
     }
 
     #[Test]

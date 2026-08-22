@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Expect\CanonicalNode;
+use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class CanonicalizingTest
 {
@@ -91,20 +92,10 @@ final readonly class CanonicalizingTest
     {
         $firstClosure = static fn(): string => 'first';
         $secondClosure = static fn(): string => 'second';
-        $firstStream = \fopen('php://memory', 'r');
-
-        if ($firstStream === false) {
-            throw new \RuntimeException('Could not open in-memory streams.');
-        }
-
-        $this->cleanup->defer(static fn(): bool => \fclose($firstStream));
-        $secondStream = \fopen('php://memory', 'r');
-
-        if ($secondStream === false) {
-            throw new \RuntimeException('Could not open in-memory streams.');
-        }
-
-        $this->cleanup->defer(static fn(): bool => \fclose($secondStream));
+        $firstStream = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($firstStream));
+        $secondStream = MemoryStream::open();
+        $this->cleanup->defer(static fn() => MemoryStream::close($secondStream));
 
         Expect::that([$secondClosure, $firstClosure])
             ->because('canonical closure ordering uses object identity')
