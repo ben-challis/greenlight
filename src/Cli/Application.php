@@ -156,6 +156,7 @@ final readonly class Application
                              A failed iteration fails the command.
           --repeat-until-failure  Repeat until an iteration fails, up to
                              --repeat times (default at most 100)
+                             Do not use repeat modes with JUnit output or coverage.
           --shard=<n>/<m>    Run shard n of m. Shards are disjoint and contain
                              whole classes. They are stable across machines and
                              need no coordination.
@@ -383,6 +384,7 @@ final readonly class Application
                 workerFallback: $workers > 1 && $workerBin === false,
             );
             $reporter = $this->buildReporter($arguments, $reporterCatalog);
+            $this->assertRepeatOutputsAreCompatible($arguments, $overrides->repeat, $resolved->coverage);
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -455,9 +457,12 @@ final readonly class Application
         $failedTests = [];
         $failedTestSet = [];
         $lastClassSeconds = [];
+        $repeatOutput = \in_array('jsonl', $arguments->values('reporter'), true)
+            ? $this->err
+            : $this->out;
 
         for ($iteration = 1; $iteration <= $limit; $iteration++) {
-            ($this->out)($bounded
+            $repeatOutput($bounded
                 ? \sprintf("Repeat: iteration %d of %d\n", $iteration, $limit)
                 : \sprintf("Repeat: iteration %d of at most %d\n", $iteration, $limit));
 
@@ -503,7 +508,7 @@ final readonly class Application
         }
 
         if ($failedIterations === []) {
-            ($this->out)(\sprintf("Repeat: %d iterations, all passed\n", $limit));
+            $repeatOutput(\sprintf("Repeat: %d iterations, all passed\n", $limit));
 
             return self::EXIT_OK;
         }
@@ -512,9 +517,36 @@ final readonly class Application
         // run includes it even if it passes in another iteration.
         $this->persistRunState($state, $failedTests, $lastClassSeconds);
 
-        ($this->out)(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
+        $repeatOutput(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
 
         return self::EXIT_FAILURE;
+    }
+
+    /**
+     * @throws CliError
+     */
+    private function assertRepeatOutputsAreCompatible(
+        ParsedArguments $arguments,
+        RepeatConfiguration $repeat,
+        ?CoverageConfiguration $coverage,
+    ): void {
+        if (!$repeat->usesRepeatMode()) {
+            return;
+        }
+
+        $outputs = [];
+
+        if (\in_array('junit', $arguments->values('reporter'), true)) {
+            $outputs[] = 'JUnit output';
+        }
+
+        if ($coverage instanceof CoverageConfiguration) {
+            $outputs[] = 'enabled coverage';
+        }
+
+        if ($outputs !== []) {
+            throw CliError::repeatWithSingleRunOutput($outputs);
+        }
     }
 
     /**

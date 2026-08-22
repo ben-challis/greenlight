@@ -110,4 +110,13 @@ final class CliError extends \RuntimeException
             \implode(', ', $available),
         ));
     }
+
+    /** @param non-empty-list<non-empty-string> $outputs */
+    public static function repeatWithSingleRunOutput(array $outputs): self
+    {
+        return new self(\sprintf(
+            'Do not use --repeat or --repeat-until-failure with %s. Run Greenlight separately for each required report.',
+            \implode(' or ', $outputs),
+        ));
+    }
 }

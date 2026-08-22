@@ -16,4 +16,9 @@ final readonly class RepeatConfiguration
         public ?int $count = null,
         public bool $untilFailure = false,
     ) {}
+
+    public function usesRepeatMode(): bool
+    {
+        return $this->untilFailure || ($this->count !== null && $this->count > 1);
+    }
 }
