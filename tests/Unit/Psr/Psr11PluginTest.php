@@ -307,14 +307,14 @@ final readonly class Psr11PluginTest
     public function theContainerHarnessServiceUsesTheConfiguredLifecycle(): void
     {
         $perTest = $this->plugin([])->services()[0];
-        $perRun = new Psr11Plugin(
+        $perWorker = new Psr11Plugin(
             static fn(): ContainerInterface => new ArrayContainer([]),
             refreshBetweenTests: false,
         );
 
         Expect::that($perTest->type)->toBe(ContainerInterface::class);
         Expect::that($perTest->scope)->toBe(Scope::PerTest);
-        Expect::that($perRun->services()[0]->scope)->toBe(Scope::PerRun);
+        Expect::that($perWorker->services()[0]->scope)->toBe(Scope::PerWorker);
     }
 
     #[Test]

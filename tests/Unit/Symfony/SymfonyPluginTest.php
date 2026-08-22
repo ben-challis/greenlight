@@ -134,7 +134,7 @@ final class SymfonyPluginTest
     }
 
     #[Test]
-    public function theKernelIsAPerRunHarnessServiceAndBootsOnce(): void
+    public function theKernelIsAPerWorkerHarnessServiceAndBootsOnce(): void
     {
         $plugin = $this->plugin();
         $definitions = $plugin->services();
@@ -148,7 +148,7 @@ final class SymfonyPluginTest
 
         Expect::that($definitions)->because('the kernel is a per run harness service and boots once')->toHaveCount(1);
         Expect::that($definition->type)->toBe(KernelInterface::class);
-        Expect::that($definition->scope)->toBe(Scope::PerRun);
+        Expect::that($definition->scope)->toBe(Scope::PerWorker);
         Expect::that($first->getEnvironment())->toBe('test');
         Expect::that(($definition->factory)())->toBe($first);
     }

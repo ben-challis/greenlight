@@ -31,7 +31,7 @@ final readonly class CallHandler
      * @param list<mixed> $arguments
      *
      * @throws ExpectationFailed
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function invoke(object $double, string $method, array $arguments): mixed
     {
@@ -42,7 +42,7 @@ final readonly class CallHandler
 
         return match ($this->state->kind) {
             DoubleKind::Mock => $this->invokeOnMock($double, $method, $arguments),
-            DoubleKind::Stub => throw DoublesError::stubWasCalled($this->state->type, $method),
+            DoubleKind::Stub => throw InvalidDoubleUsage::stubWasCalled($this->state->type, $method),
             DoubleKind::Spy => $this->invokeOnSpy($double, $method),
         };
     }
@@ -51,7 +51,7 @@ final readonly class CallHandler
      * @param list<mixed> $arguments
      *
      * @throws ExpectationFailed
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function invokeOnMock(object $double, string $method, array $arguments): mixed
     {
@@ -73,7 +73,7 @@ final readonly class CallHandler
     }
 
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function invokeOnSpy(object $double, string $method): mixed
     {
@@ -81,12 +81,12 @@ final readonly class CallHandler
             return null;
         }
 
-        throw DoublesError::spyCannotAnswer($this->state->type, $method);
+        throw InvalidDoubleUsage::spyCannotAnswer($this->state->type, $method);
     }
 
     /**
      * @param list<mixed> $arguments
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     private function answer(MethodExpectation $expectation, object $double, string $method, array $arguments): mixed
     {
@@ -114,7 +114,7 @@ final readonly class CallHandler
             return null;
         }
 
-        throw DoublesError::returnNotConfigured($this->state->type, $method);
+        throw InvalidDoubleUsage::returnNotConfigured($this->state->type, $method);
     }
 
     /**

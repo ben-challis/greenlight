@@ -11,7 +11,7 @@ use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestChannel;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
@@ -170,7 +170,7 @@ final readonly class WorkerProcess
 
             return 1;
         } finally {
-            $scopes?->closeRun();
+            $scopes?->closeWorker();
             $channel->close();
         }
     }
@@ -179,7 +179,7 @@ final readonly class WorkerProcess
      * Runs assignments after bootstrap. The returned message is sent only
      * after every worker runtime boundary closes successfully.
      *
-     * @throws WireError
+     * @throws WireCommunicationFailed
      * @throws ProtocolError
      * @throws WorkerError
      */

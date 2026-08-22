@@ -11,7 +11,6 @@ use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use JsonSchema\Validator;
 
-/** Uses a predefined stream for suite events because runs do not emit them. */
 final readonly class JsonlSchemaTest
 {
     public function __construct(private TemporaryDirectory $tempDirectory) {}
@@ -34,7 +33,7 @@ final readonly class JsonlSchemaTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         Expect::that($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
         $lines = $result->stdoutLines();
-        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v2.schema.json'];
+        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v3.schema.json'];
         $seenTags = [];
         $violations = [];
         Expect::that($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();

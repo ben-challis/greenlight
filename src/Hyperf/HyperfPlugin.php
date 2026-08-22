@@ -7,6 +7,7 @@ namespace Greenlight\Hyperf;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestAttemptRunner;
@@ -81,7 +82,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     /**
      * @param class-string $type
      * @param list<object> $attributes
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
@@ -113,7 +114,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         return $service;
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     #[\Override]
     public function onWorkerBootstrap(WorkerBootstrapContext $context): void
     {
@@ -169,7 +170,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
      * @param \Closure(): T $worker
      *
      * @return T
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function runWorker(\Closure $worker): mixed
@@ -213,7 +214,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
      * @param \Closure(): T $attempt
      *
      * @return T
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
     public function runTestAttempt(\Closure $attempt): mixed
@@ -229,7 +230,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         return $this->runIsolatedAttempt($attempt);
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     private function initializeClassLoader(string $basePath): void
     {
         $runtimeDirectory = $basePath . '/runtime/container';
@@ -267,7 +268,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
      * @param \Closure(): T $attempt
      *
      * @return T
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function runWorkerAttempt(\Closure $attempt): mixed
     {
@@ -323,7 +324,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
      * @param \Closure(): T $attempt
      *
      * @return T
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function runIsolatedAttempt(\Closure $attempt): mixed
     {
@@ -357,7 +358,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         return $this->coroutineResult($started, $completed, $result, $failure);
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     private function createContainer(): ContainerInterface
     {
         $loader = static fn(string $file): mixed => require $file;
@@ -370,7 +371,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         return $container;
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     private function rejectReusedContainer(ContainerInterface $container): void
     {
         if ($this->previousContainer?->get() === $container) {
@@ -380,7 +381,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         $this->previousContainer = \WeakReference::create($container);
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     private function bootApplication(ContainerInterface $container): void
     {
         $application = $container->get(ApplicationInterface::class);
@@ -459,7 +460,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
      * @param array{value: T}|array{} $result
      *
      * @return T
-     * @throws HyperfBridgeError
+     * @throws ServiceResolutionFailed
      */
     private function coroutineResult(bool $started, bool $completed, array $result, ?\Throwable $failure): mixed
     {
@@ -478,7 +479,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         return $result['value'];
     }
 
-    /** @throws HyperfBridgeError */
+    /** @throws ServiceResolutionFailed */
     private function container(): ContainerInterface
     {
         return $this->activeContainer ?? throw HyperfBridgeError::containerOutsideAttempt();

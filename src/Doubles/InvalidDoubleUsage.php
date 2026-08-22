@@ -12,10 +12,8 @@ namespace Greenlight\Doubles;
  *
  * These conditions are errors in the test code, not expectation failures.
  * Thus, Greenlight reports the test as an error.
- *
- * @internal
  */
-final class DoublesError extends \LogicException
+final class InvalidDoubleUsage extends \LogicException
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {

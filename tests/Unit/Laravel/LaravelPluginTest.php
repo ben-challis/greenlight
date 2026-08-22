@@ -264,14 +264,14 @@ final class LaravelPluginTest
     }
 
     #[Test]
-    public function theApplicationIsAPerRunHarnessServiceWithoutRefresh(): void
+    public function theApplicationIsAPerWorkerHarnessServiceWithoutRefresh(): void
     {
         $plugin = $this->track(new LaravelPlugin(
             $this->fixtureDir() . '/bootstrap.php',
             refreshBetweenTests: false,
         ));
 
-        Expect::that($plugin->services()[0]->scope)->toBe(Scope::PerRun);
+        Expect::that($plugin->services()[0]->scope)->toBe(Scope::PerWorker);
     }
 
     #[Test]

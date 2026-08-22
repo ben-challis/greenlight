@@ -35,7 +35,7 @@ final readonly class DefaultServicesTest
                 ->because('the default channel service MUST always use a positive number')
                 ->toBe($expected);
         } finally {
-            $scopes->closeRun();
+            $scopes->closeWorker();
         }
     }
 

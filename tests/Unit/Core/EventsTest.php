@@ -10,8 +10,6 @@ use Greenlight\Core\Event\Event;
 use Greenlight\Core\Event\RecycleReason;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\SuiteFinished;
-use Greenlight\Core\Event\SuiteStarted;
 use Greenlight\Core\Event\TestClassFinished;
 use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Event\TestFinished;
@@ -39,8 +37,6 @@ final class EventsTest
         $events = [
             new RunStarted('run-1', 100, 8, $at, '/project/build/greenlight-artifacts/run-1'),
             new RunFinished('run-1', $summary, 12.5, $at),
-            new SuiteStarted('unit', $at),
-            new SuiteFinished('unit', $at),
             new TestClassStarted('App\FooTest', $at, isolated: true),
             new TestClassFinished('App\FooTest', $at),
             new TestStarted($id, $at),
@@ -63,8 +59,8 @@ final class EventsTest
      * @param array<string, mixed> $payload
      */
     #[Test]
-    #[DataSet('runAndSuiteEvents')]
-    public function runAndSuiteEventsKeepTheirPublishedWireFields(
+    #[DataSet('runEvents')]
+    public function runEventsKeepTheirPublishedWireFields(
         string $kind,
         Event $event,
         array $payload,
@@ -77,7 +73,7 @@ final class EventsTest
     /**
      * @return iterable<string, array{non-empty-string, Event, array<string, mixed>}>
      */
-    public static function runAndSuiteEvents(): iterable
+    public static function runEvents(): iterable
     {
         $at = 1_780_000_000.123456;
 
@@ -115,22 +111,6 @@ final class EventsTest
                     'skipped' => 4,
                 ],
                 'durationSeconds' => 12.5,
-                'occurredAt' => $at,
-            ],
-        ];
-        yield 'suite started' => [
-            'suite-started',
-            new SuiteStarted('unit', $at),
-            [
-                'suite' => 'unit',
-                'occurredAt' => $at,
-            ],
-        ];
-        yield 'suite finished' => [
-            'suite-finished',
-            new SuiteFinished('unit', $at),
-            [
-                'suite' => 'unit',
                 'occurredAt' => $at,
             ],
         ];
@@ -209,7 +189,7 @@ final class EventsTest
     #[Test]
     public function eventsExposeOccurredAtThroughTheInterface(): void
     {
-        $event = new SuiteStarted('unit', 123.5);
+        $event = new RunStarted('run-1', 1, 1, 123.5);
 
         $readThroughInterface = static fn(Event $e): float => $e->occurredAt;
 

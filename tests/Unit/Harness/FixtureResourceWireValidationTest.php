@@ -17,7 +17,7 @@ final readonly class FixtureResourceWireValidationTest
      */
     #[Test]
     #[DataSet('invalidWirePayloads')]
-    public function invalidResourcePayloadsRemainWireErrors(
+    public function invalidResourcePayloadsRemainWireCommunicationFaileds(
         array $payload,
         string $message,
     ): void {

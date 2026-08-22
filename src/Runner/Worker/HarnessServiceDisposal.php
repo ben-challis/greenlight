@@ -70,7 +70,7 @@ final readonly class HarnessServiceDisposal
         try {
             $result = $operation();
         } catch (\Throwable $primary) {
-            $failures = $scopes->closeRun();
+            $failures = $scopes->closeWorker();
 
             if ($failures !== []) {
                 throw WorkerError::afterHarnessServiceDisposal($primary, $failures);
@@ -79,7 +79,7 @@ final readonly class HarnessServiceDisposal
             throw $primary;
         }
 
-        $failures = $scopes->closeRun();
+        $failures = $scopes->closeWorker();
 
         if ($failures !== []) {
             throw WorkerError::harnessServiceDisposal($failures);

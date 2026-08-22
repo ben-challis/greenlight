@@ -17,7 +17,7 @@ final readonly class FailingRunServicePlugin implements HarnessProvider
         return [
             new ServiceDefinition(
                 FailingHarnessService::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): FailingHarnessService => new FailingHarnessService(),
             ),
         ];

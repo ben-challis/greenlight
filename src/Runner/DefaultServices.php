@@ -44,10 +44,10 @@ final class DefaultServices
             new ServiceDefinition(Autoloaders::class, Scope::PerTest, static fn(): Autoloaders => new Autoloaders()),
             new ServiceDefinition(EnvironmentVariables::class, Scope::PerTest, static fn(): EnvironmentVariables => new EnvironmentVariables()),
             new ServiceDefinition(StreamWrappers::class, Scope::PerTest, static fn(): StreamWrappers => new StreamWrappers()),
-            new ServiceDefinition(IntegrationResources::class, Scope::PerRun, static fn(): IntegrationResources => $integrationResources),
+            new ServiceDefinition(IntegrationResources::class, Scope::PerWorker, static fn(): IntegrationResources => $integrationResources),
             new ServiceDefinition(
                 TestChannel::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): TestChannel => new TestChannel(ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) ?? 1),
             ),
         ]);

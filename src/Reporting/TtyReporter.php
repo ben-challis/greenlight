@@ -235,7 +235,7 @@ final class TtyReporter implements Reporter, Ticking
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     #[\Override]
     public function tick(float $now): void
@@ -306,7 +306,7 @@ final class TtyReporter implements Reporter, Ticking
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function finalizeClass(string $class): void
     {
@@ -368,7 +368,7 @@ final class TtyReporter implements Reporter, Ticking
 
     /**
      * @param list<string> $scrollback permanent lines the frame leaves above the window
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function redraw(array $scrollback = [], bool $force = false): void
     {
@@ -450,7 +450,7 @@ final class TtyReporter implements Reporter, Ticking
     }
 
     /**
-     * @throws ReportingError
+     * @throws ReportGenerationFailed
      */
     private function eraseLiveRegion(): void
     {

@@ -60,8 +60,9 @@ Declares a named suite. Greenlight gives a `SuiteBuilder` to the configurator.
 The configurator must add at least one path. Greenlight ignores its return
 value. Thus, you can use an arrow function.
 
-Each run includes every named suite. Suite names and tags are descriptive. The
-`--dry-run` and `--list-suites` options print them.
+Each run includes every named suite. Suite names and tags are descriptive. A
+suite does not create a selection or execution boundary. It does not cause
+lifecycle events. The `--dry-run` and `--list-suites` options print suites.
 
 A second declaration with the same suite name causes an error.
 
@@ -280,6 +281,9 @@ capability interfaces.
 
 The method is repeatable and instances accumulate.
 
+A `ReporterProvider` plugin registers custom names for `--reporter`. See
+[plugins](plugins.md#reporterprovider).
+
 ### `artifacts(callable $configurator): self`
 
 Default: output below `build/greenlight-artifacts`, with failure-only retention.
@@ -376,6 +380,10 @@ The loader calls this method. User configuration does not call it.
 
 Return the builder from `greenlight.php`. Do not call `build()`.
 
+Configuration builders throw `InvalidConfiguration` for invalid values or
+invalid combinations. Catch this public type when an integration adds
+configuration before Greenlight starts the run.
+
 ## Channels and resource limits
 
 Every worker process runs in a channel: a stable slot numbered from 1 to the
@@ -464,6 +472,8 @@ format and path rules.
 ### profile:report
 
 Renders a run profile from a saved JSONL event stream.
+
+The command accepts JSONL versions 2 and 3.
 
 Requires:
 
@@ -665,7 +675,7 @@ order.
 
 Selects the output format.
 
-Supported reporters:
+Built-in reporters:
 
 * `tty`
 * `plain`
@@ -675,6 +685,17 @@ Supported reporters:
 * `teamcity`
 
 Repeatable. Multiple reporters write concurrently.
+
+`ReporterProvider` plugins can add names. Greenlight creates reporters in flag
+order. A repeated name creates a separate reporter for each occurrence.
+
+All selected reporters use the same Greenlight-owned standard output. A custom
+reporter MUST NOT close this output.
+
+Reporter names MUST be unique across built-ins and plugins. A duplicate name
+stops the command before test execution.
+
+Shell completions suggest built-in names. Configured names remain valid.
 
 Default: `tty` on an interactive terminal, otherwise `plain`.
 

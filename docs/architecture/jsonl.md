@@ -5,8 +5,8 @@ The `jsonl` reporter is Greenlight's machine-readable run output.
 It writes one JSON object per line as each event occurs. Typical consumers
 include IDEs, dashboards, and tools for intermittent test failures.
 
-A machine-readable JSON Schema for version 2 is at
-[resources/schema/jsonl-v2.schema.json](../../resources/schema/jsonl-v2.schema.json).
+A machine-readable JSON Schema for version 3 is at
+[resources/schema/jsonl-v3.schema.json](../../resources/schema/jsonl-v3.schema.json).
 Tests verify that each reporter line conforms to this schema. The schema
 defines the required keys and their types.
 
@@ -15,12 +15,12 @@ defines the required keys and their types.
 Each line is one JSON object with three keys:
 
 ```json id="zk90n2"
-{"v": 2, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
+{"v": 3, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
 ```
 
 ### v
 
-The current version is `2`.
+The current version is `3`.
 
 ### event
 
@@ -46,6 +46,9 @@ Each version has its own schema. Consumers **SHOULD** validate against the schem
 named by `v`. They **SHOULD** treat an unsupported version as data that they
 cannot parse.
 
+Version 3 removes the reserved suite lifecycle tags from version 2. Greenlight
+did not emit these tags. Configured suites do not create execution boundaries.
+
 Greenlight **MAY** add optional payload keys within a version. Consumers
 **MUST** ignore unknown keys. New required keys, event tags, or enum values
 require a new version. When a type or its definition changes, use a new version.
@@ -59,8 +62,6 @@ guarantees, and incomplete-output behavior.
 | ----------------- | ------------------------------------ | ---------------------------------------------------------------------- |
 | `run-started`     | Run begins                           | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
 | `run-finished`    | Run ends                             | `runId`, `summary`, `durationSeconds`, `occurredAt`, `workerTimings`   |
-| `suite-started`   | Suite begins                         | `suite`, `occurredAt`                                                  |
-| `suite-finished`  | Suite ends                           | `suite`, `occurredAt`                                                  |
 | `class-started`   | Test class begins                    | `class`, `occurredAt`, `workerId`, `isolated`                          |
 | `class-finished`  | Test class ends                      | `class`, `occurredAt`, `workerId`                                      |
 | `test-started`    | Test begins                          | `id`, `occurredAt`                                                     |
@@ -95,10 +96,6 @@ contain only states that the orchestrator can distinguish.
 `run-started.artifactsDirectory` is the absolute target directory for retained
 evidence from this run. Its value is `null` when an artifact directory is not
 available. The directory can be absent if the run retains no attachments.
-
-The schema reserves `suite-started` and `suite-finished`, but Greenlight does
-not emit them because execution has no suite boundary. Consumers **MUST NOT**
-wait for these events.
 
 `test-started.id` is the test ID. It contains the class, method, and optional
 data-set key.

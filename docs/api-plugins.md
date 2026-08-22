@@ -288,7 +288,7 @@ Identifies an object as a Greenlight plugin.
 Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`HarnessProvider`, or `ExpectationExtension`.
+`HarnessProvider`, `ReporterProvider`, or `ExpectationExtension`.
 
 ```php
 interface Plugin
@@ -320,6 +320,36 @@ public function priority(): int;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L15)
+
+## `ReporterProvider`
+
+Namespace: `Greenlight\Plugin`
+
+Supplies named reporter factories to the command-line reporter registry.
+
+Greenlight calls `reporters()` one time for a command. It calls a selected
+factory for each run, including each repeat or watch run.
+
+```php
+interface ReporterProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L15)
+
+### `reporters()`
+
+A factory MUST return a new reporter for each call. It MUST NOT close the
+supplied output because Greenlight owns that output.
+
+```php
+public function reporters(): array;
+```
+
+PHPDoc:
+
+- `@return list<ReporterDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L23)
 
 ## `RetryDecider`
 
@@ -353,8 +383,7 @@ Namespace: `Greenlight\Plugin`
 
 Observes the orchestrator event stream.
 
-`onRunEvent()` receives run, worker, suite, class, and test events in the
-order that they arrive.
+`onRunEvent()` receives run, worker, class, and test events in arrival order.
 
 The subscriber only observes events and cannot change results.
 
@@ -362,7 +391,7 @@ The subscriber only observes events and cannot change results.
 interface RunLifecycleSubscriber extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L16)
 
 ### `onRunEvent()`
 
@@ -370,7 +399,7 @@ interface RunLifecycleSubscriber extends Plugin
 public function onRunEvent(Event $event): void;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L18)
 
 ## `TestAttemptRunner`
 
@@ -426,7 +455,7 @@ public Attachments $attachments;
 public object $instance
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
 
 ### `$id`
 
@@ -434,7 +463,7 @@ public object $instance
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
 
 ### `$metadata`
 
@@ -442,21 +471,7 @@ public TestId $id
 public TestMetadata $metadata
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
-
-### `__construct()`
-
-```php
-public function __construct(
-    public object $instance,
-    public TestId $id,
-    public TestMetadata $metadata,
-    private HarnessScopes $scopes,
-    ?Attachments $attachments = null,
-)
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
 
 ### `service()`
 
@@ -469,8 +484,7 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
-- `@throws ServiceResolutionError when a service resolver cannot supply a valid service`
-- `@throws UnresolvableService`
+- `@throws ServiceResolutionFailed when a service resolver cannot supply a valid service`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L45)
 

@@ -17,15 +17,15 @@ use Tempest\Core\Kernel;
 final readonly class TempestPluginConfigurationTest
 {
     #[Test]
-    public function exposesTheKernelAndContainerAsPerRunServices(): void
+    public function exposesTheKernelAndContainerAsPerWorkerServices(): void
     {
         $definitions = new TempestPlugin('/project')->services();
 
         Expect::that($definitions)->toHaveCount(2);
         Expect::that($definitions[0]->type)->toBe(Kernel::class);
-        Expect::that($definitions[0]->scope)->toBe(Scope::PerRun);
+        Expect::that($definitions[0]->scope)->toBe(Scope::PerWorker);
         Expect::that($definitions[1]->type)->toBe(Container::class);
-        Expect::that($definitions[1]->scope)->toBe(Scope::PerRun);
+        Expect::that($definitions[1]->scope)->toBe(Scope::PerWorker);
     }
 
     #[Test]

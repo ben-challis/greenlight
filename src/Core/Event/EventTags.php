@@ -8,10 +8,7 @@ namespace Greenlight\Core\Event;
  * Defines one stable tag for each event class.
  *
  * The wire protocol and reporters for machine consumers use these tags outside PHP.
- * Add new tags only. Do not change what a published tag identifies.
- *
- * The registry contains suite-started and suite-finished as reserved tags.
- * No run emits these tags until execution has suite boundaries.
+ * A JSONL version fixes the public tag set for that version.
  *
  * @internal
  */
@@ -23,8 +20,6 @@ final class EventTags
     private const array TAGS = [
         'run-started' => RunStarted::class,
         'run-finished' => RunFinished::class,
-        'suite-started' => SuiteStarted::class,
-        'suite-finished' => SuiteFinished::class,
         'class-started' => TestClassStarted::class,
         'class-finished' => TestClassFinished::class,
         'test-started' => TestStarted::class,

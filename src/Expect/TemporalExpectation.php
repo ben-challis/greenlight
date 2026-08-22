@@ -12,9 +12,8 @@ use Greenlight\Core\Test\ExpectationCounter;
  * Contains the matcher dispatch and probe operations for eventual and
  * consistent expectations.
  *
- * @internal
- *
  * @template T
+ * @mixin Expectation<T>
  */
 abstract class TemporalExpectation
 {
@@ -24,6 +23,8 @@ abstract class TemporalExpectation
     private ?string $reason = null;
 
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */
@@ -37,9 +38,7 @@ abstract class TemporalExpectation
         protected readonly array $extensions,
     ) {}
 
-    /**
-     * Negates the next matcher for every value returned by the probe.
-     */
+    /** Negates the next matcher for every value returned by the probe. */
     final public function not(): static
     {
         $this->negated = true;
@@ -75,9 +74,9 @@ abstract class TemporalExpectation
     }
 
     /**
-     * Runs a configured extension matcher against each value from the probe.
+     * Runs a native or configured extension matcher against each probe value.
      *
-     * @param array<int, mixed> $arguments
+     * @param array<array-key, mixed> $arguments
      *
      * @return Expectation<T>
      *
@@ -85,391 +84,57 @@ abstract class TemporalExpectation
      */
     final public function __call(string $name, array $arguments): Expectation
     {
+        if ($name === 'toThrow') {
+            $this->validateToThrowArguments($arguments);
+        }
+
+        if ($name === 'toBeIn') {
+            $key = \array_key_exists('haystack', $arguments) ? 'haystack' : 0;
+            $haystack = $arguments[$key] ?? null;
+
+            if ($haystack instanceof \Traversable) {
+                $arguments[$key] = \iterator_to_array($haystack, false);
+            }
+        }
+
         return $this->apply(
-            static fn(Expectation $expectation): Expectation => $expectation->__call($name, \array_values($arguments)),
+            static fn(Expectation $expectation): Expectation => $expectation->dispatchMatcher($name, $arguments),
         );
     }
 
     /**
-     * @return Expectation<T>
+     * @param array<array-key, mixed> $arguments
      *
      * @throws ExpectationFailed
      */
-    final public function toBe(mixed $expected): Expectation
+    private function validateToThrowArguments(array $arguments): void
     {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBe($expected));
-    }
+        $throwable = $arguments['throwable'] ?? $arguments[0] ?? null;
+        $matching = $arguments['matching'] ?? $arguments[1] ?? null;
+        $message = $arguments['message'] ?? $arguments[2] ?? null;
 
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toEqual(mixed $expected): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toEqual($expected));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toEqualCanonicalizing(mixed $expected): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toEqualCanonicalizing($expected));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeOneOf(mixed ...$options): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeOneOf(...$options));
-    }
-
-    /**
-     * @param iterable<mixed> $haystack
-     *
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeIn(iterable $haystack): Expectation
-    {
-        $stableHaystack = \is_array($haystack) ? $haystack : \iterator_to_array($haystack, false);
-
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeIn($stableHaystack));
-    }
-
-    /**
-     * @param class-string $class
-     *
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeInstanceOf(string $class): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeInstanceOf($class));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeTrue(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeTrue());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeFalse(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeFalse());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeNull(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeNull());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeArray(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeArray());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeString(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeString());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeInt(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeInt());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeFloat(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeFloat());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeBool(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeBool());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeCallable(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeCallable());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeIterable(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeIterable());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toContain(mixed $needle): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toContain($needle));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toHaveCount(int $count): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toHaveCount($count));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeEmpty(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeEmpty());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toHaveLength(int $length): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toHaveLength($length));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toHaveKey(int|string $key): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toHaveKey($key));
-    }
-
-    /**
-     * @param array<array-key, mixed> $subset
-     *
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toContainSubset(array $subset): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toContainSubset($subset));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeGreaterThan(int|float $bound): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeGreaterThan($bound));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeGreaterThanOrEqual(int|float $bound): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeGreaterThanOrEqual($bound));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeLessThan(int|float $bound): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeLessThan($bound));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeLessThanOrEqual(int|float $bound): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeLessThanOrEqual($bound));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeWithin(float $delta, float $of): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeWithin($delta, $of));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toMatch(string $pattern): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toMatch($pattern));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toStartWith(string $prefix): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toStartWith($prefix));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toEndWith(string $suffix): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toEndWith($suffix));
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toBeJson(): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toBeJson());
-    }
-
-    /**
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toMatchJson(string $expected): Expectation
-    {
-        return $this->apply(static fn(Expectation $expectation): Expectation => $expectation->toMatchJson($expected));
-    }
-
-    /**
-     * @template TThrowable of \Throwable
-     *
-     * @param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable
-     *
-     * @return Expectation<T>
-     *
-     * @throws ExpectationFailed
-     */
-    final public function toThrow(
-        string|\Closure|\Throwable $throwable,
-        ?string $matching = null,
-        ?string $message = null,
-    ): Expectation {
         if ($throwable instanceof \Closure && ($matching !== null || $message !== null)) {
-            throw ExpectationFailed::fromDetail(new FailureDetail(
-                'Do not specify matching: or message: when the throwable is a callback.',
-                location: CallSite::capture(),
-            ));
+            $this->usageFailure('Do not specify matching: or message: when the throwable is a callback.');
         }
 
         if ($throwable instanceof \Throwable && ($matching !== null || $message !== null)) {
-            throw ExpectationFailed::fromDetail(new FailureDetail(
+            $this->usageFailure(
                 'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
-                location: CallSite::capture(),
-            ));
+            );
         }
 
         if ($matching !== null && $message !== null) {
-            throw ExpectationFailed::fromDetail(new FailureDetail(
-                'Specify matching: or message: for toThrow(). Do not specify both.',
-                location: CallSite::capture(),
-            ));
+            $this->usageFailure('Specify matching: or message: for toThrow(). Do not specify both.');
         }
+    }
 
-        return $this->apply(
-            static function (Expectation $expectation) use ($throwable, $matching, $message): Expectation {
-                if ($throwable instanceof \Closure) {
-                    return $expectation->toThrow($throwable);
-                }
-
-                if ($matching !== null) {
-                    return $expectation->toThrow($throwable, matching: $matching);
-                }
-
-                if ($message !== null) {
-                    return $expectation->toThrow($throwable, message: $message);
-                }
-
-                return $expectation->toThrow($throwable);
-            },
-        );
+    /** @throws ExpectationFailed */
+    private function usageFailure(string $message): never
+    {
+        throw ExpectationFailed::fromDetail(new FailureDetail(
+            $message,
+            location: CallSite::capture(),
+        ));
     }
 
     /**

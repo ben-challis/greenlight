@@ -10,7 +10,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\AtomicFileError;
 use Greenlight\Core\ErrorTrap;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -36,7 +36,7 @@ final readonly class ProxyStorageTest
         Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a file that blocks the proxy directory MUST produce a typed storage error')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Doubles could not create the proxy directory '
                     . $directory
                     . ': mkdir(): File exists.',
@@ -60,7 +60,7 @@ final readonly class ProxyStorageTest
                 );
             },
         )->because('a restricted proxy directory causes a typed storage error')
-            ->toThrow(DoublesError::class);
+            ->toThrow(InvalidDoubleUsage::class);
         Expect::that($warning)
             ->because('a restricted proxy directory MUST not leak engine diagnostics')
             ->toBeNull();
@@ -69,7 +69,7 @@ final readonly class ProxyStorageTest
     #[Test]
     public function aProxyDirectoryErrorPreservesAZeroStringReason(): void
     {
-        Expect::that(DoublesError::proxyDirectoryNotCreated('/tmp/proxies', '0')->getMessage())
+        Expect::that(InvalidDoubleUsage::proxyDirectoryNotCreated('/tmp/proxies', '0')->getMessage())
             ->because('a proxy-directory diagnostic MUST preserve a zero-string reason')
             ->toBe('Doubles could not create the proxy directory /tmp/proxies: 0.');
     }
@@ -91,7 +91,7 @@ final readonly class ProxyStorageTest
         Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a directory at the proxy file path MUST produce a typed file error')
             ->toThrow(
-                static function (DoublesError $error) use ($file): void {
+                static function (InvalidDoubleUsage $error) use ($file): void {
                     Expect::that($error->getMessage())
                         ->toBe('Doubles could not write the proxy file ' . $file . '.');
                     Expect::that($error->getPrevious())
@@ -122,7 +122,7 @@ final readonly class ProxyStorageTest
         Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a corrupt cached proxy file MUST produce a typed storage error')
             ->toThrow(
-                static function (DoublesError $error) use ($file, $previousType): void {
+                static function (InvalidDoubleUsage $error) use ($file, $previousType): void {
                     Expect::that($error->getMessage())
                         ->toBe('Doubles could not load the proxy file ' . $file . '. Delete the file and retry.');
 

@@ -6,6 +6,7 @@ namespace Greenlight\Expect;
 
 /**
  * Collects poll options until `for()` sets the duration.
+ * Use `Expect::consistently()` to create this object.
  *
  * @template T
  */
@@ -16,16 +17,38 @@ final class PendingConsistently
     private float $intervalSeconds = self::DEFAULT_INTERVAL_SECONDS;
 
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */
-    public function __construct(
+    private function __construct(
         private readonly \Closure $probe,
         private readonly PollingClock $clock,
         private readonly ?float $attemptDeadline,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions,
     ) {}
+
+    /**
+     * @internal Use Expect::consistently() instead.
+     *
+     * @template TProbe
+     *
+     * @param \Closure(): TProbe $probe
+     * @param list<ExpectationExtension> $extensions
+     *
+     * @return self<TProbe>
+     */
+    public static function create(
+        \Closure $probe,
+        PollingClock $clock,
+        ?float $attemptDeadline,
+        ValueRenderer $renderer,
+        array $extensions,
+    ): self {
+        return new self($probe, $clock, $attemptDeadline, $renderer, $extensions);
+    }
 
     /**
      * @return self<T>
@@ -54,7 +77,7 @@ final class PendingConsistently
             );
         }
 
-        return new ConsistentlyExpectation(
+        return ConsistentlyExpectation::create(
             $this->probe,
             $this->clock,
             $this->attemptDeadline,

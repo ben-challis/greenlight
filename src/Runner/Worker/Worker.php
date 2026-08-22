@@ -65,7 +65,7 @@ final readonly class Worker
     ): WorkerRunOutcome {
         // This call does not close externally owned scopes. Thus, run services
         // remain available when one worker runs multiple assignments. The
-        // owner closes the run scope at exit.
+        // owner closes the worker scope at exit.
         $ownScopes = !$scopes instanceof HarnessScopes;
         $scopes ??= new HarnessScopes($this->registry, $this->plugins->serviceResolvers());
         $summary = new ResultSummary();

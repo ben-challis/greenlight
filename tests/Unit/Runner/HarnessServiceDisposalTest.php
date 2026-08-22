@@ -170,7 +170,7 @@ final readonly class HarnessServiceDisposalTest
     #[DataSet('workerScopeOutcomes')]
     public function workerDisposalFailsTheRunAndKeepsTheTestResult(string $method, string $primary): void
     {
-        [$threw, $sink] = $this->run(Scope::PerRun, [$method]);
+        [$threw, $sink] = $this->run(Scope::PerWorker, [$method]);
         $result = $sink->results()[0];
 
         Expect::that($threw)

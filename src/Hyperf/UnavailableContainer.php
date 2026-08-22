@@ -6,7 +6,11 @@ namespace Greenlight\Hyperf;
 
 use Psr\Container\ContainerInterface;
 
-/** Rejects access to the Hyperf container outside a test attempt. @internal */
+/**
+ * Rejects access to the Hyperf container outside a test attempt.
+ *
+ * @internal
+ */
 final class UnavailableContainer implements ContainerInterface
 {
     /** @throws UnavailableContainerError */

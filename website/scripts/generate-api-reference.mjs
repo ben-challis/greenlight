@@ -4,7 +4,10 @@ import { fileURLToPath } from 'node:url';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, '../..');
-const sourceRoot = resolve(repositoryRoot, 'src');
+const sourceRootArgument = process.argv.find((argument) => argument.startsWith('--source-root='));
+const sourceRoot = sourceRootArgument === undefined
+  ? resolve(repositoryRoot, 'src')
+  : resolve(sourceRootArgument.slice('--source-root='.length));
 const documentationRoot = resolve(repositoryRoot, 'docs');
 
 const sections = [
@@ -99,9 +102,10 @@ const sections = [
 ];
 
 const check = process.argv.includes('--check');
+const validateOnly = process.argv.includes('--validate-only');
 
 const sourceFiles = await filesBelow(sourceRoot);
-const publicTypes = [];
+const parsedTypes = [];
 
 for (const file of sourceFiles.filter((path) => path.endsWith('.php'))) {
   const source = await readFile(file, 'utf8');
@@ -114,9 +118,26 @@ for (const file of sourceFiles.filter((path) => path.endsWith('.php'))) {
     throw new Error(`${sourceFile}: ${error.message}`, { cause: error });
   }
 
-  if (type !== undefined && !type.internal) {
-    publicTypes.push(type);
+  if (type !== undefined) {
+    parsedTypes.push(type);
   }
+}
+
+const typesByName = new Map(parsedTypes.map((type) => [type.name, type]));
+const publicTypes = parsedTypes.filter((type) => !type.internal);
+const contractErrors = internalContractErrors(parsedTypes);
+
+if (contractErrors.length > 0) {
+  throw new Error(`Public API declarations reference internal types:\n${contractErrors.join('\n')}`);
+}
+
+if (validateOnly) {
+  console.log(`The public API declarations do not reference internal types (${publicTypes.length} public types).`);
+  process.exit(0);
+}
+
+for (const type of publicTypes) {
+  type.members = effectiveMembers(type, typesByName);
 }
 
 publicTypes.sort((left, right) => left.name.localeCompare(right.name));
@@ -281,20 +302,200 @@ function parseType(source, file) {
   const typeDoc = [...declarationTokens].reverse().find((token) => token.kind === 'doc');
   const signatureStart = firstSignatureToken(declarationTokens);
   const signature = source.slice(signatureStart.start, tokens[openIndex].start).trim();
-  const members = parseMembers(source, tokens, openIndex, closeIndex, kind);
+  const members = parseMembers(source, tokens, openIndex, closeIndex, kind)
+    .map((member) => ({ ...member, file }));
   const shortName = nameToken.value;
 
   return {
     name: namespace === '' ? shortName : `${namespace}\\${shortName}`,
     shortName,
+    namespace,
+    imports: importedTypes(source.slice(0, tokens[declarationIndex].start)),
     kind,
     file,
     line: lineAt(source, tokens[declarationIndex].start),
     doc: parseDoc(typeDoc?.value),
-    internal: typeDoc?.value.includes('@internal') ?? false,
+    internal: hasInternalTag(typeDoc?.value),
     signature,
     members,
   };
+}
+
+function effectiveMembers(type, typesByName, active = new Set()) {
+  if (active.has(type.name)) {
+    throw new Error(`Public API type inheritance contains a cycle at "${type.name}".`);
+  }
+
+  const nextActive = new Set(active).add(type.name);
+  const members = [];
+  const parentName = type.signature.match(/\bextends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+  const parent = referencedType(type, parentName, typesByName);
+
+  if (parent !== undefined) {
+    members.push(...effectiveMembers(parent, typesByName, nextActive)
+      .filter((member) => member.name !== '__construct()'));
+  }
+
+  for (const tag of type.doc.tags) {
+    const mixinName = tag.match(/^@mixin\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+    const mixin = referencedType(type, mixinName, typesByName);
+
+    if (mixin !== undefined) {
+      members.push(...effectiveMembers(mixin, typesByName, nextActive)
+        .filter((member) => member.name !== '__construct()')
+        .map((member) => projectMixinMember(member, mixin)));
+    }
+  }
+
+  for (const member of type.members) {
+    const inheritedIndex = members.findIndex((candidate) => candidate.name === member.name);
+
+    if (inheritedIndex === -1) {
+      members.push(member);
+    } else {
+      members[inheritedIndex] = member;
+    }
+  }
+
+  return members;
+}
+
+function referencedType(owner, reference, typesByName) {
+  if (reference === undefined) {
+    return undefined;
+  }
+
+  const normalized = reference.replace(/^\\/u, '');
+  const namespace = owner.name.slice(0, owner.name.lastIndexOf('\\'));
+  const name = normalized.includes('\\') ? normalized : `${namespace}\\${normalized}`;
+
+  return typesByName.get(name);
+}
+
+function projectMixinMember(member, mixin) {
+  const replaceSelf = (value) => value.replace(/\bself\b/gu, mixin.shortName);
+
+  return {
+    ...member,
+    signature: replaceSelf(member.signature),
+    doc: {
+      ...member.doc,
+      tags: member.doc.tags.map(replaceSelf),
+    },
+  };
+}
+
+function hasInternalTag(comment) {
+  if (comment === undefined) {
+    return false;
+  }
+
+  return comment
+    .replace(/^\/\*\*\s?/u, '')
+    .replace(/\s?\*\/$/u, '')
+    .split('\n')
+    .map((line) => line.replace(/^\s*\*\s?/u, '').trim())
+    .some((line) => /^@internal\b/u.test(line));
+}
+
+function importedTypes(source) {
+  const imports = new Map();
+  const declarations = source.matchAll(/^use\s+(?!const\b|function\b)([^;]+);/gmu);
+
+  for (const declaration of declarations) {
+    const group = declaration[1].trim().match(/^([^{}]+)\{([^{}]+)\}$/u);
+    const prefix = group?.[1] ?? '';
+    const importedTypes = (group?.[2] ?? declaration[1]).split(',');
+
+    for (const imported of importedTypes) {
+      const match = imported.trim().match(/^([^\s]+)(?:\s+as\s+([A-Za-z_][A-Za-z0-9_]*))?$/iu);
+
+      if (match === null) {
+        continue;
+      }
+
+      const name = `${prefix}${match[1]}`.replace(/^\\/u, '');
+      const alias = match[2] ?? name.split('\\').at(-1);
+      imports.set(alias, name);
+    }
+  }
+
+  return imports;
+}
+
+function internalContractErrors(types) {
+  const internalTypes = new Set(types.filter((type) => type.internal).map((type) => type.name));
+  const errors = [];
+
+  for (const type of types.filter((candidate) => !candidate.internal)) {
+    addInternalReferenceErrors(errors, internalTypes, type, type.signature, type.line, `${type.name} declaration`);
+    addDocReferenceErrors(errors, internalTypes, type, type.doc.tags, type.line, type.name);
+
+    for (const member of type.members) {
+      addInternalReferenceErrors(
+        errors,
+        internalTypes,
+        type,
+        member.signature,
+        member.line,
+        `${type.name}::${member.name} signature`,
+      );
+      addDocReferenceErrors(
+        errors,
+        internalTypes,
+        type,
+        member.doc.tags,
+        member.line,
+        `${type.name}::${member.name}`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+function addDocReferenceErrors(errors, internalTypes, type, tags, line, owner) {
+  const typeTags = /^(?:@(?:extends|implements|method|mixin|param|property(?:-read|-write)?|return|throws|use|var)\b|@template(?:-covariant|-contravariant)?\b)/u;
+
+  for (const tag of tags.filter((candidate) => typeTags.test(candidate))) {
+    addInternalReferenceErrors(errors, internalTypes, type, tag, line, `${owner} ${tag.split(/\s/u, 1)[0]}`);
+  }
+}
+
+function addInternalReferenceErrors(errors, internalTypes, type, contract, line, surface) {
+  const references = new Set();
+  const identifiers = contract.matchAll(/\\?[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*(?:\\[A-Za-z_\x80-\xff][A-Za-z0-9_\x80-\xff]*)*/gu);
+
+  for (const identifier of identifiers) {
+    const resolved = resolveTypeName(identifier[0], type);
+
+    if (internalTypes.has(resolved)) {
+      references.add(resolved);
+    }
+  }
+
+  for (const reference of references) {
+    errors.push(`${type.file}:${line}: ${surface} references internal type "${reference}".`);
+  }
+}
+
+function resolveTypeName(identifier, type) {
+  if (identifier.startsWith('\\')) {
+    return identifier.slice(1);
+  }
+
+  if (identifier.startsWith('Greenlight\\')) {
+    return identifier;
+  }
+
+  const [first, ...remainder] = identifier.split('\\');
+  const imported = type.imports.get(first);
+
+  if (imported !== undefined) {
+    return [imported, ...remainder].join('\\');
+  }
+
+  return type.namespace === '' ? identifier : `${type.namespace}\\${identifier}`;
 }
 
 function namespaceName(tokens) {
@@ -481,7 +682,7 @@ function addMember(members, source, tokens, end, kind, typeKind) {
   if (
     significant.length === 0
     || !isPublic(visibilityTokens, typeKind)
-    || (docToken?.value.includes('@internal') ?? false)
+    || hasInternalTag(docToken?.value)
   ) {
     return;
   }
@@ -852,15 +1053,17 @@ function renderSection(section, types) {
 
     lines.push(
       '```php',
-      type.signature,
+      publicTypeSignature(type),
       '```',
       '',
       `[View source](https://github.com/ben-challis/greenlight/blob/main/${type.file}#L${type.line})`,
       '',
     );
 
-    if (type.doc.tags.length > 0) {
-      lines.push('PHPDoc:', '', ...type.doc.tags.map((tag) => `- \`${escapeBackticks(tag)}\``), '');
+    const typeTags = publicTypeTags(type);
+
+    if (typeTags.length > 0) {
+      lines.push('PHPDoc:', '', ...typeTags.map((tag) => `- \`${escapeBackticks(tag)}\``), '');
     }
 
     if (type.members.length === 0) {
@@ -882,13 +1085,31 @@ function renderSection(section, types) {
       }
 
       lines.push(
-        `[View source](https://github.com/ben-challis/greenlight/blob/main/${type.file}#L${member.line})`,
+        `[View source](https://github.com/ben-challis/greenlight/blob/main/${member.file}#L${member.line})`,
         '',
       );
     }
   }
 
   return `${lines.join('\n').trimEnd()}\n`;
+}
+
+function publicTypeSignature(type) {
+  const parentName = type.signature.match(/\bextends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+  const parent = referencedType(type, parentName, typesByName);
+
+  return parent?.internal === true
+    ? type.signature.replace(/\s+extends\s+[A-Za-z_\\][A-Za-z0-9_\\]*/u, '')
+    : type.signature;
+}
+
+function publicTypeTags(type) {
+  return type.doc.tags.filter((tag) => {
+    const parentName = tag.match(/^@extends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+    const parent = referencedType(type, parentName, typesByName);
+
+    return parent?.internal !== true;
+  });
 }
 
 function escapeBackticks(value) {

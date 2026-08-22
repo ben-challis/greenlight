@@ -69,6 +69,9 @@ take precedence over container services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
+Bridge setup and service-resolution failures throw `ServiceResolutionFailed`.
+Concrete Laravel bridge exceptions are internal.
+
 The bridge resolves bound services only. Laravel can construct an unbound class
 through implicit resolution, but the bridge does not use that mechanism. Bind
 the service in a service provider to make it injectable.
@@ -94,7 +97,7 @@ instance of the declared type, the test fails and does not receive the object.
 ### The application itself
 
 Greenlight supplies `Illuminate\Contracts\Foundation\Application` as a harness
-service. The service scope is per-test, or per-run when `refreshBetweenTests`
+service. The service scope is per-test, or per-worker when `refreshBetweenTests`
 is false. Tests can use it to inspect the environment or the container
 directly:
 

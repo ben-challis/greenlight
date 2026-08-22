@@ -219,7 +219,7 @@ public static function fromWire(array $payload): static
 PHPDoc:
 
 - `@throws \InvalidArgumentException when the decoded identity is empty`
-- `@throws InvalidWirePayload when a required field is missing or has the wrong type`
+- `@throws WireCommunicationFailed when a required field is missing or has the wrong type`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestId.php#L77)
 
@@ -234,7 +234,7 @@ a class attribute when they conflict.
 final readonly class TestMetadata implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L16)
 
 ### `$class`
 
@@ -246,7 +246,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L21)
 
 ### `$method`
 
@@ -258,7 +258,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L26)
 
 ### `$groups`
 
@@ -270,7 +270,7 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L31)
 
 ### `$skipUnlessArguments`
 
@@ -282,7 +282,7 @@ PHPDoc:
 
 - `@var list<scalar|null>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L36)
 
 ### `$resources`
 
@@ -294,7 +294,7 @@ PHPDoc:
 
 - `@var list<non-empty-string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L41)
 
 ### `$skipReason`
 
@@ -302,7 +302,7 @@ PHPDoc:
 public ?string $skipReason
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L61)
 
 ### `$skipUnlessCondition`
 
@@ -310,7 +310,7 @@ public ?string $skipReason
 public ?string $skipUnlessCondition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L62)
 
 ### `$retryTimes`
 
@@ -318,7 +318,7 @@ public ?string $skipUnlessCondition
 public ?int $retryTimes
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L63)
 
 ### `$retryOnlyOn`
 
@@ -326,7 +326,7 @@ public ?int $retryTimes
 public ?string $retryOnlyOn
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L64)
 
 ### `$timeoutSeconds`
 
@@ -334,7 +334,7 @@ public ?string $retryOnlyOn
 public ?float $timeoutSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L65)
 
 ### `$isolated`
 
@@ -342,7 +342,7 @@ public ?float $timeoutSeconds
 public bool $isolated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L66)
 
 ### `$dataSetProvider`
 
@@ -350,7 +350,7 @@ public bool $isolated
 public ?string $dataSetProvider
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L67)
 
 ### `$capture`
 
@@ -358,7 +358,7 @@ public ?string $dataSetProvider
 public bool $capture
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L67)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L68)
 
 ### `$noExpectations`
 
@@ -366,7 +366,7 @@ public bool $capture
 public bool $noExpectations
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L68)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L69)
 
 ### `$dataSetProviderClass`
 
@@ -374,7 +374,7 @@ public bool $noExpectations
 public ?string $dataSetProviderClass
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L72)
 
 ### `$allowParallel`
 
@@ -382,7 +382,7 @@ public ?string $dataSetProviderClass
 public bool $allowParallel
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L72)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L73)
 
 ### `__construct()`
 
@@ -421,7 +421,7 @@ PHPDoc:
 - `@param bool $allowParallel Whether the class permits separate worker assignments.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L57)
 
 ### `toWire()`
 
@@ -430,7 +430,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L131)
 
 ### `fromWire()`
 
@@ -442,53 +442,21 @@ public static function fromWire(array $payload): static
 PHPDoc:
 
 - `@throws \InvalidArgumentException when the decoded metadata violates a domain invariant`
-- `@throws InvalidWirePayload when a required field is missing or has the wrong type`
+- `@throws WireCommunicationFailed when a required field is missing or has the wrong type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L157)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Test/TestMetadata.php#L158)
 
-## `InvalidWirePayload`
-
-Namespace: `Greenlight\Core\Wire`
-
-Greenlight raises this error when a decoded wire payload has a missing key
-or an incorrect value type.
-
-The error always names the applicable key. Thus, its message identifies the
-protocol error.
-
-```php
-final class InvalidWirePayload extends WireError
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/InvalidWirePayload.php#L14)
-
-### `missingKey()`
-
-```php
-public static function missingKey(string $key): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/InvalidWirePayload.php#L21)
-
-### `wrongType()`
-
-```php
-public static function wrongType(string $key, string $expected, mixed $actual): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/InvalidWirePayload.php#L26)
-
-## `WireError`
+## `WireCommunicationFailed`
 
 Namespace: `Greenlight\Core\Wire`
 
-A value or frame cannot cross the orchestrator-worker wire boundary.
+A value or frame could not cross the orchestrator-worker wire boundary.
 
 ```php
-abstract class WireError extends \RuntimeException
+abstract class WireCommunicationFailed extends \RuntimeException
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireError.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireCommunicationFailed.php#L10)
 
 This type does not declare public members.
 
@@ -530,7 +498,7 @@ PHPDoc:
 
 - `@param array<string, mixed> $payload`
 - `@throws \InvalidArgumentException when a decoded value violates a domain invariant`
-- `@throws WireError when the payload cannot be decoded`
+- `@throws WireCommunicationFailed when the payload cannot be decoded`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Wire/WireSerializable.php#L27)
 

@@ -10,7 +10,7 @@ use Greenlight\Doubles\Argument;
 use Greenlight\Doubles\ArgumentCaptor;
 use Greenlight\Doubles\ArgumentMatcher;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
@@ -99,7 +99,7 @@ final readonly class ArgumentMatchingTest
         Expect::that(static fn(): ArgumentMatcher => Argument::type($type))
             ->because('argument type matchers MUST identify a type')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Argument::type() requires a type name that contains a non-space character.',
             );
     }
@@ -202,7 +202,7 @@ final readonly class ArgumentMatchingTest
     {
         Expect::that(static fn(): mixed => Argument::captor()->value())
             ->because('a captor without captures refuses to produce a value')
-            ->toThrow(DoublesError::class, message: 'The captor has no value. No matched call supplied a value.');
+            ->toThrow(InvalidDoubleUsage::class, message: 'The captor has no value. No matched call supplied a value.');
     }
 
     #[Test]
@@ -256,7 +256,7 @@ final readonly class ArgumentMatchingTest
         Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->captureArgument(-1); // @phpstan-ignore greenlight.mockPlan.capturePosition (deliberately invalid: tests runtime validation)
         }))->because('capture argument rejects negative positions')
-            ->toThrow(DoublesError::class, message: 'captureArgument(-1) requires a position of zero or more.');
+            ->toThrow(InvalidDoubleUsage::class, message: 'captureArgument(-1) requires a position of zero or more.');
     }
 
     #[Test]

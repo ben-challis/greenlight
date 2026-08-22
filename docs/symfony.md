@@ -63,6 +63,9 @@ take precedence over container services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
+Bridge setup and service-resolution failures throw `ServiceResolutionFailed`.
+Concrete Symfony bridge exceptions are internal.
+
 The normal Symfony test-container rules still apply. The container must
 reference a private service to retain it during compilation. The Symfony
 compiler can remove an unused service. Greenlight cannot inject a removed
@@ -88,7 +91,7 @@ instance of the declared type, the test fails and does not receive the object.
 
 ### The kernel itself
 
-Greenlight supplies `KernelInterface` as a per-run harness service. Tests can
+Greenlight supplies `KernelInterface` as a per-worker harness service. Tests can
 use it to inspect boot parameters or the container directly:
 
 <!-- php-example {"example":"symfony-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->

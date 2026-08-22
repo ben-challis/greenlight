@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Doubles\DoublesError;
+use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Stubbable;
 
@@ -32,7 +32,7 @@ final class StubTest
 
         Expect::that(static fn(): string => $stub->name())->because('each call is an authoring error')
             ->toThrow(
-                DoublesError::class,
+                InvalidDoubleUsage::class,
                 message: 'Code called "name()" on the stub of "' . Stubbable::class . '". '
                     . 'Stubs only satisfy a type. '
                     . 'Use mock() with explicit expectations for interactions.',
@@ -50,7 +50,7 @@ final class StubTest
         Expect::that(static function () use ($stub): void {
             $stub->touch();
         })->because('even void calls are authoring errors')->toThrow(
-            DoublesError::class,
+            InvalidDoubleUsage::class,
             message: 'Code called "touch()" on the stub of "' . Stubbable::class . '". '
                 . 'Stubs only satisfy a type. '
                 . 'Use mock() with explicit expectations for interactions.',

@@ -6,6 +6,7 @@ namespace Greenlight\Core\Test;
 
 use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Wire;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Core\Wire\WireSerializable;
 
 /**
@@ -152,7 +153,7 @@ final readonly class TestMetadata implements WireSerializable
 
     /**
      * @throws \InvalidArgumentException when the decoded metadata violates a domain invariant
-     * @throws InvalidWirePayload when a required field is missing or has the wrong type
+     * @throws WireCommunicationFailed when a required field is missing or has the wrong type
      */
     #[\Override]
     public static function fromWire(array $payload): static
@@ -222,7 +223,7 @@ final readonly class TestMetadata implements WireSerializable
      *
      * @return list<scalar|null>
      *
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      */
     private static function skipUnlessArgumentsFromWire(array $payload): array
     {

@@ -30,8 +30,69 @@ resources. Use integration resources in both runner modes.
 
 ## Capability interfaces
 
-The `plugins()` method does not accept `Greenlight\Reporting\Reporter`. Use
-`--reporter` to select a built-in reporter.
+### ReporterProvider
+
+Orchestrator-side.
+
+A `ReporterProvider` adds named reporter factories to `--reporter`. Return one
+`ReporterDefinition` for each name.
+
+<!-- php-example {"example":"plugins-example-reporter-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\ReporterProvider;
+use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\ReporterDefinition;
+
+final class CompanyReporters implements ReporterProvider
+{
+    public function reporters(): array
+    {
+        return [
+            new ReporterDefinition(
+                'company-json',
+                static fn (Output $output): Reporter => new CompanyJsonReporter($output),
+            ),
+        ];
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(new CompanyReporters());
+```
+
+Select the reporter by name:
+
+```sh
+vendor/bin/greenlight run --reporter=company-json
+```
+
+A reporter name starts with a lowercase ASCII letter. It contains only
+lowercase ASCII letters, digits, and hyphens.
+
+Built-in and custom names share one registry. Each name MUST be unique. A
+duplicate name stops the command before the test run starts.
+
+Greenlight calls `reporters()` one time for each command. It calls a selected
+factory for each standard, repeat, or watch run. A repeated selection calls the
+factory one time for each occurrence.
+
+Each factory MUST return a new `Reporter`. Greenlight supplies the `Output` and
+owns it. A reporter MUST NOT close the output.
+
+Multiple selected reporters receive events in `--reporter` order. Greenlight
+also calls `finish()` in that order. It calls `finish()` one time after the
+final event, or after a contained run error.
+
+If a provider or factory throws, Greenlight reports the name and stops the
+command. An invalid factory result also stops the command before test execution.
+
+If a reporter callback throws `ReportGenerationFailed`, Greenlight stops that callback.
+Later reporters do not receive the event or finish signal from that callback.
+
+Shell completions suggest the built-in names. A configured name remains valid
+when it does not occur in the suggestions.
 
 ### IntegrationFixtureProvider
 
@@ -193,7 +254,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
         return [
             new ServiceDefinition(
                 BrokerClient::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn() => new BrokerClient(
                     $broker->string('host'),
                     $broker->secret('token')->reveal(),
@@ -222,7 +283,7 @@ boundary. Greenlight calls it after worker bootstrap and before it reports that
 the worker is ready.
 
 Call the callback once and return its value. Use `finally` to close the runtime
-when the worker drains, recycles, disconnects, or throws. Run-scope harness
+when the worker drains, recycles, disconnects, or throws. Worker-scope harness
 services close before the callback returns.
 
 Greenlight nests multiple runtime boundaries in priority order. A boundary
@@ -343,7 +404,7 @@ public function onRunEvent(Event $event): void;
 ```
 
 Run subscribers receive the event stream in the orchestrator process. The
-stream contains run, worker, suite, class, and test events.
+stream contains run, worker, class, and test events.
 
 Run subscribers cannot change results across the process boundary. Integration
 fixture provisioning completes before `RunStarted`.
@@ -362,7 +423,7 @@ final class DatabaseProvider implements HarnessProvider
     public function services(): array
     {
         return [
-            new ServiceDefinition(TestDatabase::class, Scope::PerSuite, static fn() => TestDatabase::migrate()),
+            new ServiceDefinition(TestDatabase::class, Scope::PerWorker, static fn() => TestDatabase::migrate()),
         ];
     }
 }
@@ -370,10 +431,10 @@ final class DatabaseProvider implements HarnessProvider
 
 Harness providers supply services to test constructors.
 
-Services can be scoped as `PerTest`, `PerClass`, `PerSuite`, or `PerRun`.
-`PerRun` means the physical worker lifetime, not the orchestrator-owned
-integration fixture lifetime. Services are lazy, so a service is not constructed
-unless it is actually used.
+Services can be scoped as `PerTest`, `PerClass`, or `PerWorker`.
+`PerWorker` means the physical worker lifetime. It does not mean the
+orchestrator-owned integration fixture lifetime. Services are lazy. Greenlight
+constructs a service only when a test uses it.
 
 If a service implements `Greenlight\Harness\Disposable`, Greenlight calls its
 disposal method when the scope closes. Greenlight uses reverse creation order.
@@ -387,8 +448,8 @@ applies to the last executed test in that class. Greenlight keeps an earlier
 test failure as the primary failure. It reports each later disposal failure as
 secondary evidence.
 
-A per-suite or per-run disposal failure applies to the worker run. It makes a
-passing run unsuccessful. If the run already failed, Greenlight keeps that
+A per-worker disposal failure applies to the worker runtime. It makes a passing
+run unsuccessful. If the worker runtime already failed, Greenlight keeps that
 failure and adds each disposal failure to the diagnostic.
 
 ### ServiceResolver

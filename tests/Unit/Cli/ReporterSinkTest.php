@@ -7,11 +7,11 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\ReporterSink;
 use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\SuiteStarted;
+use Greenlight\Core\Event\RunStarted;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Reporter;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 
 final class ReporterSinkTest
 {
@@ -30,7 +30,7 @@ final class ReporterSinkTest
             #[\Override]
             public function finish(): void {}
         };
-        $event = new SuiteStarted('unit', 1.0);
+        $event = new RunStarted('run-1', 1, 1, 1.0);
 
         new ReporterSink($reporter)->emit($event);
 
@@ -42,9 +42,9 @@ final class ReporterSinkTest
     #[Test]
     public function reporterFailuresPropagateToTheEmitter(): void
     {
-        $failure = ReportingError::writeFailed();
+        $failure = ReportGenerationFailed::writeFailed();
         $reporter = new readonly class ($failure) implements Reporter, Fake {
-            public function __construct(private ReportingError $failure) {}
+            public function __construct(private ReportGenerationFailed $failure) {}
 
             #[\Override]
             public function onEvent(Event $event): never
@@ -58,7 +58,7 @@ final class ReporterSinkTest
         $sink = new ReporterSink($reporter);
 
         Expect::that(static function () use ($sink): void {
-            $sink->emit(new SuiteStarted('unit', 1.0));
+            $sink->emit(new RunStarted('run-1', 1, 1, 1.0));
         })
             ->because('a reporter failure MUST stop event delivery')
             ->toThrow($failure);

@@ -8,12 +8,12 @@ namespace Greenlight\Doubles;
 final readonly class TypeMatcher implements ArgumentMatcher
 {
     /**
-     * @throws DoublesError
+     * @throws InvalidDoubleUsage
      */
     public function __construct(private string $type)
     {
         if (\trim($type) === '') {
-            throw DoublesError::invalidArgumentType();
+            throw InvalidDoubleUsage::invalidArgumentType();
         }
     }
 

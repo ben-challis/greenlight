@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Greenlight\Core\Wire\InvalidWirePayload;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 
 /**
  * fromDecoded() examines input JSON. It returns null if a part has an
@@ -114,7 +114,7 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
             foreach ($this->entries as $payload) {
                 $entries[] = PlanEntry::fromWire($payload);
             }
-        } catch (\InvalidArgumentException|InvalidWirePayload) {
+        } catch (\InvalidArgumentException|WireCommunicationFailed) {
             return null;
         }
 

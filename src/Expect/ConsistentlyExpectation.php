@@ -9,6 +9,7 @@ use Greenlight\Core\Test\ExpectationCounter;
 
 /**
  * Checks each probe value for a fixed period and fails on the first mismatch.
+ * Use `Expect::consistently()` and `for()` to create this object.
  *
  * @template T
  *
@@ -17,10 +18,12 @@ use Greenlight\Core\Test\ExpectationCounter;
 final class ConsistentlyExpectation extends TemporalExpectation
 {
     /**
+     * @internal Greenlight constructs temporal expectations.
+     *
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
      */
-    public function __construct(
+    private function __construct(
         \Closure $probe,
         PollingClock $clock,
         ?float $attemptDeadline,
@@ -34,6 +37,36 @@ final class ConsistentlyExpectation extends TemporalExpectation
             $clock,
             $attemptDeadline,
             $intervalSeconds,
+            $renderer,
+            $extensions,
+        );
+    }
+
+    /**
+     * @internal Use Expect::consistently() and for() instead.
+     *
+     * @template TProbe
+     *
+     * @param \Closure(): TProbe $probe
+     * @param list<ExpectationExtension> $extensions
+     *
+     * @return self<TProbe>
+     */
+    public static function create(
+        \Closure $probe,
+        PollingClock $clock,
+        ?float $attemptDeadline,
+        float $intervalSeconds,
+        float $forSeconds,
+        ValueRenderer $renderer,
+        array $extensions,
+    ): self {
+        return new self(
+            $probe,
+            $clock,
+            $attemptDeadline,
+            $intervalSeconds,
+            $forSeconds,
             $renderer,
             $extensions,
         );

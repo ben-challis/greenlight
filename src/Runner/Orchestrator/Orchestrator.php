@@ -22,13 +22,12 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Core\Wire\Utf8;
-use Greenlight\Core\Wire\WireError;
+use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
-use Greenlight\Reporting\ReportingError;
+use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
@@ -208,9 +207,8 @@ final class Orchestrator
      *
      * @throws ProtocolError
      * @throws AttachmentError
-     * @throws InvalidWirePayload
-     * @throws ReportingError
-     * @throws WireError
+     * @throws WireCommunicationFailed
+     * @throws ReportGenerationFailed
      */
     public function run(ExecutionPlan $plan, EventSink $sink, int $workerCount, array $classSeconds = []): ResultSummary
     {
@@ -359,9 +357,8 @@ final class Orchestrator
      * @param resource $server
      * @param non-empty-string $token
      * @throws AttachmentError
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      * @throws ProtocolError
-     * @throws WireError
      */
     private function tick(mixed $server, string $token, EventSink $sink): void
     {
@@ -400,10 +397,9 @@ final class Orchestrator
 
     /**
      * @param non-empty-string $token
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      * @throws AttachmentError
      * @throws ProtocolError
-     * @throws WireError
      */
     private function processHellos(string $token, EventSink $sink): void
     {
@@ -538,9 +534,8 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
-     * @throws InvalidWirePayload
+     * @throws WireCommunicationFailed
      * @throws ProtocolError
-     * @throws WireError
      */
     private function pumpChannels(EventSink $sink): void
     {
