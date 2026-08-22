@@ -143,7 +143,7 @@ final class GreenlightConfigTest
 
         Expect::that(static fn(): GreenlightConfig => $builder->workers(
             count: 8,
-            recycleAfterTests: 0,
+            recycleAfterTests: 0, // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             recycleAboveMemory: '128M',
         ))
             ->because('a rejected worker configuration does not partially change the builder')
@@ -189,7 +189,7 @@ final class GreenlightConfigTest
         Expect::that(static fn(): GreenlightConfig => $builder->coverage(
             static fn(CoverageBuilder $coverage) => $coverage
                 ->driver('xdebug')
-                ->include(''),
+                ->include(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         ))
             ->because('a rejected coverage configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
@@ -197,7 +197,7 @@ final class GreenlightConfigTest
         Expect::that(static fn(): GreenlightConfig => $builder->watch(
             static fn(WatchBuilder $watch) => $watch
                 ->debounceMilliseconds(750)
-                ->debounceMilliseconds(0),
+                ->debounceMilliseconds(0), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         ))
             ->because('a rejected watch configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
@@ -205,7 +205,7 @@ final class GreenlightConfigTest
         Expect::that(static fn(): GreenlightConfig => $builder->artifacts(
             static fn(ArtifactBuilder $artifacts) => $artifacts
                 ->directory('build/changed')
-                ->maxRunAttachments(0),
+                ->maxRunAttachments(0), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         ))
             ->because('a rejected artifact configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
@@ -231,7 +231,7 @@ final class GreenlightConfigTest
     {
         $builder = GreenlightConfig::create()->ignoreDeprecationsMatching('existing');
 
-        Expect::that(static fn(): GreenlightConfig => $builder->ignoreDeprecationsMatching('added', ''))
+        Expect::that(static fn(): GreenlightConfig => $builder->ignoreDeprecationsMatching('added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected deprecation pattern does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
@@ -314,7 +314,7 @@ final class GreenlightConfigTest
         yield 'empty name' => [
             static function (): void {
                 GreenlightConfig::create()->suite(
-                    '',
+                    '', // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                     static fn(SuiteBuilder $suite) => $suite->in('tests'),
                 );
             },
@@ -342,7 +342,7 @@ final class GreenlightConfigTest
             static function (): void {
                 GreenlightConfig::create()->suite(
                     'unit',
-                    static fn(SuiteBuilder $suite) => $suite->in(''),
+                    static fn(SuiteBuilder $suite) => $suite->in(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                 );
             },
             'Suite "unit" was given an empty path.',
@@ -352,7 +352,7 @@ final class GreenlightConfigTest
             static function (): void {
                 GreenlightConfig::create()->suite(
                     'unit',
-                    static fn(SuiteBuilder $suite) => $suite->in('tests')->tag(''),
+                    static fn(SuiteBuilder $suite) => $suite->in('tests')->tag(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                 );
             },
             'Suite "unit" was given an empty tag.',
@@ -378,7 +378,7 @@ final class GreenlightConfigTest
     {
         yield 'negative limit' => [
             static function (): void {
-                GreenlightConfig::create()->resourceLimit('redis', -2);
+                GreenlightConfig::create()->resourceLimit('redis', -2); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'Resource "redis" must have a limit of at least 1, got -2.',
         ];
@@ -399,7 +399,7 @@ final class GreenlightConfigTest
     public static function invalidInputs(): iterable
     {
         yield 'zero workers' => [static function (): void {
-            GreenlightConfig::create()->workers(count: 0);
+            GreenlightConfig::create()->workers(count: 0); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         }];
 
         yield 'bad worker string' => [static function (): void {
@@ -410,7 +410,7 @@ final class GreenlightConfigTest
         }];
 
         yield 'zero recycleAfterTests' => [static function (): void {
-            GreenlightConfig::create()->workers(recycleAfterTests: 0);
+            GreenlightConfig::create()->workers(recycleAfterTests: 0); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         }];
 
         yield 'bad memory string' => [static function (): void {
@@ -418,7 +418,7 @@ final class GreenlightConfigTest
         }];
 
         yield 'empty artifact directory' => [static function (): void {
-            GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory(''));
+            GreenlightConfig::create()->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('')); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         }];
 
         yield 'invalid resource name' => [static function (): void {
@@ -426,7 +426,7 @@ final class GreenlightConfigTest
         }];
 
         yield 'zero resource limit' => [static function (): void {
-            GreenlightConfig::create()->resourceLimit('postgres', 0);
+            GreenlightConfig::create()->resourceLimit('postgres', 0); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         }];
 
         yield 'duplicate resource limit' => [static function (): void {
@@ -454,7 +454,7 @@ final class GreenlightConfigTest
         yield 'zero per-test count' => [
             static function (): void {
                 GreenlightConfig::create()->artifacts(
-                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0),
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(0), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                 );
             },
             'Artifact count per test must be at least 1.',
@@ -462,7 +462,7 @@ final class GreenlightConfigTest
         yield 'negative per-test count' => [
             static function (): void {
                 GreenlightConfig::create()->artifacts(
-                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(-1),
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxAttachmentsPerTest(-1), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                 );
             },
             'Artifact count per test must be at least 1.',
@@ -470,7 +470,7 @@ final class GreenlightConfigTest
         yield 'zero per-run count' => [
             static function (): void {
                 GreenlightConfig::create()->artifacts(
-                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxRunAttachments(0),
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxRunAttachments(0), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                 );
             },
             'Artifact count per run must be at least 1.',
@@ -478,7 +478,7 @@ final class GreenlightConfigTest
         yield 'negative per-run count' => [
             static function (): void {
                 GreenlightConfig::create()->artifacts(
-                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxRunAttachments(-1),
+                    static fn(ArtifactBuilder $artifacts) => $artifacts->maxRunAttachments(-1), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
                 );
             },
             'Artifact count per run must be at least 1.',

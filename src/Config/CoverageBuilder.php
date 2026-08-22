@@ -23,6 +23,8 @@ final class CoverageBuilder
     private array $exports = [];
 
     /**
+     * @param non-empty-string ...$paths
+     *
      * @throws InvalidConfiguration
      */
     public function include(string ...$paths): self
@@ -47,6 +49,8 @@ final class CoverageBuilder
     }
 
     /**
+     * @param non-empty-string $driver
+     *
      * @throws InvalidConfiguration
      */
     public function driver(string $driver): self
@@ -61,11 +65,18 @@ final class CoverageBuilder
     }
 
     /**
+     * @param 'json'|'lcov'|'clover'|'cobertura'|'html' $format
+     * @param non-empty-string $target
+     *
      * @throws InvalidConfiguration
      */
     public function export(string $format, string $target): self
     {
-        if ($format === '' || $target === '') {
+        if ($format === '') {
+            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
+        }
+
+        if ($target === '') {
             throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
         }
 

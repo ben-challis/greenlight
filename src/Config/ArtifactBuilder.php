@@ -9,14 +9,27 @@ namespace Greenlight\Config;
  */
 final class ArtifactBuilder
 {
+    /** @var non-empty-string */
     private string $directory = ArtifactConfiguration::DEFAULT_DIRECTORY;
+
+    /** @var positive-int */
     private int $maxAttachmentsPerTest = ArtifactConfiguration::DEFAULT_MAX_ATTACHMENTS_PER_TEST;
+
+    /** @var positive-int */
     private int $maxAttachmentBytes = ArtifactConfiguration::DEFAULT_MAX_ATTACHMENT_BYTES;
+
+    /** @var positive-int */
     private int $maxTestBytes = ArtifactConfiguration::DEFAULT_MAX_TEST_BYTES;
+
+    /** @var positive-int */
     private int $maxRunAttachments = ArtifactConfiguration::DEFAULT_MAX_RUN_ATTACHMENTS;
+
+    /** @var positive-int */
     private int $maxRunBytes = ArtifactConfiguration::DEFAULT_MAX_RUN_BYTES;
 
     /**
+     * @param non-empty-string $directory
+     *
      * @throws InvalidConfiguration
      */
     public function directory(string $directory): self
@@ -35,6 +48,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * @param positive-int $count
+     *
      * @throws InvalidConfiguration
      */
     public function maxAttachmentsPerTest(int $count): self
@@ -49,6 +64,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * @param non-empty-string $size
+     *
      * @throws InvalidConfiguration
      */
     public function maxAttachmentSize(string $size): self
@@ -59,6 +76,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * @param non-empty-string $size
+     *
      * @throws InvalidConfiguration
      */
     public function maxTestSize(string $size): self
@@ -69,6 +88,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * @param positive-int $count
+     *
      * @throws InvalidConfiguration
      */
     public function maxRunAttachments(int $count): self
@@ -83,6 +104,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * @param non-empty-string $size
+     *
      * @throws InvalidConfiguration
      */
     public function maxRunSize(string $size): self

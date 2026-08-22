@@ -16,7 +16,7 @@ final class CoverageBuilderTest
     public function anEmptyIncludePathIsRejected(): void
     {
         Expect::that(static function (): void {
-            new CoverageBuilder()->include('');
+            new CoverageBuilder()->include(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('a coverage include path identifies source to instrument')
             ->toThrow(
@@ -30,7 +30,7 @@ final class CoverageBuilderTest
     {
         $builder = new CoverageBuilder()->include('src');
 
-        Expect::that(static fn(): CoverageBuilder => $builder->include('app', ''))
+        Expect::that(static fn(): CoverageBuilder => $builder->include('app', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected include call does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
@@ -54,7 +54,7 @@ final class CoverageBuilderTest
     public function anEmptyDriverNameIsRejected(): void
     {
         Expect::that(static function (): void {
-            new CoverageBuilder()->driver('');
+            new CoverageBuilder()->driver(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('a coverage driver needs a selectable name')
             ->toThrow(
@@ -68,7 +68,10 @@ final class CoverageBuilderTest
     public function aCoverageExportNeedsAFormatAndTarget(string $format, string $target): void
     {
         Expect::that(static function () use ($format, $target): void {
-            new CoverageBuilder()->export($format, $target);
+            // Reflection bypasses the static non-empty-string types and
+            // exercises the runtime guard.
+            new \ReflectionMethod(CoverageBuilder::class, 'export')
+                ->invoke(new CoverageBuilder(), $format, $target);
         })
             ->because('a coverage export needs a format and target')
             ->toThrow(

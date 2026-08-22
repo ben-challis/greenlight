@@ -31,7 +31,7 @@ final class GreenlightConfigWorkerValidationTest
     {
         yield 'negative worker count' => [
             static function (): void {
-                GreenlightConfig::create()->workers(count: -3);
+                GreenlightConfig::create()->workers(count: -3); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'Worker count must be at least 1, got -3.',
         ];
@@ -46,7 +46,7 @@ final class GreenlightConfigWorkerValidationTest
 
         yield 'negative recycle limit' => [
             static function (): void {
-                GreenlightConfig::create()->workers(recycleAfterTests: -4);
+                GreenlightConfig::create()->workers(recycleAfterTests: -4); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             },
             'recycleAfterTests must be at least 1, got -4.',
         ];
