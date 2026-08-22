@@ -26,9 +26,10 @@ public function directory(string $directory): self
 
 PHPDoc:
 
+- `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L35)
 
 ### `maxAttachmentsPerTest()`
 
@@ -38,9 +39,10 @@ public function maxAttachmentsPerTest(int $count): self
 
 PHPDoc:
 
+- `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L55)
 
 ### `maxAttachmentSize()`
 
@@ -50,9 +52,10 @@ public function maxAttachmentSize(string $size): self
 
 PHPDoc:
 
+- `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L71)
 
 ### `maxTestSize()`
 
@@ -62,9 +65,10 @@ public function maxTestSize(string $size): self
 
 PHPDoc:
 
+- `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L83)
 
 ### `maxRunAttachments()`
 
@@ -74,9 +78,10 @@ public function maxRunAttachments(int $count): self
 
 PHPDoc:
 
+- `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L95)
 
 ### `maxRunSize()`
 
@@ -86,9 +91,10 @@ public function maxRunSize(string $size): self
 
 PHPDoc:
 
+- `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L111)
 
 ## `CoverageBuilder`
 
@@ -110,9 +116,10 @@ public function include(string ...$paths): self
 
 PHPDoc:
 
+- `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L30)
 
 ### `driver()`
 
@@ -122,9 +129,10 @@ public function driver(string $driver): self
 
 PHPDoc:
 
+- `@param non-empty-string $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L56)
 
 ### `export()`
 
@@ -134,9 +142,11 @@ public function export(string $format, string $target): self
 
 PHPDoc:
 
+- `@param 'json'|'lcov'|'clover'|'cobertura'|'html' $format`
+- `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L73)
 
 ## `GreenlightConfig`
 
@@ -169,7 +179,7 @@ public function paths(array $tests): self
 
 PHPDoc:
 
-- `@param list<string> $tests`
+- `@param non-empty-list<non-empty-string> $tests`
 - `@throws InvalidConfiguration`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L94)
@@ -188,10 +198,11 @@ public function suite(string $name, callable $configurator): self
 
 PHPDoc:
 
+- `@param non-empty-string $name`
 - `@param callable(SuiteBuilder): mixed $configurator`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L151)
 
 ### `workers()`
 
@@ -209,11 +220,12 @@ public function workers(
 
 PHPDoc:
 
-- `@param int|'auto' $count`
-- `@param int|null $recycleAfterTests A null value disables test-count worker replacement.`
+- `@param positive-int|'auto' $count`
+- `@param positive-int|null $recycleAfterTests A null value disables test-count worker replacement.`
+- `@param non-empty-string $recycleAboveMemory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L178)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L180)
 
 ### `resourceLimit()`
 
@@ -228,9 +240,11 @@ public function resourceLimit(string $name, int $limit = 1): self
 
 PHPDoc:
 
+- `@param non-empty-string $name`
+- `@param positive-int $limit`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L206)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L211)
 
 ### `coverage()`
 
@@ -242,7 +256,7 @@ PHPDoc:
 
 - `@param callable(CoverageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L234)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L239)
 
 ### `watch()`
 
@@ -254,7 +268,7 @@ PHPDoc:
 
 - `@param callable(WatchBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L246)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L251)
 
 ### `artifacts()`
 
@@ -266,7 +280,7 @@ PHPDoc:
 
 - `@param callable(ArtifactBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L258)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L263)
 
 ### `storage()`
 
@@ -281,7 +295,7 @@ PHPDoc:
 
 - `@param callable(StorageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L273)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L278)
 
 ### `failOnDeprecation()`
 
@@ -297,7 +311,7 @@ PHPDoc:
 
 - `@see self::ignoreDeprecationsMatching()`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L289)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L294)
 
 ### `failOnNotice()`
 
@@ -305,7 +319,7 @@ PHPDoc:
 public function failOnNotice(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L296)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L301)
 
 ### `failOnRisky()`
 
@@ -317,7 +331,7 @@ expectations.
 public function failOnRisky(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L308)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L313)
 
 ### `ignoreDeprecationsMatching()`
 
@@ -331,9 +345,10 @@ public function ignoreDeprecationsMatching(string ...$patterns): self
 
 PHPDoc:
 
+- `@param non-empty-string ...$patterns`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L321)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L329)
 
 ### `plugins()`
 
@@ -346,7 +361,7 @@ PHPDoc:
 - `@param \Closure(): Plugin ...$plugins`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L342)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L350)
 
 ### `failFast()`
 
@@ -354,7 +369,7 @@ PHPDoc:
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L359)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L367)
 
 ### `randomizeOrder()`
 
@@ -364,7 +379,7 @@ If the seed is null, Greenlight selects and prints a seed when it resolves the c
 public function randomizeOrder(?int $seed = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L367)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L375)
 
 ## `InvalidConfiguration`
 
@@ -400,9 +415,10 @@ public function rootDirectory(string $directory): self
 
 PHPDoc:
 
+- `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L29)
 
 ### `stateDirectory()`
 
@@ -412,9 +428,10 @@ public function stateDirectory(string $directory): self
 
 PHPDoc:
 
+- `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L40)
 
 ### `cacheDirectory()`
 
@@ -424,9 +441,10 @@ public function cacheDirectory(string $directory): self
 
 PHPDoc:
 
+- `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L51)
 
 ### `generatedCodeDirectory()`
 
@@ -436,9 +454,10 @@ public function generatedCodeDirectory(string $directory): self
 
 PHPDoc:
 
+- `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L62)
 
 ### `temporaryDirectory()`
 
@@ -448,9 +467,10 @@ public function temporaryDirectory(string $directory): self
 
 PHPDoc:
 
+- `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L73)
 
 ## `SuiteBuilder`
 
@@ -484,9 +504,10 @@ public function in(string ...$paths): self
 
 PHPDoc:
 
+- `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L30)
 
 ### `tag()`
 
@@ -496,9 +517,10 @@ public function tag(string ...$tags): self
 
 PHPDoc:
 
+- `@param non-empty-string ...$tags`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/SuiteBuilder.php#L56)
 
 ## `WatchBuilder`
 
@@ -521,6 +543,7 @@ public function debounceMilliseconds(int $milliseconds): self
 
 PHPDoc:
 
+- `@param positive-int $milliseconds`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L22)
