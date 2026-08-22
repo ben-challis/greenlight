@@ -9,11 +9,8 @@ use Greenlight\Core\Event\TestClassStarted;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\SchedulingPolicy;
-use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
@@ -40,6 +37,7 @@ use Greenlight\Tests\Fixture\Runner\OptionalConstructorProbe;
 use Greenlight\Tests\Fixture\Runner\UnsupportedConstructorProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+use Greenlight\Tests\Support\PlanEntryFixture;
 
 final class WorkerTest
 {
@@ -48,11 +46,7 @@ final class WorkerTest
     {
         $id = new TestId(OptionalConstructorProbe::class, 'usesDeclaredDefault');
         $plan = new ExecutionPlan([
-            new PlanEntry(new TestDefinition(
-                $id->class,
-                $id->method,
-                scheduling: new SchedulingPolicy(isolated: true),
-            )),
+            PlanEntryFixture::create($id->class, $id->method, isolated: true),
         ]);
         $sink = new CollectingEventSink();
 
@@ -288,7 +282,7 @@ final class WorkerTest
     {
         $id = new TestId(OptionalConstructorProbe::class, 'usesDeclaredDefault');
         $plan = new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
         $sink = new CollectingEventSink();
 
@@ -308,7 +302,7 @@ final class WorkerTest
     {
         $id = new TestId(UnsupportedConstructorProbe::class, 'neverRuns');
         $plan = new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
         $sink = new CollectingEventSink();
 
@@ -332,7 +326,7 @@ final class WorkerTest
     {
         $id = new TestId('Missing\ExampleTest', 'neverRuns');
         $plan = new ExecutionPlan([
-            new PlanEntry(new TestDefinition($id->class, $id->method)),
+            PlanEntryFixture::create($id->class, $id->method),
         ]);
         $sink = new CollectingEventSink();
 
@@ -404,11 +398,7 @@ final class WorkerTest
     {
         $id = new TestId(ServicesTest::class, 'firstTouch');
         $plan = new ExecutionPlan([
-            new PlanEntry(new TestDefinition(
-                $id->class,
-                $id->method,
-                scheduling: new SchedulingPolicy(allowParallel: true),
-            )),
+            PlanEntryFixture::create($id->class, $id->method, allowParallel: true),
         ]);
         $registry = $this->registry();
         $registry->register(new ServiceDefinition(
