@@ -13,6 +13,7 @@ use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\MemoryStream;
 
 final readonly class ApplicationCoverageCleanupTest
@@ -28,7 +29,7 @@ final readonly class ApplicationCoverageCleanupTest
     {
         $this->environment->unset(SubprocessCoverage::DIRECTORY_ENV);
         $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
         $project = AcceptanceProject::create($this->tempDirectory, 'application-coverage-cleanup');
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'

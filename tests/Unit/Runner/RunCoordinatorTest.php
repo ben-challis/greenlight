@@ -31,6 +31,7 @@ use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class RunCoordinatorTest
 {
@@ -49,7 +50,7 @@ final readonly class RunCoordinatorTest
             },
         )->build();
         $sink = new CollectingEventSink();
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
 
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $result = $this->coordinator()->run(
@@ -81,7 +82,7 @@ final readonly class RunCoordinatorTest
         )->build();
         $sink = new CollectingEventSink();
         $root = \dirname(__DIR__, 3);
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
 
         $result = $this->coordinator()->run(
@@ -163,7 +164,7 @@ final readonly class RunCoordinatorTest
     public function explicitSeedIsReportedAndReproducesTheRunOrder(): void
     {
         $configuration = GreenlightConfig::create()->randomizeOrder(seed: 4242)->build();
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
         $coordinator = $this->coordinator();
         $firstSink = new CollectingEventSink();
         $secondSink = new CollectingEventSink();
@@ -186,7 +187,7 @@ final readonly class RunCoordinatorTest
     {
         $coordinator = $this->coordinator();
         $base = GreenlightConfig::create()->build();
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
         $completeSink = new CollectingEventSink();
 
         $complete = ConfigurationResolver::resolve($base, new CliOverrides());
@@ -224,7 +225,7 @@ final readonly class RunCoordinatorTest
     {
         $this->environment->set('GREENLIGHT_CHANNEL', 'caller-channel');
         $configuration = GreenlightConfig::create()->build();
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
 
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $this->coordinator()->run(
@@ -251,7 +252,7 @@ final readonly class RunCoordinatorTest
             static fn(): FailingWorkerBootstrapPlugin => new FailingWorkerBootstrapPlugin($failure),
         )->build();
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
-        $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
+        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
 
         Expect::that(fn() => $this->coordinator()->run(
             $resolved,

@@ -37,6 +37,7 @@ use Greenlight\Tests\Fixture\Plugins\EvenNumbersExtension;
 use Greenlight\Tests\Fixture\Plugins\ProbeProvider;
 use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class PluginTest
 {
@@ -436,7 +437,7 @@ final readonly class PluginTest
      */
     private function runSuite(string $fixture, array $plugins): array
     {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/' . $fixture;
+        $directory = FixturePath::get($fixture);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
         $registry = PluginRegistry::forWorker($plugins);

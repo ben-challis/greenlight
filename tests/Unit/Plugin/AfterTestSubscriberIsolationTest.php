@@ -16,6 +16,7 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class AfterTestSubscriberIsolationTest
 {
@@ -52,7 +53,7 @@ final readonly class AfterTestSubscriberIsolationTest
                 return $result;
             }
         };
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Order';
+        $directory = FixturePath::get('Lifecycle/Order');
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
         $plugins = PluginRegistry::forWorker([$observer, $broken]);

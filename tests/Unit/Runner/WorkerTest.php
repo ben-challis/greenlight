@@ -39,6 +39,7 @@ use Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose\VerifyingProbe;
 use Greenlight\Tests\Fixture\Runner\OptionalConstructorProbe;
 use Greenlight\Tests\Fixture\Runner\UnsupportedConstructorProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final class WorkerTest
 {
@@ -533,7 +534,7 @@ final class WorkerTest
     #[Test]
     public function drainRequestStopsBetweenTests(): void
     {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/Bail';
+        $directory = FixturePath::get('Lifecycle/Bail');
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
@@ -552,7 +553,7 @@ final class WorkerTest
     {
         LeakyTest::$retained = [];
 
-        $directory = \dirname(__DIR__, 2) . '/Fixture/LeakSuite';
+        $directory = FixturePath::get('LeakSuite');
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
@@ -593,7 +594,7 @@ final class WorkerTest
         ?CollectingEventSink $sink = null,
         array $plugins = [],
     ): array {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/' . $case;
+        $directory = FixturePath::get('Lifecycle/' . $case);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink ??= new CollectingEventSink();
 

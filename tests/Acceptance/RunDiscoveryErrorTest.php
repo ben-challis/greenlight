@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 
 final readonly class RunDiscoveryErrorTest
@@ -18,7 +19,7 @@ final readonly class RunDiscoveryErrorTest
     public function runReportsDiscoveryFailuresCleanly(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'run-discovery-error');
-        $fixture = \dirname(__DIR__) . '/Fixture/DiscoveryProviderMissing';
+        $fixture = FixturePath::get('DiscoveryProviderMissing');
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
                 <?php

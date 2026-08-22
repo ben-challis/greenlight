@@ -10,6 +10,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 
@@ -71,7 +72,7 @@ final readonly class WorkerProcessRunTest
      */
     private function runIn(string $fixtureConfigDir, array $arguments): ProcessResult
     {
-        return GreenlightCli::run(\dirname(__DIR__) . '/Fixture/' . $fixtureConfigDir, $arguments);
+        return GreenlightCli::run(FixturePath::get($fixtureConfigDir), $arguments);
     }
 
     private function summaryLine(string $output): string

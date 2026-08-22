@@ -14,6 +14,7 @@ use Greenlight\Runner\Worker\Worker;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Support\CollectingEventSink;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class SandboxLifecycleTest
 {
@@ -31,7 +32,7 @@ final readonly class SandboxLifecycleTest
             $this->environment->set('GREENLIGHT_SANDBOX_E2E', $initialValue);
         }
 
-        $directory = \dirname(__DIR__, 2) . '/Fixture/Lifecycle/HarnessSandboxes';
+        $directory = FixturePath::get('Lifecycle/HarnessSandboxes');
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 

@@ -8,6 +8,7 @@ use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpStanProbe;
 
 #[RequiresResource('analysis-process')]
@@ -18,7 +19,6 @@ final readonly class PhpStanNativeMatcherTypeTest
     #[Test]
     public function nativeMatcherTypesKeepNullableUnionAndIntersectionShapes(): void
     {
-        $root = \dirname(__DIR__, 2);
         $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
@@ -52,7 +52,7 @@ final readonly class PhpStanNativeMatcherTypeTest
                 Expect::that(new stdClass())->toAcceptSerializableString();
             }
             PHP,
-            $root . '/tests/Fixture/PhpStanNativeType/probe.neon',
+            FixturePath::get('PhpStanNativeType/probe.neon'),
         );
 
         Expect::that($probe->exitCode)

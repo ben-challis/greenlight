@@ -30,6 +30,7 @@ use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
 use Greenlight\Tests\Support\FilesystemRestriction;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Illuminate\Container\Container;
@@ -525,7 +526,7 @@ final class LaravelPluginTest
 
     private function fixtureDir(): string
     {
-        return \dirname(__DIR__, 2) . '/Fixture/Laravel';
+        return FixturePath::get('Laravel');
     }
 
     private function context(): TestContext

@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\Subprocess;
 
@@ -20,7 +21,7 @@ final readonly class IdeHelperTest
         $root = \dirname(__DIR__, 2);
         $target = $this->tempDirectory->path() . '/ide-helper.php';
 
-        $result = GreenlightCli::run($root . '/tests/Fixture/PhpStanExtension', ['ide-helper', '--output=' . $target]);
+        $result = GreenlightCli::run(FixturePath::get('PhpStanExtension'), ['ide-helper', '--output=' . $target]);
         Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
         Expect::that($result->output())->toContain('3 matchers');
 
@@ -33,7 +34,7 @@ final readonly class IdeHelperTest
         $lint = Subprocess::run($root, [\PHP_BINARY, '-l', $target]);
         Expect::that($lint->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
 
-        $result = GreenlightCli::run($root . '/tests/Fixture/ListTestsConfig', ['ide-helper', '--output=' . $target . '.none']);
+        $result = GreenlightCli::run(FixturePath::get('ListTestsConfig'), ['ide-helper', '--output=' . $target . '.none']);
         Expect::that($result->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
         Expect::that($result->output())->toContain('The configuration has no extension matchers');
         Expect::that(\is_file($target . '.none'))->toBeFalse();
@@ -42,7 +43,7 @@ final readonly class IdeHelperTest
     #[Test]
     public function invalidConfigurationFailsBeforeWritingAHelper(): void
     {
-        $project = \dirname(__DIR__) . '/Fixture/ConfigFiles/WrongReturn';
+        $project = FixturePath::get('ConfigFiles/WrongReturn');
         $config = $project . '/greenlight.php';
         $result = GreenlightCli::run($project, ['ide-helper', '--no-ansi']);
 

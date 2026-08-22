@@ -9,6 +9,7 @@ use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpStanProbe;
 
 #[AllowParallel]
@@ -153,7 +154,7 @@ final readonly class PhpStanMatcherSubjectTest
                 Expect::that('value')->toAcceptParentArgument(new \stdClass());
             }
             PHP,
-            \dirname(__DIR__) . '/Fixture/PhpStanScopedMatcher/probe.neon',
+            FixturePath::get('PhpStanScopedMatcher/probe.neon'),
         );
 
         Expect::that($probe->exitCode)->because('relative matcher types use the closure scope')->toBe(1);

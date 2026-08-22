@@ -10,6 +10,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\SimpleXml;
@@ -334,8 +335,8 @@ final readonly class CoverageRunTest
                     ->include(%s)%s%s);
 
             PHP,
-            \var_export($root . '/tests/Fixture/CoverageSuite', true),
-            \var_export($root . '/tests/Fixture/CoverageLib', true),
+            \var_export(FixturePath::get('CoverageSuite'), true),
+            \var_export(FixturePath::get('CoverageLib'), true),
             $orchestratorInclude,
             $exports,
         ));

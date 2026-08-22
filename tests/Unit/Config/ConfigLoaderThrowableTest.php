@@ -8,13 +8,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\FixturePath;
 
 final readonly class ConfigLoaderThrowableTest
 {
     #[Test]
     public function wrapsErrorsThrownByConfigurationFiles(): void
     {
-        $directory = \dirname(__DIR__, 2) . '/Fixture/ConfigFiles/ThrowingError';
+        $directory = FixturePath::get('ConfigFiles/ThrowingError');
 
         Expect::that(static fn() => new ConfigLoader()->loadFromDirectory($directory))
             ->toThrow(
