@@ -281,6 +281,9 @@ call.
 
 The method is repeatable and definitions accumulate.
 
+A `ReporterProvider` plugin registers custom names for `--reporter`. See
+[plugins](plugins.md#reporterprovider).
+
 ### `artifacts(callable $configurator): self`
 
 Default: output below `build/greenlight-artifacts`, with failure-only retention.
@@ -666,7 +669,7 @@ order.
 
 Selects the output format.
 
-Supported reporters:
+Built-in reporters:
 
 * `tty`
 * `plain`
@@ -676,6 +679,17 @@ Supported reporters:
 * `teamcity`
 
 Repeatable. Multiple reporters write concurrently.
+
+`ReporterProvider` plugins can add names. Greenlight creates reporters in flag
+order. A repeated name creates a separate reporter for each occurrence.
+
+All selected reporters use the same Greenlight-owned standard output. A custom
+reporter MUST NOT close this output.
+
+Reporter names MUST be unique across built-ins and plugins. A duplicate name
+stops the command before test execution.
+
+Shell completions suggest built-in names. Configured names remain valid.
 
 Default: `tty` on an interactive terminal, otherwise `plain`.
 

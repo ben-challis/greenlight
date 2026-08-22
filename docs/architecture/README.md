@@ -13,11 +13,12 @@ responsibilities, interfaces, invariants, and machine-readable formats.
 flowchart LR
     config["greenlight.php<br/>GreenlightConfig"] --> cli["CLI and configuration resolution"]
     tests["Test files<br/>attributes and data sets"] --> discovery["Discovery<br/>ExecutionPlan"]
-    cli --> discovery
-    discovery --> runner["Runner"]
-    runner --> fixtures["Integration fixture graph"]
-    fixtures --> inprocess["In-process execution"]
-    fixtures --> orchestrator["Parallel orchestrator"]
+    cli --> coordinator["Run coordinator"]
+    coordinator --> discovery
+    discovery --> coordinator
+    coordinator --> fixtures["Integration fixture graph"]
+    coordinator --> inprocess["In-process adapter"]
+    coordinator --> orchestrator["Process-pool adapter"]
     orchestrator --> workers["Worker processes"]
     fixtures -. "shared and per-channel resources" .-> workers
     fixtures -. "shared resources" .-> inprocess
@@ -29,14 +30,15 @@ flowchart LR
     orchestrator --> coverage["Coverage merge and export"]
 ```
 
-The CLI resolves the configuration once. Discovery produces an immutable
-execution plan. The runner selects in-process execution or process-pool
-execution. Both methods emit the same events. Reporters consume the events and
-do not access runner state.
+The CLI resolves the configuration once and selects one execution adapter.
+The run coordinator uses discovery to produce an immutable execution plan.
+It controls plan order, run resources, and run lifecycle events. The selected
+adapter executes the plan and returns one outcome. Reporters consume the events
+and do not access coordinator state.
 
-For a nonempty plan, the runner provisions integration fixtures before
-`RunStarted`. The fixture graph supplies resources to both execution methods.
-The runner closes the graph after `RunFinished` or after a run failure.
+For a nonempty plan, the coordinator provisions integration fixtures before
+`RunStarted`. The fixture graph supplies resources to both adapters. The
+coordinator closes the graph after `RunFinished` or after a run failure.
 
 The orchestrator makes decisions that apply to more than one worker. It
 controls assignments, resource capacity, bail, hard timeouts, crash
@@ -89,9 +91,14 @@ These interfaces define PHP signatures, lifecycle rules, and error behavior.
 
 ### Execution
 
-Discovery gives an execution plan to the runner. Workers receive plan values
-and emit typed events. They do not discover tests again. The in-process and
-parallel methods use the same execution behavior.
+`RunCoordinator` owns discovery, plan order, run IDs, artifacts, orchestrator
+plugins, integration fixtures, and run lifecycle events. Its interface accepts
+one execution adapter.
+
+`InProcessExecution` and `ProcessPoolExecution` are the two adapters at the
+execution seam. Each adapter reports its worker topology and executes a plan.
+Workers receive plan values and emit typed events. They do not discover tests
+again.
 
 ### Extensions
 
@@ -113,6 +120,8 @@ read [compatibility](compatibility.md).
 - PHP 8.4 or later and zero runtime package dependencies.
 - Discovery occurs before execution. Workers consume plans and do not scan the
   file system.
+- The run coordinator owns `RunStarted` and `RunFinished` for each execution
+  adapter.
 - One terminal `TestResult` represents all attempts of one test ID.
 - The orchestrator controls the global summary and all resource totals.
 - Greenlight contains worker failures. It does not automatically repeat the

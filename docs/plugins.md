@@ -26,15 +26,17 @@ return GreenlightConfig::create()
 
 ## Plugin instances and ownership
 
-Greenlight creates plugin instances only on a side that uses one of their
-capabilities. It creates one orchestrator instance for each definition that has
-an orchestrator capability. It creates one worker instance for each definition
-that has a worker capability and for each physical worker.
+Greenlight creates plugin instances only for an owner that uses one of their
+capabilities. It creates one command-owned instance for each definition that
+has `ReporterProvider`. It creates one run-owned orchestrator instance for each
+definition that has a run capability. It creates one worker instance for each
+definition that has a worker capability and for each physical worker.
 
 A plugin that has capabilities on both sides gets one instance on each side.
 The instances are separate with one in-process worker and with parallel
-workers. Capabilities on the same side use the same instance. Priority applies
-independently to each capability.
+workers. Capabilities with the same owner and lifetime use the same instance.
+A plugin that has `ReporterProvider` and a run capability gets separate command
+and run instances. Priority applies independently to each capability.
 
 Each repeat iteration and watch rerun creates a new orchestrator instance and
 new worker instances. A replacement parallel worker also gets a new instance.
@@ -50,8 +52,73 @@ worker capabilities on its worker-local instance.
 
 ## Capability interfaces
 
-The `plugins()` method does not accept `Greenlight\Reporting\Reporter`. Use
-`--reporter` to select a built-in reporter.
+### ReporterProvider
+
+Orchestrator-side.
+
+A `ReporterProvider` adds named reporter factories to `--reporter`. Return one
+`ReporterDefinition` for each name.
+
+<!-- php-example {"example":"plugins-example-reporter-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\PluginDefinition;
+use Greenlight\Plugin\ReporterProvider;
+use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Reporter;
+use Greenlight\Reporting\ReporterDefinition;
+
+final class CompanyReporters implements ReporterProvider
+{
+    public function reporters(): array
+    {
+        return [
+            new ReporterDefinition(
+                'company-json',
+                static fn (Output $output): Reporter => new CompanyJsonReporter($output),
+            ),
+        ];
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(new PluginDefinition(
+        CompanyReporters::class,
+        static fn(): CompanyReporters => new CompanyReporters(),
+    ));
+```
+
+Select the reporter by name:
+
+```sh
+vendor/bin/greenlight run --reporter=company-json
+```
+
+A reporter name starts with a lowercase ASCII letter. It contains only
+lowercase ASCII letters, digits, and hyphens.
+
+Built-in and custom names share one registry. Each name MUST be unique. A
+duplicate name stops the command before the test run starts.
+
+Greenlight calls `reporters()` one time for each command. It calls a selected
+factory for each standard, repeat, or watch run. A repeated selection calls the
+factory one time for each occurrence.
+
+Each factory MUST return a new `Reporter`. Greenlight supplies the `Output` and
+owns it. A reporter MUST NOT close the output.
+
+Multiple selected reporters receive events in `--reporter` order. Greenlight
+also calls `finish()` in that order. It calls `finish()` one time after the
+final event, or after a contained run error.
+
+If a provider or factory throws, Greenlight reports the name and stops the
+command. An invalid factory result also stops the command before test execution.
+
+If a reporter callback throws `ReportingError`, Greenlight stops that callback.
+Later reporters do not receive the event or finish signal from that callback.
+
+Shell completions suggest the built-in names. A configured name remains valid
+when it does not occur in the suggestions.
 
 ### IntegrationFixtureProvider
 

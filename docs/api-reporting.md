@@ -75,3 +75,50 @@ PHPDoc:
 - `@throws ReportingError when the output cannot be rendered or delivered`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/Reporter.php#L29)
+
+## `ReporterDefinition`
+
+Namespace: `Greenlight\Reporting`
+
+Defines one command-line reporter name and its factory.
+
+The name starts with a lowercase ASCII letter. The remaining characters
+are lowercase ASCII letters, digits, or hyphens.
+
+```php
+final readonly class ReporterDefinition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L15)
+
+### `$name`
+
+```php
+public string $name
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L23)
+
+### `$factory`
+
+```php
+public \Closure $factory
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L24)
+
+### `__construct()`
+
+```php
+public function __construct(
+    public string $name,
+    public \Closure $factory,
+)
+```
+
+PHPDoc:
+
+- `@param non-empty-string $name`
+- `@param \Closure(Output): Reporter $factory The factory MUST return a new reporter for each call. Greenlight owns the supplied output.`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)

@@ -7,9 +7,9 @@ the infrastructure down when the run ends.
 ## Ownership and lifetime
 
 Plugins declare integration fixtures through `IntegrationFixtureProvider`.
-Greenlight provisions them in the orchestrator after discovery, selection, and
-sharding. Provisioning finishes before `RunStarted` and before Greenlight spawns
-workers.
+The run coordinator provisions them after discovery, selection, and sharding.
+Provisioning finishes before `RunStarted` and before Greenlight starts an
+execution adapter.
 
 The provider instance belongs to the orchestrator. If the same plugin class has
 worker capabilities, those capabilities use a separate instance in each
@@ -79,7 +79,7 @@ client through `HarnessProvider` or `ServiceResolver`.
 
 ## Teardown
 
-Greenlight starts teardown after `RunFinished` on a successful run.
+The run coordinator starts teardown after `RunFinished` on a successful run.
 Provisioning, bootstrap, worker, protocol, reporter, and test failures also
 trigger teardown. Greenlight runs every registered callback even if one throws.
 A teardown failure fails the run but does not replace an earlier failure.

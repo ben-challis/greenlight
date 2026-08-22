@@ -288,7 +288,7 @@ Identifies an object as a Greenlight plugin.
 Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`HarnessProvider`, or `ExpectationExtension`.
+`HarnessProvider`, `ReporterProvider`, or `ExpectationExtension`.
 
 ```php
 interface Plugin
@@ -376,6 +376,36 @@ public function priority(): int;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L15)
+
+## `ReporterProvider`
+
+Namespace: `Greenlight\Plugin`
+
+Supplies named reporter factories to the command-line reporter registry.
+
+Greenlight calls `reporters()` one time for a command. It calls a selected
+factory for each run, including each repeat or watch run.
+
+```php
+interface ReporterProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L15)
+
+### `reporters()`
+
+A factory MUST return a new reporter for each call. It MUST NOT close the
+supplied output because Greenlight owns that output.
+
+```php
+public function reporters(): array;
+```
+
+PHPDoc:
+
+- `@return list<ReporterDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L23)
 
 ## `RetryDecider`
 

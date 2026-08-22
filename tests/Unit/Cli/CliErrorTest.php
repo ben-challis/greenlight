@@ -93,8 +93,8 @@ final class CliErrorTest
             'Set resource limit "postgres" only once.',
         ];
         yield 'unknown reporter' => [
-            static fn(): CliError => CliError::unknownReporter('verbose'),
-            'Unknown reporter "verbose". Select tty, plain, junit, jsonl, github, or teamcity.',
+            static fn(): CliError => CliError::unknownReporter('verbose', ['plain', 'custom']),
+            'Unknown reporter "verbose". Select one of: plain, custom.',
         ];
     }
 }
