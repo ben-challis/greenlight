@@ -72,7 +72,6 @@ final readonly class WorkerRuntimeRunnerRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use WorkerBoundaryProbe\RuntimePlugin;
 
             require_once __DIR__ . '/tests/WorkerBoundaryTest.php';
@@ -80,10 +79,9 @@ final readonly class WorkerRuntimeRunnerRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    RuntimePlugin::class,
+                ->plugins(
                     static fn(): RuntimePlugin => new RuntimePlugin(__DIR__ . '/worker-runtime.marker'),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);

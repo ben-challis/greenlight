@@ -70,8 +70,7 @@ final class PluginRegistryTest
         $orchestratorConstructions = 0;
         $workerConstructions = 0;
         $definitions = [
-            new PluginDefinition(
-                FakeCapabilityPlugin::class,
+            PluginDefinition::fromFactory(
                 static function () use (&$mixedInstances): FakeCapabilityPlugin {
                     $plugin = new FakeCapabilityPlugin();
                     $mixedInstances[] = $plugin;
@@ -79,16 +78,14 @@ final class PluginRegistryTest
                     return $plugin;
                 },
             ),
-            new PluginDefinition(
-                RecordingRunSubscriber::class,
+            PluginDefinition::fromFactory(
                 static function () use (&$orchestratorConstructions): RecordingRunSubscriber {
                     ++$orchestratorConstructions;
 
                     return new RecordingRunSubscriber();
                 },
             ),
-            new PluginDefinition(
-                QuarantinePlugin::class,
+            PluginDefinition::fromFactory(
                 static function () use (&$workerConstructions): QuarantinePlugin {
                     ++$workerConstructions;
 

@@ -77,10 +77,9 @@ final class PlanFormatterTest
     {
         $configuration = GreenlightConfig::create()
             ->randomizeOrder()
-            ->plugins(new PluginDefinition(
-                NamedFakePlugin::class,
+            ->plugins(
                 static fn(): NamedFakePlugin => new NamedFakePlugin(),
-            ))
+            )
             ->build();
 
         $formatted = PlanFormatter::format($configuration, '/project/greenlight.php', '/project');
@@ -110,10 +109,9 @@ final class PlanFormatterTest
             recycleAboveMemoryBytes: 256 * 1024 * 1024,
             coverage: null,
             watch: new WatchConfiguration(),
-            plugins: [new PluginDefinition(
-                NamedFakePlugin::class,
-                static fn(): NamedFakePlugin => new NamedFakePlugin(),
-            )],
+            plugins: [
+                PluginDefinition::fromFactory(static fn(): NamedFakePlugin => new NamedFakePlugin()),
+            ],
             policy: new ResultPolicy(),
             stopAfterFailures: $failureLimit,
             randomizeOrder: true,

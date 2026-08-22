@@ -151,7 +151,6 @@ final readonly class TestAttemptRunnerRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use RuntimeBoundaryProbe\RuntimePlugin;
 
             require_once __DIR__ . '/tests/RuntimeBoundaryTest.php';
@@ -159,10 +158,9 @@ final readonly class TestAttemptRunnerRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    RuntimePlugin::class,
+                ->plugins(
                     static fn(): RuntimePlugin => new RuntimePlugin(),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
@@ -211,7 +209,6 @@ final readonly class TestAttemptRunnerRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use RuntimeBoundaryFailureProbe\FailingRuntimePlugin;
 
             require_once __DIR__ . '/tests/BoundaryFailureTest.php';
@@ -219,10 +216,9 @@ final readonly class TestAttemptRunnerRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    FailingRuntimePlugin::class,
+                ->plugins(
                     static fn(): FailingRuntimePlugin => new FailingRuntimePlugin(),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);

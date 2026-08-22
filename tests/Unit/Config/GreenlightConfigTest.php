@@ -15,7 +15,6 @@ use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
 use Greenlight\Core\Event\Event;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 
 final class GreenlightConfigTest
@@ -56,10 +55,7 @@ final class GreenlightConfigTest
     #[Test]
     public function buildsAFullyConfiguredRun(): void
     {
-        $plugin = new PluginDefinition(
-            ConfigRunSubscriber::class,
-            static fn(): ConfigRunSubscriber => new ConfigRunSubscriber(),
-        );
+        $plugin = static fn(): ConfigRunSubscriber => new ConfigRunSubscriber();
 
         $configuration = GreenlightConfig::create()
             ->paths(['tests/Unit', 'tests/Integration'])
@@ -99,7 +95,8 @@ final class GreenlightConfigTest
         Expect::that($coverage->driver)->because('builds a fully configured run')->toBe('pcov');
         Expect::that($coverage->exports[0]->format)->because('builds a fully configured run')->toBe('lcov');
         Expect::that($coverage->exports[0]->target)->because('builds a fully configured run')->toBe('coverage/lcov.info');
-        Expect::that($configuration->plugins)->because('builds a fully configured run')->toBe([$plugin]);
+        Expect::that($configuration->plugins)->because('builds a fully configured run')->toHaveCount(1);
+        Expect::that($configuration->plugins[0]->pluginClass)->because('builds a fully configured run')->toBe(ConfigRunSubscriber::class);
         Expect::that($configuration->stopAfterFailures)->because('builds a fully configured run')->toBe(1);
         Expect::that($configuration->randomizeOrder)->because('builds a fully configured run')->toBe(true);
         Expect::that($configuration->randomSeed)->because('builds a fully configured run')->toBe(99);

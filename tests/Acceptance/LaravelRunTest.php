@@ -135,7 +135,6 @@ final readonly class LaravelRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Laravel\LaravelPlugin;
 
             require_once __DIR__ . '/probe.php';
@@ -147,10 +146,9 @@ final readonly class LaravelRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(2)
-                ->plugins(new PluginDefinition(
-                    LaravelPlugin::class,
+                ->plugins(
                     static fn(): LaravelPlugin => new LaravelPlugin(__DIR__ . '/bootstrap/app.php'),
-                ));
+                );
             PHP);
 
         return $project;

@@ -298,62 +298,6 @@ interface Plugin
 
 This type does not declare public members.
 
-## `PluginDefinition`
-
-Namespace: `Greenlight\Plugin`
-
-Defines how Greenlight creates one type of plugin.
-
-```php
-final readonly class PluginDefinition
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/PluginDefinition.php#L8)
-
-### `$pluginClass`
-
-```php
-public string $pluginClass
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/PluginDefinition.php#L16)
-
-### `__construct()`
-
-```php
-public function __construct(
-    public string $pluginClass,
-    private \Closure $factory,
-)
-```
-
-PHPDoc:
-
-- `@param class-string<Plugin> $pluginClass`
-- `@param \Closure(): Plugin $factory The factory MUST return a new plugin instance on each call.`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/PluginDefinition.php#L15)
-
-### `create()`
-
-```php
-public function create(): Plugin
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/PluginDefinition.php#L28)
-
-### `supports()`
-
-```php
-public function supports(string $capability): bool
-```
-
-PHPDoc:
-
-- `@param class-string $capability`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/PluginDefinition.php#L46)
-
 ## `Prioritized`
 
 Namespace: `Greenlight\Plugin`

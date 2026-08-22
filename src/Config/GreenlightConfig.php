@@ -6,6 +6,7 @@ namespace Greenlight\Config;
 
 use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Core\Test\ResourceName;
+use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 
 /** Collects the configuration that `greenlight.php` returns. */
@@ -334,11 +335,23 @@ final class GreenlightConfig
         return $this;
     }
 
-    public function plugins(PluginDefinition ...$plugins): self
+    /**
+     * @param \Closure(): Plugin ...$plugins
+     * @throws InvalidConfiguration
+     */
+    public function plugins(\Closure ...$plugins): self
     {
-        foreach ($plugins as $plugin) {
-            $this->plugins[] = $plugin;
+        $definitions = [];
+
+        foreach ($plugins as $factory) {
+            try {
+                $definitions[] = PluginDefinition::fromFactory($factory);
+            } catch (\InvalidArgumentException $error) {
+                throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+            }
         }
+
+        $this->plugins = [...$this->plugins, ...$definitions];
 
         return $this;
     }

@@ -209,7 +209,6 @@ final readonly class TempestRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Tempest\TempestPlugin;
 
             require_once __DIR__ . '/app/GreetingConfig.php';
@@ -221,10 +220,9 @@ final readonly class TempestRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    TempestPlugin::class,
+                ->plugins(
                     static fn(): TempestPlugin => new TempestPlugin(__DIR__),
-                ));
+                );
             PHP);
 
         return $project;

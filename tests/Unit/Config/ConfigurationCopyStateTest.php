@@ -75,8 +75,7 @@ final class ConfigurationCopyStateTest
 
     private function configuration(): Configuration
     {
-        $plugin = new PluginDefinition(
-            NamedFakePlugin::class,
+        $plugin = PluginDefinition::fromFactory(
             static fn(): NamedFakePlugin => new NamedFakePlugin(),
         );
 

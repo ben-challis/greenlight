@@ -1,8 +1,8 @@
 # Plugins
 
-Plugins implement one or more capability interfaces. Pass a `PluginDefinition`
-for each plugin to `GreenlightConfig::plugins()` in `greenlight.php`. The
-definition contains the plugin class and a factory. The factory MUST return a
+Plugins implement one or more capability interfaces. Pass one factory for each
+plugin to `GreenlightConfig::plugins()` in `greenlight.php`. Each factory MUST
+declare its concrete plugin class as its return type. The factory MUST return a
 new instance on each call.
 
 Plugin capabilities run either in the orchestrator or in workers. Each
@@ -13,24 +13,18 @@ capability section below names its side.
 return GreenlightConfig::create()
     ->paths(['tests'])
     ->plugins(
-        new Greenlight\Plugin\PluginDefinition(
-            FlakyQuarantine::class,
-            static fn(): FlakyQuarantine => new FlakyQuarantine(),
-        ),
-        new Greenlight\Plugin\PluginDefinition(
-            SlackNotifier::class,
-            static fn(): SlackNotifier => new SlackNotifier(),
-        ),
+        static fn(): FlakyQuarantine => new FlakyQuarantine(),
+        static fn(): SlackNotifier => new SlackNotifier(),
     );
 ```
 
 ## Plugin instances and ownership
 
 Greenlight creates plugin instances only for an owner that uses one of their
-capabilities. It creates one command-owned instance for each definition that
+capabilities. It creates one command-owned instance for each factory that
 has `ReporterProvider`. It creates one run-owned orchestrator instance for each
-definition that has a run capability. It creates one worker instance for each
-definition that has a worker capability and for each physical worker.
+factory that has a run capability. It creates one worker instance for each
+factory that has a worker capability and for each physical worker.
 
 A plugin that has capabilities on both sides gets one instance on each side.
 The instances are separate with one in-process worker and with parallel
@@ -62,7 +56,6 @@ A `ReporterProvider` adds named reporter factories to `--reporter`. Return one
 <!-- php-example {"example":"plugins-example-reporter-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\ReporterProvider;
 use Greenlight\Reporting\Output\Output;
 use Greenlight\Reporting\Reporter;
@@ -82,10 +75,7 @@ final class CompanyReporters implements ReporterProvider
 }
 
 return GreenlightConfig::create()
-    ->plugins(new PluginDefinition(
-        CompanyReporters::class,
-        static fn(): CompanyReporters => new CompanyReporters(),
-    ));
+    ->plugins(static fn(): CompanyReporters => new CompanyReporters());
 ```
 
 Select the reporter by name:

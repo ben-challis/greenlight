@@ -177,7 +177,6 @@ final readonly class WatchModeTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Tests\Fixture\Plugins\IntegrationProbePlugin;
 
             require_once __DIR__ . '/tests/WatchProbeTest.php';
@@ -186,10 +185,9 @@ final readonly class WatchModeTest
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)%s
                 ->watch(fn($watch) => $watch->debounceMilliseconds(50))
-                ->plugins(new PluginDefinition(
-                    IntegrationProbePlugin::class,
+                ->plugins(
                     static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(%s, failCleanup: %s),
-                ));
+                );
             PHP,
             $coverage,
             $markerDirectory,

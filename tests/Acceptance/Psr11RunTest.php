@@ -111,7 +111,6 @@ final readonly class Psr11RunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Psr\Psr11Plugin;
             use Greenlight\Tests\Support\Psr\ArrayContainer;
             use Psr\Container\ContainerInterface;
@@ -124,8 +123,7 @@ final readonly class Psr11RunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    Psr11Plugin::class,
+                ->plugins(
                     static fn(): Psr11Plugin => new Psr11Plugin(
                         static fn(): ContainerInterface => new ArrayContainer([
                             Greeter::class => new Greeter('Hello'),
@@ -133,7 +131,7 @@ final readonly class Psr11RunTest
                             VisitCounter::class => new VisitCounter(),
                         ]),
                     ),
-                ));
+                );
 
             PHP);
 

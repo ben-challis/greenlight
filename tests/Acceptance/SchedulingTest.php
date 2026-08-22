@@ -171,7 +171,6 @@ final readonly class SchedulingTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
 
             foreach (\glob(__DIR__ . '/tests/*Test.php') ?: [] as $file) {
                 require_once $file;
@@ -248,7 +247,6 @@ final readonly class SchedulingTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use SchedulingOverheadProbe\OverheadPlugin;
 
             require_once __DIR__ . '/OverheadPlugin.php';
@@ -259,10 +257,9 @@ final readonly class SchedulingTest
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
-                ->plugins(new PluginDefinition(
-                    OverheadPlugin::class,
+                ->plugins(
                     static fn(): OverheadPlugin => new OverheadPlugin(),
-                ));
+                );
             PHP);
 
         return $project;

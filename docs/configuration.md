@@ -272,15 +272,15 @@ Each `eventually()` or `consistently()` matcher counts once.
 
 Also available as `--fail-on-risky`.
 
-### `plugins(PluginDefinition ...$plugins): self`
+### `plugins(Closure ...$plugins): self`
 
 Default: none.
 
-Registers immutable plugin definitions. Each definition names a plugin class
-and supplies a factory. The factory MUST return a new plugin instance on each
+Registers plugin factories. Each factory MUST declare one non-null concrete
+plugin class return type. The factory MUST return a new plugin instance on each
 call.
 
-The method is repeatable and definitions accumulate.
+The method is repeatable and factories accumulate.
 
 A `ReporterProvider` plugin registers custom names for `--reporter`. See
 [plugins](plugins.md#reporterprovider).

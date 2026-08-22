@@ -369,7 +369,6 @@ final readonly class IntegrationFixtureRunTest
             declare(strict_types=1);
 
             use Greenlight\\Config\\GreenlightConfig;
-            use Greenlight\\Plugin\\PluginDefinition;
             use Greenlight\\Tests\\Fixture\\Plugins\\IntegrationProbePlugin;
 
             {$requires}
@@ -377,15 +376,14 @@ final readonly class IntegrationFixtureRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers({$workers}{$recycle})
-                ->plugins(new PluginDefinition(
-                    IntegrationProbePlugin::class,
+                ->plugins(
                     static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(
                         {$markerDirectory},
                         failProvisioning: {$failProvisioningValue},
                         failCleanup: {$failCleanupValue},
                         failBootstrapChannel: {$failBootstrapChannelValue},
                     ),
-                ));
+                );
             PHP);
 
         return $project;
@@ -444,7 +442,6 @@ final readonly class IntegrationFixtureRunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Tests\Fixture\Plugins\PluginSeamProbePlugin;
 
             {$requires}
@@ -452,10 +449,9 @@ final readonly class IntegrationFixtureRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers({$workers})
-                ->plugins(new PluginDefinition(
-                    PluginSeamProbePlugin::class,
+                ->plugins(
                     static fn(): PluginSeamProbePlugin => new PluginSeamProbePlugin({$markerDirectory}),
-                ));
+                );
             PHP);
 
         return $project;

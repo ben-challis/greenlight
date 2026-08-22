@@ -15,15 +15,11 @@ Register the plugin in `greenlight.php` with your kernel class:
 <!-- php-example {"example":"symfony-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Symfony\SymfonyPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new PluginDefinition(
-        SymfonyPlugin::class,
-        static fn(): SymfonyPlugin => new SymfonyPlugin(App\Kernel::class, env: 'test', debug: false),
-    ));
+    ->plugins(static fn(): SymfonyPlugin => new SymfonyPlugin(App\Kernel::class, env: 'test', debug: false));
 ```
 
 Use a closure when the kernel needs custom construction:

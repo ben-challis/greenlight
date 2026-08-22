@@ -14,17 +14,13 @@ Register `Psr11Plugin` with a factory that returns the application container:
 <!-- php-example {"example":"psr-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Psr\Psr11Plugin;
 use Psr\Container\ContainerInterface;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(new PluginDefinition(
-        Psr11Plugin::class,
-        static fn(): Psr11Plugin => new Psr11Plugin(
-            static fn(): ContainerInterface => require __DIR__ . '/config/container.php',
-        ),
+    ->plugins(static fn(): Psr11Plugin => new Psr11Plugin(
+        static fn(): ContainerInterface => require __DIR__ . '/config/container.php',
     ));
 ```
 

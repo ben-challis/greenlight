@@ -16,7 +16,6 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Runner\Execution\ExecutionAdapter;
@@ -44,12 +43,11 @@ final readonly class RunCoordinatorTest
     public function runSubscribersObserveTheCompleteInProcessEventStream(): void
     {
         $subscriber = null;
-        $configuration = GreenlightConfig::create()->plugins(new PluginDefinition(
-            RecordingRunSubscriber::class,
+        $configuration = GreenlightConfig::create()->plugins(
             static function () use (&$subscriber): RecordingRunSubscriber {
                 return $subscriber = new RecordingRunSubscriber();
             },
-        ))->build();
+        )->build();
         $sink = new CollectingEventSink();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
@@ -74,12 +72,11 @@ final readonly class RunCoordinatorTest
     public function runSubscribersObserveTheCompleteProcessPoolEventStream(): void
     {
         $subscriber = null;
-        $configuration = GreenlightConfig::create()->plugins(new PluginDefinition(
-            RecordingRunSubscriber::class,
+        $configuration = GreenlightConfig::create()->plugins(
             static function () use (&$subscriber): RecordingRunSubscriber {
                 return $subscriber = new RecordingRunSubscriber();
             },
-        ))->build();
+        )->build();
         $sink = new CollectingEventSink();
         $root = \dirname(__DIR__, 3);
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
@@ -240,10 +237,9 @@ final readonly class RunCoordinatorTest
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
         $failure = new \RuntimeException('worker bootstrap exploded');
-        $configuration = GreenlightConfig::create()->plugins(new PluginDefinition(
-            FailingWorkerBootstrapPlugin::class,
+        $configuration = GreenlightConfig::create()->plugins(
             static fn(): FailingWorkerBootstrapPlugin => new FailingWorkerBootstrapPlugin($failure),
-        ))->build();
+        )->build();
         $fixtureDirectory = \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic';
 
         Expect::that(fn() => $this->coordinator()->run(

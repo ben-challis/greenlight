@@ -227,7 +227,6 @@ final readonly class AttachmentRunTest
             use Greenlight\Harness\ServiceDefinition;
             use Greenlight\Plugin\AfterTestSubscriber;
             use Greenlight\Plugin\HarnessProvider;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\RetryDecider;
             use Greenlight\Plugin\TestContext;
             use AttachmentProbe\FailingClassResource;
@@ -280,18 +279,9 @@ final readonly class AttachmentRunTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->plugins(
-                    new PluginDefinition(
-                        AttachmentSubscriber::class,
-                        static fn(): AttachmentSubscriber => new AttachmentSubscriber(),
-                    ),
-                    new PluginDefinition(
-                        AttachmentRetryDecider::class,
-                        static fn(): AttachmentRetryDecider => new AttachmentRetryDecider(),
-                    ),
-                    new PluginDefinition(
-                        AttachmentHarness::class,
-                        static fn(): AttachmentHarness => new AttachmentHarness(),
-                    ),
+                    static fn(): AttachmentSubscriber => new AttachmentSubscriber(),
+                    static fn(): AttachmentRetryDecider => new AttachmentRetryDecider(),
+                    static fn(): AttachmentHarness => new AttachmentHarness(),
                 )
                 ->artifacts(fn(ArtifactBuilder $artifacts) => $artifacts
                     ->directory(__DIR__ . '/artifacts'));

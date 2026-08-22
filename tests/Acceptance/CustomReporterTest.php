@@ -25,7 +25,6 @@ final readonly class CustomReporterTest
 
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Core\Event\Event;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\ReporterProvider;
             use Greenlight\Reporting\Output\Output;
             use Greenlight\Reporting\Reporter;
@@ -77,10 +76,9 @@ final readonly class CustomReporterTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    OrderedReporterProvider::class,
+                ->plugins(
                     static fn(): OrderedReporterProvider => new OrderedReporterProvider(),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, [
@@ -109,7 +107,6 @@ final readonly class CustomReporterTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\ReporterProvider;
             use Greenlight\Reporting\Output\Output;
             use Greenlight\Reporting\PlainReporter;
@@ -132,10 +129,9 @@ final readonly class CustomReporterTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    DuplicateBuiltInReporterProvider::class,
+                ->plugins(
                     static fn(): DuplicateBuiltInReporterProvider => new DuplicateBuiltInReporterProvider(),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--no-ansi']);
@@ -158,7 +154,6 @@ final readonly class CustomReporterTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\ReporterProvider;
             use Greenlight\Reporting\Output\Output;
             use Greenlight\Reporting\Reporter;
@@ -180,10 +175,9 @@ final readonly class CustomReporterTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    FailingReporterFactoryProvider::class,
+                ->plugins(
                     static fn(): FailingReporterFactoryProvider => new FailingReporterFactoryProvider(),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=broken', '--no-ansi']);
@@ -206,7 +200,6 @@ final readonly class CustomReporterTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\ReporterProvider;
 
             require_once __DIR__ . '/tests/ProbeTest.php';
@@ -222,10 +215,9 @@ final readonly class CustomReporterTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)
-                ->plugins(new PluginDefinition(
-                    FailingReporterProvider::class,
+                ->plugins(
                     static fn(): FailingReporterProvider => new FailingReporterProvider(),
-                ));
+                );
             PHP);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--no-ansi']);
