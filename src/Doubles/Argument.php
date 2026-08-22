@@ -39,8 +39,8 @@ final class Argument
     }
 
     /**
-     * This matcher uses the same deep equality as a value in `with()`.
-     * This form states the comparison explicitly.
+     * This matcher uses the same deep equality as `Expect::toEqual()`.
+     * Use it when `with()` must compare by value instead of identity.
      */
     public static function equals(mixed $value): ArgumentMatcher
     {

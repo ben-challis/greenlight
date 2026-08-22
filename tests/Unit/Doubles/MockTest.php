@@ -207,14 +207,14 @@ final class MockTest
     }
 
     #[Test]
-    public function exactArgumentsUseDeepEquality(): void
+    public function exactArgumentsUseStrictComparison(): void
     {
         $doubles = new Doubles();
         $calculator = $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('describe')->with('label')->once()->andReturns('matched');
         });
 
-        Expect::that($calculator->describe('label'))->because('exact arguments use deep equality')->toBe('matched');
+        Expect::that($calculator->describe('label'))->because('exact arguments use strict comparison')->toBe('matched');
 
         $doubles->dispose();
     }
