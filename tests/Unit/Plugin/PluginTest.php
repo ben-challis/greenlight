@@ -8,9 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Core\Test\SkipTest;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
@@ -241,7 +241,7 @@ final readonly class PluginTest
         $broken = new class implements RetryDecider, Fake {
             #[\Override]
             public function shouldRetry(
-                TestMetadata $metadata,
+                RetryPolicy $policy,
                 TestResult $result,
                 int $attempt,
                 ?\Throwable $cause,

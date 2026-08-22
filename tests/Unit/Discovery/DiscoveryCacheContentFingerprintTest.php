@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\DataProvider;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -111,12 +112,10 @@ final readonly class DiscoveryCacheContentFingerprintTest
         require_once $provider;
         $id = new TestId('Example\\ProviderProbeTest', 'runs');
         $entry = new PlanEntry(
-            $id,
-            new TestMetadata(
+            new TestDefinition(
                 $id->class,
                 $id->method,
-                dataSetProvider: 'rows',
-                dataSetProviderClass: $providerClass,
+                dataProvider: new DataProvider('rows', $providerClass),
             ),
         );
         $cache = DiscoveryCache::forDirectories([$directory]);

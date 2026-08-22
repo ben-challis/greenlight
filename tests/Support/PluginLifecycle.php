@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Support;
 
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\TestContext;
@@ -19,7 +19,7 @@ final class PluginLifecycle
         return new TestContext(
             new \stdClass(),
             new TestId('Fixture', 'probe'),
-            new TestMetadata('Fixture', 'probe'),
+            new TestDefinition('Fixture', 'probe'),
             new HarnessScopes(new HarnessRegistry()),
         );
     }

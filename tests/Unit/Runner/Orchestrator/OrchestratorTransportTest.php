@@ -10,8 +10,9 @@ use Greenlight\Core\Event\TestStarted;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\ExecutionPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -90,10 +91,11 @@ final readonly class OrchestratorTransportTest
     private function plan(TestId $id, ?float $timeoutSeconds = null): ExecutionPlan
     {
         return new ExecutionPlan([
-            new PlanEntry(
-                $id,
-                new TestMetadata($id->class, $id->method, timeoutSeconds: $timeoutSeconds),
-            ),
+            new PlanEntry(new TestDefinition(
+                $id->class,
+                $id->method,
+                execution: new ExecutionPolicy(timeoutSeconds: $timeoutSeconds),
+            )),
         ]);
     }
 }

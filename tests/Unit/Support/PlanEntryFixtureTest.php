@@ -18,11 +18,11 @@ final readonly class PlanEntryFixtureTest
         Expect::that((string) $entry->id)
             ->because('the fixture default MUST create a runnable method identifier')
             ->toBe('Acme\\ExampleTest::runs');
-        Expect::that([$entry->metadata->class, $entry->metadata->method])
+        Expect::that([$entry->definition->class, $entry->definition->method])
             ->toBe(['Acme\\ExampleTest', 'runs']);
-        Expect::that($entry->metadata->resources)
+        Expect::that($entry->definition->scheduling->resources)
             ->toBe([]);
-        Expect::that($entry->metadata->isolated)
+        Expect::that($entry->definition->scheduling->isolated)
             ->toBeFalse();
     }
 
@@ -40,12 +40,12 @@ final readonly class PlanEntryFixtureTest
         Expect::that((string) $entry->id)
             ->because('the fixture MUST retain the complete test identifier')
             ->toBe('Acme\\ExampleTest::checksValue[invalid value]');
-        Expect::that([$entry->metadata->class, $entry->metadata->method])
+        Expect::that([$entry->definition->class, $entry->definition->method])
             ->because('the fixture MUST keep identifier and metadata fields equal')
             ->toBe([$entry->id->class, $entry->id->method]);
-        Expect::that($entry->metadata->resources)
+        Expect::that($entry->definition->scheduling->resources)
             ->toBe(['database', 'cache']);
-        Expect::that($entry->metadata->isolated)
+        Expect::that($entry->definition->scheduling->isolated)
             ->toBeTrue();
     }
 }

@@ -13,7 +13,7 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 - [Artifact API](api-artifacts.md) — This reference lists attachment values, retention rules, and attachment operations.
 - [Event API](api-events.md) — This reference lists the events that plugins and reporters receive during a run.
 - [Result API](api-results.md) — This reference lists test outcomes, diagnostics, failure details, and result values.
-- [Test contracts API](api-test-contracts.md) — This reference lists test metadata, skip signals, conditions, and wire contracts.
+- [Test contracts API](api-test-contracts.md) — This reference lists test definitions, policies, skip signals, conditions, and wire contracts.
 - [Expectations API](api-expectations.md) — This reference lists immediate and temporal expectation types.
 - [Doubles API](api-doubles.md) — This reference lists double factories, argument matchers, captors, and mock plans.
 - [Sandbox API](api-sandboxes.md) — This reference lists the sandboxes that isolate temporary test state.

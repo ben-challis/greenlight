@@ -13,8 +13,10 @@ use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\DataProvider;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -43,8 +45,8 @@ final class ProtocolTest
     public function everyMessageSurvivesTheFramedRoundTrip(): void
     {
         $entry = new PlanEntry(
-            new TestId('App\FooTest', 'bar', 'k'),
-            new TestMetadata('App\FooTest', 'bar', ['slow']),
+            new TestDefinition('App\FooTest', 'bar', ['slow']),
+            'k',
         );
         $result = new TestResult(
             new TestId('App\FooTest', 'bar'),
@@ -110,8 +112,13 @@ final class ProtocolTest
     public function assignCarriesThePlanIntact(): void
     {
         $entry = new PlanEntry(
-            new TestId('App\FooTest', 'bar', 'data set one'),
-            new TestMetadata('App\FooTest', 'bar', isolated: true, dataSetProvider: 'rows', resources: ['postgres']),
+            new TestDefinition(
+                'App\FooTest',
+                'bar',
+                dataProvider: new DataProvider('rows'),
+                scheduling: new SchedulingPolicy(isolated: true, resources: ['postgres']),
+            ),
+            'data set one',
         );
 
         $assign = Assign::fromWire(new Assign(
@@ -130,8 +137,8 @@ final class ProtocolTest
         Expect::that($assign->artifactConfiguration?->maxRunAttachments)->toBe(123);
         Expect::that($assign->stopAfterFailures)->toBe(2);
         Expect::that($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one');
-        Expect::that($assign->slice->entries[0]->metadata->isolated)->toBeTrue();
-        Expect::that($assign->slice->entries[0]->metadata->resources)->toBe(['postgres']);
+        Expect::that($assign->slice->entries[0]->definition->scheduling->isolated)->toBeTrue();
+        Expect::that($assign->slice->entries[0]->definition->scheduling->resources)->toBe(['postgres']);
     }
 
     #[Test]
@@ -217,7 +224,7 @@ final class ProtocolTest
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 2, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 3, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
         Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')

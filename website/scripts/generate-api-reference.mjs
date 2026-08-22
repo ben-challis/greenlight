@@ -44,7 +44,7 @@ const sections = [
   {
     id: 'api-test-contracts',
     title: 'Test contracts API',
-    description: 'This reference lists test metadata, skip signals, conditions, and wire contracts.',
+    description: 'This reference lists test definitions, policies, skip signals, conditions, and wire contracts.',
     prefixes: ['Greenlight\\Core\\Test\\', 'Greenlight\\Core\\Wire\\', 'Greenlight\\Test\\'],
     names: ['Greenlight\\Core\\Condition'],
   },

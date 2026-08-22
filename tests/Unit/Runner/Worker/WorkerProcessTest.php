@@ -398,8 +398,7 @@ final readonly class WorkerProcessTest
                 $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                     new Greenlight\Discovery\ExecutionPlan([
                         new Greenlight\Discovery\PlanEntry(
-                            $id,
-                            new Greenlight\Core\Test\TestMetadata($class, 'one'),
+                            new Greenlight\Core\Test\TestDefinition($class, 'one'),
                         ),
                     ]),
                     recycleAfterTests: 1,
@@ -429,8 +428,7 @@ final readonly class WorkerProcessTest
                     $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                         new Greenlight\Discovery\ExecutionPlan([
                             new Greenlight\Discovery\PlanEntry(
-                                $id,
-                                new Greenlight\Core\Test\TestMetadata($class, $method),
+                                new Greenlight\Core\Test\TestDefinition($class, $method),
                             ),
                         ]),
                         recycleAfterTests: 2,

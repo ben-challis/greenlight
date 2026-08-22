@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Core\Test\TestSelection;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -133,23 +132,23 @@ final readonly class TestDiscoverer
 
         $entries = [];
 
-        foreach ($this->metadataFactory->forClass($reflection) as $metadata) {
+        foreach ($this->metadataFactory->forClass($reflection) as $definition) {
             $rows = $this->dataSetExpander->rowsFor(
                 $reflection,
-                $metadata->method,
-                $metadata->dataSetProvider,
+                $definition->method,
+                $definition->dataProvider->method,
                 $this->providerTimeBudgetSeconds,
-                $metadata->dataSetProviderClass,
+                $definition->dataProvider->class,
             );
 
             if ($rows === []) {
-                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method), $metadata);
+                $entries[] = new PlanEntry($definition);
 
                 continue;
             }
 
             foreach (\array_keys($rows) as $key) {
-                $entries[] = new PlanEntry(new TestId($metadata->class, $metadata->method, (string) $key), $metadata);
+                $entries[] = new PlanEntry($definition, (string) $key);
             }
         }
 
@@ -167,9 +166,9 @@ final readonly class TestDiscoverer
         return \array_values(\array_filter(
             $entries,
             static fn(PlanEntry $entry): bool => $selection->accepts(
-                $entry->metadata->class,
-                $entry->metadata->method,
-                $entry->metadata->groups,
+                $entry->definition->class,
+                $entry->definition->method,
+                $entry->definition->groups,
                 $file,
             ) && $selection->acceptsId((string) $entry->id),
         ));

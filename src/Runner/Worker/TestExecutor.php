@@ -76,14 +76,15 @@ final readonly class TestExecutor
      */
     public function execute(PlanEntry $entry): TestResult
     {
-        $metadata = $entry->metadata;
+        $definition = $entry->definition;
+        $skip = $definition->skip;
 
-        if ($metadata->skipReason !== null) {
-            return $this->skipped($entry, $metadata->skipReason);
+        if ($skip->reason !== null) {
+            return $this->skipped($entry, $skip->reason);
         }
 
-        if ($metadata->skipUnlessCondition !== null) {
-            $satisfied = $this->evaluateCondition($metadata->skipUnlessCondition, $metadata->skipUnlessArguments);
+        if ($skip->condition !== null) {
+            $satisfied = $this->evaluateCondition($skip->condition, $skip->arguments);
 
             if ($satisfied instanceof \Throwable) {
                 return new TestResult(
@@ -98,7 +99,7 @@ final readonly class TestExecutor
             if (!$satisfied) {
                 return $this->skipped($entry, \sprintf(
                     'Condition %s is not satisfied',
-                    $this->describeCondition($metadata->skipUnlessCondition, $metadata->skipUnlessArguments),
+                    $this->describeCondition($skip->condition, $skip->arguments),
                 ));
             }
         }
@@ -145,7 +146,7 @@ final readonly class TestExecutor
             try {
                 $retry = \array_any(
                     $this->plugins->retryDeciders(),
-                    fn($decider) => $decider->shouldRetry($metadata, $result, $attempt, $cause),
+                    fn($decider) => $decider->shouldRetry($definition->retry, $result, $attempt, $cause),
                 );
             } catch (\Throwable $threw) {
                 $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
@@ -192,7 +193,8 @@ final readonly class TestExecutor
      */
     private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
     {
-        $metadata = $entry->metadata;
+        $definition = $entry->definition;
+        $execution = $definition->execution;
         ExpectationCounter::reset();
         $this->scopes->openTest();
 
@@ -203,7 +205,7 @@ final readonly class TestExecutor
         $skipReason = null;
         $captured = null;
         $context = null;
-        $capture = $metadata->capture ? new OutputCapture() : null;
+        $capture = $execution->capture ? new OutputCapture() : null;
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
@@ -211,14 +213,14 @@ final readonly class TestExecutor
         $startedAt = \hrtime(true);
         $capture?->start();
         ExpectationRuntime::enterAttempt(
-            $metadata->timeoutSeconds === null
+            $execution->timeoutSeconds === null
                 ? null
-                : $startedAt / 1_000_000_000 + $metadata->timeoutSeconds,
+                : $startedAt / 1_000_000_000 + $execution->timeoutSeconds,
         );
 
         try {
-            $instance = $this->instantiate($metadata->class, $attachments, $cleanup);
-            $context = new TestContext($instance, $entry->id, $metadata, $this->scopes, $attachments);
+            $instance = $this->instantiate($definition->class, $attachments, $cleanup);
+            $context = new TestContext($instance, $entry->id, $definition, $this->scopes, $attachments);
             $instance = null;
 
             foreach ($this->plugins->beforeTestSubscribers() as $subscriber) {
@@ -246,14 +248,14 @@ final readonly class TestExecutor
 
                     if ($entry->id->dataSetKey !== null) {
                         $arguments = $this->context->argumentsFor(
-                            $metadata->dataSetProvider,
-                            $metadata->dataSetProviderClass,
-                            $metadata->method,
+                            $definition->dataProvider->method,
+                            $definition->dataProvider->class,
+                            $definition->method,
                             $entry->id->dataSetKey,
                         );
                     }
 
-                    $this->context->reflection->getMethod($metadata->method)->invokeArgs($context->instance, $arguments);
+                    $this->context->reflection->getMethod($definition->method)->invokeArgs($context->instance, $arguments);
                 } catch (SkipTest $skip) {
                     $skipReason = $skip->reason;
                 } catch (ExpectationFailed $failed) {
@@ -343,7 +345,7 @@ final readonly class TestExecutor
             default => Outcome::Passed,
         };
 
-        $budget = $metadata->timeoutSeconds;
+        $budget = $execution->timeoutSeconds;
 
         if ($budget !== null && $durationSeconds > $budget && $outcome === Outcome::Passed) {
             $outcome = Outcome::Failed;
@@ -370,7 +372,7 @@ final readonly class TestExecutor
         // The counter includes double verification from scope close. A passed
         // test with no verified expectations is a risky test unless it has
         // #[NoExpectations].
-        if ($result->outcome === Outcome::Passed && !$metadata->noExpectations && $result->expectations === 0) {
+        if ($result->outcome === Outcome::Passed && !$execution->noExpectations && $result->expectations === 0) {
             $result = $result->asRisky();
         }
 

@@ -33,7 +33,7 @@ final readonly class ApiReferenceGenerationTest
             ->because('the API reference MUST include each public promoted property')
             ->toContain('### `$instance`')
             ->toContain('### `$id`')
-            ->toContain('### `$metadata`')
+            ->toContain('### `$definition`')
             ->not()->toContain('### `$scopes`');
     }
 

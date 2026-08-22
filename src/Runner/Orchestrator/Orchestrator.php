@@ -783,7 +783,7 @@ final class Orchestrator
             }
 
             $entry = $this->entriesById[(string) $handle->inFlight] ?? null;
-            $budget = $entry?->metadata->timeoutSeconds;
+            $budget = $entry?->definition->execution->timeoutSeconds;
 
             if ($budget === null) {
                 continue;
@@ -901,7 +901,7 @@ final class Orchestrator
                 continue;
             }
 
-            if ($entry->metadata->isolated) {
+            if ($entry->definition->scheduling->isolated) {
                 $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan([$entry]), true));
 
                 continue;

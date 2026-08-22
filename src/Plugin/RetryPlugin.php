@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Plugin;
 
 use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\RetryPolicy;
 
 /**
  * Implements RetryDecider for the #[Retry] attribute.
@@ -19,15 +19,15 @@ use Greenlight\Core\Test\TestMetadata;
 final readonly class RetryPlugin implements RetryDecider
 {
     #[\Override]
-    public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool
+    public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool
     {
-        $times = $metadata->retryTimes;
+        $times = $policy->times;
 
         if ($times === null || $attempt > $times) {
             return false;
         }
 
-        $onlyOn = $metadata->retryOnlyOn;
+        $onlyOn = $policy->onlyOn;
 
         if ($onlyOn !== null && !($cause instanceof $onlyOn)) {
             return false;

@@ -114,7 +114,7 @@ final readonly class DiscoveryCacheEntry implements \JsonSerializable
             foreach ($this->entries as $payload) {
                 $entries[] = PlanEntry::fromWire($payload);
             }
-        } catch (\InvalidArgumentException|WireCommunicationFailed) {
+        } catch (WireCommunicationFailed) {
             return null;
         }
 

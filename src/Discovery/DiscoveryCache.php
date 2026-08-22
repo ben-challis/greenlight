@@ -22,7 +22,7 @@ use Greenlight\Core\ErrorTrap;
  */
 final class DiscoveryCache
 {
-    private const int VERSION = 3;
+    private const int VERSION = 4;
 
     /**
      * @var array<string, DiscoveryCacheEntry>
@@ -135,7 +135,7 @@ final class DiscoveryCache
         $dependencies = [];
 
         foreach ($entries as $entry) {
-            $class = $entry->metadata->dataSetProviderClass;
+            $class = $entry->definition->dataProvider->class;
 
             if ($class === null || !\class_exists($class)) {
                 continue;
@@ -143,7 +143,7 @@ final class DiscoveryCache
 
             $reflection = new \ReflectionClass($class);
             $files = [$reflection->getFileName()];
-            $provider = $entry->metadata->dataSetProvider;
+            $provider = $entry->definition->dataProvider->method;
 
             if ($provider !== null && $reflection->hasMethod($provider)) {
                 $files[] = $reflection->getMethod($provider)->getFileName();

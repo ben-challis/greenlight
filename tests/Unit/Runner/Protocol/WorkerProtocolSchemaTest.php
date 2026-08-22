@@ -23,8 +23,13 @@ use Greenlight\Core\Result\ResultSummary;
 use Greenlight\Core\Result\SourceLocation;
 use Greenlight\Core\Result\TestResult;
 use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Core\Test\DataProvider;
+use Greenlight\Core\Test\ExecutionPolicy;
+use Greenlight\Core\Test\RetryPolicy;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\SkipPolicy;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\ExecutionPlan;
@@ -105,11 +110,6 @@ final class WorkerProtocolSchemaTest
             ['artifactSession'],
             ['artifactConfiguration'],
             ['stopAfterFailures'],
-            ['slice', 'entries', 0, 'metadata', 'skipUnlessArguments'],
-            ['slice', 'entries', 0, 'metadata', 'dataSetProviderClass'],
-            ['slice', 'entries', 0, 'metadata', 'noExpectations'],
-            ['slice', 'entries', 0, 'metadata', 'resources'],
-            ['slice', 'entries', 0, 'metadata', 'allowParallel'],
         ]);
         $eventPayload = $this->withoutPaths($this->messages()['event']->toWire(), [
             ['data', 'result', 'risky'],
@@ -117,10 +117,10 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 2, 't' => 'assign', 'p' => $assignPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 2, 't' => 'event', 'p' => $eventPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'event', 'p' => $eventPayload])))
             ->because('the schema MUST accept compatible test result payloads')
             ->toBe([]);
     }
@@ -131,7 +131,7 @@ final class WorkerProtocolSchemaTest
         $payload = $this->messages()['assign']->toWire();
         $payload['futureProtocolField'] = true;
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 2, 't' => 'assign', 'p' => $payload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
             ->not()
             ->toBe([]);
@@ -144,24 +144,20 @@ final class WorkerProtocolSchemaTest
     {
         $id = new TestId('App\ExampleTest', 'checksValue', 'example');
         $entry = new PlanEntry(
-            $id,
-            new TestMetadata(
+            new TestDefinition(
                 'App\ExampleTest',
                 'checksValue',
                 ['unit'],
-                skipUnlessCondition: 'App\Conditions::available',
-                retryTimes: 2,
-                retryOnlyOn: \RuntimeException::class,
-                timeoutSeconds: 1.5,
-                isolated: true,
-                dataSetProvider: 'examples',
-                capture: true,
-                noExpectations: false,
-                skipUnlessArguments: ['primary', 1, 2.5, true, null],
-                resources: ['database.primary'],
-                dataSetProviderClass: 'App\Examples',
-                allowParallel: true,
+                new SkipPolicy(
+                    condition: 'App\Conditions::available',
+                    arguments: ['primary', 1, 2.5, true, null],
+                ),
+                new RetryPolicy(2, \RuntimeException::class),
+                new DataProvider('examples', 'App\Examples'),
+                new ExecutionPolicy(1.5, capture: true, noExpectations: false),
+                new SchedulingPolicy(true, ['database.primary'], true),
             ),
+            $id->dataSetKey,
         );
         $coverage = new CoverageMap([
             new FileCoverage('/project/src/Example.php', [2, 3], [5]),
@@ -401,7 +397,7 @@ final class WorkerProtocolSchemaTest
 
     private function schemaPath(): string
     {
-        return \dirname(__DIR__, 4) . '/resources/schema/worker-protocol-v2.schema.json';
+        return \dirname(__DIR__, 4) . '/resources/schema/worker-protocol-v3.schema.json';
     }
 
     /**

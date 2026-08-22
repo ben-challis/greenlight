@@ -7,8 +7,8 @@ namespace Greenlight\Plugin;
 use Greenlight\Core\Artifact\Attachments;
 use Greenlight\Core\Artifact\UnavailableAttachments;
 use Greenlight\Core\Test\SkipTest;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
@@ -26,7 +26,7 @@ final readonly class TestContext
     public function __construct(
         public object $instance,
         public TestId $id,
-        public TestMetadata $metadata,
+        public TestDefinition $definition,
         private HarnessScopes $scopes,
         ?Attachments $attachments = null,
     ) {
@@ -44,10 +44,10 @@ final readonly class TestContext
      */
     public function service(string $type): object
     {
-        $service = $this->scopes->resolve($type, 'plugin context for ' . $this->metadata->class);
+        $service = $this->scopes->resolve($type, 'plugin context for ' . $this->definition->class);
 
         if (!$service instanceof $type) {
-            throw UnresolvableService::unknownType($type, 'plugin context for ' . $this->metadata->class);
+            throw UnresolvableService::unknownType($type, 'plugin context for ' . $this->definition->class);
         }
 
         return $service;

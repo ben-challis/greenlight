@@ -28,7 +28,7 @@ use Greenlight\Runner\Protocol\Messages\Recycling;
  */
 final class MessageRegistry
 {
-    private const int VERSION = 2;
+    private const int VERSION = 3;
 
     /**
      * @var array<non-empty-string, class-string<Message>>

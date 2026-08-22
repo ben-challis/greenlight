@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Core\Wire\Wire;
 use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Core\Wire\WireSerializable;
@@ -13,43 +13,33 @@ use Greenlight\Core\Wire\WireSerializable;
 /** @internal */
 final readonly class PlanEntry implements WireSerializable
 {
-    /**
-     * @throws \InvalidArgumentException when the id does not match the metadata
-     */
+    public TestId $id;
+
     public function __construct(
-        public TestId $id,
-        public TestMetadata $metadata,
+        public TestDefinition $definition,
+        public ?string $dataSetKey = null,
     ) {
-        if ($id->class !== $metadata->class || $id->method !== $metadata->method) {
-            throw new \InvalidArgumentException(\sprintf(
-                'Plan entry identity %s::%s does not match its metadata %s::%s.',
-                $id->class,
-                $id->method,
-                $metadata->class,
-                $metadata->method,
-            ));
-        }
+        $this->id = new TestId($definition->class, $definition->method, $dataSetKey);
     }
 
     #[\Override]
     public function toWire(): array
     {
         return [
-            'id' => $this->id->toWire(),
-            'metadata' => $this->metadata->toWire(),
+            'definition' => $this->definition->toWire(),
+            'dataSetKey' => $this->dataSetKey,
         ];
     }
 
     /**
-     * @throws \InvalidArgumentException when the id does not match the metadata
      * @throws WireCommunicationFailed
      */
     #[\Override]
     public static function fromWire(array $payload): static
     {
         return new self(
-            TestId::fromWire(Wire::map($payload, 'id')),
-            TestMetadata::fromWire(Wire::map($payload, 'metadata')),
+            TestDefinition::fromWire(Wire::map($payload, 'definition')),
+            Wire::nullableString($payload, 'dataSetKey'),
         );
     }
 }

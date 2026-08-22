@@ -39,10 +39,10 @@ connects as a client.
 Each message is a length-prefixed JSON frame: a 4-byte big-endian length
 followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
 oversized or malformed frames as protocol errors. The JSON envelope contains a
-protocol version (`v`, currently `2`), a type tag, and the payload. Greenlight
+protocol version (`v`, currently `3`), a type tag, and the payload. Greenlight
 also rejects unknown versions and tags.
 
-The [version 2 schema](../../resources/schema/worker-protocol-v2.schema.json)
+The [version 3 schema](../../resources/schema/worker-protocol-v3.schema.json)
 specifies each envelope and payload that Greenlight sends.
 
 The socket carries all protocol data. The native adapter closes worker stdin
@@ -70,6 +70,23 @@ Ten message types cross the socket:
 The orchestrator generates a 16-byte random token for each run and passes it to
 workers on the command line. A connection with the wrong token cannot join the
 pool or submit results.
+
+## The execution-plan model
+
+Each `TestDefinition` contains one class and method declaration. It also
+contains groups and these separate policy values:
+
+* `SkipPolicy`
+* `RetryPolicy`
+* `DataProvider`
+* `ExecutionPolicy`
+* `SchedulingPolicy`
+
+A plan entry adds only the optional data-set key. It derives its `TestId` from
+the definition and data-set key.
+
+The `assign` payload stores `definition` and `dataSetKey` for each plan entry.
+It does not send a derived `TestId` or a second declaration identity.
 
 ## Worker startup and assignment
 
@@ -217,8 +234,9 @@ crash. It uses this frame when a worker dies before `test-finished`.
 
 ## Resource assignment
 
-Discovery stores `#[RequiresResource]` names in test metadata. The orchestrator
-groups non-isolated entries by class and combines their requirements.
+Discovery stores `#[RequiresResource]` names in each test definition's
+scheduling policy. The orchestrator groups non-isolated entries by class and
+combines their requirements.
 
 It treats each `#[AllowParallel]` entry as a separate pooled scheduling unit.
 It treats each isolated entry as a separate isolated scheduling unit.
@@ -247,10 +265,10 @@ assignment. Thus, the normal progress deadline does not classify the worker as
 stalled. After capacity becomes available, the orchestrator checks the workers
 that wait for resources.
 
-The orchestrator claims resource capacity from the test metadata in `assign`,
-without another protocol message. Each Greenlight process, worktree, or shard
-has separate resource counters. Different runs require an external lock or
-service for coordination.
+The orchestrator claims resource capacity from the scheduling policy in
+`assign`, without another protocol message. Each Greenlight process, worktree,
+or shard has separate resource counters. Different runs require an external
+lock or service for coordination.
 
 The orchestrator controls capacity, not resource identity. A limit of two
 permits two assignments that require the resource at the same time. It does not

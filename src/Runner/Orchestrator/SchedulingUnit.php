@@ -32,7 +32,7 @@ final readonly class SchedulingUnit
         $resources = [];
 
         foreach ($plan->entries as $entry) {
-            foreach ($entry->metadata->resources as $resource) {
+            foreach ($entry->definition->scheduling->resources as $resource) {
                 $resources[$resource] = $resource;
             }
         }

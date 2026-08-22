@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\Test;
 use Greenlight\Core\Result\Outcome;
 use Greenlight\Core\Result\TestResult;
+use Greenlight\Core\Test\RetryPolicy;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RetryPlugin;
 
@@ -17,12 +17,7 @@ final class RetryPluginInheritanceTest
     #[Test]
     public function throwableFilterAcceptsSubclassesOfTheConfiguredType(): void
     {
-        $metadata = new TestMetadata(
-            'Example\RetryTest',
-            'retries',
-            retryTimes: 1,
-            retryOnlyOn: \LogicException::class,
-        );
+        $policy = new RetryPolicy(1, \LogicException::class);
         $result = new TestResult(
             new TestId('Example\RetryTest', 'retries'),
             Outcome::Errored,
@@ -31,7 +26,7 @@ final class RetryPluginInheritanceTest
         );
 
         Expect::that(new RetryPlugin()->shouldRetry(
-            $metadata,
+            $policy,
             $result,
             1,
             new \InvalidArgumentException('retry'),

@@ -24,8 +24,8 @@ final readonly class PluginLifecycleTest
         Expect::that($context->id->equals($result->id))
             ->because('the shared context and result MUST identify the same test')
             ->toBeTrue();
-        Expect::that($context->metadata->class)->toBe($context->id->class);
-        Expect::that($context->metadata->method)->toBe($context->id->method);
+        Expect::that($context->definition->class)->toBe($context->id->class);
+        Expect::that($context->definition->method)->toBe($context->id->method);
         Expect::that($result->outcome)->toBe(Outcome::Passed);
     }
 }

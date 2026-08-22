@@ -16,7 +16,12 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\TestMetadata;
+use Greenlight\Core\Test\DataProvider;
+use Greenlight\Core\Test\ExecutionPolicy;
+use Greenlight\Core\Test\RetryPolicy;
+use Greenlight\Core\Test\SchedulingPolicy;
+use Greenlight\Core\Test\SkipPolicy;
+use Greenlight\Core\Test\TestDefinition;
 
 /**
  * Merges class attributes into each method. A method value has priority in a
@@ -30,7 +35,7 @@ final class MetadataFactory
     /**
      * @param \ReflectionClass<object> $class
      *
-     * @return list<TestMetadata> in method declaration order
+     * @return list<TestDefinition> in method declaration order
      *
      * @throws DiscoveryError
      */
@@ -50,7 +55,7 @@ final class MetadataFactory
             throw DiscoveryError::incompatibleAttributes($className, 'AllowParallel', 'Isolated');
         }
 
-        $metadata = [];
+        $definitions = [];
 
         foreach ($class->getMethods() as $method) {
             if ($method->getAttributes(Test::class) === []) {
@@ -85,27 +90,31 @@ final class MetadataFactory
                 throw DiscoveryError::incompatibleAttributes($className, 'AllowParallel', 'Isolated');
             }
 
-            $metadata[] = new TestMetadata(
+            $definitions[] = new TestDefinition(
                 $className,
                 $methodName,
                 $groups,
-                $skip?->reason,
-                $skipUnless?->condition,
-                $retry?->times,
-                $retry?->onlyOn,
-                $timeout?->seconds,
-                $classIsolated || $method->getAttributes(Isolated::class) !== [],
-                $dataSet?->provider,
-                $test->capture,
-                $method->getAttributes(NoExpectations::class) !== [],
-                $this->skipUnlessArguments($skipUnless, $where),
-                $resources,
-                $dataSet?->providerClass,
-                $classAllowsParallel,
+                new SkipPolicy(
+                    $skip?->reason,
+                    $skipUnless?->condition,
+                    $this->skipUnlessArguments($skipUnless, $where),
+                ),
+                new RetryPolicy($retry?->times, $retry?->onlyOn),
+                new DataProvider($dataSet?->provider, $dataSet?->providerClass),
+                new ExecutionPolicy(
+                    $timeout?->seconds,
+                    $test->capture,
+                    $method->getAttributes(NoExpectations::class) !== [],
+                ),
+                new SchedulingPolicy(
+                    $classIsolated || $method->getAttributes(Isolated::class) !== [],
+                    $resources,
+                    $classAllowsParallel,
+                ),
             );
         }
 
-        return $metadata;
+        return $definitions;
     }
 
     /**

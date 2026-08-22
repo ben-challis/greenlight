@@ -360,22 +360,23 @@ A worker calls a retry decider after each unsuccessful attempt.
 A `true` result starts a new attempt with a new test instance and a new
 service scope.
 
-`shouldRetry()` receives the metadata, result, attempt number, and optional
-cause. It does not receive `TestContext` because the attempt is complete.
+`shouldRetry()` receives the retry policy, result, attempt number, and
+optional cause. It does not receive `TestContext` because the attempt is
+complete.
 
 ```php
 interface RetryDecider extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L20)
 
 ### `shouldRetry()`
 
 ```php
-public function shouldRetry(TestMetadata $metadata, TestResult $result, int $attempt, ?\Throwable $cause): bool;
+public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L22)
 
 ## `RunLifecycleSubscriber`
 
@@ -465,10 +466,10 @@ public TestId $id
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
 
-### `$metadata`
+### `$definition`
 
 ```php
-public TestMetadata $metadata
+public TestDefinition $definition
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)

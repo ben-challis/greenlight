@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Core\Test\TestId;
-use Greenlight\Core\Test\TestMetadata;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -27,8 +27,7 @@ final readonly class DiscoveryCachePersistenceTest
 
         $id = new TestId('Example\InvalidUtf8Test', 'runs');
         $entry = new PlanEntry(
-            $id,
-            new TestMetadata($id->class, $id->method, groups: ["invalid \xFF"]),
+            new TestDefinition($id->class, $id->method, groups: ["invalid \xFF"]),
         );
         $cache = DiscoveryCache::forDirectories([$directory]);
         $cache->store($source, [$entry]);
