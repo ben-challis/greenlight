@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Fixture\Runner\Orchestrator;
 
 use Greenlight\Doubles\Fake;
 use Greenlight\Runner\Orchestrator\ServerSocketRuntime;
+use Greenlight\Tests\Support\MemoryStream;
 
 final class TruncatingServerSocketRuntime implements Fake, ServerSocketRuntime
 {
@@ -20,11 +21,7 @@ final class TruncatingServerSocketRuntime implements Fake, ServerSocketRuntime
     #[\Override]
     public function listen(string $address, ?string &$errorMessage)
     {
-        $server = \fopen('php://temp', 'r+');
-
-        if (!\is_resource($server)) {
-            throw new \RuntimeException('The truncating socket runtime did not create its stream.');
-        }
+        $server = MemoryStream::open();
 
         if (\str_starts_with($address, 'unix://')) {
             $this->unixAddress = $address;

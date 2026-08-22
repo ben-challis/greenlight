@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Fixture\Runner\Orchestrator;
 
 use Greenlight\Doubles\Fake;
 use Greenlight\Runner\Orchestrator\ServerSocketRuntime;
+use Greenlight\Tests\Support\MemoryStream;
 
 final class ControlledServerSocketRuntime implements Fake, ServerSocketRuntime
 {
@@ -35,13 +36,7 @@ final class ControlledServerSocketRuntime implements Fake, ServerSocketRuntime
             return false;
         }
 
-        $server = \fopen('php://temp', 'r+');
-
-        if (!\is_resource($server)) {
-            throw new \RuntimeException('The controlled socket runtime did not create its TCP stream.');
-        }
-
-        return $this->tcpServer = $server;
+        return $this->tcpServer = MemoryStream::open();
     }
 
     #[\Override]
