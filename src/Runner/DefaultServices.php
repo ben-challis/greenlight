@@ -33,12 +33,14 @@ final class DefaultServices
     public static function registry(
         PluginRegistry $plugins = new PluginRegistry(),
         IntegrationResources $integrationResources = new IntegrationResources(),
+        ?string $generatedCodeDirectory = null,
+        ?string $temporaryDirectory = null,
     ): HarnessRegistry {
         Expect::install($plugins->ofType(ExpectationExtension::class));
 
         $registry = new HarnessRegistry([
-            new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
-            new ServiceDefinition(TemporaryDirectory::class, Scope::PerTest, static fn(): TemporaryDirectory => new TemporaryDirectory()),
+            new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles($generatedCodeDirectory)),
+            new ServiceDefinition(TemporaryDirectory::class, Scope::PerTest, static fn(): TemporaryDirectory => new TemporaryDirectory($temporaryDirectory)),
             new ServiceDefinition(Autoloaders::class, Scope::PerTest, static fn(): Autoloaders => new Autoloaders()),
             new ServiceDefinition(EnvironmentVariables::class, Scope::PerTest, static fn(): EnvironmentVariables => new EnvironmentVariables()),
             new ServiceDefinition(StreamWrappers::class, Scope::PerTest, static fn(): StreamWrappers => new StreamWrappers()),

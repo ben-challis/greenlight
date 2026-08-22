@@ -225,20 +225,18 @@ final readonly class AttachmentRunTest
             use Greenlight\Core\Test\TestMetadata;
             use Greenlight\Harness\Scope;
             use Greenlight\Harness\ServiceDefinition;
+            use Greenlight\Plugin\AfterTestSubscriber;
             use Greenlight\Plugin\HarnessProvider;
             use Greenlight\Plugin\PluginDefinition;
             use Greenlight\Plugin\RetryDecider;
             use Greenlight\Plugin\TestContext;
-            use Greenlight\Plugin\TestLifecycleSubscriber;
             use AttachmentProbe\FailingClassResource;
 
             require_once __DIR__ . '/tests/AttachmentProbeTest.php';
             require_once __DIR__ . '/tests/TeardownAttachmentTest.php';
 
-            final class AttachmentSubscriber implements TestLifecycleSubscriber
+            final class AttachmentSubscriber implements AfterTestSubscriber
             {
-                public function beforeTest(TestContext $context): void {}
-
                 public function afterTest(TestContext $context, TestResult $result): TestResult
                 {
                     if (!$result->outcome->isSuccessful()) {

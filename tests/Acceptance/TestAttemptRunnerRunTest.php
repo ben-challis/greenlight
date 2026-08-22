@@ -33,10 +33,11 @@ final readonly class TestAttemptRunnerRunTest
             use Greenlight\Harness\Disposable;
             use Greenlight\Harness\Scope;
             use Greenlight\Harness\ServiceDefinition;
+            use Greenlight\Plugin\AfterTestSubscriber;
+            use Greenlight\Plugin\BeforeTestSubscriber;
             use Greenlight\Plugin\HarnessProvider;
             use Greenlight\Plugin\TestAttemptRunner;
             use Greenlight\Plugin\TestContext;
-            use Greenlight\Plugin\TestLifecycleSubscriber;
 
             final class Boundary
             {
@@ -63,7 +64,7 @@ final readonly class TestAttemptRunnerRunTest
                 }
             }
 
-            final class RuntimePlugin implements HarnessProvider, TestAttemptRunner, TestLifecycleSubscriber
+            final class RuntimePlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TestAttemptRunner
             {
                 public function services(): array
                 {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 use Greenlight\Config\Configuration;
+use Greenlight\Config\StorageLayout;
 use Greenlight\Core\Artifact\AttachmentError;
 use Greenlight\Core\Event\RunFinished;
 use Greenlight\Core\Event\RunStarted;
@@ -62,6 +63,7 @@ final readonly class ParallelRunner
         ?GracefulShutdown $shutdown = null,
         ?Ticking $ticker = null,
     ): RunResult {
+        $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
         $seed = null;
 
         if ($configuration->randomizeOrder) {
@@ -70,7 +72,12 @@ final readonly class ParallelRunner
 
         $filter = SelectionFilter::fromConfiguration($configuration);
         $plan = PlanOrder::schedule(
-            $this->sharded(new TestDiscoverer()->discover($directories, $filter, $seed, DiscoveryCache::forDirectories($directories)), $configuration),
+            $this->sharded(new TestDiscoverer()->discover(
+                $directories,
+                $filter,
+                $seed,
+                DiscoveryCache::forDirectories($directories, $storage->cacheDirectory),
+            ), $configuration),
             $priorityClasses,
             $configuration->randomizeOrder ? [] : $classSeconds,
         );
@@ -78,7 +85,12 @@ final readonly class ParallelRunner
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifactConfiguration = $configuration->artifacts;
-        $artifactStore = ArtifactStore::open($artifactConfiguration, $this->workingDirectory, $runId);
+        $artifactStore = ArtifactStore::open(
+            $artifactConfiguration,
+            $this->workingDirectory,
+            $runId,
+            temporaryDirectory: $storage->temporaryDirectory,
+        );
 
         try {
             $orchestratorSide = PluginInstances::forOrchestrator($configuration->plugins);
@@ -134,6 +146,8 @@ final readonly class ParallelRunner
                     $fixtures,
                     resourceLimits: $configuration->resourceLimits,
                     initialWorkerAssignment: $initialWorkerAssignment,
+                    generatedCodeDirectory: $storage->generatedCodeDirectory,
+                    temporaryDirectory: $storage->temporaryDirectory,
                 );
 
                 $summary = $orchestrator->run($plan, $sink, $workerCount, $classSeconds);

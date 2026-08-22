@@ -10,6 +10,7 @@ use Greenlight\Core\Test\ExpectationCounter;
 
 /**
  * Polls the probe until its matcher passes or the deadline expires.
+ * Use `Expect::eventually()` and `within()` to create this object.
  *
  * @template T
  *
@@ -22,7 +23,7 @@ final class EventuallyExpectation extends TemporalExpectation
      * @param list<class-string<\Exception>> $retryOnExceptions
      * @param list<ExpectationExtension> $extensions
      */
-    public function __construct(
+    private function __construct(
         \Closure $probe,
         PollingClock $clock,
         ?float $attemptDeadline,
@@ -37,6 +38,39 @@ final class EventuallyExpectation extends TemporalExpectation
             $clock,
             $attemptDeadline,
             $intervalSeconds,
+            $renderer,
+            $extensions,
+        );
+    }
+
+    /**
+     * @internal Use Expect::eventually() and within() instead.
+     *
+     * @template TProbe
+     *
+     * @param \Closure(): TProbe $probe
+     * @param list<class-string<\Exception>> $retryOnExceptions
+     * @param list<ExpectationExtension> $extensions
+     *
+     * @return self<TProbe>
+     */
+    public static function create(
+        \Closure $probe,
+        PollingClock $clock,
+        ?float $attemptDeadline,
+        float $intervalSeconds,
+        float $withinSeconds,
+        array $retryOnExceptions,
+        ValueRenderer $renderer,
+        array $extensions,
+    ): self {
+        return new self(
+            $probe,
+            $clock,
+            $attemptDeadline,
+            $intervalSeconds,
+            $withinSeconds,
+            $retryOnExceptions,
             $renderer,
             $extensions,
         );

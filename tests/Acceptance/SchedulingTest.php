@@ -194,13 +194,11 @@ final readonly class SchedulingTest
             namespace SchedulingOverheadProbe;
 
             use Greenlight\Core\Result\TestResult;
+            use Greenlight\Plugin\AfterTestSubscriber;
             use Greenlight\Plugin\TestContext;
-            use Greenlight\Plugin\TestLifecycleSubscriber;
 
-            final class OverheadPlugin implements TestLifecycleSubscriber
+            final class OverheadPlugin implements AfterTestSubscriber
             {
-                public function beforeTest(TestContext $context): void {}
-
                 public function afterTest(TestContext $context, TestResult $result): TestResult
                 {
                     if ($context->id->class === SlowTest::class) {

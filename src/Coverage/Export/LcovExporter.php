@@ -34,19 +34,7 @@ final readonly class LcovExporter implements CoverageExporter
 
             $out .= 'SF:' . $path . "\n";
 
-            $hits = [];
-
-            foreach ($file->coveredLines as $line) {
-                $hits[$line] = 1;
-            }
-
-            foreach ($file->uncoveredLines as $line) {
-                $hits[$line] = 0;
-            }
-
-            \ksort($hits);
-
-            foreach ($hits as $line => $hit) {
+            foreach ($file->lineHits() as $line => $hit) {
                 $out .= 'DA:' . $line . ',' . $hit . "\n";
             }
 

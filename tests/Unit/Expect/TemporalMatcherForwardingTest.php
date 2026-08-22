@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Expect\TemporalExpectation;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
 
 final class TemporalMatcherForwardingTest
@@ -28,7 +28,7 @@ final class TemporalMatcherForwardingTest
 
         ExpectationRuntime::withClock($clock, static function () use ($subject, $matcher, $arguments): void {
             $expectation = Expect::eventually(static fn(): mixed => $subject)->within(1.0);
-            new \ReflectionMethod($expectation, $matcher)->invokeArgs($expectation, $arguments);
+            $expectation->__call($matcher, $arguments);
         });
 
         Expect::that($clock->sleeps)
@@ -47,7 +47,7 @@ final class TemporalMatcherForwardingTest
 
         $native = [];
 
-        foreach (new \ReflectionClass(TemporalExpectation::class)->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach (new \ReflectionClass(Expectation::class)->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             if (\str_starts_with($method->getName(), 'to')) {
                 $native[] = $method->getName();
             }

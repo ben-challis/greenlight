@@ -6,6 +6,8 @@ namespace Greenlight\Runner;
 
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Plugin\AfterTestSubscriber;
+use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Plugin\Plugin;
@@ -14,7 +16,6 @@ use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 use Greenlight\Plugin\TestAttemptRunner;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
 
@@ -33,12 +34,13 @@ final readonly class PluginInstances
      * @var list<class-string>
      */
     private const array WORKER_CAPABILITIES = [
+        AfterTestSubscriber::class,
+        BeforeTestSubscriber::class,
         ExpectationExtension::class,
         HarnessProvider::class,
         RetryDecider::class,
         ServiceResolver::class,
         TestAttemptRunner::class,
-        TestLifecycleSubscriber::class,
         WorkerBootstrapSubscriber::class,
         WorkerRuntimeRunner::class,
     ];

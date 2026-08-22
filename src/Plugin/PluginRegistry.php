@@ -44,11 +44,19 @@ final readonly class PluginRegistry
     }
 
     /**
-     * @return list<TestLifecycleSubscriber>
+     * @return list<BeforeTestSubscriber>
      */
-    public function testSubscribers(): array
+    public function beforeTestSubscribers(): array
     {
-        return $this->sorted($this->ofType(TestLifecycleSubscriber::class));
+        return $this->sorted($this->ofType(BeforeTestSubscriber::class));
+    }
+
+    /**
+     * @return list<AfterTestSubscriber>
+     */
+    public function afterTestSubscribers(): array
+    {
+        return \array_reverse($this->sorted($this->ofType(AfterTestSubscriber::class)));
     }
 
     /**

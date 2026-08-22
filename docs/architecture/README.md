@@ -65,7 +65,7 @@ public.
 | `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
 | `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
-| `PhpStan`, `Rector`, `Symfony`, `Laravel` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
+| `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
 Dependencies point from modules near the bottom of the table to modules near
 the top. Modules near the top do not depend on the `Runner` or `Cli` modules.

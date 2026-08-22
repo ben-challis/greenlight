@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 /**
  * Generates synthetic suites and reports wall-time distributions for each
- * benchmark shape. The schedule uses an explicit warm-up and a reproducible
- * configuration order.
+ * benchmark shape. The schedule uses explicit warmups and a reproducible,
+ * position-balanced configuration order. A verification run confirms that
+ * each configuration executes all generated tests before measurement.
  *
  * Run the benchmark on an idle machine. Record the parameters with the
  * results in docs/benchmarks.md so that other users can reproduce them.
@@ -13,13 +14,15 @@ declare(strict_types=1);
  * Usage:
  *   php tools/benchmark.php [--shape=<name>] [--scale=<n>] [--workers=<k>]
  *                           [--warmups=<w>] [--runs=<r>] [--seed=<s>]
- *                           [--with-phpunit]
+ *                           [--pause-ms=<n>] [--format=<table|json>]
+ *                           [--with-comparisons]
  *
  * Omit --shape to run all shapes.
  */
 
-const PHPUNIT_VERSION = '13.2.3';
-const PARATEST_VERSION = '7.23.0';
+const PHPUNIT_VERSION = '13.3.0';
+const PARATEST_VERSION = '7.24.0';
+const PEST_VERSION = '5.1.1';
 const BENCHMARK_DEFAULT_SEED = 2_026_082_1;
 
 const BENCHMARK_SHAPES = [
@@ -51,6 +54,9 @@ function benchmarkMain(): int
             'warmups:',
             'runs:',
             'seed:',
+            'pause-ms:',
+            'format:',
+            'with-comparisons',
             'with-phpunit',
         ]);
 
@@ -61,12 +67,14 @@ function benchmarkMain(): int
         $options = \benchmarkParseOptions($parsed);
         $root = \dirname(__DIR__);
         $results = [];
+        $comparisonPackages = [];
 
         \fwrite(\STDERR, \sprintf(
-            "Benchmark schedule: warm-up rounds %d, sample rounds %d, seed %d.\n",
+            "Benchmark schedule: warm-up rounds %d, sample rounds %d, seed %d, pause %d ms.\n",
             $options['warmups'],
             $options['runs'],
             $options['seed'],
+            $options['pauseMs'],
         ));
 
         foreach ($options['shapes'] as $shape) {
@@ -81,11 +89,27 @@ function benchmarkMain(): int
                     $project,
                     $root,
                     $options['workers'],
-                    $options['withPhpunit'],
+                    $options['withComparisons'],
                 );
 
-                if ($options['withPhpunit'] && \benchmarkHasComparisonFixture($shape)) {
+                if ($options['withComparisons'] && \benchmarkHasComparisonFixture($shape)) {
                     \benchmarkInstall($project);
+                    $installedPackages = \benchmarkInstalledPackages($project);
+
+                    if ($comparisonPackages !== [] && $comparisonPackages !== $installedPackages) {
+                        throw new RuntimeException('Composer resolved different comparison package versions between benchmark shapes.');
+                    }
+
+                    $comparisonPackages = $installedPackages;
+                }
+
+                foreach ($configurations as $id => $configuration) {
+                    \fwrite(\STDERR, \sprintf(
+                        "[%s] verify: %s.\n",
+                        $shape,
+                        $configuration['tool'],
+                    ));
+                    \benchmarkVerifyConfiguration($configuration['command'], $tests, $project, $id);
                 }
 
                 $samples = [];
@@ -104,6 +128,7 @@ function benchmarkMain(): int
                             $configurations[$id]['tool'],
                         ));
                         \benchmarkTime($configurations[$id]['command']);
+                        \benchmarkPause($options['pauseMs']);
                     }
                 }
 
@@ -117,6 +142,7 @@ function benchmarkMain(): int
                             $configurations[$id]['tool'],
                         ));
                         $samples[$id][] = \benchmarkTime($configurations[$id]['command']);
+                        \benchmarkPause($options['pauseMs']);
                     }
                 }
 
@@ -125,6 +151,8 @@ function benchmarkMain(): int
                         'shape' => $shape,
                         'tests' => $tests,
                         'tool' => $configuration['tool'],
+                        'command' => $configuration['command'],
+                        'samplesSeconds' => $samples[$id],
                         ...\benchmarkDistribution($samples[$id]),
                     ];
                 }
@@ -133,29 +161,7 @@ function benchmarkMain(): int
             }
         }
 
-        echo \sprintf(
-            "%-20s %6s  %-24s %8s %8s %8s %8s\n",
-            'shape',
-            'tests',
-            'tool',
-            'minimum',
-            'median',
-            'maximum',
-            'spread',
-        );
-
-        foreach ($results as $row) {
-            echo \sprintf(
-                "%-20s %6d  %-24s %7.3fs %7.3fs %7.3fs %7.1f%%\n",
-                $row['shape'],
-                $row['tests'],
-                $row['tool'],
-                $row['minimum'],
-                $row['median'],
-                $row['maximum'],
-                $row['spreadPercent'],
-            );
-        }
+        \benchmarkReport($options, $results, $root, $comparisonPackages);
 
         return 0;
     } catch (InvalidArgumentException|RuntimeException $error) {
@@ -175,7 +181,9 @@ function benchmarkMain(): int
  *   warmups: non-negative-int,
  *   runs: positive-int,
  *   seed: int,
- *   withPhpunit: bool
+ *   pauseMs: int<0, 60000>,
+ *   format: 'table'|'json',
+ *   withComparisons: bool
  * }
  */
 function benchmarkParseOptions(array $options): array
@@ -193,14 +201,29 @@ function benchmarkParseOptions(array $options): array
         }
     }
 
+    $format = \benchmarkOptionValue($options, 'format') ?? 'table';
+
+    if (!\in_array($format, ['table', 'json'], true)) {
+        throw new InvalidArgumentException(\sprintf('Option --format must be "table" or "json", got "%s".', $format));
+    }
+
+    $pauseMs = \benchmarkNonNegativeIntegerOption($options, 'pause-ms', 100);
+
+    if ($pauseMs > 60_000) {
+        throw new InvalidArgumentException(\sprintf('Option --pause-ms must be at most 60000, got %d.', $pauseMs));
+    }
+
     return [
         'shapes' => $shapes,
         'scale' => \benchmarkPositiveIntegerOption($options, 'scale', 10),
         'workers' => \benchmarkPositiveIntegerOption($options, 'workers', 4),
-        'warmups' => \benchmarkNonNegativeIntegerOption($options, 'warmups', 1),
-        'runs' => \benchmarkPositiveIntegerOption($options, 'runs', 3),
+        'warmups' => \benchmarkNonNegativeIntegerOption($options, 'warmups', 2),
+        'runs' => \benchmarkPositiveIntegerOption($options, 'runs', 12),
         'seed' => \benchmarkIntegerOption($options, 'seed', BENCHMARK_DEFAULT_SEED),
-        'withPhpunit' => \array_key_exists('with-phpunit', $options),
+        'pauseMs' => $pauseMs,
+        'format' => $format,
+        'withComparisons' => \array_key_exists('with-comparisons', $options)
+            || \array_key_exists('with-phpunit', $options),
     ];
 }
 
@@ -300,7 +323,7 @@ function benchmarkSchedule(array $configurationIds, int $rounds, int $seed, stri
 }
 
 /** @return array<string, array{tool: string, command: string}> */
-function benchmarkConfigurations(string $shape, string $project, string $root, int $workers, bool $withPhpunit): array
+function benchmarkConfigurations(string $shape, string $project, string $root, int $workers, bool $withComparisons): array
 {
     $environment = $shape === 'coverage-heavy' ? 'XDEBUG_MODE=coverage ' : '';
     $greenlight = \sprintf(
@@ -321,14 +344,14 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
         ],
     ];
 
-    if (!$withPhpunit || !\benchmarkHasComparisonFixture($shape)) {
+    if (!$withComparisons || !\benchmarkHasComparisonFixture($shape)) {
         return $configurations;
     }
 
     $configurations['phpunit'] = [
         'tool' => 'phpunit',
         'command' => \sprintf(
-            'cd %s && %s vendor/bin/phpunit --no-progress --no-output',
+            'cd %s && %s vendor/bin/phpunit --cache-directory=.benchmark-cache/phpunit',
             \escapeshellarg($project),
             \escapeshellarg(\PHP_BINARY),
         ),
@@ -336,7 +359,24 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
     $configurations['paratest'] = [
         'tool' => \sprintf('paratest (p=%d)', $workers),
         'command' => \sprintf(
-            'cd %s && %s vendor/bin/paratest -p%d 2>&1',
+            'cd %s && %s vendor/bin/paratest -p%d --cache-directory=.benchmark-cache/paratest',
+            \escapeshellarg($project),
+            \escapeshellarg(\PHP_BINARY),
+            $workers,
+        ),
+    ];
+    $configurations['pest'] = [
+        'tool' => 'pest',
+        'command' => \sprintf(
+            'cd %s && %s vendor/bin/pest --configuration=pest.xml --cache-directory=.benchmark-cache/pest',
+            \escapeshellarg($project),
+            \escapeshellarg(\PHP_BINARY),
+        ),
+    ];
+    $configurations['pest-parallel'] = [
+        'tool' => \sprintf('pest (p=%d)', $workers),
+        'command' => \sprintf(
+            'cd %s && %s vendor/bin/pest --configuration=pest.xml --parallel --processes=%d --cache-directory=.benchmark-cache/pest-parallel',
             \escapeshellarg($project),
             \escapeshellarg(\PHP_BINARY),
             $workers,
@@ -365,10 +405,61 @@ function benchmarkTime(string $command): float
     return $seconds;
 }
 
+function benchmarkPause(int $milliseconds): void
+{
+    if ($milliseconds > 0) {
+        \usleep($milliseconds * 1_000);
+    }
+}
+
+function benchmarkVerifyConfiguration(string $command, int $expectedTests, string $project, string $id): void
+{
+    $proof = $project . '/proof-' . $id;
+
+    if (!\mkdir($proof)) {
+        throw new RuntimeException('Greenlight cannot create the benchmark proof directory.');
+    }
+
+    try {
+        $output = [];
+        \exec(\sprintf(
+            'BENCHMARK_PROOF_DIRECTORY=%s /bin/sh -c %s 2>&1',
+            \escapeshellarg($proof),
+            \escapeshellarg($command),
+        ), $output, $exit);
+
+        if ($exit !== 0) {
+            throw new RuntimeException(\sprintf(
+                "Verification command failed with exit %d: %s.\n%s",
+                $exit,
+                $command,
+                \implode("\n", $output),
+            ));
+        }
+
+        $entries = \glob($proof . '/*');
+
+        if ($entries === false) {
+            throw new RuntimeException('Greenlight cannot read the benchmark proof directory.');
+        }
+
+        if (\count($entries) !== $expectedTests) {
+            throw new RuntimeException(\sprintf(
+                'Configuration "%s" executed %d of %d generated tests.',
+                $id,
+                \count($entries),
+                $expectedTests,
+            ));
+        }
+    } finally {
+        \benchmarkRemoveTree($proof);
+    }
+}
+
 /**
  * @param list<float> $samples
  *
- * @return array{minimum: float, median: float, maximum: float, spreadPercent: float}
+ * @return array{firstQuartile: float, median: float, thirdQuartile: float, relativeMadPercent: float}
  */
 function benchmarkDistribution(array $samples): array
 {
@@ -379,23 +470,169 @@ function benchmarkDistribution(array $samples): array
     \sort($samples);
     $count = \count($samples);
     $middle = \intdiv($count, 2);
-    $median = $count % 2 === 0
-        ? ($samples[$middle - 1] + $samples[$middle]) / 2
-        : $samples[$middle];
-    $minimum = $samples[0];
-    $maximum = $samples[$count - 1];
+    $median = \benchmarkMedian($samples);
+    $lower = \array_slice($samples, 0, $middle);
+    $upper = \array_slice($samples, $count % 2 === 0 ? $middle : $middle + 1);
+    $deviations = \array_map(static fn(float $sample): float => \abs($sample - $median), $samples);
 
     return [
-        'minimum' => $minimum,
+        'firstQuartile' => $lower === [] ? $median : \benchmarkMedian($lower),
         'median' => $median,
-        'maximum' => $maximum,
-        'spreadPercent' => $median > 0.0 ? (($maximum - $minimum) / $median) * 100 : 0.0,
+        'thirdQuartile' => $upper === [] ? $median : \benchmarkMedian($upper),
+        'relativeMadPercent' => $median > 0.0 ? (\benchmarkMedian($deviations) / $median) * 100 : 0.0,
+    ];
+}
+
+/** @param non-empty-list<float> $samples */
+function benchmarkMedian(array $samples): float
+{
+    \sort($samples);
+    $count = \count($samples);
+    $middle = \intdiv($count, 2);
+
+    return $count % 2 === 0
+        ? ($samples[$middle - 1] + $samples[$middle]) / 2
+        : $samples[$middle];
+}
+
+/**
+ * @param array{
+ *   shapes: list<string>,
+ *   scale: positive-int,
+ *   workers: positive-int,
+ *   warmups: non-negative-int,
+ *   runs: positive-int,
+ *   seed: int,
+ *   pauseMs: int<0, 60000>,
+ *   format: 'table'|'json',
+ *   withComparisons: bool
+ * } $options
+ * @param list<array{
+ *   shape: string,
+ *   tests: int,
+ *   tool: string,
+ *   command: string,
+ *   samplesSeconds: list<float>,
+ *   firstQuartile: float,
+ *   median: float,
+ *   thirdQuartile: float,
+ *   relativeMadPercent: float
+ * }> $results
+ * @param array<string, non-empty-string> $comparisonPackages
+ */
+function benchmarkReport(array $options, array $results, string $root, array $comparisonPackages): void
+{
+    $environment = \benchmarkEnvironment($root);
+
+    if ($options['format'] === 'json') {
+        try {
+            echo \json_encode([
+                'schemaVersion' => 1,
+                'environment' => $environment,
+                'parameters' => $options,
+                'comparisonVersions' => $options['withComparisons'] ? [
+                    'phpunit' => PHPUNIT_VERSION,
+                    'paratest' => PARATEST_VERSION,
+                    'pest' => PEST_VERSION,
+                ] : new stdClass(),
+                'comparisonPackages' => $comparisonPackages === [] ? new stdClass() : $comparisonPackages,
+                'results' => $results,
+            ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR) . "\n";
+        } catch (JsonException $error) {
+            throw new RuntimeException('Greenlight cannot encode the benchmark report.', $error->getCode(), previous: $error);
+        }
+
+        return;
+    }
+
+    echo \sprintf(
+        "Environment: PHP %s | %s | extensions: %s.\n",
+        $environment['phpVersion'],
+        $environment['platform'],
+        $environment['measurementExtensions'] === [] ? 'none' : \implode(', ', $environment['measurementExtensions']),
+    );
+    echo \sprintf(
+        "Source revision: %s%s.\n",
+        $environment['sourceRevision'] ?? 'unknown',
+        $environment['sourceTreeDirty'] === true ? ' (dirty)' : '',
+    );
+
+    if ($options['withComparisons']) {
+        echo \sprintf(
+            "Comparison tools: PHPUnit %s, ParaTest %s, Pest %s.\n",
+            PHPUNIT_VERSION,
+            PARATEST_VERSION,
+            PEST_VERSION,
+        );
+    }
+    echo \sprintf(
+        "%-20s %6s  %-24s %7s %8s %8s %8s %8s\n",
+        'shape',
+        'tests',
+        'tool',
+        'samples',
+        'q1',
+        'median',
+        'q3',
+        'rMAD',
+    );
+
+    foreach ($results as $row) {
+        echo \sprintf(
+            "%-20s %6d  %-24s %7d %7.3fs %7.3fs %7.3fs %7.1f%%\n",
+            $row['shape'],
+            $row['tests'],
+            $row['tool'],
+            \count($row['samplesSeconds']),
+            $row['firstQuartile'],
+            $row['median'],
+            $row['thirdQuartile'],
+            $row['relativeMadPercent'],
+        );
+    }
+}
+
+/**
+ * @return array{
+ *   measuredAtUtc: string,
+ *   phpVersion: string,
+ *   phpBinary: string,
+ *   platform: string,
+ *   sourceRevision: non-empty-string|null,
+ *   sourceTreeDirty: bool|null,
+ *   measurementExtensions: list<string>
+ * }
+ */
+function benchmarkEnvironment(string $root): array
+{
+    $extensions = \array_values(\array_filter(
+        ['blackfire', 'ddtrace', 'pcov', 'xdebug', 'Zend OPcache'],
+        \extension_loaded(...),
+    ));
+    $revisionOutput = [];
+    \exec(\sprintf('git -C %s rev-parse HEAD 2>/dev/null', \escapeshellarg($root)), $revisionOutput, $revisionExit);
+    $revision = $revisionExit === 0 && isset($revisionOutput[0]) && $revisionOutput[0] !== ''
+        ? $revisionOutput[0]
+        : null;
+    $statusOutput = [];
+    \exec(\sprintf('git -C %s status --porcelain --untracked-files=no 2>/dev/null', \escapeshellarg($root)), $statusOutput, $statusExit);
+
+    return [
+        'measuredAtUtc' => \gmdate('c'),
+        'phpVersion' => \PHP_VERSION,
+        'phpBinary' => \PHP_BINARY,
+        'platform' => \php_uname(),
+        'sourceRevision' => $revision,
+        'sourceTreeDirty' => $statusExit === 0 ? $statusOutput !== [] : null,
+        'measurementExtensions' => $extensions,
     ];
 }
 
 function benchmarkGenerateShape(string $shape, int $scale, string $project): int
 {
-    if (!\mkdir($project . '/tests/gl', 0o777, true) || !\mkdir($project . '/tests/pu', 0o777, true)) {
+    if (!\mkdir($project . '/tests/gl', 0o777, true)
+        || !\mkdir($project . '/tests/pu', 0o777, true)
+        || !\mkdir($project . '/tests/pest', 0o777, true)) {
         throw new RuntimeException('Greenlight did not create the benchmark project directory.');
     }
 
@@ -444,11 +681,27 @@ function benchmarkGenerateShape(string $shape, int $scale, string $project): int
         </phpunit>
         XML);
 
+    \file_put_contents($project . '/pest.xml', <<<'XML'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <phpunit bootstrap="vendor/autoload.php" colors="false">
+            <testsuites>
+                <testsuite name="bench">
+                    <directory>tests/pest</directory>
+                </testsuite>
+            </testsuites>
+        </phpunit>
+        XML);
+
     \file_put_contents($project . '/composer.json', <<<'JSON'
         {
             "autoload-dev": {
                 "psr-4": {
                     "Bench\\": "tests/pu/"
+                }
+            },
+            "config": {
+                "allow-plugins": {
+                    "pestphp/pest-plugin": true
                 }
             }
         }
@@ -517,10 +770,19 @@ function benchmarkWriteClasses(
         $name = \sprintf('%s%04dTest', $prefix, $i);
         $glBody = '';
         $puBody = '';
+        $pestBody = '';
 
         for ($m = 0; $m < $methods; ++$m) {
-            $glWork = $sleepMicros > 0 ? \sprintf("\\usleep(%d);\n        ", $sleepMicros) : '';
+            $proofWork = \sprintf(<<<'PHP'
+                if (($proof = \getenv('BENCHMARK_PROOF_DIRECTORY')) !== false) {
+                    \touch($proof . '/%s-%04d-%04d');
+                }
+
+                PHP, \strtolower($prefix), $i, $m);
+            $sleepWork = $sleepMicros > 0 ? \sprintf("\\usleep(%d);\n        ", $sleepMicros) : '';
+            $glWork = $proofWork . $sleepWork;
             $puWork = $glWork;
+            $pestWork = $glWork;
 
             if ($diagnostics > 0) {
                 $diagnosticWork = \sprintf(
@@ -529,22 +791,27 @@ function benchmarkWriteClasses(
                 );
                 $glWork .= $diagnosticWork;
                 $puWork .= $diagnosticWork;
+                $pestWork .= $diagnosticWork;
             }
 
             if ($statements > 0) {
                 $glWork .= \sprintf("\$value = %d;\n        ", $m);
                 $puWork .= \sprintf("\$value = %d;\n        ", $m);
+                $pestWork .= \sprintf("\$value = %d;\n        ", $m);
 
                 for ($statement = 0; $statement < $statements; ++$statement) {
                     $glWork .= "\$value += 1;\n        ";
                     $puWork .= "\$value += 1;\n        ";
+                    $pestWork .= "\$value += 1;\n        ";
                 }
 
                 $glExpectation = \sprintf('Expect::that($value)->toBe(%d);', $m + $statements);
                 $puExpectation = \sprintf('$this->assertSame(%d, $value);', $m + $statements);
+                $pestExpectation = \sprintf('expect($value)->toBe(%d);', $m + $statements);
             } else {
                 $glExpectation = \sprintf('Expect::that(%d + 1)->toBe(%d);', $m, $m + 1);
                 $puExpectation = \sprintf('$this->assertSame(%d, %d + 1);', $m + 1, $m);
+                $pestExpectation = \sprintf('expect(%d + 1)->toBe(%d);', $m, $m + 1);
             }
 
             $glBody .= \sprintf(<<<'PHP'
@@ -564,6 +831,13 @@ function benchmarkWriteClasses(
                     }
 
                 PHP, $m, $puWork, $puExpectation);
+            $pestBody .= \sprintf(<<<'PHP'
+
+                test('case %d', function (): void {
+                    %s%s
+                })%s
+
+                PHP, $m, $pestWork, $pestExpectation, ';');
         }
 
         \file_put_contents($project . '/tests/gl/' . $name . '.php', \sprintf(<<<'PHP'
@@ -597,6 +871,13 @@ function benchmarkWriteClasses(
         %s}
 
         PHP_WRAP, $name, $puBody));
+
+        \file_put_contents($project . '/tests/pest/' . $name . '.php', \sprintf(<<<'PHP_WRAP'
+        <?php
+
+        declare(strict_types=1);
+        %s
+        PHP_WRAP, $pestBody));
     }
 
     return $classes * $methods;
@@ -621,6 +902,10 @@ function benchmarkWriteGiantDataSet(string $project, int $rows): int
             #[DataSet('rows')]
             public function handles(int $value): void
             {
+                if (($proof = \getenv('BENCHMARK_PROOF_DIRECTORY')) !== false) {
+                    \touch($proof . '/giant-' . $value);
+                }
+
                 Expect::that($value)->toBeGreaterThan(-1);
             }
 
@@ -650,6 +935,10 @@ function benchmarkWriteGiantDataSet(string $project, int $rows): int
         #[DataProvider('rows')]
         public function testHandles(int $value): void
         {
+            if (($proof = \getenv('BENCHMARK_PROOF_DIRECTORY')) !== false) {
+                \touch($proof . '/giant-' . $value);
+            }
+
             $this->assertGreaterThan(-1, $value);
         }
 
@@ -664,6 +953,25 @@ function benchmarkWriteGiantDataSet(string $project, int $rows): int
 
     PHP_WRAP, $rows));
 
+    \file_put_contents($project . '/tests/pest/GiantTest.php', \sprintf(<<<'PHP'
+        <?php
+
+        declare(strict_types=1);
+
+        test('handles', function (int $value): void {
+            if (($proof = \getenv('BENCHMARK_PROOF_DIRECTORY')) !== false) {
+                \touch($proof . '/giant-' . $value);
+            }
+
+            expect($value)->toBeGreaterThan(-1);
+        })->with((static function (): iterable {
+            for ($i = 0; $i < %d; ++$i) {
+                yield 'row ' . $i => [$i];
+            }
+        })());
+
+        PHP, $rows));
+
     return $rows;
 }
 
@@ -671,15 +979,50 @@ function benchmarkInstall(string $project): void
 {
     $output = [];
     \exec(\sprintf(
-        'cd %s && composer require --dev --quiet --no-interaction %s %s 2>&1',
+        'cd %s && composer require --dev --quiet --no-interaction %s %s %s 2>&1',
         \escapeshellarg($project),
         \escapeshellarg('phpunit/phpunit:' . PHPUNIT_VERSION),
         \escapeshellarg('brianium/paratest:' . PARATEST_VERSION),
+        \escapeshellarg('pestphp/pest:' . PEST_VERSION),
     ), $output, $exit);
 
     if ($exit !== 0) {
-        throw new RuntimeException("Composer did not install PHPUnit and ParaTest:\n" . \implode("\n", $output));
+        throw new RuntimeException("Composer did not install the comparison tools:\n" . \implode("\n", $output));
     }
+}
+
+/** @return array<string, non-empty-string> */
+function benchmarkInstalledPackages(string $project): array
+{
+    $installedFile = $project . '/vendor/composer/installed.php';
+
+    if (!\is_file($installedFile)) {
+        throw new RuntimeException('Composer did not create the comparison package metadata.');
+    }
+
+    $installed = require $installedFile;
+
+    if (!\is_array($installed) || !isset($installed['versions']) || !\is_array($installed['versions'])) {
+        throw new RuntimeException('Composer created invalid comparison package metadata.');
+    }
+
+    $versions = [];
+
+    foreach ($installed['versions'] as $package => $metadata) {
+        if (!\is_string($package) || $package === '__root__' || !\is_array($metadata)) {
+            continue;
+        }
+
+        $version = $metadata['pretty_version'] ?? null;
+
+        if (\is_string($version) && $version !== '') {
+            $versions[$package] = $version;
+        }
+    }
+
+    \ksort($versions);
+
+    return $versions;
 }
 
 function benchmarkRemoveTree(string $directory): void

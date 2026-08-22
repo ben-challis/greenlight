@@ -9,9 +9,9 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\HandleExceptions;
@@ -22,7 +22,7 @@ use Illuminate\Foundation\Bootstrap\RegisterProviders;
  * `#[Service]` selects an explicit binding ID. Tests MUST isolate external
  * resources by `GREENLIGHT_CHANNEL`.
  */
-final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 {
     /**
      * @var \Closure(): mixed
@@ -111,9 +111,6 @@ final class LaravelPlugin implements HarnessProvider, ServiceResolver, TestLifec
 
         return $service;
     }
-
-    #[\Override]
-    public function beforeTest(TestContext $context): void {}
 
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult

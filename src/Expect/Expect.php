@@ -43,7 +43,7 @@ final class Expect
      */
     public static function eventually(callable $probe): PendingEventually
     {
-        return new PendingEventually(
+        return PendingEventually::create(
             \Closure::fromCallable($probe),
             ExpectationRuntime::clock(),
             ExpectationRuntime::deadline(),
@@ -63,7 +63,7 @@ final class Expect
      */
     public static function consistently(callable $probe): PendingConsistently
     {
-        return new PendingConsistently(
+        return PendingConsistently::create(
             \Closure::fromCallable($probe),
             ExpectationRuntime::clock(),
             ExpectationRuntime::deadline(),

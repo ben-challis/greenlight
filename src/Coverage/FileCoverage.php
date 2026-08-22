@@ -67,6 +67,24 @@ final readonly class FileCoverage
     }
 
     /**
+     * Returns executable line hit counts in ascending line order.
+     *
+     * @return array<positive-int, 0|1>
+     */
+    public function lineHits(): array
+    {
+        $hits = \array_fill_keys($this->uncoveredLines, 0);
+
+        foreach ($this->coveredLines as $line) {
+            $hits[$line] = 1;
+        }
+
+        \ksort($hits);
+
+        return $hits;
+    }
+
+    /**
      * Returns covered lines as a percentage of executable lines.
      *
      * A file with no executable lines has full coverage.

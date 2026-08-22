@@ -7,6 +7,7 @@ namespace Greenlight\Cli;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\MemorySize;
+use Greenlight\Config\StorageLayout;
 
 /** @internal */
 final class PlanFormatter
@@ -14,8 +15,11 @@ final class PlanFormatter
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function format(Configuration $configuration, string $configFile): string
-    {
+    public static function format(
+        Configuration $configuration,
+        string $configFile,
+        string $workingDirectory,
+    ): string {
         $lines = [];
         $lines[] = 'Run plan';
         $lines[] = '  configuration file: ' . $configFile;
@@ -70,6 +74,11 @@ final class PlanFormatter
 
         $lines[] = '  plugins: ' . ($plugins === [] ? '(none)' : \implode(', ', $plugins));
         $lines[] = '  artifacts: ' . $configuration->artifacts->directory;
+        $storage = StorageLayout::resolve($configuration->storage, $workingDirectory);
+        $lines[] = '  storage state: ' . $storage->runStateFile;
+        $lines[] = '  storage cache: ' . $storage->cacheDirectory;
+        $lines[] = '  storage generated code: ' . $storage->generatedCodeDirectory;
+        $lines[] = '  storage temporary: ' . $storage->temporaryDirectory;
 
         if (!$configuration->coverage instanceof CoverageConfiguration) {
             $lines[] = '  coverage: (off)';

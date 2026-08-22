@@ -8,9 +8,9 @@ use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Plugin\TestLifecycleSubscriber;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\ResetInterface;
@@ -26,7 +26,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * `#[Service]` selects an explicit ID instead of a type-based search. Isolate
  * external resources with `GREENLIGHT_CHANNEL`.
  */
-final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifecycleSubscriber
+final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 {
     /**
      * @var \Closure(): KernelInterface
@@ -111,9 +111,6 @@ final class SymfonyPlugin implements HarnessProvider, ServiceResolver, TestLifec
 
         return $service;
     }
-
-    #[\Override]
-    public function beforeTest(TestContext $context): void {}
 
     #[\Override]
     public function afterTest(TestContext $context, TestResult $result): TestResult

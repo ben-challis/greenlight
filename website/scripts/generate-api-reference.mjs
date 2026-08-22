@@ -101,7 +101,7 @@ const sections = [
 const check = process.argv.includes('--check');
 
 const sourceFiles = await filesBelow(sourceRoot);
-const publicTypes = [];
+const parsedTypes = [];
 
 for (const file of sourceFiles.filter((path) => path.endsWith('.php'))) {
   const source = await readFile(file, 'utf8');
@@ -114,9 +114,16 @@ for (const file of sourceFiles.filter((path) => path.endsWith('.php'))) {
     throw new Error(`${sourceFile}: ${error.message}`, { cause: error });
   }
 
-  if (type !== undefined && !type.internal) {
-    publicTypes.push(type);
+  if (type !== undefined) {
+    parsedTypes.push(type);
   }
+}
+
+const typesByName = new Map(parsedTypes.map((type) => [type.name, type]));
+const publicTypes = parsedTypes.filter((type) => !type.internal);
+
+for (const type of publicTypes) {
+  type.members = effectiveMembers(type, typesByName);
 }
 
 publicTypes.sort((left, right) => left.name.localeCompare(right.name));
@@ -281,7 +288,8 @@ function parseType(source, file) {
   const typeDoc = [...declarationTokens].reverse().find((token) => token.kind === 'doc');
   const signatureStart = firstSignatureToken(declarationTokens);
   const signature = source.slice(signatureStart.start, tokens[openIndex].start).trim();
-  const members = parseMembers(source, tokens, openIndex, closeIndex, kind);
+  const members = parseMembers(source, tokens, openIndex, closeIndex, kind)
+    .map((member) => ({ ...member, file }));
   const shortName = nameToken.value;
 
   return {
@@ -294,6 +302,70 @@ function parseType(source, file) {
     internal: typeDoc?.value.includes('@internal') ?? false,
     signature,
     members,
+  };
+}
+
+function effectiveMembers(type, typesByName, active = new Set()) {
+  if (active.has(type.name)) {
+    throw new Error(`Public API type inheritance contains a cycle at "${type.name}".`);
+  }
+
+  const nextActive = new Set(active).add(type.name);
+  const members = [];
+  const parentName = type.signature.match(/\bextends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+  const parent = referencedType(type, parentName, typesByName);
+
+  if (parent !== undefined) {
+    members.push(...effectiveMembers(parent, typesByName, nextActive)
+      .filter((member) => member.name !== '__construct()'));
+  }
+
+  for (const tag of type.doc.tags) {
+    const mixinName = tag.match(/^@mixin\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+    const mixin = referencedType(type, mixinName, typesByName);
+
+    if (mixin !== undefined) {
+      members.push(...effectiveMembers(mixin, typesByName, nextActive)
+        .filter((member) => member.name !== '__construct()')
+        .map((member) => projectMixinMember(member, mixin)));
+    }
+  }
+
+  for (const member of type.members) {
+    const inheritedIndex = members.findIndex((candidate) => candidate.name === member.name);
+
+    if (inheritedIndex === -1) {
+      members.push(member);
+    } else {
+      members[inheritedIndex] = member;
+    }
+  }
+
+  return members;
+}
+
+function referencedType(owner, reference, typesByName) {
+  if (reference === undefined) {
+    return undefined;
+  }
+
+  const normalized = reference.replace(/^\\/u, '');
+  const namespace = owner.name.slice(0, owner.name.lastIndexOf('\\'));
+  const name = normalized.includes('\\') ? normalized : `${namespace}\\${normalized}`;
+
+  return typesByName.get(name);
+}
+
+function projectMixinMember(member, mixin) {
+  const replaceSelf = (value) => value.replace(/\bself\b/gu, mixin.shortName);
+
+  return {
+    ...member,
+    signature: replaceSelf(member.signature),
+    doc: {
+      ...member.doc,
+      tags: member.doc.tags.map(replaceSelf),
+    },
   };
 }
 
@@ -852,15 +924,17 @@ function renderSection(section, types) {
 
     lines.push(
       '```php',
-      type.signature,
+      publicTypeSignature(type),
       '```',
       '',
       `[View source](https://github.com/ben-challis/greenlight/blob/main/${type.file}#L${type.line})`,
       '',
     );
 
-    if (type.doc.tags.length > 0) {
-      lines.push('PHPDoc:', '', ...type.doc.tags.map((tag) => `- \`${escapeBackticks(tag)}\``), '');
+    const typeTags = publicTypeTags(type);
+
+    if (typeTags.length > 0) {
+      lines.push('PHPDoc:', '', ...typeTags.map((tag) => `- \`${escapeBackticks(tag)}\``), '');
     }
 
     if (type.members.length === 0) {
@@ -882,13 +956,31 @@ function renderSection(section, types) {
       }
 
       lines.push(
-        `[View source](https://github.com/ben-challis/greenlight/blob/main/${type.file}#L${member.line})`,
+        `[View source](https://github.com/ben-challis/greenlight/blob/main/${member.file}#L${member.line})`,
         '',
       );
     }
   }
 
   return `${lines.join('\n').trimEnd()}\n`;
+}
+
+function publicTypeSignature(type) {
+  const parentName = type.signature.match(/\bextends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+  const parent = referencedType(type, parentName, typesByName);
+
+  return parent?.internal === true
+    ? type.signature.replace(/\s+extends\s+[A-Za-z_\\][A-Za-z0-9_\\]*/u, '')
+    : type.signature;
+}
+
+function publicTypeTags(type) {
+  return type.doc.tags.filter((tag) => {
+    const parentName = tag.match(/^@extends\s+([A-Za-z_\\][A-Za-z0-9_\\]*)/u)?.[1];
+    const parent = referencedType(type, parentName, typesByName);
+
+    return parent?.internal !== true;
+  });
 }
 
 function escapeBackticks(value) {

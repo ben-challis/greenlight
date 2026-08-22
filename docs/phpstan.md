@@ -209,6 +209,9 @@ Expect::eventually(fn(): string => $hash)
     ->toHaveDigestLength(6);
 ```
 
+Temporal return types mix in the native `Expectation<T>` matcher declarations.
+Thus, native and extension matchers keep the probe subject type.
+
 If configuration files register one matcher name with different parameter or
 return types, analysis fails. PHPStan does not select one signature.
 
