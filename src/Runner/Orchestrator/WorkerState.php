@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Test\TestId;
 
 /**
  * Contains orchestration state for one worker.

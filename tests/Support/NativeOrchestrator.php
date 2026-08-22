@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\GracefulShutdown;
-use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Ticking;
+use Greenlight\Result\ResultPolicy;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\CoverageSettings;
 use Greenlight\Runner\Integration\ProvisionedIntegrationFixtures;

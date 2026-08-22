@@ -311,7 +311,7 @@ final readonly class IntegrationFixtureRunTest
             namespace IntegrationFixtureProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Core\Test\TestChannel;
+            use Greenlight\Test\TestChannel;
             use Greenlight\Expect\Expect;
             use Greenlight\Harness\IntegrationResources;
             use Greenlight\Tests\Fixture\Plugins\IntegrationProbeService;

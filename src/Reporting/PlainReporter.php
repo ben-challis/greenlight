@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\RunStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
+use Greenlight\Event\Event;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\RunStarted;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\WorkerSpawned;
 use Greenlight\Reporting\Output\Output;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 
 /**
  * Produces deterministic CI logs without ANSI sequences.

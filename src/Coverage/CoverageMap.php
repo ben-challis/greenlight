@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage;
 
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireCommunicationFailed;
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Wire\WireSerializable;
 
 /**
  * The map sorts files by path. Thus, identical coverage always has identical

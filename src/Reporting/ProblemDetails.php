@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Result\CapturedOutput;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
+use Greenlight\Result\CapturedOutput;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
 
 /**
  * Produces shared plain text for a failed or errored result.

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Condition;
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Condition\Condition;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
@@ -19,6 +18,7 @@ use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+use Greenlight\Wire\WireSerializable;
 
 final class HarnessIntegrationTest
 {

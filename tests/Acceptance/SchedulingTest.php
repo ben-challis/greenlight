@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\RunState;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Event\Event;
+use Greenlight\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -192,7 +192,7 @@ final readonly class SchedulingTest
 
             namespace SchedulingOverheadProbe;
 
-            use Greenlight\Core\Result\TestResult;
+            use Greenlight\Result\TestResult;
             use Greenlight\Plugin\AfterTestSubscriber;
             use Greenlight\Plugin\TestContext;
 

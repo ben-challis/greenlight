@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\Test\SchedulingPolicy;
-use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Test\SchedulingPolicy;
+use Greenlight\Test\TestDefinition;
 
 /** Creates a plan entry from one test definition and optional data-set key. */
 final class PlanEntryFixture

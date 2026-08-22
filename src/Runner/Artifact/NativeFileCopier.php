@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /** @internal */
 final readonly class NativeFileCopier implements FileCopier

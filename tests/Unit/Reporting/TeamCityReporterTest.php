@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\TestStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TeamCityReporter;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\Autoloaders;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 use Greenlight\Tests\Support\ClassFile;
 

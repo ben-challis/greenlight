@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
-use Greenlight\Core\Test\ResourceName;
+use Greenlight\Test\ResourceName;
 
 /**
  * Declares a resource that the assignment for the test requires.

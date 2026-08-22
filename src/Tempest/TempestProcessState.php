@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tempest;
 
-use Greenlight\Core\EnvironmentBackup;
+use Greenlight\Internal\Process\EnvironmentBackup;
 use Tempest\Container\GenericContainer;
 
 /**

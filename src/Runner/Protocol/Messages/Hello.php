@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Core\Wire\Wire;
 use Greenlight\Runner\Protocol\Message;
+use Greenlight\Wire\Wire;
 
 /**
  * The first message from a worker after connection. It authenticates the

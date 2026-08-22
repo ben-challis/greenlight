@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Result\FailureDetail;
 
 /**
  * Records one probe value and its matcher result.

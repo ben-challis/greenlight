@@ -8,7 +8,7 @@ use Greenlight\Config\Configuration;
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerConfiguration;
-use Greenlight\Core\Result\ResultPolicy;
+use Greenlight\Result\ResultPolicy;
 
 /**
  * Applies settings in this order:

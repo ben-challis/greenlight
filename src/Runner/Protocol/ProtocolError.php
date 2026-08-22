@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol;
 
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Greenlight raises this error when a frame, envelope, or message violates

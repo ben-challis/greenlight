@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Condition;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\Condition;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Condition\PhpVersionLessThan;
-use Greenlight\Core\Condition;
 use Greenlight\Expect\Expect;
 
 final readonly class PhpVersionConditionValidationTest

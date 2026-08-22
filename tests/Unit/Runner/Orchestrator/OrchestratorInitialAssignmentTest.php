@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Event\WorkerTiming;
 use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Event\WorkerSpawned;
+use Greenlight\Event\WorkerTiming;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Runner\Orchestrator\Orchestrator;

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
+use Greenlight\Event\Event;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
 /**

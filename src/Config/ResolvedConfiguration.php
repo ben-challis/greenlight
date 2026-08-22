@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Core\Test\TestSelection;
+use Greenlight\Test\TestSelection;
 
 /**
  * Contains the settings for one resolved command.

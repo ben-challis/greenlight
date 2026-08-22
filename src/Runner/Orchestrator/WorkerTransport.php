@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Controls worker processes and carries protocol messages for an orchestrator.

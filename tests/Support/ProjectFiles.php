@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 
 /** Owns validated, fail-fast file writes inside one test project. */

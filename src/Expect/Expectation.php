@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Test\ExpectationCounter;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Test\ExpectationCounter;
 
 /**
  * A fluent matcher chain for one subject value.

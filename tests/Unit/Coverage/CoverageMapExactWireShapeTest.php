@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Expect\Expect;
+use Greenlight\Wire\InvalidWirePayload;
 
 final readonly class CoverageMapExactWireShapeTest
 {

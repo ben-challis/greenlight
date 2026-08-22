@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Core\GracefulShutdown;
+use Greenlight\Internal\Process\GracefulShutdown;
 
 /**
  * Without ext-pcntl, PHP uses its default immediate-exit behavior. The first

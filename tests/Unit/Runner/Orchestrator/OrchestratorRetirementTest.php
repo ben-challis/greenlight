@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
@@ -14,6 +13,7 @@ use Greenlight\Expect\Fail;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Fixture\Runner\Orchestrator\LoggedWorkerProcess;

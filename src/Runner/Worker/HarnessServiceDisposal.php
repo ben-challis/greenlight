@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
 
 /**
  * Applies harness service disposal failures to their test or worker boundary.

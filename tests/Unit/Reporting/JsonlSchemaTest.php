@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\EventTags;
+use Greenlight\Event\EventTags;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JsonLinesReporter;
 use JsonSchema\Validator;

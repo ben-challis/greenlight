@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Ignore;
 
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Finds the source lines that coverage ignores in a file.

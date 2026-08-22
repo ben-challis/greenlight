@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\TestFinished;
+use Greenlight\Event\Event;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -84,7 +84,7 @@ final readonly class ChannelTest
             namespace ChannelProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Core\Test\TestChannel;
+            use Greenlight\Test\TestChannel;
             use Greenlight\Expect\Expect;
             use Greenlight\Expect\Fail;
 

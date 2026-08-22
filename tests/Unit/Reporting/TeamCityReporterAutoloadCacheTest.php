@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Sandbox\Autoloaders;
+use Greenlight\Test\TestId;
 
 final readonly class TeamCityReporterAutoloadCacheTest
 {

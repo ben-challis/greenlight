@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Hyperf;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestAttemptRunner;
 use Greenlight\Plugin\WorkerBootstrapContext;

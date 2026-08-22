@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\SummaryFormat;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestId;
 
 final class SummaryFormatTest
 {

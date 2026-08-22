@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\FixtureResource;
+use Greenlight\Wire\InvalidWirePayload;
 
 final readonly class FixtureResourceWireValidationTest
 {

@@ -9,8 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\FixturePath;
 

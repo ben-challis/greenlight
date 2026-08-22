@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Tempest;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Process\EnvironmentBackup;
 use Greenlight\Tempest\TempestProcessState;
 use Tempest\Container\GenericContainer;
 

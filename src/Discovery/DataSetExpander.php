@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Discovery;
 
 use Greenlight\Attribute\DataRow;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Invokes a #[DataSet] provider when Greenlight makes the execution plan.

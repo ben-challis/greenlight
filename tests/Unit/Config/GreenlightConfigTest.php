@@ -14,7 +14,7 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\StorageBuilder;
 use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 

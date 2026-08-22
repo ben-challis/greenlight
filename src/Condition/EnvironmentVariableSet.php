@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
-use Greenlight\Core\Condition;
-use Greenlight\Core\EnvironmentVariableName;
+use Greenlight\Internal\Process\EnvironmentVariableName;
 
 final readonly class EnvironmentVariableSet implements Condition
 {

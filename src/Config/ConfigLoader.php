@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /** @internal */
 final class ConfigLoader

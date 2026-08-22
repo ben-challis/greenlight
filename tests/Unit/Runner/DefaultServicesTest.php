@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestChannel;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Test\TestChannel;
 
 final readonly class DefaultServicesTest
 {

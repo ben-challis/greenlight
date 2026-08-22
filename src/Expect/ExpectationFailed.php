@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\SourceLocation;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\SourceLocation;
 
 /**
  * Identifies one or more failed expectations.

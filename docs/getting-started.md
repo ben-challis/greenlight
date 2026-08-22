@@ -208,7 +208,7 @@ Plugins can register custom reporter factories. See
 [ReporterProvider](plugins.md#reporterprovider).
 
 Tests can retain diagnostic data without output to standard output. Inject
-`Greenlight\Core\Artifact\Attachments`.
+`Greenlight\Artifact\Attachments`.
 
 Call `value()`, `text()`, `bytes()`, or `file()` to add an attachment.
 Greenlight prints retained paths and stores files below
@@ -256,7 +256,7 @@ dependency. Greenlight supports both methods.
 Use a channel when each worker has a separate external resource. The channel
 number is from 1 through the worker count.
 
-Each worker receives its channel through `Greenlight\Core\Test\TestChannel` and
+Each worker receives its channel through `Greenlight\Test\TestChannel` and
 the `GREENLIGHT_CHANNEL` environment variable.
 
 A plugin can also provision real infrastructure in the orchestrator and expose

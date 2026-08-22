@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestDefinition;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 
 final class PluginLifecycle
 {

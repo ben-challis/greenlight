@@ -46,6 +46,6 @@ final readonly class RectorDefaultSkipReasonTest
             ->toBeTrue();
         Expect::that($probe->code)
             ->because('Greenlight skips MUST have a non-empty reason')
-            ->toContain("throw new \Greenlight\Core\Test\SkipTest('Skipped.');");
+            ->toContain("throw new \Greenlight\Test\SkipTest('Skipped.');");
     }
 }

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Core\Artifact\Attachments;
-use Greenlight\Core\Artifact\UnavailableAttachments;
-use Greenlight\Core\Test\SkipTest;
-use Greenlight\Core\Test\TestDefinition;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Artifact\Attachments;
+use Greenlight\Artifact\UnavailableAttachments;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
+use Greenlight\Test\SkipTest;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 
 /**
  * `service()` is available during `beforeTest()` and the test. The per-test

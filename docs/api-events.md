@@ -8,7 +8,7 @@ These signatures are the public API.
 
 ## `Event`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 Defines an event that can occur in the run lifecycle.
 
@@ -16,7 +16,7 @@ Defines an event that can occur in the run lifecycle.
 interface Event extends WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/Event.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L10)
 
 ### `$occurredAt`
 
@@ -26,17 +26,17 @@ Returns a Unix timestamp with microsecond precision.
 public float $occurredAt { get; }
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/Event.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L15)
 
 ## `RunFinished`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class RunFinished implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L10)
 
 ### `$runId`
 
@@ -48,7 +48,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L15)
 
 ### `$summary`
 
@@ -56,7 +56,7 @@ PHPDoc:
 public ResultSummary $summary
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L24)
 
 ### `$durationSeconds`
 
@@ -64,7 +64,7 @@ public ResultSummary $summary
 public float $durationSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L25)
 
 ### `$occurredAt`
 
@@ -72,7 +72,7 @@ public float $durationSeconds
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L26)
 
 ### `$workerTimings`
 
@@ -80,7 +80,7 @@ public float $occurredAt
 public array $workerTimings
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L27)
 
 ### `__construct()`
 
@@ -99,7 +99,7 @@ PHPDoc:
 - `@param list<WorkerTiming> $workerTimings Orchestrator-observed worker timing data.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L22)
 
 ### `toWire()`
 
@@ -108,7 +108,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L48)
 
 ### `fromWire()`
 
@@ -117,17 +117,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunFinished.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L62)
 
 ## `RunStarted`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class RunStarted implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L9)
 
 ### `$runId`
 
@@ -139,7 +139,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L14)
 
 ### `$plannedTests`
 
@@ -151,7 +151,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L19)
 
 ### `$workers`
 
@@ -163,7 +163,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L24)
 
 ### `$occurredAt`
 
@@ -171,7 +171,7 @@ PHPDoc:
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L33)
 
 ### `$artifactsDirectory`
 
@@ -179,7 +179,7 @@ public float $occurredAt
 public ?string $artifactsDirectory
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L34)
 
 ### `__construct()`
 
@@ -197,7 +197,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L29)
 
 ### `toWire()`
 
@@ -206,7 +206,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L63)
 
 ### `fromWire()`
 
@@ -215,17 +215,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/RunStarted.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L75)
 
 ## `TestClassFinished`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class TestClassFinished implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L9)
 
 ### `$class`
 
@@ -237,7 +237,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L14)
 
 ### `$occurredAt`
 
@@ -245,7 +245,7 @@ PHPDoc:
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L24)
 
 ### `$workerId`
 
@@ -253,7 +253,7 @@ public float $occurredAt
 public string $workerId
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L25)
 
 ### `__construct()`
 
@@ -270,7 +270,7 @@ PHPDoc:
 - `@param string $workerId The worker that ran the class, or an empty string from a producer without worker attribution`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L22)
 
 ### `toWire()`
 
@@ -279,7 +279,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L38)
 
 ### `fromWire()`
 
@@ -288,17 +288,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassFinished.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L48)
 
 ## `TestClassStarted`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class TestClassStarted implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L9)
 
 ### `$class`
 
@@ -310,7 +310,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L14)
 
 ### `$occurredAt`
 
@@ -318,7 +318,7 @@ PHPDoc:
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L24)
 
 ### `$workerId`
 
@@ -326,7 +326,7 @@ public float $occurredAt
 public string $workerId
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L25)
 
 ### `$isolated`
 
@@ -334,7 +334,7 @@ public string $workerId
 public bool $isolated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L26)
 
 ### `__construct()`
 
@@ -352,7 +352,7 @@ PHPDoc:
 - `@param string $workerId The worker that ran the class, or an empty string from a producer without worker attribution`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L22)
 
 ### `toWire()`
 
@@ -361,7 +361,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L39)
 
 ### `fromWire()`
 
@@ -370,17 +370,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestClassStarted.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L50)
 
 ## `TestFinished`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class TestFinished implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L10)
 
 ### `$result`
 
@@ -388,7 +388,7 @@ final readonly class TestFinished implements Event
 public TestResult $result
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
 
 ### `$occurredAt`
 
@@ -396,7 +396,7 @@ public TestResult $result
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
 
 ### `__construct()`
 
@@ -404,7 +404,7 @@ public float $occurredAt
 public function __construct(public TestResult $result, public float $occurredAt)
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
 
 ### `toWire()`
 
@@ -413,7 +413,7 @@ public function __construct(public TestResult $result, public float $occurredAt)
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L19)
 
 ### `fromWire()`
 
@@ -422,17 +422,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestFinished.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L28)
 
 ## `TestStarted`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class TestStarted implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L10)
 
 ### `$id`
 
@@ -440,7 +440,7 @@ final readonly class TestStarted implements Event
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
 
 ### `$occurredAt`
 
@@ -448,7 +448,7 @@ public TestId $id
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
 
 ### `__construct()`
 
@@ -456,7 +456,7 @@ public float $occurredAt
 public function __construct(public TestId $id, public float $occurredAt)
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
 
 ### `toWire()`
 
@@ -465,7 +465,7 @@ public function __construct(public TestId $id, public float $occurredAt)
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L19)
 
 ### `fromWire()`
 
@@ -474,17 +474,17 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/TestStarted.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L28)
 
 ## `WorkerSpawned`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 ```php
 final readonly class WorkerSpawned implements Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L9)
 
 ### `$workerId`
 
@@ -496,7 +496,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L14)
 
 ### `$pid`
 
@@ -508,7 +508,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L19)
 
 ### `$occurredAt`
 
@@ -516,7 +516,7 @@ PHPDoc:
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L27)
 
 ### `__construct()`
 
@@ -532,7 +532,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L24)
 
 ### `toWire()`
 
@@ -541,7 +541,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L45)
 
 ### `fromWire()`
 
@@ -550,11 +550,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerSpawned.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L55)
 
 ## `WorkerTiming`
 
-Namespace: `Greenlight\Core\Event`
+Namespace: `Greenlight\Event`
 
 Contains orchestrator-observed timing data for one worker process.
 
@@ -566,7 +566,7 @@ distinguish.
 final readonly class WorkerTiming implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L17)
 
 ### `$workerId`
 
@@ -578,7 +578,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L20)
 
 ### `$assignmentGaps`
 
@@ -590,7 +590,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L23)
 
 ### `$spawnToHelloSeconds`
 
@@ -598,7 +598,7 @@ PHPDoc:
 public ?float $spawnToHelloSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L30)
 
 ### `$helloToReadySeconds`
 
@@ -606,7 +606,7 @@ public ?float $spawnToHelloSeconds
 public ?float $helloToReadySeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L31)
 
 ### `$readyToFirstAssignmentSeconds`
 
@@ -614,7 +614,7 @@ public ?float $helloToReadySeconds
 public ?float $readyToFirstAssignmentSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L32)
 
 ### `$assignmentGapSeconds`
 
@@ -622,7 +622,7 @@ public ?float $readyToFirstAssignmentSeconds
 public float $assignmentGapSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L34)
 
 ### `$bootstrapBarrierSeconds`
 
@@ -630,7 +630,7 @@ public float $assignmentGapSeconds
 public float $bootstrapBarrierSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L35)
 
 ### `$resourceCapacitySeconds`
 
@@ -638,7 +638,7 @@ public float $bootstrapBarrierSeconds
 public float $resourceCapacitySeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L36)
 
 ### `$noQueuedWorkSeconds`
 
@@ -646,7 +646,7 @@ public float $resourceCapacitySeconds
 public float $noQueuedWorkSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L37)
 
 ### `$retirementToExitSeconds`
 
@@ -654,7 +654,7 @@ public float $noQueuedWorkSeconds
 public ?float $retirementToExitSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L38)
 
 ### `__construct()`
 
@@ -677,7 +677,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L28)
 
 ### `toWire()`
 
@@ -686,7 +686,7 @@ PHPDoc:
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L67)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L67)
 
 ### `fromWire()`
 
@@ -695,4 +695,4 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Event/WorkerTiming.php#L84)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L84)

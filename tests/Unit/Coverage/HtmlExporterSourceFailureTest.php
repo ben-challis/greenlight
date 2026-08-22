@@ -6,11 +6,11 @@ namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Coverage\UnreadableAfterStatStream;
 use Greenlight\Tests\Support\FilesystemRestriction;

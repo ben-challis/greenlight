@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Plugins;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 use Greenlight\Doubles\Fake;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 

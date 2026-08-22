@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\RunFinished;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Result\ResultSummary;
+use Greenlight\Event\RunFinished;
+use Greenlight\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
+use Greenlight\Result\ResultSummary;
 
 final class PlainReporterWorkerSummaryTest
 {

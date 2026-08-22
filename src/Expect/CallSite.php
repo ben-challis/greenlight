@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Result\SourceLocation;
+use Greenlight\Result\SourceLocation;
 
 /**
  * Finds the call site to report for a failed expectation. It selects the

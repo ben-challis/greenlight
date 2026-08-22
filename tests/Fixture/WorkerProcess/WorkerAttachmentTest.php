@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\WorkerProcess;
 
-use Greenlight\Core\Artifact\Attachments;
+use Greenlight\Artifact\Attachments;
 
 final readonly class WorkerAttachmentTest
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\TestFinished;
+use Greenlight\Event\Event;
+use Greenlight\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
 /** @internal */

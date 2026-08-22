@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireSerializable;
+use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireSerializable;
 
 /**
  * Contains the output directory and safety limits for test attachments.

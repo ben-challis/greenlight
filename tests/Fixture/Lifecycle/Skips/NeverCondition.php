@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Lifecycle\Skips;
 
-use Greenlight\Core\Condition;
+use Greenlight\Condition\Condition;
 use Greenlight\Doubles\Fake;
 
 final class NeverCondition implements Condition, Fake

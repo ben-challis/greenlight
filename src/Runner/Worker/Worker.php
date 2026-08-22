@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Event\TestClassFinished;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\TestStarted;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultPolicy;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Event\TestClassFinished;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\TestStarted;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\ArtifactStore;
+use Greenlight\Test\TestId;
 
 /**
  * Greenlight assigns class-scope disposal failures to the last executed test

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Test\TestSelection;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Test\TestSelection;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 

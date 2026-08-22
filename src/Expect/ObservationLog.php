@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Core\Wire\Utf8;
+use Greenlight\Wire\Utf8;
 
 /**
  * Keeps a bounded history of rendered poll attempts.

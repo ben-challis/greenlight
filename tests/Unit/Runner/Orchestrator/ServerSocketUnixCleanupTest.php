@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\SkipTest;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Orchestrator\ServerSocket;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\SkipTest;
 
 final readonly class ServerSocketUnixCleanupTest
 {

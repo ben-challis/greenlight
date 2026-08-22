@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\TestResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -17,6 +16,7 @@ use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
+use Greenlight\Result\TestResult;
 use Greenlight\Runner\PluginInstances;
 use Greenlight\Tests\Fixture\Plugins\FakeCapabilityPlugin;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;

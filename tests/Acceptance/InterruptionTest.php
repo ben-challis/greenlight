@@ -6,13 +6,13 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Test\SkipTest;
+use Greenlight\Event\Event;
+use Greenlight\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;

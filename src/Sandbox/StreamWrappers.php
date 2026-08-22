@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Sandbox;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Harness\Disposable;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Registers stream wrappers and unregisters them when the test scope closes.

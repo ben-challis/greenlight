@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Runner\Worker\EventSink;

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Runner\DefaultServices;
 use Greenlight\Runner\Worker\Worker;
 use Greenlight\Tests\Support\CollectingEventSink;

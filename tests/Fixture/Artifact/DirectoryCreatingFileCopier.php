@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Artifact;
 
-use Greenlight\Core\Artifact\AttachmentError;
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Doubles\Fake;
 use Greenlight\Runner\Artifact\FileCopier;
 

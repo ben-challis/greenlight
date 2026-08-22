@@ -7,8 +7,8 @@ namespace Greenlight\Runner;
 use Fidry\CpuCoreCounter\CpuCoreCounter;
 use Fidry\CpuCoreCounter\NumberOfCpuCoreNotFound;
 use Greenlight\Attribute\CoverageIgnore;
-use Greenlight\Core\DecimalInteger;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Text\DecimalInteger;
 
 /**
  * Converts the 'auto' worker count to the available CPU count.

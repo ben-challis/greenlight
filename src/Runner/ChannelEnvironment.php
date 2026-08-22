@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
-use Greenlight\Core\DecimalInteger;
+use Greenlight\Internal\Text\DecimalInteger;
 
 /**
  * Parses the worker channel from its environment value.

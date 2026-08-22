@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\PhpStan;
 
 use Greenlight\Attribute\SkipUnless;
-use Greenlight\Core\Condition;
+use Greenlight\Condition\Condition;
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
 use PHPStan\Analyser\Scope;

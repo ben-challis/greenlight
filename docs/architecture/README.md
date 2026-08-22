@@ -54,16 +54,21 @@ public.
 
 | Module group | Responsibility | Permitted dependencies |
 | --- | --- | --- |
-| `Core` | Shared immutable values, events, results, and worker-protocol data | Nothing |
-| `Attribute`, `Condition` | User test metadata | `Core` |
-| `Test` | Per-test cleanup controls | Nothing |
-| `Config` | Public builders and focused immutable configuration values | `Core`, `Plugin` |
-| `Expect` | Immediate and temporal expectations | `Core`, `Plugin` |
-| `Harness`, `Plugin` | Lifecycle scopes and extension interfaces | `Core` |
+| `Wire`, `Internal/Text`, `Internal/Process`, `Internal/Php` | Worker-protocol operations and focused internal utilities | Nothing |
+| `Internal/Filesystem` | Atomic file operations | `Internal/Php` |
+| `Artifact` | Attachment values and operations | `Wire` |
+| `Test` | Test definitions, policies, and cleanup controls | `Wire`, `Internal/Text` |
+| `Condition` | Conditions that control test execution | `Internal/Process` |
+| `Result` | Test outcomes, diagnostics, and result values | `Artifact`, `Test`, `Wire`, `Internal/Text` |
+| `Event` | Events that describe the run lifecycle | `Result`, `Test`, `Wire` |
+| `Attribute` | User test metadata | `Condition`, `Test` |
+| `Config` | Public builders and focused immutable configuration values | Public contracts, internal utilities, `Plugin` |
+| `Expect` | Immediate and temporal expectations | Public contracts, internal PHP utilities, `Plugin` |
+| `Harness`, `Plugin` | Lifecycle scopes and extension interfaces | Public contracts and `Reporting` |
 | `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
-| `Discovery` | PHP declaration discovery and execution plans | `Core`, `Attribute` |
-| `Capture`, `Coverage` | Bounded output capture and line-coverage values | `Core` |
-| `Reporting` | Event consumers and output formats | `Core` |
+| `Discovery` | PHP declaration discovery and execution plans | Public contracts, internal utilities, `Attribute` |
+| `Capture`, `Coverage` | Bounded output capture and line-coverage values | Public contracts and internal utilities |
+| `Reporting` | Event consumers and output formats | Public contracts and internal PHP utilities |
 | `Runner` | Execution, workers, schedules, containment, and artifacts | All engine modules |
 | `Cli` | Command entry point, CLI argument parser, configuration resolution, and orchestration | Configuration and engine modules |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
@@ -71,7 +76,8 @@ public.
 
 Dependencies point from modules near the bottom of the table to modules near
 the top. Modules near the top do not depend on the `Runner` or `Cli` modules.
-`Core` **MUST NOT** know about discovery, processes, reporters, or integrations.
+Public contract modules **MUST NOT** know about discovery, reporters, or integrations.
+Internal utility modules **MUST NOT** depend on public contract modules.
 Reporters **MUST NOT** control execution. Optional integrations **MUST NOT**
 become runtime package dependencies.
 

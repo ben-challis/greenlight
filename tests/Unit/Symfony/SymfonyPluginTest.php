@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Symfony;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Result\TestResult;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
@@ -13,6 +12,7 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Result\TestResult;
 use Greenlight\Symfony\Service;
 use Greenlight\Symfony\SymfonyBridgeError;
 use Greenlight\Symfony\SymfonyPlugin;

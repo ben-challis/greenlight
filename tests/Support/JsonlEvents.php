@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\EventTags;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Wire\Wire;
+use Greenlight\Event\Event;
+use Greenlight\Event\EventTags;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\WorkerSpawned;
+use Greenlight\Wire\Wire;
 
 /**
  * Reads JSONL only from standard output. Each line except a final empty line

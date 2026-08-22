@@ -13,9 +13,9 @@ use Greenlight\Cli\PlanFormatter;
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\SuiteBuilder;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
 
 final class PlanFormatterTest

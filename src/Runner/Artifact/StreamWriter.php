@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\CoverageIgnore;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Writes complete byte strings to streams.

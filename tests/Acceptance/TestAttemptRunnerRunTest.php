@@ -28,7 +28,7 @@ final readonly class TestAttemptRunnerRunTest
             use Greenlight\Attribute\After;
             use Greenlight\Attribute\Before;
             use Greenlight\Attribute\Test;
-            use Greenlight\Core\Result\TestResult;
+            use Greenlight\Result\TestResult;
             use Greenlight\Expect\Expect;
             use Greenlight\Harness\Disposable;
             use Greenlight\Harness\Scope;

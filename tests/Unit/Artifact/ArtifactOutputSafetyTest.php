@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Artifact\StagedAttachment;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\SkipTest;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Runner\Artifact\ArtifactStore;
 use Greenlight\Runner\Artifact\TestArtifactBudget;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\SkipTest;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\FilesystemRestriction;
 
 final readonly class ArtifactOutputSafetyTest

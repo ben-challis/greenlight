@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Runner\Protocol;
 
 use Greenlight\Attribute\CoverageIgnore;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Runner\Protocol\Messages\Assign;
 use Greenlight\Runner\Protocol\Messages\AttemptStarted;
 use Greenlight\Runner\Protocol\Messages\Bootstrap;
@@ -16,6 +14,8 @@ use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Encodes worker-protocol messages as envelopes with a version, type tag, and payload.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Event\TestFinished;
+use Greenlight\Event\TestFinished;
 
 /**
  * Collects the slowest tests of a run for human-readable reporters.

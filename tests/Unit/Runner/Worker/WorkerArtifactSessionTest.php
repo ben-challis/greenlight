@@ -72,7 +72,7 @@ final readonly class WorkerArtifactSessionTest
             }
 
             $class = Greenlight\Tests\Fixture\WorkerProcess\WorkerAttachmentTest::class;
-            $id = new Greenlight\Core\Test\TestId($class, 'recordsEvidence');
+            $id = new Greenlight\Test\TestId($class, 'recordsEvidence');
             $session = new Greenlight\Runner\Artifact\ArtifactSession(
                 $artifactRoot . '/staging',
                 $artifactRoot . '/public',
@@ -80,10 +80,10 @@ final readonly class WorkerArtifactSessionTest
             $channel->send(new Greenlight\Runner\Protocol\Messages\Assign(
                 new Greenlight\Discovery\ExecutionPlan([
                     new Greenlight\Discovery\PlanEntry(
-                        new Greenlight\Core\Test\TestDefinition(
+                        new Greenlight\Test\TestDefinition(
                             $class,
                             'recordsEvidence',
-                            execution: new Greenlight\Core\Test\ExecutionPolicy(noExpectations: true),
+                            execution: new Greenlight\Test\ExecutionPolicy(noExpectations: true),
                         ),
                     ),
                 ]),
@@ -100,7 +100,7 @@ final readonly class WorkerArtifactSessionTest
                 $message = $channel->receive(2.0);
 
                 if ($message instanceof Greenlight\Runner\Protocol\Messages\EventEnvelope
-                    && $message->event instanceof Greenlight\Core\Event\TestFinished
+                    && $message->event instanceof Greenlight\Event\TestFinished
                 ) {
                     $finished = $message->event;
                 }
@@ -114,7 +114,7 @@ final readonly class WorkerArtifactSessionTest
 
             if (!$done instanceof Greenlight\Runner\Protocol\Messages\Done
                 || $done->summary->passed !== 1
-                || !$attachment instanceof Greenlight\Core\Artifact\StagedAttachment
+                || !$attachment instanceof Greenlight\Artifact\StagedAttachment
                 || file_get_contents($session->stagingDirectory . '/' . $attachment->storageKey) !== 'worker evidence'
             ) {
                 exit(6);

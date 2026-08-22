@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Laravel;
 
-use Greenlight\Core\EnvironmentBackup;
+use Greenlight\Internal\Process\EnvironmentBackup;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\Container as ContainerContract;
 use Illuminate\Contracts\Foundation\Application;

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
-use Greenlight\Core\Condition;
-
 final readonly class PhpVersionAtLeast implements Condition
 {
     /**

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
 use Greenlight\Discovery\DataSetExpander;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\DataRows\InlineRowsTest;
 use Greenlight\Tests\Fixture\DataRowsConflict\DuplicateRowKeyTest;
 use Greenlight\Tests\Fixture\DataRowsControlLabel\ControlLabelRowTest;

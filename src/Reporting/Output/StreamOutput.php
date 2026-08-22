@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting\Output;
 
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Reporting\ReportGenerationFailed;
 
 /**

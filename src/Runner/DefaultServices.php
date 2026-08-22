@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Runner;
 
 use Greenlight\Attribute\CoverageIgnore;
-use Greenlight\Core\Test\TestChannel;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
@@ -18,6 +17,7 @@ use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\TestChannel;
 
 /**
  * GREENLIGHT_CHANNEL supplies the TestChannel value. Duplicate service types

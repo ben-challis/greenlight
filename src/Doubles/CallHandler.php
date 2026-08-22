@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-use Greenlight\Core\Result\FailureDetail;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ValueRenderer;
+use Greenlight\Result\FailureDetail;
 
 /**
  * Provides the runtime behavior for each method of a generated proxy class.

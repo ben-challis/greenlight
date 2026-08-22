@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Cli\Watch\ClassFailureTap;
 use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\StatChangeDetector;
@@ -18,16 +19,6 @@ use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Config\WorkerConfiguration;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\AtomicFile;
-use Greenlight\Core\AtomicFileError;
-use Greenlight\Core\ErrorTrap;
-use Greenlight\Core\Event\EventTags;
-use Greenlight\Core\GracefulShutdown;
-use Greenlight\Core\Test\TestSelection;
-use Greenlight\Core\Wire\InvalidWirePayload;
-use Greenlight\Core\Wire\Wire;
-use Greenlight\Core\Wire\WireCommunicationFailed;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
@@ -42,6 +33,11 @@ use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Event\EventTags;
+use Greenlight\Internal\Filesystem\AtomicFile;
+use Greenlight\Internal\Filesystem\AtomicFileError;
+use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
@@ -80,6 +76,10 @@ use Greenlight\Runner\SubprocessCoverage;
 use Greenlight\Runner\Worker\EventSink;
 use Greenlight\Runner\Worker\LeakDetector;
 use Greenlight\Runner\Worker\WorkerProcess;
+use Greenlight\Test\TestSelection;
+use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for

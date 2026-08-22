@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Test\TestId;
 
 /**
  * @internal

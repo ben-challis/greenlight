@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Runner\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\Orchestrator\WorkerHandle;
 use Greenlight\Runner\Protocol\SocketChannel;
 use Greenlight\Tests\Support\ConnectedStreamPair;

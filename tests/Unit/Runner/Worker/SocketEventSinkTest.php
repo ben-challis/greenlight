@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\SocketChannel;

@@ -8,7 +8,7 @@ These signatures are the public API.
 
 ## `Attachment`
 
-Namespace: `Greenlight\Core\Artifact`
+Namespace: `Greenlight\Artifact`
 
 Fixed metadata for one retained test attachment.
 
@@ -16,7 +16,7 @@ Fixed metadata for one retained test attachment.
 readonly class Attachment implements WireSerializable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L15)
 
 ### `$name`
 
@@ -24,7 +24,7 @@ readonly class Attachment implements WireSerializable
 public string $name
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L18)
 
 ### `$kind`
 
@@ -32,7 +32,7 @@ public string $name
 public AttachmentKind $kind
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L19)
 
 ### `$mediaType`
 
@@ -40,7 +40,7 @@ public AttachmentKind $kind
 public string $mediaType
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L20)
 
 ### `$sizeBytes`
 
@@ -48,7 +48,7 @@ public string $mediaType
 public int $sizeBytes
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L21)
 
 ### `$sha256`
 
@@ -56,7 +56,7 @@ public int $sizeBytes
 public string $sha256
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L22)
 
 ### `$attempt`
 
@@ -64,7 +64,7 @@ public string $sha256
 public int $attempt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L23)
 
 ### `$path`
 
@@ -72,7 +72,7 @@ public int $attempt
 public string $path
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L24)
 
 ### `$retention`
 
@@ -80,7 +80,7 @@ public string $path
 public AttachmentRetention $retention
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L25)
 
 ### `__construct()`
 
@@ -97,7 +97,7 @@ public function __construct(
 )
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L17)
 
 ### `toWire()`
 
@@ -106,7 +106,7 @@ public function __construct(
 public function toWire(): array
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L39)
 
 ### `fromWire()`
 
@@ -115,11 +115,11 @@ public function toWire(): array
 public static function fromWire(array $payload): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachment.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L54)
 
 ## `AttachmentError`
 
-Namespace: `Greenlight\Core\Artifact`
+Namespace: `Greenlight\Artifact`
 
 Greenlight raises this error for invalid attachment input or an attachment storage failure.
 
@@ -127,7 +127,7 @@ Greenlight raises this error for invalid attachment input or an attachment stora
 final class AttachmentError extends \RuntimeException
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L10)
 
 ### `unavailable()`
 
@@ -135,7 +135,7 @@ final class AttachmentError extends \RuntimeException
 public static function unavailable(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L12)
 
 ### `sealed()`
 
@@ -143,7 +143,7 @@ public static function unavailable(): self
 public static function sealed(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L17)
 
 ### `invalidName()`
 
@@ -151,7 +151,7 @@ public static function sealed(): self
 public static function invalidName(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L22)
 
 ### `invalidMediaType()`
 
@@ -159,7 +159,7 @@ public static function invalidName(string $name): self
 public static function invalidMediaType(string $mediaType): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L27)
 
 ### `invalidValue()`
 
@@ -167,7 +167,7 @@ public static function invalidMediaType(string $mediaType): self
 public static function invalidValue(string $message): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L32)
 
 ### `source()`
 
@@ -175,7 +175,7 @@ public static function invalidValue(string $message): self
 public static function source(string $path, string $reason): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L37)
 
 ### `limit()`
 
@@ -183,7 +183,7 @@ public static function source(string $path, string $reason): self
 public static function limit(string $message): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L42)
 
 ### `storage()`
 
@@ -191,11 +191,11 @@ public static function limit(string $message): self
 public static function storage(string $message): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentError.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L47)
 
 ## `AttachmentKind`
 
-Namespace: `Greenlight\Core\Artifact`
+Namespace: `Greenlight\Artifact`
 
 The form of attachment content that a caller supplies.
 
@@ -203,7 +203,7 @@ The form of attachment content that a caller supplies.
 enum AttachmentKind: string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentKind.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentKind.php#L10)
 
 ### `Value`
 
@@ -211,7 +211,7 @@ enum AttachmentKind: string
 case Value = 'value';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentKind.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentKind.php#L12)
 
 ### `Text`
 
@@ -219,7 +219,7 @@ case Value = 'value';
 case Text = 'text';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentKind.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentKind.php#L13)
 
 ### `Binary`
 
@@ -227,7 +227,7 @@ case Text = 'text';
 case Binary = 'binary';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentKind.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentKind.php#L14)
 
 ### `File`
 
@@ -235,11 +235,11 @@ case Binary = 'binary';
 case File = 'file';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentKind.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentKind.php#L15)
 
 ## `AttachmentRetention`
 
-Namespace: `Greenlight\Core\Artifact`
+Namespace: `Greenlight\Artifact`
 
 Determines if Greenlight retains an attachment from a successful test attempt.
 
@@ -247,7 +247,7 @@ Determines if Greenlight retains an attachment from a successful test attempt.
 enum AttachmentRetention: string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentRetention.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentRetention.php#L10)
 
 ### `OnFailure`
 
@@ -255,7 +255,7 @@ enum AttachmentRetention: string
 case OnFailure = 'on-failure';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentRetention.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentRetention.php#L12)
 
 ### `Always`
 
@@ -263,11 +263,11 @@ case OnFailure = 'on-failure';
 case Always = 'always';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/AttachmentRetention.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentRetention.php#L13)
 
 ## `Attachments`
 
-Namespace: `Greenlight\Core\Artifact`
+Namespace: `Greenlight\Artifact`
 
 Adds structured values, text, binary data, and files to one test attempt.
 
@@ -278,7 +278,7 @@ separately. Test results contain only metadata and published paths.
 interface Attachments
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachments.php#L13)
 
 ### `value()`
 
@@ -294,7 +294,7 @@ PHPDoc:
 
 - `@throws AttachmentError when the attachment cannot be accepted`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachments.php#L18)
 
 ### `text()`
 
@@ -311,7 +311,7 @@ PHPDoc:
 
 - `@throws AttachmentError when the attachment cannot be accepted`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachments.php#L27)
 
 ### `bytes()`
 
@@ -328,7 +328,7 @@ PHPDoc:
 
 - `@throws AttachmentError when the attachment cannot be accepted`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachments.php#L37)
 
 ### `file()`
 
@@ -345,4 +345,4 @@ PHPDoc:
 
 - `@throws AttachmentError when the attachment cannot be accepted`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Core/Artifact/Attachments.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachments.php#L47)

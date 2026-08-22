@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
+use Greenlight\Wire\InvalidWirePayload;
 
 final class ArtifactConfigurationWireTest
 {

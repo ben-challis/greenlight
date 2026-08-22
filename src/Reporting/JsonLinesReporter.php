@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\EventTags;
+use Greenlight\Event\Event;
+use Greenlight\Event\EventTags;
 use Greenlight\Reporting\Output\Output;
 
 /**

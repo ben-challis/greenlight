@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Core\Wire\Wire;
 use Greenlight\Harness\IntegrationResources;
 use Greenlight\Runner\Protocol\Message;
+use Greenlight\Wire\Wire;
 
 /**
  * Orchestrator to worker: immutable worker-lifetime configuration.

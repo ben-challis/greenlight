@@ -322,7 +322,7 @@ before all `#[Before]` hooks.
 
 Call `$context->skip('reason')` to stop the attempt and report the test as
 skipped. The method has the type `never`, so code after the call does not run.
-It throws `Greenlight\Core\Test\SkipTest`. The interface declares this
+It throws `Greenlight\Test\SkipTest`. The interface declares this
 exception. A direct throw of this exception has the same effect. A different
 throwable causes an error result that names the plugin.
 
@@ -363,7 +363,7 @@ The `service(SomeType::class)` method resolves services from the active harness
 scopes.
 
 `$context->attachments` is the same attempt-owned
-`Greenlight\Core\Artifact\Attachments` object a test can receive through
+`Greenlight\Artifact\Attachments` object a test can receive through
 constructor injection. Plugins can add attachments in either hook. This
 includes an attachment after a failure inspection in `afterTest()`. The usual
 retention and size limits apply. See [attachments](attachments.md).

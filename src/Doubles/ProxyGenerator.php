@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-use Greenlight\Core\AtomicFile;
-use Greenlight\Core\AtomicFileError;
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Filesystem\AtomicFile;
+use Greenlight\Internal\Filesystem\AtomicFileError;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Proxy class names contain a hash of their method signatures. Thus,

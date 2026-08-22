@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Sandbox;
 
-use Greenlight\Core\EnvironmentBackup;
 use Greenlight\Harness\Disposable;
+use Greenlight\Internal\Process\EnvironmentBackup;
 
 /**
  * Updates `getenv()`, `$_ENV`, and `$_SERVER` together. It records each original

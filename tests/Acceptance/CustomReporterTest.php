@@ -24,7 +24,7 @@ final readonly class CustomReporterTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Core\Event\Event;
+            use Greenlight\Event\Event;
             use Greenlight\Plugin\ReporterProvider;
             use Greenlight\Reporting\Output\Output;
             use Greenlight\Reporting\Reporter;

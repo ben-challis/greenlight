@@ -6,13 +6,13 @@ namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Coverage\PathFilter;
 use Greenlight\Coverage\RawCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
+use Greenlight\Wire\InvalidWirePayload;
 
 final class CoverageMapTest
 {

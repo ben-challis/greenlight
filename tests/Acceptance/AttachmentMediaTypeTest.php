@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestFinished;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -28,8 +28,8 @@ final readonly class AttachmentMediaTypeTest
             namespace AttachmentMediaTypeProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Core\Artifact\AttachmentRetention;
-            use Greenlight\Core\Artifact\Attachments;
+            use Greenlight\Artifact\AttachmentRetention;
+            use Greenlight\Artifact\Attachments;
             use Greenlight\Expect\Expect;
 
             final readonly class AttachmentMediaTypeProbeTest

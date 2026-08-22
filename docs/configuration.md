@@ -402,7 +402,7 @@ Greenlight makes the channel available in two ways:
 
 * `GREENLIGHT_CHANNEL`, set in each worker environment for bootstrap files and
   tools that use `getenv()`
-* `Greenlight\Core\Test\TestChannel`, available as a harness service for
+* `Greenlight\Test\TestChannel`, available as a harness service for
   constructor injection and harness providers
 
 `TestChannel->number` is the numeric slot.

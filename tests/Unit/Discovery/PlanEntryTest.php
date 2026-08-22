@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestDefinition;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestDefinition;
 use Greenlight\Tests\Support\JsonWire;
 
 final readonly class PlanEntryTest

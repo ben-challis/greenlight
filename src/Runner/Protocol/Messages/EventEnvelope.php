@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Event\Event;
 use Greenlight\Runner\Protocol\EventRegistry;
 use Greenlight\Runner\Protocol\Message;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Sends one execution event from a worker to the orchestrator.

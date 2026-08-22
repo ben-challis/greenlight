@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 
 /**
  * Sends one event stream to multiple reporters.

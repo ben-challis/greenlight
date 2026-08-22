@@ -12,9 +12,9 @@ use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerCount;
-use Greenlight\Core\Test\TestInclusions;
-use Greenlight\Core\Test\TestSelection;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestInclusions;
+use Greenlight\Test\TestSelection;
 
 /**
  * Covers each option that a command-line value can replace. It tests default,

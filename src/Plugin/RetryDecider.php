@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\RetryPolicy;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\RetryPolicy;
 
 /**
  * A worker calls a retry decider after each unsuccessful attempt.

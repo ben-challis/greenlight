@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Protocol\Messages;
 
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Wire\Wire;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Protocol\Message;
+use Greenlight\Wire\Wire;
 
 /**
  * Reports an unhandled framework error from a worker to the orchestrator.

@@ -6,21 +6,17 @@ namespace Greenlight\Tests\Unit\Runner\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Result\FailureDetail;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\ResultSummary;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Result\ThrowableDetail;
-use Greenlight\Core\Test\DataProvider;
-use Greenlight\Core\Test\SchedulingPolicy;
-use Greenlight\Core\Test\TestDefinition;
-use Greenlight\Core\Test\TestId;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\FixtureResource;
 use Greenlight\Harness\IntegrationResources;
+use Greenlight\Result\FailureDetail;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultSummary;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
 use Greenlight\Runner\Artifact\ArtifactSession;
 use Greenlight\Runner\Protocol\FrameBuffer;
 use Greenlight\Runner\Protocol\JsonFrameCodec;
@@ -36,6 +32,10 @@ use Greenlight\Runner\Protocol\Messages\Fatal;
 use Greenlight\Runner\Protocol\Messages\Hello;
 use Greenlight\Runner\Protocol\Messages\Ready;
 use Greenlight\Runner\Protocol\ProtocolError;
+use Greenlight\Test\DataProvider;
+use Greenlight\Test\SchedulingPolicy;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 
 final class ProtocolTest
 {

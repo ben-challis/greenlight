@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Result;
+
+use Greenlight\Wire\Utf8;
+use Greenlight\Wire\Wire;
+use Greenlight\Wire\WireSerializable;
+
+/**
+ * Greenlight converts the message and file to valid UTF-8 before the
+ * diagnostic crosses the wire. These values originate in user code.
+ * The line number is greater than zero.
+ */
+final readonly class Diagnostic implements WireSerializable
+{
+    /**
+     * @var positive-int
+     */
+    public int $line;
+
+    /**
+     * @throws \InvalidArgumentException
+     */
+    public function __construct(
+        public DiagnosticSeverity $severity,
+        public string $message,
+        public string $file,
+        int $line,
+    ) {
+        if ($line < 1) {
+            throw new \InvalidArgumentException('Diagnostic line MUST be greater than zero.');
+        }
+
+        $this->line = $line;
+    }
+
+    #[\Override]
+    public function toWire(): array
+    {
+        return [
+            'severity' => $this->severity->value,
+            'message' => Utf8::scrub($this->message),
+            'file' => Utf8::scrub($this->file),
+            'line' => $this->line,
+        ];
+    }
+
+    #[\Override]
+    public static function fromWire(array $payload): static
+    {
+        return new self(
+            Wire::enum($payload, 'severity', DiagnosticSeverity::class),
+            Wire::string($payload, 'message'),
+            Wire::string($payload, 'file'),
+            \max(1, Wire::int($payload, 'line')),
+        );
+    }
+}

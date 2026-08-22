@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Execution;
 
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Wire\WireCommunicationFailed;
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Worker\EventSink;
+use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Executes a coordinated plan through one execution method.

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Coverage\Driver\DriverSelector;
 use Greenlight\Coverage\Export\JsonExporter;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * GREENLIGHT_COVERAGE_DIR and GREENLIGHT_COVERAGE_INCLUDE send coverage from

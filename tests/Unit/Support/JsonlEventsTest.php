@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestClassStarted;
-use Greenlight\Core\Event\TestFinished;
-use Greenlight\Core\Event\WorkerSpawned;
-use Greenlight\Core\Result\Outcome;
-use Greenlight\Core\Result\TestResult;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Event\TestClassStarted;
+use Greenlight\Event\TestFinished;
+use Greenlight\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
 

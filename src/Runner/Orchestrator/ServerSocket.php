@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Orchestrator;
 
-use Greenlight\Core\ErrorTrap;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\Protocol\ProtocolError;
 
 /**

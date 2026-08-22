@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Runner;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Discovery\PlanEntry;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Runner\PlanOrder;
 use Greenlight\Tests\Support\PlanEntryFixture;
 

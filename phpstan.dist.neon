@@ -17,10 +17,10 @@ parameters:
             - Greenlight\Cli\CliError
             - Greenlight\Config\ConfigFileError
             - Greenlight\Config\InvalidConfiguration
-            - Greenlight\Core\Artifact\AttachmentError
-            - Greenlight\Core\AtomicFileError
-            - Greenlight\Core\Test\SkipTest
-            - Greenlight\Core\Wire\WireCommunicationFailed
+            - Greenlight\Artifact\AttachmentError
+            - Greenlight\Internal\Filesystem\AtomicFileError
+            - Greenlight\Test\SkipTest
+            - Greenlight\Wire\WireCommunicationFailed
             - Greenlight\Coverage\CoverageError
             - Greenlight\Discovery\DiscoveryError
             - Greenlight\Doubles\InvalidDoubleUsage

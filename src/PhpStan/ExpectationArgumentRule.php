@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
-use Greenlight\Core\ErrorTrap;
 use Greenlight\Expect\ConsistentlyExpectation;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\PendingConsistently;
 use Greenlight\Expect\PendingEventually;
 use Greenlight\Expect\TemporalExpectation;
+use Greenlight\Internal\Php\ErrorTrap;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;

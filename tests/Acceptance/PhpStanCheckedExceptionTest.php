@@ -29,7 +29,7 @@ final readonly class PhpStanCheckedExceptionTest
 
             namespace Greenlight\Tests\Probe;
 
-            use Greenlight\Core\Result\FailureDetail;
+            use Greenlight\Result\FailureDetail;
             use Greenlight\Expect\ExpectationFailed;
 
             function undocumentedTestHelper(): void
@@ -44,8 +44,8 @@ final readonly class PhpStanCheckedExceptionTest
 
             namespace Greenlight\Probe;
 
-            use Greenlight\Core\Result\FailureDetail;
-            use Greenlight\Core\Wire\WireCommunicationFailed;
+            use Greenlight\Result\FailureDetail;
+            use Greenlight\Wire\WireCommunicationFailed;
             use Greenlight\Coverage\CoverageError;
             use Greenlight\Doubles\InvalidDoubleUsage;
             use Greenlight\Expect\ExpectationFailed;
@@ -196,7 +196,7 @@ final readonly class PhpStanCheckedExceptionTest
 
             namespace Greenlight\Probe\NotCovariant;
 
-            use Greenlight\Core\Result\FailureDetail;
+            use Greenlight\Result\FailureDetail;
             use Greenlight\Coverage\CoverageError;
             use Greenlight\Expect\ExpectationFailed;
 

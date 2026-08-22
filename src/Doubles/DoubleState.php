@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
-use Greenlight\Core\Result\FailureDetail;
+use Greenlight\Result\FailureDetail;
 
 /**
  * Contains the mutable state for one double. This state includes planned

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Event\Event;
-use Greenlight\Core\Event\TestFinished;
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Event\Event;
+use Greenlight\Event\TestFinished;
 use Greenlight\Runner\Worker\EventSink;
 
 /**

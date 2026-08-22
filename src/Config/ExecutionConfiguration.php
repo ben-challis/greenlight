@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Core\Result\ResultPolicy;
 use Greenlight\Plugin\PluginDefinition;
+use Greenlight\Result\ResultPolicy;
 
 /**
  * Defines policy, extensions, and retained output for test execution.

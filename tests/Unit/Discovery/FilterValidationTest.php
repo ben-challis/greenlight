@@ -6,9 +6,9 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Test\TestExclusions;
-use Greenlight\Core\Test\TestInclusions;
 use Greenlight\Expect\Expect;
+use Greenlight\Test\TestExclusions;
+use Greenlight\Test\TestInclusions;
 
 final class FilterValidationTest
 {

@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Internal\Filesystem;
+
+/**
+ * Messages include the target path and each warning that PHP supplies.
+ *
+ * @internal
+ */
+final class AtomicFileError extends \RuntimeException
+{
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
+    public static function cannotNameTemporary(string $path, \Throwable $previous): self
+    {
+        return new self(\sprintf(
+            'Cannot generate a temporary name for "%s": %s',
+            $path,
+            $previous->getMessage(),
+        ), $previous);
+    }
+
+    public static function cannotWriteTemporary(
+        string $temporary,
+        ?string $reason,
+        ?\Throwable $previous = null,
+    ): self {
+        return new self(\sprintf(
+            'Cannot write temporary file "%s"%s.',
+            $temporary,
+            $reason === null ? '' : ': ' . $reason,
+        ), $previous);
+    }
+
+    public static function cannotRename(
+        string $temporary,
+        string $path,
+        ?string $reason,
+        ?\Throwable $previous = null,
+    ): self {
+        return new self(\sprintf(
+            'Cannot rename "%s" to "%s"%s.',
+            $temporary,
+            $path,
+            $reason === null ? '' : ': ' . $reason,
+        ), $previous);
+    }
+}

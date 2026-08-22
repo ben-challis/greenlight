@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Wire\InvalidWirePayload;
 use Greenlight\Discovery\ExecutionPlan;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
 use Greenlight\Tests\Support\PlanEntryFixture;
+use Greenlight\Wire\InvalidWirePayload;
 
 final class ExecutionPlanTest
 {

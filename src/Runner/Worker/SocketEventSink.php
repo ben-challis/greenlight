@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Worker;
 
-use Greenlight\Core\Event\Event;
+use Greenlight\Event\Event;
 use Greenlight\Runner\Protocol\Messages\EventEnvelope;
 use Greenlight\Runner\Protocol\ProtocolError;
 use Greenlight\Runner\Protocol\SocketChannel;

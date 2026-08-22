@@ -39,13 +39,13 @@ final readonly class WorkerCaptureCleanupTest
             }
 
             Greenlight\Tests\Fixture\Harness\RecordingDisposable::reset();
-            $id = new Greenlight\Core\Test\TestId(CaptureCleanupProbe::class, 'leavesNonRemovableBuffer');
+            $id = new Greenlight\Test\TestId(CaptureCleanupProbe::class, 'leavesNonRemovableBuffer');
             $plan = new Greenlight\Discovery\ExecutionPlan([
                 new Greenlight\Discovery\PlanEntry(
-                    new Greenlight\Core\Test\TestDefinition(
+                    new Greenlight\Test\TestDefinition(
                         $id->class,
                         $id->method,
-                        execution: new Greenlight\Core\Test\ExecutionPolicy(timeoutSeconds: 1.0),
+                        execution: new Greenlight\Test\ExecutionPolicy(timeoutSeconds: 1.0),
                     ),
                 ),
             ]);

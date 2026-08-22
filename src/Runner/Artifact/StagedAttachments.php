@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Runner\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
+use Greenlight\Artifact\AttachmentKind;
+use Greenlight\Artifact\AttachmentMediaType;
+use Greenlight\Artifact\AttachmentRetention;
+use Greenlight\Artifact\Attachments;
+use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Core\Artifact\AttachmentError;
-use Greenlight\Core\Artifact\AttachmentKind;
-use Greenlight\Core\Artifact\AttachmentMediaType;
-use Greenlight\Core\Artifact\AttachmentRetention;
-use Greenlight\Core\Artifact\Attachments;
-use Greenlight\Core\Artifact\StagedAttachment;
-use Greenlight\Core\Test\TestId;
+use Greenlight\Test\TestId;
 
 /**
  * Collects attachments for one test attempt in the private staging store of a run.

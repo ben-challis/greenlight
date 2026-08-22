@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Core\Event\TestClassStarted;
+use Greenlight\Event\TestClassStarted;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JsonLinesReporter;
 

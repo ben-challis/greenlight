@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tempest;
 
-use Greenlight\Core\Result\TestResult;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolution;
@@ -16,6 +15,7 @@ use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
+use Greenlight\Result\TestResult;
 use Tempest\Container\Container;
 use Tempest\Container\GenericContainer;
 use Tempest\Container\Tag;
