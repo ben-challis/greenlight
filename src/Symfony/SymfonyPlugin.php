@@ -74,7 +74,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function services(): array
     {
         return [
-            new ServiceDefinition(KernelInterface::class, Scope::PerRun, $this->kernel(...)),
+            new ServiceDefinition(KernelInterface::class, Scope::PerWorker, $this->kernel(...)),
         ];
     }
 

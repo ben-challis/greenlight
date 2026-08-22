@@ -72,7 +72,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
         return [
             new ServiceDefinition(
                 Application::class,
-                $this->refreshBetweenTests ? Scope::PerTest : Scope::PerRun,
+                $this->refreshBetweenTests ? Scope::PerTest : Scope::PerWorker,
                 $this->application(...),
             ),
         ];

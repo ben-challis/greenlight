@@ -85,6 +85,6 @@ The public interface contains `Attachments`, `Attachment`, `AttachmentKind`,
 and `AttachmentRetention`. Storage keys are internal. Classes that control
 staging, publication, and recovery are also internal.
 
-JSONL version 2 requires `attachments` on `TestResult` and
+JSONL versions 2 and 3 require `attachments` on `TestResult` and
 `artifactsDirectory` on `RunStarted`. The worker protocol is internal and
 versioned separately.

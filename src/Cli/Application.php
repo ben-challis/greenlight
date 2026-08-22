@@ -1254,7 +1254,7 @@ final readonly class Application
                 return self::EXIT_FAILURE;
             }
 
-            if ($version !== 2) {
+            if (!\in_array($version, [2, 3], true)) {
                 ($this->err)(\sprintf("The input uses unsupported JSONL version %d.\n", $version));
 
                 return self::EXIT_FAILURE;

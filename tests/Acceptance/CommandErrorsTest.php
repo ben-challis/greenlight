@@ -121,8 +121,8 @@ final readonly class CommandErrorsTest
 
         yield 'unsupported envelope version' => [
             'profile-unsupported-version',
-            '{"v":3,"event":"run-started","data":{}}',
-            'The input uses unsupported JSONL version 3.',
+            '{"v":4,"event":"run-started","data":{}}',
+            'The input uses unsupported JSONL version 4.',
         ];
 
         yield 'invalid known event payload' => [

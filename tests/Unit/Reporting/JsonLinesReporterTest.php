@@ -44,7 +44,7 @@ final class JsonLinesReporterTest
 
             $expectedData = JsonWire::roundTrip($event->toWire());
 
-            Expect::that($decoded['v'])->toBe(2);
+            Expect::that($decoded['v'])->toBe(3);
             Expect::that($decoded['event'])->toBe(\array_search($event::class, $tags, true));
             Expect::that($decoded['data'])->toEqual($expectedData);
         }
@@ -80,7 +80,7 @@ final class JsonLinesReporterTest
         $lines = \explode("\n", $output->buffer());
 
         Expect::that($lines[0])->because('first line matches the documented envelope shape')->toBe(
-            '{"v":2,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
+            '{"v":3,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
         );
     }
 

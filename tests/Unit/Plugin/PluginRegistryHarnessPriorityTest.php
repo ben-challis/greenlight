@@ -59,7 +59,7 @@ final class PluginRegistryHarnessPriorityTest
     {
         return new ServiceDefinition(
             $type,
-            Scope::PerRun,
+            Scope::PerWorker,
             static fn(): object => new $type(),
         );
     }

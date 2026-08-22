@@ -197,7 +197,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | stub | Technical noun | An inert double that supplies a dependency |
 | subject | Technical noun | The value that an expectation checks |
 | subscriber | Technical noun | A plugin that receives lifecycle callbacks or run events |
-| suite | Technical noun | A selected group of test classes |
+| suite | Technical noun | A named group of discovery paths and descriptive tags |
 | Symfony bridge | Technical noun | The component that connects the Greenlight harness to a Symfony kernel and container |
 | temporal expectation | Technical noun | An expectation that observes probe values over time |
 | terminal emulator | Technical noun | Test support that models the terminal state after control sequences |

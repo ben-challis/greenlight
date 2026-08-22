@@ -20,7 +20,7 @@ final readonly class HarnessRegistryTypeCaseTest
         $registry = new HarnessRegistry([
             new ServiceDefinition(
                 $this->uppercaseClassName(\ArrayObject::class),
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): \ArrayObject => $service,
             ),
         ]);
@@ -36,7 +36,7 @@ final readonly class HarnessRegistryTypeCaseTest
         $registry = new HarnessRegistry([
             new ServiceDefinition(
                 \ArrayObject::class,
-                Scope::PerRun,
+                Scope::PerWorker,
                 static fn(): \ArrayObject => new \ArrayObject(),
             ),
         ]);
