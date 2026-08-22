@@ -8,6 +8,58 @@
             "skip-changelog": true,
             "bump-minor-pre-major": true,
             "bump-patch-for-minor-pre-major": true,
+            "changelog-sections": [
+                {
+                    "type": "feat",
+                    "section": "Features"
+                },
+                {
+                    "type": "fix",
+                    "section": "Bug Fixes / Maintenance"
+                },
+                {
+                    "type": "perf",
+                    "section": "Performance Improvements"
+                },
+                {
+                    "type": "revert",
+                    "section": "Reverts"
+                },
+                {
+                    "type": "chore",
+                    "section": "Miscellaneous Chores"
+                },
+                {
+                    "type": "docs",
+                    "section": "Documentation",
+                    "hidden": true
+                },
+                {
+                    "type": "style",
+                    "section": "Styles",
+                    "hidden": true
+                },
+                {
+                    "type": "refactor",
+                    "section": "Code Refactoring",
+                    "hidden": true
+                },
+                {
+                    "type": "test",
+                    "section": "Tests",
+                    "hidden": true
+                },
+                {
+                    "type": "build",
+                    "section": "Build System",
+                    "hidden": true
+                },
+                {
+                    "type": "ci",
+                    "section": "Continuous Integration",
+                    "hidden": true
+                }
+            ],
             "include-component-in-tag": false,
             "pull-request-header": "Next Greenlight release",
             "pull-request-footer": "Release Please maintains this pull request. After merge, Release Please creates the GitHub Release.",
