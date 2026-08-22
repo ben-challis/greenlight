@@ -13,6 +13,8 @@ namespace Greenlight\Doubles;
  * the constraint in failure messages.
  *
  * Use the `Argument` factories to get matchers.
+ *
+ * @template-covariant TValue = mixed
  */
 interface ArgumentMatcher
 {

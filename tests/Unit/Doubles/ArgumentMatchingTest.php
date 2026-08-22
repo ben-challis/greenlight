@@ -185,6 +185,65 @@ final readonly class ArgumentMatchingTest
     }
 
     #[Test]
+    public function allOfMatchesWhenEveryMatcherMatches(): void
+    {
+        $recorder = $this->doubles->mock(Recorder::class, static function (MockPlan $plan): void {
+            $plan->expects('record')->with(Argument::allOf(
+                Argument::type(\DateTimeInterface::class),
+                Argument::predicate(
+                    static fn(\DateTimeInterface $value): bool => $value->getTimestamp() > 0,
+                    'positive timestamp',
+                ),
+            ))->once();
+        });
+
+        $recorder->record(new \DateTimeImmutable('2026-01-01'));
+    }
+
+    #[Test]
+    public function allOfStopsAfterTheFirstMatcherRejectsTheValue(): void
+    {
+        $predicateCalled = false;
+        $matcher = Argument::allOf(
+            Argument::type(\DateTimeInterface::class),
+            Argument::predicate(static function (\DateTimeInterface $value) use (&$predicateCalled): bool {
+                $predicateCalled = true;
+
+                return $value->getTimestamp() > 0;
+            }),
+        );
+
+        Expect::that($matcher->matches('not a date'))
+            ->because('allOf() MUST stop after the type matcher rejects the value')
+            ->toBeFalse();
+        Expect::that($predicateCalled)->toBeFalse();
+    }
+
+    #[Test]
+    public function allOfDiagnosticsDescribeEachMatcherInOrder(): void
+    {
+        $matcher = Argument::allOf(
+            Argument::type(\DateTimeInterface::class),
+            Argument::predicate(static fn(mixed $value): bool => $value !== null, 'not null'),
+        );
+
+        Expect::that($matcher->describe())
+            ->because('allOf() diagnostics MUST preserve matcher order')
+            ->toBe('allOf(type(DateTimeInterface), predicate(not null))');
+    }
+
+    #[Test]
+    public function allOfRejectsCaptors(): void
+    {
+        Expect::that(static fn(): ArgumentMatcher => Argument::allOf(Argument::any(), Argument::captor()))
+            ->because('a captor in allOf() cannot record the selected call')
+            ->toThrow(
+                InvalidDoubleUsage::class,
+                message: 'Argument::allOf() does not accept a captor. Put the captor directly in with().',
+            );
+    }
+
+    #[Test]
     public function equalsDiagnosticsRenderTheExpectedValue(): void
     {
         Expect::that(Argument::equals(['a' => [1, 2]])->describe())

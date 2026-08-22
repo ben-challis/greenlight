@@ -37,9 +37,12 @@ public static function type(string $type): ArgumentMatcher
 
 PHPDoc:
 
+- `@template T of object`
+- `@param class-string<T>|string $type`
+- `@return ($type is class-string<T> ? ArgumentMatcher<T> : ArgumentMatcher<mixed>)`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L31)
 
 ### `predicate()`
 
@@ -52,9 +55,11 @@ public static function predicate(\Closure $predicate, string $description = 'pre
 
 PHPDoc:
 
-- `@param \Closure(mixed): mixed $predicate`
+- `@template T`
+- `@param \Closure(T): mixed $predicate`
+- `@return ArgumentMatcher<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L46)
 
 ### `equals()`
 
@@ -65,7 +70,37 @@ Use it when `with()` must compare by value instead of identity.
 public static function equals(mixed $value): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L45)
+PHPDoc:
+
+- `@template T`
+- `@param T $value`
+- `@return ArgumentMatcher<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L61)
+
+### `allOf()`
+
+This matcher accepts a value when all its matchers accept the value.
+Greenlight checks the matchers in argument order and stops after a failure.
+
+```php
+public static function allOf(
+    ArgumentMatcher $first,
+    ArgumentMatcher $second,
+    ArgumentMatcher ...$rest,
+): ArgumentMatcher
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param ArgumentMatcher<T> $first`
+- `@param ArgumentMatcher<T> $second`
+- `@param ArgumentMatcher<T> ...$rest`
+- `@return ArgumentMatcher<T>`
+- `@throws InvalidDoubleUsage`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L79)
 
 ### `captor()`
 
@@ -76,7 +111,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L97)
 
 ## `ArgumentCaptor`
 
@@ -157,7 +192,11 @@ Use the `Argument` factories to get matchers.
 interface ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentMatcher.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentMatcher.php#L19)
+
+PHPDoc:
+
+- `@template-covariant TValue = mixed`
 
 ### `matches()`
 
@@ -165,7 +204,7 @@ interface ArgumentMatcher
 public function matches(mixed $value): bool;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentMatcher.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentMatcher.php#L21)
 
 ### `describe()`
 
@@ -173,7 +212,7 @@ public function matches(mixed $value): bool;
 public function describe(): string;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentMatcher.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/ArgumentMatcher.php#L23)
 
 ## `Doubles`
 
@@ -675,6 +714,14 @@ public static function invalidArgumentType(): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L298)
+
+### `compositeArgumentCaptor()`
+
+```php
+public static function compositeArgumentCaptor(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L303)
 
 ## `MethodExpectation`
 

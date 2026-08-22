@@ -147,13 +147,32 @@ Available matchers are:
 * `Argument::type(string $type)`
 * `Argument::predicate(Closure $predicate, string $description = 'predicate')`
 * `Argument::equals(mixed $value)`
+* `Argument::allOf(ArgumentMatcher $first, ArgumentMatcher $second, ArgumentMatcher ...$rest)`
 * `Argument::captor()`
+
+Use `Argument::allOf()` to apply two or more constraints to one argument:
+
+<!-- php-example {"example":"test-doubles-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Doubles\Argument;
+
+$plan->expects('save')->with(Argument::allOf(
+    Argument::type(Order::class),
+    Argument::predicate(
+        fn (Order $order): bool => $order->isReady(),
+        'a ready order',
+    ),
+));
+```
+
+Greenlight checks the matchers from left to right. Put a type matcher before a
+predicate that has a parameter of that type. `allOf()` does not accept a captor.
 
 ## Argument capture
 
 Capture one argument from every matched call:
 
-<!-- php-example {"example":"test-doubles-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+<!-- php-example {"example":"test-doubles-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $captor = $plan->expects('save')
     ->times(2)
@@ -176,7 +195,7 @@ If a plan must capture more than one argument, put an explicit
 
 `callsTo()` returns argument lists in call order:
 
-<!-- php-example {"example":"test-doubles-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+<!-- php-example {"example":"test-doubles-example-09","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $events = $this->doubles->spy(EventPublisher::class);
 
