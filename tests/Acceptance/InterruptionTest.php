@@ -7,15 +7,17 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\Event;
+use Greenlight\Event\TestFinished;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Result\Outcome;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\AcceptanceProject;
-use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\Subprocess;
 
 final readonly class InterruptionTest
@@ -36,20 +38,27 @@ final readonly class InterruptionTest
         bool $failCleanup,
         array $expectedDiagnostics,
     ): void {
-        if (!\function_exists('pcntl_signal')) {
-            throw new SkipTest('Graceful interruption requires ext-pcntl in the CLI PHP.');
+        if (!\function_exists('pcntl_signal')
+            || !\function_exists('pcntl_exec')
+            || !\function_exists('posix_kill')
+            || !\function_exists('posix_setpgid')
+        ) {
+            throw new SkipTest('The process-group interruption test requires PCNTL and POSIX functions.');
         }
-
-        // The pcntl check is not sufficient on Windows. This test directly
-        // runs `kill -INT` and `ps -p`, which Windows does not provide.
 
         $project = $this->writeProject($failCleanup);
         $tmp = $this->tempDirectory->subdirectory('interrupt/tmp');
         $markerDir = $project->path('markers');
         $root = \dirname(__DIR__, 2);
-        $process = GreenlightCli::start(
+        $process = PhpSubprocess::start(
             $project->directory,
-            ['run', '--workers=2', '--reporter=jsonl'],
+            [
+                \dirname(__DIR__) . '/Fixture/Cli/Signal/ProcessGroupLauncher.php',
+                $root . '/bin/greenlight',
+                'run',
+                '--workers=2',
+                '--reporter=jsonl',
+            ],
             ['TMPDIR' => $tmp],
         );
         $this->cleanup->defer($process->terminate(...));
@@ -59,24 +68,41 @@ final readonly class InterruptionTest
         // A marker makes standard output available before the buffer is
         // full. A test-finished line can delay SIGINT until after the run
         // ends.
-        while (\microtime(true) < $deadline && \glob($markerDir . '/*.started') === []) {
+        while (\microtime(true) < $deadline && \glob($markerDir . '/*.child-started') === []) {
             $process->pump();
             \usleep(5_000);
         }
 
-        if (\glob($markerDir . '/*.started') === []) {
+        if (\glob($markerDir . '/*.child-started') === []) {
             Fail::because(\sprintf(
-                'Timed out after %.1fs waiting for a fixture test to start.',
+                'Timed out after %.1fs waiting for a fixture subprocess to start.',
                 self::DEADLINE_SECONDS,
             ));
         }
 
-        $process->signal(\SIGINT);
+        $process->signalProcessGroup(\SIGINT);
         $result = $process->wait(self::DEADLINE_SECONDS);
+
+        $events = JsonlEvents::from($result);
+        $finished = \array_values(\array_filter(
+            $events,
+            static fn(Event $event): bool => $event instanceof TestFinished,
+        ));
 
         Expect::that($result->stdout)
             ->because('The interrupted run MUST report a finished test.')
             ->toContain('"test-finished"');
+        Expect::that($finished)
+            ->because('The interrupted run MUST finish an active test.')
+            ->not()
+            ->toBeEmpty();
+
+        foreach ($finished as $event) {
+            Expect::that($event->result->outcome)
+                ->because('Terminal SIGINT MUST NOT fail a test subprocess.')
+                ->toBe(Outcome::Passed);
+        }
+
         Expect::that($result->exitCode)
             ->because('SIGINT MUST produce exit code 130.')
             ->toBe(130);
@@ -87,7 +113,7 @@ final readonly class InterruptionTest
                 ->toContain($diagnostic);
         }
 
-        $workerPids = $this->spawnedWorkerPids(JsonlEvents::from($result));
+        $workerPids = $this->spawnedWorkerPids($events);
         Expect::that($workerPids)
             ->because('The interrupted run MUST start at least one worker.')
             ->not()
@@ -160,49 +186,76 @@ final readonly class InterruptionTest
         $project->writeFile('markers/.gitkeep', '');
         $markerDir = $project->path('markers');
 
-        // Each class writes a marker when work starts. The parent sends SIGINT
-        // without a fixed start delay. The bounded loop keeps the class active
-        // long enough to receive the signal.
-        $template = <<<'PHP'
-            <?php
+        // Each class starts a signal-aware subprocess. The subprocess writes
+        // a marker before it waits. The parent sends SIGINT after the first marker.
+        $template = <<<'PHP_WRAP'
+        <?php
 
-            declare(strict_types=1);
+        declare(strict_types=1);
 
-            namespace InterruptProbe;
+        namespace InterruptProbe;
 
-            use Greenlight\Attribute\Test;
+        use Greenlight\Attribute\Test;
 
-            final class %sTest
+        final class %sTest
+        {
+            #[Test]
+            public function one(): void
             {
-                #[Test]
-                public function one(): void
-                {
-                    \file_put_contents(%s . '/%sTest.started', '1');
-                    self::settle();
+                $process = \proc_open(
+                    [
+                        \PHP_BINARY,
+                        '-r',
+                        '\\pcntl_async_signals(true); '
+                            . '\\pcntl_signal(\\SIGINT, static fn() => exit(130)); '
+                            . '\\file_put_contents($argv[1], "1"); '
+                            . '\\usleep(200_000);',
+                        %s . '/%sTest.child-started',
+                    ],
+                    [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                    $pipes,
+                );
+
+                if (!\is_resource($process)) {
+                    throw new \RuntimeException('Could not start the fixture subprocess.');
                 }
 
-                #[Test]
-                public function two(): void { self::settle(); }
+                foreach ($pipes as $pipe) {
+                    \fclose($pipe);
+                }
 
-                #[Test]
-                public function three(): void { self::settle(); }
+                $exitCode = \proc_close($process);
 
-                #[Test]
-                public function four(): void { self::settle(); }
-
-                #[Test]
-                public function five(): void { self::settle(); }
-
-                private static function settle(): void
-                {
-                    $deadline = \microtime(true) + 0.05;
-
-                    while (\microtime(true) < $deadline) {
-                        \usleep(5_000);
-                    }
+                if ($exitCode !== 0) {
+                    throw new \RuntimeException(\sprintf(
+                        'The fixture subprocess exited with code %%d.',
+                        $exitCode,
+                    ));
                 }
             }
-            PHP;
+
+            #[Test]
+            public function two(): void { self::settle(); }
+
+            #[Test]
+            public function three(): void { self::settle(); }
+
+            #[Test]
+            public function four(): void { self::settle(); }
+
+            #[Test]
+            public function five(): void { self::settle(); }
+
+            private static function settle(): void
+            {
+                $deadline = \microtime(true) + 0.05;
+
+                while (\microtime(true) < $deadline) {
+                    \usleep(5_000);
+                }
+            }
+        }
+        PHP_WRAP;
 
         $files = [];
 

@@ -70,7 +70,7 @@ final readonly class Application
                 return self::EXIT_USAGE;
             }
 
-            return new WorkerProcess()->run($argv[1], $argv[2], $argv[3]);
+            return new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
         }
 
         // A run with coverage exports the relay variables to each child
