@@ -20,94 +20,143 @@ final readonly class PhpStanTestConstructorRuleTest
     #[Test]
     public function testConstructorsMustHaveResolvableShapes(): void
     {
-        $probe = PhpStanProbe::analyze(
+        $probes = PhpStanProbe::analyzeBatch(
             $this->tempDirectory,
-            <<<'PHP'
-            <?php
+            [
+                'constructor shapes' => [
+                    'good' => <<<'PHP'
+                        <?php
 
-            declare(strict_types=1);
+                        declare(strict_types=1);
 
-            namespace GreenlightTestConstructorProbe;
+                        namespace GreenlightTestConstructorProbe;
 
-            use Greenlight\Attribute\Test;
+                        use Greenlight\Attribute\Test;
 
-            interface Service {}
+                        interface Service {}
 
-            final class GoodTestConstructorProbe
-            {
-                public function __construct(
-                    private Service $service,
-                    private ?Service $nullableService,
-                    private int $defaulted = 1,
-                ) {}
+                        final class GoodTestConstructorProbe
+                        {
+                            public function __construct(
+                                private Service $service,
+                                private ?Service $nullableService,
+                                private int $defaulted = 1,
+                            ) {}
 
-                #[Test]
-                public function testMethod(): void
-                {
-                    echo $this->service::class, \get_debug_type($this->nullableService), $this->defaulted;
-                }
-            }
+                            #[Test]
+                            public function testMethod(): void
+                            {
+                                echo $this->service::class, \get_debug_type($this->nullableService), $this->defaulted;
+                            }
+                        }
 
-            final class HelperWithScalarConstructor
-            {
-                public function __construct(private int $value) {}
+                        final class HelperWithScalarConstructor
+                        {
+                            public function __construct(private int $value) {}
 
-                public function value(): int
-                {
-                    return $this->value;
-                }
-            }
-            PHP,
-            <<<'PHP'
-            <?php
+                            public function value(): int
+                            {
+                                return $this->value;
+                            }
+                        }
+                        PHP,
+                    'bad' => <<<'PHP'
+                        <?php
 
-            declare(strict_types=1);
+                        declare(strict_types=1);
 
-            namespace GreenlightTestConstructorProbe;
+                        namespace GreenlightTestConstructorProbe;
 
-            use Greenlight\Attribute\Test;
+                        use Greenlight\Attribute\Test;
 
-            interface FirstService {}
-            interface SecondService {}
+                        interface FirstService {}
+                        interface SecondService {}
 
-            final class PrivateConstructorProbe
-            {
-                private function __construct() {}
+                        final class PrivateConstructorProbe
+                        {
+                            private function __construct() {}
 
-                #[Test]
-                public function testMethod(): void {}
-            }
+                            #[Test]
+                            public function testMethod(): void {}
+                        }
 
-            final class InvalidParametersProbe
-            {
-                public function __construct(
-                    int $scalar,
-                    FirstService|SecondService $union,
-                    object $object,
-                ) {
-                    echo $scalar, $union::class, $object::class;
-                }
+                        final class InvalidParametersProbe
+                        {
+                            public function __construct(
+                                int $scalar,
+                                FirstService|SecondService $union,
+                                object $object,
+                            ) {
+                                echo $scalar, $union::class, $object::class;
+                            }
 
-                #[Test]
-                public function testMethod(): void {}
-            }
+                            #[Test]
+                            public function testMethod(): void {}
+                        }
 
-            abstract class InheritedTestProbe
-            {
-                #[Test]
-                public function inheritedTest(): void {}
-            }
+                        abstract class InheritedTestProbe
+                        {
+                            #[Test]
+                            public function inheritedTest(): void {}
+                        }
 
-            final class InvalidInheritedTestConstructorProbe extends InheritedTestProbe
-            {
-                public function __construct(string $value)
-                {
-                    echo $value;
-                }
-            }
-            PHP,
+                        final class InvalidInheritedTestConstructorProbe extends InheritedTestProbe
+                        {
+                            public function __construct(string $value)
+                            {
+                                echo $value;
+                            }
+                        }
+                        PHP,
+                ],
+                'variadic constructor parameters' => [
+                    'good' => <<<'PHP'
+                        <?php
+
+                        declare(strict_types=1);
+
+                        namespace GreenlightTestConstructorVariadicProbe;
+
+                        use Greenlight\Attribute\Test;
+
+                        interface Service {}
+
+                        final class GoodTestConstructorProbe
+                        {
+                            public function __construct(Service ...$services)
+                            {
+                                echo \count($services);
+                            }
+
+                            #[Test]
+                            public function testMethod(): void {}
+                        }
+                        PHP,
+                    'bad' => <<<'PHP'
+                        <?php
+
+                        declare(strict_types=1);
+
+                        namespace GreenlightTestConstructorVariadicProbe;
+
+                        use Greenlight\Attribute\Test;
+
+                        final class ScalarVariadicConstructorProbe
+                        {
+                            public function __construct(int ...$values)
+                            {
+                                echo \count($values);
+                            }
+
+                            #[Test]
+                            public function testMethod(): void {}
+                        }
+                        PHP,
+                ],
+            ],
         );
 
+        $probe = $probes['constructor shapes'];
         Expect::that($probe->exitCode)->because('test constructors must have resolvable shapes')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
         Expect::that(\count($probe->errors))->toBe(5);
@@ -116,57 +165,8 @@ final readonly class PhpStanTestConstructorRuleTest
             ->toContain('Greenlight cannot resolve constructor parameter $union of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $object of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $value of test class GreenlightTestConstructorProbe\InvalidInheritedTestConstructorProbe');
-    }
 
-    #[Test]
-    public function scalarVariadicConstructorParametersAreRejected(): void
-    {
-        $probe = PhpStanProbe::analyze(
-            $this->tempDirectory,
-            <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace GreenlightTestConstructorVariadicProbe;
-
-            use Greenlight\Attribute\Test;
-
-            interface Service {}
-
-            final class GoodTestConstructorProbe
-            {
-                public function __construct(Service ...$services)
-                {
-                    echo \count($services);
-                }
-
-                #[Test]
-                public function testMethod(): void {}
-            }
-            PHP,
-            <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace GreenlightTestConstructorVariadicProbe;
-
-            use Greenlight\Attribute\Test;
-
-            final class ScalarVariadicConstructorProbe
-            {
-                public function __construct(int ...$values)
-                {
-                    echo \count($values);
-                }
-
-                #[Test]
-                public function testMethod(): void {}
-            }
-            PHP,
-        );
-
+        $probe = $probes['variadic constructor parameters'];
         Expect::that($probe->exitCode)->because('scalar variadic parameters cannot be resolved')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
         Expect::that($probe->errors)->toHaveCount(1);

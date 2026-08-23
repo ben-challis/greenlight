@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\AllowParallel;
-use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
@@ -19,47 +18,54 @@ final readonly class RectorSizeAttributeTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    #[DataSet('sizeAttributes')]
-    public function convertsPhpUnitSizeAttributesToSelectionGroups(string $attribute, string $group): void
+    public function convertsPhpUnitSizeAttributesToSelectionGroups(): void
     {
-        $source = \sprintf(
-            <<<'PHP_WRAP'
-            <?php
+        $cases = [];
+        $groups = [];
 
-            declare(strict_types=1);
+        foreach (self::sizeAttributes() as $caseName => [$attribute, $group]) {
+            $cases[$caseName] = \sprintf(
+                <<<'PHP_WRAP'
+                <?php
 
-            namespace App\Tests;
+                declare(strict_types=1);
 
-            use PHPUnit\Framework\Attributes\%s;
-            use PHPUnit\Framework\TestCase;
+                namespace App\Tests;
 
-            #[%s]
-            final class ProbeTest extends TestCase
-            {
-                public function testPasses(): void
+                use PHPUnit\Framework\Attributes\%s;
+                use PHPUnit\Framework\TestCase;
+
+                #[%s]
+                final class ProbeTest extends TestCase
                 {
-                    $this->assertTrue(true);
+                    public function testPasses(): void
+                    {
+                        $this->assertTrue(true);
+                    }
                 }
-            }
 
-            PHP_WRAP,
-            $attribute,
-            $attribute,
-        );
-        $probe = RectorProbe::convert(
-            $this->tempDirectory,
-            $source,
-            name: 'size-attribute-' . $group,
-        );
+                PHP_WRAP,
+                $attribute,
+                $attribute,
+            );
+            $groups[$caseName] = ['attribute' => $attribute, 'group' => $group];
+        }
 
-        Expect::that($probe->changed)
-            ->because('the PHPUnit size attribute MUST be convertible')
-            ->toBeTrue();
-        Expect::that($probe->code)
-            ->because('the converted size MUST remain available for group selection')
-            ->toContain(\sprintf("#[\\Greenlight\\Attribute\\Group('%s')]", $group))
-            ->not()
-            ->toContain('#[' . $attribute . ']');
+        $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'size-attributes');
+
+        foreach ($probes as $caseName => $probe) {
+            $attribute = $groups[$caseName]['attribute'];
+            $group = $groups[$caseName]['group'];
+
+            Expect::that($probe->changed)
+                ->because('PHPUnit size attribute case: ' . $caseName)
+                ->toBeTrue();
+            Expect::that($probe->code)
+                ->because('converted size group case: ' . $caseName)
+                ->toContain(\sprintf("#[\\Greenlight\\Attribute\\Group('%s')]", $group))
+                ->not()
+                ->toContain('#[' . $attribute . ']');
+        }
     }
 
     /**
