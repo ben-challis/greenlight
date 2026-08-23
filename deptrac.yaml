@@ -189,6 +189,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Cli/Reporting/.*
+    - name: CliPlugin
+      collectors:
+        - type: directory
+          value: src/Cli/Plugin/.*
     - name: CliCoverage
       collectors:
         - type: directory
@@ -343,12 +347,13 @@ deptrac:
     ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalEvent, InternalPhp, InternalWire, Result, Test]
     ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
     ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, DiscoveryPlan, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, InternalText, InternalWire, Reporting, Result, Test]
-    Cli: [CliCommand, CliOutput, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Reporting]
+    Cli: [CliCommand, CliOutput, CliPlugin, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Reporting]
     CliInput: []
     CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
     CliDiscovery: [CliConfiguration, CliInput, CliState, Config, Discovery, DiscoveryPlan, Test]
     CliOutput: [InternalPhp, InternalText, Reporting]
     CliReporting: [CliInput, CliOutput, Event, InternalPhp, Plugin, Reporting, ReportingProfile]
+    CliPlugin: [CliCommand, CliConfiguration, CliInput, CliOutput, CliRun, Config, Coverage, InternalPhp, InternalWire, Plugin, Reporting]
     CliCoverage: [CliConfiguration, CliOutput, Config, Coverage, CoverageCollection, CoverageExport, CoverageRelay, InternalFilesystem, InternalPhp, Reporting]
     CliSignal: [InternalProcess]
     CliState: [InternalFilesystem, InternalPhp]

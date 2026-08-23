@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Cli\Command\CommandDispatcher;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Plugin\CommandDispatcher;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;

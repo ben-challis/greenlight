@@ -22,9 +22,10 @@ return GreenlightConfig::create()
 
 Greenlight creates plugin instances only for an owner that uses one of their
 capabilities. It creates one command-owned instance for each factory that
-has `ReporterProvider`. It creates one run-owned orchestrator instance for each
-factory that has a run capability. It creates one worker instance for each
-factory that has a worker capability and for each physical worker.
+has `CommandProvider` or `ReporterProvider`. Command dispatch and reporter
+setup own separate instances. It creates one run-owned orchestrator instance
+for each factory that has a run capability. It creates one worker instance for
+each factory that has a worker capability and for each physical worker.
 
 A plugin that has capabilities on both sides gets one instance on each side.
 The instances are separate with one in-process worker and with parallel
@@ -45,6 +46,60 @@ A `WorkerBootstrapSubscriber` can also read the resources and configure other
 worker capabilities on its worker-local instance.
 
 ## Capability interfaces
+
+### CommandProvider
+
+Command-side.
+
+A `CommandProvider` adds named commands. Each `CommandDefinition` contains a
+name, a single-line description, and an invocation handler.
+
+<!-- php-example {"example":"plugins-example-command-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\CommandDefinition;
+use Greenlight\Plugin\CommandInvocation;
+use Greenlight\Plugin\CommandProvider;
+
+final class CompanyCommands implements CommandProvider
+{
+    public function commands(): array
+    {
+        return [new CommandDefinition(
+            'company:hello',
+            'Print a company greeting',
+            static function (CommandInvocation $invocation): int {
+                $name = $invocation->arguments[0] ?? 'team';
+                $invocation->write("Hello, {$name}.\n");
+
+                return 0;
+            },
+        )];
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): CompanyCommands => new CompanyCommands());
+```
+
+Run the configured command by name:
+
+```sh
+vendor/bin/greenlight company:hello Ben
+```
+
+Greenlight removes the command name from `CommandInvocation::$arguments`. It
+keeps all other tokens in their input order. A plugin command owns the syntax
+and validation of these arguments.
+
+Use `write()` for standard output. Use `writeError()` for standard error. The
+handler MUST return an exit code from 0 through 255. If it throws or returns an
+invalid exit code, Greenlight reports a command error and returns exit code 1.
+
+Built-in and configured names share one registry. A duplicate name stops
+command dispatch. Greenlight creates the provider only when it resolves a
+configured command. Configured commands do not change the bundled help text or
+completion scripts.
 
 ### ReporterProvider
 
