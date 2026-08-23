@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class WorkerCaptureCleanupTest
 {
@@ -14,8 +14,7 @@ final readonly class WorkerCaptureCleanupTest
     public function captureFailureStillRunsAllCleanupStages(): void
     {
         $root = \dirname(__DIR__, 4);
-        $process = Subprocess::start($root, [
-            \PHP_BINARY,
+        $process = PhpSubprocess::start($root, [
             '-r',
             <<<'PHP_WRAP'
             require $argv[1];

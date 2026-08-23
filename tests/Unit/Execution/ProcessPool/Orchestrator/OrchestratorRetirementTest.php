@@ -19,6 +19,7 @@ use Greenlight\Tests\Fixture\LeakSuite\CleanTest;
 use Greenlight\Tests\Fixture\ResourceScheduling\WaitingResourceTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class OrchestratorRetirementTest
@@ -139,7 +140,7 @@ final readonly class OrchestratorRetirementTest
             $worker,
         );
 
-        return [\PHP_BINARY, '-r', $bootstrap];
+        return PhpSubprocess::command(['-r', $bootstrap]);
     }
 
     /**

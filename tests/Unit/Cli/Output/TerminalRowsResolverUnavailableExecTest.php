@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Cli\Output;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class TerminalRowsResolverUnavailableExecTest
 {
@@ -14,10 +14,9 @@ final readonly class TerminalRowsResolverUnavailableExecTest
     public function unavailableExecUsesDefaultRows(): void
     {
         $root = \dirname(__DIR__, 4);
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $root,
             [
-                \PHP_BINARY,
                 '-n',
                 '-d',
                 'disable_functions=exec',
