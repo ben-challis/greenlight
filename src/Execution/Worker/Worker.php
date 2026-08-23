@@ -42,7 +42,6 @@ final readonly class Worker
     public function __construct(
         private array $definitions,
         private ?WorkerPluginRuntime $plugins = null,
-        private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
         private ?ArtifactStore $artifactStore = null,
     ) {}
@@ -97,7 +96,6 @@ final readonly class Worker
                         $scopes,
                         $context,
                         $plugins,
-                        $this->leakDetector,
                         $this->artifactStore,
                         $attemptStarted,
                     );
@@ -114,6 +112,12 @@ final readonly class Worker
 
                 $result = $plugins->terminalResult($entry->definition, $result);
 
+                try {
+                    $leaks = [...$leaks, ...$plugins->detectedLeaks()];
+                } catch (\Throwable $threw) {
+                    $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
+                }
+
                 $candidateSummary = $summary->add($result->outcome);
                 $failureLimitReached = $stopAfterFailures !== null
                     && $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
@@ -125,10 +129,6 @@ final readonly class Worker
 
                 $summary = $summary->add($result->outcome);
                 $sink->emit(new TestFinished($result, \microtime(true)));
-
-                if ($this->leakDetector instanceof LeakDetector) {
-                    $leaks = [...$leaks, ...$this->leakDetector->sweep()];
-                }
 
                 $stopReached = match (true) {
                     $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',

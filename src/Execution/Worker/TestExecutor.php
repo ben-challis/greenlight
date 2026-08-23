@@ -63,7 +63,6 @@ final readonly class TestExecutor
         private HarnessScopes $scopes,
         private ClassContext $context,
         private WorkerPluginRuntime $plugins,
-        private ?LeakDetector $leakDetector = null,
         private ?ArtifactStore $artifactStore = null,
         private ?\Closure $attemptStarted = null,
     ) {}
@@ -353,7 +352,7 @@ final readonly class TestExecutor
 
         if ($context instanceof TestContext) {
             $result = $this->plugins->afterTest($context, $result);
-            $this->leakDetector?->watch($entry->id, $context->instance);
+            $this->plugins->watchTestInstance($entry->id, $context->instance);
         }
 
         return [$result, $cause, $stagedAttachments];

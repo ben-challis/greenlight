@@ -66,4 +66,14 @@ final class PluginRuntimeError extends \RuntimeException
             $test,
         ));
     }
+
+    /** @param class-string $plugin */
+    public static function invalidLeakedTest(string $plugin, mixed $value): self
+    {
+        return new self(\sprintf(
+            'Plugin "%s" returned %s from sweep(). It MUST return TestId instances.',
+            $plugin,
+            \get_debug_type($value),
+        ));
+    }
 }

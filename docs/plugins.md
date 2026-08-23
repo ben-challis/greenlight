@@ -578,6 +578,29 @@ transformers.
 
 The built-in diagnostic and risky-test policies use this interface.
 
+### TestInstanceLeakDetector
+
+Worker-side.
+
+<!-- php-example {"mode":"display","reason":"Shows the two method signatures without their interface declaration."} -->
+```php
+public function watch(TestId $id, object $instance): void;
+public function sweep(): array;
+```
+
+Greenlight calls `watch()` after the test method, hooks, cleanup callbacks,
+test-scope disposal, and after-test subscribers complete. It then releases its
+references to the test instance. Before `TestFinished`, Greenlight calls
+`sweep()`. Return the IDs of test instances that remain reachable.
+
+A detector MUST report each leak one time. Greenlight combines and
+deduplicates results from all detectors. A reported leak makes the run fail.
+
+The `--detect-leaks` option adds Greenlight's weak-reference detector through
+this capability. A configured detector runs without this option. Use a
+configured detector when an application runtime needs a different collection
+or reachability check.
+
 ### RunLifecycleSubscriber
 
 Orchestrator-side.
@@ -787,6 +810,7 @@ Priority applies to these capabilities:
 * `AfterTestSubscriber`
 * `RetryDecider`
 * `TerminalResultTransformer`
+* `TestInstanceLeakDetector`
 * `RunLifecycleSubscriber`
 * `HarnessProvider`
 * `ServiceResolver`

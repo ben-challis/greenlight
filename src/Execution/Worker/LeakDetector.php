@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Worker;
 
+use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\TestInstanceLeakDetector;
 use Greenlight\Test\TestId;
 
 /**
@@ -22,12 +24,18 @@ use Greenlight\Test\TestId;
  *
  * @internal
  */
-final class LeakDetector
+final class LeakDetector implements Prioritized, TestInstanceLeakDetector
 {
     /**
      * @var list<array{TestId, \WeakReference<object>}>
      */
     private array $watched = [];
+
+    #[\Override]
+    public function priority(): int
+    {
+        return \PHP_INT_MIN;
+    }
 
     /**
      * @param list<string>|null $xdebugModes Explicit mode snapshot. A null value reads the environment.
@@ -47,6 +55,7 @@ final class LeakDetector
         return 'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports false positives. Rerun with XDEBUG_MODE=off to get correct results.';
     }
 
+    #[\Override]
     public function watch(TestId $id, object $instance): void
     {
         $this->watched[] = [$id, \WeakReference::create($instance)];
@@ -55,6 +64,7 @@ final class LeakDetector
     /**
      * @return list<TestId> tests whose instances are still alive
      */
+    #[\Override]
     public function sweep(): array
     {
         \gc_collect_cycles();

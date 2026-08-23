@@ -103,4 +103,10 @@ abstract readonly class PluginRuntime
 
         return \array_column($matching, 'plugin');
     }
+
+    /** @return list<Plugin> */
+    final protected function instances(): array
+    {
+        return \array_column($this->plugins, 'plugin');
+    }
 }

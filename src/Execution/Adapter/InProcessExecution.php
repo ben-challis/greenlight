@@ -71,6 +71,9 @@ final readonly class InProcessExecution implements ExecutionAdapter
             ),
             ...($execution->policy->isNoOp() ? [] : [new ResultPolicyPlugin($execution->policy)]),
         ]);
+        if ($this->detectLeaks) {
+            $plugins = $plugins->withBundledPlugins([new LeakDetector()]);
+        }
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
 
@@ -105,7 +108,6 @@ final readonly class InProcessExecution implements ExecutionAdapter
                         fn() => new Worker(
                             [],
                             $plugins,
-                            $this->detectLeaks ? new LeakDetector() : null,
                             'in-process',
                             $context->artifacts,
                         )->run(

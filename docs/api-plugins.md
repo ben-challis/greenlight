@@ -288,7 +288,7 @@ Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
 `CommandProvider`, `CoverageMapTransformer`, `HarnessProvider`, `ReporterProvider`,
-`TerminalResultTransformer`, `TestPlanTransformer`, or
+`TerminalResultTransformer`, `TestInstanceLeakDetector`, `TestPlanTransformer`, or
 `ExpectationExtension`.
 
 ```php
@@ -536,6 +536,44 @@ PHPDoc:
 - `@throws SkipTest`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
+
+## `TestInstanceLeakDetector`
+
+Namespace: `Greenlight\Plugin`
+
+Detects test instances that remain reachable after their test.
+
+```php
+interface TestInstanceLeakDetector extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestInstanceLeakDetector.php#L10)
+
+### `watch()`
+
+Records one test instance before Greenlight releases its references.
+
+```php
+public function watch(TestId $id, object $instance): void;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestInstanceLeakDetector.php#L13)
+
+### `sweep()`
+
+Reports leaks after Greenlight releases its references to the test.
+
+A detector MUST report each leak one time.
+
+```php
+public function sweep(): array;
+```
+
+PHPDoc:
+
+- `@return list<TestId>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestInstanceLeakDetector.php#L22)
 
 ## `TestPlan`
 

@@ -12,9 +12,11 @@ use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\TestInstanceLeakDetector;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Plugins\FakeCapabilityPlugin;
 use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
@@ -159,6 +161,32 @@ final class WorkerPluginRuntimeTest
     }
 
     #[Test]
+    public function assignmentLeakDetectorsJoinTheStableCapabilityOrder(): void
+    {
+        /** @var \ArrayObject<int, string> $events */
+        $events = new \ArrayObject();
+        $id = new TestId('Example\\LeakyTest', 'retainsItself');
+        $instance = new \stdClass();
+        $configured = new RecordingLeakDetectorProbe($events, 'configured', 0, $id);
+        $bundled = new RecordingLeakDetectorProbe($events, 'bundled', -10, $id);
+        $runtime = WorkerPluginRuntime::fromPlugins([$configured])
+            ->withBundledPlugins([$bundled]);
+
+        $runtime->watchTestInstance($id, $instance);
+        $leaks = $runtime->detectedLeaks();
+
+        Expect::that($events->getArrayCopy())->toBe([
+            'bundled:watch',
+            'configured:watch',
+            'bundled:sweep',
+            'configured:sweep',
+        ]);
+        Expect::that($leaks)
+            ->because('multiple detectors MUST NOT duplicate one leaked test')
+            ->toBe([$id]);
+    }
+
+    #[Test]
     public function bootstrapCapabilityRequiresTheInitialBarrierWithoutConstruction(): void
     {
         $constructions = 0;
@@ -208,5 +236,36 @@ final class MutablePriorityRunnerProbe implements Fake, Prioritized, WorkerRunti
         } finally {
             $this->events->append($this->name . ':exit');
         }
+    }
+}
+
+final readonly class RecordingLeakDetectorProbe implements Fake, Prioritized, TestInstanceLeakDetector
+{
+    /** @param \ArrayObject<int, string> $events */
+    public function __construct(
+        private \ArrayObject $events,
+        private string $name,
+        private int $priority,
+        private TestId $leak,
+    ) {}
+
+    #[\Override]
+    public function priority(): int
+    {
+        return $this->priority;
+    }
+
+    #[\Override]
+    public function watch(TestId $id, object $instance): void
+    {
+        $this->events->append($this->name . ':watch');
+    }
+
+    #[\Override]
+    public function sweep(): array
+    {
+        $this->events->append($this->name . ':sweep');
+
+        return [$this->leak];
     }
 }

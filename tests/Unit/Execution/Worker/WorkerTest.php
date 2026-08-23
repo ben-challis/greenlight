@@ -7,12 +7,15 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Doubles\Fake;
 use Greenlight\Event\TestClassStarted;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Plugin\TestInstanceLeakDetector;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -544,13 +547,45 @@ final class WorkerTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->definitions(), leakDetector: new LeakDetector())
+        $outcome = new Worker(
+            $this->definitions(),
+            WorkerPluginRuntime::fromPlugins([], [new LeakDetector()]),
+        )
             ->run($plan, $sink);
 
         $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
 
         Expect::that($outcome->leaks)->because('leak detection names the test that retained its instance')->toHaveCount(1);
         Expect::that($leakedIds[0])->toContain('LeakyTest::passesButLeaksItself');
+
+        LeakyTest::$retained = [];
+    }
+
+    #[Test]
+    public function leakDetectorFailuresErrorTheAffectedTest(): void
+    {
+        LeakyTest::$retained = [];
+        $directory = FixturePath::get('LeakSuite');
+        $plan = new TestDiscoverer()->discover([$directory]);
+        $detector = new class implements Fake, TestInstanceLeakDetector {
+            #[\Override]
+            public function watch(TestId $id, object $instance): void {}
+
+            #[\Override]
+            public function sweep(): array
+            {
+                throw new \RuntimeException('Leak sweep exploded');
+            }
+        };
+
+        $outcome = new Worker(
+            $this->definitions(),
+            WorkerPluginRuntime::fromPlugins([$detector]),
+        )->run($plan, new CollectingEventSink());
+
+        Expect::that($outcome->summary->errored)
+            ->because('a detector failure MUST become an error for each affected test')
+            ->toBe($outcome->summary->total());
 
         LeakyTest::$retained = [];
     }

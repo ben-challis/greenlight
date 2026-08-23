@@ -257,12 +257,13 @@ final readonly class WorkerProcess
 
             $collector?->start();
 
-            $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
+            $assignmentPlugins = $message->detectLeaks
+                ? $plugins->withBundledPlugins([new LeakDetector()])
+                : $plugins;
 
             $outcome = new Worker(
                 [],
-                $plugins,
-                $leakDetector,
+                $assignmentPlugins,
                 $workerId,
                 $artifactStore,
             )->run(

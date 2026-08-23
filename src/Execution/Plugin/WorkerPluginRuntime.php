@@ -19,6 +19,7 @@ use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TerminalResultTransformer;
 use Greenlight\Plugin\TestAttemptRunner;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Plugin\TestInstanceLeakDetector;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Plugin\WorkerRuntimeRunner;
@@ -28,6 +29,7 @@ use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 
 /**
  * Executes the plugin capabilities that one physical worker owns.
@@ -48,6 +50,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         ServiceResolver::class,
         TerminalResultTransformer::class,
         TestAttemptRunner::class,
+        TestInstanceLeakDetector::class,
         WorkerBootstrapSubscriber::class,
         WorkerRuntimeRunner::class,
     ];
@@ -76,6 +79,18 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
     public static function fromPlugins(array $plugins, array $bundledPlugins = []): self
     {
         return new self([new AttributeRetryDecider(), ...$bundledPlugins, ...$plugins]);
+    }
+
+    /**
+     * Adds capabilities that Greenlight enables for one assignment.
+     *
+     * @internal
+     *
+     * @param list<Plugin> $plugins
+     */
+    public function withBundledPlugins(array $plugins): self
+    {
+        return new self([...$this->instances(), ...$plugins]);
     }
 
     /**
@@ -211,6 +226,45 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         }
 
         return $result;
+    }
+
+    /** @throws PluginRuntimeError */
+    public function watchTestInstance(TestId $id, object $instance): void
+    {
+        foreach ($this->ordered(TestInstanceLeakDetector::class) as $detector) {
+            try {
+                $detector->watch($id, $instance);
+            } catch (\Throwable $failure) {
+                throw PluginRuntimeError::hookFailed($detector::class, 'watch', $failure);
+            }
+        }
+    }
+
+    /**
+     * @return list<TestId>
+     * @throws PluginRuntimeError
+     */
+    public function detectedLeaks(): array
+    {
+        $leaks = [];
+
+        foreach ($this->ordered(TestInstanceLeakDetector::class) as $detector) {
+            try {
+                $detected = $detector->sweep();
+            } catch (\Throwable $failure) {
+                throw PluginRuntimeError::hookFailed($detector::class, 'sweep', $failure);
+            }
+
+            foreach ($detected as $id) {
+                if (!$id instanceof TestId) {
+                    throw PluginRuntimeError::invalidLeakedTest($detector::class, $id);
+                }
+
+                $leaks[(string) $id] = $id;
+            }
+        }
+
+        return \array_values($leaks);
     }
 
     public function shouldRetry(
