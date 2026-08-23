@@ -25,8 +25,9 @@ final readonly class ProfileReportCommand
 
     public function run(ParsedArguments $arguments, string $workingDirectory): int
     {
-        $input = $arguments->value('input');
-        if ($input === null || $input === '') {
+        $inputs = $arguments->values('input');
+        $input = $inputs[0] ?? null;
+        if (\count($inputs) !== 1 || $input === '') {
             $this->console->err("profile:report requires --input=<path to a JSONL stream>.\n");
             return 64;
         }

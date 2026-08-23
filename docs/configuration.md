@@ -565,6 +565,56 @@ This is the default command if you do not give a command.
 
 Prints each discovered test ID on a separate line. It then prints the count.
 
+### `coverage:merge`
+
+Merges two or more Greenlight coverage JSON exports.
+
+Repeat `--input` for each source. Repeat `--export` for each required output:
+
+```sh
+greenlight coverage:merge \
+    --input=coverage-shard-1.json \
+    --input=coverage-shard-2.json \
+    --export=json=coverage.json \
+    --export=lcov=coverage.lcov \
+    --export=html=coverage-html
+```
+
+The command supports `json`, `lcov`, `clover`, `cobertura`, and `html`.
+
+The merged map contains the union of all executable lines. A line has coverage
+if one or more inputs identify it as covered. Input order does not change the
+result.
+
+Duplicate inputs and empty maps do not change the result. A file that is absent
+from one input remains in the result if another input contains it.
+
+By default, version 1 absolute paths identify files. For different checkout
+roots, repeat `--input-root` once for each input. Also set `--project-root`:
+
+```sh
+greenlight coverage:merge \
+    --input=one.json \
+    --input=two.json \
+    --input-root=/old/checkout-one \
+    --input-root=/old/checkout-two \
+    --project-root=/current/checkout \
+    --export=json=coverage.json
+```
+
+Greenlight maps each input path to the selected project root. It rejects a path
+outside its applicable input root. It also rejects one input that has different
+input roots.
+
+The command rejects malformed documents and unsupported schema versions. It
+also rejects relative version 1 file paths.
+
+Each output file uses an atomic replacement. Output files and HTML pages have
+deterministic content and order.
+
+The command accepts `--minimum-coverage` and `--maximum-uncovered-lines`. These
+gates apply to the merged map after Greenlight writes the outputs.
+
 ### `coverage:diff`
 
 Compares two coverage JSON exports.
@@ -899,7 +949,8 @@ machine-readable output.
 
 Overrides `CoverageBuilder::minimumPercentage()` for a run. The option also
 enables coverage when the configuration file does not configure it. With
-`coverage:diff`, the option checks the current export.
+`coverage:diff`, the option checks the current export. With `coverage:merge`,
+the option checks the merged map.
 
 The value must be from `0` through `100`. It can have two decimal places.
 
@@ -907,7 +958,8 @@ The value must be from `0` through `100`. It can have two decimal places.
 
 Overrides `CoverageBuilder::maximumUncoveredLines()` for a run. The option also
 enables coverage when the configuration file does not configure it. With
-`coverage:diff`, the option checks the current export.
+`coverage:diff`, the option checks the current export. With `coverage:merge`,
+the option checks the merged map.
 
 The value must be a nonnegative integer.
 
@@ -933,6 +985,29 @@ Sets the project root for baseline path normalization. Use this option with
 
 Sets the project root for current path normalization. Use this option with
 `--baseline-root`.
+
+### `--input=<path>`
+
+Sets the input stream for `profile:report`.
+
+With `coverage:merge`, the option sets one coverage JSON input. Repeat the
+option for each input.
+
+### `--export=<format>=<path>`
+
+Sets one output for `coverage:merge`. Repeat the option for each output.
+
+Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
+
+### `--input-root=<path>`
+
+Sets the source project root for one `coverage:merge` input. Repeat the option
+once for each input. Use this option with `--project-root`.
+
+### `--project-root=<path>`
+
+Sets the target project root for `coverage:merge` path relocation. Use this
+option with `--input-root`.
 
 ### `--watch`
 

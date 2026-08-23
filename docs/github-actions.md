@@ -87,3 +87,127 @@ default.
 
 Cache package downloads and static analysis data separately. Their invalidation
 rules differ from the Greenlight run-state rules.
+
+## Merge coverage from shards
+
+Each shard must write a Greenlight JSON coverage export. A later job can merge
+these exports and apply gates to the complete suite.
+
+First, make the export target configurable in `greenlight.php`:
+
+<!-- php-example {"mode":"display","reason":"Shows environment selection inside an existing Greenlight configuration file."} -->
+```php
+$coverageOutput = getenv('GREENLIGHT_COVERAGE_OUTPUT')
+    ?: 'build/coverage/coverage.json';
+
+return GreenlightConfig::create()
+    ->paths(['tests'])
+    ->coverage(fn ($coverage) => $coverage
+        ->include('src')
+        ->requireDriver()
+        ->export('json', $coverageOutput));
+```
+
+This workflow runs four shards. Each shard uses a unique artifact name and file
+name. The merge job downloads all files into one directory.
+
+```yaml
+name: Sharded coverage
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  coverage-shard:
+    name: Coverage shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pcntl, sockets
+          coverage: xdebug
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run coverage shard
+        run: >-
+          vendor/bin/greenlight run
+          --shard=${{ matrix.shard }}/4
+          --require-coverage-driver
+        env:
+          GREENLIGHT_COVERAGE_OUTPUT: build/coverage/shard-${{ matrix.shard }}.json
+
+      - name: Upload shard coverage
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-shard-${{ matrix.shard }}
+          path: build/coverage/shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+  coverage-merge:
+    name: Whole-suite coverage gate
+    needs: coverage-shard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pcntl, sockets
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Download shard coverage
+        uses: actions/download-artifact@v8
+        with:
+          pattern: coverage-shard-*
+          path: build/coverage/shards
+          merge-multiple: true
+
+      - name: Merge coverage and apply gates
+        shell: bash
+        run: |
+          inputs=()
+          for path in build/coverage/shards/shard-*.json; do
+            inputs+=("--input=${path}")
+          done
+
+          vendor/bin/greenlight coverage:merge \
+            "${inputs[@]}" \
+            --export=json=build/coverage/coverage.json \
+            --export=lcov=build/coverage/lcov.info \
+            --minimum-coverage=90.00 \
+            --maximum-uncovered-lines=100
+
+      - name: Upload whole-suite coverage
+        uses: actions/upload-artifact@v7
+        with:
+          name: whole-suite-coverage
+          path: build/coverage
+          if-no-files-found: error
+```
+
+GitHub-hosted matrix jobs use the same workspace path for one repository. Thus,
+their version 1 absolute paths match.
+
+For runners with different checkout roots, add one `--input-root` for each
+input. Also add `--project-root` for the merge job checkout.
+
+To compare with a saved baseline, omit the merge gates. Then run
+`coverage:diff` with the merged JSON file as `--current`.

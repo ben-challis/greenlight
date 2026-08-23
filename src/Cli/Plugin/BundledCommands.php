@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Command\CompletionCommand;
 use Greenlight\Cli\Command\CoverageDiffCommand;
+use Greenlight\Cli\Command\CoverageMergeCommand;
 use Greenlight\Cli\Command\IdeHelperCommand;
 use Greenlight\Cli\Command\ListCommand;
 use Greenlight\Cli\Command\ProfileReportCommand;
@@ -112,6 +113,7 @@ final readonly class BundledCommands implements CommandProvider
                 $invocation->workingDirectory,
                 $invocation->binaryPath,
             ),
+            'coverage:merge' => new CoverageMergeCommand($this->console)->run($arguments, $invocation->workingDirectory),
             'coverage:diff' => new CoverageDiffCommand($this->console)->run($arguments, $invocation->workingDirectory),
             'profile:report' => new ProfileReportCommand($this->console)->run($arguments, $invocation->workingDirectory),
             'artifacts:prune' => new ArtifactsPruneCommand($this->console)->run($arguments, $invocation->workingDirectory),

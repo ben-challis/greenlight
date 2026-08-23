@@ -21,6 +21,7 @@ final readonly class CompletionTest
         $result = $this->run('bash');
         Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
         Expect::that($result->stdout)->toContain('_greenlight_completions')
+            ->toContain('coverage:merge')
             ->toContain('coverage:diff')
             ->toContain('artifacts:prune')
             ->toContain('--detect-leaks')

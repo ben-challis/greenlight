@@ -56,4 +56,22 @@ final class ProjectRootNormalizerTest
                 message: 'The project root must be an absolute path.',
             );
     }
+
+    #[Test]
+    public function relocationUsesTheTargetRootAndKeepsLineSets(): void
+    {
+        $relocated = ProjectRootNormalizer::relocate(
+            new CoverageMap([new FileCoverage('/old/worktree/src/A.php', [2], [3])]),
+            '/old/worktree',
+            '/new/worktree/',
+        );
+
+        Expect::that($relocated->toWire())
+            ->because('relocation MUST change only the project root')
+            ->toBe([
+                'files' => [
+                    '/new/worktree/src/A.php' => [[2], [3]],
+                ],
+            ]);
+    }
 }
