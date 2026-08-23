@@ -101,6 +101,9 @@ final class WorkerProtocolSchemaTest
     #[Test]
     public function compatiblePayloadsWithoutNewOptionalFieldsValidateAgainstTheSchema(): void
     {
+        $bootstrapPayload = $this->withoutPaths($this->messages()['bootstrap']->toWire(), [
+            ['policy'],
+        ]);
         $assignPayload = $this->withoutPaths($this->messages()['assign']->toWire(), [
             ['artifactSession'],
             ['artifactConfiguration'],
@@ -113,6 +116,9 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+            ->because('the schema MUST accept compatible bootstrap payloads')
+            ->toBe([]);
         Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
@@ -217,6 +223,13 @@ final class WorkerProtocolSchemaTest
                         ['password' => 'test-secret'],
                     ),
                 ]),
+                policy: new ResultPolicy(
+                    failOnDeprecation: true,
+                    failOnNotice: true,
+                    failOnWarning: true,
+                    ignoreDeprecations: ['known deprecation*'],
+                    failOnRisky: true,
+                ),
             ),
             'ready' => new Ready(),
             'assign' => new Assign(

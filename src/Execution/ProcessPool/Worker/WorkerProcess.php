@@ -25,6 +25,7 @@ use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Execution\Worker\ChannelEnvironment;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\ResultPolicyPlugin;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
@@ -32,6 +33,7 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestChannel;
 use Greenlight\Test\TestId;
@@ -148,6 +150,9 @@ final readonly class WorkerProcess
                         $message->generatedCodeDirectory,
                         $message->temporaryDirectory,
                     ),
+                    ...(!$message->policy instanceof ResultPolicy
+                        ? []
+                        : [new ResultPolicyPlugin($message->policy)]),
                 ]);
                 $scopes = $plugins->prepareWorker(
                     $bootstrap,
@@ -252,7 +257,6 @@ final readonly class WorkerProcess
                 $plugins,
                 $leakDetector,
                 $workerId,
-                $message->policy,
                 $artifactStore,
             )->run(
                 $message->slice,

@@ -126,13 +126,14 @@ Identifies an object as a Greenlight plugin.
 Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`HarnessProvider`, `ReporterProvider`, or `ExpectationExtension`.
+`HarnessProvider`, `ReporterProvider`, `TerminalResultTransformer`, or
+`ExpectationExtension`.
 
 ```php
 interface Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L16)
 
 This type does not declare public members.
 
@@ -240,6 +241,36 @@ public function onRunEvent(Event $event): void;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L18)
+
+## `TerminalResultTransformer`
+
+Namespace: `Greenlight\Plugin`
+
+Transforms a test result after retries and test-scope teardown complete.
+
+Greenlight runs lower priorities first. It uses registration order for
+equal priorities. Greenlight calls each transformer one time for each
+executed test, before the worker finalizes the class scope and publishes the
+result.
+
+A plugin can return the same result or a replacement. It MUST preserve the
+test identity. Use `TestResult::withOutcome()` for outcome changes so that
+the result records their source. Greenlight contains transformer failures
+and continues with the remaining transformers.
+
+```php
+interface TerminalResultTransformer extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TerminalResultTransformer.php#L23)
+
+### `transformTerminalResult()`
+
+```php
+public function transformTerminalResult(TestDefinition $definition, TestResult $result): TestResult;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TerminalResultTransformer.php#L25)
 
 ## `TestAttemptRunner`
 

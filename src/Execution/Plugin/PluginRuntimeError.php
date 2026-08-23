@@ -31,11 +31,16 @@ final class PluginRuntimeError extends \RuntimeException
     }
 
     /** @param class-string $plugin */
-    public static function changedTestIdentity(string $plugin, TestId $before, TestId $after): self
-    {
+    public static function changedTestIdentity(
+        string $plugin,
+        TestId $before,
+        TestId $after,
+        string $hook = 'afterTest',
+    ): self {
         return new self(\sprintf(
-            'Plugin "%s" changed the test identity during afterTest() from "%s" to "%s".',
+            'Plugin "%s" changed the test identity during %s() from "%s" to "%s".',
             $plugin,
+            $hook,
             $before,
             $after,
         ));

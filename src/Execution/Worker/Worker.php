@@ -16,7 +16,6 @@ use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Result\Outcome;
-use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
@@ -45,7 +44,6 @@ final readonly class Worker
         private ?WorkerPluginRuntime $plugins = null,
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
-        private ?ResultPolicy $policy = null,
         private ?ArtifactStore $artifactStore = null,
     ) {}
 
@@ -100,7 +98,6 @@ final readonly class Worker
                         $context,
                         $plugins,
                         $this->leakDetector,
-                        $this->policy,
                         $this->artifactStore,
                         $attemptStarted,
                     );
@@ -114,6 +111,8 @@ final readonly class Worker
                         error: ThrowableDetail::fromThrowable($threw),
                     );
                 }
+
+                $result = $plugins->terminalResult($entry->definition, $result);
 
                 $candidateSummary = $summary->add($result->outcome);
                 $failureLimitReached = $stopAfterFailures !== null

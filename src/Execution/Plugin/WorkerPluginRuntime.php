@@ -16,6 +16,7 @@ use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RetryDecider;
+use Greenlight\Plugin\TerminalResultTransformer;
 use Greenlight\Plugin\TestAttemptRunner;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -26,6 +27,7 @@ use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\SkipTest;
+use Greenlight\Test\TestDefinition;
 
 /**
  * Executes the plugin capabilities that one physical worker owns.
@@ -44,6 +46,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         HarnessProvider::class,
         RetryDecider::class,
         ServiceResolver::class,
+        TerminalResultTransformer::class,
         TestAttemptRunner::class,
         WorkerBootstrapSubscriber::class,
         WorkerRuntimeRunner::class,
@@ -172,47 +175,39 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
             try {
                 $replacement = $subscriber->afterTest($context, $result);
             } catch (\Throwable $failure) {
-                if ($result->outcome->isSuccessful()) {
-                    $result = $result->erroredBy(ThrowableDetail::fromThrowable(
-                        PluginRuntimeError::hookFailed($subscriber::class, 'afterTest', $failure),
-                    ));
-                } else {
-                    $result = $result->withFailures([
-                        ...$result->failures,
-                        new FailureDetail(\sprintf(
-                            'Plugin "%s" caused an error during afterTest(): %s',
-                            $subscriber::class,
-                            $failure->getMessage(),
-                        )),
-                    ]);
-                }
+                $result = $this->hookFailure($subscriber::class, 'afterTest', $result, $failure);
 
                 continue;
             }
 
-            if (!$replacement->id->equals($result->id)) {
-                $result = $result->erroredBy(ThrowableDetail::fromThrowable(
-                    PluginRuntimeError::changedTestIdentity($subscriber::class, $result->id, $replacement->id),
-                ));
+            $result = $this->validatedReplacement($subscriber::class, 'afterTest', $result, $replacement);
+        }
+
+        return $result;
+    }
+
+    public function terminalResult(TestDefinition $definition, TestResult $result): TestResult
+    {
+        foreach ($this->ordered(TerminalResultTransformer::class) as $transformer) {
+            try {
+                $replacement = $transformer->transformTerminalResult($definition, $result);
+            } catch (\Throwable $failure) {
+                $result = $this->hookFailure(
+                    $transformer::class,
+                    'transformTerminalResult',
+                    $result,
+                    $failure,
+                );
 
                 continue;
             }
 
-            if ($replacement->outcome !== $result->outcome
-                && \count($replacement->transformations) <= \count($result->transformations)
-            ) {
-                $result = $result->erroredBy(ThrowableDetail::fromThrowable(
-                    PluginRuntimeError::changedOutcome(
-                        $subscriber::class,
-                        $result->outcome,
-                        $replacement->outcome,
-                    ),
-                ));
-
-                continue;
-            }
-
-            $result = $replacement;
+            $result = $this->validatedReplacement(
+                $transformer::class,
+                'transformTerminalResult',
+                $result,
+                $replacement,
+            );
         }
 
         return $result;
@@ -228,5 +223,57 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
             $this->ordered(RetryDecider::class),
             static fn(RetryDecider $decider): bool => $decider->shouldRetry($policy, $result, $attempt, $cause),
         );
+    }
+
+    /** @param class-string $plugin */
+    private function hookFailure(
+        string $plugin,
+        string $hook,
+        TestResult $result,
+        \Throwable $failure,
+    ): TestResult {
+        if ($result->outcome->isSuccessful()) {
+            return $result->erroredBy(ThrowableDetail::fromThrowable(
+                PluginRuntimeError::hookFailed($plugin, $hook, $failure),
+            ));
+        }
+
+        return $result->withFailures([
+            ...$result->failures,
+            new FailureDetail(\sprintf(
+                'Plugin "%s" caused an error during %s(): %s',
+                $plugin,
+                $hook,
+                $failure->getMessage(),
+            )),
+        ]);
+    }
+
+    /** @param class-string $plugin */
+    private function validatedReplacement(
+        string $plugin,
+        string $hook,
+        TestResult $result,
+        TestResult $replacement,
+    ): TestResult {
+        if (!$replacement->id->equals($result->id)) {
+            return $result->erroredBy(ThrowableDetail::fromThrowable(
+                PluginRuntimeError::changedTestIdentity($plugin, $result->id, $replacement->id, $hook),
+            ));
+        }
+
+        if ($replacement->outcome !== $result->outcome
+            && \count($replacement->transformations) <= \count($result->transformations)
+        ) {
+            return $result->erroredBy(ThrowableDetail::fromThrowable(
+                PluginRuntimeError::changedOutcome(
+                    $plugin,
+                    $result->outcome,
+                    $replacement->outcome,
+                ),
+            ));
+        }
+
+        return $replacement;
     }
 }

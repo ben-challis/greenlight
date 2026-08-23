@@ -91,7 +91,13 @@
                 "configFile": {"type": ["string", "null"]},
                 "resources": {"$ref": "#/definitions/integrationResources"},
                 "generatedCodeDirectory": {"type": ["string", "null"]},
-                "temporaryDirectory": {"type": ["string", "null"]}
+                "temporaryDirectory": {"type": ["string", "null"]},
+                "policy": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"$ref": "#/definitions/resultPolicy"}
+                    ]
+                }
             }
         },
         "integrationResources": {
