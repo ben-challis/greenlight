@@ -8,7 +8,7 @@ namespace Greenlight\Cli\Watch;
 interface ChangeDetector
 {
     /**
-     * @return list<non-empty-string> paths changed since the previous poll
+     * @return list<FileChange> files changed since the previous poll
      */
     public function poll(): array;
 }

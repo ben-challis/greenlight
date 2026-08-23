@@ -96,7 +96,22 @@ final readonly class RunCommand
             return self::EXIT_USAGE;
         }
 
-        if ($arguments->has('watch') && $resolved->coverage?->perTestTarget !== null) {
+        if ($arguments->has('watch-impacted') && !$arguments->has('watch')) {
+            $this->printError('Use --watch-impacted with --watch.', $arguments->has('no-ansi'));
+
+            return self::EXIT_USAGE;
+        }
+
+        if ($arguments->has('watch-impacted') && (!$resolved->coverage instanceof CoverageConfiguration || $resolved->coverage->includePaths === [])) {
+            $this->printError('Impacted watch requires at least one coverage include path.', $arguments->has('no-ansi'));
+
+            return self::EXIT_USAGE;
+        }
+
+        if ($arguments->has('watch')
+            && !$arguments->has('watch-impacted')
+            && $resolved->coverage?->perTestTarget !== null
+        ) {
             $this->printError('Per-test coverage is not available in watch mode.', $arguments->has('no-ansi'));
 
             return self::EXIT_USAGE;

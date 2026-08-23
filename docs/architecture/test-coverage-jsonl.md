@@ -125,3 +125,19 @@ metadata and test table appearing before coverage records.
 
 A per-test map can be much larger than aggregate coverage. Greenlight and the
 Infection adapter read and write it one line at a time.
+
+## Impacted watch lifecycle
+
+Standard watch mode does not collect per-test coverage. Add
+`--watch-impacted` to use the map for impacted selection.
+
+Impacted watch publishes the map only after a successful complete selected
+run. A selective run does not replace it. The next file change uses a complete
+run to refresh the stale map.
+
+The impact reader streams the artifact for each stable change batch. It keeps
+the test table and records for changed lines in memory.
+
+The reader selects a line only when the aggregate map marks it covered and a
+completed test owns it. Uncovered, missing, or unattributed lines cause a
+complete selected run.

@@ -78,30 +78,104 @@ final readonly class RunSession
 
     /**
      * @param list<non-empty-string> $priorityClasses
-     * @return list<non-empty-string>
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    public function watchAttempt(Reporter $reporter, array $priorityClasses): array
-    {
+    public function watchAttempt(
+        Reporter $reporter,
+        array $priorityClasses,
+        ?TestSelection $selection = null,
+        bool $publishPerTest = false,
+    ): WatchAttemptResult {
         $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
         $classSeconds = $this->configuration->resolved->order->isRandomized() ? [] : $this->state->classSeconds();
         $workers = $this->configuration->resolved->workers->count->fixed ?? CpuCores::count();
-        $coverageSettings = CoverageSettingsResolver::resolve($this->configuration->resolved->coverage, $this->workingDirectory);
+        $resolved = $this->configuration->resolved;
+        $coverageSettings = null;
+        $coverageSession = null;
+        $testCoverageStore = null;
+        $reporterFinished = false;
 
         try {
-            $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
-        } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
+            $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
+            if (!$publishPerTest && $coverageSettings?->perTest === true) {
+                $coverageSettings = new CoverageSettings(
+                    $coverageSettings->includePaths,
+                    $coverageSettings->driver,
+                );
+            }
+
+            $storage = StorageLayout::resolve($resolved->storage, $this->workingDirectory);
+            $testCoverageStore = $publishPerTest && $coverageSettings?->perTest === true
+                ? TestCoverageStore::open($storage->temporaryDirectory)
+                : null;
+            $coverageSession = CoverageSession::open(
+                $coverageSettings,
+                $workers !== 1 && $this->workerBin !== false && !SubprocessCoverage::requested(),
+                $storage->temporaryDirectory,
+            );
+            $run = $this->coordinate(
+                $reporter,
+                $tap,
+                $priorityClasses,
+                $classSeconds,
+                $workers,
+                $coverageSettings,
+                $testCoverageStore,
+                $selection,
+            );
+            $coverage = $coverageSession->finish($run->coverage);
+            $coverageSession->close();
+            $coverageSession = null;
+
+            if ($coverage instanceof CoverageMap) {
+                $coverage = new IgnoreFilter()->apply($coverage);
+            }
+
             $reporter->finish();
+            $reporterFinished = true;
+            $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+            $mapPublished = false;
+            $coverageConfig = $resolved->coverage;
+
+            if ($publishPerTest
+                && $testCoverageStore instanceof TestCoverageStore
+                && $coverageConfig?->perTestTarget !== null
+                && $coverage instanceof CoverageMap
+                && $run->plannedTests > 0
+                && $run->leaks === []
+                && $resolved->execution->runPolicy->accepts($run->summary)
+                && !$this->shutdown->requested()
+            ) {
+                $root = ErrorTrap::run(fn() => \realpath($this->workingDirectory));
+                $testCoverageStore->write(
+                    ConfigurationLoader::absolutePath($coverageConfig->perTestTarget, $this->workingDirectory),
+                    $root === false ? $this->workingDirectory : $root,
+                    $run->runId,
+                    $coverage,
+                );
+                $mapPublished = true;
+            }
+
+            return new WatchAttemptResult(
+                $failedTap->failedTests(),
+                $tap->failedClasses(),
+                true,
+                $mapPublished,
+                $mapPublished ? $run->runId : null,
+            );
+        } catch (AttachmentError|CoverageError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
+            if (!$reporterFinished) {
+                $reporter->finish();
+            }
+
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return $priorityClasses;
+            return new WatchAttemptResult([], $priorityClasses, false, false);
+        } finally {
+            $coverageSession?->close();
+            $testCoverageStore?->close();
         }
-
-        $reporter->finish();
-        $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
-
-        return $tap->failedClasses();
     }
 
     /**
@@ -240,13 +314,13 @@ final readonly class RunSession
      * @throws ExecutionFailed
      * @throws ReportGenerationFailed
      */
-    private function coordinate(Reporter $reporter, EventSink $sink, array $priorityClasses, array $classSeconds, int $workers, ?CoverageSettings $coverageSettings, ?TestCoverageStore $testCoverageStore = null): RunResult
+    private function coordinate(Reporter $reporter, EventSink $sink, array $priorityClasses, array $classSeconds, int $workers, ?CoverageSettings $coverageSettings, ?TestCoverageStore $testCoverageStore = null, ?TestSelection $selection = null): RunResult
     {
         $resolved = $this->configuration->resolved;
 
         return new RunCoordinator($this->workingDirectory)->run(
             $resolved,
-            $this->selection,
+            $selection ?? $this->selection,
             $this->configuration->directories,
             $sink,
             $this->adapter($resolved->workers, $workers, $coverageSettings, $reporter),

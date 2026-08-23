@@ -69,6 +69,41 @@ final readonly class CommandErrorsTest
     }
 
     #[Test]
+    public function impactedWatchRequiresWatchMode(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'impacted-watch-requires-watch');
+        $this->writeMinimalConfiguration($project);
+        $result = GreenlightCli::run($project->directory, ['run', '--watch-impacted', '--no-ansi']);
+
+        Expect::that($result->exitCode)->toBe(64);
+        Expect::that($result->stderr)->toBe('greenlight: Use --watch-impacted with --watch.');
+    }
+
+    #[Test]
+    public function impactedWatchRequiresACoverageIncludePath(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'impacted-watch-requires-coverage');
+        $this->writeMinimalConfiguration($project);
+        $result = GreenlightCli::run($project->directory, ['run', '--watch', '--watch-impacted', '--no-ansi']);
+
+        Expect::that($result->exitCode)->toBe(64);
+        Expect::that($result->stderr)->toBe('greenlight: Impacted watch requires at least one coverage include path.');
+    }
+
+    private function writeMinimalConfiguration(AcceptanceProject $project): void
+    {
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+
+            return GreenlightConfig::create()->paths([__DIR__ . '/tests']);
+            PHP);
+    }
+
+    #[Test]
     public function coverageDiffWithoutBaselineOrCurrentIsAUsageError(): void
     {
         $result = GreenlightCli::run(\dirname(__DIR__, 2), ['coverage:diff']);

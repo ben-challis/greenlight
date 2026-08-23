@@ -26,8 +26,11 @@ final readonly class StatChangeDetectorEmptySnapshotTest
         $file = $directory . '/FirstTest.php';
         \file_put_contents($file, '<?php');
 
-        Expect::that($detector->poll())
+        $changes = $detector->poll();
+
+        Expect::that($changes)
             ->because('the first PHP file MUST be reported after an empty snapshot')
-            ->toBe([$file]);
+            ->toHaveCount(1);
+        Expect::that($changes[0]->path)->toBe($file);
     }
 }

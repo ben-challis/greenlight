@@ -36,18 +36,33 @@ final readonly class WatchLoop
         private WatchClock $clock,
         private \Closure $out,
         private ?GracefulShutdown $shutdown = null,
+        private bool $tracksStableRuns = false,
     ) {}
 
     /**
-     * @param \Closure(array<string>): list<non-empty-string> $runOnce Runs the
-     *        suite with the specified classes first and returns failed classes
+     * @param \Closure(list<non-empty-string>, list<FileChange>, bool, bool): WatchLoopResult $runOnce
+     *        Runs one selected iteration and returns its watch state.
      * @param int<1, max>|null $maxIterations Test loop limit. A null value runs
      *        until q.
      */
     public function run(\Closure $runOnce, ?int $maxIterations = null): void
     {
         $this->detector->poll();
-        $failedClasses = $runOnce([]);
+        $result = $runOnce([], [], true, false);
+        $failedClasses = $result->failedClasses;
+        $mapFresh = $result->mapPublished;
+        $pending = [];
+
+        if ($this->tracksStableRuns) {
+            $changes = $this->detector->poll();
+            if ($changes !== []) {
+                $this->reportChanges($changes);
+                $pending = $this->mergeChanges($pending, $changes);
+                $this->debouncer->noteChange($this->clock->now());
+                $mapFresh = false;
+            }
+        }
+
         $iterations = 1;
         ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
 
@@ -66,15 +81,34 @@ final readonly class WatchLoop
             $changes = $this->detector->poll();
 
             if ($changes !== []) {
-                $count = \count($changes);
-                ($this->out)(\sprintf("Detected changes in %d %s.\n", $count, $count === 1 ? 'file' : 'files'));
+                $this->reportChanges($changes);
+                $pending = $this->mergeChanges($pending, $changes);
                 $this->debouncer->noteChange($this->clock->now());
             }
 
             if ($runNow || $this->debouncer->shouldFire($this->clock->now())) {
                 $this->debouncer->reset();
-                $failedClasses = $runOnce($runNow ? [] : $failedClasses);
+                $result = $runOnce(
+                    $runNow ? [] : $failedClasses,
+                    $runNow ? [] : \array_values($pending),
+                    $runNow,
+                    $mapFresh,
+                );
+                $failedClasses = $result->failedClasses;
+                $mapFresh = $result->mapPublished;
+                $pending = [];
                 ++$iterations;
+
+                if ($this->tracksStableRuns) {
+                    $changes = $this->detector->poll();
+                    if ($changes !== []) {
+                        $this->reportChanges($changes);
+                        $pending = $this->mergeChanges($pending, $changes);
+                        $this->debouncer->noteChange($this->clock->now());
+                        $mapFresh = false;
+                    }
+                }
+
                 ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
 
                 continue;
@@ -82,5 +116,28 @@ final readonly class WatchLoop
 
             $this->clock->sleep(self::POLL_INTERVAL_SECONDS);
         }
+    }
+
+    /** @param list<FileChange> $changes */
+    private function reportChanges(array $changes): void
+    {
+        $count = \count($changes);
+        ($this->out)(\sprintf("Detected changes in %d %s.\n", $count, $count === 1 ? 'file' : 'files'));
+    }
+
+    /**
+     * @param array<non-empty-string, FileChange> $pending
+     * @param list<FileChange> $changes
+     * @return array<non-empty-string, FileChange>
+     */
+    private function mergeChanges(array $pending, array $changes): array
+    {
+        foreach ($changes as $change) {
+            $pending[$change->path] = isset($pending[$change->path])
+                ? $pending[$change->path]->followedBy($change)
+                : $change;
+        }
+
+        return $pending;
     }
 }

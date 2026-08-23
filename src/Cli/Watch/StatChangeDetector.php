@@ -20,14 +20,20 @@ use Greenlight\Internal\Php\ErrorTrap;
 final class StatChangeDetector implements ChangeDetector
 {
     /**
-     * @var array<string, string>|null path to fingerprint
+     * @var array<non-empty-string, array{fingerprint: non-empty-string, contents: ?string}>|null
      */
     private ?array $snapshot = null;
 
     /**
-     * @param list<non-empty-string> $directories
+     * @param list<string> $directories
+     * @param list<string> $contentRoots
+     * @param list<string> $files
      */
-    public function __construct(private readonly array $directories) {}
+    public function __construct(
+        private readonly array $directories,
+        private readonly array $contentRoots = [],
+        private readonly array $files = [],
+    ) {}
 
     #[\Override]
     public function poll(): array
@@ -42,26 +48,29 @@ final class StatChangeDetector implements ChangeDetector
 
         $changed = [];
 
-        foreach ($current as $path => $fingerprint) {
-            if (($this->snapshot[$path] ?? null) !== $fingerprint) {
-                $changed[] = $path;
+        foreach ($current as $path => $state) {
+            $previous = $this->snapshot[$path] ?? null;
+
+            if ($previous === null) {
+                $changed[] = new FileChange($path, false, true, after: $state['contents']);
+            } elseif ($previous['fingerprint'] !== $state['fingerprint']) {
+                $changed[] = new FileChange($path, true, true, $previous['contents'], $state['contents']);
             }
         }
 
         foreach (\array_keys($this->snapshot) as $path) {
             if (!isset($current[$path])) {
-                $changed[] = $path;
+                $changed[] = new FileChange($path, true, false, $this->snapshot[$path]['contents']);
             }
         }
 
         $this->snapshot = $current;
 
-        /** @var list<non-empty-string> $changed */
         return $changed;
     }
 
     /**
-     * @return array<string, string>
+     * @return array<non-empty-string, array{fingerprint: non-empty-string, contents: ?string}>
      */
     private function scan(): array
     {
@@ -74,14 +83,30 @@ final class StatChangeDetector implements ChangeDetector
                 continue;
             }
 
-            $snapshot = [...$snapshot, ...$files];
+            foreach ($files as $path => $state) {
+                if ($path !== '') {
+                    $snapshot[$path] = $state;
+                }
+            }
+        }
+
+        foreach ($this->files as $file) {
+            if ($file === '') {
+                continue;
+            }
+
+            $state = $this->fileState($file);
+
+            if ($state !== null) {
+                $snapshot[$file] = $state;
+            }
         }
 
         return $snapshot;
     }
 
     /**
-     * @return array<string, string>
+     * @return array<non-empty-string, array{fingerprint: non-empty-string, contents: ?string}>
      */
     private function scanDirectory(string $directory): array
     {
@@ -100,21 +125,22 @@ final class StatChangeDetector implements ChangeDetector
             }
 
             $path = $file->getPathname();
-            $fingerprint = $this->fingerprint($path);
+            $state = $this->fileState($path);
 
-            if ($fingerprint !== null) {
-                $snapshot[$path] = $fingerprint;
+            if ($path !== '' && $state !== null) {
+                $snapshot[$path] = $state;
             }
         }
 
         return $snapshot;
     }
 
-    private function fingerprint(string $path): ?string
+    /** @return array{fingerprint: non-empty-string, contents: ?string}|null */
+    private function fileState(string $path): ?array
     {
         \clearstatcache(true, $path);
 
-        return ErrorTrap::run(static function () use ($path) {
+        return ErrorTrap::run(function () use ($path) {
             $mtime = \filemtime($path);
             $size = \filesize($path);
             $contentHash = \sha1_file($path);
@@ -123,7 +149,28 @@ final class StatChangeDetector implements ChangeDetector
                 return null;
             }
 
-            return $mtime . ':' . $size . ':' . $contentHash;
+            $fingerprint = $mtime . ':' . $size . ':' . $contentHash;
+
+            return [
+                'fingerprint' => $fingerprint,
+                'contents' => $this->capturesContents($path) ? $this->contents($path) : null,
+            ];
         });
+    }
+
+    private function capturesContents(string $path): bool
+    {
+        return \array_any($this->contentRoots, static function (string $root) use ($path): bool {
+            $prefix = \rtrim($root, '/') . '/';
+
+            return $path === \rtrim($root, '/') || \str_starts_with($path, $prefix);
+        });
+    }
+
+    private function contents(string $path): ?string
+    {
+        $contents = ErrorTrap::run(static fn() => \file_get_contents($path));
+
+        return \is_string($contents) ? $contents : null;
     }
 }

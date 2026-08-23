@@ -30,4 +30,31 @@ final readonly class TestSelectionTest
         Expect::that($selection->acceptsId('Acme\ExactTest::only'))->toBeTrue();
         Expect::that($selection->acceptsId('Acme\FastTest::other'))->toBeFalse();
     }
+
+    #[Test]
+    public function onlyExactIdsKeepNonIdFiltersAndTheShard(): void
+    {
+        $selection = new TestSelection(
+            include: new TestInclusions(
+                groups: ['fast'],
+                classes: ['Acme'],
+                methods: ['works'],
+                paths: ['/project/tests'],
+                idPatterns: ['*::broad*'],
+            ),
+            exclude: new TestExclusions(groups: ['quarantined']),
+            shard: [2, 3],
+        );
+
+        $narrowed = $selection->withOnlyExactIds(['Acme\ExactTest::works']);
+
+        Expect::that($narrowed->include->groups)->toBe(['fast']);
+        Expect::that($narrowed->include->classes)->toBe(['Acme']);
+        Expect::that($narrowed->include->methods)->toBe(['works']);
+        Expect::that($narrowed->include->paths)->toBe(['/project/tests']);
+        Expect::that($narrowed->include->idPatterns)->toBe([]);
+        Expect::that($narrowed->include->exactIds)->toBe(['Acme\ExactTest::works']);
+        Expect::that($narrowed->exclude->groups)->toBe(['quarantined']);
+        Expect::that($narrowed->shard)->toBe([2, 3]);
+    }
 }
