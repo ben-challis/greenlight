@@ -35,7 +35,7 @@ final class JUnitErrorFallbackTest
                 . "<testsuites name=\"greenlight\" tests=\"1\" failures=\"0\" errors=\"1\" skipped=\"0\" time=\"0.002000\">\n"
                 . "  <testsuite name=\"Acme\\PartialResultTest\" tests=\"1\" failures=\"0\" errors=\"1\" skipped=\"0\" assertions=\"0\" time=\"0.002000\">\n"
                 . "    <testcase name=\"missingErrorDetail\" classname=\"Acme\\PartialResultTest\" assertions=\"0\" time=\"0.002000\">\n"
-                . "      <error type=\"error\" message=\"errored\"/>\n"
+                . "      <error type=\"error\" message=\"errored\">errored</error>\n"
                 . "    </testcase>\n"
                 . "  </testsuite>\n"
                 . "</testsuites>\n",

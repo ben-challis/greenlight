@@ -32,6 +32,6 @@ final class JUnitZeroSkipReasonTest
 
         Expect::that($output->buffer())
             ->because('JUnit MUST preserve the skip reason "0"')
-            ->toContain('<skipped message="0"/>');
+            ->toContain('<skipped message="0">0</skipped>');
     }
 }

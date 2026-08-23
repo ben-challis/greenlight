@@ -35,7 +35,7 @@ final class JUnitFailureFallbackTest
                 . "<testsuites name=\"greenlight\" tests=\"1\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"0.002000\">\n"
                 . "  <testsuite name=\"Acme\\PartialResultTest\" tests=\"1\" failures=\"1\" errors=\"0\" skipped=\"0\" assertions=\"0\" time=\"0.002000\">\n"
                 . "    <testcase name=\"missingFailureDetail\" classname=\"Acme\\PartialResultTest\" assertions=\"0\" time=\"0.002000\">\n"
-                . "      <failure type=\"failure\" message=\"failed\"/>\n"
+                . "      <failure type=\"failure\" message=\"failed\">failed</failure>\n"
                 . "    </testcase>\n"
                 . "  </testsuite>\n"
                 . "</testsuites>\n",
