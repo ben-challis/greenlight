@@ -66,6 +66,147 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/BeforeTestSubscriber.php#L24)
 
+## `CommandDefinition`
+
+Namespace: `Greenlight\Plugin`
+
+Defines one named command-line command.
+
+```php
+final readonly class CommandDefinition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L8)
+
+### `$name`
+
+```php
+public string $name;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L11)
+
+### `$description`
+
+```php
+public string $description;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L14)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string $name,
+    string $description,
+    private \Closure $handler,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(CommandInvocation): int $handler`
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L21)
+
+## `CommandInvocation`
+
+Namespace: `Greenlight\Plugin`
+
+Contains the input and output channels for one plugin command invocation.
+
+```php
+final readonly class CommandInvocation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L8)
+
+### `$command`
+
+```php
+public string $command
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L17)
+
+### `$arguments`
+
+```php
+public array $arguments
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L18)
+
+### `$workingDirectory`
+
+```php
+public string $workingDirectory
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L19)
+
+### `$binaryPath`
+
+```php
+public ?string $binaryPath
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L20)
+
+### `write()`
+
+Write exact text to standard output.
+
+```php
+public function write(string $text): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L27)
+
+### `writeError()`
+
+Write exact text to standard error.
+
+```php
+public function writeError(string $text): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L33)
+
+## `CommandProvider`
+
+Namespace: `Greenlight\Plugin`
+
+Supplies named command-line commands.
+
+```php
+interface CommandProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L8)
+
+### `commands()`
+
+```php
+public function commands(): array;
+```
+
+PHPDoc:
+
+- `@return list<CommandDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L11)
+
 ## `HarnessProvider`
 
 Namespace: `Greenlight\Plugin`
@@ -126,8 +267,8 @@ Identifies an object as a Greenlight plugin.
 Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`HarnessProvider`, `ReporterProvider`, `TerminalResultTransformer`, or
-`ExpectationExtension`.
+`CommandProvider`, `HarnessProvider`, `ReporterProvider`,
+`TerminalResultTransformer`, or `ExpectationExtension`.
 
 ```php
 interface Plugin
