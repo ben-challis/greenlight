@@ -193,14 +193,10 @@ final class SymfonyPluginTest
         $plugin = new SymfonyPlugin(static fn(): KernelInterface => new FixtureKernel('test', true));
 
         Expect::that($plugin->resolve(Greeter::class, [])->value())->because('a closure factory boots the kernel it produces')->toBeInstanceOf(Greeter::class);
-    }
 
-    #[Test]
-    public function aClosureFactoryMustReturnAKernel(): void
-    {
-        $plugin = new SymfonyPlugin($this->invalidKernelFactory()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
+        $invalid = new SymfonyPlugin(static fn(): object => new \stdClass()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
 
-        Expect::that(static fn(): object => ($plugin->services()[0]->factory)())->toThrow(
+        Expect::that(static fn(): object => ($invalid->services()[0]->factory)())->toThrow(
             SymfonyBridgeError::class,
             matching: '/returned "stdClass".*KernelInterface/',
         );
@@ -255,12 +251,6 @@ final class SymfonyPluginTest
     private function plugin(): SymfonyPlugin
     {
         return new SymfonyPlugin(FixtureKernel::class, env: 'test', debug: true);
-    }
-
-    /** @return \Closure(): \stdClass */
-    private function invalidKernelFactory(): \Closure
-    {
-        return static fn(): object => new \stdClass();
     }
 
     private function context(): TestContext
