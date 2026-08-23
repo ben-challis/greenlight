@@ -27,7 +27,7 @@ final readonly class ApplicationWorkerBinPathTest
     public function inaccessibleWorkerBinaryFallsBackWithoutEngineDiagnostics(): void
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
-        $project = AcceptanceProject::createWithDiscoveryBasicTests(
+        $project = AcceptanceProject::createWithTwoPassingTests(
             $this->tempDirectory,
             'application-worker-bin-path',
         );

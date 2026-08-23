@@ -11,6 +11,8 @@ final readonly class AcceptanceProject
     private function __construct(
         private ProjectFiles $files,
         public string $directory,
+        /** @var list<non-empty-string> */
+        private array $testClasses = [],
     ) {}
 
     public static function create(TemporaryDirectory $workspace, string $name): self
@@ -47,6 +49,34 @@ final readonly class AcceptanceProject
         return $project;
     }
 
+    public static function createWithOnePassingTest(TemporaryDirectory $workspace, string $name): self
+    {
+        $project = self::create($workspace, $name);
+        $namespace = self::generatedNamespace($name);
+        $class = 'PassingTest';
+        $project->writePassingTest('tests/PassingTest.php', $namespace, $class);
+        $project->configureWithTestFiles(['tests/PassingTest.php']);
+
+        return new self($project->files, $project->directory, [$namespace . '\\' . $class]);
+    }
+
+    public static function createWithTwoPassingTests(TemporaryDirectory $workspace, string $name): self
+    {
+        $project = self::create($workspace, $name);
+        $namespace = self::generatedNamespace($name);
+        $project->writePassingTest('tests/FirstPassingTest.php', $namespace, 'FirstPassingTest');
+        $project->writePassingTest('tests/SecondPassingTest.php', $namespace, 'SecondPassingTest');
+        $project->configureWithTestFiles([
+            'tests/FirstPassingTest.php',
+            'tests/SecondPassingTest.php',
+        ]);
+
+        return new self($project->files, $project->directory, [
+            $namespace . '\\FirstPassingTest',
+            $namespace . '\\SecondPassingTest',
+        ]);
+    }
+
     public function path(string $relative): string
     {
         return $this->files->path($relative);
@@ -55,6 +85,12 @@ final readonly class AcceptanceProject
     public function writeFile(string $relativePath, string $contents): void
     {
         $this->files->write($relativePath, $contents);
+    }
+
+    /** @return list<non-empty-string> */
+    public function testClasses(): array
+    {
+        return $this->testClasses;
     }
 
     /**
@@ -91,6 +127,35 @@ final readonly class AcceptanceProject
             PHP,
             \implode("\n", $requires),
             $workers,
+        ));
+    }
+
+    private static function generatedNamespace(string $name): string
+    {
+        return 'Greenlight\\Tests\\Generated\\Project' . \substr(\hash('sha256', $name), 0, 16);
+    }
+
+    private function writePassingTest(string $relativePath, string $namespace, string $class): void
+    {
+        $this->writeFile($relativePath, \sprintf(
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace %s;
+
+            use Greenlight\Attribute\Test;
+
+            final class %s
+            {
+                #[Test]
+                public function passes(): void {}
+            }
+
+            PHP,
+            $namespace,
+            $class,
         ));
     }
 

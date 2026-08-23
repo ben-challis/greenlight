@@ -21,15 +21,13 @@ final readonly class WorkerProcessRunTest
     #[Test]
     public function parallelResultsMatchSequentialResults(): void
     {
-        // An isolated project prevents a conflict with another acceptance
-        // test in the same directory.
-        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'parallel');
+        $project = AcceptanceProject::createWithTwoPassingTests($this->tempDirectory, 'parallel');
         $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
         Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0);
         Expect::that($parallel->exitCode)->toBe(0);
-        Expect::that($this->summaryLine($sequential->output()))->toBe('7 tests, 7 passed, 0 expectations');
-        Expect::that($this->summaryLine($parallel->output()))->toBe('7 tests, 7 passed, 0 expectations');
+        Expect::that($this->summaryLine($sequential->output()))->toBe('2 tests, 2 passed, 0 expectations');
+        Expect::that($this->summaryLine($parallel->output()))->toBe('2 tests, 2 passed, 0 expectations');
     }
 
     #[Test]
