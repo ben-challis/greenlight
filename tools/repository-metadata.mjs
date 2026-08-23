@@ -13,7 +13,6 @@ validateMetadata(metadata);
 await validateDeptracLayers(metadata.scopes);
 
 const labels = [
-  ...metadata.types.map((label) => prefixedLabel('type', label)),
   ...metadata.statuses.map((label) => prefixedLabel('status', label)),
   ...metadata.scopes.map((scope) => ({
     name: `scope/${scope.name}`,
@@ -45,7 +44,6 @@ function validateMetadata(value) {
   const names = new Set();
 
   for (const [group, entries] of Object.entries({
-    type: value.types,
     status: value.statuses,
     scope: value.scopes,
   })) {
