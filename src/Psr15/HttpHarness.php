@@ -15,7 +15,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final class HttpHarness implements Disposable
 {
-    /** @var null|\Closure(): mixed */
+    /** @var null|\Closure(): RequestHandlerInterface */
     private readonly ?\Closure $factory;
 
     private ?RequestHandlerInterface $handler = null;
@@ -23,7 +23,7 @@ final class HttpHarness implements Disposable
     private bool $disposed = false;
 
     /**
-     * @param RequestHandlerInterface|\Closure(): mixed $handler
+     * @param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler
      * @param null|\Closure(RequestHandlerInterface): void $release
      */
     public function __construct(
