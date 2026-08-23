@@ -21,7 +21,7 @@ use Greenlight\Test\TestId;
 final class GithubReporterTest
 {
     #[Test]
-    public function cannedStreamRendersOnlyFailureAndErrorCommands(): void
+    public function cannedStreamRendersProblemsAndRetriedPassWarnings(): void
     {
         $output = new BufferOutput();
         CannedStream::feed(new GithubReporter($output));
@@ -29,9 +29,10 @@ final class GithubReporterTest
         $expected = <<<'TXT'
             ::error file=/project/tests/CalculatorTest.php,line=42::Acme\CalculatorTest::subtractsIntegers: Failed asserting that two values are equal.%0Aexpected: 2%0Aactual: 3
             ::error file=/project/tests/NetworkTest.php,line=17::Acme\NetworkTest::connects: RuntimeException: Connection refused.
+            ::warning title=Passed after retry::Acme\NetworkTest::retriesFlakyEndpoint passed after 3 attempts. This result is evidence of instability.
             TXT;
 
-        Expect::that($output->buffer())->because('canned stream renders only failure and error commands')->toBe($expected . "\n");
+        Expect::that($output->buffer())->because('canned stream renders problems and retried-pass warnings')->toBe($expected . "\n");
     }
 
     #[Test]

@@ -337,6 +337,12 @@ Each retry also starts `eventually()` and `consistently()` with a new deadline
 and an empty observation log. `retryOnException()` retries a probe within the
 same test attempt, while `#[Retry]` starts the whole test again.
 
+If a test passes after retry, reporters keep its passed outcome and attempt
+count. They also report the retried pass as evidence of instability.
+
+Use `failOnRetriedPass()` or `--fail-on-retried-pass` to fail the run for this
+evidence. The policy does not change the test outcome.
+
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]

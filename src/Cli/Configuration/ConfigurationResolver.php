@@ -60,7 +60,8 @@ final class ConfigurationResolver
                     $configuration->execution->policy->failOnRisky || $executionOverrides->policy->failOnRisky,
                 ),
                 runPolicy: new RunPolicy(
-                    $configuration->execution->runPolicy->failOnSkipped || $executionOverrides->runPolicy->failOnSkipped,
+                    failOnSkipped: $configuration->execution->runPolicy->failOnSkipped || $executionOverrides->runPolicy->failOnSkipped,
+                    failOnRetriedPass: $configuration->execution->runPolicy->failOnRetriedPass || $executionOverrides->runPolicy->failOnRetriedPass,
                 ),
                 stopAfterFailures: $executionOverrides->stopAfterFailures ?? $configuration->execution->stopAfterFailures,
                 artifacts: $artifacts,

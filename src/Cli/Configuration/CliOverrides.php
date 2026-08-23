@@ -176,6 +176,7 @@ final readonly class CliOverrides
                 ),
                 runPolicy: new RunPolicy(
                     failOnSkipped: $arguments->has('fail-on-skipped'),
+                    failOnRetriedPass: $arguments->has('fail-on-retried-pass'),
                 ),
                 artifactsDirectory: $artifactsDirectory,
                 resourceLimits: $resourceLimits,

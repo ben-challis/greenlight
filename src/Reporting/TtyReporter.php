@@ -19,9 +19,9 @@ use Greenlight\Result\TestResult;
  * more than one time in 50 ms.
  *
  * In bounded mode, a passed test class produces no permanent line. A class
- * with failures or skipped tests adds a line when it completes. --verbose
- * adds a permanent line for each class. Without cursor support, each class
- * adds a line.
+ * with failures, skipped tests, or retried passes adds a line when it
+ * completes. --verbose adds a permanent line for each class. Without cursor
+ * support, each class adds a line.
  *
  * @internal
  */
@@ -32,7 +32,7 @@ final class TtyReporter implements Reporter, Ticking
     private const float REDRAW_INTERVAL_SECONDS = 0.05;
 
     /**
-     * @var array<string, array{done: int, failed: int, skipped: int, duration: float, startedAt: float}>
+     * @var array<string, array{done: int, failed: int, skipped: int, retried: int, duration: float, startedAt: float}>
      */
     private array $live = [];
 
@@ -50,6 +50,11 @@ final class TtyReporter implements Reporter, Ticking
      * @var list<TestResult>
      */
     private array $skipped = [];
+
+    /**
+     * @var list<TestResult>
+     */
+    private array $retriedPasses = [];
 
     /**
      * @var list<non-empty-string>
@@ -143,7 +148,7 @@ final class TtyReporter implements Reporter, Ticking
             $this->activeClassAssignments[$event->class] = $active + 1;
 
             if ($active === 0) {
-                $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => $event->occurredAt];
+                $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'retried' => 0, 'duration' => 0.0, 'startedAt' => $event->occurredAt];
             }
 
             $this->redraw();
@@ -182,6 +187,14 @@ final class TtyReporter implements Reporter, Ticking
 
             if ($result->outcome === Outcome::Skipped) {
                 $this->skipped[] = $result;
+            }
+
+            if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
+                $this->retriedPasses[] = $result;
+
+                if (isset($this->live[$class])) {
+                    ++$this->live[$class]['retried'];
+                }
             }
 
             if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
@@ -263,7 +276,7 @@ final class TtyReporter implements Reporter, Ticking
         if ($finished instanceof RunFinished) {
             $this->output->write(\sprintf(
                 "\n%s\nTime: %.3fs\n",
-                SummaryFormat::tests($finished->summary, $this->expectations, $this->style),
+                SummaryFormat::tests($finished->summary, $this->expectations, $this->style, \count($this->retriedPasses)),
                 $finished->durationSeconds,
             ));
         }
@@ -275,6 +288,7 @@ final class TtyReporter implements Reporter, Ticking
         }
 
         $this->output->write(SummaryFormat::skipped($this->skipped, $this->style));
+        $this->output->write(SummaryFormat::retriedPasses($this->retriedPasses, $this->style));
         $this->output->write($this->slowTests->render($this->style));
 
         if ($this->successfulAttachments !== []) {
@@ -301,10 +315,10 @@ final class TtyReporter implements Reporter, Ticking
      */
     private function finalizeClass(string $class): void
     {
-        $state = $this->live[$class] ?? ['done' => 0, 'failed' => 0, 'skipped' => 0, 'duration' => 0.0, 'startedAt' => 0.0];
+        $state = $this->live[$class] ?? ['done' => 0, 'failed' => 0, 'skipped' => 0, 'retried' => 0, 'duration' => 0.0, 'startedAt' => 0.0];
         unset($this->live[$class]);
 
-        $permanent = $this->verbose || !$this->cursor || $state['failed'] > 0 || $state['skipped'] > 0;
+        $permanent = $this->verbose || !$this->cursor || $state['failed'] > 0 || $state['skipped'] > 0 || $state['retried'] > 0;
 
         if (!$this->cursor) {
             if ($permanent) {
@@ -334,7 +348,7 @@ final class TtyReporter implements Reporter, Ticking
     }
 
     /**
-     * @param array{done: int, failed: int, skipped: int, duration: float, startedAt: float} $state
+     * @param array{done: int, failed: int, skipped: int, retried: int, duration: float, startedAt: float} $state
      */
     private function finalLine(string $class, array $state): string
     {
@@ -350,9 +364,15 @@ final class TtyReporter implements Reporter, Ticking
                 : \sprintf(', %d skipped', $state['skipped']);
         }
 
+        if ($state['retried'] > 0) {
+            $counts .= \sprintf(', %d passed after retry', $state['retried']);
+        }
+
         $mark = $state['failed'] > 0
             ? $this->style->error('✗')
-            : ($state['done'] === $state['skipped'] && $state['done'] > 0 ? $this->style->warn('−') : $this->style->ok('✓'));
+            : ($state['done'] === $state['skipped'] && $state['done'] > 0
+                ? $this->style->warn('−')
+                : ($state['retried'] > 0 ? $this->style->warn('↻') : $this->style->ok('✓')));
 
         return \sprintf('%s %s (%s, %s)', $mark, $class, $counts, $this->style->duration($state['duration']));
     }

@@ -109,6 +109,20 @@ final class ResultPolicyConfigurationTest
     }
 
     #[Test]
+    public function retriedPassPolicyFlowsIntoTheBuiltConfiguration(): void
+    {
+        $policy = GreenlightConfig::create()
+            ->failOnRetriedPass()
+            ->build()
+            ->execution
+            ->runPolicy;
+
+        Expect::that($policy->failOnRetriedPass)
+            ->because('the public configuration flag MUST reach the run policy')
+            ->toBeTrue();
+    }
+
+    #[Test]
     public function ignoredDeprecationPatternsAccumulateInCallOrder(): void
     {
         $policy = GreenlightConfig::create()

@@ -163,6 +163,9 @@ The number of attempts used.
 
 This value is `1` unless the test used more than one attempt.
 
+For a `passed` outcome, a value greater than `1` identifies a retried pass.
+This combination is evidence of instability.
+
 ### failures
 
 A list of expectation failures.

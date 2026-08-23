@@ -34,6 +34,7 @@ final class GreenlightConfigApiTest
             'failFast',
             'failOnDeprecation',
             'failOnNotice',
+            'failOnRetriedPass',
             'failOnRisky',
             'failOnSkipped',
             'failOnWarning',

@@ -13,29 +13,30 @@ use Greenlight\Result\RunPolicy;
 final readonly class RunPolicyTest
 {
     /**
-     * @param array{bool, int, int, int} $case
+     * @param array{bool, bool, non-negative-int, non-negative-int, non-negative-int, non-negative-int} $case
      */
     #[Test]
     #[DataSet('summaries')]
     public function skippedPolicyEvaluatesTheFinalSummaryWithoutChangingIt(array $case, bool $expected): void
     {
-        [$failOnSkipped, $failed, $errored, $skipped] = $case;
+        [$failOnSkipped, $failOnRetriedPass, $failed, $errored, $skipped, $retriedPasses] = $case;
         $summary = new ResultSummary(failed: $failed, errored: $errored, skipped: $skipped);
 
-        Expect::that(new RunPolicy($failOnSkipped)->accepts($summary))
+        Expect::that(new RunPolicy($failOnSkipped, $failOnRetriedPass)->accepts($summary, $retriedPasses))
             ->because('the run policy MUST evaluate the final summary without changing test outcomes')
             ->toBe($expected);
     }
 
     /**
-     * @return iterable<string, array{array{bool, int, int, int}, bool}>
+     * @return iterable<string, array{array{bool, bool, non-negative-int, non-negative-int, non-negative-int, non-negative-int}, bool}>
      */
     public static function summaries(): iterable
     {
-        yield 'default accepts skipped tests' => [[false, 0, 0, 1], true];
-        yield 'enabled accepts a clean summary' => [[true, 0, 0, 0], true];
-        yield 'enabled rejects skipped tests' => [[true, 0, 0, 1], false];
-        yield 'enabled rejects failed tests' => [[true, 1, 0, 0], false];
-        yield 'enabled rejects errored tests' => [[true, 0, 1, 0], false];
+        yield 'default accepts skipped tests and retried passes' => [[false, false, 0, 0, 1, 2], true];
+        yield 'enabled accepts a clean summary' => [[true, true, 0, 0, 0, 0], true];
+        yield 'enabled rejects skipped tests' => [[true, false, 0, 0, 1, 0], false];
+        yield 'enabled rejects retried passes' => [[false, true, 0, 0, 0, 1], false];
+        yield 'enabled rejects failed tests' => [[true, true, 1, 0, 0, 0], false];
+        yield 'enabled rejects errored tests' => [[true, true, 0, 1, 0, 0], false];
     }
 }

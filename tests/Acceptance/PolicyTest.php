@@ -149,6 +149,83 @@ final readonly class PolicyTest
         Expect::that($repeated->output())->toContain('Repeat: failed iterations: 1, 2');
     }
 
+    #[Test]
+    public function retriedPassEvidenceAndPolicyStayConsistentAcrossConsumers(): void
+    {
+        $project = $this->writeProject();
+        $result = GreenlightCli::run($project->directory, [
+            'run',
+            '--workers=2',
+            '--shard=1/1',
+            '--bail=1',
+            '--filter=RetryProbeTest',
+            '--reporter=plain',
+            '--reporter=junit=reports/retry-junit.xml',
+            '--reporter=jsonl=reports/retry-events.jsonl',
+            '--reporter=teamcity=reports/retry-teamcity.txt',
+            '--reporter=github=reports/retry-github.txt',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('a retried pass MUST keep the default run successful')
+            ->toBe(0);
+        Expect::that($result->output())
+            ->toContain('PASS PolicyProbe\RetryProbeTest::passesAfterRetry')
+            ->toContain('(passed after 2 attempts)')
+            ->toContain('2 tests, 2 passed, 1 passed after retry')
+            ->toContain('These results are evidence of instability.')
+            ->toContain('PolicyProbe\RetryProbeTest::stillRuns');
+
+        $junit = (string) \file_get_contents($project->path('reports/retry-junit.xml'));
+        Expect::that($junit)
+            ->because('JUnit MUST retain a passed testcase and interoperable retry metadata')
+            ->toContain('failures="0"')
+            ->toContain('<flakyFailure type="retry" message="Passed after 2 attempts.">')
+            ->toContain('[[ATTACHMENT|');
+
+        $jsonl = (string) \file_get_contents($project->path('reports/retry-events.jsonl'));
+        Expect::that($jsonl)
+            ->because('JSONL MUST use its existing result fields for retry evidence')
+            ->toContain('"outcome":"passed"')
+            ->toContain('"attempts":2')
+            ->toContain('"attempt":1');
+
+        Expect::that((string) \file_get_contents($project->path('reports/retry-teamcity.txt')))
+            ->because('TeamCity MUST receive numeric attempt metadata and failed-attempt attachments')
+            ->toContain("name='greenlight.attempts' type='number' value='2'")
+            ->toContain("name='attachment: attempt.txt'");
+
+        Expect::that((string) \file_get_contents($project->path('reports/retry-github.txt')))
+            ->because('GitHub MUST receive a warning without a failure annotation')
+            ->toContain('::warning title=Passed after retry::')
+            ->toContain('passed after 2 attempts')
+            ->not()->toContain('::error');
+
+        $strict = $this->run(
+            $project,
+            '--workers=2',
+            '--filter=RetryProbeTest',
+            '--fail-on-retried-pass',
+        );
+        Expect::that($strict->exitCode)
+            ->because('the retried-pass run policy MUST fail without changing the passed result')
+            ->toBe(1);
+        Expect::that($strict->output())
+            ->toContain('2 tests, 2 passed, 1 passed after retry')
+            ->toContain('fail-on-retried-pass policy found 1 test that passed after retry');
+
+        $repeated = $this->run(
+            $project,
+            '--filter=RetryProbeTest',
+            '--fail-on-retried-pass',
+            '--repeat=2',
+        );
+        Expect::that($repeated->exitCode)
+            ->because('each iteration with a retried pass MUST fail repeat mode')
+            ->toBe(1);
+        Expect::that($repeated->output())->toContain('Repeat: failed iterations: 1, 2');
+    }
+
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult
     {
         return GreenlightCli::run($project->directory, \array_values(['run', '--reporter=plain', ...$flags]));
@@ -266,6 +343,45 @@ final readonly class PolicyTest
             }
             PHP);
 
+        $project->writeFile('tests/RetryProbeTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace PolicyProbe;
+
+            use Greenlight\Artifact\Attachments;
+            use Greenlight\Attribute\Retry;
+            use Greenlight\Attribute\Test;
+            use Greenlight\Expect\Expect;
+
+            final readonly class RetryProbeTest
+            {
+                public function __construct(private Attachments $attachments) {}
+
+                #[Test]
+                #[Retry(1)]
+                public function passesAfterRetry(): void
+                {
+                    static $attempt = 0;
+                    ++$attempt;
+                    $this->attachments->text('attempt.txt', 'attempt ' . $attempt);
+
+                    if ($attempt % 2 === 1) {
+                        throw new \RuntimeException('retry this attempt');
+                    }
+
+                    Expect::that(true)->toBeTrue();
+                }
+
+                #[Test]
+                public function stillRuns(): void
+                {
+                    Expect::that(true)->toBeTrue();
+                }
+            }
+            PHP);
+
         $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
@@ -275,6 +391,7 @@ final readonly class PolicyTest
 
             require_once __DIR__ . '/tests/DiagnosticProbeTest.php';
             require_once __DIR__ . '/tests/RiskyProbeTest.php';
+            require_once __DIR__ . '/tests/RetryProbeTest.php';
             require_once __DIR__ . '/tests/SkipProbeTest.php';
 
             return GreenlightConfig::create()
