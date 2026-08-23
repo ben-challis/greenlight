@@ -10,6 +10,7 @@ namespace Greenlight\Plugin;
  * Plugins implement one or more capability interfaces such as
  * `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
  * `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
- * `HarnessProvider`, `ReporterProvider`, or `ExpectationExtension`.
+ * `HarnessProvider`, `ReporterProvider`, `TerminalResultTransformer`, or
+ * `ExpectationExtension`.
  */
 interface Plugin {}

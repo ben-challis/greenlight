@@ -17,6 +17,7 @@ use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\ResultPolicyPlugin;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
@@ -68,6 +69,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 $context->storage->generatedCodeDirectory,
                 $context->storage->temporaryDirectory,
             ),
+            ...($execution->policy->isNoOp() ? [] : [new ResultPolicyPlugin($execution->policy)]),
         ]);
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
@@ -105,7 +107,6 @@ final readonly class InProcessExecution implements ExecutionAdapter
                             $plugins,
                             $this->detectLeaks ? new LeakDetector() : null,
                             'in-process',
-                            $execution->policy->isNoOp() ? null : $execution->policy,
                             $context->artifacts,
                         )->run(
                             $plan,

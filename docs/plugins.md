@@ -421,6 +421,29 @@ content.
 
 The built-in `#[Retry]` attribute uses this interface.
 
+### TerminalResultTransformer
+
+Worker-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function transformTerminalResult(TestDefinition $definition, TestResult $result): TestResult;
+```
+
+Greenlight calls a terminal-result transformer one time after the last attempt.
+The test scope is closed. The worker has not yet closed the class scope or
+published `TestFinished`.
+
+The transformer receives the test definition and the result that remains after
+retries. It must return the same result or a replacement. It MUST preserve the
+test identity. Use `TestResult::withOutcome()` for each outcome change.
+
+Greenlight runs all terminal-result transformers. If a transformer throws,
+Greenlight records the failure on the result and continues with the remaining
+transformers.
+
+The built-in diagnostic and risky-test policies use this interface.
+
 ### RunLifecycleSubscriber
 
 Orchestrator-side.
@@ -629,6 +652,7 @@ Priority applies to these capabilities:
 * `BeforeTestSubscriber`
 * `AfterTestSubscriber`
 * `RetryDecider`
+* `TerminalResultTransformer`
 * `RunLifecycleSubscriber`
 * `HarnessProvider`
 * `ServiceResolver`

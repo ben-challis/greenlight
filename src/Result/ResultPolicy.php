@@ -11,9 +11,9 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
 /**
  * CI rules that can change a passed test to a failed test.
  *
- * The worker calls apply() for each final result. This call occurs after
- * retries and afterTest subscribers. Thus, each consumer receives the same
- * result.
+ * Greenlight applies the policy through its terminal-result plugin. This call
+ * occurs after retries and afterTest subscribers. Thus, each consumer receives
+ * the same result.
  *
  * The applicable flag changes a passed test with a captured deprecation,
  * notice, or warning to a failed test. The diagnostic becomes the failure

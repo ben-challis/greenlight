@@ -22,7 +22,6 @@ use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
-use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\Cleanup;
@@ -65,7 +64,6 @@ final readonly class TestExecutor
         private ClassContext $context,
         private WorkerPluginRuntime $plugins,
         private ?LeakDetector $leakDetector = null,
-        private ?ResultPolicy $policy = null,
         private ?ArtifactStore $artifactStore = null,
         private ?\Closure $attemptStarted = null,
     ) {}
@@ -137,7 +135,6 @@ final readonly class TestExecutor
             }
 
             if ($result->outcome->isSuccessful()) {
-                $result = $this->policy?->apply($result) ?? $result;
                 $sealed = $attachments?->seal() ?? [];
 
                 return $result->withAttachments([...$retainedAttachments, ...$sealed]);
@@ -155,8 +152,6 @@ final readonly class TestExecutor
             $sealed = $attachments?->seal() ?? [];
 
             if (!$retry) {
-                $result = $this->policy?->apply($result) ?? $result;
-
                 return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
 

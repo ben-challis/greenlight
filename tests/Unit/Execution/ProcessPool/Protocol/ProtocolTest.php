@@ -29,6 +29,7 @@ use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
+use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
@@ -62,7 +63,7 @@ final class ProtocolTest
                     ['database' => 'test_2'],
                     ['password' => 'secret'],
                 ),
-            ])),
+            ]), policy: new ResultPolicy(failOnRisky: true)),
             new Ready(),
             new Assign(new ExecutionPlan([$entry], 7)),
             new Drain(),
@@ -162,6 +163,17 @@ final class ProtocolTest
             ->toBeNull();
         Expect::that($assign->stopAfterFailures)
             ->because('legacy assignments have no local failure allowance')
+            ->toBeNull();
+    }
+
+    #[Test]
+    public function legacyBootstrapPayloadsDefaultTheResultPolicy(): void
+    {
+        $payload = new Bootstrap(1, null, new IntegrationResources())->toWire();
+        unset($payload['policy']);
+
+        Expect::that(Bootstrap::fromWire($payload)->policy)
+            ->because('legacy bootstrap payloads do not contain a result policy')
             ->toBeNull();
     }
 
