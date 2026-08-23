@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Execution\Worker\DefaultServices;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
@@ -35,7 +35,7 @@ final readonly class SandboxLifecycleTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker(DefaultServices::definitions())
+        $outcome = new Worker(new StandardHarnessPlugin()->services())
             ->run($plan, $sink);
 
         $tempPath = null;

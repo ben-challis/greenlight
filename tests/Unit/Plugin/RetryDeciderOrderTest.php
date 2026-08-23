@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Execution\Worker\DefaultServices;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RetryDecider;
@@ -65,7 +65,7 @@ final readonly class RetryDeciderOrderTest
         $sink = new CollectingEventSink();
         $plugins = WorkerPluginRuntime::fromPlugins([$first, $second]);
 
-        new Worker(DefaultServices::definitions(), $plugins)->run($plan, $sink);
+        new Worker(new StandardHarnessPlugin()->services(), $plugins)->run($plan, $sink);
 
         Expect::that($calls->getArrayCopy())
             ->because('retry deciders MUST stop after acceptance and continue after decline')
