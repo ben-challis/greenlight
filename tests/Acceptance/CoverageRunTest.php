@@ -71,6 +71,88 @@ final readonly class CoverageRunTest
     }
 
     #[Test]
+    public function coverageGatesUseReportedRoundingAndInclusiveLimits(): void
+    {
+        $project = $this->writeProject();
+        $result = $this->runIn($project, [
+            'run',
+            '--reporter=plain',
+            '--minimum-coverage=60.00',
+            '--maximum-uncovered-lines=2',
+        ], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('values equal to both coverage limits MUST pass')
+            ->toBe(0);
+        Expect::that($result->output())
+            ->toContain('Coverage: 60.00% (3 of 5 lines)')
+            ->not()->toContain('Coverage gate failed');
+    }
+
+    #[Test]
+    public function coverageGateFailuresKeepTheConfiguredExports(): void
+    {
+        $project = $this->writeProject();
+        $result = $this->runIn($project, [
+            'run',
+            '--reporter=plain',
+            '--minimum-coverage=60.01',
+            '--maximum-uncovered-lines=1',
+        ], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('each failed coverage gate MUST fail the run')
+            ->toBe(1);
+        Expect::that($result->output())
+            ->toContain('Coverage gate failed: 60.00% is less than the minimum 60.01%.')
+            ->toContain('Coverage gate failed: 2 uncovered lines exceed the maximum 1.')
+            ->toContain('json → coverage-out/coverage.json');
+        Expect::that(\is_file($project->path('coverage-out/coverage.json')))
+            ->because('a gate failure MUST keep the coverage evidence')
+            ->toBeTrue();
+    }
+
+    #[Test]
+    public function requiredCoverageDriverFailsWhenNoDriverIsAvailable(): void
+    {
+        $project = $this->writeProject();
+        $result = $this->runIn($project, [
+            'run',
+            '--reporter=plain',
+            '--require-coverage-driver',
+        ], 'off');
+
+        Expect::that($result->exitCode)
+            ->because('a required coverage driver MUST fail when no worker can collect coverage')
+            ->toBe(1);
+        Expect::that($result->output())
+            ->toContain('Coverage is required, but no worker collected it.');
+    }
+
+    #[Test]
+    public function coverageGateOutputDoesNotChangeAJsonlStream(): void
+    {
+        $project = $this->writeProject();
+        $result = $this->runIn($project, [
+            'run',
+            '--reporter=jsonl',
+            '--minimum-coverage=60.01',
+        ], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('a machine-readable run MUST keep the coverage-gate exit status')
+            ->toBe(1);
+        Expect::that($result->stdout)
+            ->because('human coverage output MUST NOT change JSONL on standard output')
+            ->not()->toContain('Coverage:')
+            ->not()->toContain('Coverage gate failed');
+        Expect::that($result->stderr)
+            ->because('human coverage details move to standard error for JSONL')
+            ->toContain('Coverage: 60.00% (3 of 5 lines)')
+            ->toContain('Coverage gate failed: 60.00% is less than the minimum 60.01%.');
+    }
+
+    #[Test]
     public function unknownExportFormatFailsWithExactGuidance(): void
     {
         $project = $this->writeProject(exportFormat: 'sarif');

@@ -28,6 +28,7 @@ final readonly class CliOverrides
         public TestSelection $selection = new TestSelection(),
         public ?int $seed = null,
         public RepeatConfiguration $repeat = new RepeatConfiguration(),
+        public CoverageOverrides $coverage = new CoverageOverrides(),
     ) {}
 
     /**
@@ -178,6 +179,7 @@ final readonly class CliOverrides
             ),
             seed: $seed,
             repeat: new RepeatConfiguration($repeat, $repeatUntilFailure),
+            coverage: CoverageOverrides::fromArguments($arguments),
         );
     }
 
@@ -215,4 +217,5 @@ final readonly class CliOverrides
 
         return $value;
     }
+
 }

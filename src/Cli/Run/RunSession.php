@@ -57,6 +57,7 @@ final readonly class RunSession
         private GracefulShutdown $shutdown,
         private TestSelection $selection,
         private RunState $state,
+        private bool $coverageOutputOnStderr = false,
     ) {}
 
     /**
@@ -165,8 +166,21 @@ final readonly class RunSession
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration) {
             if (!$coverage instanceof CoverageMap) {
+                if ($coverageConfig->requiresCoverageResult()) {
+                    $this->console->err("Coverage is required, but no worker collected it. Install pcov or enable Xdebug with coverage mode.\n");
+
+                    return 1;
+                }
+
                 $this->console->err("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
-            } elseif (!new CoverageWriter($this->console)->write($coverageConfig, $coverage, $this->workingDirectory, $this->console->stdoutStyle($this->arguments->has('no-ansi')))) {
+            } elseif (!new CoverageWriter($this->console, $this->coverageOutputOnStderr)->write(
+                $coverageConfig,
+                $coverage,
+                $this->workingDirectory,
+                $this->coverageOutputOnStderr
+                    ? $this->console->stderrStyle($this->arguments->has('no-ansi'))
+                    : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
+            )) {
                 return 1;
             }
         }

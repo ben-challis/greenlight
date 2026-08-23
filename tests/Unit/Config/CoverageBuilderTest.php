@@ -102,6 +102,54 @@ final class CoverageBuilderTest
             ->toBe('0');
     }
 
+    #[Test]
+    public function buildsCoverageGateSettings(): void
+    {
+        $configuration = new CoverageBuilder()
+            ->minimumPercentage(95.25)
+            ->maximumUncoveredLines(0)
+            ->requireDriver()
+            ->toConfiguration();
+
+        Expect::that($configuration->minimumPercentage)
+            ->because('the minimum percentage MUST remain available to the run')
+            ->toBe(95.25);
+        Expect::that($configuration->maximumUncoveredLines)
+            ->because('zero is a valid maximum uncovered-line count')
+            ->toBe(0);
+        Expect::that($configuration->requireDriver)
+            ->because('the run MUST retain the coverage-driver requirement')
+            ->toBeTrue();
+    }
+
+    #[Test]
+    #[DataSet('invalidMinimumPercentages')]
+    public function rejectsInvalidMinimumPercentages(float $percentage, string $message): void
+    {
+        Expect::that(static fn(): CoverageBuilder => new CoverageBuilder()->minimumPercentage($percentage))
+            ->because('a coverage percentage gate MUST have an exact supported boundary')
+            ->toThrow(InvalidConfiguration::class, message: $message);
+    }
+
+    #[Test]
+    public function rejectsANegativeMaximumUncoveredLineCount(): void
+    {
+        Expect::that(static function (): void {
+            new CoverageBuilder()->maximumUncoveredLines(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        })
+            ->because('an uncovered-line maximum cannot be negative')
+            ->toThrow(InvalidConfiguration::class, message: 'Maximum uncovered lines cannot be negative.');
+    }
+
+    /** @return iterable<string, array{float, non-empty-string}> */
+    public static function invalidMinimumPercentages(): iterable
+    {
+        yield 'negative' => [-0.01, 'Minimum coverage percentage must be from 0 through 100.'];
+        yield 'above 100' => [100.01, 'Minimum coverage percentage must be from 0 through 100.'];
+        yield 'too precise' => [99.999, 'Minimum coverage percentage can have at most two decimal places.'];
+        yield 'not finite' => [\INF, 'Minimum coverage percentage must be from 0 through 100.'];
+    }
+
     /**
      * @return iterable<string, array{string, string}>
      */

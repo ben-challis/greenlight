@@ -17,6 +17,13 @@ final class CoverageBuilder
      */
     private ?string $driver = null;
 
+    private ?float $minimumPercentage = null;
+
+    /** @var int<0, max>|null */
+    private ?int $maximumUncoveredLines = null;
+
+    private bool $requireDriver = false;
+
     /**
      * @var list<CoverageExport>
      */
@@ -65,6 +72,51 @@ final class CoverageBuilder
     }
 
     /**
+     * Sets the minimum accepted total line-coverage percentage.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function minimumPercentage(float $percentage): self
+    {
+        if (!\is_finite($percentage) || $percentage < 0.0 || $percentage > 100.0) {
+            throw new InvalidConfiguration('Minimum coverage percentage must be from 0 through 100.');
+        }
+
+        if (\round($percentage, 2) !== $percentage) {
+            throw new InvalidConfiguration('Minimum coverage percentage can have at most two decimal places.');
+        }
+
+        $this->minimumPercentage = $percentage;
+
+        return $this;
+    }
+
+    /**
+     * Sets the maximum accepted number of uncovered executable lines.
+     *
+     * @param int<0, max> $lines
+     * @throws InvalidConfiguration
+     */
+    public function maximumUncoveredLines(int $lines): self
+    {
+        if ($lines < 0) {
+            throw new InvalidConfiguration('Maximum uncovered lines cannot be negative.');
+        }
+
+        $this->maximumUncoveredLines = $lines;
+
+        return $this;
+    }
+
+    /** Fails the run when the selected coverage driver is not available. */
+    public function requireDriver(bool $required = true): self
+    {
+        $this->requireDriver = $required;
+
+        return $this;
+    }
+
+    /**
      * @param 'json'|'lcov'|'clover'|'cobertura'|'html' $format
      * @param non-empty-string $target
      *
@@ -90,6 +142,13 @@ final class CoverageBuilder
      */
     public function toConfiguration(): CoverageConfiguration
     {
-        return new CoverageConfiguration($this->includePaths, $this->driver, $this->exports);
+        return new CoverageConfiguration(
+            $this->includePaths,
+            $this->driver,
+            $this->exports,
+            $this->minimumPercentage,
+            $this->maximumUncoveredLines,
+            $this->requireDriver,
+        );
     }
 }

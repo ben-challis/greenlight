@@ -104,6 +104,16 @@ final readonly class Definition
           --profile          Add a run profile after the summary. It contains worker
                              utilization, boot latency, makespan spread, and slow classes.
                              It also extends the slow-test list.
+          --minimum-coverage=<percentage>
+                             Fail if total line coverage is below this percentage.
+          --maximum-uncovered-lines=<n>
+                             Fail if more than n executable lines are uncovered.
+          --require-coverage-driver
+                             Fail if no configured coverage driver is available.
+          --baseline-root=<path>
+                             Set the baseline project root for coverage:diff.
+          --current-root=<path>
+                             Set the current project root for coverage:diff.
           --dry-run          Print a run-settings summary without test discovery
                              or execution.
           -h, --help         Show this help
@@ -138,7 +148,11 @@ final readonly class Definition
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('artifacts-dir', OptionValue::Required),
+            new OptionSpec('minimum-coverage', OptionValue::Required),
+            new OptionSpec('maximum-uncovered-lines', OptionValue::Required),
+            new OptionSpec('require-coverage-driver'),
             new OptionSpec('baseline', OptionValue::Required), new OptionSpec('current', OptionValue::Required),
+            new OptionSpec('baseline-root', OptionValue::Required), new OptionSpec('current-root', OptionValue::Required),
             new OptionSpec('watch'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
             new OptionSpec('ansi'), new OptionSpec('no-ansi'), new OptionSpec('verbose'), new OptionSpec('profile'),
             new OptionSpec('input', OptionValue::Required), new OptionSpec('output', OptionValue::Required),

@@ -416,6 +416,7 @@ Greenlight uses three exit codes:
 * `64` means that the command has a usage error.
 
 Exit code `1` includes test failures, test errors, invalid configuration,
-discovery errors, coverage export errors, and detected leaks.
+discovery errors, coverage gate failures, coverage export errors, and detected
+leaks.
 
 Greenlight treats a run without tests as a configuration problem.

@@ -354,7 +354,7 @@ deptrac:
     CliState: [InternalFilesystem, InternalPhp]
     CliWatch: [CliOutput, Event, InternalPhp, InternalProcess]
     CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
-    CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalEvent, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting, ReportingProfile]
+    CliCommand: [CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalEvent, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting, ReportingProfile]
     CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Test]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
