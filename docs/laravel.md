@@ -84,7 +84,7 @@ services, interfaces with multiple implementations, and aliased services. Use
 
 <!-- php-example {"example":"laravel-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Greenlight\Laravel\Service;
+use Greenlight\Harness\Service;
 
 public function __construct(
     #[Service('cache.store')] private readonly Repository $cache,

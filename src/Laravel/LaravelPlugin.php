@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Laravel;
 
 use Greenlight\Harness\Scope;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Internal\Php\ErrorTrap;
@@ -86,9 +86,10 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     /**
      * @param class-string $type
      * @param list<object> $attributes
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ServiceResolution
+    public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
 
@@ -102,24 +103,24 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $app = $this->application();
 
             if (!$app->bound($id)) {
-                return $id !== $type
-                    ? ServiceResolution::failed(LaravelBridgeError::unknownServiceId($id, $type))
-                    : ServiceResolution::unhandled();
+                if ($id !== $type) {
+                    throw LaravelBridgeError::unknownServiceId($id, $type);
+                }
+
+                return null;
             }
 
             $service = $app->make($id);
 
             if (!$service instanceof $type) {
-                return ServiceResolution::failed(
-                    LaravelBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
-                );
+                throw LaravelBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
             }
 
-            return ServiceResolution::resolved($service);
+            return $service;
         } catch (ServiceResolutionFailed $error) {
-            return ServiceResolution::failed($error);
+            throw $error;
         } catch (\Throwable $cause) {
-            return ServiceResolution::failed(LaravelBridgeError::serviceResolutionFailed($id, $type, $cause));
+            throw LaravelBridgeError::serviceResolutionFailed($id, $type, $cause);
         }
     }
 

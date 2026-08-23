@@ -79,7 +79,7 @@ Use `#[Service]` to name the service explicitly:
 
 <!-- php-example {"example":"symfony-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Greenlight\Symfony\Service;
+use Greenlight\Harness\Service;
 
 public function __construct(
     #[Service('mailer.transports.async')] private readonly TransportInterface $transport,

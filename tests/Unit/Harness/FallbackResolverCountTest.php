@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\UnresolvableService;
 
@@ -21,22 +20,22 @@ final class FallbackResolverCountTest
             public int $calls = 0;
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
                 ++$this->calls;
 
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
         $second = new class implements Fake, ServiceResolver {
             public int $calls = 0;
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
                 ++$this->calls;
 
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
         $scopes = new HarnessScopes([], [$first, $second]);

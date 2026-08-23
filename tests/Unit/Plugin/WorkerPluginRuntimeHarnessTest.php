@@ -10,7 +10,6 @@ use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\TerminalServiceResolver;
@@ -81,9 +80,9 @@ final class WorkerPluginRuntimeHarnessTest
             }
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::failed(new class ('Terminal failure.') extends ServiceResolutionFailed {});
+                throw new class ('Terminal failure.') extends ServiceResolutionFailed {};
             }
         };
         $fallback = new readonly class ($answer) implements Fake, Plugin, Prioritized, ServiceResolver {
@@ -96,9 +95,9 @@ final class WorkerPluginRuntimeHarnessTest
             }
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
-                return ServiceResolution::resolved($this->answer);
+                return $this->answer;
             }
         };
         $runtime = WorkerPluginRuntime::fromPlugins([$terminal, $fallback]);

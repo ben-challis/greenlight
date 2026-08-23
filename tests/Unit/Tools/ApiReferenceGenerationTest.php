@@ -61,6 +61,24 @@ final readonly class ApiReferenceGenerationTest
     }
 
     #[Test]
+    public function serviceResolutionUsesTheSharedHarnessContract(): void
+    {
+        $harness = $this->reference('api-harness.md');
+
+        Expect::that($harness)
+            ->because('the harness API MUST contain the shared service attribute')
+            ->toContain('## `Service`')
+            ->toContain('public function resolve(string $type, array $attributes): ?object;')
+            ->not()->toContain('## `ServiceResolution`');
+        Expect::that($this->reference('api-integrations.md'))
+            ->because('integration APIs MUST NOT contain framework-specific service attributes')
+            ->not()->toContain('## `Hyperf\\Service`')
+            ->not()->toContain('## `Laravel\\Service`')
+            ->not()->toContain('## `Psr11\\Service`')
+            ->not()->toContain('## `Symfony\\Service`');
+    }
+
+    #[Test]
     public function temporalTypesShowTheirFluentInterfaceWithoutConstructionDetails(): void
     {
         $reference = $this->reference('api-expectations.md');

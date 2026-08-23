@@ -67,7 +67,7 @@ Use `#[Service]` when the container ID differs from the parameter type:
 
 <!-- php-example {"example":"psr-example-03","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Greenlight\Psr11\Service;
+use Greenlight\Harness\Service;
 
 public function __construct(
     #[Service('application.repository.users')]

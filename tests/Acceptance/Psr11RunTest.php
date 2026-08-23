@@ -74,7 +74,7 @@ final readonly class Psr11RunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Expect\Expect;
-            use Greenlight\Psr11\Service;
+            use Greenlight\Harness\Service;
 
             final readonly class ContainerServicesTest
             {
