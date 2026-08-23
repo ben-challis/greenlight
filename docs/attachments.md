@@ -85,8 +85,25 @@ Use `--artifacts-dir` to override it for one run:
 vendor/bin/greenlight run --artifacts-dir=build/ci-evidence
 ```
 
-Greenlight does not delete completed run directories. For local runs, remove
-these directories. In CI, use the artifact retention settings.
+Completed run retention is disabled by default. Configure one or more limits
+to remove old Greenlight run directories after a run completes:
+
+<!-- php-example {"example":"attachments-example-04","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\ArtifactBuilder;
+
+return GreenlightConfig::create()
+    ->artifacts(fn (ArtifactBuilder $artifacts) => $artifacts
+        ->maxCompletedRuns(20)
+        ->maxCompletedRunAge(7 * 24 * 60 * 60)
+        ->maxRetainedSize('2G'));
+```
+
+The age value is in seconds. Greenlight applies age, count, and byte limits in
+that order. Each limit removes the oldest eligible completed run first.
+
+Use `greenlight artifacts:prune --dry-run` to examine the configured policy.
+Use the command without `--dry-run` to apply the policy.
 
 ## Metadata and names
 
@@ -107,6 +124,11 @@ Source files must be regular files, not symlinks. Greenlight verifies that a
 source does not change during the copy operation. Published paths stay in the
 configured run directory. Greenlight creates artifact files with private
 permissions on supported platforms.
+
+Each run directory contains versioned ownership metadata and a lifecycle lock.
+Greenlight prunes only completed directories with an exact content manifest.
+It does not prune active, incomplete, changed, unknown, or symbolic-link
+directories. Cleanup claims use atomic directory renames and a parent lock.
 
 Greenlight does not inspect or redact attachment content. Before you attach a
 value or file, remove secrets and personal data.
@@ -133,6 +155,9 @@ apply across parallel workers. Per-test limits include all attempts, even when
 Greenlight discards some attachments later. Greenlight releases run quota when
 it discards an attachment.
 
+Completed run limits are independent of attachment limits. The completed run
+defaults are unbounded. Retention failures do not fail a test run.
+
 ## Plugins
 
 `$context->attachments` gives the same attempt-owned object to
@@ -157,3 +182,6 @@ schema](architecture/jsonl.md).
 
 For other CI systems, use a post-test step that always runs. Upload the reported
 run directory from this step.
+
+CI platform retention remains authoritative after upload. Greenlight retention
+controls only the runner filesystem.

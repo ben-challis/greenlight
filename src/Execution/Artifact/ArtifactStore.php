@@ -26,6 +26,8 @@ final class ArtifactStore
 
     private bool $cleaned = false;
 
+    private ?ArtifactRunHandle $runHandle = null;
+
     private function __construct(
         private readonly ArtifactSession $session,
         private readonly ArtifactConfiguration $configuration,
@@ -34,6 +36,7 @@ final class ArtifactStore
         private readonly FileCopier $fileCopier,
         /** @var (\Closure(TestResult, Attachment): bool)|null */
         private readonly ?\Closure $retainAttachment,
+        private readonly ?ArtifactRetention $retention,
     ) {}
 
     /**
@@ -48,30 +51,8 @@ final class ArtifactStore
         ?string $temporaryDirectory = null,
         ?\Closure $retainAttachment = null,
     ): self {
-        $configured = \rtrim($configuration->directory, '/');
-
-        if ($configured === '' || \str_contains($configured, "\0")) {
-            throw AttachmentError::storage('Attachment output directory is invalid');
-        }
-
-        if (!\str_starts_with($configured, '/')
-            && \in_array('..', \explode('/', $configured), true)
-        ) {
-            throw AttachmentError::storage('Keep a relative attachment output directory inside the working directory');
-        }
-
-        if (\str_starts_with($configured, '/')
-            && ($resolved = ErrorTrap::run(static fn() => \realpath($configured))) !== false
-        ) {
-            $configured = $resolved;
-        }
-
-        $public = $configured . '/' . $runId;
-        $resolvedWorkingDirectory = ErrorTrap::run(static fn() => \realpath($workingDirectory));
-        $workingDirectory = $resolvedWorkingDirectory === false ? $workingDirectory : $resolvedWorkingDirectory;
-        $output = \str_starts_with($configured, '/')
-            ? $public
-            : \rtrim($workingDirectory, '/') . '/' . $public;
+        $retention = ArtifactRetention::forConfiguration($configuration, $workingDirectory);
+        $output = $retention->runDirectory($runId);
         $temporaryDirectory ??= \sys_get_temp_dir();
         $staging = \rtrim($temporaryDirectory, '/') . '/greenlight-artifacts-'
             . \substr(\hash('sha256', $runId), 0, 16)
@@ -83,6 +64,7 @@ final class ArtifactStore
             true,
             $fileCopier ?? new NativeFileCopier(),
             $retainAttachment,
+            $retention,
         );
     }
 
@@ -97,6 +79,7 @@ final class ArtifactStore
             null,
             false,
             $fileCopier ?? new NativeFileCopier(),
+            null,
             null,
         );
     }
@@ -380,16 +363,20 @@ final class ArtifactStore
 
             $storageKey = $attachment->storageKey;
             $this->assertSafeStorageKey($storageKey);
+            $destination = $this->outputDirectory . '/' . $storageKey;
+            if ($this->pathExists($destination)) {
+                throw AttachmentError::storage('An attachment output path already exists');
+            }
+            $this->assertOutputPathSafe(\dirname($destination));
+            $this->ensureRunDirectory();
 
             $source = $this->session->stagingDirectory . '/' . $storageKey;
-            $destination = $this->outputDirectory . '/' . $storageKey;
             $parent = \dirname($destination);
             $part = $destination . '.part-' . \bin2hex(\random_bytes(4));
 
             $this->createDirectorySafely($parent);
 
-            if (\file_exists($destination) || \is_link($destination)
-                || \file_exists($part) || \is_link($part)
+            if ($this->pathExists($destination) || $this->pathExists($part)
             ) {
                 throw AttachmentError::storage('An attachment output path already exists');
             }
@@ -509,6 +496,7 @@ final class ArtifactStore
         }
 
         $this->cleaned = true;
+        $this->runHandle?->close();
         $directory = $this->session->stagingDirectory;
 
         if (!\is_dir($directory)) {
@@ -535,6 +523,35 @@ final class ArtifactStore
         }
 
         ErrorTrap::run(static fn() => \rmdir($directory));
+    }
+
+    public function complete(): ArtifactPruneReport
+    {
+        if (!$this->ownsStaging || !$this->retention instanceof ArtifactRetention) {
+            return new ArtifactPruneReport();
+        }
+
+        $warnings = [];
+        $protectedRunId = null;
+        if ($this->runHandle instanceof ArtifactRunHandle) {
+            $protectedRunId = $this->runHandle->runId;
+            try {
+                $this->runHandle->complete();
+            } catch (\Throwable) {
+                $warnings[] = 'Greenlight did not complete artifact run metadata. This run is not eligible for pruning.';
+                $this->runHandle->close();
+            }
+        }
+
+        try {
+            $report = $this->retention->prune(protectedRunId: $protectedRunId);
+        } catch (\Throwable) {
+            $warnings[] = 'Greenlight did not apply the artifact retention policy.';
+
+            return new ArtifactPruneReport(warnings: $warnings);
+        }
+
+        return new ArtifactPruneReport($report->items, [...$warnings, ...$report->warnings]);
     }
 
     /**
@@ -811,6 +828,11 @@ final class ArtifactStore
         return $this->session->stagingDirectory . '/' . $storageKey . '.meta.json';
     }
 
+    private function pathExists(string $path): bool
+    {
+        return \file_exists($path) || \is_link($path);
+    }
+
     /**
      * @throws AttachmentError
      */
@@ -833,28 +855,63 @@ final class ArtifactStore
      */
     private function createDirectorySafely(string $directory): void
     {
-        $absolute = \str_starts_with($directory, '/');
-        $current = $absolute ? '/' : '';
-
-        foreach (\explode('/', \trim($directory, '/')) as $segment) {
-            $current = $current === '/' ? '/' . $segment : ($current === '' ? $segment : $current . '/' . $segment);
-
-            if (\is_link($current)) {
+        $missing = [];
+        $current = $directory;
+        while (\str_starts_with($current . '/', $this->session->publicDirectory . '/')) {
+            if (ErrorTrap::run(static fn() => \is_link($current))) {
                 throw AttachmentError::storage('Attachment output directory contains a symbolic link');
             }
-
-            if (\is_dir($current)) {
-                continue;
-            }
-
-            if (\file_exists($current)) {
+            $isDirectory = ErrorTrap::run(static fn() => \is_dir($current));
+            if (ErrorTrap::run(static fn() => \file_exists($current)) && !$isDirectory) {
                 throw AttachmentError::storage('Attachment output path contains a non-directory entry');
             }
-            $created = ErrorTrap::run(static fn() => \mkdir($current, 0o700), $warning);
+            if (!$isDirectory) {
+                $missing[] = $current;
+            }
+            if ($current === $this->session->publicDirectory) {
+                break;
+            }
+            $current = \dirname($current);
+        }
 
-            if (!$created) {
+        foreach (\array_reverse($missing) as $path) {
+            if (!ErrorTrap::run(static fn() => \mkdir($path, 0o700), $warning)) {
                 throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));
             }
         }
+    }
+
+    /** @throws AttachmentError */
+    private function assertOutputPathSafe(string $directory): void
+    {
+        $current = $directory;
+        while (\str_starts_with($current . '/', $this->session->publicDirectory . '/')) {
+            if (ErrorTrap::run(static fn() => \is_link($current))) {
+                throw AttachmentError::storage('Attachment output directory contains a symbolic link');
+            }
+            if (ErrorTrap::run(static fn() => \file_exists($current))
+                && !ErrorTrap::run(static fn() => \is_dir($current))
+            ) {
+                throw AttachmentError::storage('Attachment output path contains a non-directory entry');
+            }
+            if ($current === $this->session->publicDirectory) {
+                break;
+            }
+            $current = \dirname($current);
+        }
+    }
+
+    /** @throws AttachmentError */
+    private function ensureRunDirectory(): void
+    {
+        if ($this->runHandle instanceof ArtifactRunHandle) {
+            return;
+        }
+        if (!$this->retention instanceof ArtifactRetention) {
+            throw AttachmentError::storage('A worker attempted to create an artifact run directory');
+        }
+
+        $runId = \basename($this->session->publicDirectory);
+        $this->runHandle = $this->retention->begin($runId);
     }
 }

@@ -12,6 +12,7 @@ use Greenlight\Cli\Command\ProfileReportCommand;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Plugin\CommandDefinition;
@@ -113,6 +114,7 @@ final readonly class BundledCommands implements CommandProvider
             ),
             'coverage:diff' => new CoverageDiffCommand($this->console)->run($arguments, $invocation->workingDirectory),
             'profile:report' => new ProfileReportCommand($this->console)->run($arguments, $invocation->workingDirectory),
+            'artifacts:prune' => new ArtifactsPruneCommand($this->console)->run($arguments, $invocation->workingDirectory),
             'ide-helper' => new IdeHelperCommand($this->console)->run($arguments, $invocation->workingDirectory),
             default => throw new \LogicException(\sprintf('Bundled command "%s" has no handler.', $command)),
         };

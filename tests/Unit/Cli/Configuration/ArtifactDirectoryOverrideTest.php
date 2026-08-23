@@ -24,7 +24,10 @@ final class ArtifactDirectoryOverrideTest
                 ->maxAttachmentSize('11K')
                 ->maxTestSize('13K')
                 ->maxRunAttachments(17)
-                ->maxRunSize('19K'))
+                ->maxRunSize('19K')
+                ->maxCompletedRuns(23)
+                ->maxCompletedRunAge(29)
+                ->maxRetainedSize('31K'))
             ->build();
 
         $resolved = ConfigurationResolver::resolve(
@@ -41,6 +44,9 @@ final class ArtifactDirectoryOverrideTest
                 'maxTestBytes' => 13 * 1024,
                 'maxRunAttachments' => 17,
                 'maxRunBytes' => 19 * 1024,
+                'maxCompletedRuns' => 23,
+                'maxCompletedRunAgeSeconds' => 29,
+                'maxRetainedBytes' => 31 * 1024,
             ]);
     }
 }

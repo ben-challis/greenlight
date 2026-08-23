@@ -37,8 +37,32 @@ changes include retries, teardown, plugin transformations, and result policy.
 When the process discards an attachment, it deletes the staged content and
 releases its run quota.
 
-Greenlight leaves completed output in place. Cleanup and retention belong to
-the user or CI system.
+Greenlight leaves completed output in place unless configuration enables run
+retention. Automatic retention runs after normal run completion. The
+`artifacts:prune` command supports explicit maintenance and dry-run output.
+
+Each public run directory contains versioned ownership metadata and a lifecycle
+lock. Active processes hold the lock. An unlocked active record identifies an
+incomplete run that can be recovered.
+
+A completed record contains the completion time and an exact file manifest.
+The manifest has each relative path, byte count, and SHA-256 digest. Greenlight
+does not prune a directory when its content does not match the manifest.
+
+Pruning uses one lock in the canonical artifact parent. It claims a selected
+run with an atomic rename before deletion. Concurrent Greenlight processes can
+safely apply the same policy.
+
+Age has first precedence, then count, then total bytes. Each limit selects the
+oldest eligible completed run first. Completion time and run ID give the stable
+order. A future completion time is not old for the age policy.
+
+The current automatic run is not eligible. Unknown, active, incomplete,
+changed, malformed, and future-version directories are not eligible. A
+directory with a symbolic link is not eligible.
+
+Retention failures are advisory. They do not change a test result or run exit
+code. A failure that prevents publication of the current run remains fatal.
 
 ## Crash recovery
 
@@ -76,6 +100,9 @@ Destination and recovery paths **MUST** stay below their configured roots.
 Attachment files and internal metadata use private permissions on platforms
 that support these permissions.
 
+Pruning **MUST** keep the configured parent. It **MUST NOT** follow a symbolic
+link or delete content outside the canonical parent.
+
 The storage layer does not redact content. Tests and plugins **MUST** remove
 secrets before they add data as an attachment.
 
@@ -88,3 +115,6 @@ staging, publication, and recovery are also internal.
 JSONL versions 2 and 3 require `attachments` on `TestResult` and
 `artifactsDirectory` on `RunStarted`. The worker protocol is internal and
 versioned separately.
+
+CI platform retention remains authoritative after artifact upload. Local
+Greenlight retention only controls files on the runner filesystem.

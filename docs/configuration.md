@@ -368,13 +368,23 @@ the same builder.
     ->maxAttachmentSize('10M')
     ->maxTestSize('50M')
     ->maxRunAttachments(2_000)
-    ->maxRunSize('500M'))
+    ->maxRunSize('500M')
+    ->maxCompletedRuns(20)
+    ->maxCompletedRunAge(604_800)
+    ->maxRetainedSize('2G'))
 ```
 
 Defaults are 32 attachments and 100 MiB per test. Each attachment has a 25 MiB
 limit. Each run has limits of 10,000 attachments and 1 GiB. Per-test limits
 include all retry attempts, even if retention policy discards attachments
 later. Greenlight releases run quota when it discards an attachment.
+
+Completed run retention is unbounded by default. Configure a maximum count,
+age in seconds, or total size. Greenlight applies age, count, and size limits
+in that order. Each limit removes the oldest eligible completed run first.
+
+Run `greenlight artifacts:prune --dry-run` to list selected directories. The
+command without `--dry-run` applies the configured policy.
 
 See [test attachments](attachments.md) for the runtime API and security model.
 

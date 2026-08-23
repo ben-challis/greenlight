@@ -29,6 +29,9 @@ final readonly class ArtifactConfiguration
         public int $maxTestBytes = self::DEFAULT_MAX_TEST_BYTES,
         public int $maxRunAttachments = self::DEFAULT_MAX_RUN_ATTACHMENTS,
         public int $maxRunBytes = self::DEFAULT_MAX_RUN_BYTES,
+        public ?int $maxCompletedRuns = null,
+        public ?int $maxCompletedRunAgeSeconds = null,
+        public ?int $maxRetainedBytes = null,
     ) {}
 
     public function withDirectory(string $directory): self
@@ -40,7 +43,17 @@ final readonly class ArtifactConfiguration
             $this->maxTestBytes,
             $this->maxRunAttachments,
             $this->maxRunBytes,
+            $this->maxCompletedRuns,
+            $this->maxCompletedRunAgeSeconds,
+            $this->maxRetainedBytes,
         );
+    }
+
+    public function hasRetentionPolicy(): bool
+    {
+        return $this->maxCompletedRuns !== null
+            || $this->maxCompletedRunAgeSeconds !== null
+            || $this->maxRetainedBytes !== null;
     }
 
     /** @return array<string, mixed> */
@@ -53,6 +66,9 @@ final readonly class ArtifactConfiguration
             'maxTestBytes' => $this->maxTestBytes,
             'maxRunAttachments' => $this->maxRunAttachments,
             'maxRunBytes' => $this->maxRunBytes,
+            'maxCompletedRuns' => $this->maxCompletedRuns,
+            'maxCompletedRunAgeSeconds' => $this->maxCompletedRunAgeSeconds,
+            'maxRetainedBytes' => $this->maxRetainedBytes,
         ];
     }
 
@@ -79,6 +95,20 @@ final readonly class ArtifactConfiguration
             \max(1, Wire::int($payload, 'maxTestBytes')),
             \max(1, Wire::int($payload, 'maxRunAttachments')),
             \max(1, Wire::int($payload, 'maxRunBytes')),
+            self::optionalPositiveInt($payload, 'maxCompletedRuns'),
+            self::optionalPositiveInt($payload, 'maxCompletedRunAgeSeconds'),
+            self::optionalPositiveInt($payload, 'maxRetainedBytes'),
         );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
+    private static function optionalPositiveInt(array $payload, string $key): ?int
+    {
+        $value = \array_key_exists($key, $payload) ? Wire::nullableInt($payload, $key) : null;
+
+        return $value === null ? null : \max(1, $value);
     }
 }

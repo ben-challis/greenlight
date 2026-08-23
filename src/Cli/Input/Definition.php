@@ -22,6 +22,7 @@ final readonly class Definition
         'list-tests' => 'List each found test ID, one per line',
         'coverage:diff' => 'Compare two coverage JSON exports',
         'profile:report' => 'Create a run profile from a saved JSONL stream',
+        'artifacts:prune' => 'Apply configured artifact retention',
         'ide-helper' => 'Write the IDE autocomplete helper for extension matchers',
         'completion' => 'Print a shell completion script to standard output',
     ];
@@ -45,6 +46,8 @@ final readonly class Definition
           coverage:diff  Compare two coverage JSON exports. Fail if total coverage
                          decreases or a line becomes newly uncovered.
           profile:report Create a run profile from a saved JSONL stream (--input)
+          artifacts:prune Apply configured retention to completed artifact runs.
+                         Use --dry-run to list selected runs without deletion.
           ide-helper     Write the IDE autocomplete helper for extension matchers
                          (--output, default _greenlight_ide_helper.php)
           completion     Print a shell completion script for bash, zsh, or fish
