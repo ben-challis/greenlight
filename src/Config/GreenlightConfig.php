@@ -7,6 +7,7 @@ namespace Greenlight\Config;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 use Greenlight\Test\ResourceName;
 
 /** Collects the configuration that `greenlight.php` returns. */
@@ -43,7 +44,11 @@ final class GreenlightConfig
 
     private bool $failOnNotice = false;
 
+    private bool $failOnWarning = false;
+
     private bool $failOnRisky = false;
+
+    private bool $failOnSkipped = false;
 
     /**
      * @var list<non-empty-string>
@@ -274,9 +279,18 @@ final class GreenlightConfig
         return $this;
     }
 
+    /** Fails an otherwise passed test if captured output contains a notice. */
     public function failOnNotice(bool $enabled = true): self
     {
         $this->failOnNotice = $enabled;
+
+        return $this;
+    }
+
+    /** Fails an otherwise passed test if captured output contains a warning. */
+    public function failOnWarning(bool $enabled = true): self
+    {
+        $this->failOnWarning = $enabled;
 
         return $this;
     }
@@ -289,6 +303,17 @@ final class GreenlightConfig
     public function failOnRisky(bool $enabled = true): self
     {
         $this->failOnRisky = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Fails the run if its final summary contains a skipped test. The test
+     * keeps its skipped outcome and reason.
+     */
+    public function failOnSkipped(bool $enabled = true): self
+    {
+        $this->failOnSkipped = $enabled;
 
         return $this;
     }
@@ -397,9 +422,11 @@ final class GreenlightConfig
                 policy: new ResultPolicy(
                     $this->failOnDeprecation,
                     $this->failOnNotice,
+                    $this->failOnWarning,
                     $this->ignoreDeprecations,
                     $this->failOnRisky,
                 ),
+                runPolicy: new RunPolicy($this->failOnSkipped),
                 stopAfterFailures: $this->failFast ? 1 : null,
                 artifacts: $this->artifacts->toConfiguration(),
             ),

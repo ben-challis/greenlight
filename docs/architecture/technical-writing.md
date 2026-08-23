@@ -182,6 +182,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | run | Technical noun | One execution of a selected test suite |
 | run | Technical verb | To execute a command, test, or test suite |
 | run directory | Technical noun | The directory that contains published attachments for one run |
+| run policy | Technical noun | A rule that evaluates the final run summary without changing a test result |
 | run profile | Technical noun | A report that summarizes worker use, scheduling, and boot latency for one run |
 | run state | Technical noun | Saved failure and duration data that can control a later run |
 | run subscriber | Technical noun | An orchestrator plugin that observes run events |

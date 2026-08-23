@@ -45,6 +45,7 @@ final class ResultPolicyTest
         ];
         yield 'deprecation enforcement' => [new ResultPolicy(failOnDeprecation: true), false];
         yield 'notice enforcement' => [new ResultPolicy(failOnNotice: true), false];
+        yield 'warning enforcement' => [new ResultPolicy(failOnWarning: true), false];
         yield 'risky-test enforcement' => [new ResultPolicy(failOnRisky: true), false];
     }
 
@@ -228,6 +229,28 @@ final class ResultPolicyTest
     }
 
     #[Test]
+    public function theWarningPolicyFailsAPassedTestWithAWarning(): void
+    {
+        $before = new TestResult(
+            new TestId('App\ProbeTest', 'warns'),
+            Outcome::Passed,
+            durationSeconds: 0.1,
+            memoryDeltaBytes: 0,
+            output: new CapturedOutput('', [
+                new Diagnostic(DiagnosticSeverity::Warning, 'a warning', '/src/a.php', 2),
+            ]),
+        );
+
+        $result = new ResultPolicy(failOnWarning: true)->apply($before);
+
+        Expect::that($result->outcome)
+            ->because('the warning policy fails a passed test that captures a warning')
+            ->toBe(Outcome::Failed);
+        Expect::that($result->failures[0]->message)
+            ->toBe('The warning policy changed this test from passed to failed: a warning at /src/a.php:2');
+    }
+
+    #[Test]
     public function diagnosticFailuresAggregateBeforeTheRiskyPolicy(): void
     {
         $before = new TestResult(
@@ -305,6 +328,7 @@ final class ResultPolicyTest
         $restored = ResultPolicy::fromWire([
             'failOnDeprecation' => true,
             'failOnNotice' => true,
+            'failOnWarning' => true,
             'ignoreDeprecations' => ['legacy *', ''],
             'failOnRisky' => true,
         ]);
@@ -314,9 +338,25 @@ final class ResultPolicyTest
             ->toBe([
                 'failOnDeprecation' => true,
                 'failOnNotice' => true,
+                'failOnWarning' => true,
                 'ignoreDeprecations' => ['legacy *'],
                 'failOnRisky' => true,
             ]);
+    }
+
+    #[Test]
+    public function aCompatibleWirePayloadWithoutTheWarningPolicyUsesTheDefault(): void
+    {
+        $restored = ResultPolicy::fromWire([
+            'failOnDeprecation' => false,
+            'failOnNotice' => false,
+            'ignoreDeprecations' => [],
+            'failOnRisky' => false,
+        ]);
+
+        Expect::that($restored->failOnWarning)
+            ->because('a compatible worker payload MUST disable the new warning policy')
+            ->toBeFalse();
     }
 
     private function passedWithDeprecation(string $message = 'rusty api'): TestResult

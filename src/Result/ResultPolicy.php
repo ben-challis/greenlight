@@ -15,9 +15,9 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * retries and afterTest subscribers. Thus, each consumer receives the same
  * result.
  *
- * The applicable flag changes a passed test with a captured deprecation or
- * notice to a failed test. The diagnostic becomes the failure detail. The
- * transformation log records the change.
+ * The applicable flag changes a passed test with a captured deprecation,
+ * notice, or warning to a failed test. The diagnostic becomes the failure
+ * detail. The transformation log records the change.
  *
  * A pattern without "*" or "?" matches part of a deprecation message without
  * case sensitivity. A pattern with either character matches the complete
@@ -43,6 +43,7 @@ final readonly class ResultPolicy
     public function __construct(
         public bool $failOnDeprecation = false,
         public bool $failOnNotice = false,
+        public bool $failOnWarning = false,
         array $ignoreDeprecations = [],
         public bool $failOnRisky = false,
     ) {
@@ -63,7 +64,7 @@ final readonly class ResultPolicy
 
     public function isNoOp(): bool
     {
-        return !$this->failOnDeprecation && !$this->failOnNotice && !$this->failOnRisky;
+        return !$this->failOnDeprecation && !$this->failOnNotice && !$this->failOnWarning && !$this->failOnRisky;
     }
 
     public function apply(TestResult $result): TestResult
@@ -78,7 +79,7 @@ final readonly class ResultPolicy
             $offends = match ($diagnostic->severity) {
                 DiagnosticSeverity::Deprecation => $this->failOnDeprecation && !$this->ignored($diagnostic->message),
                 DiagnosticSeverity::Notice => $this->failOnNotice,
-                default => false,
+                DiagnosticSeverity::Warning => $this->failOnWarning,
             };
 
             if ($offends) {
@@ -119,6 +120,7 @@ final readonly class ResultPolicy
         return [
             'failOnDeprecation' => $this->failOnDeprecation,
             'failOnNotice' => $this->failOnNotice,
+            'failOnWarning' => $this->failOnWarning,
             'ignoreDeprecations' => $this->ignoreDeprecations,
             'failOnRisky' => $this->failOnRisky,
         ];
@@ -141,6 +143,7 @@ final readonly class ResultPolicy
         return new self(
             Wire::bool($payload, 'failOnDeprecation'),
             Wire::bool($payload, 'failOnNotice'),
+            \array_key_exists('failOnWarning', $payload) && Wire::bool($payload, 'failOnWarning'),
             $patterns,
             Wire::bool($payload, 'failOnRisky'),
         );

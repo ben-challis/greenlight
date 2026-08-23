@@ -10,6 +10,7 @@ use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 
 /**
  * Applies settings in this order:
@@ -54,8 +55,12 @@ final class ConfigurationResolver
                 policy: new ResultPolicy(
                     $configuration->execution->policy->failOnDeprecation || $executionOverrides->policy->failOnDeprecation,
                     $configuration->execution->policy->failOnNotice || $executionOverrides->policy->failOnNotice,
+                    $configuration->execution->policy->failOnWarning || $executionOverrides->policy->failOnWarning,
                     $configuration->execution->policy->ignoreDeprecations,
                     $configuration->execution->policy->failOnRisky || $executionOverrides->policy->failOnRisky,
+                ),
+                runPolicy: new RunPolicy(
+                    $configuration->execution->runPolicy->failOnSkipped || $executionOverrides->runPolicy->failOnSkipped,
                 ),
                 stopAfterFailures: $executionOverrides->stopAfterFailures ?? $configuration->execution->stopAfterFailures,
                 artifacts: $artifacts,
