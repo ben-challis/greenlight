@@ -14,7 +14,7 @@ use Greenlight\Execution\ExecutionContext;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
-use Greenlight\Execution\Plugin\PluginInstances;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\ProcessPool\Orchestrator\Distributor;
 use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Execution\ProcessPool\Orchestrator\NativeWorkerTransport;
@@ -101,7 +101,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                     artifactConfiguration: $execution->artifacts,
                     integrationFixtures: $context->fixtures,
                     resourceLimits: $this->workers->resourceLimits,
-                    initialWorkerAssignment: PluginInstances::hasWorkerBootstrapSubscribers($execution->plugins)
+                    initialWorkerAssignment: WorkerPluginRuntime::requiresInitialBootstrapBarrier($execution->plugins)
                         ? InitialWorkerAssignment::AfterAllReady
                         : InitialWorkerAssignment::Progressive,
                     generatedCodeDirectory: $context->storage->generatedCodeDirectory,

@@ -10,7 +10,7 @@ use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Execution\Plugin\PluginInstances;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
@@ -32,7 +32,6 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestChannel;
@@ -138,19 +137,20 @@ final readonly class WorkerProcess
                 $pluginDefinitions = $message->configFile === null
                     ? []
                     : new ConfigLoader()->loadFile($message->configFile)->build()->execution->plugins;
-                $plugins = PluginInstances::forWorker($pluginDefinitions);
-                $plugins->bootstrapWorker(new WorkerBootstrapContext(
-                    $workerId,
-                    new TestChannel($message->channel),
-                    $message->resources,
-                ));
+                $plugins = WorkerPluginRuntime::fromDefinitions($pluginDefinitions);
                 $definitions = DefaultServices::definitions(
-                    $plugins,
                     $message->resources,
                     $message->generatedCodeDirectory,
                     $message->temporaryDirectory,
                 );
-                $scopes = new HarnessScopes($definitions, $plugins->serviceResolvers());
+                $scopes = $plugins->prepareWorker(
+                    new WorkerBootstrapContext(
+                        $workerId,
+                        new TestChannel($message->channel),
+                        $message->resources,
+                    ),
+                    $definitions,
+                );
 
                 $finalMessage = $plugins->runWorker(fn(): ?Message => HarnessServiceDisposal::runAndClose(
                     $scopes,
@@ -190,7 +190,7 @@ final readonly class WorkerProcess
      */
     private function runAssignments(
         SocketChannel $channel,
-        PluginRegistry $plugins,
+        WorkerPluginRuntime $plugins,
         array $definitions,
         HarnessScopes $scopes,
         string $workerId,

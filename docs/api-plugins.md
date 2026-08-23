@@ -143,13 +143,14 @@ Namespace: `Greenlight\Plugin`
 Controls order within each plugin capability. Capability interfaces define
 whether callbacks use or reverse this order. The default value is zero.
 The base order puts lower values first and keeps registration order for
-equal values.
+equal values. Greenlight reads the value one time for each owner-local
+plugin instance.
 
 ```php
 interface Prioritized
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L14)
 
 ### `priority()`
 
@@ -157,7 +158,7 @@ interface Prioritized
 public function priority(): int;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Prioritized.php#L16)
 
 ## `ReporterProvider`
 

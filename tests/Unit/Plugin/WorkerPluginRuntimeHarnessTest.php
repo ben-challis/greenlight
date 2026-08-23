@@ -6,59 +6,72 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\TerminalServiceResolver;
+use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\Plugin;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Test\TestChannel;
 
-final class PluginRegistryHarnessPriorityTest
+final class WorkerPluginRuntimeHarnessTest
 {
     #[Test]
     public function harnessProvidersKeepStablePriorityOrder(): void
     {
+        /** @var \ArrayObject<int, string> $calls */
+        $calls = new \ArrayObject();
         $late = $this->prioritizedProvider(
+            $calls,
+            'late',
             $this->definition(\DateTimeImmutable::class),
             10,
         );
-        $default = $this->provider($this->definition(\ArrayObject::class));
+        $default = $this->provider($calls, 'default', $this->definition(\ArrayObject::class));
         $samePriority = $this->prioritizedProvider(
+            $calls,
+            'same-priority',
             $this->definition(\stdClass::class),
             0,
         );
         $early = $this->prioritizedProvider(
+            $calls,
+            'early',
             $this->definition(\Exception::class),
             -10,
         );
 
-        $registry = new PluginRegistry([
+        $runtime = WorkerPluginRuntime::fromPlugins([
             $late,
             $default,
             $samePriority,
             $early,
         ]);
+        $runtime->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
 
-        Expect::that(\array_map(
-            static fn(ServiceDefinition $definition): string => $definition->type,
-            $registry->harnessServices(),
-        ))
+        Expect::that($calls->getArrayCopy())
             ->because('harness providers MUST keep stable plugin priority order')
             ->toBe([
-                \Exception::class,
-                \ArrayObject::class,
-                \stdClass::class,
-                \DateTimeImmutable::class,
+                'early',
+                'default',
+                'same-priority',
+                'late',
             ]);
     }
 
     #[Test]
     public function terminalServiceResolverAlwaysFollowsFallbackResolvers(): void
     {
+        $answer = new \stdClass();
         $terminal = new class implements Fake, Plugin, Prioritized, TerminalServiceResolver {
             #[\Override]
             public function priority(): int
@@ -72,7 +85,9 @@ final class PluginRegistryHarnessPriorityTest
                 throw new class ('Terminal failure.') extends ServiceResolutionFailed {};
             }
         };
-        $fallback = new class implements Fake, Plugin, Prioritized, ServiceResolver {
+        $fallback = new readonly class ($answer) implements Fake, Plugin, Prioritized, ServiceResolver {
+            public function __construct(private object $answer) {}
+
             #[\Override]
             public function priority(): int
             {
@@ -80,15 +95,20 @@ final class PluginRegistryHarnessPriorityTest
             }
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ?object
+            public function resolve(string $type, array $attributes): object
             {
-                return null;
+                return $this->answer;
             }
         };
+        $runtime = WorkerPluginRuntime::fromPlugins([$terminal, $fallback]);
+        $scopes = $runtime->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
 
-        Expect::that(new PluginRegistry([$terminal, $fallback])->serviceResolvers())
+        Expect::that($scopes->resolve(\stdClass::class, 'test'))
             ->because('a terminal resolver MUST follow all fallback-capable resolvers')
-            ->toBe([$fallback, $terminal]);
+            ->toBe($answer);
     }
 
     /**
@@ -103,27 +123,39 @@ final class PluginRegistryHarnessPriorityTest
         );
     }
 
-    private function provider(ServiceDefinition $definition): HarnessProvider
+    /** @param \ArrayObject<int, string> $calls */
+    private function provider(\ArrayObject $calls, string $name, ServiceDefinition $definition): HarnessProvider
     {
-        return new readonly class ($definition) implements Fake, HarnessProvider {
+        return new readonly class ($calls, $name, $definition) implements Fake, HarnessProvider {
+            /** @param \ArrayObject<int, string> $calls */
             public function __construct(
+                private \ArrayObject $calls,
+                private string $name,
                 private ServiceDefinition $definition,
             ) {}
 
             #[\Override]
             public function services(): array
             {
+                $this->calls->append($this->name);
+
                 return [$this->definition];
             }
         };
     }
 
+    /** @param \ArrayObject<int, string> $calls */
     private function prioritizedProvider(
+        \ArrayObject $calls,
+        string $name,
         ServiceDefinition $definition,
         int $priority,
     ): HarnessProvider {
-        return new readonly class ($definition, $priority) implements Fake, HarnessProvider, Prioritized {
+        return new readonly class ($calls, $name, $definition, $priority) implements Fake, HarnessProvider, Prioritized {
+            /** @param \ArrayObject<int, string> $calls */
             public function __construct(
+                private \ArrayObject $calls,
+                private string $name,
                 private ServiceDefinition $definition,
                 private int $priority,
             ) {}
@@ -131,6 +163,8 @@ final class PluginRegistryHarnessPriorityTest
             #[\Override]
             public function services(): array
             {
+                $this->calls->append($this->name);
+
                 return [$this->definition];
             }
 

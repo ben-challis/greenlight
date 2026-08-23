@@ -9,13 +9,12 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Event\Event;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\RunStarted;
-use Greenlight\Execution\Plugin\PluginEventSink;
+use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 
-final class PluginEventSinkTest
+final class OrchestratorPluginRuntimeEventTest
 {
     #[Test]
     public function subscribersReceiveTheExactEventBeforeTheInnerSink(): void
@@ -50,11 +49,11 @@ final class PluginEventSinkTest
                 $this->calls->append(['inner', $event]);
             }
         };
-        $sink = new PluginEventSink(
-            PluginRegistry::orchestratorSide([
+        $sink = OrchestratorPluginRuntime::fromPlugins(
+            [
                 $subscriber('first'),
                 $subscriber('second'),
-            ]),
+            ],
             $inner,
         );
         $event = new RunStarted('run-1', 1, 1, 1.0);
@@ -84,8 +83,8 @@ final class PluginEventSinkTest
             }
         };
         $inner = new CollectingEventSink();
-        $sink = new PluginEventSink(
-            PluginRegistry::orchestratorSide([$subscriber]),
+        $sink = OrchestratorPluginRuntime::fromPlugins(
+            [$subscriber],
             $inner,
         );
         $event = new RunStarted('run-1', 1, 1, 1.0);

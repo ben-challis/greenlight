@@ -8,16 +8,18 @@ use Greenlight\Attribute\After;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Harness\HarnessScopes;
-use Greenlight\Plugin\PluginRegistry;
+use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tempest\TempestBridgeError;
 use Greenlight\Tempest\TempestPlugin;
+use Greenlight\Test\TestChannel;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Tempest\Container\GenericContainer;
@@ -68,8 +70,11 @@ final class TempestPluginLifecycleTest
     {
         $answer = new TaggedProbeImplementation();
         $fallback = new ServiceResolverProbe($answer);
-        $resolvers = new PluginRegistry([$this->plugin(), $fallback])->serviceResolvers();
-        $scopes = new HarnessScopes([], $resolvers);
+        $runtime = WorkerPluginRuntime::fromPlugins([$this->plugin(), $fallback]);
+        $scopes = $runtime->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
 
         Expect::that($scopes->resolve(TaggedProbe::class, 'test'))
             ->because('a fallback resolver MUST run before the terminal Tempest resolver')

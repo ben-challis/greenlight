@@ -12,9 +12,9 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ResultSummary;
@@ -42,7 +42,7 @@ final readonly class Worker
      */
     public function __construct(
         private array $definitions,
-        private PluginRegistry $plugins = new PluginRegistry([]),
+        private ?WorkerPluginRuntime $plugins = null,
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
         private ?ResultPolicy $policy = null,
@@ -67,7 +67,8 @@ final readonly class Worker
         // remain available when one worker runs multiple assignments. The
         // owner closes the worker scope at exit.
         $ownScopes = !$scopes instanceof HarnessScopes;
-        $scopes ??= new HarnessScopes($this->definitions, $this->plugins->serviceResolvers());
+        $plugins = $this->plugins ?? WorkerPluginRuntime::fromDefinitions([]);
+        $scopes ??= new HarnessScopes($this->definitions);
         $summary = new ResultSummary();
         $drained = false;
         $stopped = false;
@@ -97,7 +98,7 @@ final readonly class Worker
                     $executor ??= new TestExecutor(
                         $scopes,
                         $context,
-                        $this->plugins,
+                        $plugins,
                         $this->leakDetector,
                         $this->policy,
                         $this->artifactStore,
