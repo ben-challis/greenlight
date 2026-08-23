@@ -12,7 +12,6 @@ use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Execution\Worker\WorkerRunOutcome;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Result\Outcome;
@@ -197,19 +196,19 @@ final readonly class HarnessServiceDisposalTest
             $entries[] = PlanEntryFixture::create(HarnessDisposalMatrixTest::class, $method);
         }
 
-        $registry = new HarnessRegistry([
+        $definitions = [
             new ServiceDefinition(
                 FailingHarnessService::class,
                 $scope,
                 static fn(): FailingHarnessService => new FailingHarnessService(),
             ),
-        ]);
+        ];
         $sink = new CollectingEventSink();
         $threw = null;
         $outcome = null;
 
         try {
-            $outcome = new Worker($registry)->run(
+            $outcome = new Worker($definitions)->run(
                 new ExecutionPlan($entries),
                 $sink,
                 $stopAfterFailures,

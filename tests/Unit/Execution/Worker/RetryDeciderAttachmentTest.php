@@ -11,7 +11,6 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Result\TestResult;
@@ -56,7 +55,7 @@ final readonly class RetryDeciderAttachmentTest
         $sink = new CollectingEventSink();
 
         new Worker(
-            new HarnessRegistry([]),
+            [],
             PluginRegistry::forWorker([$decider]),
             artifactStore: $store,
         )->run($plan, $sink);

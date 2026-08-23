@@ -65,7 +65,7 @@ final readonly class RetryDeciderOrderTest
         $sink = new CollectingEventSink();
         $plugins = PluginRegistry::forWorker([$first, $second]);
 
-        new Worker(DefaultServices::registry($plugins), $plugins)->run($plan, $sink);
+        new Worker(DefaultServices::definitions($plugins), $plugins)->run($plan, $sink);
 
         Expect::that($calls->getArrayCopy())
             ->because('retry deciders MUST stop after acceptance and continue after decline')

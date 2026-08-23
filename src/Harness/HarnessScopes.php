@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * A registry definition has precedence over a service resolver. Greenlight
- * does not manage or dispose objects from a service resolver.
+ * A service definition has precedence over a service resolver. Type names do
+ * not use letter case for identity. Greenlight does not dispose objects from
+ * a service resolver.
  *
  * @internal
  */
 final class HarnessScopes
 {
+    /**
+     * @var array<string, ServiceDefinition>
+     */
+    private array $definitions = [];
+
     private readonly ScopeContainer $worker;
 
     private ?ScopeContainer $class = null;
@@ -21,12 +27,26 @@ final class HarnessScopes
     private bool $classServicesAllowed = true;
 
     /**
+     * @param list<ServiceDefinition> $definitions
      * @param list<ServiceResolver> $resolvers
      */
     public function __construct(
-        private readonly HarnessRegistry $registry,
+        array $definitions = [],
         private readonly array $resolvers = [],
     ) {
+        foreach ($definitions as $definition) {
+            $key = \strtolower($definition->type);
+
+            if (isset($this->definitions[$key])) {
+                throw new \LogicException(\sprintf(
+                    'A harness service for %s is already registered.',
+                    $definition->type,
+                ));
+            }
+
+            $this->definitions[$key] = $definition;
+        }
+
         $terminalSeen = false;
 
         foreach ($resolvers as $resolver) {
@@ -54,7 +74,7 @@ final class HarnessScopes
      */
     public function resolve(string $type, string $consumer, array $attributes = []): object
     {
-        $definition = $this->registry->find($type);
+        $definition = $this->definitions[\strtolower($type)] ?? null;
 
         if ($definition instanceof ServiceDefinition) {
             if ($definition->scope === Scope::PerClass && !$this->classServicesAllowed) {
