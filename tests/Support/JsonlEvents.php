@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Support;
 
 use Greenlight\Event\Event;
-use Greenlight\Event\EventTags;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Event\EventCodec;
 
 /**
- * Reads JSONL only from standard output. Each line except a final empty line
- * MUST contain a valid version-three envelope. It MUST also contain a known
- * event tag and event payload.
+ * Reads JSONL only from standard output. Each nonempty line MUST contain a
+ * supported envelope. It MUST also contain a known event tag and payload.
  */
 final class JsonlEvents
 {
@@ -36,32 +34,7 @@ final class JsonlEvents
 
         foreach ($lines as $index => $line) {
             try {
-                $envelope = \json_decode($line, true, 512, \JSON_THROW_ON_ERROR);
-
-                if (!\is_array($envelope)) {
-                    throw new \RuntimeException('Envelope must be a JSON object.');
-                }
-
-                $map = [];
-
-                foreach ($envelope as $key => $value) {
-                    $map[(string) $key] = $value;
-                }
-
-                $version = Wire::int($map, 'v');
-
-                if ($version !== 3) {
-                    throw new \RuntimeException(\sprintf('Unsupported version %d.', $version));
-                }
-
-                $tag = Wire::nonEmptyString($map, 'event');
-                $eventClass = EventTags::classFor($tag);
-
-                if ($eventClass === null) {
-                    throw new \RuntimeException(\sprintf('Unknown event tag "%s".', $tag));
-                }
-
-                $events[] = $eventClass::fromWire(Wire::map($map, 'data'));
+                $events[] = EventCodec::decodeJsonLine($line);
             } catch (\Throwable $failure) {
                 $code = $failure->getCode();
 

@@ -7,11 +7,10 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Event\EventTags;
+use Greenlight\Internal\Event\EventCodec;
+use Greenlight\Internal\Event\EventCodecFailed;
+use Greenlight\Internal\Event\EventCodecFailureKind;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Internal\Wire\InvalidWirePayload;
-use Greenlight\Internal\Wire\Wire;
-use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 
@@ -24,7 +23,6 @@ final readonly class ProfileReportCommand
 {
     public function __construct(private Console $console) {}
 
-    /** @throws WireCommunicationFailed */
     public function run(ParsedArguments $arguments, string $workingDirectory): int
     {
         $input = $arguments->value('input');
@@ -43,44 +41,41 @@ final readonly class ProfileReportCommand
             if (\trim($line) === '') {
                 continue;
             }
+
             try {
-                $decoded = \json_decode($line, true, 32, \JSON_THROW_ON_ERROR);
-            } catch (\JsonException) {
-                $this->console->err("The input is not a JSONL event stream. A line is not valid JSON.\n");
-                return 1;
-            }
-            if (!\is_array($decoded) || ($decoded !== [] && \array_is_list($decoded))) {
-                $this->console->err("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
-                return 1;
-            }
-            $envelope = [];
-            foreach ($decoded as $key => $value) {
-                if (!\is_string($key)) {
-                    $this->console->err("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
+                $aggregator->onEvent(EventCodec::decodeJsonLine($line));
+            } catch (EventCodecFailed $failure) {
+                if ($failure->kind === EventCodecFailureKind::UnknownEvent) {
+                    continue;
+                }
+
+                if ($failure->kind === EventCodecFailureKind::MalformedJson) {
+                    $this->console->err("The input is not a JSONL event stream. A line is not valid JSON.\n");
                     return 1;
                 }
-                $envelope[$key] = $value;
-            }
-            try {
-                $version = Wire::int($envelope, 'v');
-                $tag = Wire::nonEmptyString($envelope, 'event');
-                $data = Wire::map($envelope, 'data');
-            } catch (InvalidWirePayload) {
+
+                if ($failure->kind === EventCodecFailureKind::UnsupportedJsonVersion) {
+                    $version = $failure->jsonVersion;
+
+                    if ($version === null) {
+                        $this->console->err("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
+                        return 1;
+                    }
+
+                    $this->console->err(\sprintf("The input uses unsupported JSONL version %d.\n", $version));
+                    return 1;
+                }
+
+                if ($failure->kind === EventCodecFailureKind::InvalidEventPayload) {
+                    $this->console->error(\sprintf(
+                        'Greenlight could not decode a "%s" event: %s',
+                        $failure->eventIdentifier,
+                        $failure->getMessage(),
+                    ), $arguments->has('no-ansi'));
+                    return 1;
+                }
+
                 $this->console->err("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
-                return 1;
-            }
-            if (!\in_array($version, [2, 3], true)) {
-                $this->console->err(\sprintf("The input uses unsupported JSONL version %d.\n", $version));
-                return 1;
-            }
-            $class = EventTags::classFor($tag);
-            if ($class === null) {
-                continue;
-            }
-            try {
-                $aggregator->onEvent($class::fromWire($data));
-            } catch (InvalidWirePayload $error) {
-                $this->console->error(\sprintf('Greenlight could not decode a "%s" event: %s', $tag, $error->getMessage()), $arguments->has('no-ansi'));
                 return 1;
             }
         }

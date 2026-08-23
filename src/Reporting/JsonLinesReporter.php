@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
-use Greenlight\Event\EventTags;
-use Greenlight\Event\WireEvent;
+use Greenlight\Internal\Event\EventCodec;
+use Greenlight\Internal\Event\EventCodecFailed;
+use Greenlight\Internal\Event\EventCodecFailureKind;
 
 /**
  * Writes one JSON object for each event when the event arrives.
@@ -20,17 +21,7 @@ use Greenlight\Event\WireEvent;
  */
 final readonly class JsonLinesReporter implements Reporter
 {
-    private const int VERSION = 3;
-
     public function __construct(private Output $output) {}
-
-    /**
-     * @return array<non-empty-string, class-string<WireEvent>>
-     */
-    public static function tags(): array
-    {
-        return EventTags::all();
-    }
 
     /**
      * @throws ReportGenerationFailed
@@ -38,22 +29,17 @@ final readonly class JsonLinesReporter implements Reporter
     #[\Override]
     public function onEvent(Event $event): void
     {
-        if (!$event instanceof WireEvent) {
-            throw ReportGenerationFailed::unmappedEvent($event::class);
+        try {
+            $line = EventCodec::encodeJsonLine($event);
+        } catch (EventCodecFailed $failure) {
+            if ($failure->kind === EventCodecFailureKind::UnmappedEvent) {
+                throw ReportGenerationFailed::unmappedEvent($event::class);
+            }
+
+            throw ReportGenerationFailed::eventEncodingFailed($failure);
         }
 
-        $tag = EventTags::tagFor($event);
-
-        if ($tag === null) {
-            throw ReportGenerationFailed::unmappedEvent($event::class);
-        }
-
-        $line = \json_encode(
-            ['v' => self::VERSION, 'event' => $tag, 'data' => $event->toWire()],
-            \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE,
-        );
-
-        $this->output->write($line . "\n");
+        $this->output->write($line);
     }
 
     #[\Override]

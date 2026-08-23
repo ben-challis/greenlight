@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Event\EventTags;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Reporting\JsonLinesReporter;
 use JsonSchema\Validator;
 
@@ -38,7 +38,7 @@ final class JsonlSchemaTest
         }
 
         Expect::that($violations)->because('every canned line validates against the shipped schema')->toBe([]);
-        Expect::that(\array_keys($seenTags))->toEqualCanonicalizing(\array_keys(EventTags::all()));
+        Expect::that(\array_keys($seenTags))->toEqualCanonicalizing(\array_keys(EventCodec::tags()));
     }
 
     #[Test]

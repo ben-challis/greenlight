@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\Event;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Tests\Support\JsonWire;
@@ -28,7 +29,7 @@ final class JsonLinesReporterTest
 
         Expect::that($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
 
-        $tags = JsonLinesReporter::tags();
+        $tags = EventCodec::tags();
 
         foreach ($lines as $index => $line) {
             $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
@@ -51,20 +52,15 @@ final class JsonLinesReporterTest
     }
 
     #[Test]
-    public function linesRoundTripBackToEventsThroughTheTagMapping(): void
+    public function linesRoundTripBackToEventsThroughTheCodec(): void
     {
         $output = new BufferOutput();
         CannedStream::feed(new JsonLinesReporter($output));
 
-        $classesByTag = JsonLinesReporter::tags();
         $events = CannedStream::events();
 
         foreach (\explode("\n", \rtrim($output->buffer(), "\n")) as $index => $line) {
-            /** @var array{v: int, event: string, data: array<string, mixed>} $decoded */
-            $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
-
-            $class = $classesByTag[$decoded['event']];
-            $restored = $class::fromWire($decoded['data']);
+            $restored = EventCodec::decodeJsonLine($line);
 
             Expect::that($restored::class)->toBe($events[$index]::class);
             Expect::that($restored->occurredAt)->toBe($events[$index]->occurredAt);

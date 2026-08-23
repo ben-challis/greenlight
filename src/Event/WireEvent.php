@@ -7,7 +7,7 @@ namespace Greenlight\Event;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * Adds internal machine-event serialization to built-in run events.
+ * Supplies the payload values that the internal event codec reads and writes.
  *
  * @internal
  */
