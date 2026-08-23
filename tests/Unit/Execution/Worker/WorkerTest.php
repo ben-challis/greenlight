@@ -11,11 +11,8 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Plugin\Plugin;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -50,7 +47,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker($this->registry())->run($plan, $sink);
+        new Worker($this->definitions())->run($plan, $sink);
 
         $classEvents = \array_values(\array_filter(
             $sink->events,
@@ -115,14 +112,14 @@ final class WorkerTest
     public function deferredCleanupRunsAfterHooksAndBeforeFixtureDisposal(): void
     {
         TraceLog::drain();
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(
             CleanupOrderProbe::class,
             Scope::PerTest,
             static fn(): CleanupOrderProbe => new CleanupOrderProbe(),
-        ));
+        );
 
-        [, $results] = $this->runFixture('CleanupCallbacks', $registry);
+        [, $results] = $this->runFixture('CleanupCallbacks', $definitions);
 
         Expect::that(TraceLog::drain())
             ->because('deferred cleanup runs after hooks and before fixture disposal')
@@ -286,7 +283,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker($this->registry())->run($plan, $sink);
+        new Worker($this->definitions())->run($plan, $sink);
 
         $result = $sink->results()[0];
 
@@ -306,7 +303,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker($this->registry())->run($plan, $sink);
+        new Worker($this->definitions())->run($plan, $sink);
 
         $result = $sink->results()[0];
 
@@ -330,7 +327,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->registry())->run($plan, $sink);
+        $outcome = new Worker($this->definitions())->run($plan, $sink);
         $result = $sink->results()[0];
 
         Expect::that($outcome->summary->errored)
@@ -380,10 +377,10 @@ final class WorkerTest
         ServiceProbe::reset();
         TraceLog::drain();
 
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(ServiceProbe::class, Scope::PerClass, static fn(): ServiceProbe => new ServiceProbe()));
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(ServiceProbe::class, Scope::PerClass, static fn(): ServiceProbe => new ServiceProbe());
 
-        $this->runFixture('Services', $registry);
+        $this->runFixture('Services', $definitions);
 
         Expect::that(TraceLog::drain())->because('per class services are shared and disposed at class close')->toBe([
             'probe1:created',
@@ -400,15 +397,15 @@ final class WorkerTest
         $plan = new ExecutionPlan([
             PlanEntryFixture::create($id->class, $id->method, allowParallel: true),
         ]);
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(
             ServiceProbe::class,
             Scope::PerClass,
             static fn(): ServiceProbe => new ServiceProbe(),
-        ));
+        );
         $sink = new CollectingEventSink();
 
-        new Worker($registry)->run($plan, $sink);
+        new Worker($definitions)->run($plan, $sink);
 
         $result = $sink->results()[0];
         Expect::that($result->outcome)
@@ -428,10 +425,10 @@ final class WorkerTest
         ServiceProbe::reset();
         TraceLog::drain();
 
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(ServiceProbe::class, Scope::PerTest, static fn(): ServiceProbe => new ServiceProbe()));
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(ServiceProbe::class, Scope::PerTest, static fn(): ServiceProbe => new ServiceProbe());
 
-        $this->runFixture('Services', $registry);
+        $this->runFixture('Services', $definitions);
 
         Expect::that(TraceLog::drain())->because('per test services are fresh per test')->toBe([
             'probe1:created',
@@ -446,10 +443,10 @@ final class WorkerTest
     #[Test]
     public function classScopeTeardownFailureIsAttributedToTheLastTest(): void
     {
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(FailingDisposalProbe::class, Scope::PerClass, static fn(): FailingDisposalProbe => new FailingDisposalProbe()));
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(FailingDisposalProbe::class, Scope::PerClass, static fn(): FailingDisposalProbe => new FailingDisposalProbe());
 
-        [, $results] = $this->runFixture('DisposeFails', $registry);
+        [, $results] = $this->runFixture('DisposeFails', $definitions);
 
         Expect::that($results[0]->outcome)->because('class scope teardown failure is attributed to the last test')->toBe(Outcome::Passed);
         Expect::that($results[1]->outcome)->toBe(Outcome::Errored);
@@ -459,14 +456,14 @@ final class WorkerTest
     #[Test]
     public function perTestScopeTeardownFailureErrorsTheCurrentTest(): void
     {
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(
             FailingPerTestDisposal::class,
             Scope::PerTest,
             static fn(): FailingPerTestDisposal => new FailingPerTestDisposal(),
-        ));
+        );
 
-        [, $results] = $this->runFixture('PerTestDisposeFails', $registry);
+        [, $results] = $this->runFixture('PerTestDisposeFails', $definitions);
 
         Expect::that($results[0]->outcome)
             ->because('a per-test teardown failure is attributed to the current test')
@@ -478,14 +475,14 @@ final class WorkerTest
     #[Test]
     public function disposalExpectationFailuresFailTheTestWithDiffs(): void
     {
-        $registry = $this->registry();
-        $registry->register(new ServiceDefinition(
+        $definitions = $this->definitions();
+        $definitions[] = new ServiceDefinition(
             VerifyingProbe::class,
             Scope::PerTest,
             static fn(): VerifyingProbe => new VerifyingProbe(),
-        ));
+        );
 
-        [, $results] = $this->runFixture('VerifyOnDispose', $registry);
+        [, $results] = $this->runFixture('VerifyOnDispose', $definitions);
 
         Expect::that($results[0]->outcome)->because('disposal expectation failures fail the test with diffs')->toBe(Outcome::Failed);
         Expect::that($results[0]->error)->toBeNull();
@@ -528,7 +525,7 @@ final class WorkerTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->registry())->run(
+        $outcome = new Worker($this->definitions())->run(
             $plan,
             $sink,
             drainRequested: static fn(): bool => true,
@@ -547,7 +544,7 @@ final class WorkerTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->registry(), new PluginRegistry(), new LeakDetector())
+        $outcome = new Worker($this->definitions(), leakDetector: new LeakDetector())
             ->run($plan, $sink);
 
         $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
@@ -573,31 +570,33 @@ final class WorkerTest
     }
 
     /**
-     * @param list<Plugin> $plugins
+     * @param list<ServiceDefinition>|null $definitions
      *
      * @return array{ResultSummary, list<TestResult>}
      */
     private function runFixture(
         string $case,
-        ?HarnessRegistry $registry = null,
+        ?array $definitions = null,
         ?int $stopAfterFailures = null,
         ?CollectingEventSink $sink = null,
-        array $plugins = [],
     ): array {
         $directory = FixturePath::get('Lifecycle/' . $case);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink ??= new CollectingEventSink();
 
-        $outcome = new Worker($registry ?? $this->registry(), PluginRegistry::forWorker($plugins))
+        $outcome = new Worker($definitions ?? $this->definitions())
             ->run($plan, $sink, $stopAfterFailures);
 
         return [$outcome->summary, $sink->results()];
     }
 
-    private function registry(): HarnessRegistry
+    /**
+     * @return list<ServiceDefinition>
+     */
+    private function definitions(): array
     {
-        return new HarnessRegistry([
+        return [
             new ServiceDefinition(InjectedProbe::class, Scope::PerTest, static fn(): InjectedProbe => new InjectedProbe()),
-        ]);
+        ];
     }
 }

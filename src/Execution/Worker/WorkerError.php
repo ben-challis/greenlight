@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Execution\Worker;
 
 use Greenlight\Condition\Condition;
-use Greenlight\Result\Outcome;
-use Greenlight\Test\TestId;
 
 /**
  * A worker cannot complete an assigned test or plugin lifecycle operation.
@@ -56,39 +54,6 @@ final class WorkerError extends \RuntimeException
             $class,
             $method,
             $actualType,
-        ));
-    }
-
-    /** @param class-string $plugin */
-    public static function pluginHookFailed(string $plugin, string $hook, \Throwable $cause): self
-    {
-        return new self(\sprintf(
-            'Plugin "%s" caused an error during %s(): %s',
-            $plugin,
-            $hook,
-            $cause->getMessage(),
-        ), $cause);
-    }
-
-    /** @param class-string $plugin */
-    public static function pluginChangedTestIdentity(string $plugin, TestId $before, TestId $after): self
-    {
-        return new self(\sprintf(
-            'Plugin "%s" changed the test identity during afterTest() from "%s" to "%s".',
-            $plugin,
-            $before,
-            $after,
-        ));
-    }
-
-    /** @param class-string $plugin */
-    public static function pluginChangedOutcome(string $plugin, Outcome $before, Outcome $after): self
-    {
-        return new self(\sprintf(
-            'Plugin "%s" changed the outcome from %s to %s without a new transformation-log entry from withOutcome().',
-            $plugin,
-            $before->value,
-            $after->value,
         ));
     }
 

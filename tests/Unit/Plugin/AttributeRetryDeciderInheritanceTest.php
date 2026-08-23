@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Execution\Plugin\AttributeRetryDecider;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\RetryPlugin;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\TestId;
 
-final class RetryPluginInheritanceTest
+final class AttributeRetryDeciderInheritanceTest
 {
     #[Test]
     public function throwableFilterAcceptsSubclassesOfTheConfiguredType(): void
@@ -25,7 +25,7 @@ final class RetryPluginInheritanceTest
             0,
         );
 
-        Expect::that(new RetryPlugin()->shouldRetry(
+        Expect::that(new AttributeRetryDecider()->shouldRetry(
             $policy,
             $result,
             1,

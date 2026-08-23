@@ -7,22 +7,25 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
+use Greenlight\Execution\Plugin\PluginRuntimeError;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\DefaultServices;
+use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\Plugin;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -30,6 +33,7 @@ use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\SkipTest;
+use Greenlight\Test\TestChannel;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
@@ -59,9 +63,12 @@ final readonly class PluginTest
                 ];
             }
         };
-        $plugins = PluginRegistry::forWorker([$provider]);
+        $plugins = WorkerPluginRuntime::fromPlugins([$provider]);
 
-        Expect::that(static fn() => DefaultServices::registry($plugins))
+        Expect::that(static fn() => $plugins->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            DefaultServices::definitions(),
+        ))
             ->because('plugin services MUST not replace Greenlight-owned defaults')
             ->toThrow(
                 \LogicException::class,
@@ -115,7 +122,7 @@ final readonly class PluginTest
             ->toBe(Outcome::Errored);
         Expect::that($results[0]->error?->message)
             ->toBe($message);
-        Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
+        Expect::that($results[0]->error?->class)->toBe(PluginRuntimeError::class);
     }
 
     #[Test]
@@ -149,7 +156,7 @@ final readonly class PluginTest
                 $rogue::class,
                 $expectedId,
             ));
-        Expect::that($result->error?->class)->toBe(WorkerError::class);
+        Expect::that($result->error?->class)->toBe(PluginRuntimeError::class);
     }
 
     #[Test]
@@ -174,7 +181,7 @@ final readonly class PluginTest
             ->toBe(Outcome::Errored);
         Expect::that($results[0]->error?->message)
             ->toBe($message);
-        Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
+        Expect::that($results[0]->error?->class)->toBe(PluginRuntimeError::class);
     }
 
     #[Test]
@@ -206,7 +213,7 @@ final readonly class PluginTest
             ->toBe(Outcome::Errored);
         Expect::that($byMethod['passes']->error?->message)
             ->toBe($pluginFailure);
-        Expect::that($byMethod['passes']->error?->class)->toBe(WorkerError::class);
+        Expect::that($byMethod['passes']->error?->class)->toBe(PluginRuntimeError::class);
 
         // The test keeps its original error. Greenlight records the plugin
         // failure as a failure detail.
@@ -440,9 +447,16 @@ final readonly class PluginTest
         $directory = FixturePath::get($fixture);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
-        $registry = PluginRegistry::forWorker($plugins);
-
-        $outcome = new Worker(DefaultServices::registry($registry), $registry)->run($plan, $sink);
+        $runtime = WorkerPluginRuntime::fromPlugins($plugins);
+        $definitions = DefaultServices::definitions();
+        $scopes = $runtime->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            $definitions,
+        );
+        $outcome = HarnessServiceDisposal::runAndClose(
+            $scopes,
+            static fn() => new Worker($definitions, $runtime)->run($plan, $sink, scopes: $scopes),
+        );
 
         return [$outcome->summary, $sink->results()];
     }

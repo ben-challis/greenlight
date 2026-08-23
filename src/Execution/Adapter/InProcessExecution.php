@@ -14,8 +14,9 @@ use Greenlight\Execution\ExecutionContext;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
-use Greenlight\Execution\Plugin\PluginInstances;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\DefaultServices;
+use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
@@ -54,18 +55,26 @@ final readonly class InProcessExecution implements ExecutionAdapter
         ExecutionContext $context,
     ): ExecutionOutcome {
         $execution = $context->execution;
-        $plugins = PluginInstances::forWorker($execution->plugins);
+        $plugins = WorkerPluginRuntime::fromDefinitions($execution->plugins);
         $resources = $context->fixtures->forChannel(1);
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
 
         try {
             try {
-                $plugins->bootstrapWorker(new WorkerBootstrapContext(
-                    'in-process',
-                    new TestChannel(1),
+                $definitions = DefaultServices::definitions(
                     $resources,
-                ));
+                    $context->storage->generatedCodeDirectory,
+                    $context->storage->temporaryDirectory,
+                );
+                $scopes = $plugins->prepareWorker(
+                    new WorkerBootstrapContext(
+                        'in-process',
+                        new TestChannel(1),
+                        $resources,
+                    ),
+                    $definitions,
+                );
             } catch (\Throwable $failure) {
                 $detail = ThrowableDetail::fromThrowable($failure);
 
@@ -86,23 +95,22 @@ final readonly class InProcessExecution implements ExecutionAdapter
 
             try {
                 try {
-                    $outcome = $plugins->runWorker(fn() => new Worker(
-                        DefaultServices::registry(
+                    $outcome = $plugins->runWorker(fn() => HarnessServiceDisposal::runAndClose(
+                        $scopes,
+                        fn() => new Worker(
+                            $definitions,
                             $plugins,
-                            $resources,
-                            $context->storage->generatedCodeDirectory,
-                            $context->storage->temporaryDirectory,
+                            $this->detectLeaks ? new LeakDetector() : null,
+                            'in-process',
+                            $execution->policy->isNoOp() ? null : $execution->policy,
+                            $context->artifacts,
+                        )->run(
+                            $plan,
+                            new PublishingEventSink($context->artifacts, $sink),
+                            $execution->stopAfterFailures,
+                            $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
+                            $scopes,
                         ),
-                        $plugins,
-                        $this->detectLeaks ? new LeakDetector() : null,
-                        'in-process',
-                        $execution->policy->isNoOp() ? null : $execution->policy,
-                        $context->artifacts,
-                    )->run(
-                        $plan,
-                        new PublishingEventSink($context->artifacts, $sink),
-                        $execution->stopAfterFailures,
-                        $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
                     ));
                 } catch (WorkerError $failure) {
                     $detail = ThrowableDetail::fromThrowable($failure);

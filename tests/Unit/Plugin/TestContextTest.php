@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -22,14 +21,14 @@ final class TestContextTest
     #[Test]
     public function serviceResolvesARegisteredHarnessService(): void
     {
-        $registry = new HarnessRegistry([
+        $definitions = [
             new ServiceDefinition(
                 \ArrayObject::class,
                 Scope::PerWorker,
                 static fn(): \ArrayObject => new \ArrayObject(['ready']),
             ),
-        ]);
-        $context = $this->context(new HarnessScopes($registry));
+        ];
+        $context = $this->context(new HarnessScopes($definitions));
 
         $service = $context->service(\ArrayObject::class);
 
@@ -42,7 +41,7 @@ final class TestContextTest
     #[Test]
     public function missingServiceNamesThePluginContext(): void
     {
-        $context = $this->context(new HarnessScopes(new HarnessRegistry()));
+        $context = $this->context(new HarnessScopes());
 
         Expect::that(static fn(): object => $context->service(\ArrayObject::class))
             ->because('a missing service identifies the plugin context')
@@ -56,14 +55,14 @@ final class TestContextTest
     #[Test]
     public function serviceRejectsAccessAfterTheTestScopeCloses(): void
     {
-        $registry = new HarnessRegistry([
+        $definitions = [
             new ServiceDefinition(
                 \ArrayObject::class,
                 Scope::PerTest,
                 static fn(): \ArrayObject => new \ArrayObject(['ready']),
             ),
-        ]);
-        $scopes = new HarnessScopes($registry);
+        ];
+        $scopes = new HarnessScopes($definitions);
         $scopes->openTest();
         $context = $this->context($scopes);
 
@@ -81,7 +80,7 @@ final class TestContextTest
     #[Test]
     public function attachmentsAreUnavailableWithoutAnActiveAttempt(): void
     {
-        $context = $this->context(new HarnessScopes(new HarnessRegistry()));
+        $context = $this->context(new HarnessScopes());
 
         Expect::that(static function () use ($context): void {
             $context->attachments->text('note.txt', 'body');
@@ -96,7 +95,7 @@ final class TestContextTest
     #[Test]
     public function skipStopsTheAttemptWithTheExactReason(): void
     {
-        $context = $this->context(new HarnessScopes(new HarnessRegistry()));
+        $context = $this->context(new HarnessScopes());
 
         Expect::that(static fn(): never => $context->skip('dependency is unavailable'))
             ->because('a plugin skip MUST preserve its reason for the test result')

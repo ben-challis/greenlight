@@ -6,14 +6,14 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Execution\Plugin\AttributeRetryDecider;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\RetryPlugin;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\TestId;
 
-final class RetryPluginTest
+final class AttributeRetryDeciderTest
 {
     /**
      * @param positive-int|null $times
@@ -29,7 +29,7 @@ final class RetryPluginTest
         ?\Throwable $cause,
         bool $expected,
     ): void {
-        $plugin = new RetryPlugin();
+        $plugin = new AttributeRetryDecider();
         $result = new TestResult(
             new TestId('Example\RetryTest', 'retries'),
             Outcome::Errored,

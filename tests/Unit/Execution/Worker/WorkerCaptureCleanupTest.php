@@ -49,15 +49,15 @@ final readonly class WorkerCaptureCleanupTest
                     ),
                 ),
             ]);
-            $registry = new Greenlight\Harness\HarnessRegistry([
+            $definitions = [
                 new Greenlight\Harness\ServiceDefinition(
                     Greenlight\Tests\Fixture\Harness\RecordingDisposable::class,
                     Greenlight\Harness\Scope::PerTest,
                     static fn() => new Greenlight\Tests\Fixture\Harness\RecordingDisposable(),
                 ),
-            ]);
+            ];
 
-            new Greenlight\Execution\Worker\Worker($registry)->run(
+            new Greenlight\Execution\Worker\Worker($definitions)->run(
                 $plan,
                 new Greenlight\Tests\Support\CollectingEventSink(),
             );

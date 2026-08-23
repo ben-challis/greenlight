@@ -26,7 +26,7 @@ final readonly class DefaultServicesTest
             $this->environment->set('GREENLIGHT_CHANNEL', $raw);
         }
 
-        $scopes = new HarnessScopes(DefaultServices::registry());
+        $scopes = new HarnessScopes(DefaultServices::definitions());
 
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);

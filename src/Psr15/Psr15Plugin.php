@@ -15,11 +15,11 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 final readonly class Psr15Plugin implements HarnessProvider
 {
-    /** @var \Closure(): mixed */
+    /** @var \Closure(): RequestHandlerInterface */
     private \Closure $factory;
 
     /**
-     * @param RequestHandlerInterface|\Closure(): mixed $handler
+     * @param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler
      *   A handler or a factory that returns a handler.
      * @param null|\Closure(RequestHandlerInterface): void $release
      *   A callback that releases the active handler when its scope closes.

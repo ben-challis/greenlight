@@ -7,10 +7,10 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
@@ -63,9 +63,9 @@ final readonly class RetryDeciderOrderTest
         $directory = FixturePath::get('RunFailingSuite');
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
-        $plugins = PluginRegistry::forWorker([$first, $second]);
+        $plugins = WorkerPluginRuntime::fromPlugins([$first, $second]);
 
-        new Worker(DefaultServices::registry($plugins), $plugins)->run($plan, $sink);
+        new Worker(DefaultServices::definitions(), $plugins)->run($plan, $sink);
 
         Expect::that($calls->getArrayCopy())
             ->because('retry deciders MUST stop after acceptance and continue after decline')

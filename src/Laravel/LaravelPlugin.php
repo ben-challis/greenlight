@@ -26,9 +26,7 @@ use Illuminate\Foundation\Bootstrap\RegisterProviders;
  */
 final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 {
-    /**
-     * @var \Closure(): mixed
-     */
+    /** @var \Closure(): Application */
     private readonly \Closure $factory;
 
     /** The active application belongs to the current test attempt. */
@@ -53,14 +51,20 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     ) {
         $this->factory = $application instanceof \Closure
             ? $application
-            : static function () use ($application): mixed {
+            : static function () use ($application): Application {
                 $applicationExists = ErrorTrap::run(static fn() => \is_file($application));
 
                 if (!$applicationExists) {
                     throw LaravelBridgeError::bootstrapFileMissing($application);
                 }
 
-                return require $application;
+                $app = require $application;
+
+                if (!$app instanceof Application) {
+                    throw LaravelBridgeError::notAnApplication(\get_debug_type($app));
+                }
+
+                return $app;
             };
     }
 

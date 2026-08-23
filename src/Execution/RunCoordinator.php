@@ -17,9 +17,7 @@ use Greenlight\Event\EventSink;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Execution\Plugin\IntegrationFixtureProviderAdapter;
-use Greenlight\Execution\Plugin\PluginEventSink;
-use Greenlight\Execution\Plugin\PluginInstances;
+use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -74,11 +72,11 @@ final readonly class RunCoordinator
         );
 
         try {
-            $orchestratorPlugins = PluginInstances::forOrchestrator($configuration->execution->plugins);
-
-            if ($orchestratorPlugins->runSubscribers() !== []) {
-                $sink = new PluginEventSink($orchestratorPlugins, $sink);
-            }
+            $orchestratorPlugins = OrchestratorPluginRuntime::fromDefinitions(
+                $configuration->execution->plugins,
+                $sink,
+            );
+            $sink = $orchestratorPlugins;
 
             if (\count($plan) === 0) {
                 $sink->emit(new RunStarted(
@@ -96,7 +94,7 @@ final readonly class RunCoordinator
             }
 
             $fixtures = IntegrationFixtureManager::provision(
-                IntegrationFixtureProviderAdapter::definitions($orchestratorPlugins),
+                $orchestratorPlugins->fixtureDefinitions(),
                 $runId,
                 $topology->workers,
                 $topology->fixtureChannels,

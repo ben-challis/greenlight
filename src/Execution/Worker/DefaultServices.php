@@ -6,13 +6,9 @@ namespace Greenlight\Execution\Worker;
 
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
-use Greenlight\Expect\ExpectationExtension;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\IntegrationFixture\IntegrationResources;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\StreamWrappers;
@@ -30,15 +26,15 @@ final class DefaultServices
     #[CoverageIgnore]
     private function __construct() {}
 
-    public static function registry(
-        PluginRegistry $plugins = new PluginRegistry(),
+    /**
+     * @return list<ServiceDefinition>
+     */
+    public static function definitions(
         IntegrationResources $integrationResources = new IntegrationResources(),
         ?string $generatedCodeDirectory = null,
         ?string $temporaryDirectory = null,
-    ): HarnessRegistry {
-        Expect::install($plugins->ofType(ExpectationExtension::class));
-
-        $registry = new HarnessRegistry([
+    ): array {
+        return [
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles($generatedCodeDirectory)),
             new ServiceDefinition(TemporaryDirectory::class, Scope::PerTest, static fn(): TemporaryDirectory => new TemporaryDirectory($temporaryDirectory)),
             new ServiceDefinition(Autoloaders::class, Scope::PerTest, static fn(): Autoloaders => new Autoloaders()),
@@ -50,12 +46,6 @@ final class DefaultServices
                 Scope::PerWorker,
                 static fn(): TestChannel => new TestChannel(ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) ?? 1),
             ),
-        ]);
-
-        foreach ($plugins->harnessServices() as $definition) {
-            $registry->register($definition);
-        }
-
-        return $registry;
+        ];
     }
 }

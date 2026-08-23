@@ -97,7 +97,7 @@ sequenceDiagram
     O->>W: proc_open(address, workerId, token)<br/>env: GREENLIGHT_CHANNEL=n
     W->>O: hello (workerId, token, pid)
     O->>W: bootstrap (channel, config, resources)
-    W->>W: load plugins, run worker bootstrap,<br/>build harness registry
+    W->>W: load plugins, run worker bootstrap,<br/>build harness service scopes
     W->>O: ready
     Note over O,W: assignment can begin after ready;<br/>subscriber mode waits for all initial workers
 

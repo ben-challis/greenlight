@@ -9,7 +9,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Disposable;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -25,14 +24,14 @@ final class HarnessScopesTest
     #[DataSet('closedScopes')]
     public function scopedServicesCannotResolveBeforeTheirScopeOpens(Scope $scope, string $message): void
     {
-        $registry = new HarnessRegistry([
+        $definitions = [
             new ServiceDefinition(
                 \ArrayObject::class,
                 $scope,
                 static fn(): \ArrayObject => new \ArrayObject(),
             ),
-        ]);
-        $scopes = new HarnessScopes($registry);
+        ];
+        $scopes = new HarnessScopes($definitions);
 
         Expect::that(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
             ->because('a scoped service MUST not escape its configured lifetime')
@@ -43,9 +42,9 @@ final class HarnessScopesTest
     public function registeredServicesWinOverFallbackResolvers(): void
     {
         $registered = new \ArrayObject(['registered']);
-        $registry = new HarnessRegistry([
+        $definitions = [
             new ServiceDefinition(\ArrayObject::class, Scope::PerWorker, static fn(): \ArrayObject => $registered),
-        ]);
+        ];
         $resolver = new class implements ServiceResolver {
             public bool $consulted = false;
 
@@ -58,7 +57,7 @@ final class HarnessScopesTest
             }
         };
 
-        $scopes = new HarnessScopes($registry, [$resolver]);
+        $scopes = new HarnessScopes($definitions, [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test');
 
         $values = $resolved->getArrayCopy();
@@ -69,6 +68,47 @@ final class HarnessScopesTest
         Expect::that($resolver->consulted)
             ->because('a registered service MUST NOT consult a fallback resolver')
             ->toBeFalse();
+    }
+
+    #[Test]
+    public function serviceTypeNamesFollowPhpCaseInsensitivity(): void
+    {
+        $service = new \ArrayObject();
+        $scopes = new HarnessScopes([
+            new ServiceDefinition(
+                $this->uppercaseClassName(\ArrayObject::class),
+                Scope::PerWorker,
+                static fn(): \ArrayObject => $service,
+            ),
+        ]);
+
+        Expect::that($scopes->resolve(\ArrayObject::class, self::class))
+            ->because('harness service identity MUST follow PHP type-name identity')
+            ->toBe($service);
+    }
+
+    #[Test]
+    public function caseOnlyDuplicateServiceTypesAreRejected(): void
+    {
+        $definitions = [
+            new ServiceDefinition(
+                \ArrayObject::class,
+                Scope::PerWorker,
+                static fn(): \ArrayObject => new \ArrayObject(),
+            ),
+            new ServiceDefinition(
+                $this->uppercaseClassName(\ArrayObject::class),
+                Scope::PerTest,
+                static fn(): \ArrayObject => new \ArrayObject(),
+            ),
+        ];
+
+        Expect::that(static fn(): HarnessScopes => new HarnessScopes($definitions))
+            ->because('one PHP type MUST have only one harness service definition')
+            ->toThrow(
+                \LogicException::class,
+                message: 'A harness service for ARRAYOBJECT is already registered.',
+            );
     }
 
     #[Test]
@@ -91,7 +131,7 @@ final class HarnessScopesTest
         };
         $marker = new \stdClass();
 
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
+        $scopes = new HarnessScopes([], [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test', [$marker]);
 
         Expect::that($resolved)->because('fallback resolvers receive the type and attributes')->toBeInstanceOf(\ArrayObject::class);
@@ -123,7 +163,7 @@ final class HarnessScopesTest
             }
         };
 
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$passing, $answering]);
+        $scopes = new HarnessScopes([], [$passing, $answering]);
 
         Expect::that($scopes->resolve(\ArrayObject::class, 'test'))->because('resolvers are consulted in order until one answers')->toBe($answer);
     }
@@ -149,7 +189,7 @@ final class HarnessScopesTest
                 return ServiceResolution::resolved($this->service);
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
+        $scopes = new HarnessScopes([], [$resolver]);
 
         $resolved = $scopes->resolve(Disposable::class, 'test');
         $failures = $scopes->closeWorker();
@@ -173,7 +213,7 @@ final class HarnessScopesTest
                 return ServiceResolution::resolved(new \stdClass());
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
+        $scopes = new HarnessScopes([], [$resolver]);
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
@@ -190,7 +230,7 @@ final class HarnessScopesTest
                 return ServiceResolution::unhandled();
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
+        $scopes = new HarnessScopes([], [$resolver]);
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
@@ -200,7 +240,7 @@ final class HarnessScopesTest
     #[Test]
     public function withoutResolversTheOriginalMessageStands(): void
     {
-        $scopes = new HarnessScopes(new HarnessRegistry());
+        $scopes = new HarnessScopes();
 
         Expect::that(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
@@ -231,7 +271,7 @@ final class HarnessScopesTest
                 return ServiceResolution::resolved(new \ArrayObject());
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$failing, $later]);
+        $scopes = new HarnessScopes([], [$failing, $later]);
 
         $error = null;
 
@@ -268,7 +308,7 @@ final class HarnessScopesTest
             }
         };
 
-        Expect::that(static fn(): HarnessScopes => new HarnessScopes(new HarnessRegistry(), [$terminal, $fallback]))
+        Expect::that(static fn(): HarnessScopes => new HarnessScopes([], [$terminal, $fallback]))
             ->because('a terminal resolver MUST be the final resolver')
             ->toThrow(\InvalidArgumentException::class, message: 'A terminal service resolver MUST be the final resolver.');
     }
@@ -283,7 +323,7 @@ final class HarnessScopesTest
                 return ServiceResolution::unhandled();
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$terminal]);
+        $scopes = new HarnessScopes([], [$terminal]);
 
         Expect::that(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
             ->because('a terminal resolver MUST handle every request')
@@ -293,7 +333,7 @@ final class HarnessScopesTest
     #[Test]
     public function closingInactiveScopesIsIdempotent(): void
     {
-        $scopes = new HarnessScopes(new HarnessRegistry());
+        $scopes = new HarnessScopes();
 
         Expect::that($scopes->closeTest())
             ->because('closing an inactive test scope MUST be a safe no-op')
@@ -307,14 +347,14 @@ final class HarnessScopesTest
     #[DataSet('serviceLifetimes')]
     public function servicesRespectTheirLifetimeAcrossScopeReopening(Scope $scope, bool $reused): void
     {
-        $registry = new HarnessRegistry([
+        $definitions = [
             new ServiceDefinition(
                 \ArrayObject::class,
                 $scope,
                 static fn(): \ArrayObject => new \ArrayObject(),
             ),
-        ]);
-        $scopes = new HarnessScopes($registry);
+        ];
+        $scopes = new HarnessScopes($definitions);
         $scopes->openClass();
         $scopes->openTest();
 
@@ -365,5 +405,21 @@ final class HarnessScopesTest
         yield 'per test' => [Scope::PerTest, false];
         yield 'per class' => [Scope::PerClass, false];
         yield 'per worker' => [Scope::PerWorker, true];
+    }
+
+    /**
+     * @param class-string $type
+     *
+     * @return class-string
+     */
+    private function uppercaseClassName(string $type): string
+    {
+        $uppercase = \strtoupper($type);
+
+        if (!\class_exists($uppercase)) {
+            throw new \LogicException(\sprintf('Class %s is unavailable.', $uppercase));
+        }
+
+        return $uppercase;
     }
 }
