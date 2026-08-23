@@ -78,10 +78,9 @@ final readonly class PhpStanProbe
             self::neonString($probeDirectory . '/cache'),
         ));
 
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $root,
             [
-                \PHP_BINARY,
                 $root . '/vendor/bin/phpstan',
                 'analyse',
                 '--no-progress',

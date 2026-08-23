@@ -20,7 +20,7 @@ use Greenlight\Tests\Fixture\Doubles\ProxyFileProbe;
 use Greenlight\Tests\Fixture\Doubles\SelfConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\StaticMethodFixture;
 use Greenlight\Tests\Fixture\Doubles\Wide;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class ProxyGenerationTest
 {
@@ -52,8 +52,7 @@ final readonly class ProxyGenerationTest
     {
         $root = \dirname(__DIR__, 3);
         $temporaryRoot = $this->tempDirectory->subdirectory('default-proxy-cache');
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-d',
             'sys_temp_dir=' . $temporaryRoot,
             '-r',

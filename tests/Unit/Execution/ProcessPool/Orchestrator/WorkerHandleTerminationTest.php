@@ -12,6 +12,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\ConnectedStreamPair;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class WorkerHandleTerminationTest
 {
@@ -25,11 +26,10 @@ final readonly class WorkerHandleTerminationTest
 
         try {
             $process = \proc_open(
-                [
-                    \PHP_BINARY,
+                PhpSubprocess::command([
                     '-r',
                     'fwrite(STDOUT, "ready\n"); fflush(STDOUT); while (true) { usleep(10000); }',
-                ],
+                ]),
                 [
                     0 => ['pipe', 'r'],
                     1 => ['pipe', 'w'],

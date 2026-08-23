@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Laravel;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\SourceOnlyPhp;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class LaravelFrameworkUnavailableTest
 {
@@ -16,7 +16,7 @@ final readonly class LaravelFrameworkUnavailableTest
     {
         $root = \dirname(__DIR__, 3);
 
-        $result = Subprocess::run($root, SourceOnlyPhp::command(
+        $result = PhpSubprocess::run($root, SourceOnlyPhp::command(
             $root . '/src',
             <<<'PHP'
             if (class_exists(\Illuminate\Foundation\Application::class)) {

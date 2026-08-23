@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Test\SkipTest;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class LeakDetectorWhitespaceIniModeTest
 {
@@ -19,10 +19,9 @@ final readonly class LeakDetectorWhitespaceIniModeTest
         }
 
         $root = \dirname(__DIR__, 4);
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $root,
             [
-                \PHP_BINARY,
                 '-d',
                 'xdebug.mode=coverage, develop',
                 '-d',

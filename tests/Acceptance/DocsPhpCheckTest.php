@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\ProjectFiles;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class DocsPhpCheckTest
 {
@@ -390,7 +390,6 @@ final readonly class DocsPhpCheckTest
         string ...$arguments,
     ): ProcessResult {
         $processCommand = [
-            \PHP_BINARY,
             \dirname(__DIR__, 2) . '/tools/docs-php.php',
             $command,
             '--root=' . $project->directory,
@@ -400,6 +399,6 @@ final readonly class DocsPhpCheckTest
             $processCommand[] = $argument;
         }
 
-        return Subprocess::run($project->directory, $processCommand, $environment);
+        return PhpSubprocess::run($project->directory, $processCommand, $environment);
     }
 }

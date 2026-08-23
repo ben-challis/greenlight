@@ -40,15 +40,14 @@ final class GreenlightCli
     ): Subprocess {
         $root = \dirname(__DIR__, 2);
 
-        return Subprocess::start(
+        return PhpSubprocess::start(
             $workingDirectory,
             [
-                \PHP_BINARY,
-                ...$phpArguments,
                 $root . '/bin/greenlight',
                 ...$arguments,
             ],
             $environment,
+            $phpArguments,
         );
     }
 }
