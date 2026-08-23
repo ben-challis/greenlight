@@ -27,6 +27,7 @@ use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\CleanupFailed;
 use Greenlight\Test\ExpectationCounter;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestId;
@@ -286,32 +287,34 @@ final readonly class TestExecutor
                 $captured = $capture?->stop();
             } finally {
                 try {
-                    $cleanupFailures = $cleanup->close();
+                    try {
+                        $cleanup->close();
+                    } catch (CleanupFailed $cleanupFailed) {
+                        foreach ($cleanupFailed->failures as $cleanupFailure) {
+                            if (!$cause instanceof \Throwable) {
+                                $cause = $cleanupFailure;
+                                $skipReason = null;
 
-                    foreach ($cleanupFailures as $cleanupFailure) {
-                        if (!$cause instanceof \Throwable) {
-                            $cause = $cleanupFailure;
-                            $skipReason = null;
+                                if ($cleanupFailure instanceof ExpectationFailed) {
+                                    $failures = $cleanupFailure->details;
+                                } else {
+                                    $error = ThrowableDetail::fromThrowable($cleanupFailure);
+                                }
 
-                            if ($cleanupFailure instanceof ExpectationFailed) {
-                                $failures = $cleanupFailure->details;
-                            } else {
-                                $error = ThrowableDetail::fromThrowable($cleanupFailure);
+                                continue;
                             }
 
-                            continue;
+                            if ($cleanupFailure instanceof ExpectationFailed) {
+                                $failures = [...$failures, ...$cleanupFailure->details];
+
+                                continue;
+                            }
+
+                            $failures[] = new FailureDetail(\sprintf(
+                                'Cleanup callback caused an error: %s',
+                                $cleanupFailure->getMessage(),
+                            ));
                         }
-
-                        if ($cleanupFailure instanceof ExpectationFailed) {
-                            $failures = [...$failures, ...$cleanupFailure->details];
-
-                            continue;
-                        }
-
-                        $failures[] = new FailureDetail(\sprintf(
-                            'Cleanup callback caused an error: %s',
-                            $cleanupFailure->getMessage(),
-                        ));
                     }
                 } finally {
                     try {

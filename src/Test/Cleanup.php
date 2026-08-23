@@ -40,16 +40,16 @@ final class Cleanup
     }
 
     /**
-     * Runs each callback and returns its failures.
+     * Runs each callback.
      *
      * @internal
      *
-     * @return list<\Throwable>
+     * @throws CleanupFailed If one or more callbacks fail.
      */
-    public function close(): array
+    public function close(): void
     {
         if ($this->closed) {
-            return [];
+            return;
         }
 
         $this->closed = true;
@@ -65,6 +65,8 @@ final class Cleanup
             }
         }
 
-        return $failures;
+        if ($failures !== []) {
+            throw CleanupFailed::fromFailures($failures);
+        }
     }
 }
