@@ -17,7 +17,7 @@ final class CleanupFailed extends \RuntimeException
     private function __construct(
         public readonly array $failures,
     ) {
-        parent::__construct('Test cleanup failed.', previous: $failures[0]);
+        parent::__construct('Test cleanup failed.');
     }
 
     /**

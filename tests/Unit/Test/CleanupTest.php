@@ -61,7 +61,7 @@ final readonly class CleanupTest
                 static function (CleanupFailed $cleanupFailed) use ($firstFailure, $secondFailure, &$trace): void {
                     Expect::that($trace)->toBe(['first', 'first failure', 'second failure', 'last']);
                     Expect::that($cleanupFailed->failures)->toBe([$firstFailure, $secondFailure]);
-                    Expect::that($cleanupFailed->getPrevious())->toBe($firstFailure);
+                    Expect::that($cleanupFailed->getPrevious())->toBeNull();
                 },
             );
     }
