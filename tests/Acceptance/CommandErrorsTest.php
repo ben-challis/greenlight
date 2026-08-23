@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
-use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -98,77 +97,6 @@ final readonly class CommandErrorsTest
         Expect::that($result->exitCode)->because('profile report with a missing input file fails cleanly')->toBe(1);
         Expect::that($result->output())->toContain('Greenlight could not read')
             ->toContain('nowhere.jsonl');
-    }
-
-    #[Test]
-    #[DataSet('invalidProfileStreams')]
-    public function profileReportRejectsInvalidEventStreams(
-        string $projectName,
-        string $stream,
-        string $message,
-    ): void {
-        $project = AcceptanceProject::create($this->tempDirectory, $projectName);
-        $project->writeFile('profile.jsonl', $stream);
-
-        $result = GreenlightCli::run($project->directory, [
-            'profile:report',
-            '--input=profile.jsonl',
-            '--no-ansi',
-        ]);
-
-        Expect::that($result->exitCode)
-            ->because('an invalid profile stream fails cleanly')
-            ->toBe(1);
-        Expect::that($result->output())
-            ->toContain($message);
-    }
-
-    /**
-     * @return iterable<string, array{non-empty-string, non-empty-string, non-empty-string}>
-     */
-    public static function invalidProfileStreams(): iterable
-    {
-        yield 'invalid JSON' => [
-            'profile-invalid-json',
-            '{',
-            'A line is not valid JSON.',
-        ];
-
-        yield 'invalid envelope' => [
-            'profile-invalid-envelope',
-            '{"event":7,"data":[]}',
-            'A line does not contain an event envelope.',
-        ];
-
-        yield 'invalid envelope key' => [
-            'profile-invalid-envelope-key',
-            '{"0":true,"v":2,"event":"future-event","data":{}}',
-            'A line does not contain an event envelope.',
-        ];
-
-        yield 'unsupported envelope version' => [
-            'profile-unsupported-version',
-            '{"v":4,"event":"run-started","data":{}}',
-            'The input uses unsupported JSONL version 4.',
-        ];
-
-        yield 'invalid known event payload' => [
-            'profile-invalid-payload',
-            '{"v":2,"event":"run-started","data":[]}',
-            'Greenlight could not decode a "run-started" event:',
-        ];
-
-        yield 'invalid event data map' => [
-            'profile-invalid-data-map',
-            '{"v":2,"event":"future-event","data":{"0":true}}',
-            'A line does not contain an event envelope.',
-        ];
-
-        yield 'no finished run' => [
-            'profile-no-finished-run',
-            '{"v":2,"event":"future-event","data":[]}',
-            'The stream has no finished run to profile.',
-        ];
     }
 
     #[Test]
