@@ -76,9 +76,12 @@ final readonly class ArtifactOutputSafetyTest
         Expect::that($workingDirectoryStore->publicDirectory())
             ->because('a restricted working directory MUST keep its configured path')
             ->toBe($restricted . '/artifacts/run-working-directory');
-        Expect::that([$absoluteWarning, $workingDirectoryWarning])
-            ->because('restricted artifact paths MUST not leak engine diagnostics')
-            ->toBe([null, null]);
+        Expect::that($absoluteWarning)
+            ->because('a restricted absolute artifact path MUST not leak engine diagnostics')
+            ->toBeNull();
+        Expect::that($workingDirectoryWarning)
+            ->because('a restricted working directory MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 
     #[Test]
