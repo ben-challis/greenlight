@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\AllowParallel;
-use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
@@ -19,12 +18,19 @@ final readonly class RectorUnsupportedFrameworkApiTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    #[DataSet(RectorMigrationRunTest::class, 'unsupportedFrameworkApiSources')]
-    public function leavesClassesWithUnsupportedApiUntouched(string $source): void
+    public function leavesClassesWithUnsupportedFrameworkApisUntouched(): void
     {
-        $probe = RectorProbe::convert($this->tempDirectory, $source, name: 'unsupported');
+        $cases = [];
 
-        Expect::that($probe->changed)->toBeFalse();
-        Expect::that($probe->code)->toBe($source);
+        foreach (RectorMigrationRunTest::unsupportedFrameworkApiSources() as $caseName => [$source]) {
+            $cases[$caseName] = $source;
+        }
+
+        $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-framework-apis');
+
+        foreach ($probes as $caseName => $probe) {
+            Expect::that($probe->changed)->because('unsupported framework API case: ' . $caseName)->toBeFalse();
+            Expect::that($probe->code)->because('unsupported framework API case: ' . $caseName)->toBe($cases[$caseName]);
+        }
     }
 }

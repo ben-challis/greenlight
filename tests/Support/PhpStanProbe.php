@@ -9,11 +9,13 @@ use Greenlight\Sandbox\TemporaryDirectory;
 final readonly class PhpStanProbe
 {
     /**
+     * @param list<string> $goodErrors
      * @param list<string> $errors
      */
     private function __construct(
         public int $exitCode,
         public bool $goodPassed,
+        public array $goodErrors,
         public array $errors,
     ) {}
 
@@ -26,16 +28,50 @@ final readonly class PhpStanProbe
         string $badSource,
         ?string $configFile = null,
     ): self {
+        return self::analyzeBatch(
+            $workspace,
+            ['probe' => ['good' => $goodSource, 'bad' => $badSource]],
+            $configFile,
+        )['probe'];
+    }
+
+    /**
+     * @param array<string, array{good: string, bad: string}> $cases
+     *
+     * @return array<string, self>
+     *
+     * @throws \RuntimeException when PHPStan cannot run or return a valid file report
+     */
+    public static function analyzeBatch(
+        TemporaryDirectory $workspace,
+        array $cases,
+        ?string $configFile = null,
+        string $name = 'phpstan-probe',
+    ): array {
+        if ($cases === []) {
+            throw new \InvalidArgumentException('A PHPStan probe batch requires at least one case.');
+        }
+
         $root = \dirname(__DIR__, 2);
         $configFile ??= FixturePath::get('PhpStanExtension/probe.neon');
-        $files = ProjectFiles::create($workspace, 'phpstan-probe');
+        $files = ProjectFiles::create($workspace, $name);
         $probeDirectory = $files->directory;
-        $goodFile = $probeDirectory . '/GoodProbe.php';
-        $badFile = $probeDirectory . '/BadProbe.php';
         $probeConfigFile = $probeDirectory . '/ProbeConfig.neon';
+        $caseFiles = [];
+        $analyzedFiles = [];
 
-        $files->write('GoodProbe.php', $goodSource);
-        $files->write('BadProbe.php', $badSource);
+        foreach ($cases as $caseName => $case) {
+            $relativeDirectory = 'cases/' . self::caseDirectory($caseName);
+            $goodFile = $files->path($relativeDirectory . '/GoodProbe.php');
+            $badFile = $files->path($relativeDirectory . '/BadProbe.php');
+
+            $files->write($relativeDirectory . '/GoodProbe.php', $case['good']);
+            $files->write($relativeDirectory . '/BadProbe.php', $case['bad']);
+            $caseFiles[$caseName] = ['good' => $goodFile, 'bad' => $badFile];
+            $analyzedFiles[] = $goodFile;
+            $analyzedFiles[] = $badFile;
+        }
+
         $files->write('ProbeConfig.neon', \sprintf(
             "includes:\n    - %s\n\nparameters:\n    tmpDir: %s\n",
             self::neonString($configFile),
@@ -52,8 +88,7 @@ final readonly class PhpStanProbe
                 '--error-format=json',
                 '-c',
                 $probeConfigFile,
-                $goodFile,
-                $badFile,
+                ...$analyzedFiles,
             ],
             [
                 'TEMP' => $probeDirectory,
@@ -72,24 +107,28 @@ final readonly class PhpStanProbe
             throw new \RuntimeException('PHPStan JSON report did not contain a file map.');
         }
 
-        $files = $report['files'];
-        $badReport = $files[$badFile] ?? null;
-        $reportedMessages = \is_array($badReport) ? ($badReport['messages'] ?? null) : null;
-        $errors = [];
+        $reportedFiles = [];
 
-        if (\is_array($reportedMessages)) {
-            foreach ($reportedMessages as $message) {
-                if (\is_array($message) && \is_string($message['message'] ?? null)) {
-                    $errors[] = $message['message'];
-                }
+        foreach ($report['files'] as $file => $fileReport) {
+            if (\is_string($file)) {
+                $reportedFiles[$file] = $fileReport;
             }
         }
 
-        return new self(
-            $result->exitCode,
-            !isset($files[$goodFile]),
-            $errors,
-        );
+        $probes = [];
+
+        foreach ($caseFiles as $caseName => $case) {
+            $goodErrors = self::fileMessages($reportedFiles, $case['good']);
+
+            $probes[$caseName] = new self(
+                $result->exitCode,
+                $goodErrors === [],
+                $goodErrors,
+                self::fileMessages($reportedFiles, $case['bad']),
+            );
+        }
+
+        return $probes;
     }
 
     public function messages(): string
@@ -100,5 +139,41 @@ final readonly class PhpStanProbe
     private static function neonString(string $value): string
     {
         return '"' . \str_replace(['\\', '"'], ['\\\\', '\\"'], $value) . '"';
+    }
+
+    /**
+     * @param array<string, mixed> $reportedFiles
+     *
+     * @return list<string>
+     */
+    private static function fileMessages(array $reportedFiles, string $file): array
+    {
+        $fileReport = $reportedFiles[$file] ?? null;
+        $reportedMessages = \is_array($fileReport) ? ($fileReport['messages'] ?? null) : null;
+        $messages = [];
+
+        if (!\is_array($reportedMessages)) {
+            return $messages;
+        }
+
+        foreach ($reportedMessages as $message) {
+            if (\is_array($message) && \is_string($message['message'] ?? null)) {
+                $messages[] = $message['message'];
+            }
+        }
+
+        return $messages;
+    }
+
+    private static function caseDirectory(int|string $caseName): string
+    {
+        if (!\is_string($caseName) || $caseName === '') {
+            throw new \InvalidArgumentException('A probe case name must be a nonempty string.');
+        }
+
+        $slug = \strtolower((string) \preg_replace('/[^a-z0-9]+/i', '-', $caseName));
+        $slug = \trim($slug, '-');
+
+        return ($slug === '' ? 'case' : $slug) . '-' . \substr(\hash('sha256', $caseName), 0, 8);
     }
 }

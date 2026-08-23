@@ -19,96 +19,96 @@ final readonly class PhpStanMatcherSubjectTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function matcherSubjectTypesFollowFluentChains(): void
+    public function matcherSubjectTypesFollowExpectationChains(): void
     {
-        $probe = PhpStanProbe::analyze(
+        $probes = PhpStanProbe::analyzeBatch(
             $this->tempDirectory,
-            <<<'PHP'
-            <?php
+            [
+                'fluent chains' => [
+                    'good' => <<<'PHP'
+                        <?php
 
-            declare(strict_types=1);
+                        declare(strict_types=1);
 
-            use Greenlight\Expect\Expect;
+                        use Greenlight\Expect\Expect;
 
-            function greenlightGoodSubjectProbe(): void
-            {
-                Expect::that('c0ffee')
-                    ->toBeHexadecimal()
-                    ->toHaveDigestLength(6);
-                Expect::that(1)
-                    ->toBePositive()
-                    ->toBe(1);
-            }
-            PHP,
-            <<<'PHP'
-            <?php
+                        function greenlightGoodSubjectProbe(): void
+                        {
+                            Expect::that('c0ffee')
+                                ->toBeHexadecimal()
+                                ->toHaveDigestLength(6);
+                            Expect::that(1)
+                                ->toBePositive()
+                                ->toBe(1);
+                        }
+                        PHP,
+                    'bad' => <<<'PHP'
+                        <?php
 
-            declare(strict_types=1);
+                        declare(strict_types=1);
 
-            use Greenlight\Expect\Expect;
+                        use Greenlight\Expect\Expect;
 
-            function greenlightBadSubjectProbe(): void
-            {
-                Expect::that(1)->toBePositive()
-                    ->toBeHexadecimal();
-                Expect::that('c0ffee')->toHaveDigestLength(6)
-                    ->toBePositive();
-            }
-            PHP,
+                        function greenlightBadSubjectProbe(): void
+                        {
+                            Expect::that(1)->toBePositive()
+                                ->toBeHexadecimal();
+                            Expect::that('c0ffee')->toHaveDigestLength(6)
+                                ->toBePositive();
+                        }
+                        PHP,
+                ],
+                'temporal chains' => [
+                    'good' => <<<'PHP'
+                        <?php
+
+                        declare(strict_types=1);
+
+                        use Greenlight\Expect\Expect;
+
+                        function greenlightGoodTemporalSubjectProbe(): void
+                        {
+                            Expect::eventually(static fn(): string => 'c0ffee')
+                                ->within(1.0)
+                                ->toBeHexadecimal();
+                            Expect::consistently(static fn(): int => 1)
+                                ->for(0.1)
+                                ->toBePositive();
+                        }
+                        PHP,
+                    'bad' => <<<'PHP'
+                        <?php
+
+                        declare(strict_types=1);
+
+                        use Greenlight\Expect\Expect;
+
+                        function greenlightBadTemporalSubjectProbe(): void
+                        {
+                            Expect::eventually(static fn(): int => 1)
+                                ->within(1.0)
+                                ->toBeHexadecimal();
+                            Expect::eventually(static fn(): int => 1)
+                                ->within(1.0)
+                                ->toBePositive()
+                                ->toBeHexadecimal();
+                            Expect::consistently(static fn(): int => 1)
+                                ->for(0.1)
+                                ->toBe(1)
+                                ->toBeHexadecimal();
+                        }
+                        PHP,
+                ],
+            ],
         );
 
+        $probe = $probes['fluent chains'];
         Expect::that($probe->exitCode)->because('fluent chains preserve matcher subject types')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
         Expect::that(\count($probe->errors))->toBe(2);
         Expect::that($probe->messages())->toContain('requires subject type string, but the subject has type int');
-    }
 
-    #[Test]
-    public function matcherSubjectTypesFollowTemporalChains(): void
-    {
-        $probe = PhpStanProbe::analyze(
-            $this->tempDirectory,
-            <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Expect\Expect;
-
-            function greenlightGoodTemporalSubjectProbe(): void
-            {
-                Expect::eventually(static fn(): string => 'c0ffee')
-                    ->within(1.0)
-                    ->toBeHexadecimal();
-                Expect::consistently(static fn(): int => 1)
-                    ->for(0.1)
-                    ->toBePositive();
-            }
-            PHP,
-            <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Expect\Expect;
-
-            function greenlightBadTemporalSubjectProbe(): void
-            {
-                Expect::eventually(static fn(): int => 1)
-                    ->within(1.0)
-                    ->toBeHexadecimal();
-                Expect::eventually(static fn(): int => 1)
-                    ->within(1.0)
-                    ->toBePositive()
-                    ->toBeHexadecimal();
-                Expect::consistently(static fn(): int => 1)
-                    ->for(0.1)
-                    ->toBe(1)
-                    ->toBeHexadecimal();
-            }
-            PHP,
-        );
-
+        $probe = $probes['temporal chains'];
         Expect::that($probe->exitCode)->because('temporal chains preserve matcher subject types')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
         Expect::that(\count($probe->errors))->toBe(3);
