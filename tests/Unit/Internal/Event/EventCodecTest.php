@@ -14,6 +14,7 @@ use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
+use Greenlight\Event\WireEvent;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Expect\Expect;
 use Greenlight\Internal\Event\EventCodec;
@@ -94,6 +95,38 @@ final class EventCodecTest
     }
 
     #[Test]
+    #[DataSet('malformedJsonEnvelopeShapes')]
+    public function malformedJsonEnvelopeShapesAreRejectedByTheCodec(string $line): void
+    {
+        Expect::that(static fn(): Event => EventCodec::decodeJsonLine($line))
+            ->toThrow(EventCodecFailed::class, message: 'The JSONL line does not contain an event envelope.');
+    }
+
+    /** @return iterable<string, array{non-empty-string}> */
+    public static function malformedJsonEnvelopeShapes(): iterable
+    {
+        yield 'scalar' => ['null'];
+        yield 'list' => ['[true]'];
+        yield 'numeric object key' => ['{"0":true,"v":3,"event":"run-started","data":{}}'];
+    }
+
+    #[Test]
+    public function malformedTaggedEventIdentifiersAreRejectedByTheCodec(): void
+    {
+        Expect::that(static fn(): WireEvent => EventCodec::fromTagged(['data' => []]))
+            ->toThrow(EventCodecFailed::class, message: 'Wire payload is missing the "event" key.');
+    }
+
+    #[Test]
+    public function malformedTaggedEventDataIsRejectedByTheCodec(): void
+    {
+        Expect::that(static fn(): WireEvent => EventCodec::fromTagged([
+            'event' => 'run-started',
+            'data' => [true],
+        ]))->toThrow(EventCodecFailed::class, message: 'Wire payload key "data" must be a map, got array.');
+    }
+
+    #[Test]
     public function unsupportedJsonVersionsAreRejectedByTheCodec(): void
     {
         Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":4,"event":"run-started","data":{}}'))
@@ -119,6 +152,32 @@ final class EventCodecTest
     {
         $event = new class implements Event, Fake {
             public float $occurredAt = 1.0;
+        };
+
+        Expect::that(static fn(): array => EventCodec::toTagged($event))
+            ->toThrow(
+                EventCodecFailed::class,
+                message: \sprintf('Event "%s" has no stable tag.', $event::class),
+            );
+    }
+
+    #[Test]
+    public function unmappedWireEventsAreRejectedByTheCodec(): void
+    {
+        $event = new class implements WireEvent, Fake {
+            public float $occurredAt = 1.0;
+
+            #[\Override]
+            public function toWire(): array
+            {
+                return [];
+            }
+
+            #[\Override]
+            public static function fromWire(array $payload): static
+            {
+                return new self();
+            }
         };
 
         Expect::that(static fn(): array => EventCodec::toTagged($event))

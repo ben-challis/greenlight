@@ -15,7 +15,7 @@ final class EventCodecFailed extends \RuntimeException
         public readonly EventCodecFailureKind $kind,
         string $message,
         public readonly ?string $eventIdentifier = null,
-        public readonly ?int $jsonVersion = null,
+        public readonly int $jsonVersion = 0,
         ?\Throwable $previous = null,
     ) {
         parent::__construct($message, previous: $previous);

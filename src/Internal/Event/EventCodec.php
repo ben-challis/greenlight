@@ -43,6 +43,7 @@ final class EventCodec
         'worker-spawned' => WorkerSpawned::class,
     ];
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**
