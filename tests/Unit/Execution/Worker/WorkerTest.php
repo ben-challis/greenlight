@@ -13,8 +13,6 @@ use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Plugin\Plugin;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -546,7 +544,7 @@ final class WorkerTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->definitions(), new PluginRegistry(), new LeakDetector())
+        $outcome = new Worker($this->definitions(), leakDetector: new LeakDetector())
             ->run($plan, $sink);
 
         $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
@@ -573,7 +571,6 @@ final class WorkerTest
 
     /**
      * @param list<ServiceDefinition>|null $definitions
-     * @param list<Plugin> $plugins
      *
      * @return array{ResultSummary, list<TestResult>}
      */
@@ -582,13 +579,12 @@ final class WorkerTest
         ?array $definitions = null,
         ?int $stopAfterFailures = null,
         ?CollectingEventSink $sink = null,
-        array $plugins = [],
     ): array {
         $directory = FixturePath::get('Lifecycle/' . $case);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink ??= new CollectingEventSink();
 
-        $outcome = new Worker($definitions ?? $this->definitions(), PluginRegistry::forWorker($plugins))
+        $outcome = new Worker($definitions ?? $this->definitions())
             ->run($plan, $sink, $stopAfterFailures);
 
         return [$outcome->summary, $sink->results()];

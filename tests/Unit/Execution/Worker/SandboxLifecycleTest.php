@@ -10,7 +10,6 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -36,7 +35,7 @@ final readonly class SandboxLifecycleTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker(DefaultServices::definitions(), PluginRegistry::forWorker([]))
+        $outcome = new Worker(DefaultServices::definitions())
             ->run($plan, $sink);
 
         $tempPath = null;

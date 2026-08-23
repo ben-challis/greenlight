@@ -6,12 +6,9 @@ namespace Greenlight\Execution\Worker;
 
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
-use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\IntegrationFixture\IntegrationResources;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\StreamWrappers;
@@ -33,13 +30,10 @@ final class DefaultServices
      * @return list<ServiceDefinition>
      */
     public static function definitions(
-        PluginRegistry $plugins = new PluginRegistry(),
         IntegrationResources $integrationResources = new IntegrationResources(),
         ?string $generatedCodeDirectory = null,
         ?string $temporaryDirectory = null,
     ): array {
-        Expect::install($plugins->ofType(ExpectationExtension::class));
-
         return [
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles($generatedCodeDirectory)),
             new ServiceDefinition(TemporaryDirectory::class, Scope::PerTest, static fn(): TemporaryDirectory => new TemporaryDirectory($temporaryDirectory)),
@@ -52,7 +46,6 @@ final class DefaultServices
                 Scope::PerWorker,
                 static fn(): TestChannel => new TestChannel(ChannelEnvironment::parse(\getenv('GREENLIGHT_CHANNEL')) ?? 1),
             ),
-            ...$plugins->harnessServices(),
         ];
     }
 }

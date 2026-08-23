@@ -12,12 +12,13 @@ use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\StagedAttachments;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
+use Greenlight\Execution\Plugin\PluginRuntimeError;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -62,7 +63,7 @@ final readonly class TestExecutor
     public function __construct(
         private HarnessScopes $scopes,
         private ClassContext $context,
-        private PluginRegistry $plugins,
+        private WorkerPluginRuntime $plugins,
         private ?LeakDetector $leakDetector = null,
         private ?ResultPolicy $policy = null,
         private ?ArtifactStore $artifactStore = null,
@@ -143,10 +144,7 @@ final readonly class TestExecutor
             }
 
             try {
-                $retry = \array_any(
-                    $this->plugins->retryDeciders(),
-                    fn($decider) => $decider->shouldRetry($definition->retry, $result, $attempt, $cause),
-                );
+                $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
             } catch (\Throwable $threw) {
                 $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
                 $sealed = $attachments?->seal() ?? [];
@@ -175,14 +173,7 @@ final readonly class TestExecutor
      */
     private function runTestAttempt(\Closure $attempt): mixed
     {
-        $runners = $this->plugins->testAttemptRunners();
-
-        foreach (\array_reverse($runners) as $runner) {
-            $next = $attempt;
-            $attempt = static fn(): mixed => $runner->runTestAttempt($next);
-        }
-
-        return $attempt();
+        return $this->plugins->runTestAttempt($attempt);
     }
 
     /**
@@ -223,22 +214,16 @@ final readonly class TestExecutor
             $context = new TestContext($instance, $entry->id, $definition, $this->scopes, $attachments);
             $instance = null;
 
-            foreach ($this->plugins->beforeTestSubscribers() as $subscriber) {
-                try {
-                    $subscriber->beforeTest($context);
-                } catch (SkipTest $skip) {
-                    $skipReason = $skip->reason;
-
-                    break;
-                } catch (\Throwable $threw) {
-                    $cause = WorkerError::pluginHookFailed($subscriber::class, 'beforeTest', $threw);
-                    $error = ThrowableDetail::fromThrowable($cause);
-
-                    break;
-                }
+            try {
+                $this->plugins->beforeTest($context);
+            } catch (SkipTest $skip) {
+                $skipReason = $skip->reason;
+            } catch (PluginRuntimeError $failure) {
+                $cause = $failure;
+                $error = ThrowableDetail::fromThrowable($failure);
             }
 
-            if ($skipReason === null && !$cause instanceof \RuntimeException) {
+            if ($skipReason === null && !$cause instanceof PluginRuntimeError) {
                 try {
                     foreach ($this->context->beforeHooks as $hook) {
                         $hook->invoke($context->instance);
@@ -372,80 +357,11 @@ final readonly class TestExecutor
         }
 
         if ($context instanceof TestContext) {
-            $result = $this->applyAfterSubscribers($context, $result);
+            $result = $this->plugins->afterTest($context, $result);
             $this->leakDetector?->watch($entry->id, $context->instance);
         }
 
         return [$result, $cause, $stagedAttachments];
-    }
-
-    /**
-     * Runs afterTest() subscribers. It preserves the test identity and validates
-     * each outcome change against the transformation log.
-     *
-     * A change without a new transformation-log entry has no source. This
-     * condition causes a test error that identifies the plugin.
-     *
-     * A throwable from a subscriber causes an error in a passed test and
-     * identifies the plugin. For a failed or errored test, Greenlight keeps
-     * the original outcome and error. It adds the plugin failure as a failure
-     * detail. Thus, reports show the plugin failure without loss of the
-     * original error.
-     */
-    private function applyAfterSubscribers(TestContext $context, TestResult $result): TestResult
-    {
-        foreach ($this->plugins->afterTestSubscribers() as $subscriber) {
-            try {
-                $replacement = $subscriber->afterTest($context, $result);
-            } catch (\Throwable $threw) {
-                if ($result->outcome->isSuccessful()) {
-                    $result = $result->erroredBy(
-                        ThrowableDetail::fromThrowable(WorkerError::pluginHookFailed($subscriber::class, 'afterTest', $threw)),
-                    );
-                } else {
-                    $result = $result->withFailures([
-                        ...$result->failures,
-                        new FailureDetail(\sprintf(
-                            'Plugin "%s" caused an error during afterTest(): %s',
-                            $subscriber::class,
-                            $threw->getMessage(),
-                        )),
-                    ]);
-                }
-
-                continue;
-            }
-
-            if (!$replacement->id->equals($result->id)) {
-                $result = $result->erroredBy(
-                    ThrowableDetail::fromThrowable(WorkerError::pluginChangedTestIdentity(
-                        $subscriber::class,
-                        $result->id,
-                        $replacement->id,
-                    )),
-                );
-
-                continue;
-            }
-
-            if ($replacement->outcome !== $result->outcome
-                && \count($replacement->transformations) <= \count($result->transformations)
-            ) {
-                $result = $result->erroredBy(
-                    ThrowableDetail::fromThrowable(WorkerError::pluginChangedOutcome(
-                        $subscriber::class,
-                        $result->outcome,
-                        $replacement->outcome,
-                    )),
-                );
-
-                continue;
-            }
-
-            $result = $replacement;
-        }
-
-        return $result;
     }
 
     /**

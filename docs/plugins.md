@@ -618,7 +618,8 @@ public function priority(): int;
 ```
 
 Lower numbers run earlier. The default priority is `0`. The stable sort keeps
-the registration order of plugins that have the same priority.
+the registration order of plugins that have the same priority. Greenlight
+reads the priority one time for each owner-local plugin instance.
 
 Priority applies to these capabilities:
 
