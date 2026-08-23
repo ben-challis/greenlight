@@ -249,6 +249,13 @@ Watch mode combines rapid save events. The default delay is 200 ms.
 
 Use the `watch()` configuration builder to change this delay.
 
+Add `--watch-impacted` to select previous failures and tests affected by a
+change. This mode requires a coverage include path and an available coverage
+driver.
+
+Impacted watch uses exact test IDs from per-test coverage. It runs the complete
+selected plan when the map cannot give a reliable selection.
+
 ## Configure workers
 
 Tests run in parallel worker processes by default.

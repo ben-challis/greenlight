@@ -142,6 +142,54 @@ final readonly class WatchModeTest
             ->toBe(0);
     }
 
+    #[Test]
+    public function impactedWatchSelectsCoveredTestsThenRefreshesAStaleMap(): void
+    {
+        $project = $this->writeImpactedProject();
+        $environment = [
+            'XDEBUG_MODE' => 'coverage',
+            'DD_TRACE_ENABLED' => 'false',
+            'DD_PROFILING_ENABLED' => 'false',
+            'DD_APPSEC_ENABLED' => 'false',
+            'DD_INSTRUMENTATION_TELEMETRY_ENABLED' => 'false',
+        ];
+        $process = GreenlightCli::start(
+            $project->directory,
+            ['run', '--watch', '--watch-impacted', '--reporter=plain', '--no-ansi'],
+            $environment,
+        );
+        $this->cleanup->defer($process->terminate(...));
+
+        $output = $process->readStdoutUntil('Waiting for changes', 30.0);
+        Expect::that($output)
+            ->because('impacted watch MUST start with the complete selected plan')
+            ->toContain('2 tests, 2 passed');
+
+        $project->writeFile('source/Observed.php', $this->observedSource(2));
+        $output = $process->readStdoutUntil('Waiting for changes', 30.0);
+        Expect::that($output)
+            ->because('a covered changed line MUST select only its mapped test')
+            ->toContain('Impacted watch selected 1 test.')
+            ->toContain('1 test, 1 passed');
+
+        $project->writeFile('source/Observed.php', $this->observedSource(3));
+        $output = $process->readStdoutUntil('Waiting for changes', 30.0);
+        Expect::that($output)
+            ->because('a selective rerun MUST make the old map stale')
+            ->toContain('The per-test coverage map is stale.')
+            ->toContain('2 tests, 2 passed');
+
+        $process->write("\n");
+        $output = $process->readStdoutUntil('Waiting for changes', 30.0);
+        Expect::that($output)
+            ->because('Enter MUST keep its complete rerun behavior')
+            ->toContain('2 tests, 2 passed');
+
+        $process->write('q');
+        $result = $process->wait(10.0);
+        Expect::that($result->exitCode)->toBe(0);
+    }
+
     private function writeProject(
         bool $watchCoverageSource = false,
         bool $failCleanup = false,
@@ -195,6 +243,62 @@ final readonly class WatchModeTest
         ));
 
         return $project;
+    }
+
+    private function writeImpactedProject(): AcceptanceProject
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'watch-impacted');
+        $project->writeFile('source/Observed.php', $this->observedSource(1));
+        $project->writeFile('tests/WatchImpactTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace WatchImpact;
+
+            use Greenlight\Attribute\Test;
+
+            require_once __DIR__ . '/../source/Observed.php';
+
+            final class WatchImpactTest
+            {
+                #[Test]
+                public function usesObservedSource(): void
+                {
+                    observed();
+                }
+
+                #[Test]
+                public function doesNotUseObservedSource(): void {}
+            }
+            PHP);
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\GreenlightConfig;
+
+            require_once __DIR__ . '/tests/WatchImpactTest.php';
+
+            return GreenlightConfig::create()
+                ->paths([__DIR__ . '/tests'])
+                ->workers(2)
+                ->watch(fn($watch) => $watch->debounceMilliseconds(50))
+                ->coverage(fn($coverage) => $coverage
+                    ->include(__DIR__ . '/source')
+                    ->driver('xdebug'));
+            PHP);
+
+        return $project;
+    }
+
+    private function observedSource(int $value): string
+    {
+        return \sprintf(
+            "<?php\n\ndeclare(strict_types=1);\n\nnamespace WatchImpact;\n\nfunction observed(): int\n{\n    return %d;\n}\n",
+            $value,
+        );
     }
 
     /**

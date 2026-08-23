@@ -7,10 +7,12 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\ChangeDetector;
 use Greenlight\Cli\Watch\Debouncer;
+use Greenlight\Cli\Watch\FileChange;
 use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
+use Greenlight\Cli\Watch\WatchLoopResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
@@ -75,14 +77,14 @@ final readonly class WatchTest
         // Both changes occur in the same second. Thus, a size change shows
         // that the fingerprint operates correctly.
         \file_put_contents($directory . '/A.php', '<?php // a changed');
-        Expect::that($detector->poll())->toBe([$directory . '/A.php']);
+        Expect::that($this->paths($detector->poll()))->toBe([$directory . '/A.php']);
         Expect::that($detector->poll())->toBe([]);
 
         \file_put_contents($directory . '/B.php', '<?php // b');
-        Expect::that($detector->poll())->toBe([$directory . '/B.php']);
+        Expect::that($this->paths($detector->poll()))->toBe([$directory . '/B.php']);
 
         \unlink($directory . '/A.php');
-        Expect::that($detector->poll())->toBe([$directory . '/A.php']);
+        Expect::that($this->paths($detector->poll()))->toBe([$directory . '/A.php']);
     }
 
     #[Test]
@@ -112,7 +114,7 @@ final readonly class WatchTest
 
         \file_put_contents($watchedFile, '<?php // second and larger');
 
-        Expect::that($detector->poll())
+        Expect::that($this->paths($detector->poll()))
             ->because('nested PHP files are watched')
             ->toBe([$watchedFile]);
     }
@@ -130,7 +132,7 @@ final readonly class WatchTest
 
                 return $this->polls === 1
                     ? []
-                    : ['/tmp/FirstTest.php', '/tmp/SecondTest.php'];
+                    : [FileChange::unknown('/tmp/FirstTest.php'), FileChange::unknown('/tmp/SecondTest.php')];
             }
         };
         $keys = new class implements KeyInput, Fake {
@@ -151,7 +153,7 @@ final readonly class WatchTest
             static function (string $text) use (&$output): void {
                 $output .= $text;
             },
-        )->run(static fn(array $priorityClasses): array => [], maxIterations: 2);
+        )->run(static fn(array $priorityClasses, array $changes, bool $complete, bool $mapFresh): WatchLoopResult => new WatchLoopResult([]), maxIterations: 2);
 
         $ready = "\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n";
 
@@ -204,10 +206,10 @@ final readonly class WatchTest
             static function (string $text) use ($record): void {
                 $record('ready');
             },
-        )->run(static function (array $priorityClasses) use ($record): array {
+        )->run(static function (array $priorityClasses, array $changes, bool $complete, bool $mapFresh) use ($record): WatchLoopResult {
             $record('run');
 
-            return [];
+            return new WatchLoopResult([]);
         });
 
         Expect::that($events)->toBe(['baseline', 'run', 'ready', 'key']);
@@ -244,11 +246,11 @@ final readonly class WatchTest
             new SystemWatchClock(),
             static function (string $text): void {},
             $shutdown,
-        )->run(static function (array $priorityClasses) use (&$runs, $shutdown): array {
+        )->run(static function (array $priorityClasses, array $changes, bool $complete, bool $mapFresh) use (&$runs, $shutdown): WatchLoopResult {
             ++$runs;
             $shutdown->request(15);
 
-            return [];
+            return new WatchLoopResult([]);
         });
 
         Expect::that($runs)
@@ -278,7 +280,7 @@ final readonly class WatchTest
                 ++$this->tick;
 
                 return match ($this->tick) {
-                    2, 3 => ['/tmp/file.php'],
+                    2, 3 => [FileChange::unknown('/tmp/file.php')],
                     default => [],
                 };
             }
@@ -302,10 +304,10 @@ final readonly class WatchTest
         };
 
         $runs = [];
-        $runOnce = static function (array $priorityClasses) use (&$runs): array {
+        $runOnce = static function (array $priorityClasses, array $changes, bool $complete, bool $mapFresh) use (&$runs): WatchLoopResult {
             $runs[] = $priorityClasses;
 
-            return ['App\\BrokenTest'];
+            return new WatchLoopResult(['App\\BrokenTest']);
         };
 
         $output = '';
@@ -321,5 +323,59 @@ final readonly class WatchTest
         Expect::that($runs[1])->toBe(['App\\BrokenTest']);
         Expect::that($runs[2])->toBe([]);
         Expect::that($output)->toContain('Detected changes in 1 file.');
+    }
+
+    #[Test]
+    public function changesDuringACompleteRunInvalidateItsCoverageMap(): void
+    {
+        $detector = new class implements ChangeDetector, Fake {
+            private int $polls = 0;
+
+            #[\Override]
+            public function poll(): array
+            {
+                return ++$this->polls === 2
+                    ? [new FileChange('/project/src/Subject.php', true, true, 'old', 'new')]
+                    : [];
+            }
+        };
+        $keys = new class implements KeyInput, Fake {
+            #[\Override]
+            public function poll(): ?string
+            {
+                return null;
+            }
+        };
+        $requests = [];
+
+        new WatchLoop(
+            $detector,
+            new Debouncer(0.0),
+            $keys,
+            new FakeWatchClock(),
+            static function (string $text): void {},
+            tracksStableRuns: true,
+        )->run(static function (array $priorityClasses, array $changes, bool $complete, bool $mapFresh) use (&$requests): WatchLoopResult {
+            $requests[] = [$changes, $complete, $mapFresh];
+
+            return new WatchLoopResult([], mapPublished: true);
+        }, maxIterations: 2);
+
+        Expect::that($requests)->toHaveCount(2);
+        Expect::that($requests[0][1])->toBeTrue();
+        Expect::that($requests[1][0])->toHaveCount(1);
+        Expect::that($requests[1][1])->toBeFalse();
+        Expect::that($requests[1][2])
+            ->because('a change during a complete run MUST make its coverage map stale')
+            ->toBeFalse();
+    }
+
+    /**
+     * @param list<FileChange> $changes
+     * @return list<non-empty-string>
+     */
+    private function paths(array $changes): array
+    {
+        return \array_map(static fn(FileChange $change): string => $change->path, $changes);
     }
 }

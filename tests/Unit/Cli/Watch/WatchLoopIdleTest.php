@@ -9,6 +9,7 @@ use Greenlight\Cli\Watch\ChangeDetector;
 use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\WatchLoop;
+use Greenlight\Cli\Watch\WatchLoopResult;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Cli\Watch\FakeWatchClock;
@@ -43,10 +44,10 @@ final class WatchLoopIdleTest
             $keys,
             $clock,
             static function (string $text): void {},
-        )->run(static function (array $priorityClasses) use (&$runs): array {
+        )->run(static function (array $priorityClasses, array $changes, bool $complete, bool $mapFresh) use (&$runs): WatchLoopResult {
             ++$runs;
 
-            return [];
+            return new WatchLoopResult([]);
         });
 
         Expect::that($clock->sleeps)

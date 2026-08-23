@@ -49,8 +49,29 @@ final readonly class StatChangeDetectorContentTest
         Expect::that(\filesize($source))
             ->because('the rewrite MUST preserve the file size in the original fingerprint')
             ->toBe(\strlen($original));
-        Expect::that($detector->poll())
+        $changes = $detector->poll();
+
+        Expect::that($changes)
             ->because('the content fingerprint MUST report an equal-size rewrite')
-            ->toBe([$source]);
+            ->toHaveCount(1);
+        Expect::that($changes[0]->path)->toBe($source);
+    }
+
+    #[Test]
+    public function configuredContentRootsKeepBothSidesOfAChange(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('watch-content-details');
+        $source = $directory . '/ContentProbeTest.php';
+        \file_put_contents($source, "<?php\nold\n");
+        $detector = new StatChangeDetector([$directory], [$directory]);
+        $detector->poll();
+        \file_put_contents($source, "<?php\nnew\n");
+
+        $changes = $detector->poll();
+
+        Expect::that($changes)->toHaveCount(1);
+        Expect::that($changes[0]->before)->toBe("<?php\nold\n");
+        Expect::that($changes[0]->after)->toBe("<?php\nnew\n");
+        Expect::that($changes[0]->changedLines())->toBe([2]);
     }
 }

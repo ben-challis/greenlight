@@ -845,7 +845,7 @@ explicit suite selection limits the effective test paths to selected suites.
 After a change, classes that failed in the previous watch iteration run first.
 
 Watch mode does not publish coverage totals or coverage exports.
-Per-test coverage cannot be combined with watch mode.
+Per-test coverage cannot be combined with standard watch mode.
 
 In watch mode:
 
@@ -853,6 +853,55 @@ In watch mode:
 * `q` quits with exit code 0, regardless of the last iteration result.
 
 Signals use the exit codes in the [interruption](#interruption) section.
+
+### `--watch-impacted`
+
+Use this option with `--watch`. It keeps standard watch mode unchanged when the
+option is absent.
+
+Impacted watch starts with the complete selected plan. It then runs these
+tests after a stable change batch:
+
+* exact test IDs that failed in the previous iteration
+* current selected tests from each changed test file
+* tests that covered each changed source line
+
+The selected plan still applies suites, groups, filters, exclusions, exact test
+IDs, and shards. Previous failures run first. Discovery uses the normal cache.
+
+Impacted watch requires at least one coverage include path. It also requires
+pcov or Xdebug coverage mode. Greenlight uses an internal temporary per-test
+map when no `--coverage-map` target is configured.
+
+Greenlight runs the complete selected plan for these changes:
+
+* an added, deleted, or renamed source file
+* a source edit that adds or removes lines
+* a changed line with no complete attribution
+* a deleted or renamed test file
+* the Greenlight configuration file
+* a PHP file outside the selected test and coverage roots
+* a discovery error or a stale map
+
+The complete fallback favors correctness. It also refreshes the per-test map
+after a successful run. A selective run makes the map stale, so the next
+change causes a complete run.
+
+Enter always runs the complete selected plan. A file change during a complete
+run makes its new map stale.
+
+Greenlight loads configuration once when watch mode starts. A configuration
+change causes a complete run, but the new settings require a restart.
+
+Greenlight cannot add or remove loaded test declarations in the watch process.
+Restart watch mode after a test class, method, or data set changes its identity.
+
+Impacted watch scans PHP files below the working directory. It also scans
+configured test and coverage roots outside that directory. Each stable change
+batch streams the per-test map once and keeps only relevant line records.
+
+Large projects or maps increase polling and selection time. Increase the watch
+debounce when frequent save events cause excess scans.
 
 ### `--detect-leaks`
 

@@ -113,5 +113,7 @@ converts it to Infection's PHPUnit coverage XML format.
 
 ## Watch mode
 
-Per-test coverage is not available in watch mode. CI should continue to run the
-complete suite.
+Standard watch mode does not collect per-test coverage. Impacted watch can use
+the same JSONL map, but it does not replace a complete mutation-testing run.
+
+CI should continue to run the complete mutation-testing workflow.

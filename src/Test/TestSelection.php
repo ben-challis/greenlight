@@ -26,6 +26,22 @@ final readonly class TestSelection
         return new self($this->include->withExactIds($ids), $this->exclude, $this->shard);
     }
 
+    /** @param list<non-empty-string> $ids */
+    public function withOnlyExactIds(array $ids): self
+    {
+        return new self(
+            new TestInclusions(
+                groups: $this->include->groups,
+                classes: $this->include->classes,
+                methods: $this->include->methods,
+                paths: $this->include->paths,
+                exactIds: $ids,
+            ),
+            $this->exclude,
+            $this->shard,
+        );
+    }
+
     /** @param list<non-empty-string> $paths */
     public function withExcludedPaths(array $paths): self
     {

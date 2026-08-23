@@ -103,6 +103,8 @@ final readonly class Definition
           --no-coverage      Disable configured coverage for this run.
           --watch            Run selected tests at startup and after file changes.
                              Enter reruns them. q quits with exit code 0.
+          --watch-impacted   With --watch, rerun previous failures and tests
+                             affected by changed test or covered source lines.
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
           --verbose          Print a permanent line per completed class in
                              interactive output
@@ -159,7 +161,7 @@ final readonly class Definition
             new OptionSpec('coverage-include', OptionValue::Required, repeatable: true),
             new OptionSpec('no-coverage'),
             new OptionSpec('baseline', OptionValue::Required), new OptionSpec('current', OptionValue::Required),
-            new OptionSpec('watch'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
+            new OptionSpec('watch'), new OptionSpec('watch-impacted'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
             new OptionSpec('ansi'), new OptionSpec('no-ansi'), new OptionSpec('verbose'), new OptionSpec('profile'),
             new OptionSpec('input', OptionValue::Required), new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'), new OptionSpec('version', short: 'V'),

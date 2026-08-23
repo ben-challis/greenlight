@@ -357,7 +357,7 @@ deptrac:
     CliCoverage: [CliConfiguration, CliOutput, Config, Coverage, CoverageCollection, CoverageExport, CoverageRelay, InternalFilesystem, InternalPhp, Reporting]
     CliSignal: [InternalProcess]
     CliState: [InternalFilesystem, InternalPhp]
-    CliWatch: [CliOutput, Event, InternalPhp, InternalProcess]
+    CliWatch: [CliOutput, CoverageAttribution, Discovery, DiscoveryPlan, Event, InternalPhp, InternalProcess, Test]
     CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
     CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalEvent, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting, ReportingProfile]
     CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageAttribution, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Test]
