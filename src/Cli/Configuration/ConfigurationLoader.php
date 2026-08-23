@@ -51,6 +51,7 @@ final readonly class ConfigurationLoader
             suiteTags: $overrides->suiteTags,
             seed: $overrides->seed,
             repeat: $overrides->repeat,
+            coverage: $overrides->coverage,
         ));
 
         return new LoadedConfiguration($resolved, $configFile, $overrides, self::directories($resolved, $workingDirectory));

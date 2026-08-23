@@ -130,6 +130,19 @@ final class CliError extends \RuntimeException
         return new self(\sprintf('%s requires a positive integer. Received "%s".', $flag, $raw));
     }
 
+    public static function notANonNegativeInteger(string $flag, string $raw): self
+    {
+        return new self(\sprintf('%s requires a nonnegative integer. Received "%s".', $flag, $raw));
+    }
+
+    public static function invalidCoveragePercentage(string $raw): self
+    {
+        return new self(\sprintf(
+            '--minimum-coverage requires a percentage from 0 through 100 with at most two decimal places. Received "%s".',
+            $raw,
+        ));
+    }
+
     public static function malformedResourceLimit(string $raw): self
     {
         return new self(\sprintf(

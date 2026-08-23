@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Command;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
+use Greenlight\Cli\Configuration\CoverageOverrides;
+use Greenlight\Cli\Coverage\CoverageGate;
+use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Diff\BaselineDiff;
+use Greenlight\Coverage\Diff\ProjectRootNormalizer;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Internal\Php\ErrorTrap;
 
@@ -22,10 +27,24 @@ final readonly class CoverageDiffCommand
 
     public function run(ParsedArguments $arguments, string $workingDirectory): int
     {
+        try {
+            $coverageOverrides = CoverageOverrides::fromArguments($arguments);
+        } catch (CliError $error) {
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
+
+            return 64;
+        }
+
         $baselinePath = $arguments->value('baseline');
         $currentPath = $arguments->value('current');
         if ($baselinePath === null || $currentPath === null) {
             $this->console->err("coverage:diff requires --baseline=<path> and --current=<path>.\n");
+            return 64;
+        }
+        $baselineRoot = $arguments->value('baseline-root');
+        $currentRoot = $arguments->value('current-root');
+        if (($baselineRoot === null) !== ($currentRoot === null)) {
+            $this->console->err("Use --baseline-root=<path> and --current-root=<path> together.\n");
             return 64;
         }
         $maps = [];
@@ -43,6 +62,26 @@ final readonly class CoverageDiffCommand
                 return 1;
             }
         }
+
+        if ($baselineRoot !== null && $currentRoot !== null) {
+            foreach (['baseline' => $baselineRoot, 'current' => $currentRoot] as $label => $root) {
+                try {
+                    $maps[$label] = ProjectRootNormalizer::normalize(
+                        $maps[$label],
+                        ConfigurationLoader::absolutePath($root, $workingDirectory),
+                    );
+                } catch (\InvalidArgumentException $error) {
+                    $this->console->error(\sprintf(
+                        'The %s coverage export cannot use --%s-root: %s',
+                        $label,
+                        $label,
+                        $error->getMessage(),
+                    ), $arguments->has('no-ansi'));
+
+                    return 1;
+                }
+            }
+        }
         $report = BaselineDiff::between($maps['baseline'], $maps['current']);
         $this->console->out(\sprintf("Coverage: baseline %.2f%%, current %.2f%% (%+.2f)\n", $report->baselinePercentage, $report->currentPercentage, $report->totalDelta()));
         foreach ($report->fileDeltas as $delta) {
@@ -55,10 +94,26 @@ final readonly class CoverageDiffCommand
             }
             $this->console->out($line . "\n");
         }
+
+        $gateFailures = CoverageGate::failures(
+            new CoverageConfiguration(
+                [],
+                null,
+                [],
+                $coverageOverrides->minimumPercentage,
+                $coverageOverrides->maximumUncoveredLines,
+            ),
+            $maps['current'],
+        );
+
+        foreach ($gateFailures as $failure) {
+            $this->console->err($failure . "\n");
+        }
+
         if ($report->hasRegressions()) {
             $this->console->err("Coverage regressed against the baseline.\n");
-            return 1;
         }
-        return 0;
+
+        return $report->hasRegressions() || $gateFailures !== [] ? 1 : 0;
     }
 }

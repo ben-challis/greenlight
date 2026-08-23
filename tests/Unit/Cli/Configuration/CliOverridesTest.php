@@ -111,6 +111,9 @@ final class CliOverridesTest
             'test-id' => ['App\ExampleTest::one', 'App\ExampleTest::two'],
             'artifacts-dir' => ['build/evidence'],
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
+            'minimum-coverage' => ['95.25'],
+            'maximum-uncovered-lines' => ['0'],
+            'require-coverage-driver' => [null],
         ]));
 
         Expect::that($overrides->execution->workers?->fixed)->because('extracts typed values')->toBe(4);
@@ -126,6 +129,40 @@ final class CliOverridesTest
             'payments-sandbox' => 1,
             'cache.primary_1' => 2,
         ]);
+        Expect::that($overrides->coverage->minimumPercentage)->because('extracts typed values')->toBe(95.25);
+        Expect::that($overrides->coverage->maximumUncoveredLines)->because('extracts typed values')->toBe(0);
+        Expect::that($overrides->coverage->requireDriver)->because('extracts typed values')->toBeTrue();
+    }
+
+    #[Test]
+    #[DataSet('invalidCoverageOverrides')]
+    public function rejectsInvalidCoverageOverrides(string $option, string $raw, string $message): void
+    {
+        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
+            new ParsedArguments('run', [$option => [$raw]]),
+        ))
+            ->because('coverage CLI gates MUST reject values outside their public boundaries')
+            ->toThrow(CliError::class, message: $message);
+    }
+
+    /** @return iterable<string, array{non-empty-string, string, non-empty-string}> */
+    public static function invalidCoverageOverrides(): iterable
+    {
+        yield 'percentage above 100' => [
+            'minimum-coverage',
+            '100.01',
+            '--minimum-coverage requires a percentage from 0 through 100 with at most two decimal places. Received "100.01".',
+        ];
+        yield 'percentage with excess precision' => [
+            'minimum-coverage',
+            '99.999',
+            '--minimum-coverage requires a percentage from 0 through 100 with at most two decimal places. Received "99.999".',
+        ];
+        yield 'negative uncovered lines' => [
+            'maximum-uncovered-lines',
+            '-1',
+            '--maximum-uncovered-lines requires a nonnegative integer. Received "-1".',
+        ];
     }
 
     #[Test]

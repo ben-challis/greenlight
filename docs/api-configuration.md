@@ -158,7 +158,7 @@ PHPDoc:
 - `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L37)
 
 ### `driver()`
 
@@ -171,7 +171,46 @@ PHPDoc:
 - `@param non-empty-string $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L63)
+
+### `minimumPercentage()`
+
+Sets the minimum accepted total line-coverage percentage.
+
+```php
+public function minimumPercentage(float $percentage): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L79)
+
+### `maximumUncoveredLines()`
+
+Sets the maximum accepted number of uncovered executable lines.
+
+```php
+public function maximumUncoveredLines(int $lines): self
+```
+
+PHPDoc:
+
+- `@param int<0, max> $lines`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L100)
+
+### `requireDriver()`
+
+Fails the run when the selected coverage driver is not available.
+
+```php
+public function requireDriver(bool $required = true): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L112)
 
 ### `export()`
 
@@ -185,7 +224,7 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L125)
 
 ## `GreenlightConfig`
 

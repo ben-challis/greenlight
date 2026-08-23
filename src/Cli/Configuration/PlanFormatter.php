@@ -98,6 +98,9 @@ final class PlanFormatter
 
             $lines[] = '  coverage include paths: ' . ($configuration->coverage->includePaths === [] ? '(none)' : \implode(', ', $configuration->coverage->includePaths));
             $lines[] = '  coverage driver: ' . ($configuration->coverage->driver ?? '(auto)');
+            $lines[] = '  coverage driver required: ' . ($configuration->coverage->requireDriver ? 'yes' : 'no');
+            $lines[] = '  minimum coverage: ' . ($configuration->coverage->minimumPercentage === null ? '(none)' : \sprintf('%.2f%%', $configuration->coverage->minimumPercentage));
+            $lines[] = '  maximum uncovered lines: ' . ($configuration->coverage->maximumUncoveredLines === null ? '(none)' : (string) $configuration->coverage->maximumUncoveredLines);
             $lines[] = '  coverage exports: ' . ($exports === [] ? '(none)' : \implode(', ', $exports));
         }
 

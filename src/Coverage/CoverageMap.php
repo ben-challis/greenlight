@@ -89,6 +89,11 @@ final readonly class CoverageMap
         return $total;
     }
 
+    public function uncoveredLineTotal(): int
+    {
+        return $this->executableLineTotal() - $this->coveredLineTotal();
+    }
+
     /**
      * Returns total covered lines as a percentage of executable lines.
      *
