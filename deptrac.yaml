@@ -13,6 +13,10 @@ deptrac:
       - function_superglobal
 
   layers:
+    - name: InternalEvent
+      collectors:
+        - type: directory
+          value: src/Internal/Event/.*
     - name: InternalWire
       collectors:
         - type: directory
@@ -301,6 +305,7 @@ deptrac:
           value: /^Symplify\\RuleDocGenerator\\/
 
   ruleset:
+    InternalEvent: [Event, InternalWire]
     InternalWire: []
     InternalFilesystem: [InternalPhp]
     InternalText: []
@@ -328,14 +333,14 @@ deptrac:
     CoverageIgnore: [Coverage, InternalPhp]
     CoverageRelay: [Coverage, CoverageCollection, CoverageExport, InternalPhp]
     Plugin: [Artifact, Event, Harness, IntegrationFixture, Reporting, Result, Test]
-    Reporting: [Artifact, Event, InternalPhp, InternalText, Result, Test]
+    Reporting: [Artifact, Event, InternalEvent, InternalPhp, InternalText, Result, Test]
     ReportingProfile: [Event, Reporting]
     Execution: [Artifact, Config, Coverage, Discovery, DiscoveryPlan, Event, ExecutionArtifact, ExecutionPlugin, IntegrationFixture, InternalWire, Reporting, Result, Test]
     ExecutionAdapter: [Artifact, Config, CoverageCollection, DiscoveryPlan, Event, Execution, ExecutionArtifact, ExecutionPlugin, ExecutionProcessOrchestrator, ExecutionWorker, InternalProcess, InternalWire, Plugin, Reporting, Result, Test]
     ExecutionArtifact: [Artifact, Attribute, Config, Event, InternalPhp, InternalText, InternalWire, Result, Test]
     ExecutionPlugin: [Event, Expect, Harness, IntegrationFixture, Plugin, Result, Test]
     ExecutionWorker: [Artifact, Attribute, Condition, DiscoveryPlan, Doubles, Event, ExecutionArtifact, ExecutionPlugin, Expect, Harness, IntegrationFixture, InternalPhp, InternalText, Plugin, Result, Sandbox, Test, TestDataSet]
-    ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalPhp, InternalWire, Result, Test]
+    ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalEvent, InternalPhp, InternalWire, Result, Test]
     ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
     ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, DiscoveryPlan, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, InternalText, InternalWire, Reporting, Result, Test]
     Cli: [CliCommand, CliOutput, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Reporting]
@@ -349,7 +354,7 @@ deptrac:
     CliState: [InternalFilesystem, InternalPhp]
     CliWatch: [CliOutput, Event, InternalPhp, InternalProcess]
     CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
-    CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting, ReportingProfile]
+    CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalEvent, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting, ReportingProfile]
     CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Test]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]

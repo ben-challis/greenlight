@@ -148,6 +148,10 @@ Human reporters control presentation. Each JSONL and coverage JSON format has
 a version. The worker protocol is internal. Before you change an output shape,
 read [compatibility](compatibility.md).
 
+The internal event codec owns event tags, tagged payload validation, and event
+construction. It also owns JSONL encoding and decoding. The worker protocol,
+JSONL reporter, and `profile:report` use this codec through their own seams.
+
 ## Architectural invariants
 
 - PHP 8.4 or later and zero runtime package dependencies.
@@ -161,6 +165,7 @@ read [compatibility](compatibility.md).
   test that stops its process.
 - Binary attachment content stays out of event and protocol frames.
 - Events and wire values are explicit, typed, and JSON-round-trippable.
+- One internal event codec owns all machine-event encoding and decoding.
 - Greenlight enforces the dependency rules in `deptrac.yaml`.
 
 ## Architecture references

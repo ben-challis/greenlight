@@ -52,6 +52,12 @@ final class ReportGenerationFailed extends \RuntimeException
     }
 
     /** @internal */
+    public static function eventEncodingFailed(?\Throwable $previous = null): self
+    {
+        return new self('Greenlight could not encode the event as JSON.', $previous);
+    }
+
+    /** @internal */
     public static function xmlUnavailable(): self
     {
         return new self('The XMLWriter extension is required for JUnit output. Enable ext-xmlwriter.');

@@ -32,6 +32,10 @@ The event payload.
 
 The event `toWire()` method produces this payload.
 
+One internal event codec owns the tag map, envelope validation, payload
+decoding, and event construction. The JSONL reporter and `profile:report` use
+the same codec as the worker protocol.
+
 Each line ends with `\n`.
 
 A stream can contain event sequences for multiple complete runs. Repeat modes

@@ -6,9 +6,16 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\Event;
+use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Event\EventCodec;
+use Greenlight\Internal\Event\EventCodecFailed;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\ReportGenerationFailed;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
+use Greenlight\Result\ThrowableDetail;
+use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\JsonWire;
 
 final class JsonLinesReporterTest
@@ -28,7 +35,7 @@ final class JsonLinesReporterTest
 
         Expect::that($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
 
-        $tags = JsonLinesReporter::tags();
+        $tags = EventCodec::tags();
 
         foreach ($lines as $index => $line) {
             $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
@@ -51,20 +58,15 @@ final class JsonLinesReporterTest
     }
 
     #[Test]
-    public function linesRoundTripBackToEventsThroughTheTagMapping(): void
+    public function linesRoundTripBackToEventsThroughTheCodec(): void
     {
         $output = new BufferOutput();
         CannedStream::feed(new JsonLinesReporter($output));
 
-        $classesByTag = JsonLinesReporter::tags();
         $events = CannedStream::events();
 
         foreach (\explode("\n", \rtrim($output->buffer(), "\n")) as $index => $line) {
-            /** @var array{v: int, event: string, data: array<string, mixed>} $decoded */
-            $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
-
-            $class = $classesByTag[$decoded['event']];
-            $restored = $class::fromWire($decoded['data']);
+            $restored = EventCodec::decodeJsonLine($line);
 
             Expect::that($restored::class)->toBe($events[$index]::class);
             Expect::that($restored->occurredAt)->toBe($events[$index]->occurredAt);
@@ -102,5 +104,55 @@ final class JsonLinesReporterTest
                     $event::class,
                 ),
             );
+    }
+
+    #[Test]
+    public function aJsonEncodingFailureRemainsAReportGenerationFailure(): void
+    {
+        $resource = \fopen('php://memory', 'r');
+
+        if ($resource === false) {
+            throw new \RuntimeException('The test could not open a memory stream.');
+        }
+
+        $event = new TestFinished(new TestResult(
+            new TestId(self::class, __FUNCTION__),
+            Outcome::Errored,
+            0.0,
+            0,
+            error: $this->unencodableThrowableDetail($resource),
+        ), 1.0);
+        $reporter = new JsonLinesReporter(new BufferOutput());
+
+        try {
+            Expect::that(static fn() => $reporter->onEvent($event))
+                ->toThrow(static function (ReportGenerationFailed $failure): void {
+                    Expect::that($failure->getMessage())
+                        ->toBe('Greenlight could not encode the event as JSON.');
+                    Expect::that($failure->getPrevious())
+                        ->toBeInstanceOf(EventCodecFailed::class);
+                });
+        } finally {
+            \fclose($resource);
+        }
+    }
+
+    /** @param resource $resource */
+    private function unencodableThrowableDetail(mixed $resource): ThrowableDetail
+    {
+        $reflection = new \ReflectionClass(ThrowableDetail::class);
+        $detail = $reflection->newInstanceWithoutConstructor();
+
+        foreach ([
+            'class' => \RuntimeException::class,
+            'message' => 'Failed.',
+            'file' => __FILE__,
+            'line' => __LINE__,
+            'stackFrames' => [$resource],
+        ] as $property => $value) {
+            $reflection->getProperty($property)->setValue($detail, $value);
+        }
+
+        return $detail;
     }
 }

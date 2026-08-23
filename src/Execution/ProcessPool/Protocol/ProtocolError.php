@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\ProcessPool\Protocol;
 
+use Greenlight\Internal\Event\EventCodecFailed;
+use Greenlight\Internal\Event\EventCodecFailureKind;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
@@ -58,6 +60,20 @@ final class ProtocolError extends WireCommunicationFailed
     public static function unknownEvent(string $tag): self
     {
         return new self(\sprintf('Unknown event type "%s".', $tag));
+    }
+
+    public static function eventCodecFailed(EventCodecFailed $failure): self
+    {
+        return match ($failure->kind) {
+            EventCodecFailureKind::UnmappedEvent,
+            EventCodecFailureKind::UnknownEvent => self::unknownEvent($failure->eventIdentifier ?? 'unknown'),
+            EventCodecFailureKind::MalformedTaggedPayload,
+            EventCodecFailureKind::MalformedJson,
+            EventCodecFailureKind::MalformedJsonEnvelope,
+            EventCodecFailureKind::UnsupportedJsonVersion,
+            EventCodecFailureKind::InvalidEventPayload,
+            EventCodecFailureKind::JsonEncodingFailed => new self($failure->getMessage(), $failure),
+        };
     }
 
     public static function duplicateBootstrap(): self

@@ -13,7 +13,6 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Event\EventTags;
 use Greenlight\Event\TestFinished;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\ProcessPool\Protocol\JsonFrameCodec;
@@ -31,6 +30,7 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationResources;
+use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Diagnostic;
 use Greenlight\Result\DiagnosticSeverity;
@@ -80,19 +80,16 @@ final class WorkerProtocolSchemaTest
         $events = [];
 
         foreach (CannedStream::events() as $event) {
-            $tag = EventTags::tagFor($event);
-
-            if ($tag !== null) {
-                $events[$tag] = $event;
-            }
+            $tagged = EventCodec::toTagged($event);
+            $events[$tagged['event']] = $event;
         }
 
         Expect::that(\array_keys($events))
             ->because('each registered event MUST have a schema test value')
-            ->toEqualCanonicalizing(\array_keys(EventTags::all()));
+            ->toEqualCanonicalizing(\array_keys(EventCodec::tags()));
         Expect::that($this->eventSchemaTags())
             ->because('each registered event MUST have an explicit worker protocol schema')
-            ->toBe(\array_keys(EventTags::all()));
+            ->toBe(\array_keys(EventCodec::tags()));
 
         foreach ($events as $tag => $event) {
             Expect::that($this->validationErrors($this->encodedEnvelope(new EventEnvelope($event))))
