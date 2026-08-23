@@ -26,12 +26,20 @@ final class PlanFormatter
         $lines = [];
         $lines[] = 'Run plan';
         $lines[] = '  configuration file: ' . $configFile;
-        $lines[] = '  test paths: ' . \implode(', ', $configuration->discovery->paths);
+        $suiteSelection = $configuration->suiteSelection;
+        $lines[] = '  test paths: ' . ($suiteSelection->explicit
+            ? '(excluded by suite selection)'
+            : \implode(', ', $configuration->discovery->paths));
 
-        if ($configuration->discovery->suites === []) {
+        if ($suiteSelection->explicit) {
+            $lines[] = '  suite names: ' . ($suiteSelection->names === [] ? '(none)' : \implode(', ', $suiteSelection->names));
+            $lines[] = '  suite tags: ' . ($suiteSelection->tags === [] ? '(none)' : \implode(', ', $suiteSelection->tags));
+        }
+
+        if ($suiteSelection->suites === []) {
             $lines[] = '  suites: (none)';
         } else {
-            foreach ($configuration->discovery->suites as $suite) {
+            foreach ($suiteSelection->suites as $suite) {
                 $tags = $suite->tags === [] ? '' : ' [tags: ' . \implode(', ', $suite->tags) . ']';
                 $lines[] = \sprintf('  suite %s: %s%s', $suite->name, \implode(', ', $suite->paths), $tags);
             }
@@ -69,7 +77,11 @@ final class PlanFormatter
 
         $lines[] = '  plugins: ' . ($plugins === [] ? '(none)' : \implode(', ', $plugins));
         $lines[] = '  artifacts: ' . $configuration->execution->artifacts->directory;
-        $storage = StorageLayout::resolve($configuration->storage, $workingDirectory);
+        $storage = StorageLayout::resolve(
+            $configuration->storage,
+            $workingDirectory,
+            $suiteSelection->stateIdentity(),
+        );
         $lines[] = '  storage state: ' . $storage->runStateFile;
         $lines[] = '  storage cache: ' . $storage->cacheDirectory;
         $lines[] = '  storage generated code: ' . $storage->generatedCodeDirectory;

@@ -19,8 +19,12 @@ final readonly class StorageLayout
         public string $temporaryDirectory,
     ) {}
 
-    public static function resolve(StorageConfiguration $configuration, string $workingDirectory): self
-    {
+    /** @param non-empty-string|null $stateIdentity */
+    public static function resolve(
+        StorageConfiguration $configuration,
+        string $workingDirectory,
+        ?string $stateIdentity = null,
+    ): self {
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
         $root = self::configured($configuration->rootDirectory, $workingDirectory);
         $state = self::area($configuration->stateDirectory, $root, 'state', $workingDirectory);
@@ -33,11 +37,13 @@ final readonly class StorageLayout
         );
         $runtime = self::area($configuration->temporaryDirectory, $root, 'temporary', $workingDirectory);
         $projectKey = \substr(\sha1($workingDirectory), 0, 12);
+        $stateFile = $stateIdentity === null ? 'run-state.json' : 'run-state-' . $stateIdentity . '.json';
+        $temporaryStateSuffix = $stateIdentity === null ? '' : '-' . $stateIdentity;
 
         return new self(
             $state === null
-                ? \sprintf('%s/greenlight-state-%s.json', $temporary, $projectKey)
-                : $state . '/run-state.json',
+                ? \sprintf('%s/greenlight-state-%s%s.json', $temporary, $projectKey, $temporaryStateSuffix)
+                : $state . '/' . $stateFile,
             $cache ?? $temporary,
             $generatedCode ?? \sprintf('%s/greenlight-proxies-%s', $temporary, $projectKey),
             $runtime ?? $temporary,
